@@ -1,139 +1,286 @@
-	<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.springframework.datastore</groupId>
-	<artifactId>datastore-keyvalue</artifactId>
-	<name>Spring Datastore Key Value</name>
-	<packaging>jar</packaging>
-	<version>1.0.0.CI-SNAPSHOT</version>
+	<groupId>org.springframework.data	</groupId>
+	<artifactId>spring-datastore-keyvalue-dist</artifactId>
+	<name>Spring Datastore Key-Value Distribution</name>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<modules>
+		<module>spring-datastore-keyvalue-parent</module>
+		<module>spring-datastore-keyvalue-core</module>
+		<module>spring-datastore-redis</module>
+	</modules>
+
+	<developers>
+		<developer>
+			<id>trisberg</id>
+			<name>Mark Pollack</name>
+			<email>mpollack at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.SpringSource.com</organizationUrl>
+			<roles>
+				<role>Project Admin</role>
+				<role>Developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>
+			Copyright 2010 the original author or authors.
+			 
+			Licensed under the Apache License, Version 2.0 (the "License");
+			you may not use this file except in compliance with the License.
+			You may obtain a copy of the License at
+			
+			     http://www.apache.org/licenses/LICENSE-2.0
+			
+			Unless required by applicable law or agreed to in writing, software
+			distributed under the License is distributed on an "AS IS" BASIS,
+			WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+			implied.
+			See the License for the specific language governing permissions and
+			limitations under the License.
+			</comments>
+		</license>
+	</licenses>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>3.0.0.RELEASE</spring.version>
-		<slf4j.version>1.6.0</slf4j.version>
+		<!-- dist.* properties are used by the antrun tasks below -->
+		<dist.id>spring-datastore-keyvalue</dist.id>
+		<dist.name>Spring Datastore Key-Value</dist.name>
+		<dist.key>DATADOC</dist.key>
+		<dist.version>${project.version}</dist.version>
+		<dist.releaseType>snapshot</dist.releaseType>
+		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
+		<dist.fileName>${dist.finalName}.zip</dist.fileName>
+		<dist.filePath>target/${dist.fileName}</dist.filePath>
+		<dist.bucketName>dist.springframework.org</dist.bucketName>
+		<!-- these properties should be in ~/.m2/settings.xml
+		<dist.accessKey>s3 access key</dist.accessKey>
+		<dist.secretKey>s3 secret key</dist.secretKey>
+		-->
 	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<!-- Exclusions only required for version 1.2.15 of log4j -->
-			<exclusions>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-
-		<!-- Redis dependencies -->
-		<dependency>
-			<groupId>org.jredis</groupId>
-			<artifactId>jredis-core-all</artifactId>
-			<version>a.0-SNAPSHOT</version>
-		</dependency>
-
-		<!-- Spring dependencies -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>${spring.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aspects</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>data-commons</artifactId>
-			<version>1.0.0.CI-SNAPSHOT</version>
-		</dependency>
-
-	</dependencies>
-
+	<profiles>
+		<profile>
+			<id>staging</id>
+			<distributionManagement>
+				<site>
+					<id>spring-site-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/docs/${project.version}</url>
+				</site>
+				<repository>
+					<id>spring-milestone-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/milestone</url>
+				</repository>
+				<snapshotRepository>
+					<id>spring-snapshot-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/snapshot</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+	</profiles>
+	<distributionManagement>
+		<!-- see 'staging' profile for dry-run deployment settings -->
+		<downloadUrl>http://www.springsource.com/download/community</downloadUrl>
+		<site>
+			<id>spring-site</id>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/docs/${project.version}</url>
+		</site>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Milestone Repository</name>
+			<url>s3://maven.springframework.org/milestone</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>s3://maven.springframework.org/snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<build>
+		<extensions>
+			<extension>
+				<!-- available only in the springframework maven repository. see <repositories> section below -->
+				<groupId>org.springframework.build.aws</groupId>
+				<artifactId>org.springframework.build.aws.maven</artifactId>
+				<version>3.0.0.RELEASE</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.0.2</version>
+				<groupId>com.agilejava.docbkx</groupId>
+				<artifactId>docbkx-maven-plugin</artifactId>
+				<version>2.0.6</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate-html</goal>
+							<goal>generate-pdf</goal>
+						</goals>
+						<phase>package</phase>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.docbook</groupId>
+						<artifactId>docbook-xml</artifactId>
+						<version>4.4</version>
+						<scope>runtime</scope>
+					</dependency>
+				</dependencies>
 				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
+					<includes>index.xml</includes>
+					<xincludeSupported>true</xincludeSupported>
+					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+					<!-- original spring-build fopdf xsl
+					<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization> -->
+					<htmlStylesheet>css/html.css</htmlStylesheet>
+					<!-- produce single-page html output -->
+					<chunkedOutput>false</chunkedOutput>
+					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+					<!-- produce multi-page html output
+					<chunkedOutput>false</chunkedOutput>
+					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization> -->
+					<entities>
+						<entity>
+							<name>version</name>
+							<value>${pom.version}</value>
+						</entity>
+					</entities>
+					<postProcess>
+						<copy todir="${project.basedir}/target/site/reference">
+							<fileset dir="${project.basedir}/target/docbkx">
+								<include name="**/*.html" />
+								<include name="**/*.pdf" />
+							</fileset>
+						</copy>
+						<copy todir="${project.basedir}/target/site/reference/html">
+							<fileset dir="${project.basedir}/src/docbkx/resources">
+								<include name="**/*.css" />
+								<include name="**/*.png" />
+								<include name="**/*.gif" />
+								<include name="**/*.jpg" />
+							</fileset>
+						</copy>
+						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
+							tofile="${project.basedir}/target/site/reference/pdf/spring-datastore-keyvalue-reference.pdf"
+							failonerror="false" />
+					</postProcess>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.5</version>
+				<executions>
+					<execution>
+						<id>aggregate</id>
+						<goals>
+							<goal>aggregate</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<javadoc:aggregate>true</javadoc:aggregate>
+							<breakiterator>true</breakiterator>
+							<header>Spring Datastore Key-Value</header>
+							<source>1.5</source>
+							<quiet>true</quiet>
+							<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
+							<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+							<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+							<!-- copies doc-files subdirectory which contains image resources -->
+							<docfilessubdirs>true</docfilessubdirs>
+							<links>
+								<link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
+								<link>http://java.sun.com/javase/6/docs/api</link>
+							</links>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin><!--
+				run `mvn package assembly:assembly` to trigger assembly creation.
+				see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-5</version>
+				<inherited>false</inherited>
+				<executions>
+					<execution>
+						<id>distribution</id>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
+							</descriptors>
+							<appendAssemblyId>false</appendAssemblyId>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>upload-dist</id>
+						<phase>deploy</phase>
+						<configuration>
+							<tasks>
+								<ant antfile="${basedir}/src/ant/upload-dist.xml">
+									<target name="upload-dist"/>
+								</ant>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.springframework.build</groupId>
+						<artifactId>org.springframework.build.aws.ant</artifactId>
+						<version>3.0.5.RELEASE</version>
+					</dependency>
+					<dependency>
+						<groupId>net.java.dev.jets3t</groupId>
+						<artifactId>jets3t</artifactId>
+						<version>0.7.2</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
+		<!-- the name of this project is 'spring-amqp-dist';
+			 make sure the zip file is just 'spring-amqp'. -->
+		<finalName>${dist.finalName}</finalName>
 	</build>
-
+	<repositories>
+		<repository>
+			<id>repository.springframework.maven.release</id>
+			<name>Spring Framework Maven Release Repository</name>
+			<url>http://maven.springframework.org/release</url>
+		</repository>
+		<repository>
+			<id>repository.springframework.maven.milestone</id>
+			<name>Spring Framework Maven Milestone Repository</name>
+			<url>http://maven.springframework.org/milestone</url>
+		</repository>
+		<repository>
+			<!-- necessary for org.springframework.build.aws.maven dependency -->
+			<id>repository.source.maven.release</id>
+			<name>SpringSource Maven Release Repository</name>
+			<url>http://repository.springsource.com/maven/bundles/release</url>
+		</repository>
+	</repositories>
 </project>

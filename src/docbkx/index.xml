@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+        "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<book xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <bookinfo>
+        <title>Spring Datastore Key-Value - Reference Documentation</title>
+        <releaseinfo>&version;</releaseinfo>
+
+        <authorgroup>
+            <author>
+                <firstname>Mark</firstname>
+                <surname>Pollack</surname>
+            </author>
+            <author>
+                <firstname>Thomas</firstname>
+                <surname>Risberg</surname>
+            </author>
+        </authorgroup>
+
+        <legalnotice>
+            <para>
+                Copies of this document may be made for your own use and for distribution
+                to others, provided that you do not charge any fee for such copies and
+                further provided that each copy contains this Copyright Notice, whether
+                distributed in print or electronically.
+            </para>
+        </legalnotice>
+    </bookinfo>
+
+    <toc/>
+
+    <xi:include href="preface.xml"/>
+
+    <part>
+        <title>Reference</title>
+        <partintro>
+            <para>
+                This part of the reference documentation details the ...
+            </para>
+        </partintro>
+        <!-- <xi:include href="redis.xml"/> -->
+    </part>
+</book>

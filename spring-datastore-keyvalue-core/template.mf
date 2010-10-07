@@ -1,0 +1,19 @@
+Bundle-SymbolicName: org.springframework.datastore.keyvalue
+Bundle-Name: Spring Datastore Key-Value
+Bundle-Vendor: SpringSource
+Bundle-ManifestVersion: 2
+Import-Package: 
+ sun.reflect;version="0";resolution:=optional
+Import-Template: 
+ org.springframework.beans.*;version="[3.0.0, 4.0.0)",
+ org.springframework.core.*;version="[3.0.0, 4.0.0)",
+ org.springframework.dao.*;version="[3.0.0, 4.0.0)",
+ org.springframework.util.*;version="[3.0.0, 4.0.0)",
+ org.springframework.data.core.*;version="[1.0.0, 2.0.0)",
+ org.springframework.datastore.core.*;version="[1.0.0, 2.0.0)",
+ org.springframework.datastore.persistence.*;version="[1.0.0, 2.0.0)",
+ org.aopalliance.*;version="[1.0.0, 2.0.0)";resolution:=optional,
+ org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
+ org.w3c.dom.*;version="0"
+
+

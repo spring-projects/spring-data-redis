@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<preface id="preface">
+  <title>Preface</title>
+
+  <para>The Spring Datastore Document project applies core Spring concepts to the development of solutions using a key-value style data store. 
+	We provide a "template" as a high-level abstraction for sending and receiving messages. 
+	You will notice similarities to the JDBC support in the Spring Framework. 
+	</para>
+</preface>

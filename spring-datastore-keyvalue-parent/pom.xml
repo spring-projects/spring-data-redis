@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-datastore-keyvalue-parent</artifactId>
+	<name>Spring Datastore Key-Value Parent</name>
+	<url>http://www.springsource.org/spring-data/datastore-keyvalue</url>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- versions for commonly-used dependencies -->
+		<junit.version>4.8.1</junit.version>
+		<log4j.version>1.2.15</log4j.version>
+		<org.mockito.version>1.8.4</org.mockito.version>
+		<org.slf4j.version>1.5.10</org.slf4j.version>
+		<org.springframework.version>3.0.4.RELEASE</org.springframework.version>
+	</properties>
+	<profiles>
+		<profile>
+			<id>strict</id>
+			<properties>
+				<maven.test.failure.ignore>false</maven.test.failure.ignore>
+			</properties>
+		</profile>
+		<profile>
+			<id>fast</id>
+			<properties>
+				<maven.test.skip>true</maven.test.skip>
+				<maven.javadoc.skip>true</maven.javadoc.skip>
+			</properties>
+		</profile>
+		<profile>
+			<id>staging</id>
+			<distributionManagement>
+				<site>
+					<id>spring-site-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/docs</url>
+				</site>
+				<repository>
+					<id>spring-milestone-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/milestone</url>
+				</repository>
+				<snapshotRepository>
+					<id>spring-snapshot-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/snapshot</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>bootstrap</id>
+			<!-- TODO: move the repositories in here before release -->
+		</profile>
+	</profiles>
+	<distributionManagement>
+		<!-- see 'staging' profile for dry-run deployment settings -->
+		<downloadUrl>http://www.springsource.com/download/community
+		</downloadUrl>
+		<site>
+			<id>spring-docs</id>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/docs/${project.version}
+			</url>
+		</site>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Milestone Repository</name>
+			<url>s3://maven.springframework.org/milestone</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>s3://maven.springframework.org/snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<dependencyManagement>
+		<!--
+			inheritable <dependency> declarations for child poms. children still
+			must explicitly declare the groupId/artifactId of these dependencies
+			in order for them to show up on the classpath, but metadata like
+			<version> and <scope> are inherited, which cuts down on verbosity.
+			see
+			http://www.sonatype.com/books/mvnref-book/reference/pom-relationships-sect-dep-manage.html
+		-->
+		<dependencies>
+
+			<!--  Spring -->
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aop</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-beans</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${org.springframework.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-tx</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
+				<version>${org.springframework.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!--  Spring Data -->
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-datastore-keyvalue-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-datastore-redis</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<!-- Logging -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${org.slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>${org.slf4j.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${org.slf4j.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>${log4j.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>javax.mail</groupId>
+						<artifactId>mail</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>javax.jms</groupId>
+						<artifactId>jms</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.sun.jdmk</groupId>
+						<artifactId>jmxtools</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.sun.jmx</groupId>
+						<artifactId>jmxri</artifactId>
+					</exclusion>
+				</exclusions>
+				<scope>runtime</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>javax.annotation</groupId>
+				<artifactId>jsr250-api</artifactId>
+				<version>1.0</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-all</artifactId>
+				<version>${org.mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+	<dependencies>
+		<!--
+			dependency definitions to be inherited by child poms. any
+			<dependency> declarations here will automatically show up on child
+			project classpaths. only items that are truly common across all
+			projects (modules and samples) should go here. otherwise, consider
+			<dependencyManagement> above
+		-->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<extensions>
+			<extension>
+				<!--
+					available only in the springframework maven repository. see
+					<repositories> section below
+				-->
+				<groupId>org.springframework.build.aws</groupId>
+				<artifactId>org.springframework.build.aws.maven</artifactId>
+				<version>3.0.0.RELEASE</version>
+			</extension>
+		</extensions>
+		<resources>
+			<resource>
+				<directory>${project.basedir}/src/main/java</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>${project.basedir}/src/test/java</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+			<testResource>
+				<directory>${project.basedir}/src/test/resources</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>false</showDeprecation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<useFile>false</useFile>
+					<includes>
+						<include>**/*Tests.java</include>
+					</includes>
+					<excludes>
+						<exclude>**/Abstract*.java</exclude>
+						<exclude>**/*IntegrationTests.java</exclude>
+					</excludes>
+					<junitArtifactName>junit:junit</junitArtifactName>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!--
+						configures the springsource bundlor plugin, which generates
+						OSGI-compatible MANIFEST.MF files during the 'compile' phase of
+						the maven build. this plugin is declared within the
+						pluginManagement section because not every module that inherits
+						from this pom needs bundlor's services, e.g.:
+						spring-integration-samples and all its children. for this reason,
+						all modules that wish to use bundlor must declare it explicitly.
+						it is not necessary to specify the <version> or <configuration>
+						sections, but groupId and artifactId are required. see
+						http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
+						for more info
+					-->
+					<groupId>com.springsource.bundlor</groupId>
+					<artifactId>com.springsource.bundlor.maven</artifactId>
+					<version>1.0.0.RELEASE</version>
+					<configuration>
+						<failOnWarnings>true</failOnWarnings>
+					</configuration>
+					<executions>
+						<execution>
+							<id>bundlor</id>
+							<goals>
+								<goal>bundlor</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<pluginRepositories>
+		<pluginRepository>
+			<!-- necessary for bundlor and utils -->
+			<id>repository.plugin.springsource.release</id>
+			<name>SpringSource Maven Repository</name>
+			<url>http://repository.springsource.com/maven/bundles/release</url>
+		</pluginRepository>
+	</pluginRepositories>
+	<repositories>
+		<repository>
+			<id>repository.springframework.maven.release</id>
+			<name>Spring Framework Maven Release Repository</name>
+			<url>http://maven.springframework.org/release</url>
+		</repository>
+		<repository>
+			<id>repository.springframework.maven.milestone</id>
+			<name>Spring Framework Maven Milestone Repository</name>
+			<url>http://maven.springframework.org/milestone</url>
+		</repository>
+		<repository>
+			<id>repository.springframework.maven.snapshot</id>
+			<name>Spring Framework Maven Snapshot Repository</name>
+			<url>http://maven.springframework.org/snapshot</url>
+		</repository>
+	</repositories>
+	<reporting>
+		<plugins>
+			<plugin>
+				<!--
+					significantly speeds up the 'Dependencies' report during site
+					creation see
+					http://old.nabble.com/Skipping-dependency-report-during-Maven2-site-generation-td20116761.html
+				-->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>
