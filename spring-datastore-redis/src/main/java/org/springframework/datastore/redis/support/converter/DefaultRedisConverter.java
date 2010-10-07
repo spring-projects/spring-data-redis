@@ -15,10 +15,9 @@
  */
 package org.springframework.datastore.redis.support.converter;
 
-import org.springframework.commons.serializer.DefaultDeserializer;
-import org.springframework.commons.serializer.DefaultSerializer;
 import org.springframework.commons.serializer.DeserializingConverter;
 import org.springframework.commons.serializer.SerializingConverter;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 
 /**
  * Implementation using Java Serialization
@@ -28,8 +27,8 @@ import org.springframework.commons.serializer.SerializingConverter;
  */
 public class DefaultRedisConverter implements RedisConverter {
 
-	private DeserializingConverter fromBytes = new DeserializingConverter(new DefaultDeserializer());
-	private SerializingConverter toBytes = new SerializingConverter(new DefaultSerializer());
+	private DeserializingConverter fromBytes = new DeserializingConverter(new JavaStreamingConverter());
+	private SerializingConverter toBytes = new SerializingConverter(new JavaStreamingConverter());
 	
 	public Object deserialize(byte[] bytes) {
 		return fromBytes.convert(bytes);
