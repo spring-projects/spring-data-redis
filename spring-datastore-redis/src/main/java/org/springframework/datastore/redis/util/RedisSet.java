@@ -15,7 +15,7 @@ public class RedisSet extends AbstractRedisCollection implements Set {
     public RedisSet(RedisTemplate redisTemplate, String redisKey) {
         super(redisTemplate, redisKey);
     }
-
+    
     public int size() {
         return redisTemplate.getSetOperations().size(redisKey);
     }
@@ -58,11 +58,29 @@ public class RedisSet extends AbstractRedisCollection implements Set {
         return redisTemplate.getSetOperations().removeRandom(redisKey);
     }
     
-	
-	void intersection(RedisSet... redisSets) {
+	/*
+	public intersection(RedisSet... redisSets) {
 		//storeIntersectionOfSets..
+		return null;
+	}
+	*/
+	
+	public RedisSet intersection(String newKey, RedisSet... redisSets) {
+		String[] keys = new String[redisSets.length]; 
+		int i = 0;
+		for (RedisSet redisSet : redisSets) {
+			keys[i] = redisSet.getRedisKey();
+			i++;
+		}
+		redisTemplate.getSetOperations().storeIntersectionOfSets(newKey, keys);
+		
+		RedisSet resultSet = new RedisSet(redisTemplate, newKey);	
+		Set<String> results = redisTemplate.getSetOperations().getAll(newKey);
+		resultSet.addAll(results);
+		return resultSet;
 	}
 	
+
 	void union(RedisSet... redisSets) {
 		//storeUnionOfSets
 	}

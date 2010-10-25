@@ -16,21 +16,52 @@
 
 package org.springframework.datastore.redis.core.jedis;
 
+import java.util.Set;
+
 import org.junit.Before;
+import org.junit.Test;
 import org.springframework.datastore.redis.core.AbstractClientIntegrationTests;
 import org.springframework.datastore.redis.core.RedisClientFactory;
+import org.springframework.datastore.redis.core.RedisTemplate;
+import org.springframework.datastore.redis.util.RedisSet;
 
 public class JedisRedisClientIntegrationTests extends
 		AbstractClientIntegrationTests {
 
+	RedisClientFactory clientFactory;
 	@Before
 	public void setUp() {
-		RedisClientFactory clientFactory = new JedisClientFactory();
+		clientFactory = new JedisClientFactory();
 		clientFactory.setPassword("foobared");
 		client = clientFactory.createClient();
 		client.flushAll();
 	}
 
-
+	@Test
+	public void setAdd() {
+		client.sadd("s1", "1");
+		client.sadd("s1", "2");
+		client.sadd("s1", "3");
+		client.sadd("s2", "2");
+		client.sadd("s2", "3");
+		Set<String> intersection = client.sinter("s1", "s2");
+		System.out.println(intersection);
+		
+		
+	}
+	
+	@Test
+	public void setIntersectionTests() {
+		RedisTemplate template = new RedisTemplate(clientFactory);
+		RedisSet s1 = new RedisSet(template, "s1");
+		s1.add("1"); s1.add("2"); s1.add("3");		
+		RedisSet s2 = new RedisSet(template, "s2");
+		s2.add("2"); s2.add("3");
+		Set s3 = s1.intersection("s3", s1, s2);		
+		for (Object object : s3) {
+			System.out.println(object);
+		}
+		
+	}
 
 }

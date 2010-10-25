@@ -1,5 +1,7 @@
 package org.springframework.datastore.redis.util;
 
+import java.util.Set;
+
 import org.springframework.datastore.redis.core.RedisTemplate;
 
 public class Sets {

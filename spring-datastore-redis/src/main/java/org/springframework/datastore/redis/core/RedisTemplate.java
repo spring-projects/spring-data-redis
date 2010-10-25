@@ -281,8 +281,7 @@ public class RedisTemplate extends RedisAccessor implements RedisOperations {
 	}
 	
 	public SetOperations getSetOperations() {
-		// TODO Auto-generated method stub
-		return null;
+		return new DefaultSetOperations(this);
 	}
 
 

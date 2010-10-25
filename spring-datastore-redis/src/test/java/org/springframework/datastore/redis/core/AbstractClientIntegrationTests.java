@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -102,4 +103,6 @@ public abstract class AbstractClientIntegrationTests {
 		Person p = new Person("Joe", "Trader", 33);
 		
 	}
+	
+
 }
