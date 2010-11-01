@@ -27,6 +27,7 @@ import org.springframework.datastore.redis.core.jredis.JRedisPersistenceExceptio
 import org.springframework.datastore.redis.support.RedisPersistenceExceptionTranslator;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisShardInfo;
 import redis.clients.util.ShardInfo;
 
 /**
@@ -38,7 +39,7 @@ import redis.clients.util.ShardInfo;
  */
 public class JedisClientFactory extends AbstractRedisClientFactory {
 
-	private ShardInfo shardInfo;
+	private JedisShardInfo shardInfo;
 	
 	private int timeout;
 	
@@ -65,11 +66,11 @@ public class JedisClientFactory extends AbstractRedisClientFactory {
 		setTimeout(timeout);
 	}
 	
-	public JedisClientFactory(ShardInfo shardInfo) {
+	public JedisClientFactory(JedisShardInfo shardInfo) {
 		this.shardInfo = shardInfo;
 	}
 	
-	protected ShardInfo getShardInfo() {
+	protected JedisShardInfo getShardInfo() {
 		return this.shardInfo;
 	}
 	
@@ -83,7 +84,7 @@ public class JedisClientFactory extends AbstractRedisClientFactory {
 	
 	@Override
 	public RedisClient doGetClient() {
-		Jedis jedis;
+		Jedis jedis;		
 		if (getShardInfo() != null) {
 			jedis = new Jedis(getShardInfo());
 		}
