@@ -105,10 +105,17 @@
 	    <dependency>
 	      <groupId>org.jredis</groupId>
 	      <artifactId>jredis-core-ri</artifactId>
-	      <version>a.0-SNAPSHOT</version>
+	      <version>a.0-20100921.190006-1</version>
 	      <scope>compile</scope>
+	      <exclusions>
+		    <exclusion>
+		      <groupId>org.jredis</groupId>
+		      <artifactId>jredis</artifactId>
+		    </exclusion>
+		  </exclusions>	      
 	    </dependency>
 	    
+	  
 	    <dependency>
 	      <groupId>org.springframework.commons</groupId>
     	  <artifactId>spring-commons-serializer</artifactId>
