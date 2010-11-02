@@ -19,8 +19,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.redis.support.RedisPersistenceExceptionTranslator;
 
-public class JRedisPersistenceExceptionTranslator implements
-		RedisPersistenceExceptionTranslator {
+public class JRedisPersistenceExceptionTranslator implements RedisPersistenceExceptionTranslator {
 
 	public DataAccessException translateException(Exception ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);

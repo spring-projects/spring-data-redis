@@ -27,7 +27,6 @@ import org.springframework.dao.DataAccessException;
  */
 public interface RedisPersistenceExceptionTranslator {
 
-	
 	//NOTE some client libraries throw checked exceptions.
 	DataAccessException translateException(Exception ex);
 }

@@ -23,8 +23,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
  * 
  * @author Mark Pollack
  */
-public class CannotGetRedisConnectionException extends
-		DataAccessResourceFailureException {
+public class CannotGetRedisConnectionException extends DataAccessResourceFailureException {
 
 	public CannotGetRedisConnectionException(String msg) {
 		super(msg);
@@ -33,5 +32,4 @@ public class CannotGetRedisConnectionException extends
 	public CannotGetRedisConnectionException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
-
 }
