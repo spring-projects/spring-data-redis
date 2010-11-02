@@ -221,7 +221,7 @@
 				-->
 				<groupId>org.springframework.build.aws</groupId>
 				<artifactId>org.springframework.build.aws.maven</artifactId>
-				<version>3.0.0.RELEASE</version>
+				<version>2.0.0.RELEASE</version>
 			</extension>
 		</extensions>
 		<resources>
@@ -358,7 +358,15 @@
 			<name>Spring Framework Maven Snapshot Repository</name>
 			<url>http://maven.springframework.org/snapshot</url>
 		</repository>
+    <repository>
+        <id>spring-ext</id>
+        <name>Spring External Dependencies Repository</name>
+        <url>
+        http://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo-ext/
+        </url>
+    </repository>		
 	</repositories>
+	
 	<reporting>
 		<plugins>
 			<plugin>
