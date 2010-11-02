@@ -116,7 +116,6 @@
       	  <version>1.0.0.M1</version>
       	  <scope>compile</scope>
     	</dependency>
-
 	</dependencies>
 	<build>
 		<plugins>

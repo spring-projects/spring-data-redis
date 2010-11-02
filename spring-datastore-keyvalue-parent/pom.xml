@@ -8,6 +8,7 @@
 	<url>http://www.springsource.org/spring-data/datastore-keyvalue</url>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- versions for commonly-used dependencies -->
@@ -16,7 +17,70 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.5.10</org.slf4j.version>
 		<org.springframework.version>3.0.4.RELEASE</org.springframework.version>
+		<!-- dist.* properties are used by the antrun tasks below -->
+		<dist.id>spring-datastore-keyvalue</dist.id>
+		<dist.name>Spring Datastore Key-Value</dist.name>
+		<dist.key>DATADOC</dist.key>
+		<dist.version>${project.version}</dist.version>
+		<dist.releaseType>snapshot</dist.releaseType>
+		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
+		<dist.fileName>${dist.finalName}.zip</dist.fileName>
+		<dist.filePath>target/${dist.fileName}</dist.filePath>
+		<dist.bucketName>dist.springframework.org</dist.bucketName>
 	</properties>
+	
+	
+	
+  <developers>
+		<developer>
+			<id>mpollack</id>
+			<name>Mark Pollack</name>
+			<email>mpollack at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.SpringSource.com</organizationUrl>
+			<roles>
+				<role>Project Admin</role>
+				<role>Developer</role>
+			</roles>
+			<timezone>-5</timezone>
+		</developer>
+		<developer>
+			<id>cleau</id>
+			<name>Costin Leau</name>
+			<email>cleau at vmware.com</email>
+			<organization>SpringSource</organization>
+			<organizationUrl>http://www.SpringSource.com</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+2</timezone>
+		</developer>
+
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>
+			Copyright 2010 the original author or authors.
+			 
+			Licensed under the Apache License, Version 2.0 (the "License");
+			you may not use this file except in compliance with the License.
+			You may obtain a copy of the License at
+			
+			     http://www.apache.org/licenses/LICENSE-2.0
+			
+			Unless required by applicable law or agreed to in writing, software
+			distributed under the License is distributed on an "AS IS" BASIS,
+			WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+			implied.
+			See the License for the specific language governing permissions and
+			limitations under the License.
+			</comments>
+		</license>
+	</licenses>
+
 	<profiles>
 		<profile>
 			<id>strict</id>
@@ -53,24 +117,7 @@
 			<!-- TODO: move the repositories in here before release -->
 		</profile>
 	</profiles>
-	<distributionManagement>
-		<!-- see 'staging' profile for dry-run deployment settings -->
-		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
-		<site>
-			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/site/${project.version}</url>
-		</site>
-		<repository>
-			<id>spring-milestone</id>
-			<name>Spring Milestone Repository</name>
-			<url>s3://maven.springframework.org/milestone</url>
-		</repository>
-		<snapshotRepository>
-			<id>spring-snapshot</id>
-			<name>Spring Snapshot Repository</name>
-			<url>s3://maven.springframework.org/snapshot</url>
-		</snapshotRepository>
-	</distributionManagement>
+
 	<dependencyManagement>
 		<!--
 			inheritable <dependency> declarations for child poms. children still
@@ -213,10 +260,6 @@
 	<build>
 		<extensions>
 			<extension>
-				<!--
-					available only in the springframework maven repository. see
-					<repositories> section below
-				-->
 				<groupId>org.springframework.build.aws</groupId>
 				<artifactId>org.springframework.build.aws.maven</artifactId>
 				<version>2.0.0.RELEASE</version>
@@ -297,6 +340,35 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.5</version>
+				<executions>
+					<execution>
+						<id>aggregate</id>
+						<goals>
+							<goal>aggregate</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<javadoc:aggregate>true</javadoc:aggregate>
+							<breakiterator>true</breakiterator>
+							<header>Spring Datastore Key-Value</header>
+							<source>1.5</source>
+							<quiet>true</quiet>
+							<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
+							<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+							<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+							<!-- copies doc-files subdirectory which contains image resources -->
+							<docfilessubdirs>true</docfilessubdirs>
+							<links>
+								<link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
+								<link>http://java.sun.com/javase/6/docs/api</link>
+							</links>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -332,6 +404,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+	
 	<pluginRepositories>
 		<pluginRepository>
 			<!-- necessary for bundlor and utils -->
@@ -382,4 +455,24 @@
 			</plugin>
 		</plugins>
 	</reporting>
+	
+	<distributionManagement>
+		<!-- see 'staging' profile for dry-run deployment settings -->
+		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
+		<site>
+			<id>static.springframework.org</id>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/site/${project.version}</url>
+		</site>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Milestone Repository</name>
+			<url>s3://maven.springframework.org/milestone</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>s3://maven.springframework.org/snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 </project>
