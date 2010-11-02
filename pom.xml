@@ -7,11 +7,13 @@
 	<name>Spring Datastore Key-Value Distribution</name>
 	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
 	<modules>
 		<module>spring-datastore-keyvalue-parent</module>
 		<module>spring-datastore-keyvalue-core</module>
 		<module>spring-datastore-redis</module>
-  </modules>
+		<module>spring-datastore-riak</module>
+	</modules>
 
 	<build>
 		<extensions>
