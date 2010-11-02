@@ -10,18 +10,12 @@
 	<artifactId>spring-datastore-redis</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Datastore Redis Support</name>
-	<repositories>
-	<repository>
-	  <id>sonatype-public</id>
-	  <name>Sonatype public repository</name>
-	  <url>http://oss.sonatype.org/content/groups/public</url>
-	  <snapshots>
-	    <enabled>true</enabled>
-	  </snapshots>
-	</repository>
-	</repositories>
-	<dependencies>
+	
+	<properties>
+    <jredis.ver>02112010</jredis.ver>
+	</properties>
 
+	<dependencies>
 		<!--  Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -98,24 +92,24 @@
 	    <dependency>
 	      <groupId>redis.clients</groupId>
 	      <artifactId>jedis</artifactId>
-	      <version>1.3.0</version>
+	      <version>1.3.1</version>
+	      <scope>compile</scope>
+	    </dependency>
+
+	    <dependency>
+	      <groupId>org.jredis</groupId>
+	      <artifactId>jredis-core-api</artifactId>
+	      <version>${jredis.ver}</version>
 	      <scope>compile</scope>
 	    </dependency>
 
 	    <dependency>
 	      <groupId>org.jredis</groupId>
 	      <artifactId>jredis-core-ri</artifactId>
-	      <version>a.0-20100921.190006-1</version>
+	      <version>${jredis.ver}</version>
 	      <scope>compile</scope>
-	      <exclusions>
-		    <exclusion>
-		      <groupId>org.jredis</groupId>
-		      <artifactId>jredis</artifactId>
-		    </exclusion>
-		  </exclusions>	      
 	    </dependency>
 	    
-	  
 	    <dependency>
 	      <groupId>org.springframework.commons</groupId>
     	  <artifactId>spring-commons-serializer</artifactId>
