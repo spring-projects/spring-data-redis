@@ -55,12 +55,10 @@
 	</profiles>
 	<distributionManagement>
 		<!-- see 'staging' profile for dry-run deployment settings -->
-		<downloadUrl>http://www.springsource.com/download/community
-		</downloadUrl>
+		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
-			<id>spring-docs</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/docs/${project.version}
-			</url>
+			<id>static.springframework.org</id>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/site/${project.version}</url>
 		</site>
 		<repository>
 			<id>spring-milestone</id>
