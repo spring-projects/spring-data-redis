@@ -17,7 +17,7 @@
 package org.springframework.datastore.redis.core.connection;
 
 /**
- * String specific commands supported by Redis .
+ * String specific commands supported by Redis.
  * 
  * @author Costin Leau
  */

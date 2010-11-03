@@ -16,47 +16,15 @@
 
 package org.springframework.datastore.redis.core.connection;
 
-import java.util.Collection;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 
 /**
- * Commands supported by Redis .
+ * Thread-safe factory of Redis connections. Additionally performs exception translation
+ * between the underlying Redis client library and Spring DAO exceptions.
  * 
  * @author Costin Leau
  */
-public interface RedisCommands {
+public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
-	boolean exists(String key);
-
-	int del(String... keys);
-
-	DataType type(String key);
-
-	Collection<String> keys(String pattern);
-
-	String randomKey();
-
-	//TODO see whether the status code can be properly intercepted
-	boolean rename(String oldName, String newName);
-
-	boolean renameNx(String oldName, String newName);
-
-	int dbSize();
-
-	boolean expire(String key, long seconds);
-
-	boolean persist(String key);
-
-	int ttl(String key);
-
-	void select(int dbIndex);
-
-	void watch(String... keys);
-
-	void unwatch();
-
-	void multi();
-
-	void exec();
-
-	void discard();
+	RedisConnection<?> getConnection();
 }

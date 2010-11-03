@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis;
+
+import org.springframework.dao.DataAccessResourceFailureException;
 
 /**
- * Enumeration of the Redis data types.
+ * Fatal exception thrown when the Redis connection fails completely.
  * 
- * @author Costin Leau
+ * @author Mark Pollack
  */
-public enum DataTypes {
+public class RedisConnectionFailureException extends DataAccessResourceFailureException {
 
-	NONE, STRING, LIST, SET, ZSET, HASH;
+	public RedisConnectionFailureException(String msg) {
+		super(msg);
+	}
+
+	public RedisConnectionFailureException(String msg, Throwable cause) {
+		super(msg, cause);
+	}
 }
