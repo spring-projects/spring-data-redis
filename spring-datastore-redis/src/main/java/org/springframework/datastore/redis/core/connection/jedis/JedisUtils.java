@@ -34,7 +34,8 @@ import redis.clients.jedis.JedisException;
  */
 public abstract class JedisUtils {
 
-	public static final String OK_CODE = "OK";
+	private static final String OK_CODE = "OK";
+	private static final String OK_MULTI_CODE = "+OK";
 
 	public static DataAccessException convertJedisAccessException(JedisException ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
@@ -57,5 +58,9 @@ public abstract class JedisUtils {
 
 	static DataAccessException convertJedisAccessException(TimeoutException ex) {
 		throw new RedisConnectionFailureException("Jedis pool timed out. Could not get Redis Connection", ex);
+	}
+
+	static boolean isStatusOk(String status) {
+		return status != null && (OK_CODE.equals(status) || OK_MULTI_CODE.equals(status));
 	}
 }

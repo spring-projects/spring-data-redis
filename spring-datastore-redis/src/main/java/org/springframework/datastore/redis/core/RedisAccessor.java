@@ -20,6 +20,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
+import com.sun.xml.internal.bind.v2.TODO;
+
 /**
  * Base class for {@link RedisTemplate} and
  * other Redis-accessing DAO helpers, defining common properties such as
@@ -64,5 +66,4 @@ public class RedisAccessor implements InitializingBean {
 	public void afterPropertiesSet() {
 		Assert.notNull(getRedisClientFactory(), "RedisClientfactory is required");		
 	}
-
 }

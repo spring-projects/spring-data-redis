@@ -25,9 +25,9 @@ import java.util.Collection;
  */
 public interface RedisCommands {
 
-	boolean exists(String key);
+	Boolean exists(String key);
 
-	int del(String... keys);
+	Integer del(String... keys);
 
 	DataType type(String key);
 
@@ -36,17 +36,17 @@ public interface RedisCommands {
 	String randomKey();
 
 	//TODO see whether the status code can be properly intercepted
-	boolean rename(String oldName, String newName);
+	Boolean rename(String oldName, String newName);
 
-	boolean renameNx(String oldName, String newName);
+	Boolean renameNx(String oldName, String newName);
 
-	int dbSize();
+	Integer dbSize();
 
-	boolean expire(String key, long seconds);
+	Boolean expire(String key, int seconds);
 
-	boolean persist(String key);
+	Boolean persist(String key);
 
-	int ttl(String key);
+	Integer ttl(String key);
 
 	void select(int dbIndex);
 

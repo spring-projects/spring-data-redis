@@ -23,5 +23,5 @@ package org.springframework.datastore.redis.core.connection;
  */
 public interface RedisHashCommands {
 
-	int hSet(String key, String field, String value);
+	Integer hSet(String key, String field, String value);
 }

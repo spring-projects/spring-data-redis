@@ -39,4 +39,15 @@ public interface RedisConnection<T> extends RedisCommands, RedisHashCommands, Re
 	T getNativeConnection();
 
 	String getCharset();
+
+	/**
+	 * Indicates whether the connection is in "queue"(or "MULTI") mode or not.
+	 * When queueing, all commands are postponed until EXEC or DISCARD commands
+	 * are issued.
+	 * Since in queueing, no results are returned, the connection will return NULL
+	 * on all operations that interact with the data. 
+	 * 
+	 * @return true if the connection is in queue/MULTI mode, false otherwise
+	 */
+	boolean isQueueing();
 }

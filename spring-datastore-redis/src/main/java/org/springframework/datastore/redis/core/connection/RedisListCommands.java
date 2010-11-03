@@ -23,7 +23,7 @@ package org.springframework.datastore.redis.core.connection;
  */
 public interface RedisListCommands {
 
-	int rPush(String key, String value);
+	Integer rPush(String key, String value);
 	
-	int lPush(String key, String value);
+	Integer lPush(String key, String value);
 }
