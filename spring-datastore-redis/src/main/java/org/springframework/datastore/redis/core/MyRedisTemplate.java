@@ -15,8 +15,17 @@
  */
 package org.springframework.datastore.redis.core;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 import org.springframework.datastore.redis.core.connection.RedisConnection;
 import org.springframework.datastore.redis.core.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.support.converter.RedisConverter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * 
@@ -36,6 +45,7 @@ import org.springframework.datastore.redis.core.connection.RedisConnectionFactor
 public class MyRedisTemplate extends MyRedisAccessor {
 
 	private boolean exposeConnection = false;
+	private RedisConverter converter = null;
 
 	public MyRedisTemplate() {
 	}
@@ -46,7 +56,48 @@ public class MyRedisTemplate extends MyRedisAccessor {
 	}
 
 	public <T> T execute(MyRedisCallback<T> action) {
-		throw new UnsupportedOperationException();
+		return execute(action, isExposeConnection());
+	}
+
+
+	public <T> T execute(MyRedisCallback<T> action, boolean exposeConnection) {
+		Assert.notNull(action, "Callback object must not be null");
+
+		RedisConnectionFactory factory = getConnectionFactory();
+		RedisConnection<?> conn = RedisConnectionUtils.getRedisConnection(factory);
+
+		boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
+
+		try {
+			RedisConnection<?> connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
+			T result = action.doInRedis(connToExpose);
+			// TODO: should do flush?
+			return postProcessResult(result, conn, existingConnection);
+		} catch (Exception ex) {
+			// TODO: too generic ?
+			throw tryToConvertRedisAccessException(ex);
+		} finally {
+			RedisConnectionUtils.releaseConnection(conn, factory);
+		}
+	}
+
+	protected RedisConnection<?> createRedisConnectionProxy(RedisConnection<?> pm) {
+		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(pm.getClass(), getClass().getClassLoader());
+		return (RedisConnection<?>) Proxy.newProxyInstance(pm.getClass().getClassLoader(), ifcs,
+				new CloseSuppressingInvocationHandler(pm));
+	}
+
+	protected <T> T postProcessResult(T result, RedisConnection<?> pm, boolean existingConnection) {
+		return result;
+	}
+
+	/**
+	 * Returns the exposeConnection.
+	 *
+	 * @return Returns the exposeConnection
+	 */
+	public boolean isExposeConnection() {
+		return exposeConnection;
 	}
 
 	/**
@@ -58,5 +109,48 @@ public class MyRedisTemplate extends MyRedisAccessor {
 	 */
 	public void setExposeConnection(boolean exposeConnection) {
 		this.exposeConnection = exposeConnection;
+	}
+
+	public void setRedisConverter(RedisConverter converter) {
+		this.converter = converter;
+	}
+
+	/**
+	 * Invocation handler that suppresses close calls on JDO PersistenceManagers.
+	 * Also prepares returned Query objects.
+	 * @see RedisConnection#close()
+	 */
+	private class CloseSuppressingInvocationHandler implements InvocationHandler {
+
+		private final RedisConnection<?> target;
+
+		public CloseSuppressingInvocationHandler(RedisConnection<?> target) {
+			this.target = target;
+		}
+
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+			// Invocation on PersistenceManager interface (or provider-specific extension) coming in...
+
+			if (method.getName().equals("equals")) {
+				// Only consider equal when proxies are identical.
+				return (proxy == args[0]);
+			}
+			else if (method.getName().equals("hashCode")) {
+				// Use hashCode of PersistenceManager proxy.
+				return System.identityHashCode(proxy);
+			}
+			else if (method.getName().equals("close")) {
+				// Handle close method: suppress, not valid.
+				return null;
+			}
+
+			// Invoke method on target RedisConnection.
+			try {
+				Object retVal = method.invoke(this.target, args);
+				return retVal;
+			} catch (InvocationTargetException ex) {
+				throw ex.getTargetException();
+			}
+		}
 	}
 }

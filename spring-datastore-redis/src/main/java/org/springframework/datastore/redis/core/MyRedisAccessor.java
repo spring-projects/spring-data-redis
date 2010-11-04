@@ -52,4 +52,8 @@ public class MyRedisAccessor implements InitializingBean {
 	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
+
+	public RuntimeException tryToConvertRedisAccessException(Exception ex) {
+		throw new UnsupportedOperationException("wire this into dialects/XXXClient utils");
+	}
 }
