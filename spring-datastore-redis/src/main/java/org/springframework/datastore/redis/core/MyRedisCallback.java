@@ -33,5 +33,5 @@ public interface MyRedisCallback<T> {
 	 * @return
 	 * @throws Exception
 	 */
-	T doInRedis(RedisConnection<?> connection) throws Exception;
+	T doInRedis(RedisConnection connection) throws Exception;
 }

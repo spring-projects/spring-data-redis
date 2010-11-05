@@ -26,5 +26,5 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
  */
 public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
-	RedisConnection<?> getConnection();
+	RedisConnection getConnection();
 }

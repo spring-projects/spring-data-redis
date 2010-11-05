@@ -33,36 +33,36 @@ public abstract class RedisConnectionUtils {
 
 	private static final Log log = LogFactory.getLog(RedisConnectionUtils.class);
 
-	public static RedisConnection<?> getRedisConnection(RedisConnectionFactory factory) {
+	public static RedisConnection getRedisConnection(RedisConnectionFactory factory) {
 		return doGetRedisConnection(factory, true);
 	}
 
-	public static RedisConnection<?> doGetRedisConnection(RedisConnectionFactory factory, boolean allowCreate) {
+	public static RedisConnection doGetRedisConnection(RedisConnectionFactory factory, boolean allowCreate) {
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
 
-		RedisConnectionHolder pmHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
+		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
 		//TODO: investigate tx synchronization
 
-		if (pmHolder != null)
-			return pmHolder.getConnection();
+		if (connHolder != null)
+			return connHolder.getConnection();
 
 		if (log.isDebugEnabled())
 			log.debug("Opening RedisConnection");
 
-		RedisConnection<?> conn = factory.getConnection();
+		RedisConnection conn = factory.getConnection();
 
 		if (TransactionSynchronizationManager.isSynchronizationActive()) {
-			pmHolder = new RedisConnectionHolder(conn);
-			TransactionSynchronizationManager.registerSynchronization(new RedisConnectionSynchronization(pmHolder,
+			connHolder = new RedisConnectionHolder(conn);
+			TransactionSynchronizationManager.registerSynchronization(new RedisConnectionSynchronization(connHolder,
 					factory, true));
-			TransactionSynchronizationManager.bindResource(factory, pmHolder);
+			TransactionSynchronizationManager.bindResource(factory, connHolder);
 
 		}
-		return pmHolder.getConnection();
+		return connHolder.getConnection();
 
 	}
 
-	public static void releaseConnection(RedisConnection<?> conn, RedisConnectionFactory factory) {
+	public static void releaseConnection(RedisConnection conn, RedisConnectionFactory factory) {
 		if (conn == null) {
 			return;
 		}
@@ -73,7 +73,7 @@ public abstract class RedisConnectionUtils {
 		}
 	}
 
-	public static boolean isConnectionTransactional(RedisConnection<?> conn, RedisConnectionFactory connFactory) {
+	public static boolean isConnectionTransactional(RedisConnection conn, RedisConnectionFactory connFactory) {
 		if (connFactory == null) {
 			return false;
 		}
@@ -106,9 +106,9 @@ public abstract class RedisConnectionUtils {
 	private static class RedisConnectionHolder implements ResourceHolder {
 
 		private boolean isVoid = false;
-		private final RedisConnection<?> conn;
+		private final RedisConnection conn;
 
-		public RedisConnectionHolder(RedisConnection<?> conn) {
+		public RedisConnectionHolder(RedisConnection conn) {
 			this.conn = conn;
 		}
 
@@ -117,7 +117,7 @@ public abstract class RedisConnectionUtils {
 			return isVoid;
 		}
 
-		public RedisConnection<?> getConnection() {
+		public RedisConnection getConnection() {
 			return conn;
 		}
 

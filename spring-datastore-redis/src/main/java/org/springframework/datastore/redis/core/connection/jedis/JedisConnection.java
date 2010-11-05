@@ -36,7 +36,7 @@ import redis.clients.jedis.Transaction;
  * 
  * @author Costin Leau
  */
-public class JedisConnection implements RedisConnection<Jedis> {
+public class JedisConnection implements RedisConnection {
 
 	private static final Field CLIENT_FIELD;
 

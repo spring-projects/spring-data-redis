@@ -64,12 +64,12 @@ public class MyRedisTemplate extends MyRedisAccessor {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
-		RedisConnection<?> conn = RedisConnectionUtils.getRedisConnection(factory);
+		RedisConnection conn = RedisConnectionUtils.getRedisConnection(factory);
 
 		boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
 
 		try {
-			RedisConnection<?> connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
+			RedisConnection connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
 			T result = action.doInRedis(connToExpose);
 			// TODO: should do flush?
 			return postProcessResult(result, conn, existingConnection);
@@ -81,13 +81,13 @@ public class MyRedisTemplate extends MyRedisAccessor {
 		}
 	}
 
-	protected RedisConnection<?> createRedisConnectionProxy(RedisConnection<?> pm) {
+	protected RedisConnection createRedisConnectionProxy(RedisConnection pm) {
 		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(pm.getClass(), getClass().getClassLoader());
-		return (RedisConnection<?>) Proxy.newProxyInstance(pm.getClass().getClassLoader(), ifcs,
+		return (RedisConnection) Proxy.newProxyInstance(pm.getClass().getClassLoader(), ifcs,
 				new CloseSuppressingInvocationHandler(pm));
 	}
 
-	protected <T> T postProcessResult(T result, RedisConnection<?> pm, boolean existingConnection) {
+	protected <T> T postProcessResult(T result, RedisConnection conn, boolean existingConnection) {
 		return result;
 	}
 
@@ -122,9 +122,9 @@ public class MyRedisTemplate extends MyRedisAccessor {
 	 */
 	private class CloseSuppressingInvocationHandler implements InvocationHandler {
 
-		private final RedisConnection<?> target;
+		private final RedisConnection target;
 
-		public CloseSuppressingInvocationHandler(RedisConnection<?> target) {
+		public CloseSuppressingInvocationHandler(RedisConnection target) {
 			this.target = target;
 		}
 

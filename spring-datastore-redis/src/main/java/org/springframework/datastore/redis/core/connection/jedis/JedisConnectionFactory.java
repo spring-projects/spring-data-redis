@@ -123,9 +123,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	public void destroy() throws Exception {
-		// TODO: should this component do tracking of all returned connections
-		// normally not but then again we're the ones creating the connections
-		// so we end up behaving like a pool
+		if (usePool && pool != null) {
+			pool.destroy();
+			pool = null;
+		}
 	}
 
 	public JedisConnection getConnection() {
