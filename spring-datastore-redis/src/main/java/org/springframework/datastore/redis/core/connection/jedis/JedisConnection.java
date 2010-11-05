@@ -82,7 +82,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String getCharset() {
+	public String getEncoding() {
 		return "UTF-8";
 	}
 

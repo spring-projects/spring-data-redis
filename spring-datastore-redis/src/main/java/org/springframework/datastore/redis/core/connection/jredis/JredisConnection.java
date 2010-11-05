@@ -31,11 +31,11 @@ import org.springframework.datastore.redis.core.connection.RedisConnection;
 public class JredisConnection implements RedisConnection {
 
 	private final JRedis jredis;
-	private final String charset;
+	private final String encoding;
 
-	public JredisConnection(JRedis jredis, String charset) {
+	public JredisConnection(JRedis jredis, String encoding) {
 		this.jredis = jredis;
-		this.charset = charset;
+		this.encoding = encoding;
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -52,8 +52,8 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String getCharset() {
-		return charset;
+	public String getEncoding() {
+		return encoding;
 	}
 
 	@Override

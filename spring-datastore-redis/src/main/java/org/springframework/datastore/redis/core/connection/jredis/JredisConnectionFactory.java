@@ -117,7 +117,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public RedisConnection getConnection() {
-		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)));
+		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)), getEncoding());
 	}
 
 

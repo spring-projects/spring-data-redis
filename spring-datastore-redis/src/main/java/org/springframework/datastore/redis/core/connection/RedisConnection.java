@@ -38,7 +38,7 @@ public interface RedisConnection extends RedisCommands, RedisHashCommands, Redis
 
 	Object getNativeConnection();
 
-	String getCharset();
+	String getEncoding();
 
 	/**
 	 * Indicates whether the connection is in "queue"(or "MULTI") mode or not.
