@@ -324,11 +324,12 @@
 					</includes>
 					<excludes>
 						<exclude>**/Abstract*.java</exclude>
-						<exclude>**/*IntegrationTests.java</exclude>
+						<!--<exclude>**/*IntegrationTests.java</exclude>-->
 					</excludes>
 					<junitArtifactName>junit:junit</junitArtifactName>
 				</configuration>
 			</plugin>
+			<!--
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
@@ -359,7 +360,6 @@
 							<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
 							<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
 							<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
-							<!-- copies doc-files subdirectory which contains image resources -->
 							<docfilessubdirs>true</docfilessubdirs>
 							<links>
 								<link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
@@ -369,6 +369,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 		</plugins>
 		<pluginManagement>
 			<plugins>

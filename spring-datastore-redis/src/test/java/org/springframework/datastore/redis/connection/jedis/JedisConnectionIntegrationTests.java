@@ -16,14 +16,14 @@
 
 package org.springframework.datastore.redis.connection.jedis;
 
+import org.springframework.datastore.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
-import org.springframework.datastore.redis.core.AbstractConnectionIntegrationTests;
 
-public class JedisConnectionIntegrationTest extends AbstractConnectionIntegrationTests {
+public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	JedisConnectionFactory factory;
 
-	public JedisConnectionIntegrationTest() {
+	public JedisConnectionIntegrationTests() {
 		factory = new JedisConnectionFactory();
 		factory.setPooling(false);
 		factory.afterPropertiesSet();

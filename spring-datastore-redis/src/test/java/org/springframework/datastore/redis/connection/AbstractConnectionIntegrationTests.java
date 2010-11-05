@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core;
+package org.springframework.datastore.redis.connection;
 
 import static org.junit.Assert.assertEquals;
 import junit.framework.Assert;
@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.core.Person;
 
 public abstract class AbstractConnectionIntegrationTests {
 
