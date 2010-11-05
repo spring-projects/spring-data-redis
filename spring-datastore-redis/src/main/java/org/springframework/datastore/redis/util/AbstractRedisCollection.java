@@ -26,7 +26,7 @@ public abstract class AbstractRedisCollection implements RedisCollection {
     }
 
     public void clear() {
-        redisTemplate.deleteKeys(redisKey);
+		//        redisTemplate.deleteKeys(redisKey);
     }
 
     public boolean isEmpty() {
