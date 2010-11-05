@@ -15,23 +15,12 @@
  */
 package org.springframework.datastore.redis.core;
 
-import org.springframework.datastore.redis.core.connection.RedisConnection;
-
 /**
- * Callback interface for Redis code. To be used with {@link MyRedisTemplate} execution methods, often as anonymous 
- * classes within a method implementation.
+ * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
  * 
  * @author Costin Leau
  */
-public interface MyRedisCallback<T> {
+public interface RedisOperations {
 
-	/**
-	 * Gets called by {@link MyRedisTemplate} with an active Redis connection. Does not need to care about activating or 
-	 * closing the connection or handling exceptions or transactions.
-	 * 
-	 * @param connection
-	 * @return
-	 * @throws Exception
-	 */
-	T doInRedis(RedisConnection connection) throws Exception;
+
 }

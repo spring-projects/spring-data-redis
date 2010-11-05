@@ -32,8 +32,8 @@ import org.springframework.util.ClassUtils;
  * Helper class that simplifies Redis data access code. Automatically converts Redis client exceptions into 
  * DataAccessExceptions, following the org.springframework.dao exception hierarchy.
  *
- * The central method is execute, supporting Redis access code implementing the {@link MyRedisCallback} interface.
- * It provides {@link RedisConnection} handling such that neither the {@link MyRedisCallback} implementation nor 
+ * The central method is execute, supporting Redis access code implementing the {@link RedisCallback} interface.
+ * It provides {@link RedisConnection} handling such that neither the {@link RedisCallback} implementation nor 
  * the calling code needs to explicitly care about retrieving/closing Redis connections, or handling Session 
  * lifecycle exceptions. For typical single step actions, there are various convenience methods.
  *  
@@ -42,25 +42,25 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Costin Leau
  */
-public class MyRedisTemplate extends MyRedisAccessor {
+public class RedisTemplate extends RedisAccessor {
 
 	private boolean exposeConnection = false;
 	private RedisConverter converter = null;
 
-	public MyRedisTemplate() {
+	public RedisTemplate() {
 	}
 
-	public MyRedisTemplate(RedisConnectionFactory connectionFactory) {
+	public RedisTemplate(RedisConnectionFactory connectionFactory) {
 		this.setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
 	}
 
-	public <T> T execute(MyRedisCallback<T> action) {
+	public <T> T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
 
 
-	public <T> T execute(MyRedisCallback<T> action, boolean exposeConnection) {
+	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
@@ -101,7 +101,7 @@ public class MyRedisTemplate extends MyRedisAccessor {
 	}
 
 	/**
-	 * Sets whether to expose the Redis connection to {@link MyRedisCallback} code.
+	 * Sets whether to expose the Redis connection to {@link RedisCallback} code.
 	 * 
 	 * Default is "false": a proxy will be returned, suppressing <tt>quit</tt> and <tt>disconnect</tt> calls.
 	 *  

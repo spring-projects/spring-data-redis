@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 /**
  * @author Costin Leau
  */
-public class MyRedisAccessor implements InitializingBean {
+public class RedisAccessor implements InitializingBean {
 
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
