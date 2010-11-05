@@ -20,6 +20,7 @@ Import-Template:
  org.jredis.*;version="[1.0.0, 2.0.0)",
  org.jredis.ri.alphazero.*;version="[1.0.0, 2.0.0)",
  org.springframework.commons.serializer.*;version="[1.0.0, 2.0.0)",
+ org.springframework.transaction.support.*;version="[3.0.0, 4.0.0)",
  redis.clients.jedis.*;version="[1.0.0, 2.0.0)",
  redis.clients.util.*;version="[1.0.0, 2.0.0)",
 
