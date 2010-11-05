@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.jredis;
+package org.springframework.datastore.redis.connection.jredis;
 
-import org.junit.Before;
-import org.springframework.datastore.redis.core.AbstractClientIntegrationTests;
-import org.springframework.datastore.redis.core.RedisClientFactory;
+import org.springframework.datastore.redis.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.core.AbstractConnectionIntegrationTests;
 
-public class JRedisClientIntegrationTests extends AbstractClientIntegrationTests {
+public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
-	
-	@Before
-	public void setUp() {
-		RedisClientFactory clientFactory = new JRedisClientFactory();
-		clientFactory.setPassword("foobared");
-		client = clientFactory.createClient();
+	JredisConnectionFactory factory;
+
+	public JRedisConnectionIntegrationTests() {
+		factory = new JredisConnectionFactory();
+		factory.setPooling(false);
+		factory.afterPropertiesSet();
 	}
-	
+
+	@Override
+	protected RedisConnectionFactory getConnectionFactory() {
+		return factory;
+	}
 }

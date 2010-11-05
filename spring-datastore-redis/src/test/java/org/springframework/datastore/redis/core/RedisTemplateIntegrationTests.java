@@ -19,7 +19,7 @@ package org.springframework.datastore.redis.core;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.datastore.redis.core.jredis.JRedisClientFactory;
+import org.springframework.datastore.redis.connection.jredis.JRedisClientFactory;
 
 public class RedisTemplateIntegrationTests {
 
