@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection.jedis;
+package org.springframework.datastore.redis.connection.jedis;
 
 import java.io.IOException;
 import java.net.UnknownHostException;

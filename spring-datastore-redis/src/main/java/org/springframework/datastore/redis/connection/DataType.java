@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis.connection;
 
 import java.util.EnumSet;
 import java.util.Map;

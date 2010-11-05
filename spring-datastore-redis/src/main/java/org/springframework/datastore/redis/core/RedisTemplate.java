@@ -20,8 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.springframework.datastore.redis.core.connection.RedisConnection;
-import org.springframework.datastore.redis.core.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 import org.springframework.datastore.redis.support.converter.RedisConverter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -29,7 +29,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * 
- * Helper class that simplifies Redis data access code. Automatically converts Redis client exceptions into 
+ * Helper class that simplifies Redis data access code. Automatically converts Redis connection exceptions into 
  * DataAccessExceptions, following the org.springframework.dao exception hierarchy.
  *
  * The central method is execute, supporting Redis access code implementing the {@link RedisCallback} interface.

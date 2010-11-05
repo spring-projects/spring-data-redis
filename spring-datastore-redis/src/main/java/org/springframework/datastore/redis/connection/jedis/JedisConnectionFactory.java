@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection.jedis;
+package org.springframework.datastore.redis.connection.jedis;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.logging.Log;
@@ -25,8 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.datastore.redis.core.connection.RedisConnection;
-import org.springframework.datastore.redis.core.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -139,17 +137,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	private static String getDefaultHostName() {
-		String temp;
-		try {
-			InetAddress localMachine = InetAddress.getLocalHost();
-			temp = localMachine.getHostName();
-			if (log.isDebugEnabled())
-				log.debug("Using hostname [" + temp + "] for hostname.");
-		} catch (UnknownHostException e) {
-			log.warn("Could not get host name, using 'localhost' as default value", e);
-			temp = "localhost";
-		}
-		return temp;
+		return "localhost";
 	}
 
 	/**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.core.connection.jredis;
+package org.springframework.datastore.redis.connection.jredis;
 
 import java.util.Collection;
 
@@ -22,8 +22,8 @@ import org.jredis.RedisException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.datastore.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.datastore.redis.UncategorizedRedisException;
-import org.springframework.datastore.redis.core.connection.DataType;
-import org.springframework.datastore.redis.core.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.DataType;
+import org.springframework.datastore.redis.connection.RedisConnection;
 
 /**
  * @author Costin Leau
@@ -163,7 +163,12 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public Integer lPush(String key, String value) {
-		throw new UnsupportedOperationException();
+		try {
+			jredis.lpush(key, value);
+			return null;
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -173,11 +178,19 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public String get(String key) {
-		throw new UnsupportedOperationException();
+		try {
+			return JredisUtils.convertToString(jredis.get(key), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public void set(String key, String value) {
-		throw new UnsupportedOperationException();
+		try {
+			jredis.set(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 }

@@ -18,7 +18,7 @@ package org.springframework.datastore.redis.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.datastore.redis.core.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 
 /**

@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis.connection;
 
 /**
- * ZSet(SortedSet)-specific commands supported by Redis.
+ * String specific commands supported by Redis.
  * 
  * @author Costin Leau
  */
-public interface RedisZSetCommands {
+// TODO should the strings be byte[] instead
+// at least for values ?
+public interface RedisStringCommands {
+
+	void set(String key, String value);
+
+	String get(String key);
+
 
 }

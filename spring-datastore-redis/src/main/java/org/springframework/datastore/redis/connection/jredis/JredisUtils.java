@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection.jredis;
+package org.springframework.datastore.redis.connection.jredis;
+
+import java.io.UnsupportedEncodingException;
 
 import org.jredis.RedisException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
@@ -29,5 +32,13 @@ public abstract class JredisUtils {
 
 	public static DataAccessException convertJredisAccessException(RedisException ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+	}
+
+	public static String convertToString(byte[] bytes, String encoding) {
+		try {
+			return new String(bytes, encoding);
+		} catch (UnsupportedEncodingException ex) {
+			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+		}
 	}
 }

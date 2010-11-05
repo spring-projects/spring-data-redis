@@ -15,7 +15,7 @@
  */
 package org.springframework.datastore.redis.core;
 
-import org.springframework.datastore.redis.core.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.RedisConnection;
 
 /**
  * Callback interface for Redis code. To be used with {@link RedisTemplate} execution methods, often as anonymous 

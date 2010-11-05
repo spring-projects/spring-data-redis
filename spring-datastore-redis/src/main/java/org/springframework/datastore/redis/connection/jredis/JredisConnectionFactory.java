@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.core.connection.jredis;
+package org.springframework.datastore.redis.connection.jredis;
 
 import org.jredis.JRedis;
 import org.jredis.connector.ConnectionSpec;
@@ -24,13 +24,13 @@ import org.jredis.ri.alphazero.connection.DefaultConnectionSpec;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.datastore.redis.core.connection.RedisConnection;
-import org.springframework.datastore.redis.core.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Connection factory on top of {@link JRedis} client. 
+ * Connection factory on top of {@link JRedis} connection. 
  * 
  * @author Costin Leau
  */

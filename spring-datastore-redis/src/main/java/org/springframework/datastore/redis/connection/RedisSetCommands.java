@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis.connection;
 
 /**
- * String specific commands supported by Redis.
+ * Set-specific commands supported by Redis.
  * 
  * @author Costin Leau
  */
-// TODO should the strings be byte[] instead
-// at least for values ?
-public interface RedisStringCommands {
-
-	void set(String key, String value);
-
-	String get(String key);
-
+public interface RedisSetCommands {
 
 }

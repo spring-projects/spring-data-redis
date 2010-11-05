@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis.connection;
 
 /**
- * Set-specific commands supported by Redis.
+ * List-specific commands supported by Redis.
  * 
  * @author Costin Leau
  */
-public interface RedisSetCommands {
+public interface RedisListCommands {
 
+	Integer rPush(String key, String value);
+	
+	Integer lPush(String key, String value);
 }

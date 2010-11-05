@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.core.connection.jedis;
+package org.springframework.datastore.redis.connection.jedis;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,8 +22,8 @@ import java.util.Collection;
 import org.springframework.dao.DataAccessException;
 import org.springframework.datastore.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.datastore.redis.UncategorizedRedisException;
-import org.springframework.datastore.redis.core.connection.DataType;
-import org.springframework.datastore.redis.core.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.DataType;
+import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.Client;
@@ -51,7 +51,7 @@ public class JedisConnection implements RedisConnection {
 
 	public JedisConnection(Jedis jedis) {
 		this.jedis = jedis;
-		// extract underlying client for batch operations
+		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
 		transaction = new Transaction(client);
 	}

@@ -17,8 +17,8 @@ package org.springframework.datastore.redis.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.datastore.redis.core.connection.RedisConnection;
-import org.springframework.datastore.redis.core.connection.RedisConnectionFactory;
+import org.springframework.datastore.redis.connection.RedisConnection;
+import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 import org.springframework.transaction.support.ResourceHolder;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;

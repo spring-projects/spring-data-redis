@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis.connection;
 
 /**
- * List-specific commands supported by Redis.
+ * ZSet(SortedSet)-specific commands supported by Redis.
  * 
  * @author Costin Leau
  */
-public interface RedisListCommands {
+public interface RedisZSetCommands {
 
-	Integer rPush(String key, String value);
-	
-	Integer lPush(String key, String value);
 }

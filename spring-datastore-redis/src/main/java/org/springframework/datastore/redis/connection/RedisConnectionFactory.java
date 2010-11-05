@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.redis.core.connection;
+package org.springframework.datastore.redis.connection;
 
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 
 /**
  * Thread-safe factory of Redis connections. Additionally performs exception translation
- * between the underlying Redis client library and Spring DAO exceptions.
+ * between the underlying Redis connection library and Spring DAO exceptions.
  * 
  * @author Costin Leau
  */
