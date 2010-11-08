@@ -21,11 +21,14 @@ import org.springframework.datastore.redis.connection.RedisCommands;
 
 /**
  * Atomic integer backed by Redis.
+ * Uses Redis atomic increment/decrement and watch/multi/exec commands for CAS operations. 
  * 
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
  */
 public class RedisAtomicInteger extends Number implements Serializable {
+
+	private static final long serialVersionUID = 5984507176128031015L;
 
 	private final String key;
 	private RedisCommands commands;
@@ -92,10 +95,13 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndIncrement() {
 		for (;;) {
-			int current = get();
-			int next = current + 1;
-			if (compareAndSet(current, next))
-				return current;
+			commands.watch(key);
+			int value = get();
+			commands.multi();
+			commands.incr(key);
+			if (commands.exec() != null) {
+				return value;
+			}
 		}
 	}
 
@@ -106,10 +112,13 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndDecrement() {
 		for (;;) {
-			int current = get();
-			int next = current - 1;
-			if (compareAndSet(current, next))
-				return current;
+			commands.watch(key);
+			int value = get();
+			commands.multi();
+			commands.decr(key);
+			if (commands.exec() != null) {
+				return value;
+			}
 		}
 	}
 
@@ -121,10 +130,13 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndAdd(int delta) {
 		for (;;) {
-			int current = get();
-			int next = current + delta;
-			if (compareAndSet(current, next))
-				return current;
+			commands.watch(key);
+			int value = get();
+			commands.multi();
+			set(value + delta);
+			if (commands.exec() != null) {
+				return value;
+			}
 		}
 	}
 
