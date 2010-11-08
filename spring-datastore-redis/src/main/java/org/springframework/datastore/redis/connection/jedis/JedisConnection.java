@@ -327,32 +327,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer lPush(String key, String value) {
-		try {
-			if (isQueueing()) {
-				transaction.lpush(key, value);
-				return null;
-			}
-			return jedis.lpush(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public Integer rPush(String key, String value) {
-		try {
-			if (isQueueing()) {
-				transaction.rpush(key, value);
-				return null;
-			}
-			return jedis.rpush(key, value);
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
 	public String get(String key) {
 		try {
 			if (isQueueing()) {
@@ -436,6 +410,172 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			return jedis.incrBy(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+
+	@Override
+	public Integer lPush(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.lpush(key, value);
+				return null;
+			}
+			return jedis.lpush(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer rPush(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.rpush(key, value);
+				return null;
+			}
+			return jedis.rpush(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> bLPop(int timeout, String... keys) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.blpop(timeout, keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> bRPop(int timeout, String... keys) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.brpop(timeout, keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String lIndex(String key, int index) {
+		try {
+			if (isQueueing()) {
+				transaction.lindex(key, index);
+				return null;
+			}
+			return jedis.lindex(key, index);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer lLen(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.llen(key);
+				return null;
+			}
+			return jedis.llen(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String lPop(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.lpop(key);
+				return null;
+			}
+			return jedis.lpop(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> lRange(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.lrange(key, start, end);
+				return null;
+			}
+			return jedis.lrange(key, start, end);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer lRem(String key, int count, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.lrem(key, count, value);
+				return null;
+			}
+			return jedis.lrem(key, count, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void lSet(String key, int index, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.lset(key, index, value);
+			}
+			jedis.lset(key, index, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void lTrim(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.ltrim(key, start, end);
+			}
+			jedis.ltrim(key, start, end);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String rPop(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.rpop(key);
+				return null;
+			}
+			return jedis.lpop(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String rPopLPush(String srcKey, String dstKey) {
+		try {
+			if (isQueueing()) {
+				transaction.rpoplpush(srcKey, dstKey);
+				return null;
+			}
+			return jedis.rpoplpush(srcKey, dstKey);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

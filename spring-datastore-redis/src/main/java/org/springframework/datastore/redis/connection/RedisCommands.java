@@ -23,7 +23,7 @@ import java.util.Collection;
  * 
  * @author Costin Leau
  */
-public interface RedisCommands extends RedisTxCommands, RedisStringCommands {
+public interface RedisCommands extends RedisTxCommands, RedisStringCommands, RedisListCommands {
 
 	Boolean exists(String key);
 

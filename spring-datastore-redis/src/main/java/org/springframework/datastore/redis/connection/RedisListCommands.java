@@ -16,6 +16,8 @@
 
 package org.springframework.datastore.redis.connection;
 
+import java.util.List;
+
 /**
  * List-specific commands supported by Redis.
  * 
@@ -26,4 +28,26 @@ public interface RedisListCommands {
 	Integer rPush(String key, String value);
 	
 	Integer lPush(String key, String value);
+
+	Integer lLen(String key);
+
+	List<String> lRange(String key, int start, int end);
+
+	void lTrim(String key, int start, int end);
+
+	String lIndex(String key, int index);
+
+	void lSet(String key, int index, String value);
+
+	Integer lRem(String key, int count, String value);
+
+	String lPop(String key);
+
+	String rPop(String key);
+
+	List<String> bLPop(int timeout, String... keys);
+
+	List<String> bRPop(int timeout, String... keys);
+
+	String rPopLPush(String srcKey, String dstKey);
 }
