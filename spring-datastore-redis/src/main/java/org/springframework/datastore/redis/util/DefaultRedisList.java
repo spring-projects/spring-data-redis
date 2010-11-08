@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 
 import org.springframework.datastore.redis.connection.RedisCommands;
 
@@ -29,7 +28,7 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  * 
  * @author Costin Leau
  */
-public class DefaultRedisList extends AbstractRedisCollection implements RedisList, Queue<String> {
+public class DefaultRedisList extends AbstractRedisCollection implements RedisList {
 
 	public DefaultRedisList(String key, RedisCommands commands) {
 		super(key, commands);

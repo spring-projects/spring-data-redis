@@ -16,14 +16,15 @@
 package org.springframework.datastore.redis.util;
 
 import java.util.List;
+import java.util.Queue;
 
 /**
- * Redis extension for {@link List} contract. Supports List specific
+ * Redis extension for the {@link List} contract. Supports {@link List} specific
  * operations backed by Redis commands.
  * 
  * @author Costin Leau
  */
-public interface RedisList extends RedisCollection, List<String> {
+public interface RedisList extends RedisCollection, List<String>, Queue<String> {
 
 	List<String> range(int start, int end);
 
