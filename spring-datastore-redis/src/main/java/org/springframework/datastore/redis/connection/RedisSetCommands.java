@@ -16,6 +16,8 @@
 
 package org.springframework.datastore.redis.connection;
 
+import java.util.Set;
+
 /**
  * Set-specific commands supported by Redis.
  * 
@@ -23,4 +25,31 @@ package org.springframework.datastore.redis.connection;
  */
 public interface RedisSetCommands {
 
+	Boolean sAdd(String key, String value);
+
+	Boolean sRem(String key, String value);
+
+	String sPop(String key);
+
+	Boolean sMove(String srcKey, String destKey, String value);
+
+	Integer sCard(String key);
+
+	Boolean sIsMember(String key, String value);
+
+	Set<String> sInter(String... keys);
+
+	void sInterStore(String destKey, String... keys);
+
+	Set<String> sUnion(String... keys);
+
+	void sUnionStore(String destKey, String... keys);
+
+	Set<String> sDiff(String... keys);
+
+	void sDiffStore(String destKey, String... keys);
+
+	Set<String> sMembers(String key);
+
+	String sRandMember(String key);
 }

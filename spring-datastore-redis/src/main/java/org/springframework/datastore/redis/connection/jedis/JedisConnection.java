@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.datastore.keyvalue.UncategorizedKeyvalueStoreException;
@@ -415,6 +416,10 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	//
+	// List operations
+	//
+
 
 	@Override
 	public Integer lPush(String key, String value) {
@@ -576,6 +581,190 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			return jedis.rpoplpush(srcKey, dstKey);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+
+	//
+	// Set operations
+	//
+
+	@Override
+	public Boolean sAdd(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.sadd(key, value);
+				return null;
+			}
+			return (jedis.sadd(key, value) == 1);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer sCard(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.scard(key);
+				return null;
+			}
+			return jedis.scard(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sDiff(String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.sdiff(keys);
+				return null;
+			}
+			return jedis.sdiff(keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void sDiffStore(String destKey, String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.sdiffstore(destKey, keys);
+			}
+			jedis.sdiffstore(destKey, keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sInter(String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.sinter(keys);
+				return null;
+			}
+			return jedis.sinter(keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void sInterStore(String destKey, String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.sinterstore(destKey, keys);
+			}
+			jedis.sinterstore(destKey, keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sIsMember(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.sismember(key, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.sismember(key, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sMembers(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.smembers(key);
+				return null;
+			}
+			return jedis.smembers(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sMove(String srcKey, String destKey, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.smove(srcKey, destKey, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.smove(srcKey, destKey, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String sPop(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.spop(key);
+				return null;
+			}
+			return jedis.spop(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String sRandMember(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.srandmember(key);
+				return null;
+			}
+			return jedis.srandmember(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sRem(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.srem(key, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.srem(key, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sUnion(String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.sunion(keys);
+				return null;
+			}
+			return jedis.sunion(keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void sUnionStore(String destKey, String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.sunionstore(destKey, keys);
+			}
+			jedis.sunionstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

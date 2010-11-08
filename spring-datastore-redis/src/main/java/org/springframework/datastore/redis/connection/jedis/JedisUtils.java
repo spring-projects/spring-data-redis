@@ -63,4 +63,8 @@ public abstract class JedisUtils {
 	static boolean isStatusOk(String status) {
 		return status != null && (OK_CODE.equals(status) || OK_MULTI_CODE.equals(status));
 	}
+
+	static Boolean convertCodeReply(Integer code) {
+		return (code != null ? code == 1 : null);
+	}
 }
