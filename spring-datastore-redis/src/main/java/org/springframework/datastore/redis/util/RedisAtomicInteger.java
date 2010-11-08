@@ -48,12 +48,12 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 *
 	 * @param redisCounter
 	 * @param commands
-	 * @param value
+	 * @param initialValue
 	 */
-	public RedisAtomicInteger(String redisCounter, RedisCommands commands, int value) {
+	public RedisAtomicInteger(String redisCounter, RedisCommands commands, int initialValue) {
 		this.key = redisCounter;
 		this.commands = commands;
-		commands.set(redisCounter, Integer.toString(value));
+		commands.set(redisCounter, Integer.toString(initialValue));
 	}
 
 	/**
@@ -83,7 +83,6 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	public int getAndSet(int newValue) {
 		return Integer.valueOf(commands.getSet(key, Integer.toString(newValue)));
 	}
-
 
 	/**
 	 * Atomically set the value to the given updated value
