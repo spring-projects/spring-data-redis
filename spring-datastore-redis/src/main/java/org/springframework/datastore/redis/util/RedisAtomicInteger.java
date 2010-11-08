@@ -33,9 +33,27 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	private final String key;
 	private RedisCommands commands;
 
+	/**
+	 * Constructs a new <code>RedisAtomicInteger</code> instance with an initial value of zero.
+	 *
+	 * @param redisCounter
+	 * @param commands
+	 */
 	public RedisAtomicInteger(String redisCounter, RedisCommands commands) {
+		this(redisCounter, commands, 0);
+	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicInteger</code> instance with the given initial value.
+	 *
+	 * @param redisCounter
+	 * @param commands
+	 * @param value
+	 */
+	public RedisAtomicInteger(String redisCounter, RedisCommands commands, int value) {
 		this.key = redisCounter;
 		this.commands = commands;
+		commands.set(redisCounter, Integer.toString(value));
 	}
 
 	/**
