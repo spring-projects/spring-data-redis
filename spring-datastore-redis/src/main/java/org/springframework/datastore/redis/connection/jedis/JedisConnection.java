@@ -417,7 +417,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	//
-	// List operations
+	// List commands
 	//
 
 
@@ -588,7 +588,7 @@ public class JedisConnection implements RedisConnection {
 
 
 	//
-	// Set operations
+	// Set commands
 	//
 
 	@Override

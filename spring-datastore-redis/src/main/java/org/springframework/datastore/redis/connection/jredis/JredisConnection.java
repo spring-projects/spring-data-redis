@@ -15,9 +15,10 @@
  */
 package org.springframework.datastore.redis.connection.jredis;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.jredis.JRedis;
 import org.jredis.RedisException;
@@ -226,6 +227,10 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
+	//
+	// List commands
+	//
+
 	@Override
 	public List<String> bLPop(int timeout, String... keys) {
 		throw new UnsupportedOperationException();
@@ -277,12 +282,8 @@ public class JredisConnection implements RedisConnection {
 	public List<String> lRange(String key, int start, int end) {
 		try {
 			List<byte[]> lrange = jredis.lrange(key, start, end);
-			List<String> results = new ArrayList<String>(lrange.size());
 
-			for (byte[] bs : lrange) {
-				results.add(JredisUtils.convertToString(bs, encoding));
-			}
-			return results;
+			return JredisUtils.convertToStringCollection(lrange, encoding, List.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -339,6 +340,157 @@ public class JredisConnection implements RedisConnection {
 		try {
 			jredis.rpush(key, value);
 			return null;
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	//
+	// Set commands
+	//
+
+	@Override
+	public Boolean sAdd(String key, String value) {
+		try {
+			return jredis.sadd(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer sCard(String key) {
+		try {
+			return Integer.valueOf((int) jredis.scard(key));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sDiff(String... keys) {
+		String set1 = keys[0];
+		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+
+		try {
+			List<byte[]> result = jredis.sdiff(set1, sets);
+			return JredisUtils.convertToStringCollection(result, encoding, Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void sDiffStore(String destKey, String... keys) {
+		String set1 = keys[0];
+		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+
+		try {
+			jredis.sdiffstore(set1, sets);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sInter(String... keys) {
+		String set1 = keys[0];
+		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+
+		try {
+			List<byte[]> result = jredis.sinter(set1, sets);
+			return JredisUtils.convertToStringCollection(result, encoding, Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void sInterStore(String destKey, String... keys) {
+		String set1 = keys[0];
+		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+
+		try {
+			jredis.sinterstore(set1, sets);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sIsMember(String key, String value) {
+		try {
+			return jredis.sismember(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sMembers(String key) {
+		try {
+			return JredisUtils.convertToStringCollection(jredis.smembers(key), encoding, Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sMove(String srcKey, String destKey, String value) {
+		try {
+			return jredis.smove(srcKey, destKey, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String sPop(String key) {
+		try {
+			return JredisUtils.convertToString(jredis.spop(key), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String sRandMember(String key) {
+		try {
+			return JredisUtils.convertToString(jredis.srandmember(key), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean sRem(String key, String value) {
+		try {
+			return jredis.srem(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> sUnion(String... keys) {
+		String set1 = keys[0];
+		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+
+		try {
+			List<byte[]> result = jredis.sunion(set1, sets);
+			return JredisUtils.convertToStringCollection(result, encoding, Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void sUnionStore(String destKey, String... keys) {
+		String set1 = keys[0];
+		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+
+		try {
+			jredis.sunionstore(set1, sets);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}

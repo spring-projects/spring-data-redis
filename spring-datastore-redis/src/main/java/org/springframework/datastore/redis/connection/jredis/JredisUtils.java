@@ -17,6 +17,10 @@
 package org.springframework.datastore.redis.connection.jredis;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.jredis.RedisException;
 import org.springframework.dao.DataAccessException;
@@ -37,6 +41,21 @@ public abstract class JredisUtils {
 	public static String convertToString(byte[] bytes, String encoding) {
 		try {
 			return new String(bytes, encoding);
+		} catch (UnsupportedEncodingException ex) {
+			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+		}
+	}
+
+	static <T extends Collection<String>> T convertToStringCollection(List<byte[]> bytes, String encoding, Class<T> collectionType) {
+
+		Collection<String> col = (List.class.isAssignableFrom(collectionType) ? new ArrayList<String>(bytes.size())
+				: new LinkedHashSet<String>(bytes.size()));
+
+		try {
+			for (byte[] bs : bytes) {
+				col.add(new String(bs, encoding));
+			}
+			return (T) col;
 		} catch (UnsupportedEncodingException ex) {
 			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
 		}
