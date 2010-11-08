@@ -16,6 +16,7 @@
 package org.springframework.datastore.redis.connection.jredis;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.jredis.JRedis;
 import org.jredis.RedisException;
@@ -87,7 +88,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void exec() {
+	public List<Object> exec() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -189,6 +190,51 @@ public class JredisConnection implements RedisConnection {
 	public void set(String key, String value) {
 		try {
 			jredis.set(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String getSet(String key, String value) {
+		try {
+			return JredisUtils.convertToString(jredis.getset(key, value), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer decr(String key) {
+		try {
+			return (int) jredis.decr(key);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer decrBy(String key, int value) {
+		try {
+			return (int) jredis.decrby(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer incr(String key) {
+		try {
+			return (int) jredis.incr(key);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer incrBy(String key, int value) {
+		try {
+			return (int) jredis.incrby(key, value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}

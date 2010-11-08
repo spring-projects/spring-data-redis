@@ -18,6 +18,7 @@ package org.springframework.datastore.redis.connection.jedis;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.datastore.keyvalue.UncategorizedKeyvalueStoreException;
@@ -141,9 +142,9 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void exec() {
+	public List<Object> exec() {
 		try {
-			client.exec();
+			return transaction.exec();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -369,6 +370,72 @@ public class JedisConnection implements RedisConnection {
 	public void set(String key, String value) {
 		try {
 			jedis.set(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+
+	@Override
+	public String getSet(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.getSet(key, value);
+				return null;
+			}
+			return jedis.getSet(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer decr(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.decr(key);
+				return null;
+			}
+			return jedis.decr(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer decrBy(String key, int value) {
+		try {
+			if (isQueueing()) {
+				transaction.decrBy(key, value);
+				return null;
+			}
+			return jedis.decrBy(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer incr(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.incr(key);
+				return null;
+			}
+			return jedis.incr(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer incrBy(String key, int value) {
+		try {
+			if (isQueueing()) {
+				transaction.incrBy(key, value);
+				return null;
+			}
+			return jedis.incrBy(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

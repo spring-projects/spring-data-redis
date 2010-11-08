@@ -55,10 +55,20 @@ public class RedisTemplate extends RedisAccessor {
 		afterPropertiesSet();
 	}
 
+	public void del(final String redisKey) {
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) throws Exception {
+				connection.del(redisKey);
+				return null;
+			}
+		});
+	}
+
+
 	public <T> T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
-
 
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
 		Assert.notNull(action, "Callback object must not be null");

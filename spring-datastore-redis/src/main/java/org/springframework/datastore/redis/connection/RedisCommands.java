@@ -23,7 +23,7 @@ import java.util.Collection;
  * 
  * @author Costin Leau
  */
-public interface RedisCommands {
+public interface RedisCommands extends RedisTxCommands, RedisStringCommands {
 
 	Boolean exists(String key);
 
@@ -50,13 +50,4 @@ public interface RedisCommands {
 
 	void select(int dbIndex);
 
-	void watch(String... keys);
-
-	void unwatch();
-
-	void multi();
-
-	void exec();
-
-	void discard();
 }
