@@ -35,8 +35,7 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	String randomKey();
 
-	//TODO see whether the status code can be properly intercepted
-	Boolean rename(String oldName, String newName);
+	void rename(String oldName, String newName);
 
 	Boolean renameNx(String oldName, String newName);
 

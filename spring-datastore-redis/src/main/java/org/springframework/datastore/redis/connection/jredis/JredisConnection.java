@@ -76,17 +76,29 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public Integer dbSize() {
-		throw new UnsupportedOperationException();
+		try {
+			return Integer.valueOf((int) jredis.dbsize());
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Integer del(String... keys) {
-		throw new UnsupportedOperationException();
+		try {
+			return Integer.valueOf((int) jredis.del(keys));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public void discard() {
-		throw new UnsupportedOperationException();
+		try {
+			jredis.discard();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -96,17 +108,29 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public Boolean exists(String key) {
-		throw new UnsupportedOperationException();
+		try {
+			return jredis.exists(key);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Boolean expire(String key, int seconds) {
-		throw new UnsupportedOperationException();
+		try {
+			return jredis.expire(key, seconds);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Collection<String> keys(String pattern) {
-		throw new UnsupportedOperationException();
+		try {
+			return jredis.keys(pattern);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -121,17 +145,29 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public String randomKey() {
-		throw new UnsupportedOperationException();
+		try {
+			return jredis.randomkey();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
-	public Boolean rename(String oldName, String newName) {
-		throw new UnsupportedOperationException();
+	public void rename(String oldName, String newName) {
+		try {
+			jredis.rename(oldName, newName);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Boolean renameNx(String oldName, String newName) {
-		throw new UnsupportedOperationException();
+		try {
+			return jredis.renamenx(oldName, newName);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -141,12 +177,20 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public Integer ttl(String key) {
-		throw new UnsupportedOperationException();
+		try {
+			return Integer.valueOf((int) jredis.ttl(key));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
 	public DataType type(String key) {
-		throw new UnsupportedOperationException();
+		try {
+			return JredisUtils.convertDataType(jredis.type(key));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -156,11 +200,6 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public void watch(String... keys) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Integer hSet(String key, String field, String value) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -662,6 +701,16 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public Integer zUnionStore(String destKey, String... sets) {
+		throw new UnsupportedOperationException();
+	}
+
+
+	//
+	// Hash commands
+	//
+
+	@Override
+	public Integer hSet(String key, String field, String value) {
 		throw new UnsupportedOperationException();
 	}
 }

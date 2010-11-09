@@ -23,9 +23,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.jredis.RedisException;
+import org.jredis.RedisType;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.datastore.redis.connection.DataType;
 
 /**
  * Helper class featuring methods for JRedis connection handling, providing support for exception translation. 
@@ -59,5 +61,24 @@ public abstract class JredisUtils {
 		} catch (UnsupportedEncodingException ex) {
 			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
 		}
+	}
+
+	static DataType convertDataType(RedisType type) {
+		switch (type) {
+		case NONE:
+			return DataType.NONE;
+		case string:
+			return DataType.STRING;
+		case list:
+			return DataType.LIST;
+		case set:
+			return DataType.SET;
+			//case zset:
+			// return DataType.ZSET;
+		case hash:
+			return DataType.HASH;
+		}
+
+		return null;
 	}
 }

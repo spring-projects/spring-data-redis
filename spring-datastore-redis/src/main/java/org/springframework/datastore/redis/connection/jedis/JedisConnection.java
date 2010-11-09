@@ -227,13 +227,12 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean rename(String oldName, String newName) {
+	public void rename(String oldName, String newName) {
 		try {
 			if (isQueueing()) {
 				transaction.rename(oldName, newName);
-				return null;
 			}
-			return (JedisUtils.isStatusOk(jedis.rename(oldName, newName)));
+			jedis.rename(oldName, newName);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
