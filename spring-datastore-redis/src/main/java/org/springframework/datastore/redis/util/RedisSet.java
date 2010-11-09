@@ -1,108 +1,40 @@
+/*
+ * Copyright 2010 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.datastore.redis.util;
 
-import java.util.Iterator;
+import java.util.Queue;
 import java.util.Set;
 
-import org.springframework.datastore.redis.core.RedisTemplate;
-
 /**
+ * Redis extension for the {@link Set} contract. Supports {@link Set} specific
+ * operations backed by Redis commands.
  * 
- * @author Graeme Rocher
- *
+ * @author Costin Leau
  */
-public class RedisSet extends AbstractRedisCollection implements Set {
+public interface RedisSet extends RedisCollection, Set<String>, Queue<String> {
 
-	public RedisSet(RedisTemplate redisTemplate, String redisKey) {
-		super(redisTemplate, redisKey);
-	}
+	Set<String> intersect(RedisSet... sets);
 
-	public int size() {
-		//        return redisTemplate.getSetOperations().size(redisKey);
-		throw new UnsupportedOperationException();
-	}
+	Set<String> union(RedisSet... sets);
 
-	public boolean contains(Object o) {
-		//TODO investigate cast
-		//        return redisTemplate.getSetOperations().contains(redisKey, (String)o);
-		throw new UnsupportedOperationException();
-	}
+	Set<String> diff(RedisSet... sets);
 
-	public Iterator iterator() {
-		//        return redisTemplate.getSetOperations().getAll(redisKey).iterator();
-		throw new UnsupportedOperationException();
-	}
+	RedisSet intersectAndStore(String destKey, RedisSet... sets);
 
-	public boolean add(Object o) {
-		//TODO investigate cast
-		//        return redisTemplate.getSetOperations().add(redisKey, (String)o);
-		throw new UnsupportedOperationException();
-	}
+	RedisSet unionAndStore(String destKey, RedisSet... sets);
 
-	public boolean remove(Object o) {
-		//TODO investigate cast
-		//        return redisTemplate.getSetOperations().remove(redisKey, (String)o);
-		throw new UnsupportedOperationException();
-	}
-
-
-	public Set<String> members() {
-		//        return redisTemplate.getSetOperations().getAll(redisKey);
-		throw new UnsupportedOperationException();
-	}
-
-	/*
-	public List<String> members(final int offset, final int max) {
-	    return redisTemplate.sort(redisKey, redisTemplate.sortParams().limit(offset, max));
-
-	}*/
-
-	public String getRandom() {
-		//        return redisTemplate.getSetOperations().getRandom(redisKey);
-		throw new UnsupportedOperationException();
-	}
-
-	public boolean removeRandom() {
-		//        return redisTemplate.getSetOperations().removeRandom(redisKey);
-		throw new UnsupportedOperationException();
-	}
-
-	/*
-	public intersection(RedisSet... redisSets) {
-		//storeIntersectionOfSets..
-		return null;
-	}
-	*/
-
-	public RedisSet intersection(String newKey, RedisSet... redisSets) {
-		throw new UnsupportedOperationException();
-		/*
-		String[] keys = new String[redisSets.length];
-		int i = 0;
-		for (RedisSet redisSet : redisSets) {
-			keys[i] = redisSet.getRedisKey();
-			i++;
-		}
-		redisTemplate.getSetOperations().storeIntersectionOfSets(newKey, keys);
-
-		RedisSet resultSet = new RedisSet(redisTemplate, newKey);
-		Set<String> results = redisTemplate.getSetOperations().getAll(newKey);
-		resultSet.addAll(results);
-		return resultSet;
-		*/
-	}
-
-
-	void union(RedisSet... redisSets) {
-		//storeUnionOfSets
-	}
-
-	void difference(RedisSet... redisSets) {
-
-	}
-
-	//consider methods in google collections such as 	
-	// cartesianProduct, filter, powerSet, symmetricDifference, newRedisSet
-	//TODO move to another set
-
-	//
+	RedisSet diffAndStore(String destKey, RedisSet... sets);
 }
