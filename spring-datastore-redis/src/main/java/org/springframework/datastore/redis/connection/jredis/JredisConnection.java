@@ -17,6 +17,7 @@ package org.springframework.datastore.redis.connection.jredis;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -694,6 +695,11 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
+
+	//
+	// Hash commands
+	//
+
 	@Override
 	public Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
 		throw new UnsupportedOperationException();
@@ -704,13 +710,90 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
-
-	//
-	// Hash commands
-	//
+	@Override
+	public Boolean hDel(String key, String field) {
+		try {
+			return jredis.hdel(key, field);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
 
 	@Override
-	public Integer hSet(String key, String field, String value) {
+	public Boolean hExists(String key, String field) {
+		try {
+			return jredis.hexists(key, field);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String hGet(String key, String field) {
+		try {
+			return JredisUtils.convertToString(jredis.hget(key, field), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Entry> hGetAll(String key) {
+		try {
+			return JredisUtils.convert(jredis.hgetall(key), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer hIncrBy(String key, String field, int delta) {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<String> hKeys(String key) {
+		try {
+			return new LinkedHashSet<String>(jredis.hkeys(key));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer hLen(String key) {
+		try {
+			return Integer.valueOf((int) jredis.hlen(key));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> hMGet(String key, String... fields) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void hMSet(String key, String[] fields, String[] values) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Boolean hSet(String key, String field, String value) {
+		try {
+			return jredis.hset(key, field, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> hVals(String key) {
+		try {
+			return JredisUtils.convertToStringCollection(jredis.hvals(key), encoding, List.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 }

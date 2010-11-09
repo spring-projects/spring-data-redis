@@ -95,11 +95,11 @@ public abstract class JedisUtils {
 	}
 
 	static Map<String, String> convert(String[] fields, String[] values) {
-		Map<String, String> arg = new LinkedHashMap<String, String>(fields.length);
+		Map<String, String> result = new LinkedHashMap<String, String>(fields.length);
 
 		for (int i = 0; i < values.length; i++) {
-			arg.put(fields[i], values[i]);
+			result.put(fields[i], values[i]);
 		}
-		return arg;
+		return result;
 	}
 }

@@ -32,7 +32,7 @@ public interface RedisHashCommands {
 		public String getValue();
 	}
 
-	Integer hSet(String key, String field, String value);
+	Boolean hSet(String key, String field, String value);
 
 	String hGet(String key, String field);
 

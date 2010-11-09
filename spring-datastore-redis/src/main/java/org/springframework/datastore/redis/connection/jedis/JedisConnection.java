@@ -317,13 +317,13 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer hSet(String key, String field, String value) {
+	public Boolean hSet(String key, String field, String value) {
 		try {
 			if (isQueueing()) {
 				transaction.hset(key, field, value);
 				return null;
 			}
-			return jedis.hset(key, field, value);
+			return JedisUtils.convertCodeReply(jedis.hset(key, field, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
