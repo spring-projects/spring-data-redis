@@ -30,6 +30,18 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  */
 public class DefaultRedisList extends AbstractRedisCollection implements RedisList {
 
+	private class DefaultRedisListIterator extends RedisIterator {
+
+		public DefaultRedisListIterator(Iterator<String> delegate) {
+			super(delegate);
+		}
+
+		@Override
+		protected void removeFromRedisStorage(String item) {
+			DefaultRedisList.this.remove(item);
+		}
+	}
+
 	public DefaultRedisList(String key, RedisCommands commands) {
 		super(key, commands);
 	}
@@ -72,11 +84,16 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 	}
 
 	@Override
+	public boolean remove(Object o) {
+		Integer result = commands.lRem(key, 0, o.toString());
+		return (result != null && result.intValue() > 0);
+	}
+
+	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean modified = false;
 		for (Object object : c) {
-			Integer result = commands.lRem(key, 0, object.toString());
-			modified |= (result != null && result.intValue() > 0);
+			modified |= remove(object);
 		}
 
 		return modified;

@@ -28,6 +28,18 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  */
 public class DefaultRedisSet extends AbstractRedisCollection implements RedisSet {
 
+	private class DefaultRedisSetIterator extends RedisIterator {
+
+		public DefaultRedisSetIterator(Iterator<String> delegate) {
+			super(delegate);
+		}
+
+		@Override
+		protected void removeFromRedisStorage(String item) {
+			DefaultRedisSet.this.remove(item);
+		}
+	}
+
 	public DefaultRedisSet(String key, RedisCommands commands) {
 		super(key, commands);
 	}
@@ -45,116 +57,84 @@ public class DefaultRedisSet extends AbstractRedisCollection implements RedisSet
 
 	@Override
 	public Set<String> intersect(RedisSet... sets) {
-		return null;
+		return commands.sInter(extractKeys(sets));
 	}
 
 	@Override
 	public RedisSet intersectAndStore(String destKey, RedisSet... sets) {
-		return null;
+		commands.sInterStore(destKey, extractKeys(sets));
+		return new DefaultRedisSet(destKey, commands);
 	}
 
 	@Override
 	public Set<String> union(RedisSet... sets) {
-		return null;
+		return commands.sUnion(extractKeys(sets));
 	}
 
 	@Override
 	public RedisSet unionAndStore(String destKey, RedisSet... sets) {
-		return null;
-	}
-
-	@Override
-	public String getKey() {
-		return null;
+		commands.sUnionStore(destKey, extractKeys(sets));
+		return new DefaultRedisSet(destKey, commands);
 	}
 
 	@Override
 	public boolean add(String e) {
-		return false;
+		return commands.sAdd(key, e);
 	}
 
 	@Override
 	public boolean addAll(Collection<? extends String> c) {
-		return false;
+		boolean modified = false;
+		for (String string : c) {
+			modified |= add(string);
+		}
+
+		return modified;
 	}
 
 	@Override
 	public void clear() {
+		// intersect the set with a non existing one
+		// TODO: find a safer way to clean the set
+		commands.sInterStore(key, key, "NON-EXISTING");
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return false;
+		return commands.sIsMember(key, o.toString());
 	}
 
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return false;
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return false;
+		boolean contains = true;
+		for (Object object : c) {
+			contains &= contains(object);
+		}
+		return contains;
 	}
 
 	@Override
 	public Iterator<String> iterator() {
-		return null;
+		return new DefaultRedisSetIterator(commands.sMembers(key).iterator());
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		return false;
+		return commands.sRem(key, o.toString());
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return false;
-	}
-
-	@Override
-	public boolean retainAll(Collection<?> c) {
-		return false;
+		boolean modified = false;
+		for (Object object : c) {
+			modified |= remove(object);
+		}
+		return modified;
 	}
 
 	@Override
 	public int size() {
-		return 0;
-	}
-
-	@Override
-	public Object[] toArray() {
-		return null;
-	}
-
-	@Override
-	public <T> T[] toArray(T[] a) {
-		return null;
-	}
-
-	@Override
-	public String element() {
-		return null;
-	}
-
-	@Override
-	public boolean offer(String e) {
-		return false;
-	}
-
-	@Override
-	public String peek() {
-		return null;
-	}
-
-	@Override
-	public String poll() {
-		return null;
-	}
-
-	@Override
-	public String remove() {
-		return null;
+		return commands.sCard(key);
 	}
 
 	private String[] extractKeys(RedisSet... sets) {
