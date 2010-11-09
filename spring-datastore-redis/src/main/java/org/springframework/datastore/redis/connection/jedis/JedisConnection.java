@@ -32,6 +32,7 @@ import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.ZParams;
 
 /**
  * Jedis based {@link RedisConnection}.
@@ -765,6 +766,227 @@ public class JedisConnection implements RedisConnection {
 				transaction.sunionstore(destKey, keys);
 			}
 			jedis.sunionstore(destKey, keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	//
+	// ZSet commands
+	//
+
+	@Override
+	public Boolean zAdd(String key, double score, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.zadd(key, score, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.zadd(key, score, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zCard(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.zcard(key);
+				return null;
+			}
+			return jedis.zcard(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zCount(String key, double min, double max) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zcount(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Double zIncrBy(String key, double increment, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.zincrby(key, increment, value);
+				return null;
+			}
+			return jedis.zincrby(key, increment, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			ZParams zparams = new ZParams().weights(weights).aggregate(
+					redis.clients.jedis.ZParams.Aggregate.valueOf(aggregate.name()));
+			return jedis.zinterstore(destKey, zparams, sets);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zInterStore(String destKey, String... sets) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zinterstore(destKey, sets);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> zRange(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.zrange(key, start, end);
+				return null;
+			}
+			return jedis.zrange(key, start, end);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> zRangeByScore(String key, double min, double max) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zrangeByScore(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRank(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.zrank(key, value);
+				return null;
+			}
+			return jedis.zrank(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean zRem(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.zrem(key, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.zrem(key, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRemRange(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zremrangeByRank(key, start, end);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRemRangeByScore(String key, double min, double max) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zremrangeByScore(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> zRevRange(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.zrevrange(key, start, end);
+				return null;
+			}
+			return jedis.zrevrange(key, start, end);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRevRank(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.zrevrank(key, value);
+				return null;
+			}
+			return jedis.zrevrank(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Double zScore(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.zscore(key, value);
+				return null;
+			}
+			return jedis.zscore(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			ZParams zparams = new ZParams().weights(weights).aggregate(
+					redis.clients.jedis.ZParams.Aggregate.valueOf(aggregate.name()));
+			return jedis.zunionstore(destKey, zparams, sets);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zUnionStore(String destKey, String... sets) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zunionstore(destKey, sets);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
