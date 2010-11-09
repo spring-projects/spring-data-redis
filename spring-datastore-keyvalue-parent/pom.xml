@@ -462,7 +462,7 @@
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/site/${project.version}</url>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/snapshot-site/</url>
 		</site>
 		<repository>
 			<id>spring-milestone</id>

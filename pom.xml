@@ -25,7 +25,6 @@
 		</extensions>
 
 		<plugins>
-      <!--
 			<plugin>
 				<groupId>com.agilejava.docbkx</groupId>
 				<artifactId>docbkx-maven-plugin</artifactId>
@@ -36,7 +35,7 @@
 							<goal>generate-html</goal>
 							<goal>generate-pdf</goal>
 						</goals>
-						<phase>package</phase>
+						<phase>pre-site</phase>
 					</execution>
 				</executions>
 				<dependencies>
@@ -54,6 +53,10 @@
 					<htmlStylesheet>css/html.css</htmlStylesheet>
 					<chunkedOutput>false</chunkedOutput>
 					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+          <useExtensions>1</useExtensions>
+          <highlightSource>1</highlightSource>
+					<highlightDefaultLanguage></highlightDefaultLanguage>
+					<!-- callouts -->					
 					<entities>
 						<entity>
 							<name>version</name>
@@ -81,6 +84,8 @@
 					</postProcess>
 				</configuration>
 			</plugin>			
+      <!--
+
 			<plugin>
 				run `mvn package assembly:assembly` to trigger assembly creation.
 				see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html 
@@ -149,7 +154,7 @@
 		<downloadUrl>http://www.springsource.com/spring-data</downloadUrl>
 		<site>
 			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/site/${project.version}</url>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/snapshot-site/</url>
 		</site>
 		<repository>
 			<id>spring-milestone</id>
