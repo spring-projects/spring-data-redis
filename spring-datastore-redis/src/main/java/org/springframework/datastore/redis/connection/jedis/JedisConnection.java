@@ -866,12 +866,74 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Set<Tuple> zRangeWithScore(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.zrangeWithScores(key, start, end);
+				return null;
+			}
+			return JedisUtils.convertJedisTuple(jedis.zrangeWithScores(key, start, end));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Set<String> zRangeByScore(String key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
 			}
 			return jedis.zrangeByScore(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeWithScore(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.zrangeWithScores(key, start, end);
+				return null;
+			}
+			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, start, end));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> zRangeByScore(String key, double min, double max, int offset, int count) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.zrangeByScore(key, min, max, offset, count);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, int offset, int count) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, min, max, offset, count));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

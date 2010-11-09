@@ -18,12 +18,16 @@ package org.springframework.datastore.redis.connection.jedis;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.redis.RedisConnectionFailureException;
 import org.springframework.datastore.redis.UncategorizedRedisException;
+import org.springframework.datastore.redis.connection.DefaultTuple;
+import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
 
 import redis.clients.jedis.JedisException;
 
@@ -66,5 +70,14 @@ public abstract class JedisUtils {
 
 	static Boolean convertCodeReply(Integer code) {
 		return (code != null ? code == 1 : null);
+	}
+
+	static Set<Tuple> convertJedisTuple(Set<redis.clients.jedis.Tuple> tuples) {
+		Set<Tuple> value = new LinkedHashSet<Tuple>(tuples.size());
+		for (redis.clients.jedis.Tuple tuple : tuples) {
+			value.add(new DefaultTuple(tuple.getElement(), tuple.getScore()));
+		}
+
+		return value;
 	}
 }
