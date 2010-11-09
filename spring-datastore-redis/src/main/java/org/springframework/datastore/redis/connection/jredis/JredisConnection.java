@@ -558,12 +558,33 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Set<Tuple> zRangeWithScore(String key, int start, int end) {
+		throw new UnsupportedOperationException();
+
+	}
+
+	@Override
 	public Set<String> zRangeByScore(String key, double min, double max) {
 		try {
 			return JredisUtils.convertToStringCollection(jredis.zrangebyscore(key, min, max), encoding, Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<String> zRangeByScore(String key, double min, double max, int offset, int count) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, int offset, int count) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -609,6 +630,11 @@ public class JredisConnection implements RedisConnection {
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeWithScore(String key, int start, int end) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
