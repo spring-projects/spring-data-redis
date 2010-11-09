@@ -34,6 +34,8 @@ public interface RedisHashCommands {
 
 	Boolean hSet(String key, String field, String value);
 
+	Boolean hSetNX(String key, String field, String value);
+
 	String hGet(String key, String field);
 
 	List<String> hMGet(String key, String... fields);

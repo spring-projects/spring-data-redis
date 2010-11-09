@@ -330,6 +330,19 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Boolean hSetNX(String key, String field, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.hsetnx(key, field, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.hsetnx(key, field, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public String get(String key) {
 		try {
 			if (isQueueing()) {

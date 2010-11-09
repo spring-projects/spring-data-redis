@@ -789,6 +789,11 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Boolean hSetNX(String key, String field, String value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public List<String> hVals(String key) {
 		try {
 			return JredisUtils.convertToStringCollection(jredis.hvals(key), encoding, List.class);
