@@ -38,7 +38,7 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	void rename(String oldName, String newName);
 
-	Boolean renameNx(String oldName, String newName);
+	Boolean renameNX(String oldName, String newName);
 
 	Integer dbSize();
 

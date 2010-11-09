@@ -241,7 +241,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean renameNx(String oldName, String newName) {
+	public Boolean renameNX(String oldName, String newName) {
 		try {
 			if (isQueueing()) {
 				transaction.renamenx(oldName, newName);

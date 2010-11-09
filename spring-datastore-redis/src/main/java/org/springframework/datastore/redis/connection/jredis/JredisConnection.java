@@ -163,7 +163,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean renameNx(String oldName, String newName) {
+	public Boolean renameNX(String oldName, String newName) {
 		try {
 			return jredis.renamenx(oldName, newName);
 		} catch (RedisException ex) {

@@ -34,7 +34,7 @@ public interface RedisSortedSet extends RedisStore, SortedSet<String> {
 
 	Set<String> rangeByScore(double min, double max);
 
-	RedisSortedSet trim(int start, int end);
+	RedisSortedSet remove(int start, int end);
 
-	RedisSortedSet trimByScore(double min, double max);
+	RedisSortedSet removeByScore(double min, double max);
 }

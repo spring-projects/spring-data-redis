@@ -24,8 +24,7 @@ import org.springframework.datastore.redis.UncategorizedRedisException;
  *  
  * @author Costin Leau
  */
-public interface RedisConnection extends RedisCommands, RedisHashCommands, RedisListCommands, RedisSetCommands,
-		RedisStringCommands, RedisZSetCommands {
+public interface RedisConnection extends RedisCommands {
 
 	/**
 	 * Close (or quit) the connection.

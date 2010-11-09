@@ -62,13 +62,13 @@ class DefaultRedisSortedSet extends AbstractRedisCollection implements RedisSort
 	}
 
 	@Override
-	public RedisSortedSet trim(int start, int end) {
+	public RedisSortedSet remove(int start, int end) {
 		commands.zRemRange(key, start, end);
 		return this;
 	}
 
 	@Override
-	public RedisSortedSet trimByScore(double min, double max) {
+	public RedisSortedSet removeByScore(double min, double max) {
 		commands.zRemRangeByScore(key, min, max);
 		return this;
 	}
