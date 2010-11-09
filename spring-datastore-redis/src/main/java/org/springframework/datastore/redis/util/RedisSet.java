@@ -15,7 +15,6 @@
  */
 package org.springframework.datastore.redis.util;
 
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -24,7 +23,7 @@ import java.util.Set;
  * 
  * @author Costin Leau
  */
-public interface RedisSet extends RedisCollection, Set<String>, Queue<String> {
+public interface RedisSet extends RedisCollection, Set<String> {
 
 	Set<String> intersect(RedisSet... sets);
 

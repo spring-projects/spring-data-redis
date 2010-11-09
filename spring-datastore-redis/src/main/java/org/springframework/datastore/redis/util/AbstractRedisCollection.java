@@ -46,6 +46,8 @@ public abstract class AbstractRedisCollection extends AbstractCollection<String>
 
 	public abstract boolean removeAll(Collection<?> c);
 
+	public abstract boolean remove(Object o);
+
 	public boolean retainAll(Collection<?> c) {
 		throw new UnsupportedOperationException();
 	}
