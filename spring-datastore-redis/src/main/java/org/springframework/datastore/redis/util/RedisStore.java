@@ -15,26 +15,18 @@
  */
 package org.springframework.datastore.redis.util;
 
-import java.util.Set;
-import java.util.SortedSet;
 
 /**
- * Redis extension for the {@link SortedSet} contract. Supports {@link SortedSet} specific
- * operations backed by Redis commands.
+ * Basic interface for Redis-based collections.
  * 
  * @author Costin Leau
  */
-public interface RedisSortedSet extends RedisStore, SortedSet<String> {
+public interface RedisStore {
 
-	RedisSortedSet intersectAndStore(String destKey, RedisSortedSet... sets);
-
-	RedisSortedSet unionAndStore(String destKey, RedisSortedSet... sets);
-
-	Set<String> range(int start, int end);
-
-	Set<String> rangeByScore(double min, double max);
-
-	RedisSortedSet trim(int start, int end);
-
-	RedisSortedSet trimByScore(double min, double max);
+	/**
+	 * Returns the key used by the backing Redis store for this collection.
+	 *  
+	 * @return Redis key
+	 */
+	String getKey();
 }

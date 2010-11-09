@@ -25,7 +25,7 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  * 
  * @author Costin Leau
  */
-public abstract class AbstractRedisCollection extends AbstractCollection<String> implements RedisCollection {
+public abstract class AbstractRedisCollection extends AbstractCollection<String> implements RedisStore {
 
 	protected final String key;
 	protected final RedisCommands commands;

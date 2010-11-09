@@ -24,7 +24,7 @@ import java.util.Queue;
  * 
  * @author Costin Leau
  */
-public interface RedisList extends RedisCollection, List<String>, Queue<String> {
+public interface RedisList extends RedisStore, List<String>, Queue<String> {
 
 	List<String> range(int start, int end);
 

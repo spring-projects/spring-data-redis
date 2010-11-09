@@ -39,6 +39,12 @@ public class DefaultRedisSet extends AbstractRedisCollection implements RedisSet
 		}
 	}
 
+	/**
+	 * Constructs a new <code>DefaultRedisSet</code> instance.
+	 *
+	 * @param key
+	 * @param commands
+	 */
 	public DefaultRedisSet(String key, RedisCommands commands) {
 		super(key, commands);
 	}
