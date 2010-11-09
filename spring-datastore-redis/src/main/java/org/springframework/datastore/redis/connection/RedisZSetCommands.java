@@ -16,7 +16,7 @@
 
 package org.springframework.datastore.redis.connection;
 
-import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -26,7 +26,7 @@ import java.util.List;
  */
 public interface RedisZSetCommands {
 
-	public enum AGGREGATE {
+	public enum Aggregate {
 		SUM, MIN, MAX;
 	}
 
@@ -40,11 +40,11 @@ public interface RedisZSetCommands {
 
 	Integer zRevRank(String key, String value);
 
-	List<String> zRange(String key, int start, int end);
+	Set<String> zRange(String key, int start, int end);
 
-	List<String> zRevRange(String key, int start, int end);
+	Set<String> zRevRange(String key, int start, int end);
 
-	List<String> zRangeByScore(String key, double min, double max);
+	Set<String> zRangeByScore(String key, double min, double max);
 
 	Integer zCount(String key, double min, double max);
 
@@ -58,9 +58,9 @@ public interface RedisZSetCommands {
 
 	Integer zUnionStore(String destKey, String... sets);
 
-	Integer zUnionStore(String destKey, AGGREGATE aggregate, double[] weights, String... sets);
+	Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
 
 	Integer zInterStore(String destKey, String... sets);
 
-	Integer zInterStore(String destKey, AGGREGATE aggregate, double[] weights, String... sets);
+	Integer zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
 }
