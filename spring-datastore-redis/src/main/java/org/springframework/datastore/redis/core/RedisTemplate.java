@@ -22,7 +22,8 @@ import java.lang.reflect.Proxy;
 
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
-import org.springframework.datastore.redis.support.converter.RedisConverter;
+import org.springframework.datastore.redis.serializer.RedisSerializer;
+import org.springframework.datastore.redis.serializer.SimpleRedisSerializer;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -45,7 +46,7 @@ import org.springframework.util.ClassUtils;
 public class RedisTemplate extends RedisAccessor {
 
 	private boolean exposeConnection = false;
-	private RedisConverter converter = null;
+	private RedisSerializer<Object> converter = new SimpleRedisSerializer<Object>();
 
 	public RedisTemplate() {
 	}
@@ -121,7 +122,7 @@ public class RedisTemplate extends RedisAccessor {
 		this.exposeConnection = exposeConnection;
 	}
 
-	public void setRedisConverter(RedisConverter converter) {
+	public void setRedisConverter(RedisSerializer converter) {
 		this.converter = converter;
 	}
 
