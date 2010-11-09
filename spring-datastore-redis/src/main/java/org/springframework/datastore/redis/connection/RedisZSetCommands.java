@@ -30,6 +30,12 @@ public interface RedisZSetCommands {
 		SUM, MIN, MAX;
 	}
 
+	public interface Tuple {
+		String getValue();
+
+		Double getScore();
+	}
+
 	Boolean zAdd(String key, double score, String value);
 
 	Boolean zRem(String key, String value);
@@ -42,9 +48,19 @@ public interface RedisZSetCommands {
 
 	Set<String> zRange(String key, int start, int end);
 
+	Set<Tuple> zRangeWithScore(String key, int start, int end);
+
 	Set<String> zRevRange(String key, int start, int end);
 
+	Set<Tuple> zRevRangeWithScore(String key, int start, int end);
+
 	Set<String> zRangeByScore(String key, double min, double max);
+
+	Set<Tuple> zRangeByScoreWithScore(String key, double min, double max);
+
+	Set<String> zRangeByScore(String key, double min, double max, int offset, int count);
+
+	Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, int offset, int count);
 
 	Integer zCount(String key, double min, double max);
 
