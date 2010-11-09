@@ -15,7 +15,6 @@
  */
 package org.springframework.datastore.redis.util;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -83,16 +82,6 @@ public class DefaultRedisSet extends AbstractRedisCollection implements RedisSet
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends String> c) {
-		boolean modified = false;
-		for (String string : c) {
-			modified |= add(string);
-		}
-
-		return modified;
-	}
-
-	@Override
 	public void clear() {
 		// intersect the set with a non existing one
 		// TODO: find a safer way to clean the set
@@ -102,15 +91,6 @@ public class DefaultRedisSet extends AbstractRedisCollection implements RedisSet
 	@Override
 	public boolean contains(Object o) {
 		return commands.sIsMember(key, o.toString());
-	}
-
-	@Override
-	public boolean containsAll(Collection<?> c) {
-		boolean contains = true;
-		for (Object object : c) {
-			contains &= contains(object);
-		}
-		return contains;
 	}
 
 	@Override
@@ -124,23 +104,15 @@ public class DefaultRedisSet extends AbstractRedisCollection implements RedisSet
 	}
 
 	@Override
-	public boolean removeAll(Collection<?> c) {
-		boolean modified = false;
-		for (Object object : c) {
-			modified |= remove(object);
-		}
-		return modified;
-	}
-
-	@Override
 	public int size() {
 		return commands.sCard(key);
 	}
 
 	private String[] extractKeys(RedisSet... sets) {
-		String[] keys = new String[sets.length];
+		String[] keys = new String[sets.length + 1];
+		keys[0] = key;
 		for (int i = 0; i < keys.length; i++) {
-			keys[i] = sets[i].getKey();
+			keys[i + 1] = sets[i].getKey();
 		}
 
 		return keys;

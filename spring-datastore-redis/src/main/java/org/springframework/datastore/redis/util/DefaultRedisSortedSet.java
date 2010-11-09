@@ -15,10 +15,9 @@
  */
 package org.springframework.datastore.redis.util;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.springframework.datastore.redis.connection.RedisCommands;
@@ -47,102 +46,67 @@ class DefaultRedisSortedSet extends AbstractRedisCollection implements RedisSort
 	}
 
 	@Override
-	public RedisSortedSet intersectAndStore(String destKey, RedisSet... sets) {
-		return null;
+	public RedisSortedSet intersectAndStore(String destKey, RedisSortedSet... sets) {
+		commands.zInterStore(destKey, extractKeys(sets));
+		return new DefaultRedisSortedSet(destKey, commands);
 	}
 
 	@Override
-	public List<String> range(int start, int end) {
-		return null;
+	public Set<String> range(int start, int end) {
+		return commands.zRange(key, start, end);
 	}
 
 	@Override
-	public List<String> rangeByScore(int start, int end) {
-		return null;
+	public Set<String> rangeByScore(double min, double max) {
+		return commands.zRangeByScore(key, min, max);
 	}
 
 	@Override
 	public RedisSortedSet trim(int start, int end) {
-		return null;
+		commands.zRemRange(key, start, end);
+		return this;
 	}
 
 	@Override
-	public RedisSortedSet trimByScore(int start, int end) {
-		return null;
+	public RedisSortedSet trimByScore(double min, double max) {
+		commands.zRemRangeByScore(key, min, max);
+		return this;
 	}
 
 	@Override
-	public RedisSortedSet unionAndStore(String destKey, RedisSet... sets) {
-		return null;
-	}
-
-	@Override
-	public String getKey() {
-		return null;
+	public RedisSortedSet unionAndStore(String destKey, RedisSortedSet... sets) {
+		commands.zUnionStore(destKey, extractKeys(sets));
+		return new DefaultRedisSortedSet(destKey, commands);
 	}
 
 	@Override
 	public boolean add(String e) {
-		return false;
-	}
-
-	@Override
-	public boolean addAll(Collection<? extends String> c) {
-		return false;
+		return commands.zAdd(key, 0, e);
 	}
 
 	@Override
 	public void clear() {
+		commands.zRemRange(key, 0, -1);
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return false;
-	}
-
-	@Override
-	public boolean containsAll(Collection<?> c) {
-		return false;
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return false;
+		return (commands.zRank(key, o.toString()) != null);
 	}
 
 	@Override
 	public Iterator<String> iterator() {
-		return null;
+		return new DefaultRedisSortedSetIterator(commands.zRange(key, 0, -1).iterator());
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		return false;
-	}
-
-	@Override
-	public boolean removeAll(Collection<?> c) {
-		return false;
-	}
-
-	@Override
-	public boolean retainAll(Collection<?> c) {
-		return false;
+		return commands.zRem(key, o.toString());
 	}
 
 	@Override
 	public int size() {
-		return 0;
-	}
-
-	@Override
-	public Object[] toArray() {
-		return null;
-	}
-
-	@Override
-	public <T> T[] toArray(T[] a) {
-		return null;
+		return commands.zCard(key);
 	}
 
 	@Override
@@ -152,26 +116,36 @@ class DefaultRedisSortedSet extends AbstractRedisCollection implements RedisSort
 
 	@Override
 	public String first() {
-		return null;
+		return commands.zRange(key, 0, 0).iterator().next();
 	}
 
 	@Override
 	public SortedSet<String> headSet(String toElement) {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public String last() {
-		return null;
+		return commands.zRevRange(key, 0, 0).iterator().next();
 	}
 
 	@Override
 	public SortedSet<String> subSet(String fromElement, String toElement) {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public SortedSet<String> tailSet(String fromElement) {
-		return null;
+		throw new UnsupportedOperationException();
+	}
+
+	private String[] extractKeys(RedisSortedSet... sets) {
+		String[] keys = new String[sets.length + 1];
+		keys[0] = key;
+		for (int i = 0; i < keys.length; i++) {
+			keys[i + 1] = sets[i].getKey();
+		}
+
+		return keys;
 	}
 }

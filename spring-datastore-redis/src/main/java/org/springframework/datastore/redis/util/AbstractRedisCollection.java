@@ -40,15 +40,42 @@ public abstract class AbstractRedisCollection extends AbstractCollection<String>
 		return key;
 	}
 
+	@Override
+	public boolean addAll(Collection<? extends String> c) {
+		boolean modified = false;
+		for (String string : c) {
+			modified |= add(string);
+		}
+		return modified;
+	}
+
 	public abstract boolean add(String e);
 
 	public abstract void clear();
 
-	public abstract boolean removeAll(Collection<?> c);
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		boolean contains = true;
+		for (Object object : c) {
+			contains &= contains(object);
+		}
+		return contains;
+	}
 
 	public abstract boolean remove(Object o);
+
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		boolean modified = false;
+		for (Object object : c) {
+			modified |= remove(object);
+		}
+		return modified;
+	}
 
 	public boolean retainAll(Collection<?> c) {
 		throw new UnsupportedOperationException();
 	}
+
 }

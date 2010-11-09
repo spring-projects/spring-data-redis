@@ -90,16 +90,6 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 	}
 
 	@Override
-	public boolean removeAll(Collection<?> c) {
-		boolean modified = false;
-		for (Object object : c) {
-			modified |= remove(object);
-		}
-
-		return modified;
-	}
-
-	@Override
 	public void add(int index, String element) {
 		if (index == 0) {
 			commands.lPush(key, element);

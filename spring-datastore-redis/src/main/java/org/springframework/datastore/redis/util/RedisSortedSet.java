@@ -15,7 +15,7 @@
  */
 package org.springframework.datastore.redis.util;
 
-import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 /**
@@ -26,15 +26,15 @@ import java.util.SortedSet;
  */
 public interface RedisSortedSet extends RedisCollection, SortedSet<String> {
 
-	RedisSortedSet intersectAndStore(String destKey, RedisSet... sets);
+	RedisSortedSet intersectAndStore(String destKey, RedisSortedSet... sets);
 
-	RedisSortedSet unionAndStore(String destKey, RedisSet... sets);
+	RedisSortedSet unionAndStore(String destKey, RedisSortedSet... sets);
 
-	List<String> range(int start, int end);
+	Set<String> range(int start, int end);
 
-	List<String> rangeByScore(int start, int end);
+	Set<String> rangeByScore(double min, double max);
 
 	RedisSortedSet trim(int start, int end);
 
-	RedisSortedSet trimByScore(int start, int end);
+	RedisSortedSet trimByScore(double min, double max);
 }
