@@ -18,7 +18,9 @@ package org.springframework.datastore.redis.connection.jedis;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
@@ -26,7 +28,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.redis.RedisConnectionFailureException;
 import org.springframework.datastore.redis.UncategorizedRedisException;
+import org.springframework.datastore.redis.connection.DefaultEntry;
 import org.springframework.datastore.redis.connection.DefaultTuple;
+import org.springframework.datastore.redis.connection.RedisHashCommands.Entry;
 import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
 
 import redis.clients.jedis.JedisException;
@@ -79,5 +83,23 @@ public abstract class JedisUtils {
 		}
 
 		return value;
+	}
+
+	static Set<Entry> convert(Map<String, String> hgetAll) {
+		Set<Entry> entries = new LinkedHashSet<Entry>(hgetAll.size());
+		for (Map.Entry<String, String> entry : hgetAll.entrySet()) {
+			entries.add(new DefaultEntry(entry.getKey(), entry.getValue()));
+		}
+
+		return entries;
+	}
+
+	static Map<String, String> convert(String[] fields, String[] values) {
+		Map<String, String> arg = new LinkedHashMap<String, String>(fields.length);
+
+		for (int i = 0; i < values.length; i++) {
+			arg.put(fields[i], values[i]);
+		}
+		return arg;
 	}
 }

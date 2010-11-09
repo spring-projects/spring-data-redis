@@ -18,7 +18,9 @@ package org.springframework.datastore.redis.connection.jedis;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
@@ -1048,6 +1050,140 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 			return jedis.zunionstore(destKey, sets);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	//
+	// Hash commands
+	//
+
+	@Override
+	public Boolean hDel(String key, String field) {
+		try {
+			if (isQueueing()) {
+				transaction.hdel(key, field);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.hdel(key, field));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean hExists(String key, String field) {
+		try {
+			if (isQueueing()) {
+				transaction.hexists(key, field);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.hexists(key, field));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String hGet(String key, String field) {
+		try {
+			if (isQueueing()) {
+				transaction.hget(key, field);
+				return null;
+			}
+			return jedis.hget(key, field);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Entry> hGetAll(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.hgetAll(key);
+				return null;
+			}
+			return JedisUtils.convert(jedis.hgetAll(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer hIncrBy(String key, String field, int delta) {
+		try {
+			if (isQueueing()) {
+				transaction.hincrBy(key, field, delta);
+				return null;
+			}
+			return jedis.hincrBy(key, field, delta);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> hKeys(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.hkeys(key);
+				return null;
+			}
+			return new LinkedHashSet<String>(jedis.hkeys(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer hLen(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.hlen(key);
+				return null;
+			}
+			return jedis.hlen(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> hMGet(String key, String... fields) {
+		try {
+			if (isQueueing()) {
+				transaction.hmget(key, fields);
+				return null;
+			}
+			return jedis.hmget(key, fields);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void hMSet(String key, String[] fields, String[] values) {
+		Map<String, String> param = JedisUtils.convert(fields, values);
+		try {
+			if (isQueueing()) {
+				transaction.hmset(key, param);
+			}
+			jedis.hmset(key, param);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> hVals(String key) {
+		try {
+			if (isQueueing()) {
+				transaction.hvals(key);
+				return null;
+			}
+			return jedis.hvals(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
