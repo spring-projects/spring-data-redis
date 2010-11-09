@@ -495,4 +495,147 @@ public class JredisConnection implements RedisConnection {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
+
+
+	//
+	// ZSet commands
+	//
+
+	@Override
+	public Boolean zAdd(String key, double score, String value) {
+		try {
+			return jredis.zadd(key, score, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zCard(String key) {
+		try {
+			return Integer.valueOf((int) jredis.zcard(key));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zCount(String key, double min, double max) {
+		try {
+			return Integer.valueOf((int) jredis.zcount(key, min, max));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Double zIncrBy(String key, double increment, String value) {
+		try {
+			return jredis.zincrby(key, increment, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Integer zInterStore(String destKey, String... sets) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<String> zRange(String key, int start, int end) {
+		try {
+			return JredisUtils.convertToStringCollection(jredis.zrange(key, (long) start, (long) end), encoding,
+					Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> zRangeByScore(String key, double min, double max) {
+		try {
+			return JredisUtils.convertToStringCollection(jredis.zrangebyscore(key, min, max), encoding, Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRank(String key, String value) {
+		try {
+			return Integer.valueOf((int) jredis.zrank(key, value));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean zRem(String key, String value) {
+		try {
+			return jredis.zrem(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRemRange(String key, int start, int end) {
+		try {
+			return Integer.valueOf((int) jredis.zremrangebyrank(key, start, end));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRemRangeByScore(String key, double min, double max) {
+		try {
+			return Integer.valueOf((int) jredis.zremrangebyscore(key, min, max));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<String> zRevRange(String key, int start, int end) {
+		try {
+			return JredisUtils.convertToStringCollection(jredis.zrevrange(key, start, end), encoding, Set.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zRevRank(String key, String value) {
+		try {
+			return Integer.valueOf((int) jredis.zrevrank(key, value));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Double zScore(String key, String value) {
+		try {
+			return jredis.zscore(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Integer zUnionStore(String destKey, String... sets) {
+		throw new UnsupportedOperationException();
+	}
 }
