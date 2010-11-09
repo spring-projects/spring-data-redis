@@ -204,6 +204,10 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	//
+	// String operations
+	//
+
 	@Override
 	public String get(String key) {
 		try {
@@ -226,6 +230,66 @@ public class JredisConnection implements RedisConnection {
 	public String getSet(String key, String value) {
 		try {
 			return JredisUtils.convertToString(jredis.getset(key, value), encoding);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+
+	@Override
+	public Integer append(String key, String value) {
+		try {
+			return Integer.valueOf((int) jredis.append(key, value));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> mGet(String... keys) {
+		try {
+			return JredisUtils.convertToStringCollection(jredis.mget(keys), encoding, List.class);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void mSet(String[] keys, String[] values) {
+		try {
+			jredis.mset(JredisUtils.convert(keys, values));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void mSetNX(String[] keys, String[] values) {
+		try {
+			jredis.msetnx(JredisUtils.convert(keys, values));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setEx(String key, int seconds, String value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Boolean setNX(String key, String value) {
+		try {
+			return jredis.setnx(key, value);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String substr(String key, int start, int end) {
+		try {
+			return JredisUtils.convertToString(jredis.substr(key, (long) start, (long) end), encoding);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}

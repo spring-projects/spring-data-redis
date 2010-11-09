@@ -19,6 +19,7 @@ package org.springframework.datastore.redis.connection.jredis;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public abstract class JredisUtils {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}
 
-	public static String convertToString(byte[] bytes, String encoding) {
+	static String convertToString(byte[] bytes, String encoding) {
 		try {
 			return new String(bytes, encoding);
 		} catch (UnsupportedEncodingException ex) {
@@ -96,5 +97,14 @@ public abstract class JredisUtils {
 			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
 		}
 		return entries;
+	}
+
+	static Map<String, byte[]> convert(String[] keys, String[] values) {
+		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(keys.length);
+
+		for (int i = 0; i < values.length; i++) {
+			result.put(keys[i], values[i].getBytes());
+		}
+		return result;
 	}
 }

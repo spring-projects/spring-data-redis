@@ -16,13 +16,13 @@
 
 package org.springframework.datastore.redis.connection;
 
+import java.util.List;
+
 /**
  * String specific commands supported by Redis.
  * 
  * @author Costin Leau
  */
-// TODO should the strings be byte[] instead
-// at least for values ?
 public interface RedisStringCommands {
 
 	void set(String key, String value);
@@ -31,6 +31,16 @@ public interface RedisStringCommands {
 
 	String getSet(String key, String value);
 
+	List<String> mGet(String... keys);
+
+	Boolean setNX(String key, String value);
+
+	void setEx(String key, int seconds, String value);
+
+	void mSet(String[] keys, String[] values);
+
+	void mSetNX(String[] keys, String[] values);
+
 	Integer incr(String key);
 
 	Integer incrBy(String key, int value);
@@ -38,4 +48,8 @@ public interface RedisStringCommands {
 	Integer decr(String key);
 
 	Integer decrBy(String key, int value);
+
+	Integer append(String key, String value);
+
+	String substr(String key, int start, int end);
 }

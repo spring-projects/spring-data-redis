@@ -102,4 +102,16 @@ public abstract class JedisUtils {
 		}
 		return result;
 	}
+
+	static String[] arrange(String[] keys, String[] values) {
+		String[] result = new String[keys.length * 2];
+
+		for (int i = 0; i < keys.length; i++) {
+			int index = i << 1;
+			result[index] = keys[i];
+			result[index + 1] = values[i];
+
+		}
+		return result;
+	}
 }

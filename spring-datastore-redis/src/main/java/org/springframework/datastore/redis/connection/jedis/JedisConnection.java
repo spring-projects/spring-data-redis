@@ -316,31 +316,9 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
-	public Boolean hSet(String key, String field, String value) {
-		try {
-			if (isQueueing()) {
-				transaction.hset(key, field, value);
-				return null;
-			}
-			return JedisUtils.convertCodeReply(jedis.hset(key, field, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
-
-	@Override
-	public Boolean hSetNX(String key, String field, String value) {
-		try {
-			if (isQueueing()) {
-				transaction.hsetnx(key, field, value);
-				return null;
-			}
-			return JedisUtils.convertCodeReply(jedis.hsetnx(key, field, value));
-		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
-		}
-	}
+	//
+	// String commands
+	//
 
 	@Override
 	public String get(String key) {
@@ -374,6 +352,93 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			return jedis.getSet(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Integer append(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.append(key, value);
+				return null;
+			}
+			return jedis.append(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> mGet(String... keys) {
+		try {
+			if (isQueueing()) {
+				transaction.mget(keys);
+				return null;
+			}
+			return jedis.mget(keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void mSet(String[] keys, String[] values) {
+		try {
+			if (isQueueing()) {
+				transaction.mset(JedisUtils.arrange(keys, values));
+			}
+			jedis.mset(JedisUtils.arrange(keys, values));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void mSetNX(String[] keys, String[] values) {
+		try {
+			if (isQueueing()) {
+				transaction.msetnx(JedisUtils.arrange(keys, values));
+			}
+			jedis.msetnx(JedisUtils.arrange(keys, values));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setEx(String key, int time, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.setex(key, time, value);
+			}
+			jedis.setex(key, time, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean setNX(String key, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.setnx(key, value);
+			}
+			return JedisUtils.convertCodeReply(jedis.setnx(key, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String substr(String key, int start, int end) {
+		try {
+			if (isQueueing()) {
+				transaction.substr(key, start, end);
+				return null;
+			}
+			return jedis.substr(key, start, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1071,6 +1136,32 @@ public class JedisConnection implements RedisConnection {
 	//
 	// Hash commands
 	//
+
+	@Override
+	public Boolean hSet(String key, String field, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.hset(key, field, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.hset(key, field, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean hSetNX(String key, String field, String value) {
+		try {
+			if (isQueueing()) {
+				transaction.hsetnx(key, field, value);
+				return null;
+			}
+			return JedisUtils.convertCodeReply(jedis.hsetnx(key, field, value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
 	@Override
 	public Boolean hDel(String key, String field) {
