@@ -92,4 +92,26 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	public boolean retainAll(Collection<?> c) {
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+
+		if (o instanceof RedisStore) {
+			return key.equals(((RedisStore) o).getKey());
+		}
+		if (o instanceof AbstractRedisCollection) {
+			return o.hashCode() == hashCode();
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 17 + getClass().hashCode();
+		result = result * 31 + key.hashCode();
+		return result;
+	}
 }
