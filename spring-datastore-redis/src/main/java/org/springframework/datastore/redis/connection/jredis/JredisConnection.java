@@ -56,11 +56,6 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String getEncoding() {
-		return encoding;
-	}
-
-	@Override
 	public JRedis getNativeConnection() {
 		return jredis;
 	}

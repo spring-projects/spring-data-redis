@@ -87,11 +87,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String getEncoding() {
-		return "UTF-8";
-	}
-
-	@Override
 	public Jedis getNativeConnection() {
 		return jedis;
 	}

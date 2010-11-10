@@ -37,8 +37,6 @@ public interface RedisConnection extends RedisCommands {
 
 	Object getNativeConnection();
 
-	String getEncoding();
-
 	/**
 	 * Indicates whether the connection is in "queue"(or "MULTI") mode or not.
 	 * When queueing, all commands are postponed until EXEC or DISCARD commands
