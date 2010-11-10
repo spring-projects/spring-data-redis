@@ -121,7 +121,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 	}
 
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (usePool && pool != null) {
 			pool.destroy();
 			pool = null;
