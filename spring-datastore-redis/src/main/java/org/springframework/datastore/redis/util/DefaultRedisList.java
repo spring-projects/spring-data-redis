@@ -80,7 +80,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public void clear() {
-		commands.lTrim(key, 0, -1);
+		commands.lTrim(key, size() + 1, 0);
 	}
 
 	@Override
