@@ -85,7 +85,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean remove(Object o) {
-		Integer result = commands.lRem(key, 0, o.toString());
+		Integer result = commands.lRem(key, 0, serializer.serializeAsString(o));
 		return (result != null && result.intValue() > 0);
 	}
 

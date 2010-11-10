@@ -21,7 +21,6 @@ import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -68,7 +67,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 	@Test
 	public void testAdd() {
 		T t1 = getT();
-		assertThat(collection.add(t1), is(Boolean.TRUE));
+		assertThat(collection.add(t1), is(true));
 		assertThat(collection, hasItem(t1));
 		assertEquals(1, collection.size());
 	}
@@ -82,7 +81,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 
 		List<T> list = Arrays.asList(t1, t2, t3);
 
-		assertThat(collection.addAll(list), is(Boolean.TRUE));
+		assertThat(collection.addAll(list), is(true));
 		assertThat(collection, hasItem(t1));
 		assertThat(collection, hasItem(t2));
 		assertThat(collection, hasItem(t3));
@@ -103,7 +102,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 	public void containsObject() {
 		T t1 = getT();
 		assertThat(collection, not(hasItem(t1)));
-		assertThat(collection.add(t1), is(Boolean.TRUE));
+		assertThat(collection.add(t1), is(true));
 		assertThat(collection, hasItem(t1));
 	}
 
@@ -116,8 +115,8 @@ public abstract class AbstractRedisCollectionTest<T> {
 
 		List<T> list = Arrays.asList(t1, t2, t3);
 
-		assertThat(collection.addAll(list), is(Boolean.TRUE));
-		assertThat(collection.containsAll(list), is(Boolean.TRUE));
+		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.containsAll(list), is(true));
 		assertThat(collection, hasItems(t1, t2, t3));
 	}
 
@@ -142,20 +141,78 @@ public abstract class AbstractRedisCollectionTest<T> {
 		assertTrue(collection.isEmpty());
 	}
 
-	public Iterator<T> iterator() {
-		return collection.iterator();
+	@Test
+	public void testIterator() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		List<T> list = Arrays.asList(t1, t2, t3);
+
+		assertThat(collection.addAll(list), is(true));
+		Iterator<T> iterator = collection.iterator();
+
+		assertEquals(t1, iterator.next());
+		assertEquals(t2, iterator.next());
+		assertEquals(t3, iterator.next());
+		assertFalse(iterator.hasNext());
 	}
 
-	public boolean remove(Object o) {
-		return collection.remove(o);
+	@Test
+	public void testRemoveObject() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		assertEquals(0, collection.size());
+		assertThat(collection.add(t1), is(true));
+		assertThat(collection.add(t2), is(true));
+		assertEquals(2, collection.size());
+		assertThat(collection.remove(t3), is(false));
+		assertThat(collection.remove(t2), is(true));
+		assertThat(collection.remove(t2), is(false));
+		assertEquals(1, collection.size());
+		assertThat(collection.remove(t1), is(true));
+		assertEquals(0, collection.size());
 	}
 
-	public boolean removeAll(Collection<?> c) {
-		return collection.removeAll(c);
+	@Test
+	public void removeAll() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		List<T> list = Arrays.asList(t1, t2, t3);
+
+		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.containsAll(list), is(true));
+		assertThat(collection, hasItems(t1, t2, t3));
+
+		List<T> newList = Arrays.asList(getT(), getT());
+		List<T> partialList = Arrays.asList(getT(), t1, getT());
+
+		assertThat(collection.removeAll(newList), is(false));
+		assertThat(collection.removeAll(partialList), is(true));
+		assertThat(collection, not(hasItem(t1)));
+		assertThat(collection, hasItems(t2, t3));
+		assertThat(collection.removeAll(list), is(true));
+		assertThat(collection, not(hasItems(t2, t3)));
 	}
 
-	public boolean retainAll(Collection<?> c) {
-		return collection.retainAll(c);
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRetainAll() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		List<T> list = Arrays.asList(t1, t2);
+		List<T> newList = Arrays.asList(t2, t3);
+
+		assertThat(collection.addAll(list), is(true));
+		assertThat(collection, hasItems(t1, t2));
+		assertThat(collection.retainAll(newList), is(true));
+		assertThat(collection, not(hasItem(t1)));
+		assertThat(collection, hasItem(t2));
 	}
 
 	@Test
@@ -166,18 +223,37 @@ public abstract class AbstractRedisCollectionTest<T> {
 		assertEquals(1, collection.size());
 		collection.add(getT());
 		collection.add(getT());
-		assertEquals(2, collection.size());
+		assertEquals(3, collection.size());
 	}
 
-	public Object[] toArray() {
-		return collection.toArray();
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testToArray() {
+		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
+		List<T> list = (List<T>) Arrays.asList(expectedArray);
+
+		assertThat(collection.addAll(list), is(true));
+		
+		Object[] array = collection.toArray();
+		assertArrayEquals(expectedArray, array);
 	}
 
-	public <T> T[] toArray(T[] a) {
-		return collection.toArray(a);
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testToArrayWithGenerics() {
+		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
+		List<T> list = (List<T>) Arrays.asList(expectedArray);
+
+		assertThat(collection.addAll(list), is(true));
+
+		Object[] array = collection.toArray(new Object[expectedArray.length]);
+		assertArrayEquals(expectedArray, array);
 	}
 
-	public String toString() {
-		return collection.toString();
+	@Test
+	public void testToString() {
+		String name = collection.toString();
+		collection.add(getT());
+		assertEquals(name, collection.toString());
 	}
 }

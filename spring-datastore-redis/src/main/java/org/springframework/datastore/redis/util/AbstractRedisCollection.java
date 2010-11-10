@@ -114,4 +114,13 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		result = result * 31 + key.hashCode();
 		return result;
 	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("RedisStore for key:");
+		sb.append(getKey());
+		return sb.toString();
+	}
 }
