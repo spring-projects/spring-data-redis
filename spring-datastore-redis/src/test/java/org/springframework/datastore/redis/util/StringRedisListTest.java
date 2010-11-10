@@ -17,7 +17,6 @@ package org.springframework.datastore.redis.util;
 
 import java.util.UUID;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
 import org.springframework.datastore.redis.connection.jedis.JedisConnectionFactory;
 
 
@@ -28,33 +27,26 @@ import org.springframework.datastore.redis.connection.jedis.JedisConnectionFacto
  */
 public class StringRedisListTest extends AbstractRedisCollectionTest<String> {
 
-	private DefaultRedisList<String> redisList;
+	private JedisConnectionFactory factory;
 
-	public StringRedisListTest() {
-		JedisConnectionFactory factory = new JedisConnectionFactory();
-		factory.afterPropertiesSet();
+	@Override
+	AbstractRedisCollection<String> createCollection() {
 		String redisName = getClass().getName();
-		RedisCommands commands = factory.getConnection();
-		redisList = new DefaultRedisList<String>(redisName, commands);
-		
+		factory = new JedisConnectionFactory();
+		factory.setPooling(false);
+		factory.afterPropertiesSet();
 
-		//		SimpleRedisSerializer serializer = new SimpleRedisSerializer();
-		//		
-		//		String t = getT();
-		//		
-		//		String data = serializer.serializeAsString(t);
-		//		String name = "some-list";
-		//		System.out.println(data);
-		//		commands.lPush(name, data);
-		//		List<String> readData = commands.lRange(name, 0, -1);
-		//		System.out.println(readData);
-		//		System.out.println(serializer.deserialize(readData.get(0)));
-
+		return new DefaultRedisList<String>(redisName, factory.getConnection());
 	}
 
 	@Override
-	AbstractRedisCollection<String> getCollection() {
-		return redisList;
+	void destroyCollection() {
+		factory.destroy();
+	}
+
+	@Override
+	RedisStore copyStore(RedisStore store) {
+		return new DefaultRedisList<String>(store.getKey(), store.getCommands());
 	}
 
 	@Override

@@ -41,10 +41,15 @@ public abstract class AbstractRedisCollectionTest<T> {
 
 	@Before
 	public void setUp() throws Exception {
-		collection = getCollection();
+		collection = createCollection();
 	}
 
-	abstract AbstractRedisCollection<T> getCollection();
+	abstract AbstractRedisCollection<T> createCollection();
+
+	abstract void destroyCollection();
+
+	abstract RedisStore copyStore(RedisStore store);
+
 
 	/**
 	 * Return a new instance of T
@@ -57,6 +62,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 		// remove the collection entirely since clear() doesn't always work
 		collection.getCommands().del(collection.getKey());
 		//collection.clear();
+		destroyCollection();
 	}
 
 	@Test
@@ -86,34 +92,54 @@ public abstract class AbstractRedisCollectionTest<T> {
 	@Test
 	public void testClear() {
 		T t1 = getT();
+		assertEquals(0, collection.size());
 		collection.add(t1);
 		assertEquals(1, collection.size());
 		collection.clear();
 		assertEquals(0, collection.size());
 	}
 
-	public boolean contains(Object o) {
-		return collection.contains(o);
+	@Test
+	public void containsObject() {
+		T t1 = getT();
+		assertThat(collection, not(hasItem(t1)));
+		assertThat(collection.add(t1), is(Boolean.TRUE));
+		assertThat(collection, hasItem(t1));
 	}
 
-	public boolean containsAll(Collection<?> c) {
-		return collection.containsAll(c);
+	@SuppressWarnings("unchecked")
+	@Test
+	public void containsAll() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		List<T> list = Arrays.asList(t1, t2, t3);
+
+		assertThat(collection.addAll(list), is(Boolean.TRUE));
+		assertThat(collection.containsAll(list), is(Boolean.TRUE));
+		assertThat(collection, hasItems(t1, t2, t3));
 	}
 
-	public boolean equals(Object obj) {
-		return collection.equals(obj);
+	@Test
+	public void testEquals() {
+		assertEquals(collection, copyStore(collection));
 	}
 
-	public String getKey() {
-		return collection.getKey();
+	@Test
+	public void testHashCode() {
+		assertThat(collection.hashCode(), not(equalTo(collection.getKey().hashCode())));
 	}
 
-	public int hashCode() {
-		return collection.hashCode();
-	}
-
-	public boolean isEmpty() {
-		return collection.isEmpty();
+	@Test
+	public void testIsEmpty() {
+		assertEquals(0, collection.size());
+		assertTrue(collection.isEmpty());
+		collection.add(getT());
+		assertEquals(1, collection.size());
+		assertFalse(collection.isEmpty());
+		collection.clear();
+		assertTrue(collection.isEmpty());
 	}
 
 	public Iterator<T> iterator() {
@@ -132,8 +158,15 @@ public abstract class AbstractRedisCollectionTest<T> {
 		return collection.retainAll(c);
 	}
 
-	public int size() {
-		return collection.size();
+	@Test
+	public void testSize() {
+		assertEquals(0, collection.size());
+		assertTrue(collection.isEmpty());
+		collection.add(getT());
+		assertEquals(1, collection.size());
+		collection.add(getT());
+		collection.add(getT());
+		assertEquals(2, collection.size());
 	}
 
 	public Object[] toArray() {
