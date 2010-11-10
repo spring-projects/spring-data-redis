@@ -36,7 +36,6 @@ import org.springframework.util.StringUtils;
  */
 public class JredisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
-	private String encoding = "UTF-8";
 	private ConnectionSpec connectionSpec;
 
 	private String password;
@@ -117,29 +116,13 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public RedisConnection getConnection() {
-		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)), getEncoding());
+		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)));
 	}
 
 
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return null;
-	}
-
-	/**
-	 * Returns the encoding.
-	 *
-	 * @return Returns the encoding
-	 */
-	public String getEncoding() {
-		return encoding;
-	}
-
-	/**
-	 * @param encoding The encoding to set.
-	 */
-	public void setEncoding(String encoding) {
-		this.encoding = encoding;
 	}
 
 	/**

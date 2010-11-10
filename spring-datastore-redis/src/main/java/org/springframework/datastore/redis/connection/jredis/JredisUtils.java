@@ -16,7 +16,6 @@
 
 package org.springframework.datastore.redis.connection.jredis;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -28,7 +27,6 @@ import java.util.Set;
 import org.jredis.RedisException;
 import org.jredis.RedisType;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.redis.connection.DataType;
 import org.springframework.datastore.redis.connection.DefaultEntry;
@@ -45,27 +43,19 @@ public abstract class JredisUtils {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}
 
-	static String convertToString(byte[] bytes, String encoding) {
-		try {
-			return new String(bytes, encoding);
-		} catch (UnsupportedEncodingException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
-		}
+	static String convertToString(byte[] bytes) {
+		return new String(bytes);
 	}
 
-	static <T extends Collection<String>> T convertToStringCollection(List<byte[]> bytes, String encoding, Class<T> collectionType) {
+	static <T extends Collection<String>> T convertToStringCollection(List<byte[]> bytes, Class<T> collectionType) {
 
 		Collection<String> col = (List.class.isAssignableFrom(collectionType) ? new ArrayList<String>(bytes.size())
 				: new LinkedHashSet<String>(bytes.size()));
 
-		try {
-			for (byte[] bs : bytes) {
-				col.add(new String(bs, encoding));
-			}
-			return (T) col;
-		} catch (UnsupportedEncodingException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+		for (byte[] bs : bytes) {
+			col.add(new String(bs));
 		}
+		return (T) col;
 	}
 
 	static DataType convertDataType(RedisType type) {
@@ -87,14 +77,10 @@ public abstract class JredisUtils {
 		return null;
 	}
 
-	static Set<Entry> convert(Map<String, byte[]> map, String encoding) {
+	static Set<Entry> convert(Map<String, byte[]> map) {
 		Set<Entry> entries = new LinkedHashSet<Entry>(map.size());
-		try {
-			for (Map.Entry<String, byte[]> entry : map.entrySet()) {
-				entries.add(new DefaultEntry(entry.getKey(), new String(entry.getValue(), encoding)));
-			}
-		} catch (UnsupportedEncodingException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+		for (Map.Entry<String, byte[]> entry : map.entrySet()) {
+			entries.add(new DefaultEntry(entry.getKey(), new String(entry.getValue())));
 		}
 		return entries;
 	}

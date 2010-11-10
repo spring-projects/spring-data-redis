@@ -89,6 +89,11 @@ public class DefaultRedisMap implements RedisMap {
 	}
 
 	@Override
+	public RedisCommands getCommands() {
+		return commands;
+	}
+
+	@Override
 	public void clear() {
 		throw new UnsupportedOperationException();
 	}

@@ -35,11 +35,9 @@ import org.springframework.datastore.redis.connection.RedisConnection;
 public class JredisConnection implements RedisConnection {
 
 	private final JRedis jredis;
-	private final String encoding;
 
-	public JredisConnection(JRedis jredis, String encoding) {
+	public JredisConnection(JRedis jredis) {
 		this.jredis = jredis;
-		this.encoding = encoding;
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -206,7 +204,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String get(String key) {
 		try {
-			return JredisUtils.convertToString(jredis.get(key), encoding);
+			return JredisUtils.convertToString(jredis.get(key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -224,7 +222,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String getSet(String key, String value) {
 		try {
-			return JredisUtils.convertToString(jredis.getset(key, value), encoding);
+			return JredisUtils.convertToString(jredis.getset(key, value));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -243,7 +241,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public List<String> mGet(String... keys) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.mget(keys), encoding, List.class);
+			return JredisUtils.convertToStringCollection(jredis.mget(keys), List.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -284,7 +282,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String substr(String key, int start, int end) {
 		try {
-			return JredisUtils.convertToString(jredis.substr(key, (long) start, (long) end), encoding);
+			return JredisUtils.convertToString(jredis.substr(key, (long) start, (long) end));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -343,7 +341,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String lIndex(String key, int index) {
 		try {
-			return JredisUtils.convertToString(jredis.lindex(key, (long) index), encoding);
+			return JredisUtils.convertToString(jredis.lindex(key, (long) index));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -361,7 +359,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String lPop(String key) {
 		try {
-			return JredisUtils.convertToString(jredis.lpop(key), encoding);
+			return JredisUtils.convertToString(jredis.lpop(key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -382,7 +380,7 @@ public class JredisConnection implements RedisConnection {
 		try {
 			List<byte[]> lrange = jredis.lrange(key, start, end);
 
-			return JredisUtils.convertToStringCollection(lrange, encoding, List.class);
+			return JredisUtils.convertToStringCollection(lrange, List.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -419,7 +417,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String rPop(String key) {
 		try {
-			return JredisUtils.convertToString(jredis.rpop(key), encoding);
+			return JredisUtils.convertToString(jredis.rpop(key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -428,7 +426,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String rPopLPush(String srcKey, String dstKey) {
 		try {
-			return JredisUtils.convertToString(jredis.rpoplpush(srcKey, dstKey), encoding);
+			return JredisUtils.convertToString(jredis.rpoplpush(srcKey, dstKey));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -473,7 +471,7 @@ public class JredisConnection implements RedisConnection {
 
 		try {
 			List<byte[]> result = jredis.sdiff(set1, sets);
-			return JredisUtils.convertToStringCollection(result, encoding, Set.class);
+			return JredisUtils.convertToStringCollection(result, Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -498,7 +496,7 @@ public class JredisConnection implements RedisConnection {
 
 		try {
 			List<byte[]> result = jredis.sinter(set1, sets);
-			return JredisUtils.convertToStringCollection(result, encoding, Set.class);
+			return JredisUtils.convertToStringCollection(result, Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -528,7 +526,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Set<String> sMembers(String key) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.smembers(key), encoding, Set.class);
+			return JredisUtils.convertToStringCollection(jredis.smembers(key), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -546,7 +544,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String sPop(String key) {
 		try {
-			return JredisUtils.convertToString(jredis.spop(key), encoding);
+			return JredisUtils.convertToString(jredis.spop(key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -555,7 +553,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String sRandMember(String key) {
 		try {
-			return JredisUtils.convertToString(jredis.srandmember(key), encoding);
+			return JredisUtils.convertToString(jredis.srandmember(key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -577,7 +575,7 @@ public class JredisConnection implements RedisConnection {
 
 		try {
 			List<byte[]> result = jredis.sunion(set1, sets);
-			return JredisUtils.convertToStringCollection(result, encoding, Set.class);
+			return JredisUtils.convertToStringCollection(result, Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -649,8 +647,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Set<String> zRange(String key, int start, int end) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.zrange(key, (long) start, (long) end), encoding,
-					Set.class);
+			return JredisUtils.convertToStringCollection(jredis.zrange(key, (long) start, (long) end), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -665,7 +662,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Set<String> zRangeByScore(String key, double min, double max) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.zrangebyscore(key, min, max), encoding, Set.class);
+			return JredisUtils.convertToStringCollection(jredis.zrangebyscore(key, min, max), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -725,7 +722,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Set<String> zRevRange(String key, int start, int end) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.zrevrange(key, start, end), encoding, Set.class);
+			return JredisUtils.convertToStringCollection(jredis.zrevrange(key, start, end), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -790,7 +787,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String hGet(String key, String field) {
 		try {
-			return JredisUtils.convertToString(jredis.hget(key, field), encoding);
+			return JredisUtils.convertToString(jredis.hget(key, field));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -799,7 +796,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Set<Entry> hGetAll(String key) {
 		try {
-			return JredisUtils.convert(jredis.hgetall(key), encoding);
+			return JredisUtils.convert(jredis.hgetall(key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -855,7 +852,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public List<String> hVals(String key) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.hvals(key), encoding, List.class);
+			return JredisUtils.convertToStringCollection(jredis.hvals(key), List.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}

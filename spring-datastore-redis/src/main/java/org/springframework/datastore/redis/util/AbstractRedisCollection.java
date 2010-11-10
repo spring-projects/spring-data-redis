@@ -51,6 +51,11 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	}
 
 	@Override
+	public RedisCommands getCommands() {
+		return commands;
+	}
+
+	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		boolean modified = false;
 		for (E e : c) {

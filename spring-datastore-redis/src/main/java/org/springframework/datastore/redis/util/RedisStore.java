@@ -15,6 +15,8 @@
  */
 package org.springframework.datastore.redis.util;
 
+import org.springframework.datastore.redis.connection.RedisCommands;
+
 
 /**
  * Basic interface for Redis-based collections.
@@ -29,4 +31,11 @@ public interface RedisStore {
 	 * @return Redis key
 	 */
 	String getKey();
+
+	/**
+	 * Returns the underlying Redis commands used by the backing implementation.
+	 * 
+	 * @return commands
+	 */
+	RedisCommands getCommands();
 }

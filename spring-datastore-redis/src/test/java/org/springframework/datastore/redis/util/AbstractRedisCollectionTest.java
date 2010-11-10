@@ -54,7 +54,9 @@ public abstract class AbstractRedisCollectionTest<T> {
 
 	@After
 	public void tearDown() throws Exception {
-		collection.clear();
+		// remove the collection entirely since clear() doesn't always work
+		collection.getCommands().del(collection.getKey());
+		//collection.clear();
 	}
 
 	@Test
@@ -62,7 +64,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 		T t1 = getT();
 		assertThat(collection.add(t1), is(Boolean.TRUE));
 		assertThat(collection, hasItem(t1));
-		assertEquals(collection.size(), 1);
+		assertEquals(1, collection.size());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -81,8 +83,13 @@ public abstract class AbstractRedisCollectionTest<T> {
 		assertEquals(collection.size(), 3);
 	}
 
-	public void clear() {
+	@Test
+	public void testClear() {
+		T t1 = getT();
+		collection.add(t1);
+		assertEquals(1, collection.size());
 		collection.clear();
+		assertEquals(0, collection.size());
 	}
 
 	public boolean contains(Object o) {

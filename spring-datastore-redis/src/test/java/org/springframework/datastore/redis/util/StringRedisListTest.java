@@ -17,7 +17,8 @@ package org.springframework.datastore.redis.util;
 
 import java.util.UUID;
 
-import org.springframework.datastore.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.connection.jedis.JedisConnectionFactory;
 
 
 /**
@@ -30,9 +31,25 @@ public class StringRedisListTest extends AbstractRedisCollectionTest<String> {
 	private DefaultRedisList<String> redisList;
 
 	public StringRedisListTest() {
-		JredisConnectionFactory factory = new JredisConnectionFactory();
+		JedisConnectionFactory factory = new JedisConnectionFactory();
 		factory.afterPropertiesSet();
-		redisList = new DefaultRedisList<String>(getClass().getName(), factory.getConnection());
+		String redisName = getClass().getName();
+		RedisCommands commands = factory.getConnection();
+		redisList = new DefaultRedisList<String>(redisName, commands);
+		
+
+		//		SimpleRedisSerializer serializer = new SimpleRedisSerializer();
+		//		
+		//		String t = getT();
+		//		
+		//		String data = serializer.serializeAsString(t);
+		//		String name = "some-list";
+		//		System.out.println(data);
+		//		commands.lPush(name, data);
+		//		List<String> readData = commands.lRange(name, 0, -1);
+		//		System.out.println(readData);
+		//		System.out.println(serializer.deserialize(readData.get(0)));
+
 	}
 
 	@Override
@@ -45,3 +62,4 @@ public class StringRedisListTest extends AbstractRedisCollectionTest<String> {
 		return UUID.randomUUID().toString();
 	}
 }
+
