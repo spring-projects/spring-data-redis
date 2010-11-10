@@ -18,6 +18,7 @@ package org.springframework.datastore.redis.serializer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.datastore.redis.UncategorizedRedisException;
 
 /**
  * Simple Redis serializer delegating to the default serializer in Spring 3.
@@ -25,18 +26,42 @@ import org.springframework.core.serializer.support.SerializingConverter;
  * @author Mark Pollack
  * @author Costin Leau
  */
-public class SimpleRedisSerializer<T> implements RedisSerializer<T> {
+public class SimpleRedisSerializer implements RedisSerializer {
 
 	private Converter<Object, byte[]> serializer = new SerializingConverter();
 	private Converter<byte[], Object> deserializer = new DeserializingConverter();
 
+
+	@SuppressWarnings("unchecked")
 	@Override
-	public T deserialize(byte[] bytes) {
-		return (T) deserializer.convert(bytes);
+	public <T> T deserialize(byte[] bytes) {
+		try {
+			return (T) deserializer.convert(bytes);
+		} catch (Exception ex) {
+			throw new UncategorizedRedisException("Cannot deserialize", ex);
+		}
 	}
 
 	@Override
-	public byte[] serialize(T object) {
-		return serializer.convert(object);
+	public <T> T deserialize(String bytes) {
+		//		try {
+		return deserialize(bytes.getBytes());
+		//		} catch (UnsupportedEncodingException ex) {
+		//			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+		//		}
+	}
+
+	@Override
+	public byte[] serialize(Object object) {
+		try {
+			return serializer.convert(object);
+		} catch (Exception ex) {
+			throw new UncategorizedRedisException("Cannot serialize", ex);
+		}
+	}
+
+	@Override
+	public String serializeAsString(Object object) {
+			return new String(serialize(object));
 	}
 }

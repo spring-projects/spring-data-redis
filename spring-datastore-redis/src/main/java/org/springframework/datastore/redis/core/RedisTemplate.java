@@ -46,7 +46,7 @@ import org.springframework.util.ClassUtils;
 public class RedisTemplate extends RedisAccessor {
 
 	private boolean exposeConnection = false;
-	private RedisSerializer<Object> converter = new SimpleRedisSerializer<Object>();
+	private RedisSerializer converter = new SimpleRedisSerializer();
 
 	public RedisTemplate() {
 	}

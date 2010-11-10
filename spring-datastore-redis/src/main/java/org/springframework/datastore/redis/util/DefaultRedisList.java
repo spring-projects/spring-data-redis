@@ -28,16 +28,16 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  * 
  * @author Costin Leau
  */
-public class DefaultRedisList extends AbstractRedisCollection implements RedisList {
+public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
-	private class DefaultRedisListIterator extends RedisIterator {
+	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
 
-		public DefaultRedisListIterator(Iterator<String> delegate) {
+		public DefaultRedisListIterator(Iterator<E> delegate) {
 			super(delegate);
 		}
 
 		@Override
-		protected void removeFromRedisStorage(String item) {
+		protected void removeFromRedisStorage(E item) {
 			DefaultRedisList.this.remove(item);
 		}
 	}
@@ -47,22 +47,22 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 	}
 
 	@Override
-	public List<String> range(int start, int end) {
-		return commands.lRange(key, start, end);
+	public List<E> range(int start, int end) {
+		return CollectionUtils.deserializeAsList(commands.lRange(key, start, end), serializer);
 	}
 
 	@Override
-	public RedisList trim(int start, int end) {
+	public RedisList<E> trim(int start, int end) {
 		commands.lTrim(key, start, end);
 		return this;
 	}
 
-	private List<String> content() {
-		return commands.lRange(key, 0, -1);
+	private List<E> content() {
+		return CollectionUtils.deserializeAsList(commands.lRange(key, 0, -1), serializer);
 	}
 
 	@Override
-	public Iterator<String> iterator() {
+	public Iterator<E> iterator() {
 		return content().iterator();
 	}
 
@@ -73,8 +73,8 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 
 
 	@Override
-	public boolean add(String value) {
-		commands.rPush(key, value);
+	public boolean add(E value) {
+		commands.rPush(key, serializer.serializeAsString(value));
 		return true;
 	}
 
@@ -90,29 +90,29 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 	}
 
 	@Override
-	public void add(int index, String element) {
+	public void add(int index, E element) {
 		if (index == 0) {
-			commands.lPush(key, element);
+			commands.lPush(key, serializer.serializeAsString(element));
 		}
 		else if (index == size()) {
-			commands.rPush(key, element);
+			commands.rPush(key, serializer.serializeAsString(element));
 		}
 
 		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
 	}
 
 	@Override
-	public boolean addAll(int index, Collection<? extends String> c) {
-		for (String string : c) {
-			add(index, string);
+	public boolean addAll(int index, Collection<? extends E> c) {
+		for (E e : c) {
+			add(index, e);
 		}
 
 		return true;
 	}
 
 	@Override
-	public String get(int index) {
-		return commands.lIndex(key, index);
+	public E get(int index) {
+		return serializer.deserialize(commands.lIndex(key, index));
 	}
 
 	@Override
@@ -126,37 +126,37 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 	}
 
 	@Override
-	public ListIterator<String> listIterator() {
+	public ListIterator<E> listIterator() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ListIterator<String> listIterator(int index) {
+	public ListIterator<E> listIterator(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String remove(int index) {
+	public E remove(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 
 	@Override
-	public String set(int index, String element) {
-		String object = get(index);
-		commands.lSet(key, index, element);
+	public E set(int index, E e) {
+		E object = get(index);
+		commands.lSet(key, index, serializer.serializeAsString(e));
 		return object;
 	}
 
 	@Override
-	public List<String> subList(int fromIndex, int toIndex) {
+	public List<E> subList(int fromIndex, int toIndex) {
 		throw new UnsupportedOperationException();
 	}
 
 
 	@Override
-	public String element() {
-		String value = peek();
+	public E element() {
+		E value = peek();
 		if (value == null)
 			throw new NoSuchElementException();
 
@@ -165,27 +165,27 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 
 
 	@Override
-	public boolean offer(String e) {
-		commands.lPush(key, e);
+	public boolean offer(E e) {
+		commands.lPush(key, serializer.serializeAsString(e));
 		return true;
 	}
 
 
 	@Override
-	public String peek() {
-		return commands.lIndex(key, 0);
+	public E peek() {
+		return serializer.deserialize(commands.lIndex(key, 0));
 	}
 
 
 	@Override
-	public String poll() {
-		return commands.lPop(key);
+	public E poll() {
+		return serializer.deserialize(commands.lPop(key));
 	}
 
 
 	@Override
-	public String remove() {
-		String value = poll();
+	public E remove() {
+		E value = poll();
 		if (value == null)
 			throw new NoSuchElementException();
 

@@ -21,9 +21,13 @@ package org.springframework.datastore.redis.serializer;
  * @author Mark Pollack
  * @author Costin Leau
  */
-public interface RedisSerializer<T> {
+public interface RedisSerializer {
 
-	byte[] serialize(T object);
+	byte[] serialize(Object object);
 
-	T deserialize(byte[] bytes);
+	String serializeAsString(Object object);
+
+	<T> T deserialize(byte[] bytes);
+
+	<T> T deserialize(String bytes);
 }

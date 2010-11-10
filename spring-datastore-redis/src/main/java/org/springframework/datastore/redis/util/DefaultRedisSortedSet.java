@@ -27,9 +27,9 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  * 
  * @author Costin Leau
  */
-class DefaultRedisSortedSet extends AbstractRedisCollection implements RedisSortedSet {
+class DefaultRedisSortedSet extends AbstractRedisCollection<String> implements RedisSortedSet {
 
-	private class DefaultRedisSortedSetIterator extends RedisIterator {
+	private class DefaultRedisSortedSetIterator extends RedisIterator<String> {
 
 		public DefaultRedisSortedSetIterator(Iterator<String> delegate) {
 			super(delegate);

@@ -22,18 +22,18 @@ import java.util.Iterator;
  * 
  * @author Costin Leau
  */
-abstract class RedisIterator implements Iterator<String> {
+abstract class RedisIterator<E> implements Iterator<E> {
 
-	private final Iterator<String> delegate;
+	private final Iterator<E> delegate;
 
-	private String item;
+	private E item;
 
 	/**
 	 * Constructs a new <code>RedisIterator</code> instance.
 	 *
 	 * @param delegate
 	 */
-	RedisIterator(Iterator<String> delegate) {
+	RedisIterator(Iterator<E> delegate) {
 		this.delegate = delegate;
 	}
 
@@ -49,7 +49,7 @@ abstract class RedisIterator implements Iterator<String> {
 	 * @return
 	 * @see java.util.Iterator#next()
 	 */
-	public String next() {
+	public E next() {
 		item = delegate.next();
 		return item;
 	}
@@ -64,5 +64,5 @@ abstract class RedisIterator implements Iterator<String> {
 		item = null;
 	}
 
-	protected abstract void removeFromRedisStorage(String item);
+	protected abstract void removeFromRedisStorage(E item);
 }

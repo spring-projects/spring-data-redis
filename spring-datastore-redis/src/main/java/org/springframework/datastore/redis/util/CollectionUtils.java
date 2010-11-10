@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,24 @@
  */
 package org.springframework.datastore.redis.util;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
+
+import org.springframework.datastore.redis.serializer.RedisSerializer;
 
 /**
- * Redis extension for the {@link List} contract. Supports {@link List} specific
- * operations backed by Redis commands.
+ * Utility class used mainly for type conversion by the default collection implementations.
  * 
  * @author Costin Leau
  */
-public interface RedisList<E> extends RedisStore, List<E>, Queue<E> {
+abstract class CollectionUtils {
 
-	List<E> range(int start, int end);
-
-	RedisList<E> trim(int start, int end);
+	static <E> List<E> deserializeAsList(List<String> input, RedisSerializer serializer) {
+		List<E> result = new ArrayList<E>(input.size());
+		for (String string : input) {
+			E item = serializer.deserialize(string);
+			result.add(item);
+		}
+		return result;
+	}
 }
