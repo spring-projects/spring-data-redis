@@ -244,7 +244,17 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 		assertEquals(t1, list.remove(0));
 	}
 
-	public RedisList trim(int start, int end) {
-		return list.trim(start, end);
+	@Test
+	public void testTrim() {
+		T t1 = getT();
+		T t2 = getT();
+
+		assertTrue(list.trim(0, 0).isEmpty());
+		list.add(t1);
+		list.add(t2);
+		assertEquals(2, list.size());
+		assertEquals(1, list.trim(0, 0).size());
+		assertEquals(1, list.size());
+		assertEquals(t1, list.get(0));
 	}
 }

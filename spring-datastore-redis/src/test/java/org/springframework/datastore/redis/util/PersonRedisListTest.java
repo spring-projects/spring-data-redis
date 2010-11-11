@@ -27,7 +27,7 @@ import org.springframework.datastore.redis.connection.jedis.JedisConnectionFacto
  * 
  * @author Costin Leau
  */
-public class PersonRedisListTest extends AbstractRedisCollectionTest<Person> {
+public class PersonRedisListTest extends AbstractRedisListTest<Person> {
 
 	private JedisConnectionFactory factory;
 	private int counter = 0;
