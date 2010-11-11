@@ -16,6 +16,7 @@
 package org.springframework.datastore.redis.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.datastore.redis.serializer.RedisSerializer;
@@ -34,5 +35,16 @@ abstract class CollectionUtils {
 			result.add(item);
 		}
 		return result;
+	}
+
+	static <E> Collection<E> reverse(Collection<? extends E> c) {
+		List<E> reverse = new ArrayList<E>(c.size());
+
+		int index = c.size();
+		for (E e : c) {
+			reverse.add(--index, e);
+		}
+
+		return reverse;
 	}
 }

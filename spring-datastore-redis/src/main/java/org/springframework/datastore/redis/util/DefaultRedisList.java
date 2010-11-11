@@ -93,9 +93,18 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public void add(int index, E element) {
 		if (index == 0) {
 			commands.lPush(key, serializer.serializeAsString(element));
+			return;
 		}
-		else if (index == size()) {
+
+		int size = size();
+
+		if (index == size()) {
 			commands.rPush(key, serializer.serializeAsString(element));
+			return;
+		}
+
+		if (index < 0 || index > size) {
+			throw new IndexOutOfBoundsException();
 		}
 
 		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
@@ -103,11 +112,30 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean addAll(int index, Collection<? extends E> c) {
-		for (E e : c) {
-			add(index, e);
+		// insert collection in reverse
+		if (index == 0) {
+			Collection<? extends E> reverseC = CollectionUtils.reverse(c);
+
+			for (E e : reverseC) {
+				commands.lPush(key, serializer.serializeAsString(e));
+			}
+			return true;
 		}
 
-		return true;
+		int size = size();
+
+		if (index == size()) {
+			for (E e : c) {
+				commands.rPush(key, serializer.serializeAsString(e));
+			}
+			return true;
+		}
+
+		if (index < 0 || index > size) {
+			throw new IndexOutOfBoundsException();
+		}
+
+		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
 	}
 
 	@Override
