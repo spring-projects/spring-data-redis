@@ -16,18 +16,61 @@
 
 package org.springframework.datastore.riak.core;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration({"/org/springframework/datastore/RiakTemplateTests.xml"})
+@SuppressWarnings({"unchecked"})
 public class RiakTemplateIntegrationTests {
 
-	@Before
-	public void setUp() {
-		
-	}
-	
-	@Test
-	public void conversions() {
-	
-	}
+  @Autowired
+  ApplicationContext appCtx;
+  @Autowired
+  RiakTemplate riak;
+
+  public void testSet() {
+    Map obj = new LinkedHashMap();
+    obj.put("test", "value");
+    obj.put("test2", 12);
+    riak.set("test:test", obj);
+  }
+
+  @Test
+  public void testSetAsType() {
+    TestObject obj = new TestObject();
+    riak.set("test", obj);
+  }
+
+  public void testSetInferringType() {
+    Map obj = new LinkedHashMap();
+    obj.put("test", "value");
+    obj.put("test2", 12);
+    riak.set("test", obj);
+  }
+
+  public void testGetInferringType() {
+    Map obj = riak.get("java.util.LinkedHashMap:test");
+    assert null != obj;
+    assert 12 == (Integer) obj.get("test2");
+  }
+
+  @Test
+  public void testGetAsType() {
+    TestObject obj = riak.getAsType("test", TestObject.class);
+    assert null != obj;
+  }
+
+  @Test
+  public void conversions() {
+
+  }
+
 }
