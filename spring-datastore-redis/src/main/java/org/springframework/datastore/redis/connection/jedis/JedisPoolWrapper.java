@@ -114,7 +114,7 @@ class JedisPoolWrapper extends Jedis {
 	}
 
 	public void disconnect() throws IOException {
-		pool.returnResource(delegate);
+		cleanup();
 	}
 
 	public String echo(String string) {
@@ -318,7 +318,7 @@ class JedisPoolWrapper extends Jedis {
 	}
 
 	public void quit() {
-		pool.returnResource(delegate);
+		cleanup();
 	}
 
 	public String randomKey() {
@@ -575,5 +575,13 @@ class JedisPoolWrapper extends Jedis {
 
 	public Integer zunionstore(String dstkey, ZParams params, String... sets) {
 		return delegate.zunionstore(dstkey, params, sets);
+	}
+
+	private void cleanup() {
+		try {
+			pool.returnResource(delegate);
+		} catch (Exception ex) {
+			// ignore
+		}
 	}
 }
