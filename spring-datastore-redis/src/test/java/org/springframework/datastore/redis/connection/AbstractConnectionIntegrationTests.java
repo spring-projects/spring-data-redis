@@ -22,9 +22,9 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.datastore.redis.Person;
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
-import org.springframework.datastore.redis.core.Person;
 
 public abstract class AbstractConnectionIntegrationTests {
 

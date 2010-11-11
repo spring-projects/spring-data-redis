@@ -18,6 +18,7 @@ package org.springframework.datastore.redis.core;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.datastore.redis.Person;
 
 public class RedisTemplateIntegrationTests {
 

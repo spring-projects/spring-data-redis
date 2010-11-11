@@ -15,9 +15,12 @@
  */
 package org.springframework.datastore.redis.serializer;
 
+import java.io.IOException;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.datastore.redis.UncategorizedRedisException;
 
 /**
@@ -31,6 +34,8 @@ public class SimpleRedisSerializer implements RedisSerializer {
 	private Converter<Object, byte[]> serializer = new SerializingConverter();
 	private Converter<byte[], Object> deserializer = new DeserializingConverter();
 
+	private sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
+	private sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -44,11 +49,11 @@ public class SimpleRedisSerializer implements RedisSerializer {
 
 	@Override
 	public <T> T deserialize(String bytes) {
-		//		try {
-		return deserialize(bytes.getBytes());
-		//		} catch (UnsupportedEncodingException ex) {
-		//			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
-		//		}
+		try {
+			return deserialize(decoder.decodeBuffer(bytes));
+		} catch (IOException ex) {
+			throw new DataRetrievalFailureException("Unsupported encoding ", ex);
+		}
 	}
 
 	@Override
@@ -62,6 +67,11 @@ public class SimpleRedisSerializer implements RedisSerializer {
 
 	@Override
 	public String serializeAsString(Object object) {
-			return new String(serialize(object));
+		try {
+
+			return encoder.encode(serialize(object));
+		} catch (Exception ex) {
+			throw new DataRetrievalFailureException("Unsupported encoding ", ex);
+		}
 	}
 }
