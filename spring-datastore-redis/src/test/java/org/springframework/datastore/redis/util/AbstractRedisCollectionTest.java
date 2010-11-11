@@ -27,6 +27,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.datastore.redis.connection.RedisConnection;
 
 
 /**
@@ -36,7 +37,7 @@ import org.junit.Test;
  */
 public abstract class AbstractRedisCollectionTest<T> {
 
-	private AbstractRedisCollection<T> collection;
+	protected AbstractRedisCollection<T> collection;
 
 	@Before
 	public void setUp() throws Exception {
@@ -60,7 +61,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
 		collection.getCommands().del(collection.getKey());
-		//collection.clear();
+		((RedisConnection) collection.getCommands()).close();
 		destroyCollection();
 	}
 
