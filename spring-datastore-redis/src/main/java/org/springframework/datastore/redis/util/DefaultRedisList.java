@@ -140,6 +140,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E get(int index) {
+		if (index < 0 || index > size()) {
+			throw new IndexOutOfBoundsException();
+		}
 		return serializer.deserialize(commands.lIndex(key, index));
 	}
 
@@ -201,13 +204,15 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E peek() {
-		return serializer.deserialize(commands.lIndex(key, 0));
+		String element = commands.lIndex(key, 0);
+		return (element == null ? null : (E) serializer.deserialize(element));
 	}
 
 
 	@Override
 	public E poll() {
-		return serializer.deserialize(commands.lPop(key));
+		String element = commands.lPop(key);
+		return (element == null ? null : (E) serializer.deserialize(element));
 	}
 
 

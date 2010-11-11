@@ -63,12 +63,12 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 		list.add(t1);
 		list.add(t2);
 
-		assertEquals(t1, list.get(2));
+		assertEquals(t2, list.get(1));
 		list.add(2, t3);
 		assertEquals(t3, list.get(2));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testAddIndexObjectMiddle() {
 		T t1 = getT();
 		T t2 = getT();
@@ -95,7 +95,9 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 
 		assertEquals(t1, list.get(0));
 		list.addAll(0, asList);
+		// verify insertion order
 		assertEquals(t3, list.get(0));
+		assertEquals(t4, list.get(1));
 	}
 
 	@Test
@@ -112,10 +114,13 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 
 		assertEquals(t1, list.get(0));
 		assertTrue(list.addAll(2, asList));
-		assertEquals(t4, list.get(0));
+
+		// verify insertion order
+		assertEquals(t3, list.get(2));
+		assertEquals(t4, list.get(3));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void addAllIndexCollectionMiddle() {
 		T t1 = getT();
 		T t2 = getT();
@@ -131,7 +136,7 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 		assertTrue(list.addAll(1, asList));
 	}
 
-	@Test
+	@Test(expected = UnsupportedOperationException.class)
 	public void testIndexOfObject() {
 		T t1 = getT();
 		T t2 = getT();
@@ -149,9 +154,8 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 	public void testOffer() {
 		T t1 = getT();
 
-		assertFalse(list.offer(t1));
-		list.add(t1);
 		assertTrue(list.offer(t1));
+		assertTrue(list.contains(t1));
 	}
 
 	@Test
@@ -224,10 +228,10 @@ public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTe
 		list.add(t2);
 		assertEquals(2, list.range(0, -1).size());
 		assertEquals(t1, list.range(0, 0).get(0));
-		assertEquals(t2, list.range(1, 0).get(0));
+		assertEquals(t2, list.range(1, 1).get(0));
 	}
 
-	@Test
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRemoveIndex() {
 		T t1 = getT();
 		T t2 = getT();

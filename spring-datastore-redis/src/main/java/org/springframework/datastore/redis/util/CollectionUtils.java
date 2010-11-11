@@ -16,6 +16,7 @@
 package org.springframework.datastore.redis.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,14 +38,14 @@ abstract class CollectionUtils {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	static <E> Collection<E> reverse(Collection<? extends E> c) {
-		List<E> reverse = new ArrayList<E>(c.size());
-
+		Object[] reverse = new Object[c.size()];
 		int index = c.size();
 		for (E e : c) {
-			reverse.add(--index, e);
+			reverse[--index] = e;
 		}
 
-		return reverse;
+		return (List<E>) Arrays.asList(reverse);
 	}
 }
