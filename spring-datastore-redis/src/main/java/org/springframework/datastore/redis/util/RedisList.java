@@ -20,11 +20,11 @@ import java.util.Queue;
 
 /**
  * Redis extension for the {@link List} contract. Supports {@link List} specific
- * operations backed by Redis commands.
+ * operations backed by Redis operations.
  * 
  * @author Costin Leau
  */
-public interface RedisList<E> extends RedisStore, List<E>, Queue<E> {
+public interface RedisList<E> extends RedisStore<String>, List<E>, Queue<E> {
 
 	List<E> range(int start, int end);
 

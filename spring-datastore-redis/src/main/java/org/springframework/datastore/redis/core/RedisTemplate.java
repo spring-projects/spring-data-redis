@@ -19,6 +19,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
@@ -184,15 +187,39 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (key != null ? keySerializer.serialize(key) : null);
 	}
 
-	private byte[] rawValue(V value) {
+	private <T> byte[] rawValue(T value) {
 		return (value != null ? valueSerializer.serialize(value) : null);
 	}
 
+	private byte[][] rawKeys(K... keys) {
+		final byte[][] rawKeys = new byte[keys.length][];
+
+		for (int i = 0; i < keys.length; i++) {
+			rawKeys[i] = rawKey(keys[i]);
+		}
+
+		return rawKeys;
+	}
+
+	private List<V> values(Collection<byte[]> rawValues) {
+		List<V> values = new ArrayList<V>(rawValues.size());
+		for (byte[] bs : rawValues) {
+			values.add((V) valueSerializer.deserialize(bs));
+		}
+
+		return values;
+	}
+
 	// utility methods for the template internal methods
-	private abstract class DeserializingRedisCallback implements RedisCallback<V> {
+	private abstract class ValueDeserializingRedisCallback implements RedisCallback<V> {
 		private K key;
 
-		public DeserializingRedisCallback(K key) {
+		public ValueDeserializingRedisCallback() {
+			this(null);
+
+		}
+
+		public ValueDeserializingRedisCallback(K key) {
 			this.key = key;
 		}
 
@@ -226,26 +253,22 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public V get(final K key) {
-		return execute(new DeserializingRedisCallback(key) {
-
+		return execute(new ValueDeserializingRedisCallback(key) {
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.get(rawKey);
 			}
-
 		}, false);
 	}
 
 	@Override
 	public V getAndSet(K key, V newValue) {
 		final byte[] rawValue = rawValue(newValue);
-		return execute(new DeserializingRedisCallback(key) {
-
+		return execute(new ValueDeserializingRedisCallback(key) {
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getSet(rawKey, rawValue);
 			}
-
 		}, false);
 	}
 
@@ -253,7 +276,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Integer increment(K key, final int delta) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Integer>() {
-
 			@Override
 			public Integer doInRedis(RedisConnection connection) throws Exception {
 				if (delta == 1) {
@@ -275,7 +297,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public ListOperations<K, V> listOps() {
-		throw new UnsupportedOperationException();
+		return new DefaultListOperations();
 	}
 
 	@Override
@@ -286,32 +308,166 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@Override
 	public void set(K key, V value) {
 		final byte[] rawValue = rawValue(value);
-		execute(new DeserializingRedisCallback(key) {
-
+		execute(new ValueDeserializingRedisCallback(key) {
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				connection.set(rawKey, rawValue);
 				return null;
 			}
-
 		}, false);
 	}
 
 	@Override
 	public void watch(K... keys) {
-		final byte[][] rawKeys = new byte[keys.length][];
-
-		for (int i = 0; i < keys.length; i++) {
-			rawKeys[i] = rawKey(keys[i]);
-		}
+		final byte[][] rawKeys = rawKeys(keys);
 
 		execute(new RedisCallback<Object>() {
-
 			@Override
 			public Object doInRedis(RedisConnection connection) throws Exception {
 				connection.watch(rawKeys);
 				return null;
 			}
 		}, false);
+	}
+
+	//
+	// List operations
+	//
+
+	private class DefaultListOperations implements ListOperations<K, V> {
+
+		@Override
+		public List<V> blockingLeftPop(final int timeout, K... keys) {
+			final byte[][] rawKeys = rawKeys(keys);
+
+			return execute(new RedisCallback<List<V>>() {
+				@Override
+				public List<V> doInRedis(RedisConnection connection) throws Exception {
+					return values(connection.bLPop(timeout, rawKeys));
+				}
+			}, false);
+		}
+
+		@Override
+		public List<V> blockingRightPop(final int timeout, K... keys) {
+			final byte[][] rawKeys = rawKeys(keys);
+			return execute(new RedisCallback<List<V>>() {
+				@Override
+				public List<V> doInRedis(RedisConnection connection) throws Exception {
+					return values(connection.bRPop(timeout, rawKeys));
+				}
+			}, false);
+		}
+
+		@Override
+		public V index(K key, final int index) {
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.lIndex(rawKey, index);
+				}
+			}, false);
+		}
+
+		@Override
+		public V leftPop(K key) {
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.lPop(rawKey);
+				}
+			}, false);
+		}
+
+		@Override
+		public Integer leftPush(K key, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) throws Exception {
+					return connection.lPush(rawKey, rawValue);
+				}
+			}, false);
+		}
+
+		@Override
+		public Integer length(K key) {
+			final byte[] rawKey = rawKey(key);
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) throws Exception {
+					return connection.lLen(rawKey);
+				}
+			}, false);
+		}
+
+		@Override
+		public List<V> range(K key, final int start, final int end) {
+			final byte[] rawKey = rawKey(key);
+			return execute(new RedisCallback<List<V>>() {
+				@Override
+				public List<V> doInRedis(RedisConnection connection) throws Exception {
+					return values(connection.lRange(rawKey, start, end));
+				}
+			}, false);
+		}
+
+		@Override
+		public Integer remove(K key, final int count, Object value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) throws Exception {
+					return connection.lRem(rawKey, count, rawValue);
+				}
+			}, false);
+		}
+
+		@Override
+		public V rightPop(K key) {
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.rPop(rawKey);
+				}
+			}, false);
+		}
+
+		@Override
+		public Integer rightPush(K key, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) throws Exception {
+					return connection.rPush(rawKey, rawValue);
+				}
+			}, false);
+		}
+
+		@Override
+		public void set(K key, final int index, V value) {
+			final byte[] rawValue = rawValue(value);
+			execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					connection.lSet(rawKey, index, rawValue);
+					return null;
+				}
+			}, false);
+		}
+
+		@Override
+		public void trim(K key, final int start, final int end) {
+			execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					connection.lTrim(rawKey, start, end);
+					return null;
+				}
+			}, false);
+		}
 	}
 }

@@ -44,7 +44,7 @@ public interface ListOperations<K, V> {
 
 	V rightPop(K key);
 
-	V blockingLeftPop(K key);
+	List<V> blockingLeftPop(int timeout, K... keys);
 
-	V blockingRightPop(K key);
+	List<V> blockingRightPop(int timeout, K... keys);
 }
