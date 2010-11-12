@@ -60,7 +60,7 @@ public abstract class AbstractRedisCollectionTest<T> {
 	@After
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
-		collection.getCommands().del(collection.getKey());
+		collection.getCommands().del(collection.getKey().getBytes());
 		((RedisConnection) collection.getCommands()).close();
 		destroyCollection();
 	}

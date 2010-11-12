@@ -15,6 +15,8 @@
  */
 package org.springframework.datastore.redis.connection.jredis;
 
+import java.nio.charset.Charset;
+
 import org.jredis.JRedis;
 import org.jredis.connector.ConnectionSpec;
 import org.jredis.connector.Connection.Socket.Property;
@@ -47,8 +49,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	// taken from JRedis code
 	private int poolSize = 5;
 
-	
-	private String charset = "ISO-8859-1";
+
+	private Charset charset = Charset.forName("UTF8");
+
 
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
@@ -88,7 +91,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	public JredisConnectionFactory(ConnectionSpec connectionSpec) {
 		this.connectionSpec = connectionSpec;
 	}
-
 
 	@Override
 	public void afterPropertiesSet() {
@@ -182,7 +184,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 * 
 	 * @return
 	 */
-	public String getCharset() {
+	public Charset getCharset() {
 		return charset;
 	}
 
@@ -190,7 +192,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	/**
 	 * @param charset
 	 */
-	public void setCharset(String charset) {
+	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}
 }
