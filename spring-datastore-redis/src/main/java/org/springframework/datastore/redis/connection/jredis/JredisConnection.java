@@ -125,7 +125,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Collection<byte[]> keys(String pattern) {
+	public Collection<byte[]> keys(byte[] pattern) {
 		try {
 			return JredisUtils.convert(charset, jredis.keys(pattern));
 		} catch (RedisException ex) {

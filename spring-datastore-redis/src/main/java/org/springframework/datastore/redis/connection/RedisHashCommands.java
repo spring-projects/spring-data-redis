@@ -17,6 +17,7 @@
 package org.springframework.datastore.redis.connection;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,12 +27,6 @@ import java.util.Set;
  */
 public interface RedisHashCommands {
 
-	public interface Entry {
-		public byte[] getField();
-
-		public byte[] getValue();
-	}
-
 	Boolean hSet(byte[] key, byte[] field, byte[] value);
 
 	Boolean hSetNX(byte[] key, byte[] field, byte[] value);
@@ -40,7 +35,7 @@ public interface RedisHashCommands {
 
 	List<byte[]> hMGet(byte[] key, byte[]... fields);
 
-	void hMSet(byte[] key, byte[][] fields, byte[][] values);
+	void hMSet(byte[] key, Map<byte[], byte[]> hashes);
 
 	Integer hIncrBy(byte[] key, byte[] field, int delta);
 
@@ -54,5 +49,5 @@ public interface RedisHashCommands {
 
 	List<byte[]> hVals(byte[] key);
 
-	Set<Entry> hGetAll(byte[] key);
+	Map<byte[], byte[]> hGetAll(byte[] key);
 }

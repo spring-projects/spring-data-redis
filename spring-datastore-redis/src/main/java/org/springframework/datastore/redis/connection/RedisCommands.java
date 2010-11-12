@@ -32,7 +32,7 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	DataType type(byte[] key);
 
-	Collection<byte[]> keys(String pattern);
+	Collection<byte[]> keys(byte[] pattern);
 
 	byte[] randomKey();
 

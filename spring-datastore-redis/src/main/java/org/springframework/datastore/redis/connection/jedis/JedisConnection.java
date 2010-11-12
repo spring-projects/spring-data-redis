@@ -17,8 +17,8 @@ package org.springframework.datastore.redis.connection.jedis;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +30,8 @@ import org.springframework.datastore.redis.connection.DataType;
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.util.ReflectionUtils;
 
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
@@ -46,13 +48,13 @@ public class JedisConnection implements RedisConnection {
 	private static final Field CLIENT_FIELD;
 
 	static {
-		CLIENT_FIELD = ReflectionUtils.findField(Jedis.class, "client", Client.class);
+		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
 	}
 
 	private final Jedis jedis;
 	private final Client client;
-	private final Transaction transaction;
+	private final BinaryTransaction transaction;
 
 	public JedisConnection(Jedis jedis) {
 		this.jedis = jedis;
@@ -176,7 +178,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Collection<byte[]> keys(String pattern) {
+	public Collection<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {
 				transaction.keys(pattern);
@@ -214,10 +216,10 @@ public class JedisConnection implements RedisConnection {
 	public byte[] randomKey() {
 		try {
 			if (isQueueing()) {
-				transaction.randomKey();
+				transaction.randomBinaryKey();
 				return null;
 			}
-			return jedis.randomKey();
+			return jedis.randomBinaryKey();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -303,7 +305,7 @@ public class JedisConnection implements RedisConnection {
 		}
 
 		try {
-			for (String key : keys) {
+			for (byte[] key : keys) {
 				jedis.watch(key);
 			}
 		} catch (Exception ex) {
@@ -379,24 +381,24 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void mSet(byte[][] keys, byte[][] values) {
+	public void mSet(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
-				transaction.mset(JedisUtils.arrange(keys, values));
+				transaction.mset(JedisUtils.convert(tuples));
 			}
-			jedis.mset(JedisUtils.arrange(keys, values));
+			jedis.mset(JedisUtils.convert(tuples));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void mSetNX(byte[][] keys, byte[][] values) {
+	public void mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
-				transaction.msetnx(JedisUtils.arrange(keys, values));
+				transaction.msetnx(JedisUtils.convert(tuples));
 			}
-			jedis.msetnx(JedisUtils.arrange(keys, values));
+			jedis.msetnx(JedisUtils.convert(tuples));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1198,13 +1200,13 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Entry> hGetAll(byte[] key) {
+	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.hgetAll(key);
 				return null;
 			}
-			return JedisUtils.convert(jedis.hgetAll(key));
+			return jedis.hgetAll(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1230,7 +1232,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.hkeys(key);
 				return null;
 			}
-			return new LinkedHashSet<String>(jedis.hkeys(key));
+			return jedis.hkeys(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1263,13 +1265,12 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void hMSet(byte[] key, byte[][] fields, byte[][] values) {
-		Map<String, String> param = JedisUtils.convert(fields, values);
+	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
 		try {
 			if (isQueueing()) {
-				transaction.hmset(key, param);
+				transaction.hmset(key, tuple);
 			}
-			jedis.hmset(key, param);
+			jedis.hmset(key, tuple);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1282,7 +1283,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.hvals(key);
 				return null;
 			}
-			return jedis.hvals(key);
+			return new ArrayList<byte[]>(jedis.hvals(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -96,7 +96,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Jedis fetchJedisConnector() {
 		try {
 			if (usePool) {
-				return new JedisPoolWrapper(pool.getResource(), pool);
+				return pool.getResource();
 			}
 			return new Jedis(getShardInfo());
 		} catch (TimeoutException ex) {
