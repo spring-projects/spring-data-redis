@@ -15,12 +15,9 @@
  */
 package org.springframework.datastore.redis.serializer;
 
-import java.io.IOException;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.datastore.redis.UncategorizedRedisException;
 
 /**
@@ -29,7 +26,7 @@ import org.springframework.datastore.redis.UncategorizedRedisException;
  * @author Mark Pollack
  * @author Costin Leau
  */
-public class SimpleRedisSerializer implements RedisSerializer {
+public class SimpleRedisSerializer implements RedisSerializer<Object> {
 
 	private Converter<Object, byte[]> serializer = new SerializingConverter();
 	private Converter<byte[], Object> deserializer = new DeserializingConverter();
@@ -39,20 +36,11 @@ public class SimpleRedisSerializer implements RedisSerializer {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T deserialize(byte[] bytes) {
+	public Object deserialize(byte[] bytes) {
 		try {
-			return (T) deserializer.convert(bytes);
+			return deserializer.convert(bytes);
 		} catch (Exception ex) {
 			throw new UncategorizedRedisException("Cannot deserialize", ex);
-		}
-	}
-
-	@Override
-	public <T> T deserialize(String bytes) {
-		try {
-			return deserialize(decoder.decodeBuffer(bytes));
-		} catch (IOException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding ", ex);
 		}
 	}
 
@@ -62,16 +50,6 @@ public class SimpleRedisSerializer implements RedisSerializer {
 			return serializer.convert(object);
 		} catch (Exception ex) {
 			throw new UncategorizedRedisException("Cannot serialize", ex);
-		}
-	}
-
-	@Override
-	public String serializeAsString(Object object) {
-		try {
-
-			return encoder.encode(serialize(object));
-		} catch (Exception ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding ", ex);
 		}
 	}
 }
