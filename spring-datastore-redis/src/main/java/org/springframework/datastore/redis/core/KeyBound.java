@@ -20,7 +20,7 @@ package org.springframework.datastore.redis.core;
  *  
  * @author Costin Leau
  */
-public interface RedisKeyedStore<K> {
+public interface KeyBound<K> {
 
 	/**
 	 * Returns the key associated with this store.

@@ -15,30 +15,22 @@
  */
 package org.springframework.datastore.redis.core;
 
-import java.util.List;
 
 /**
- * List operations bound to a certain key.
+ * Default {@link KeyBound} implementation.
  * 
  * @author Costin Leau
  */
-public interface BoundListOperations<K, V> extends KeyBound<K> {
+public class DefaultKeyBound<K> implements KeyBound<K> {
 
-	List<V> range(int start, int end);
+	private final K key;
 
-	void trim(int start, int end);
+	public DefaultKeyBound(K key) {
+		this.key = key;
+	}
 
-	Integer length();
-
-	Integer leftPush(V value);
-
-	Integer rightPush(V value);
-
-	V leftPop();
-
-	V rightPop();
-
-	Integer remove(int i, Object value);
-
-	V index(int index);
+	@Override
+	public K getKey() {
+		return key;
+	}
 }

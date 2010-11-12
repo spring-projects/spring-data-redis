@@ -44,7 +44,7 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Costin Leau
  */
-public class RedisTemplate<K, V> extends RedisAccessor {
+public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
 	private boolean exposeConnection = false;
 	private RedisSerializer keySerializer = new StringRedisSerializer();
@@ -178,5 +178,54 @@ public class RedisTemplate<K, V> extends RedisAccessor {
 				throw ex.getTargetException();
 			}
 		}
+	}
+
+	//
+	// RedisOperations
+	//
+
+	@Override
+	public Object exec() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public BoundListOperations<K, V> forList(K key) {
+		return new DefaultBoundListOperations<K, V>(key, this);
+	}
+
+	@Override
+	public V get(K key) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V getSet(K key, V newValue) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V increment(K key, int delta) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ListOperations<K, V> listOps() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void multi() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void set(K key, V value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void watch(K key) {
+		throw new UnsupportedOperationException();
 	}
 }
