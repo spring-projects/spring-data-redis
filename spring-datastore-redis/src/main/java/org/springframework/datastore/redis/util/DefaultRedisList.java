@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.ListOperations;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Default implementation for {@link RedisList}. 
@@ -29,6 +30,8 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  * @author Costin Leau
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
+
+	private final ListOperations<String, E> listOps;
 
 	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
 
@@ -42,23 +45,24 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		}
 	}
 
-	public DefaultRedisList(String key, RedisCommands commands) {
+	public DefaultRedisList(String key, RedisOperations<String, E> commands) {
 		super(key, commands);
+		listOps = commands.listOps();
 	}
 
 	@Override
 	public List<E> range(int start, int end) {
-		return CollectionUtils.deserializeAsList(commands.lRange(key, start, end), serializer);
+		return listOps.range(key, start, end);
 	}
 
 	@Override
 	public RedisList<E> trim(int start, int end) {
-		commands.lTrim(key, start, end);
+		listOps.trim(key, start, end);
 		return this;
 	}
 
 	private List<E> content() {
-		return CollectionUtils.deserializeAsList(commands.lRange(key, 0, -1), serializer);
+		return listOps.range(key, 0, -1);
 	}
 
 	@Override
@@ -68,38 +72,38 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public int size() {
-		return commands.lLen(key);
+		return listOps.length(key);
 	}
 
 
 	@Override
 	public boolean add(E value) {
-		commands.rPush(key, serializer.serializeAsString(value));
+		listOps.rightPush(key, value);
 		return true;
 	}
 
 	@Override
 	public void clear() {
-		commands.lTrim(key, size() + 1, 0);
+		listOps.trim(key, size() + 1, 0);
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		Integer result = commands.lRem(key, 0, serializer.serializeAsString(o));
+		Integer result = listOps.remove(key, 0, o);
 		return (result != null && result.intValue() > 0);
 	}
 
 	@Override
 	public void add(int index, E element) {
 		if (index == 0) {
-			commands.lPush(key, serializer.serializeAsString(element));
+			listOps.leftPush(key, element);
 			return;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			commands.rPush(key, serializer.serializeAsString(element));
+			listOps.rightPush(key, element);
 			return;
 		}
 
@@ -117,7 +121,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 			Collection<? extends E> reverseC = CollectionUtils.reverse(c);
 
 			for (E e : reverseC) {
-				commands.lPush(key, serializer.serializeAsString(e));
+				listOps.leftPush(key, e);
 			}
 			return true;
 		}
@@ -126,7 +130,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		if (index == size()) {
 			for (E e : c) {
-				commands.rPush(key, serializer.serializeAsString(e));
+				listOps.rightPush(key, e);
 			}
 			return true;
 		}
@@ -143,7 +147,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		if (index < 0 || index > size()) {
 			throw new IndexOutOfBoundsException();
 		}
-		return serializer.deserialize(commands.lIndex(key, index));
+		return listOps.index(key, index);
 	}
 
 	@Override
@@ -175,7 +179,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public E set(int index, E e) {
 		E object = get(index);
-		commands.lSet(key, index, serializer.serializeAsString(e));
+		listOps.set(key, index, e);
 		return object;
 	}
 
@@ -197,22 +201,22 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean offer(E e) {
-		commands.lPush(key, serializer.serializeAsString(e));
+		listOps.leftPush(key, e);
 		return true;
 	}
 
 
 	@Override
 	public E peek() {
-		String element = commands.lIndex(key, 0);
-		return (element == null ? null : (E) serializer.deserialize(element));
+		E element = listOps.index(key, 0);
+		return (element == null ? null : element);
 	}
 
 
 	@Override
 	public E poll() {
-		String element = commands.lPop(key);
-		return (element == null ? null : (E) serializer.deserialize(element));
+		E element = listOps.leftPop(key);
+		return (element == null ? null : element);
 	}
 
 

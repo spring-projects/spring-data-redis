@@ -18,31 +18,23 @@ package org.springframework.datastore.redis.util;
 import java.util.AbstractCollection;
 import java.util.Collection;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
-import org.springframework.datastore.redis.serializer.RedisSerializer;
-import org.springframework.datastore.redis.serializer.SimpleRedisSerializer;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Base implementation for Redis collections. 
  * 
  * @author Costin Leau
  */
-public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisStore {
+public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisStore<String> {
 
 	public static final String ENCODING = "UTF-8";
 
 	protected final String key;
-	protected final RedisCommands commands;
-	protected final RedisSerializer serializer;
+	protected final RedisOperations<String, E> operations;
 
-	public AbstractRedisCollection(String key, RedisCommands commands) {
-		this(key, commands, new SimpleRedisSerializer());
-	}
-
-	public AbstractRedisCollection(String key, RedisCommands commands, RedisSerializer serializer) {
+	public <K> AbstractRedisCollection(String key, RedisOperations<String, E> operations) {
 		this.key = key;
-		this.commands = commands;
-		this.serializer = serializer;
+		this.operations = operations;
 	}
 
 	@Override
@@ -51,8 +43,8 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	}
 
 	@Override
-	public RedisCommands getCommands() {
-		return commands;
+	public RedisOperations<String, E> getOperations() {
+		return operations;
 	}
 
 	@Override

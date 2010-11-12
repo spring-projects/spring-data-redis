@@ -15,7 +15,7 @@
  */
 package org.springframework.datastore.redis.util;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 
 /**
@@ -23,19 +23,19 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  * 
  * @author Costin Leau
  */
-public interface RedisStore {
+public interface RedisStore<K> {
 
 	/**
 	 * Returns the key used by the backing Redis store for this collection.
 	 *  
 	 * @return Redis key
 	 */
-	String getKey();
+	K getKey();
 
 	/**
-	 * Returns the underlying Redis commands used by the backing implementation.
+	 * Returns the underlying Redis operations used by the backing implementation.
 	 * 
-	 * @return commands
+	 * @return operations
 	 */
-	RedisCommands getCommands();
+	RedisOperations<K, ?> getOperations();
 }
