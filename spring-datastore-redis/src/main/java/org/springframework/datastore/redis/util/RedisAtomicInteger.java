@@ -21,7 +21,7 @@ import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Atomic integer backed by Redis.
- * Uses Redis atomic increment/decrement and watch/multi/exec commands for CAS operations. 
+ * Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS operations. 
  * 
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
@@ -35,7 +35,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * Constructs a new <code>RedisAtomicInteger</code> instance with an initial value of zero.
 	 *
 	 * @param redisCounter
-	 * @param commands
+	 * @param operations
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations) {
 		this(redisCounter, operations, 0);
@@ -45,7 +45,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * Constructs a new <code>RedisAtomicInteger</code> instance with the given initial value.
 	 *
 	 * @param redisCounter
-	 * @param commands
+	 * @param operations
 	 * @param initialValue
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations, int initialValue) {
@@ -113,7 +113,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 			operations.watch(key);
 			int value = get();
 			operations.multi();
-			operations.incr(key);
+			operations.increment(key, 1);
 			if (operations.exec() != null) {
 				return value;
 			}
@@ -130,7 +130,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 			operations.watch(key);
 			int value = get();
 			operations.multi();
-			operations.decr(key);
+			operations.increment(key, -1);
 			if (operations.exec() != null) {
 				return value;
 			}
@@ -160,7 +160,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int incrementAndGet() {
-		return operations.incr(key);
+		return operations.increment(key, 1);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int decrementAndGet() {
-		return operations.decr(key);
+		return operations.increment(key, -1);
 	}
 
 
@@ -178,7 +178,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int addAndGet(int delta) {
-		return operations.incrBy(key, delta);
+		return operations.increment(key, delta);
 	}
 
 	/**

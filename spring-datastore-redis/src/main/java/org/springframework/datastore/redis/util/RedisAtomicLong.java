@@ -115,7 +115,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 			operations.watch(key);
 			long value = get();
 			operations.multi();
-			operations.incr(key);
+			operations.increment(key, 1);
 			if (operations.exec() != null) {
 				return value;
 			}
@@ -132,7 +132,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 			operations.watch(key);
 			long value = get();
 			operations.multi();
-			operations.decr(key);
+			operations.increment(key, -1);
 			if (operations.exec() != null) {
 				return value;
 			}
@@ -163,7 +163,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public long incrementAndGet() {
-		return operations.incr(key);
+		return operations.increment(key, 1);
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public long decrementAndGet() {
-		return operations.decr(key);
+		return operations.increment(key, -1);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long addAndGet(long delta) {
 		// TODO: is this really safe
-		return operations.incrBy(key, (int) delta);
+		return operations.increment(key, (int) delta);
 	}
 
 	/**
