@@ -17,7 +17,7 @@ package org.springframework.datastore.redis.util;
 
 import java.io.Serializable;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Atomic integer backed by Redis.
@@ -28,10 +28,8 @@ import org.springframework.datastore.redis.connection.RedisCommands;
  */
 public class RedisAtomicInteger extends Number implements Serializable {
 
-	private static final long serialVersionUID = 5984507176128031015L;
-
 	private final String key;
-	private RedisCommands commands;
+	private RedisOperations<String, Integer> operations;
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance with an initial value of zero.
@@ -39,8 +37,8 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @param redisCounter
 	 * @param commands
 	 */
-	public RedisAtomicInteger(String redisCounter, RedisCommands commands) {
-		this(redisCounter, commands, 0);
+	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations) {
+		this(redisCounter, operations, 0);
 	}
 
 	/**
@@ -50,10 +48,10 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @param commands
 	 * @param initialValue
 	 */
-	public RedisAtomicInteger(String redisCounter, RedisCommands commands, int initialValue) {
+	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations, int initialValue) {
 		this.key = redisCounter;
-		this.commands = commands;
-		commands.set(redisCounter, Integer.toString(initialValue));
+		this.operations = operations;
+		operations.set(redisCounter, initialValue);
 	}
 
 	/**
@@ -62,7 +60,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the current value
 	 */
 	public int get() {
-		return Integer.valueOf(commands.get(key));
+		return Integer.valueOf(operations.get(key));
 	}
 
 	/**
@@ -71,7 +69,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @param newValue the new value
 	 */
 	public void set(int newValue) {
-		commands.set(key, Integer.toString(newValue));
+		operations.set(key, newValue);
 	}
 
 	/**
@@ -81,7 +79,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the previous value
 	 */
 	public int getAndSet(int newValue) {
-		return Integer.valueOf(commands.getSet(key, Integer.toString(newValue)));
+		return operations.getSet(key, newValue);
 	}
 
 	/**
@@ -94,11 +92,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public boolean compareAndSet(int expect, int update) {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			if (expect == get()) {
-				commands.multi();
+				operations.multi();
 				set(update);
-				if (commands.exec() != null) {
+				if (operations.exec() != null) {
 					return true;
 				}
 			}
@@ -112,11 +110,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndIncrement() {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			int value = get();
-			commands.multi();
-			commands.incr(key);
-			if (commands.exec() != null) {
+			operations.multi();
+			operations.incr(key);
+			if (operations.exec() != null) {
 				return value;
 			}
 		}
@@ -129,11 +127,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndDecrement() {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			int value = get();
-			commands.multi();
-			commands.decr(key);
-			if (commands.exec() != null) {
+			operations.multi();
+			operations.decr(key);
+			if (operations.exec() != null) {
 				return value;
 			}
 		}
@@ -147,11 +145,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndAdd(int delta) {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			int value = get();
-			commands.multi();
+			operations.multi();
 			set(value + delta);
-			if (commands.exec() != null) {
+			if (operations.exec() != null) {
 				return value;
 			}
 		}
@@ -162,7 +160,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int incrementAndGet() {
-		return commands.incr(key);
+		return operations.incr(key);
 	}
 
 	/**
@@ -170,7 +168,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int decrementAndGet() {
-		return commands.decr(key);
+		return operations.decr(key);
 	}
 
 
@@ -180,7 +178,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int addAndGet(int delta) {
-		return commands.incrBy(key, delta);
+		return operations.incrBy(key, delta);
 	}
 
 	/**
