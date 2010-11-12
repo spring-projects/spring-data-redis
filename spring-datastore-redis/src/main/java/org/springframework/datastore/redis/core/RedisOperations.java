@@ -20,7 +20,24 @@ package org.springframework.datastore.redis.core;
  * 
  * @author Costin Leau
  */
-public interface RedisOperations {
+public interface RedisOperations<K, V> {
 
+	void set(K key, V value);
+
+	V get(K key);
+
+	V getSet(K key, V newValue);
+
+	void watch(K key);
+
+	void multi();
+
+	Object exec();
+
+	V incr(K key);
+
+	V decr(K key);
+
+	V incrBy(K key, int delta);
 
 }

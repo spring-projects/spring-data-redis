@@ -24,6 +24,7 @@ import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 import org.springframework.datastore.redis.serializer.RedisSerializer;
 import org.springframework.datastore.redis.serializer.SimpleRedisSerializer;
+import org.springframework.datastore.redis.serializer.StringRedisSerializer;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -43,10 +44,12 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Costin Leau
  */
-public class RedisTemplate extends RedisAccessor {
+public class RedisTemplate<K, V> extends RedisAccessor {
 
 	private boolean exposeConnection = false;
-	private RedisSerializer converter = new SimpleRedisSerializer();
+	private RedisSerializer keySerializer = new StringRedisSerializer();
+	private RedisSerializer valueSerializer = new SimpleRedisSerializer();
+	private RedisSerializer defaultSerializer = new SimpleRedisSerializer();
 
 	public RedisTemplate() {
 	}
@@ -60,7 +63,7 @@ public class RedisTemplate extends RedisAccessor {
 		execute(new RedisCallback<Object>() {
 			@Override
 			public Object doInRedis(RedisConnection connection) throws Exception {
-				connection.del(redisKey);
+				connection.del(keySerializer.serialize(redisKey));
 				return null;
 			}
 		});
@@ -72,6 +75,10 @@ public class RedisTemplate extends RedisAccessor {
 	}
 
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
+		return execute(action, isExposeConnection(), defaultSerializer);
+	}
+
+	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer returnSerializer) {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
@@ -122,8 +129,16 @@ public class RedisTemplate extends RedisAccessor {
 		this.exposeConnection = exposeConnection;
 	}
 
-	public void setRedisConverter(RedisSerializer converter) {
-		this.converter = converter;
+	public void setKeySerializer(RedisSerializer serializer) {
+		this.keySerializer = serializer;
+	}
+
+	public void setValueSerializer(RedisSerializer serializer) {
+		this.valueSerializer = serializer;
+	}
+
+	public void setDefaultSerializer(RedisSerializer serializer) {
+		this.defaultSerializer = serializer;
 	}
 
 	/**
