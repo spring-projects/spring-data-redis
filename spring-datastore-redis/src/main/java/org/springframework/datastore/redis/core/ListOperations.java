@@ -15,29 +15,36 @@
  */
 package org.springframework.datastore.redis.core;
 
+import java.util.List;
 
 /**
- * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
+ * Redis, list specific operations.
  * 
  * @author Costin Leau
  */
-public interface RedisOperations<K, V> {
+public interface ListOperations<K, V> {
 
-	void set(K key, V value);
+	List<V> range(K key, int start, int end);
 
-	V get(K key);
+	void trim(K key, int start, int end);
 
-	V getSet(K key, V newValue);
+	Integer length(K key);
 
-	void watch(K key);
+	Integer leftPush(K key, V value);
 
-	void multi();
+	Integer rightPush(K key, V value);
 
-	Object exec();
+	void set(K key, int index, V value);
 
-	V increment(K key, int delta);
+	Integer remove(K key, int i, Object value);
 
-	ListOperations<K, V> listOps();
+	V index(K key, int index);
 
-	BoundListOperations<K, V> forList(K key);
+	V leftPop(K key);
+
+	V rightPop(K key);
+
+	V blockingLeftPop(K key);
+
+	V blockingRightPop(K key);
 }

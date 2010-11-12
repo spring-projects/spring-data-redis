@@ -15,29 +15,17 @@
  */
 package org.springframework.datastore.redis.core;
 
-
 /**
- * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
- * 
+ * Redis store for a certain key. Useful for creating views into Redis 'collection' types.
+ *  
  * @author Costin Leau
  */
-public interface RedisOperations<K, V> {
+public interface RedisKeyedStore<K> {
 
-	void set(K key, V value);
-
-	V get(K key);
-
-	V getSet(K key, V newValue);
-
-	void watch(K key);
-
-	void multi();
-
-	Object exec();
-
-	V increment(K key, int delta);
-
-	ListOperations<K, V> listOps();
-
-	BoundListOperations<K, V> forList(K key);
+	/**
+	 * Returns the key associated with this store.
+	 * 
+	 * @return
+	 */
+	K getKey();
 }
