@@ -31,7 +31,7 @@ public interface RedisTxCommands {
 
 	void discard();
 
-	void watch(String... keys);
+	void watch(byte[]... keys);
 
 	void unwatch();
 }

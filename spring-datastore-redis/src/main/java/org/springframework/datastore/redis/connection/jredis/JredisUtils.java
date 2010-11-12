@@ -16,6 +16,7 @@
 
 package org.springframework.datastore.redis.connection.jredis;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -43,8 +44,28 @@ public abstract class JredisUtils {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}
 
-	static String convertToString(byte[] bytes) {
+	static String convert(byte[] bytes) {
 		return new String(bytes);
+	}
+
+	static String convert(String encoding, byte[] bytes) {
+		try {
+			return new String(bytes, encoding);
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	static String[] convertMultiple(String encoding, byte[]... bytes) {
+		String[] result = new String[bytes.length];
+		try {
+			for (int i = 0; i < bytes.length; i++) {
+				result[i] = new String(bytes[i], encoding);
+			}
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+		return result;
 	}
 
 	static <T extends Collection<String>> T convertToStringCollection(List<byte[]> bytes, Class<T> collectionType) {
@@ -91,6 +112,42 @@ public abstract class JredisUtils {
 		for (int i = 0; i < values.length; i++) {
 			result.put(keys[i], values[i].getBytes());
 		}
+		return result;
+	}
+
+	static Collection<byte[]> convert(String charset, List<String> keys) {
+		Collection<byte[]> list = new ArrayList<byte[]>(keys.size());
+
+		try {
+			for (String string : keys) {
+				list.add(string.getBytes(charset));
+			}
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+
+		return list;
+	}
+
+	static byte[] convert(String charset, String string) {
+		try {
+			return string.getBytes(charset);
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	static Map<String, byte[]> convert(String encoding, Map<byte[], byte[]> tuple) {
+		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(tuple.size());
+		try {
+
+			for (Map.Entry<byte[], byte[]> entry : tuple.entrySet()) {
+				result.put(new String(entry.getKey(), encoding), entry.getValue());
+			}
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex);
+		}
+
 		return result;
 	}
 }

@@ -25,31 +25,31 @@ import java.util.Set;
  */
 public interface RedisSetCommands {
 
-	Boolean sAdd(String key, String value);
+	Boolean sAdd(byte[] key, byte[] value);
 
-	Boolean sRem(String key, String value);
+	Boolean sRem(byte[] key, byte[] value);
 
-	String sPop(String key);
+	byte[] sPop(byte[] key);
 
-	Boolean sMove(String srcKey, String destKey, String value);
+	Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value);
 
-	Integer sCard(String key);
+	Integer sCard(byte[] key);
 
-	Boolean sIsMember(String key, String value);
+	Boolean sIsMember(byte[] key, byte[] value);
 
-	Set<String> sInter(String... keys);
+	Set<byte[]> sInter(byte[]... keys);
 
-	void sInterStore(String destKey, String... keys);
+	void sInterStore(byte[] destKey, byte[]... keys);
 
-	Set<String> sUnion(String... keys);
+	Set<byte[]> sUnion(byte[]... keys);
 
-	void sUnionStore(String destKey, String... keys);
+	void sUnionStore(byte[] destKey, byte[]... keys);
 
-	Set<String> sDiff(String... keys);
+	Set<byte[]> sDiff(byte[]... keys);
 
-	void sDiffStore(String destKey, String... keys);
+	void sDiffStore(byte[] destKey, byte[]... keys);
 
-	Set<String> sMembers(String key);
+	Set<byte[]> sMembers(byte[] key);
 
-	String sRandMember(String key);
+	byte[] sRandMember(byte[] key);
 }

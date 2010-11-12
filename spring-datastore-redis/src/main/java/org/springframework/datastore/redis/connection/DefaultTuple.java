@@ -25,7 +25,7 @@ import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
 public class DefaultTuple implements Tuple {
 
 	private final Double score;
-	private final String value;
+	private final byte[] value;
 
 
 	/**
@@ -34,7 +34,7 @@ public class DefaultTuple implements Tuple {
 	 * @param value
 	 * @param score
 	 */
-	public DefaultTuple(String value, Double score) {
+	public DefaultTuple(byte[] value, Double score) {
 		this.score = score;
 		this.value = value;
 	}
@@ -45,7 +45,7 @@ public class DefaultTuple implements Tuple {
 	}
 
 	@Override
-	public String getValue() {
+	public byte[] getValue() {
 		return value;
 	}
 }

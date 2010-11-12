@@ -47,6 +47,8 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	// taken from JRedis code
 	private int poolSize = 5;
 
+	
+	private String charset = "ISO-8859-1";
 
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
@@ -116,7 +118,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public RedisConnection getConnection() {
-		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)));
+		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)), charset);
 	}
 
 
@@ -173,5 +175,22 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		Assert.isTrue(poolSize > 0, "pool size needs to be bigger then zero");
 		this.poolSize = poolSize;
 		usePool = true;
+	}
+
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getCharset() {
+		return charset;
+	}
+
+
+	/**
+	 * @param charset
+	 */
+	public void setCharset(String charset) {
+		this.charset = charset;
 	}
 }

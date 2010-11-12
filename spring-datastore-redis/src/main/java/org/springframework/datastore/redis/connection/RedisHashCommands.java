@@ -27,32 +27,32 @@ import java.util.Set;
 public interface RedisHashCommands {
 
 	public interface Entry {
-		public String getField();
+		public byte[] getField();
 
-		public String getValue();
+		public byte[] getValue();
 	}
 
-	Boolean hSet(String key, String field, String value);
+	Boolean hSet(byte[] key, byte[] field, byte[] value);
 
-	Boolean hSetNX(String key, String field, String value);
+	Boolean hSetNX(byte[] key, byte[] field, byte[] value);
 
-	String hGet(String key, String field);
+	byte[] hGet(byte[] key, byte[] field);
 
-	List<String> hMGet(String key, String... fields);
+	List<byte[]> hMGet(byte[] key, byte[]... fields);
 
-	void hMSet(String key, String[] fields, String[] values);
+	void hMSet(byte[] key, byte[][] fields, byte[][] values);
 
-	Integer hIncrBy(String key, String field, int delta);
+	Integer hIncrBy(byte[] key, byte[] field, int delta);
 
-	Boolean hExists(String key, String field);
+	Boolean hExists(byte[] key, byte[] field);
 
-	Boolean hDel(String key, String field);
+	Boolean hDel(byte[] key, byte[] field);
 
-	Integer hLen(String key);
+	Integer hLen(byte[] key);
 
-	Set<String> hKeys(String key);
+	Set<byte[]> hKeys(byte[] key);
 
-	List<String> hVals(String key);
+	List<byte[]> hVals(byte[] key);
 
-	Set<Entry> hGetAll(String key);
+	Set<Entry> hGetAll(byte[] key);
 }

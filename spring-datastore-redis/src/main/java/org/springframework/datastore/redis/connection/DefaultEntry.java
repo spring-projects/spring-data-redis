@@ -33,12 +33,12 @@ public class DefaultEntry implements Entry {
 	}
 
 	@Override
-	public String getField() {
+	public byte[] getField() {
 		return null;
 	}
 
 	@Override
-	public String getValue() {
+	public byte[] getValue() {
 		return null;
 	}
 

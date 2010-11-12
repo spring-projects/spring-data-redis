@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jredis.JRedis;
@@ -30,14 +31,19 @@ import org.springframework.datastore.redis.connection.DataType;
 import org.springframework.datastore.redis.connection.RedisConnection;
 
 /**
+ * JRedis based implementation.
+ * 
  * @author Costin Leau
  */
 public class JredisConnection implements RedisConnection {
 
 	private final JRedis jredis;
 
-	public JredisConnection(JRedis jredis) {
+	private final String charset;
+
+	public JredisConnection(JRedis jredis, String charset) {
 		this.jredis = jredis;
+		this.charset = charset;
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -78,9 +84,9 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer del(String... keys) {
+	public Integer del(byte[]... keys) {
 		try {
-			return Integer.valueOf((int) jredis.del(keys));
+			return Integer.valueOf((int) jredis.del(JredisUtils.convertMultiple(charset, keys)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -101,27 +107,27 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean exists(String key) {
+	public Boolean exists(byte[] key) {
 		try {
-			return jredis.exists(key);
+			return jredis.exists(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean expire(String key, int seconds) {
+	public Boolean expire(byte[] key, int seconds) {
 		try {
-			return jredis.expire(key, seconds);
+			return jredis.expire(JredisUtils.convert(charset, key), seconds);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Collection<String> keys(String pattern) {
+	public Collection<byte[]> keys(String pattern) {
 		try {
-			return jredis.keys(pattern);
+			return JredisUtils.convert(charset, jredis.keys(pattern));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -133,32 +139,32 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean persist(String key) {
+	public Boolean persist(byte[] key) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String randomKey() {
+	public byte[] randomKey() {
 		try {
-			return jredis.randomkey();
+			return JredisUtils.convert(charset, jredis.randomkey());
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void rename(String oldName, String newName) {
+	public void rename(byte[] oldName, byte[] newName) {
 		try {
-			jredis.rename(oldName, newName);
+			jredis.rename(JredisUtils.convert(charset, oldName), JredisUtils.convert(charset, newName));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean renameNX(String oldName, String newName) {
+	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		try {
-			return jredis.renamenx(oldName, newName);
+			return jredis.renamenx(JredisUtils.convert(charset, oldName), JredisUtils.convert(charset, newName));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -170,18 +176,18 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer ttl(String key) {
+	public Integer ttl(byte[] key) {
 		try {
-			return Integer.valueOf((int) jredis.ttl(key));
+			return Integer.valueOf((int) jredis.ttl(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public DataType type(String key) {
+	public DataType type(byte[] key) {
 		try {
-			return JredisUtils.convertDataType(jredis.type(key));
+			return JredisUtils.convertDataType(jredis.type(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -193,7 +199,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void watch(String... keys) {
+	public void watch(byte[]... keys) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -202,123 +208,122 @@ public class JredisConnection implements RedisConnection {
 	//
 
 	@Override
-	public String get(String key) {
+	public byte[] get(byte[] key) {
 		try {
-			return JredisUtils.convertToString(jredis.get(key));
+			return jredis.get(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void set(String key, String value) {
+	public void set(byte[] key, byte[] value) {
 		try {
-			jredis.set(key, value);
+			jredis.set(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String getSet(String key, String value) {
+	public byte[] getSet(byte[] key, byte[] value) {
 		try {
-			return JredisUtils.convertToString(jredis.getset(key, value));
-		} catch (RedisException ex) {
-			throw JredisUtils.convertJredisAccessException(ex);
-		}
-	}
-
-
-	@Override
-	public Integer append(String key, String value) {
-		try {
-			return Integer.valueOf((int) jredis.append(key, value));
+			return jredis.getset(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public List<String> mGet(String... keys) {
+	public Integer append(byte[] key, byte[] value) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.mget(keys), List.class);
+			return Integer.valueOf((int) jredis.append(JredisUtils.convert(charset, key), value));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void mSet(String[] keys, String[] values) {
+	public List<byte[]> mGet(byte[]... keys) {
 		try {
-			jredis.mset(JredisUtils.convert(keys, values));
+			return jredis.mget(JredisUtils.convertMultiple(charset, keys));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void mSetNX(String[] keys, String[] values) {
+	public void mSet(Map<byte[], byte[]> tuple) {
 		try {
-			jredis.msetnx(JredisUtils.convert(keys, values));
+			jredis.mset(JredisUtils.convert(charset, tuple));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void setEx(String key, int seconds, String value) {
+	public void mSetNX(Map<byte[], byte[]> tuple) {
+		try {
+			jredis.msetnx(JredisUtils.convert(charset, tuple));
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setEx(byte[] key, int seconds, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Boolean setNX(String key, String value) {
+	public Boolean setNX(byte[] key, byte[] value) {
 		try {
-			return jredis.setnx(key, value);
+			return jredis.setnx(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String substr(String key, int start, int end) {
+	public byte[] substr(byte[] key, int start, int end) {
 		try {
-			return JredisUtils.convertToString(jredis.substr(key, (long) start, (long) end));
+			return jredis.substr(JredisUtils.convert(charset, key), (long) start, (long) end);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer decr(String key) {
+	public Integer decr(byte[] key) {
 		try {
-			return (int) jredis.decr(key);
+			return (int) jredis.decr(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer decrBy(String key, int value) {
+	public Integer decrBy(byte[] key, int value) {
 		try {
-			return (int) jredis.decrby(key, value);
+			return (int) jredis.decrby(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer incr(String key) {
+	public Integer incr(byte[] key) {
 		try {
-			return (int) jredis.incr(key);
+			return (int) jredis.incr(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer incrBy(String key, int value) {
+	public Integer incrBy(byte[] key, int value) {
 		try {
-			return (int) jredis.incrby(key, value);
+			return (int) jredis.incrby(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -329,46 +334,46 @@ public class JredisConnection implements RedisConnection {
 	//
 
 	@Override
-	public List<String> bLPop(int timeout, String... keys) {
+	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<String> bRPop(int timeout, String... keys) {
+	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String lIndex(String key, int index) {
+	public byte[] lIndex(byte[] key, int index) {
 		try {
-			return JredisUtils.convertToString(jredis.lindex(key, (long) index));
+			return jredis.lindex(JredisUtils.convert(charset, key), (long) index);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer lLen(String key) {
+	public Integer lLen(byte[] key) {
 		try {
-			return Integer.valueOf((int) jredis.llen(key));
+			return Integer.valueOf((int) jredis.llen(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String lPop(String key) {
+	public byte[] lPop(byte[] key) {
 		try {
-			return JredisUtils.convertToString(jredis.lpop(key));
+			return jredis.lpop(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer lPush(String key, String value) {
+	public Integer lPush(byte[] key, byte[] value) {
 		try {
-			jredis.lpush(key, value);
+			jredis.lpush(JredisUtils.convert(charset, key), value);
 			return null;
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
@@ -376,66 +381,65 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<String> lRange(String key, int start, int end) {
+	public List<byte[]> lRange(byte[] key, int start, int end) {
 		try {
-			List<byte[]> lrange = jredis.lrange(key, start, end);
+			List<byte[]> lrange = jredis.lrange(JredisUtils.convert(charset, key), start, end);
 
-			return JredisUtils.convertToStringCollection(lrange, List.class);
+			return lrange;
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer lRem(String key, int count, String value) {
+	public Integer lRem(byte[] key, int count, byte[] value) {
 		try {
-			Integer.valueOf((int) jredis.lrem(key, value, count));
-			return null;
+			return Integer.valueOf((int) jredis.lrem(JredisUtils.convert(charset, key), value, count));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void lSet(String key, int index, String value) {
+	public void lSet(byte[] key, int index, byte[] value) {
 		try {
-			jredis.lset(key, index, value);
+			jredis.lset(JredisUtils.convert(charset, key), index, value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void lTrim(String key, int start, int end) {
+	public void lTrim(byte[] key, int start, int end) {
 		try {
-			jredis.ltrim(key, start, end);
+			jredis.ltrim(JredisUtils.convert(charset, key), start, end);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String rPop(String key) {
+	public byte[] rPop(byte[] key) {
 		try {
-			return JredisUtils.convertToString(jredis.rpop(key));
+			return jredis.rpop(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String rPopLPush(String srcKey, String dstKey) {
+	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		try {
-			return JredisUtils.convertToString(jredis.rpoplpush(srcKey, dstKey));
+			return jredis.rpoplpush(JredisUtils.convert(charset, srcKey), JredisUtils.convert(charset, dstKey));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer rPush(String key, String value) {
+	public Integer rPush(byte[] key, byte[] value) {
 		try {
-			jredis.rpush(key, value);
+			jredis.rpush(JredisUtils.convert(charset, key), value);
 			return null;
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
@@ -447,27 +451,27 @@ public class JredisConnection implements RedisConnection {
 	//
 
 	@Override
-	public Boolean sAdd(String key, String value) {
+	public Boolean sAdd(byte[] key, byte[] value) {
 		try {
-			return jredis.sadd(key, value);
+			return jredis.sadd(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer sCard(String key) {
+	public Integer sCard(byte[] key) {
 		try {
-			return Integer.valueOf((int) jredis.scard(key));
+			return Integer.valueOf((int) jredis.scard(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<String> sDiff(String... keys) {
-		String set1 = keys[0];
-		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+	public Set<byte[]> sDiff(byte[]... keys) {
+		String set1 = JredisUtils.convert(charset, keys[0]);
+		String[] sets = JredisUtils.convertMultiple(charset, Arrays.copyOfRange(keys, 1, keys.length));
 
 		try {
 			List<byte[]> result = jredis.sdiff(set1, sets);
@@ -478,9 +482,9 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void sDiffStore(String destKey, String... keys) {
-		String set1 = keys[0];
-		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+	public void sDiffStore(byte[] destKey, byte[]... keys) {
+		String set1 = JredisUtils.convert(charset, keys[0]);
+		String[] sets = JredisUtils.convertMultiple(charset, Arrays.copyOfRange(keys, 1, keys.length));
 
 		try {
 			jredis.sdiffstore(set1, sets);
@@ -490,9 +494,9 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> sInter(String... keys) {
-		String set1 = keys[0];
-		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+	public Set<byte[]> sInter(byte[]... keys) {
+		String set1 = JredisUtils.convert(charset, keys[0]);
+		String[] sets = JredisUtils.convertMultiple(charset, Arrays.copyOfRange(keys, 1, keys.length));
 
 		try {
 			List<byte[]> result = jredis.sinter(set1, sets);
@@ -503,9 +507,9 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void sInterStore(String destKey, String... keys) {
-		String set1 = keys[0];
-		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+	public void sInterStore(byte[] destKey, byte[]... keys) {
+		String set1 = JredisUtils.convert(charset, keys[0]);
+		String[] sets = JredisUtils.convertMultiple(charset, Arrays.copyOfRange(keys, 1, keys.length));
 
 		try {
 			jredis.sinterstore(set1, sets);
@@ -515,76 +519,75 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean sIsMember(String key, String value) {
+	public Boolean sIsMember(byte[] key, byte[] value) {
 		try {
-			return jredis.sismember(key, value);
+			return jredis.sismember(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<String> sMembers(String key) {
+	public Set<byte[]> sMembers(byte[] key) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.smembers(key), Set.class);
+			return new LinkedHashSet<byte[]>(jredis.smembers(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean sMove(String srcKey, String destKey, String value) {
+	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		try {
-			return jredis.smove(srcKey, destKey, value);
+			return jredis.smove(JredisUtils.convert(charset, srcKey), JredisUtils.convert(charset, destKey), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String sPop(String key) {
+	public byte[] sPop(byte[] key) {
 		try {
-			return JredisUtils.convertToString(jredis.spop(key));
+			return jredis.spop(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String sRandMember(String key) {
+	public byte[] sRandMember(byte[] key) {
 		try {
-			return JredisUtils.convertToString(jredis.srandmember(key));
+			return jredis.srandmember(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean sRem(String key, String value) {
+	public Boolean sRem(byte[] key, byte[] value) {
 		try {
-			return jredis.srem(key, value);
+			return jredis.srem(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<String> sUnion(String... keys) {
-		String set1 = keys[0];
-		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+	public Set<byte[]> sUnion(byte[]... keys) {
+		String set1 = JredisUtils.convert(charset, keys[0]);
+		String[] sets = JredisUtils.convertMultiple(charset, Arrays.copyOfRange(keys, 1, keys.length));
 
 		try {
-			List<byte[]> result = jredis.sunion(set1, sets);
-			return JredisUtils.convertToStringCollection(result, Set.class);
+			return new LinkedHashSet<byte[]>(jredis.sunion(set1, sets));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void sUnionStore(String destKey, String... keys) {
-		String set1 = keys[0];
-		String[] sets = Arrays.copyOfRange(keys, 1, keys.length);
+	public void sUnionStore(byte[] destKey, byte[]... keys) {
+		String set1 = JredisUtils.convert(charset, keys[0]);
+		String[] sets = JredisUtils.convertMultiple(charset, Arrays.copyOfRange(keys, 1, keys.length));
 
 		try {
 			jredis.sunionstore(set1, sets);
@@ -599,153 +602,156 @@ public class JredisConnection implements RedisConnection {
 	//
 
 	@Override
-	public Boolean zAdd(String key, double score, String value) {
+	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		try {
-			return jredis.zadd(key, score, value);
+			return jredis.zadd(JredisUtils.convert(charset, key), score, value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer zCard(String key) {
+	public Integer zCard(byte[] key) {
 		try {
-			return Integer.valueOf((int) jredis.zcard(key));
+			return Integer.valueOf((int) jredis.zcard(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer zCount(String key, double min, double max) {
+	public Integer zCount(byte[] key, double min, double max) {
 		try {
-			return Integer.valueOf((int) jredis.zcount(key, min, max));
+			return Integer.valueOf((int) jredis.zcount(JredisUtils.convert(charset, key), min, max));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Double zIncrBy(String key, double increment, String value) {
+	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		try {
-			return jredis.zincrby(key, increment, value);
+			return jredis.zincrby(JredisUtils.convert(charset, key), increment, value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+	public Integer zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Integer zInterStore(String destKey, String... sets) {
+	public Integer zInterStore(byte[] destKey, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<String> zRange(String key, int start, int end) {
+	public Set<byte[]> zRange(byte[] key, int start, int end) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.zrange(key, (long) start, (long) end), Set.class);
+			return JredisUtils.convertToStringCollection(jredis.zrange(JredisUtils.convert(charset, key), (long) start,
+					(long) end), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<Tuple> zRangeWithScore(String key, int start, int end) {
+	public Set<Tuple> zRangeWithScore(byte[] key, int start, int end) {
 		throw new UnsupportedOperationException();
 
 	}
 
 	@Override
-	public Set<String> zRangeByScore(String key, double min, double max) {
+	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.zrangebyscore(key, min, max), Set.class);
+			return JredisUtils.convertToStringCollection(jredis.zrangebyscore(JredisUtils.convert(charset, key), min,
+					max), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max) {
+	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<String> zRangeByScore(String key, double min, double max, int offset, int count) {
+	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, int offset, int count) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, int offset, int count) {
+	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, int offset, int count) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Integer zRank(String key, String value) {
+	public Integer zRank(byte[] key, byte[] value) {
 		try {
-			return Integer.valueOf((int) jredis.zrank(key, value));
+			return Integer.valueOf((int) jredis.zrank(JredisUtils.convert(charset, key), value));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean zRem(String key, String value) {
+	public Boolean zRem(byte[] key, byte[] value) {
 		try {
-			return jredis.zrem(key, value);
+			return jredis.zrem(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer zRemRange(String key, int start, int end) {
+	public Integer zRemRange(byte[] key, int start, int end) {
 		try {
-			return Integer.valueOf((int) jredis.zremrangebyrank(key, start, end));
+			return Integer.valueOf((int) jredis.zremrangebyrank(JredisUtils.convert(charset, key), start, end));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer zRemRangeByScore(String key, double min, double max) {
+	public Integer zRemRangeByScore(byte[] key, double min, double max) {
 		try {
-			return Integer.valueOf((int) jredis.zremrangebyscore(key, min, max));
+			return Integer.valueOf((int) jredis.zremrangebyscore(JredisUtils.convert(charset, key), min, max));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<String> zRevRange(String key, int start, int end) {
+	public Set<byte[]> zRevRange(byte[] key, int start, int end) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.zrevrange(key, start, end), Set.class);
+			return JredisUtils.convertToStringCollection(
+					jredis.zrevrange(JredisUtils.convert(charset, key), start, end), Set.class);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeWithScore(String key, int start, int end) {
+	public Set<Tuple> zRevRangeWithScore(byte[] key, int start, int end) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Integer zRevRank(String key, String value) {
+	public Integer zRevRank(byte[] key, byte[] value) {
 		try {
-			return Integer.valueOf((int) jredis.zrevrank(key, value));
+			return Integer.valueOf((int) jredis.zrevrank(JredisUtils.convert(charset, key), value));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Double zScore(String key, String value) {
+	public Double zScore(byte[] key, byte[] value) {
 		try {
-			return jredis.zscore(key, value);
+			return jredis.zscore(JredisUtils.convert(charset, key), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -757,102 +763,103 @@ public class JredisConnection implements RedisConnection {
 	//
 
 	@Override
-	public Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+	public Integer zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Integer zUnionStore(String destKey, String... sets) {
+	public Integer zUnionStore(byte[] destKey, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Boolean hDel(String key, String field) {
+	public Boolean hDel(byte[] key, byte[] field) {
 		try {
-			return jredis.hdel(key, field);
+			return jredis.hdel(JredisUtils.convert(charset, key), JredisUtils.convert(charset, field));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean hExists(String key, String field) {
+	public Boolean hExists(byte[] key, byte[] field) {
 		try {
-			return jredis.hexists(key, field);
+			return jredis.hexists(JredisUtils.convert(charset, key), JredisUtils.convert(charset, field));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public String hGet(String key, String field) {
+	public byte[] hGet(byte[] key, byte[] field) {
 		try {
-			return JredisUtils.convertToString(jredis.hget(key, field));
+			return jredis.hget(JredisUtils.convert(charset, key), JredisUtils.convert(charset, field));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Set<Entry> hGetAll(String key) {
+	public Set<Entry> hGetAll(byte[] key) {
 		try {
-			return JredisUtils.convert(jredis.hgetall(key));
+			return JredisUtils.convert(jredis.hgetall(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer hIncrBy(String key, String field, int delta) {
+	public Integer hIncrBy(byte[] key, byte[] field, int delta) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Set<String> hKeys(String key) {
+	public Set<byte[]> hKeys(byte[] key) {
 		try {
-			return new LinkedHashSet<String>(jredis.hkeys(key));
+			return new LinkedHashSet<byte[]>(JredisUtils.convert(charset,
+					jredis.hkeys(JredisUtils.convert(charset, key))));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer hLen(String key) {
+	public Integer hLen(byte[] key) {
 		try {
-			return Integer.valueOf((int) jredis.hlen(key));
+			return Integer.valueOf((int) jredis.hlen(JredisUtils.convert(charset, key)));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public List<String> hMGet(String key, String... fields) {
+	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void hMSet(String key, String[] fields, String[] values) {
+	public void hMSet(byte[] key, byte[][] fields, byte[][] values) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Boolean hSet(String key, String field, String value) {
+	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		try {
-			return jredis.hset(key, field, value);
+			return jredis.hset(JredisUtils.convert(charset, key), JredisUtils.convert(charset, field), value);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Boolean hSetNX(String key, String field, String value) {
+	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<String> hVals(String key) {
+	public List<byte[]> hVals(byte[] key) {
 		try {
-			return JredisUtils.convertToStringCollection(jredis.hvals(key), List.class);
+			return jredis.hvals(JredisUtils.convert(charset, key));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
