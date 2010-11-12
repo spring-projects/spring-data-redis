@@ -79,7 +79,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the previous value
 	 */
 	public int getAndSet(int newValue) {
-		return operations.getSet(key, newValue);
+		return operations.getAndSet(key, newValue);
 	}
 
 	/**

@@ -180,6 +180,36 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
+	private byte[] rawKey(K key) {
+		return (key != null ? keySerializer.serialize(key) : null);
+	}
+
+	private byte[] rawValue(V value) {
+		return (value != null ? valueSerializer.serialize(value) : null);
+	}
+
+	// utility methods for the template internal methods
+	private abstract class DeserializingRedisCallback implements RedisCallback<V> {
+		private K key;
+
+		public DeserializingRedisCallback(K key) {
+			this.key = key;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public final V doInRedis(RedisConnection connection) throws Exception {
+			byte[] result = inRedis(rawKey(key), connection);
+			if (result != null) {
+				return (V) valueSerializer.deserialize(result);
+			}
+			return null;
+		}
+
+		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
+	}
+
+
 	//
 	// RedisOperations
 	//
@@ -195,18 +225,52 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public V get(K key) {
-		throw new UnsupportedOperationException();
+	public V get(final K key) {
+		return execute(new DeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.get(rawKey);
+			}
+
+		}, false);
 	}
 
 	@Override
-	public V getSet(K key, V newValue) {
-		throw new UnsupportedOperationException();
+	public V getAndSet(K key, V newValue) {
+		final byte[] rawValue = rawValue(newValue);
+		return execute(new DeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				return connection.getSet(rawKey, rawValue);
+			}
+
+		}, false);
 	}
 
 	@Override
-	public V increment(K key, int delta) {
-		throw new UnsupportedOperationException();
+	public Integer increment(K key, final int delta) {
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Integer>() {
+
+			@Override
+			public Integer doInRedis(RedisConnection connection) throws Exception {
+				if (delta == 1) {
+					return connection.incr(rawKey);
+				}
+
+				if (delta == -1) {
+					return connection.decr(rawKey);
+				}
+
+				if (delta < 0) {
+					return connection.decrBy(rawKey, delta);
+				}
+
+				return connection.incrBy(rawKey, delta);
+			}
+		}, false);
 	}
 
 	@Override
@@ -221,11 +285,33 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public void set(K key, V value) {
-		throw new UnsupportedOperationException();
+		final byte[] rawValue = rawValue(value);
+		execute(new DeserializingRedisCallback(key) {
+
+			@Override
+			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+				connection.set(rawKey, rawValue);
+				return null;
+			}
+
+		}, false);
 	}
 
 	@Override
-	public void watch(K key) {
-		throw new UnsupportedOperationException();
+	public void watch(K... keys) {
+		final byte[][] rawKeys = new byte[keys.length][];
+
+		for (int i = 0; i < keys.length; i++) {
+			rawKeys[i] = rawKey(keys[i]);
+		}
+
+		execute(new RedisCallback<Object>() {
+
+			@Override
+			public Object doInRedis(RedisConnection connection) throws Exception {
+				connection.watch(rawKeys);
+				return null;
+			}
+		}, false);
 	}
 }

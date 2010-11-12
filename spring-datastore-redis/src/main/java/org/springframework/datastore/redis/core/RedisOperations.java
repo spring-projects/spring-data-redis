@@ -27,15 +27,15 @@ public interface RedisOperations<K, V> {
 
 	V get(K key);
 
-	V getSet(K key, V newValue);
+	V getAndSet(K key, V newValue);
 
-	void watch(K key);
+	void watch(K... keys);
 
 	void multi();
 
 	Object exec();
 
-	V increment(K key, int delta);
+	Integer increment(K key, int delta);
 
 	ListOperations<K, V> listOps();
 
