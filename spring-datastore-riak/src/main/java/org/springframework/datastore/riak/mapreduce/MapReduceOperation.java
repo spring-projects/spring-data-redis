@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.riak.convert;
-
-import org.springframework.core.convert.support.GenericConversionService;
+package org.springframework.datastore.riak.mapreduce;
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-public class RiakConversionService extends GenericConversionService{
+public interface MapReduceOperation {
 
-  public RiakConversionService() {
-  }
+  String getType();
+
+  Object getRepresentation();
+
 }

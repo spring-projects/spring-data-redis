@@ -36,14 +36,15 @@ class RiakTemplateSpec extends Specification {
 
     given:
     def i = run++
-    def objIn = [test: "value $i".toString(), integer: 12]
+    String val = "value $i"
+    def objIn = [test: "value $i", integer: 12]
     riak.set("test:test", objIn)
 
     when:
     def objOut = riak.get("test:test")
 
     then:
-    objOut.test == "value $i"
+    objOut.test == val
 
   }
 
@@ -51,14 +52,15 @@ class RiakTemplateSpec extends Specification {
 
     given:
     def i = run++
-    def objIn = [test: "value $i".toString(), integer: 12]
+    String val = "value $i"
+    def objIn = [test: val, integer: 12]
     riak.set([bucket: "test", key: "test"], objIn)
 
     when:
     def objOut = riak.get([bucket: "test", key: "test"])
 
     then:
-    objOut.test == "value $i"
+    objOut.test == val
 
   }
 
@@ -103,7 +105,7 @@ class RiakTemplateSpec extends Specification {
   def "Test multiple get"() {
 
     when:
-    def objs = riak.getValues(["test:test", "${TestObject.name}:test".toString()])
+    def objs = riak.getValues(["test:test", "${TestObject.name}:test"])
 
     then:
     2 == objs.size()
@@ -114,7 +116,8 @@ class RiakTemplateSpec extends Specification {
 
     given:
     def i = run++
-    def newObj = [test: "value $i".toString(), integer: 12]
+    String val = "value $i"
+    def newObj = [test: val, integer: 12]
 
     when:
     def oldObj = riak.getAndSet("test:test", newObj)
@@ -124,32 +127,34 @@ class RiakTemplateSpec extends Specification {
 
   }
 
-  def "Test setMultipleIfKeysNonExistent with Map"() {
-
-    given:
-    def i = run++
-    String firstKey = "test:test$i"
-    String secondKey = "${TestObject.name}:test$i"
-    def newObj = [
-        "$firstKey": [test: "value $i".toString(), integer: 12],
-        "$secondKey": [test: "value $i".toString(), integer: 12]
-    ]
-
-    when:
-    def secondObj = riak.setMultipleIfKeysNonExistent(newObj).get(secondKey)
-
-    then:
-    "value $i" == secondObj.test
-
-  }
-
   def "Test deleteKeys"() {
 
     when:
-    def deleted = riak.deleteKeys("test:test", "${TestObject.name}:test".toString())
+    def deleted = riak.deleteKeys("test:test", "${TestObject.name}:test")
 
     then:
     true == deleted
+
+  }
+
+  def "Test setMultipleIfKeysNonExistent with Map"() {
+
+    given:
+    def newObj = [
+        "test:test": [test: "value", integer: 12],
+        "${TestObject.name}:test": [test: "value", integer: 12]
+    ]
+
+    when:
+    def secondObj = riak.setMultipleIfKeysNonExistent(newObj).get("${TestObject.name}:test")
+    secondObj.test = "newValue"
+    def thirdObj = riak.setMultipleIfKeysNonExistent(["${TestObject.name}:test": secondObj]).get("${TestObject.name}:test")
+
+    then:
+    "value" == thirdObj.test
+
+    cleanup:
+    riak.deleteKeys("test:test", "${TestObject.name}:test")
 
   }
 

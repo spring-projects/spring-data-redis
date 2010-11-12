@@ -28,6 +28,13 @@ public abstract class AbstractAsyncOperation<T> implements Callable<T>, Initiali
 
   protected RiakTemplate riakTemplate;
 
+  protected AbstractAsyncOperation() {
+  }
+
+  protected AbstractAsyncOperation(RiakTemplate riakTemplate) {
+    this.riakTemplate = riakTemplate;
+  }
+
   public RiakTemplate getRiakTemplate() {
     return riakTemplate;
   }
