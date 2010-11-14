@@ -18,23 +18,26 @@ package org.springframework.datastore.redis.util;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.BoundSetOperations;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Default implementation for {@link RedisSet}.
  * 
  * @author Costin Leau
  */
-public class DefaultRedisSet extends AbstractRedisCollection<String> implements RedisSet {
+public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements RedisSet<E> {
 
-	private class DefaultRedisSetIterator extends RedisIterator<String> {
+	private final BoundSetOperations<String, E> boundSetOps;
 
-		public DefaultRedisSetIterator(Iterator<String> delegate) {
+	private class DefaultRedisSetIterator extends RedisIterator<E> {
+
+		public DefaultRedisSetIterator(Iterator<E> delegate) {
 			super(delegate);
 		}
 
 		@Override
-		protected void removeFromRedisStorage(String item) {
+		protected void removeFromRedisStorage(E item) {
 			DefaultRedisSet.this.remove(item);
 		}
 	}
@@ -43,82 +46,87 @@ public class DefaultRedisSet extends AbstractRedisCollection<String> implements 
 	 * Constructs a new <code>DefaultRedisSet</code> instance.
 	 *
 	 * @param key
-	 * @param commands
+	 * @param operations
 	 */
-	public DefaultRedisSet(String key, RedisCommands commands) {
-		super(key, commands);
+	public DefaultRedisSet(String key, RedisOperations<String, E> operations) {
+		super(key, operations);
+		boundSetOps = operations.forSet(key);
+	}
+
+	public DefaultRedisSet(BoundSetOperations<String, E> boundOps) {
+		super(boundOps.getKey(), boundOps.getOperations());
+		this.boundSetOps = boundOps;
 	}
 
 	@Override
-	public Set<String> diff(RedisSet... sets) {
-		return commands.sDiff(extractKeys(sets));
+	public Set<E> diff(RedisSet<? extends E>... sets) {
+		return boundSetOps.diff(extractKeys(sets));
 	}
 
 	@Override
-	public RedisSet diffAndStore(String destKey, RedisSet... sets) {
-		commands.sDiffStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(destKey, commands);
+	public RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets) {
+		boundSetOps.diffAndStore(destKey, extractKeys(sets));
+		return new DefaultRedisSet(boundSetOps);
 	}
 
 	@Override
-	public Set<String> intersect(RedisSet... sets) {
-		return commands.sInter(extractKeys(sets));
+	public Set<E> intersect(RedisSet<? extends E>... sets) {
+		return boundSetOps.intersect(extractKeys(sets));
 	}
 
 	@Override
-	public RedisSet intersectAndStore(String destKey, RedisSet... sets) {
-		commands.sInterStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(destKey, commands);
+	public RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets) {
+		boundSetOps.intersectAndStore(destKey, extractKeys(sets));
+		return new DefaultRedisSet(boundSetOps);
 	}
 
 	@Override
-	public Set<String> union(RedisSet... sets) {
-		return commands.sUnion(extractKeys(sets));
+	public Set<E> union(RedisSet<? extends E>... sets) {
+		return boundSetOps.union(extractKeys(sets));
 	}
 
 	@Override
-	public RedisSet unionAndStore(String destKey, RedisSet... sets) {
-		commands.sUnionStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(destKey, commands);
+	public RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets) {
+		boundSetOps.unionAndStore(destKey, extractKeys(sets));
+		return new DefaultRedisSet(boundSetOps);
 	}
 
 	@Override
-	public boolean add(String e) {
-		return commands.sAdd(key, e);
+	public boolean add(E e) {
+		return boundSetOps.add(e);
 	}
 
 	@Override
 	public void clear() {
 		// intersect the set with a non existing one
 		// TODO: find a safer way to clean the set
-		commands.sInterStore(key, key, "NON-EXISTING");
+		boundSetOps.intersectAndStore(key, "NON-EXISTING");
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return commands.sIsMember(key, o.toString());
+		return boundSetOps.isMember(o);
 	}
 
 	@Override
-	public Iterator<String> iterator() {
-		return new DefaultRedisSetIterator(commands.sMembers(key).iterator());
+	public Iterator<E> iterator() {
+		return new DefaultRedisSetIterator(boundSetOps.members().iterator());
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		return commands.sRem(key, o.toString());
+		return boundSetOps.remove(o);
 	}
 
 	@Override
 	public int size() {
-		return commands.sCard(key);
+		return boundSetOps.size();
 	}
 
-	private String[] extractKeys(RedisSet... sets) {
+	private String[] extractKeys(RedisSet<?>... sets) {
 		String[] keys = new String[sets.length + 1];
-		keys[0] = key;
 		for (int i = 0; i < keys.length; i++) {
-			keys[i + 1] = sets[i].getKey();
+			keys[i] = sets[i].getKey();
 		}
 
 		return keys;

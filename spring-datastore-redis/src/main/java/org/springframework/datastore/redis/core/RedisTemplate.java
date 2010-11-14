@@ -21,7 +21,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.datastore.redis.connection.RedisConnectionFactory;
@@ -201,13 +203,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return rawKeys;
 	}
 
-	private List<V> values(Collection<byte[]> rawValues) {
-		List<V> values = new ArrayList<V>(rawValues.size());
+	@SuppressWarnings("unchecked")
+	private <T extends Collection<V>> T values(Collection<byte[]> rawValues, Class<? extends Collection> type) {
+		Collection<V> values = (List.class.isAssignableFrom(type) ? new ArrayList<V>(rawValues.size())
+				: new LinkedHashSet<V>(rawValues.size()));
 		for (byte[] bs : rawValues) {
 			values.add((V) valueSerializer.deserialize(bs));
 		}
 
-		return values;
+		return (T) values;
 	}
 
 	// utility methods for the template internal methods
@@ -356,7 +360,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<List<V>>() {
 				@Override
 				public List<V> doInRedis(RedisConnection connection) throws Exception {
-					return values(connection.bLPop(timeout, rawKeys));
+					return values(connection.bLPop(timeout, rawKeys), List.class);
 				}
 			}, false);
 		}
@@ -367,7 +371,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<List<V>>() {
 				@Override
 				public List<V> doInRedis(RedisConnection connection) throws Exception {
-					return values(connection.bRPop(timeout, rawKeys));
+					return values(connection.bRPop(timeout, rawKeys), List.class);
 				}
 			}, false);
 		}
@@ -421,7 +425,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<List<V>>() {
 				@Override
 				public List<V> doInRedis(RedisConnection connection) throws Exception {
-					return values(connection.lRange(rawKey, start, end));
+					return values(connection.lRange(rawKey, start, end), List.class);
 				}
 			}, false);
 		}
@@ -478,6 +482,176 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				@Override
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 					connection.lTrim(rawKey, start, end);
+					return null;
+				}
+			}, false);
+		}
+	}
+
+	//
+	// Set operations
+	//
+
+	@Override
+	public BoundSetOperations<K, V> forSet(K key) {
+		return new DefaultBoundSetOperations<K, V>(key, this);
+	}
+
+	@Override
+	public SetOperations<K, V> setOps() {
+		return new DefaultSetOperations();
+	}
+
+	private class DefaultSetOperations implements SetOperations<K, V> {
+
+		@Override
+		public Boolean add(K key, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) throws Exception {
+					return connection.sAdd(rawKey, rawValue);
+				}
+			}, false);
+		}
+
+		private K[] aggregateKeys(K key, K... keys) {
+			Object[] aggregate = new Object[keys.length + 1];
+			aggregate[0] = key;
+			for (int i = 0; i < keys.length; i++) {
+				aggregate[i + 1] = keys[i];
+			}
+
+			return (K[]) aggregate;
+		}
+
+		@Override
+		public Set<V> diff(final K key, final K... keys) {
+			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+				@Override
+				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+					return connection.sDiff(rawKeys);
+				}
+			}, false);
+
+			return values(rawValues, Set.class);
+		}
+
+		@Override
+		public void diffAndStore(K destKey, final K key, final K... keys) {
+			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+			final byte[] rawDestKey = rawKey(destKey);
+			Object rawValues = execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) throws Exception {
+					connection.sDiffStore(rawDestKey, rawKeys);
+					return null;
+				}
+			}, false);
+		}
+
+		@Override
+		public RedisOperations<K, V> getOperations() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Set<V> intersect(K key, K... keys) {
+			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+				@Override
+				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+					return connection.sInter(rawKeys);
+				}
+			}, false);
+
+			return values(rawValues, Set.class);
+		}
+
+		@Override
+		public void intersectAndStore(K key, K destKey, K... keys) {
+			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+			final byte[] rawDestKey = rawKey(destKey);
+			Object rawValues = execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) throws Exception {
+					connection.sInterStore(rawDestKey, rawKeys);
+					return null;
+				}
+			}, false);
+		}
+
+		@Override
+		public boolean isMember(K key, Object o) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(o);
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) throws Exception {
+					return connection.sIsMember(rawKey, rawValue);
+				}
+			}, false);
+		}
+
+		@Override
+		public Set<V> members(K key) {
+			final byte[] rawKey = rawKey(key);
+			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+				@Override
+				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+					return connection.sMembers(rawKey);
+				}
+			}, false);
+
+			return values(rawValues, Set.class);
+		}
+
+		@Override
+		public boolean remove(K key, Object o) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(o);
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) throws Exception {
+					return connection.sRem(rawKey, rawValue);
+				}
+			}, false);
+		}
+
+		@Override
+		public int size(K key) {
+			final byte[] rawKey = rawKey(key);
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) throws Exception {
+					return connection.sCard(rawKey);
+				}
+			}, false);
+		}
+
+		@Override
+		public Set<V> union(K key, K... keys) {
+			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+				@Override
+				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+					return connection.sUnion(rawKeys);
+				}
+			}, false);
+
+			return values(rawValues, Set.class);
+		}
+
+		@Override
+		public void unionAndStore(K key, K destKey, K... keys) {
+			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+			final byte[] rawDestKey = rawKey(destKey);
+			Object rawValues = execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) throws Exception {
+					connection.sUnionStore(rawDestKey, rawKeys);
 					return null;
 				}
 			}, false);
