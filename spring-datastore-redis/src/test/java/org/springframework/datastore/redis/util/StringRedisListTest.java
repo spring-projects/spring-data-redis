@@ -18,6 +18,8 @@ package org.springframework.datastore.redis.util;
 import java.util.UUID;
 
 import org.springframework.datastore.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.datastore.redis.core.RedisOperations;
+import org.springframework.datastore.redis.core.RedisTemplate;
 
 
 /**
@@ -36,7 +38,8 @@ public class StringRedisListTest extends AbstractRedisListTest<String> {
 		factory.setPooling(false);
 		factory.afterPropertiesSet();
 
-		return new DefaultRedisList<String>(redisName, factory.getConnection());
+		RedisTemplate<String, String> template = new RedisTemplate<String, String>(factory);
+		return new DefaultRedisList<String>(redisName, template);
 	}
 
 	@Override
@@ -45,8 +48,8 @@ public class StringRedisListTest extends AbstractRedisListTest<String> {
 	}
 
 	@Override
-	RedisStore copyStore(RedisStore store) {
-		return new DefaultRedisList<String>(store.getKey(), store.getCommands());
+	RedisStore<String> copyStore(RedisStore<String> store) {
+		return new DefaultRedisList<String>(store.getKey(), (RedisOperations<String, String>) store.getOperations());
 	}
 
 	@Override

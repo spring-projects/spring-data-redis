@@ -330,6 +330,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, false);
 	}
 
+	@Override
+	public void delete(K... keys) {
+		final byte[][] rawKeys = rawKeys(keys);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) throws Exception {
+				connection.del(rawKeys);
+				return null;
+			}
+		}, false);
+	}
+
 	//
 	// List operations
 	//

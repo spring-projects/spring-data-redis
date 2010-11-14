@@ -40,4 +40,6 @@ public interface RedisOperations<K, V> {
 	ListOperations<K, V> listOps();
 
 	BoundListOperations<K, V> forList(K key);
+
+	void delete(K... keys);
 }

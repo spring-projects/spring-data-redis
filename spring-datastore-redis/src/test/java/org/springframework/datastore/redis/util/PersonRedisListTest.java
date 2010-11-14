@@ -20,6 +20,7 @@ import java.util.UUID;
 import org.springframework.datastore.redis.Address;
 import org.springframework.datastore.redis.Person;
 import org.springframework.datastore.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.datastore.redis.core.RedisTemplate;
 
 
 /**
@@ -39,7 +40,8 @@ public class PersonRedisListTest extends AbstractRedisListTest<Person> {
 		factory.setPooling(false);
 		factory.afterPropertiesSet();
 
-		return new DefaultRedisList<Person>(redisName, factory.getConnection());
+		RedisTemplate<String, Person> template = new RedisTemplate<String, Person>(factory);
+		return new DefaultRedisList<Person>(redisName, template);
 	}
 
 	@Override
@@ -48,8 +50,9 @@ public class PersonRedisListTest extends AbstractRedisListTest<Person> {
 	}
 
 	@Override
-	RedisStore copyStore(RedisStore store) {
-		return new DefaultRedisList<Person>(store.getKey(), store.getCommands());
+	RedisStore<Person> copyStore(RedisStore<Person> store) {
+		//return new DefaultRedisList<Person>(store.getKey(), (RedisOperations<String, Person>) store.getOperations());
+		return null;
 	}
 
 	@Override

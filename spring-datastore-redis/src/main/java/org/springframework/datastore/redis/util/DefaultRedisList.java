@@ -45,9 +45,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		}
 	}
 
-	public DefaultRedisList(String key, RedisOperations<String, E> commands) {
-		super(key, commands);
-		listOps = commands.listOps();
+	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
+		super(key, operations);
+		listOps = operations.listOps();
 	}
 
 	@Override
