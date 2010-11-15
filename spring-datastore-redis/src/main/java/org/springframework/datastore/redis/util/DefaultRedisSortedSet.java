@@ -20,126 +20,142 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.BoundZSetOperations;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Default implementation for {@link RedisSortedSet}.
  * 
  * @author Costin Leau
  */
-class DefaultRedisSortedSet extends AbstractRedisCollection<String> implements RedisSortedSet {
+class DefaultRedisSortedSet<E> extends AbstractRedisCollection<E> implements RedisSortedSet<E> {
 
-	private class DefaultRedisSortedSetIterator extends RedisIterator<String> {
+	private final BoundZSetOperations<String, E> boundZSetOps;
+	
+	private class DefaultRedisSortedSetIterator extends RedisIterator<E> {
 
-		public DefaultRedisSortedSetIterator(Iterator<String> delegate) {
+		public DefaultRedisSortedSetIterator(Iterator<E> delegate) {
 			super(delegate);
 		}
 
 		@Override
-		protected void removeFromRedisStorage(String item) {
+		protected void removeFromRedisStorage(E item) {
 			DefaultRedisSortedSet.this.remove(item);
 		}
 	}
 
-	public DefaultRedisSortedSet(String key, RedisCommands commands) {
-		super(key, commands);
+	/**
+	 * Constructs a new <code>DefaultRedisSortedSet</code> instance.
+	 *
+	 * @param key
+	 * @param operations
+	 */
+	public DefaultRedisSortedSet(String key, RedisOperations<String, E> operations) {
+		super(key, operations);
+		boundZSetOps = operations.forZSet(key);
+	}
+
+
+	public DefaultRedisSortedSet(BoundZSetOperations<String, E> boundOps) {
+		super(boundOps.getKey(), boundOps.getOperations());
+		this.boundZSetOps = boundOps;
 	}
 
 	@Override
-	public RedisSortedSet intersectAndStore(String destKey, RedisSortedSet... sets) {
-		commands.zInterStore(destKey, extractKeys(sets));
-		return new DefaultRedisSortedSet(destKey, commands);
+	public RedisSortedSet<E> intersectAndStore(String destKey, RedisSortedSet<E>... sets) {
+		boundZSetOps.intersectAndStore(destKey, extractKeys(sets));
+		return new DefaultRedisSortedSet<E>(boundZSetOps.getOperations().forZSet(destKey));
 	}
 
 	@Override
-	public Set<String> range(int start, int end) {
-		return commands.zRange(key, start, end);
+	public Set<E> range(int start, int end) {
+		return boundZSetOps.range(start, end);
 	}
 
 	@Override
-	public Set<String> rangeByScore(double min, double max) {
-		return commands.zRangeByScore(key, min, max);
+	public Set<E> rangeByScore(double min, double max) {
+		return boundZSetOps.rangeByScore(min, max);
 	}
 
 	@Override
-	public RedisSortedSet remove(int start, int end) {
-		commands.zRemRange(key, start, end);
+	public RedisSortedSet<E> remove(int start, int end) {
+		boundZSetOps.removeRange(start, end);
 		return this;
 	}
 
 	@Override
-	public RedisSortedSet removeByScore(double min, double max) {
-		commands.zRemRangeByScore(key, min, max);
+	public RedisSortedSet<E> removeByScore(double min, double max) {
+		boundZSetOps.removeRangeByScore(min, max);
 		return this;
 	}
 
 	@Override
-	public RedisSortedSet unionAndStore(String destKey, RedisSortedSet... sets) {
-		commands.zUnionStore(destKey, extractKeys(sets));
-		return new DefaultRedisSortedSet(destKey, commands);
+	public RedisSortedSet<E> unionAndStore(String destKey, RedisSortedSet<E>... sets) {
+		boundZSetOps.unionAndStore(destKey, extractKeys(sets));
+		return new DefaultRedisSortedSet<E>(boundZSetOps.getOperations().forZSet(destKey));
 	}
 
 	@Override
-	public boolean add(String e) {
-		return commands.zAdd(key, 0, e);
+	public boolean add(E e) {
+		return boundZSetOps.add(e, 0);
 	}
 
 	@Override
 	public void clear() {
-		commands.zRemRange(key, 0, -1);
+		boundZSetOps.removeRange(0, -1);
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return (commands.zRank(key, o.toString()) != null);
+		return (boundZSetOps.rank(o) != null);
 	}
 
 	@Override
-	public Iterator<String> iterator() {
-		return new DefaultRedisSortedSetIterator(commands.zRange(key, 0, -1).iterator());
+	public Iterator<E> iterator() {
+		return new DefaultRedisSortedSetIterator(boundZSetOps.range(0, -1).iterator());
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		return commands.zRem(key, o.toString());
+		return boundZSetOps.remove(o);
 	}
 
 	@Override
 	public int size() {
-		return commands.zCard(key);
+		return boundZSetOps.size();
 	}
 
 	@Override
-	public Comparator<? super String> comparator() {
+	public Comparator<? super E> comparator() {
 		return null;
 	}
 
 	@Override
-	public String first() {
-		return commands.zRange(key, 0, 0).iterator().next();
+	public E first() {
+		return boundZSetOps.range(0, 0).iterator().next();
 	}
 
 	@Override
-	public SortedSet<String> headSet(String toElement) {
+	public SortedSet<E> headSet(E toElement) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String last() {
-		return commands.zRevRange(key, 0, 0).iterator().next();
+	public E last() {
+		return boundZSetOps.reverseRange(0, 0).iterator().next();
 	}
 
 	@Override
-	public SortedSet<String> subSet(String fromElement, String toElement) {
+	public SortedSet<E> subSet(E fromElement, E toElement) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public SortedSet<String> tailSet(String fromElement) {
+	public SortedSet<E> tailSet(E fromElement) {
 		throw new UnsupportedOperationException();
 	}
 
-	private String[] extractKeys(RedisSortedSet... sets) {
+	private String[] extractKeys(RedisSortedSet<E>... sets) {
 		String[] keys = new String[sets.length + 1];
 		keys[0] = key;
 		for (int i = 0; i < keys.length; i++) {

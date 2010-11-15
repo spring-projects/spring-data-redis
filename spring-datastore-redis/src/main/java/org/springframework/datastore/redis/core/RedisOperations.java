@@ -15,6 +15,7 @@
  */
 package org.springframework.datastore.redis.core;
 
+
 /**
  * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
  * 
@@ -45,4 +46,8 @@ public interface RedisOperations<K, V> {
 	SetOperations<K, V> setOps();
 
 	BoundSetOperations<K, V> forSet(K key);
+
+	ZSetOperations<K, V> zSetOps();
+
+	BoundZSetOperations<K, V> forZSet(K key);
 }
