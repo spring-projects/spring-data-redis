@@ -53,6 +53,11 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		boundSetOps = operations.forSet(key);
 	}
 
+	/**
+	 * Constructs a new <code>DefaultRedisSet</code> instance.
+	 * 
+	 * @param boundOps
+	 */
 	public DefaultRedisSet(BoundSetOperations<String, E> boundOps) {
 		super(boundOps.getKey(), boundOps.getOperations());
 		this.boundSetOps = boundOps;
@@ -66,7 +71,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	@Override
 	public RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets) {
 		boundSetOps.diffAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(boundSetOps);
+		return new DefaultRedisSet(boundSetOps.getOperations().forSet(destKey));
 	}
 
 	@Override
@@ -77,7 +82,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	@Override
 	public RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets) {
 		boundSetOps.intersectAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(boundSetOps);
+		return new DefaultRedisSet(boundSetOps.getOperations().forSet(destKey));
 	}
 
 	@Override
@@ -88,7 +93,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	@Override
 	public RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets) {
 		boundSetOps.unionAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(boundSetOps);
+		return new DefaultRedisSet(boundSetOps.getOperations().forSet(destKey));
 	}
 
 	@Override

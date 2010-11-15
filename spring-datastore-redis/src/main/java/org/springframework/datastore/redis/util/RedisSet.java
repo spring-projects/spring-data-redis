@@ -19,21 +19,21 @@ import java.util.Set;
 
 /**
  * Redis extension for the {@link Set} contract. Supports {@link Set} specific
- * operations backed by Redis commands.
+ * operations backed by Redis operations.
  * 
  * @author Costin Leau
  */
-public interface RedisSet extends RedisStore, Set<String> {
+public interface RedisSet<E> extends RedisStore<String>, Set<E> {
 
-	Set<String> intersect(RedisSet... sets);
+	Set<E> intersect(RedisSet<? extends E>... sets);
 
-	Set<String> union(RedisSet... sets);
+	Set<E> union(RedisSet<? extends E>... sets);
 
-	Set<String> diff(RedisSet... sets);
+	Set<E> diff(RedisSet<? extends E>... sets);
 
-	RedisSet intersectAndStore(String destKey, RedisSet... sets);
+	RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets);
 
-	RedisSet unionAndStore(String destKey, RedisSet... sets);
+	RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets);
 
-	RedisSet diffAndStore(String destKey, RedisSet... sets);
+	RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets);
 }
