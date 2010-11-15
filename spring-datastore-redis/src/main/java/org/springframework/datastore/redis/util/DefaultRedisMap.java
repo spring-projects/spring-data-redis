@@ -66,7 +66,7 @@ public class DefaultRedisMap implements RedisMap {
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
 	 *
 	 * @param key
-	 * @param commands
+	 * @param operations
 	 */
 	public DefaultRedisMap(String key, RedisCommands commands) {
 		this.redisKey = key;
@@ -89,7 +89,7 @@ public class DefaultRedisMap implements RedisMap {
 	}
 
 	@Override
-	public RedisCommands getCommands() {
+	public RedisCommands getOperations() {
 		return commands;
 	}
 
