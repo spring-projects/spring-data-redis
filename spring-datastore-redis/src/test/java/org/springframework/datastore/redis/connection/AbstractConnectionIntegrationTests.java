@@ -17,7 +17,6 @@
 package org.springframework.datastore.redis.connection;
 
 import static org.junit.Assert.*;
-import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
@@ -53,7 +52,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void testSetAndGet() {
 		connection.set("foo".getBytes(), "blah blah".getBytes());
-		Assert.assertEquals("blah blah".getBytes(), connection.get("foo".getBytes()));
+		assertEquals("blah blah", new String(connection.get("foo".getBytes())));
 	}
 
 
