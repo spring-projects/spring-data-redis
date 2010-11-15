@@ -15,12 +15,9 @@
  */
 package org.springframework.datastore.redis.util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import org.springframework.datastore.redis.serializer.RedisSerializer;
 
 /**
  * Utility class used mainly for type conversion by the default collection implementations.
@@ -28,15 +25,6 @@ import org.springframework.datastore.redis.serializer.RedisSerializer;
  * @author Costin Leau
  */
 abstract class CollectionUtils {
-
-	static <E> List<E> deserializeAsList(List<String> input, RedisSerializer serializer) {
-		List<E> result = new ArrayList<E>(input.size());
-		for (String string : input) {
-			E item = serializer.deserialize(string);
-			result.add(item);
-		}
-		return result;
-	}
 
 	@SuppressWarnings("unchecked")
 	static <E> Collection<E> reverse(Collection<? extends E> c) {

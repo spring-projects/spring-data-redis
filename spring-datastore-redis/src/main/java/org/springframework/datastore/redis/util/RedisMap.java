@@ -22,9 +22,9 @@ import java.util.Map;
  * 
  * @author Costin Leau
  */
-public interface RedisMap extends RedisStore, Map<String, String> {
+public interface RedisMap<K, V> extends RedisStore<String>, Map<K, V> {
 
-	boolean putIfAbsent(String key, String value);
-	
-	Integer increment(String key, int delta);
+	boolean putIfAbsent(K key, V value);
+
+	Integer increment(K key, int delta);
 }

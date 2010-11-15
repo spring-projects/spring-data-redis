@@ -16,15 +16,13 @@
 
 package org.springframework.datastore.redis.connection;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.datastore.redis.Person;
-import org.springframework.datastore.redis.connection.RedisConnection;
-import org.springframework.datastore.redis.connection.RedisConnectionFactory;
 
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -46,17 +44,16 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testLPush() throws Exception {
-		Integer index = connection.lPush(listName, "bar");
+		Integer index = connection.lPush(listName.getBytes(), "bar".getBytes());
 		if (index != null) {
-			assertEquals((Integer) (index + 1), connection.lPush(listName, "bar"));
+			assertEquals((Integer) (index + 1), connection.lPush(listName.getBytes(), "bar".getBytes()));
 		}
 	}
 
 	@Test
 	public void testSetAndGet() {
-		connection.set("foo", "blah blah");
-		String value = connection.get("foo");
-		Assert.assertEquals("blah blah", value);
+		connection.set("foo".getBytes(), "blah blah".getBytes());
+		Assert.assertEquals("blah blah".getBytes(), connection.get("foo".getBytes()));
 	}
 
 

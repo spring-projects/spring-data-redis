@@ -125,9 +125,9 @@ public class SimpleRedisSerializerTest {
 	@Test
 	public void testStringEncodedSerialization() {
 		String value = UUID.randomUUID().toString();
-		assertEquals(value, serializer.deserialize(serializer.serializeAsString(value)));
-		assertEquals(value, serializer.deserialize(serializer.serializeAsString(value)));
-		assertEquals(value, serializer.deserialize(serializer.serializeAsString(value)));
+		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
+		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
+		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
 	}
 
 	@Test
@@ -135,6 +135,6 @@ public class SimpleRedisSerializerTest {
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
 		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
-		assertEquals(p1, serializer.deserialize(serializer.serializeAsString(p1)));
+		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
 	}
 }
