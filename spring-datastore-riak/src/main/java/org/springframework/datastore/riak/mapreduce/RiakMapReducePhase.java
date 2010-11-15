@@ -19,14 +19,47 @@ package org.springframework.datastore.riak.mapreduce;
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-public class RiakMapReducePhase implements MapReducePhase{
+public class RiakMapReducePhase implements MapReducePhase {
 
-  
-  public Object getMap() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  protected Phase phase;
+  protected String language;
+  protected MapReduceOperation operation;
+  protected boolean keepResults = false;
+
+  public RiakMapReducePhase(String phase, String language, MapReduceOperation oper) {
+    this.phase = Phase.valueOf(phase.toUpperCase());
+    this.language = language;
+    this.operation = oper;
   }
 
-  public Object getReduce() {
-    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  public RiakMapReducePhase(Phase phase, String language, MapReduceOperation oper) {
+    this.phase = phase;
+    this.language = language;
+    this.operation = oper;
+  }
+
+  public Phase getPhase() {
+    return phase;
+  }
+
+  public String getLanguage() {
+    return language;
+  }
+
+  public MapReduceOperation getOperation() {
+    return this.operation;
+  }
+
+  public boolean getKeepResults() {
+    return this.keepResults;
+  }
+
+  public void setKeepResults(boolean keepResults) {
+    this.keepResults = keepResults;
+  }
+
+  public void setOperation(MapReduceOperation oper) {
+
+    this.operation = oper;
   }
 }

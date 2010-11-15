@@ -25,7 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyValueStoreMetaData {
 
-  String family();
+  String bucket();
 
   String mediaType() default "application/json";
 

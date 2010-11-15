@@ -26,11 +26,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.datastore.riak.DataStoreOperationException;
 import org.springframework.datastore.riak.convert.KeyValueStoreMetaData;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.datastore.riak.mapreduce.MapReduceJob;
+import org.springframework.datastore.riak.mapreduce.MapReduceOperations;
+import org.springframework.datastore.riak.mapreduce.RiakMapReduceJob;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
@@ -41,27 +42,35 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 @SuppressWarnings({"unchecked"})
-public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOperations, InitializingBean {
+public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOperations, MapReduceOperations, InitializingBean {
 
   private static final boolean groovyPresent = ClassUtils.isPresent("org.codehaus.groovy.runtime.GStringImpl",
       RiakTemplate.class.getClassLoader());
   protected final Logger log = LoggerFactory.getLogger(getClass());
   protected ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
   protected ConcurrentSkipListMap<Object, Object> cache = new ConcurrentSkipListMap<Object, Object>();
+  protected ObjectMapper mapper = new ObjectMapper();
+  protected ExecutorService queue = Executors.newCachedThreadPool();
+
   protected String defaultUri = "http://localhost:8098/riak/{bucket}/{key}";
+  protected String mapReduceUri = "http://localhost:8098/mapred";
+  protected List<BucketKeyResolver> bucketKeyResolvers;
 
   public RiakTemplate() {
     setRestTemplate(new RestTemplate());
-
   }
 
   public RiakTemplate(ClientHttpRequestFactory requestFactory) {
@@ -84,58 +93,69 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     this.defaultUri = defaultUri;
   }
 
-  public <V> KeyValueStoreOperations set(Object key, V value) {
-    String[] bucketAndKey = extractBucketAndKey(key);
-    if (null == bucketAndKey[1]) {
-      // TODO: Handle auto-generation of key name
-    }
-    Assert.notNull(bucketAndKey[1], "Can't store an object with a NULL key.");
+  public String getMapReduceUri() {
+    return mapReduceUri;
+  }
+
+  public void setMapReduceUri(String mapReduceUri) {
+    this.mapReduceUri = mapReduceUri;
+  }
+
+  public List<BucketKeyResolver> getBucketKeyResolvers() {
+    return bucketKeyResolvers;
+  }
+
+  public void setBucketKeyResolvers(List<BucketKeyResolver> bucketKeyResolvers) {
+    this.bucketKeyResolvers = bucketKeyResolvers;
+  }
+
+  public <K, V> KeyValueStoreOperations set(K key, V value) {
+    BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, value);
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(extractMediaType(value));
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
-    restTemplate.put(defaultUri, entity, (Object[]) bucketAndKey);
+    restTemplate.put(defaultUri, entity, bucketKeyPair.getBucket(), bucketKeyPair.getKey());
     if (log.isDebugEnabled()) {
-      log.debug(String.format("PUT object: key=%s, value=%s", key, value));
+      log.debug(String.format("PUT object: bucket=%s, key=%s, value=%s",
+          bucketKeyPair.getBucket(),
+          bucketKeyPair.getKey(),
+          value));
     }
     return this;
   }
 
-  public KeyValueStoreOperations setAsBytes(Object key, byte[] value) {
-    String[] bucketAndKey = extractBucketAndKey(key);
-    if (null == bucketAndKey[0]) {
-      bucketAndKey[0] = "bytes";
-    }
-    if (null == bucketAndKey[1]) {
-      // TODO: Handle auto-generation of key name
-    }
-    Assert.notNull(bucketAndKey[1], "Can't store an object with a NULL key.");
+  public <K> KeyValueStoreOperations setAsBytes(K key, byte[] value) {
+    Assert.notNull(key, "Can't store an object with a NULL key.");
+    BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, value);
+    String bucketName = (null != bucketKeyPair.getBucket() ? bucketKeyPair.getBucket().toString() : "bytes");
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
     HttpEntity<byte[]> entity = new HttpEntity<byte[]>(value, headers);
-    restTemplate.put(defaultUri, entity, (Object[]) bucketAndKey);
+    restTemplate.put(defaultUri, entity, bucketName, bucketKeyPair.getKey());
     if (log.isDebugEnabled()) {
-      log.debug(String.format("PUT byte[]: key=%s", key));
+      log.debug(String.format("PUT byte[]: bucket=%s, key=%s", bucketKeyPair.getBucket(), bucketKeyPair.getKey()));
     }
     return this;
   }
 
-  public <V> V get(Object key) {
-    String[] bucketAndKey = extractBucketAndKey(key);
-    Assert.noNullElements(bucketAndKey, "Must specify a bucket and key to retrieve.");
+  public <K, V> V get(K key) {
+    BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, null);
     RestTemplate restTemplate = getRestTemplate();
     Class targetClass;
     try {
-      targetClass = Class.forName(bucketAndKey[0]);
-    } catch (ClassNotFoundException ignored) {
+      targetClass = Class.forName(bucketKeyPair.getBucket().toString());
+    } catch (Throwable ignored) {
       targetClass = Map.class;
     }
+    String bucketName = (null != bucketKeyPair.getBucket() ? bucketKeyPair.getBucket()
+        .toString() : targetClass.getName());
     if (log.isDebugEnabled()) {
-      log.debug(String.format("GET object: key=%s", key));
+      log.debug(String.format("GET object: bucket=%s, key=%s", bucketName, bucketKeyPair.getKey()));
     }
     try {
-      return (V) restTemplate.getForObject(defaultUri, targetClass, (Object[]) bucketAndKey);
+      return (V) restTemplate.getForObject(defaultUri, targetClass, bucketName, bucketKeyPair.getKey());
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
         throw new DataAccessResourceFailureException(e.getMessage(), e);
@@ -144,22 +164,23 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     }
   }
 
-  public byte[] getAsBytes(Object key) {
+  public <K> byte[] getAsBytes(K key) {
     return getAsType(key, byte[].class);
   }
 
-  public <T> T getAsType(Object key, Class<T> requiredType) {
-    String[] bucketAndKey = extractBucketAndKey(key);
-    if (null == bucketAndKey[0]) {
-      bucketAndKey[0] = requiredType.getName();
-    }
-    Assert.noNullElements(bucketAndKey, "Must specify a bucket and key to retrieve.");
+  public <K, T> T getAsType(K key, Class<T> requiredType) {
+    BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, requiredType);
+    String bucketName = (null != bucketKeyPair.getBucket() ? bucketKeyPair.getBucket()
+        .toString() : requiredType.getName());
     RestTemplate restTemplate = getRestTemplate();
     if (log.isDebugEnabled()) {
-      log.debug(String.format("GET object: key=%s, type=%s", key, requiredType.getName()));
+      log.debug(String.format("GET object: bucket=%s, key=%s, type=%s",
+          bucketName,
+          bucketKeyPair.getKey(),
+          requiredType.getName()));
     }
     try {
-      return (T) restTemplate.getForObject(defaultUri, requiredType, (Object[]) bucketAndKey);
+      return (T) restTemplate.getForObject(defaultUri, requiredType, bucketName, bucketKeyPair.getKey());
     } catch (HttpClientErrorException e) {
       if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
         throw new DataAccessResourceFailureException(e.getMessage(), e);
@@ -168,50 +189,52 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     }
   }
 
-  public <V> V getAndSet(Object key, V value) {
+  public <K, V> V getAndSet(K key, V value) {
     V old = (V) getAsType(key, value.getClass());
     set(key, value);
     return old;
   }
 
-  public byte[] getAndSetBytes(Object key, byte[] value) {
+  public <K> byte[] getAndSetAsBytes(K key, byte[] value) {
     byte[] old = getAsType(key, byte[].class);
     setAsBytes(key, value);
     return old;
   }
 
-  public <T> T getAndSetAsType(Object key, Object value, Class<T> requiredType) {
+  public <K, V, T> T getAndSetAsType(K key, V value, Class<T> requiredType) {
     T old = getAsType(key, requiredType);
     set(key, value);
     return old;
   }
 
-  public List<?> getValues(List<Object> keys) {
-    List<Object> results = new ArrayList<Object>();
-    for (Object key : keys) {
-      results.add(get(key));
+  public <K, V> List<V> getValues(List<K> keys) {
+    List<V> results = new ArrayList<V>();
+    for (K key : keys) {
+      BucketKeyPair bkp = resolveBucketKeyPair(key, null);
+      results.add((V) get(bkp));
     }
     return results;
   }
 
-  public List<?> getValues(Object... keys) {
+  public <K, V> List<V> getValues(K... keys) {
     return getValues(keys);
   }
 
-  public <T> List<T> getValuesAsType(List<Object> keys, Class<T> requiredType) {
+  public <K, T> List<T> getValuesAsType(List<K> keys, Class<T> requiredType) {
     List<T> results = new ArrayList<T>();
-    for (Object key : keys) {
-      results.add(getAsType(key, requiredType));
+    for (K key : keys) {
+      BucketKeyPair bkp = resolveBucketKeyPair(key, null);
+      results.add(getAsType(bkp, requiredType));
     }
     return results;
   }
 
-  public <T> List<T> getValuesAsType(Class<T> requiredType, Object... keys) {
-    List<Object> keyList = new ArrayList<Object>(keys.length);
+  public <T, K> List<T> getValuesAsType(Class<T> requiredType, K... keys) {
+    List<K> keyList = new ArrayList<K>(keys.length);
     return getValuesAsType(keyList, requiredType);
   }
 
-  public <V> KeyValueStoreOperations setIfKeyNonExistent(Object key, V value) {
+  public <K, V> KeyValueStoreOperations setIfKeyNonExistent(K key, V value) {
     if (!containsKey(key)) {
       set(key, value);
     } else {
@@ -222,7 +245,7 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return this;
   }
 
-  public <V> KeyValueStoreOperations setIfKeyNonExistentAsBytes(Object key, byte[] value) {
+  public <K> KeyValueStoreOperations setIfKeyNonExistentAsBytes(K key, byte[] value) {
     if (!containsKey(key)) {
       setAsBytes(key, value);
     } else {
@@ -233,54 +256,52 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return this;
   }
 
-  public KeyValueStoreOperations setMultiple(Map<Object, Object> keysAndValues) {
-    for (Map.Entry<Object, Object> entry : keysAndValues.entrySet()) {
+  public <K, V> KeyValueStoreOperations setMultiple(Map<K, V> keysAndValues) {
+    for (Map.Entry<K, V> entry : keysAndValues.entrySet()) {
       set(entry.getKey(), entry.getValue());
     }
     return this;
   }
 
-  public KeyValueStoreOperations setMultipleAsBytes(Map<Object, byte[]> keysAndValues) {
-    for (Map.Entry<Object, byte[]> entry : keysAndValues.entrySet()) {
+  public <K> KeyValueStoreOperations setMultipleAsBytes(Map<K, byte[]> keysAndValues) {
+    for (Map.Entry<K, byte[]> entry : keysAndValues.entrySet()) {
       setAsBytes(entry.getKey(), entry.getValue());
     }
     return this;
   }
 
-  public KeyValueStoreOperations setMultipleIfKeysNonExistent(Map<Object, Object> keysAndValues) {
-    for (Map.Entry<Object, Object> entry : keysAndValues.entrySet()) {
+  public <K, V> KeyValueStoreOperations setMultipleIfKeysNonExistent(Map<K, V> keysAndValues) {
+    for (Map.Entry<K, V> entry : keysAndValues.entrySet()) {
       setIfKeyNonExistent(entry.getKey(), entry.getValue());
     }
     return this;
   }
 
-  public KeyValueStoreOperations setMultipleAsBytesIfKeysNonExistent(Map<Object, byte[]> keysAndValues) {
-    for (Map.Entry<Object, byte[]> entry : keysAndValues.entrySet()) {
+  public <K> KeyValueStoreOperations setMultipleAsBytesIfKeysNonExistent(Map<K, byte[]> keysAndValues) {
+    for (Map.Entry<K, byte[]> entry : keysAndValues.entrySet()) {
       setIfKeyNonExistentAsBytes(entry.getKey(), entry.getValue());
     }
     return this;
   }
 
-  public boolean containsKey(Object key) {
-    String[] bucketAndKey = extractBucketAndKey(key);
-    Assert.noNullElements(bucketAndKey, "Must specify a bucket and key to check for.");
+  public <K> boolean containsKey(K key) {
+    BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, null);
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = null;
     try {
-      headers = restTemplate.headForHeaders(defaultUri, (Object[]) bucketAndKey);
+      headers = restTemplate.headForHeaders(defaultUri, bucketKeyPair.getBucket(), bucketKeyPair.getKey());
     } catch (ResourceAccessException e) {
     }
     return (null != headers);
   }
 
-  public boolean deleteKeys(Object... keys) {
+  public <K> boolean deleteKeys(K... keys) {
     boolean stillExists = false;
-    for (Object key : keys) {
-      String[] bucketAndKey = extractBucketAndKey(key);
-      Assert.noNullElements(bucketAndKey, "Must specify a bucket and key to delete.");
-      RestTemplate restTemplate = getRestTemplate();
+    RestTemplate restTemplate = getRestTemplate();
+    for (K key : keys) {
+      BucketKeyPair bkp = resolveBucketKeyPair(key, null);
       try {
-        restTemplate.delete(defaultUri, (Object[]) bucketAndKey);
+        restTemplate.delete(defaultUri, bkp.getBucket(), bkp.getKey());
       } catch (HttpClientErrorException e) {
         if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
           throw new DataAccessResourceFailureException(e.getMessage(), e);
@@ -293,8 +314,35 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return !stillExists;
   }
 
+  /*----------------- Map/Reduce Operations -----------------*/
+
+  public RiakMapReduceJob createMapReduceJob() {
+    return new RiakMapReduceJob(this);
+  }
+
+  public Object execute(MapReduceJob job) {
+    return execute(job, List.class);
+  }
+
+  public <T> T execute(MapReduceJob job, Class<T> targetType) {
+    RestTemplate restTemplate = getRestTemplate();
+    ResponseEntity<T> resp = restTemplate.postForEntity(mapReduceUri, job.toJson(), targetType);
+    if (resp.hasBody()) {
+      return resp.getBody();
+    }
+    return null;
+  }
+
+  public <T> Future<List<T>> submit(MapReduceJob job) {
+    return queue.submit(job);
+  }
+
   public void afterPropertiesSet() throws Exception {
     Assert.notNull(conversionService, "Must specify a valid ConversionService.");
+    if (null == bucketKeyResolvers) {
+      bucketKeyResolvers = new ArrayList<BucketKeyResolver>();
+      bucketKeyResolvers.add(new SimpleBucketKeyResolver());
+    }
 
     if (groovyPresent) {
       // Native conversion for Groovy GString objects
@@ -311,41 +359,30 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     }
   }
 
-  protected String[] extractBucketAndKey(Object obj) {
-    Object bucket = null;
-    Object key = null;
-    if (obj instanceof Map) {
-      Map m = (Map) obj;
-      bucket = m.get("bucket");
-      key = m.get("key");
-    } else {
-      // Override from Annotation?
-      KeyValueStoreMetaData meta = obj.getClass().getAnnotation(KeyValueStoreMetaData.class);
-      if (null != meta && null != meta.family()) {
-        bucket = meta.family();
-      }
-      String s = obj.toString();
-      if (s.contains("@")) {
-        // This is likely the result of Object.toString()
-        // which returns com.mypackage.MyObject@memaddr
-        // Convert it using the conversion service if that's the case
-        s = conversionService.convert(obj, String.class);
-      }
-      if (s.contains(":")) {
-        String[] a = s.split(":");
-        if (null == bucket) {
-          bucket = a[0];
-        }
-        key = a[1];
-      } else {
-        key = s;
-      }
-      if (null == bucket) {
-        // Default to the class name for the bucket
-        bucket = (obj.getClass() == byte[].class ? "bytes" : obj.getClass().getName());
+  protected BucketKeyPair resolveBucketKeyPair(Object key, Object val) {
+    BucketKeyResolver resolver = null;
+    for (BucketKeyResolver r : bucketKeyResolvers) {
+      if (r.canResolve(key)) {
+        resolver = r;
+        break;
       }
     }
-    return new String[]{(null != bucket ? bucket.toString() : null), (null != key ? key.toString() : null)};
+    BucketKeyPair bucketKeyPair;
+    if (null != resolver) {
+      bucketKeyPair = resolver.resolve(key);
+      if (null != val) {
+        Annotation meta = (val instanceof Class ? (Class) val : val.getClass()).getAnnotation(KeyValueStoreMetaData.class);
+        if (null != meta) {
+          String bucket = ((KeyValueStoreMetaData) meta).bucket();
+          if (null != bucket) {
+            return new SimpleBucketKeyPair<String, Object>(bucket, bucketKeyPair.getKey());
+          }
+        }
+      }
+      return bucketKeyPair;
+    }
+    throw new DataStoreOperationException(String.format("No resolvers available to resolve bucket/key pair from %s",
+        key));
   }
 
   protected MediaType extractMediaType(Object value) {

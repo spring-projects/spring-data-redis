@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.datastore.riak.mapreduce;
-
-import java.util.List;
-import java.util.concurrent.Callable;
+package org.springframework.datastore.riak.core;
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-public interface MapReduceJob<T> extends Callable {
+public class TestObject {
+  String test = "value";
+  Integer integer = 12;
 
-  List<Object> getInputs();
+  public String getTest() {
+    return test;
+  }
 
-  <V> MapReduceJob addInputs(List<V> keys);
+  public void setTest(String test) {
+    this.test = test;
+  }
 
-  MapReduceJob addPhase(MapReducePhase phase);
+  public Integer getInteger() {
+    return integer;
+  }
 
-  void setArg(T arg);
-
-  <T> T getArg();
-
-  String toJson();
+  public void setInteger(Integer integer) {
+    this.integer = integer;
+  }
 }

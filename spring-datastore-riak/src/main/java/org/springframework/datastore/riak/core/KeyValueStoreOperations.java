@@ -21,50 +21,50 @@ import java.util.Map;
 public interface KeyValueStoreOperations {
 
   // Set and Set with expiry operations
-  <V> KeyValueStoreOperations set(Object key, V value);
+  <K, V> KeyValueStoreOperations set(K key, V value);
 
-  KeyValueStoreOperations setAsBytes(Object key, byte[] value);
+  <K> KeyValueStoreOperations setAsBytes(K key, byte[] value);
 
   // Get operations
-  <V> V get(Object key);
+  <K, V> V get(K key);
 
-  byte[] getAsBytes(Object key);
+  <K> byte[] getAsBytes(K key);
 
-  <T> T getAsType(Object key, Class<T> requiredType);
+  <K, T> T getAsType(K key, Class<T> requiredType);
 
   // Get and Set operations
-  <V> V getAndSet(Object key, V value);
+  <K, V> V getAndSet(K key, V value);
 
-  byte[] getAndSetBytes(Object key, byte[] value);
+  <K> byte[] getAndSetAsBytes(K key, byte[] value);
 
-  <T> T getAndSetAsType(Object key, Object value, Class<T> requiredType);
+  <K, V, T> T getAndSetAsType(K key, V value, Class<T> requiredType);
 
   // Multi-get operations
-  List<?> getValues(List<Object> keys);
+  <K, V> List<V> getValues(List<K> keys);
 
-  List<?> getValues(Object... keys);
+  <K, V> List<V> getValues(K... keys);
 
-  <T> List<T> getValuesAsType(List<Object> keys, Class<T> requiredType);
+  <K, T> List<T> getValuesAsType(List<K> keys, Class<T> requiredType);
 
-  <T> List<T> getValuesAsType(Class<T> requiredType, Object... keys);
+  <T, K> List<T> getValuesAsType(Class<T> requiredType, K... keys);
 
   // Set if non-existent operations
-  <V> KeyValueStoreOperations setIfKeyNonExistent(Object key, V value);
+  <K, V> KeyValueStoreOperations setIfKeyNonExistent(K key, V value);
 
-  <V> KeyValueStoreOperations setIfKeyNonExistentAsBytes(Object key, byte[] value);
+  <K> KeyValueStoreOperations setIfKeyNonExistentAsBytes(K key, byte[] value);
 
   // Multiple key-value set
-  KeyValueStoreOperations setMultiple(Map<Object, Object> keysAndValues);
+  <K, V> KeyValueStoreOperations setMultiple(Map<K, V> keysAndValues);
 
-  KeyValueStoreOperations setMultipleAsBytes(Map<Object, byte[]> keysAndValues);
+  <K> KeyValueStoreOperations setMultipleAsBytes(Map<K, byte[]> keysAndValues);
 
   // Multiple key-value set if non-existent
-  KeyValueStoreOperations setMultipleIfKeysNonExistent(Map<Object, Object> keysAndValues);
+  <K, V> KeyValueStoreOperations setMultipleIfKeysNonExistent(Map<K, V> keysAndValues);
 
-  KeyValueStoreOperations setMultipleAsBytesIfKeysNonExistent(Map<Object, byte[]> keysAndValues);
+  <K> KeyValueStoreOperations setMultipleAsBytesIfKeysNonExistent(Map<K, byte[]> keysAndValues);
 
-  boolean containsKey(Object keys);
+  <K> boolean containsKey(K key);
 
-  boolean deleteKeys(Object... keys);
+  <K> boolean deleteKeys(K... keys);
 
 }

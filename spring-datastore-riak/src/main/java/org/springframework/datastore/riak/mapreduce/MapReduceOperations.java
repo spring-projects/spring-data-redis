@@ -24,8 +24,10 @@ import java.util.concurrent.Future;
  */
 public interface MapReduceOperations {
 
-  List<?> run(MapReduceJob job);
+  Object execute(MapReduceJob job);
 
-  Future<List<?>> submit(MapReduceJob job);
+  <T> T execute(MapReduceJob job, Class<T> targetType);
+
+  <T> Future<List<T>> submit(MapReduceJob job);
 
 }

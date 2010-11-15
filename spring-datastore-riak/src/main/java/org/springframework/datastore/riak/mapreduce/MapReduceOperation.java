@@ -21,8 +21,6 @@ package org.springframework.datastore.riak.mapreduce;
  */
 public interface MapReduceOperation {
 
-  String getType();
-
   Object getRepresentation();
 
 }

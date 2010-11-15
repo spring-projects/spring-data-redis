@@ -21,8 +21,16 @@ package org.springframework.datastore.riak.mapreduce;
  */
 public interface MapReducePhase {
 
-  Object getMap();
+  public enum Phase {
+    MAP, REDUCE
+  }
 
-  Object getReduce();
+  Phase getPhase();
+
+  String getLanguage();
+
+  boolean getKeepResults();
+
+  MapReduceOperation getOperation();
 
 }
