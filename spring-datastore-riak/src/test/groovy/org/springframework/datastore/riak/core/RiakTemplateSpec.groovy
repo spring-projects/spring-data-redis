@@ -64,6 +64,26 @@ class RiakTemplateSpec extends Specification {
 
   }
 
+  def "Test getting bucket schema"() {
+
+    when:
+    def schema = riak.getBucketSchema("test", true)
+
+    then:
+    "test" == schema.props.name
+
+  }
+
+  def "Test get with metadata"() {
+
+    when:
+    def val = riak.getWithMetaData([bucket: "test", key: "test"], LinkedHashMap)
+
+    then:
+    val.metaData.properties["Server"].contains("WebMachine")
+
+  }
+
   def "Test containsKey"() {
 
     when:
@@ -71,6 +91,20 @@ class RiakTemplateSpec extends Specification {
 
     then:
     true == containsKey
+
+  }
+
+  def "Test linking"() {
+
+    given:
+    riak.link("${TestObject.name}:test", "test:test", "test")
+
+    when:
+    def val = riak.getWithMetaData("test:test", Map)
+    def result = val.metaData.properties["Link"].collect { it.contains("riaktag=\"test\"") }
+
+    then:
+    1 == result.size()
 
   }
 

@@ -67,4 +67,8 @@ public interface KeyValueStoreOperations {
 
   <K> boolean deleteKeys(K... keys);
 
+  <B> Map<String, Object> getBucketSchema(B bucket);
+
+  <B> Map<String, Object> getBucketSchema(B bucket, boolean listKeys);
+
 }
