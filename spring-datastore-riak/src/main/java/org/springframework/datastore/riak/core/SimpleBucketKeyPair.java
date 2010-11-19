@@ -31,4 +31,9 @@ public class SimpleBucketKeyPair<B, K> implements BucketKeyPair, Comparable {
     }
     return -1;
   }
+
+  @Override
+  public String toString() {
+    return String.format("{bucket=%s, key=%s}", bucket, key);
+  }
 }
