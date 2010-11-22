@@ -21,7 +21,7 @@ package org.springframework.datastore.riak.mapreduce;
  */
 public interface MapReducePhase {
 
-  public enum Phase {
+  public static enum Phase {
     MAP, REDUCE
   }
 

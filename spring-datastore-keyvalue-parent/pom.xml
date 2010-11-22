@@ -14,9 +14,9 @@
     <!-- versions for commonly-used dependencies -->
     <junit.version>4.8.1</junit.version>
     <log4j.version>1.2.15</log4j.version>
-    <org.codehaus.jackson.version>1.5.6</org.codehaus.jackson.version>
+    <org.codehaus.jackson.version>1.6.1</org.codehaus.jackson.version>
     <org.mockito.version>1.8.4</org.mockito.version>
-    <org.slf4j.version>1.5.10</org.slf4j.version>
+    <org.slf4j.version>1.5.8</org.slf4j.version>
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
     <!-- dist.* properties are used by the antrun tasks below -->
     <dist.id>spring-datastore-keyvalue</dist.id>

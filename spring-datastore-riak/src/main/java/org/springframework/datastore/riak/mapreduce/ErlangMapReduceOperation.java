@@ -12,6 +12,14 @@ public class ErlangMapReduceOperation implements MapReduceOperation {
   protected String language = "erlang";
   protected Map moduleFunction = new LinkedHashMap();
 
+  public ErlangMapReduceOperation() {
+  }
+
+  public ErlangMapReduceOperation(String module, String function) {
+    setModule(module);
+    setFunction(function);
+  }
+
   public void setModule(String module) {
     moduleFunction.put("module", module);
   }
