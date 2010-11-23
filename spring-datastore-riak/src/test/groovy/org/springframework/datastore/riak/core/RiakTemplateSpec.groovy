@@ -160,10 +160,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map='+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'reduce='+JSON.stringify(v)); return [v.length]; }")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ return [v.length]; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
@@ -171,7 +171,6 @@ class RiakTemplateSpec extends Specification {
         addPhase(reducePhase)
 
     when:
-    println "M/R: ${job.toJson()}"
     def result = riak.execute(job, List)
 
     then:

@@ -62,18 +62,17 @@ import java.util.regex.Pattern;
 
 /**
  * An implementation of {@link org.springframework.datastore.riak.core.KeyValueStoreOperations}
- * and {@link org.springframework.datastore.riak.mapreduce.MapReduceOperations}
- * for the Riak data store.
+ * and {@link org.springframework.datastore.riak.mapreduce.MapReduceOperations} for the Riak
+ * data store.
  * <p/>
- * To use the RiakTemplate, create a singleton in your Spring
- * application-context.xml:
+ * To use the RiakTemplate, create a singleton in your Spring application-context.xml:
  * <pre><code>
  * &lt;bean id="riak" class="org.springframework.datastore.riak.core.RiakTemplate"
  *     p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
  *     p:mapReduceUri="http://localhost:8098/mapred"/>
  * </code></pre>
- * To store and retrieve objects in Riak, use the setXXX and getXXX methods
- * (example in Groovy):
+ * To store and retrieve objects in Riak, use the setXXX and getXXX methods (example in
+ * Groovy):
  * <pre><code>
  * def obj = new TestObject(name: "My Name", age: 40)
  * riak.set([bucket: "mybucket", key: "mykey"], obj)
@@ -81,13 +80,13 @@ import java.util.regex.Pattern;
  * def name = riak.get([bucket: "mybucket", key: "mykey"]).name
  * println "Hello $name!"
  * </code></pre>
- * You're key object should be one of: <ul><li>A <code>String</code> encoding
- * the bucket and key together, separated by a colon. e.g. "mybucket:mykey"</li>
- * <li>An implementation of BucketKeyPair (like {@link org.springframework.datastore.riak.core.SimpleBucketKeyPair})</li>
+ * You're key object should be one of: <ul><li>A <code>String</code> encoding the bucket and key
+ * together, separated by a colon. e.g. "mybucket:mykey"</li> <li>An implementation of
+ * BucketKeyPair (like {@link org.springframework.datastore.riak.core.SimpleBucketKeyPair})</li>
  * <li>A <code>Map</code> with both a "bucket" and a "key" specified.</li> <li>A
- * <code>String</code> of only the key name, but specifying a bucket by using
- * the {@link org.springframework.datastore.riak.convert.KeyValueStoreMetaData}
- * annotation on the object you're storing.</li></ul>
+ * <code>String</code> of only the key name, but specifying a bucket by using the {@link
+ * org.springframework.datastore.riak.convert.KeyValueStoreMetaData} annotation on the object
+ * you're storing.</li></ul>
  *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
@@ -141,7 +140,7 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
    */
   protected String mapReduceUri = "http://localhost:8098/mapred";
   /**
-   * A list of resolvers to turn a single object into a {#link BucketKeyPair}.
+   * A list of resolvers to turn a single object into a {@link BucketKeyPair}.
    */
   protected List<BucketKeyResolver> bucketKeyResolvers;
 
@@ -704,7 +703,7 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     BucketKeyPair bucketKeyPair;
     if (null != resolver) {
       bucketKeyPair = resolver.resolve(key);
-      if (null != val) {
+      if (null == bucketKeyPair.getBucket() && null != val) {
         Annotation meta = (val instanceof Class ? (Class) val : val.getClass()).getAnnotation(
             KeyValueStoreMetaData.class);
         if (null != meta) {
