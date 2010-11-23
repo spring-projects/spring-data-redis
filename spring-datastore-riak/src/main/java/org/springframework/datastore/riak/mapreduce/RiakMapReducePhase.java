@@ -17,6 +17,9 @@
 package org.springframework.datastore.riak.mapreduce;
 
 /**
+ * An implementation of {@link org.springframework.datastore.riak.mapreduce.MapReducePhase}
+ * for the Riak data store.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public class RiakMapReducePhase implements MapReducePhase {

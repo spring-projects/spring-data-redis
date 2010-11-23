@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"unchecked"})
 public class SimpleBucketKeyResolver implements BucketKeyResolver {
 
-  private static final boolean groovyPresent = ClassUtils.isPresent("org.codehaus.groovy.runtime.GStringImpl",
+  private static final boolean groovyPresent = ClassUtils.isPresent(
+      "org.codehaus.groovy.runtime.GStringImpl",
       RiakTemplate.class.getClassLoader());
 
   protected Pattern bucketColonKey = Pattern.compile("(.+):(.+)");
@@ -43,12 +44,13 @@ public class SimpleBucketKeyResolver implements BucketKeyResolver {
       Map m = (Map) o;
       Object bucket = m.get("bucket");
       Object key = m.get("key");
-      bucketKeyPair = new SimpleBucketKeyPair<String, String>((null != bucket ? bucket.toString() : null),
+      bucketKeyPair = new SimpleBucketKeyPair<String, String>((null != bucket ? bucket
+          .toString() : null),
           (null != key ? key.toString() : null));
     } else if (o instanceof BucketKeyPair) {
       bucketKeyPair = (BucketKeyPair) o;
     } else if (groovyPresent && o instanceof GStringImpl) {
-      bucketKeyPair = resolve(((GStringImpl) o).toString());
+      bucketKeyPair = resolve(o.toString());
     }
 
     return bucketKeyPair;

@@ -17,10 +17,17 @@
 package org.springframework.datastore.riak.mapreduce;
 
 /**
+ * A generic interface to a Map/Reduce operation.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public interface MapReduceOperation {
 
+  /**
+   * Get the implementation-specific representation of a Map/Reduce operation.
+   *
+   * @return
+   */
   Object getRepresentation();
 
 }

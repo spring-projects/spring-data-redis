@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * An implementation of {@link org.springframework.datastore.riak.mapreduce.MapReduceJob}
+ * for the Riak data store.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 @SuppressWarnings({"unchecked"})
@@ -54,7 +57,7 @@ public class RiakMapReduceJob implements MapReduceJob {
     this.riakTemplate = riakTemplate;
   }
 
-  public List<Object> getInputs() {
+  public List getInputs() {
     return this.inputs;
   }
 
@@ -117,14 +120,17 @@ public class RiakMapReduceJob implements MapReduceJob {
         Object repr = phase.getOperation().getRepresentation();
         if (repr instanceof String) {
           // Using source
-          json.writeStringField("source", String.format("%s", phase.getOperation().getRepresentation()));
+          json.writeStringField("source",
+              String.format("%s", phase.getOperation().getRepresentation()));
         } else if (repr instanceof BucketKeyPair) {
           BucketKeyPair pair = (BucketKeyPair) repr;
-          json.writeStringField("bucket", String.format("%s", pair.getBucket()));
+          json.writeStringField("bucket",
+              String.format("%s", pair.getBucket()));
           json.writeStringField("key", String.format("%s", pair.getKey()));
         } else if (repr instanceof Map) {
           for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) repr).entrySet()) {
-            json.writeStringField(entry.getKey().toString(), entry.getValue().toString());
+            json.writeStringField(entry.getKey().toString(),
+                entry.getValue().toString());
           }
         }
         if (phase.getKeepResults()) {

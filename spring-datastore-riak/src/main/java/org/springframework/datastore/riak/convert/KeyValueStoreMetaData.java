@@ -20,13 +20,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * Specify the bucket in which to store the annotated object, overriding the
+ * default classname method of deriving bucket name.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyValueStoreMetaData {
 
+  /**
+   * The bucket in which to store an instance of this object.
+   *
+   * @return
+   */
   String bucket();
 
+  /**
+   * The media type in which to covert and store this object.
+   *
+   * @return
+   */
   String mediaType() default "application/json";
 
 }

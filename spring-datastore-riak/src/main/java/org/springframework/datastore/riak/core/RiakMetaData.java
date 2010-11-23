@@ -5,6 +5,9 @@ import org.springframework.http.MediaType;
 import java.util.Map;
 
 /**
+ * An implementation of {@link org.springframework.datastore.riak.core.KeyValueStoreMetaData}
+ * for Riak.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public class RiakMetaData implements KeyValueStoreMetaData {

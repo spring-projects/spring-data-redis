@@ -20,19 +20,56 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
+ * A generic interface to representing a Map/Reduce job to a data store that
+ * supports that operation.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public interface MapReduceJob<T> extends Callable {
 
-  List<Object> getInputs();
+  /**
+   * Get the list of inputs for this job.
+   *
+   * @return
+   */
+  <V> List<V> getInputs();
 
+  /**
+   * Set the list of inputs for this job.
+   *
+   * @param keys
+   * @param <V>
+   * @return
+   */
   <V> MapReduceJob addInputs(List<V> keys);
 
+  /**
+   * Add a phase to this operation.
+   *
+   * @param phase
+   * @return
+   */
   MapReduceJob addPhase(MapReducePhase phase);
 
+  /**
+   * Set the static argument for this job.
+   *
+   * @param arg
+   */
   void setArg(T arg);
 
+  /**
+   * Get the static argument for this job.
+   *
+   * @param <T>
+   * @return
+   */
   <T> T getArg();
 
+  /**
+   * Convert this job into the appropriate JSON to send to the server.
+   *
+   * @return
+   */
   String toJson();
 }

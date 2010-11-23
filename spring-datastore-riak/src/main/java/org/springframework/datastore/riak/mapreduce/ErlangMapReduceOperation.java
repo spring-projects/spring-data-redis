@@ -4,6 +4,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
+ * An implementation of {@link org.springframework.datastore.riak.mapreduce.MapReduceOperation}
+ * to represent an Erlang M/R function, which must be already defined inside the
+ * Riak server.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 @SuppressWarnings({"unchecked"})
@@ -20,10 +24,20 @@ public class ErlangMapReduceOperation implements MapReduceOperation {
     setFunction(function);
   }
 
+  /**
+   * Set the Erlang module this function is defined in.
+   *
+   * @param module
+   */
   public void setModule(String module) {
     moduleFunction.put("module", module);
   }
 
+  /**
+   * Set the name of this Erlang function.
+   *
+   * @param function
+   */
   public void setFunction(String function) {
     moduleFunction.put("function", function);
   }

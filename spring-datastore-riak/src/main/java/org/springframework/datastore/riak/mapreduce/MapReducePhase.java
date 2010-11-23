@@ -17,6 +17,8 @@
 package org.springframework.datastore.riak.mapreduce;
 
 /**
+ * A generic interface to the phases of Map/Reduce jobs.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public interface MapReducePhase {
@@ -27,10 +29,25 @@ public interface MapReducePhase {
 
   Phase getPhase();
 
+  /**
+   * The language this phase is described in.
+   *
+   * @return
+   */
   String getLanguage();
 
+  /**
+   * Whether or not to keep the result of this phase.
+   *
+   * @return
+   */
   boolean getKeepResults();
 
+  /**
+   * Get the operation this phase will execute.
+   *
+   * @return
+   */
   MapReduceOperation getOperation();
 
 }

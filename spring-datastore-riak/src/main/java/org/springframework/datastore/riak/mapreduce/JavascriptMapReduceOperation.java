@@ -3,6 +3,9 @@ package org.springframework.datastore.riak.mapreduce;
 import org.springframework.datastore.riak.core.BucketKeyPair;
 
 /**
+ * An implementation of {@link org.springframework.datastore.riak.mapreduce.MapReduceOperation}
+ * to describe a Javascript language M/R function.
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public class JavascriptMapReduceOperation implements MapReduceOperation {
@@ -22,6 +25,11 @@ public class JavascriptMapReduceOperation implements MapReduceOperation {
     return source;
   }
 
+  /**
+   * Set the anonymous source to use for the M/R function.
+   *
+   * @param source
+   */
   public void setSource(String source) {
     this.source = source;
   }
@@ -30,6 +38,12 @@ public class JavascriptMapReduceOperation implements MapReduceOperation {
     return bucketKeyPair;
   }
 
+  /**
+   * Set the {@link org.springframework.datastore.riak.core.BucketKeyPair} to
+   * point to for the Javascript to use in this M/R function.
+   *
+   * @param bucketKeyPair
+   */
   public void setBucketKeyPair(BucketKeyPair bucketKeyPair) {
     this.bucketKeyPair = bucketKeyPair;
   }
