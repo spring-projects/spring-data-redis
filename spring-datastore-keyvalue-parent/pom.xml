@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.data</groupId>
@@ -17,6 +18,7 @@
     <org.codehaus.jackson.version>1.6.1</org.codehaus.jackson.version>
     <org.mockito.version>1.8.4</org.mockito.version>
     <org.slf4j.version>1.5.8</org.slf4j.version>
+    <org.spockframework.version>0.5-groovy-1.7-SNAPSHOT</org.spockframework.version>
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
     <!-- dist.* properties are used by the antrun tasks below -->
     <dist.id>spring-datastore-keyvalue</dist.id>
@@ -100,15 +102,19 @@
       <distributionManagement>
         <site>
           <id>spring-site-staging</id>
-          <url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/docs</url>
+          <url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/docs
+          </url>
         </site>
         <repository>
           <id>spring-milestone-staging</id>
-          <url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/milestone</url>
+          <url>
+            file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/milestone
+          </url>
         </repository>
         <snapshotRepository>
           <id>spring-snapshot-staging</id>
-          <url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/snapshot</url>
+          <url>file:///${java.io.tmpdir}/spring-data/datastore-keyvalue/snapshot
+          </url>
         </snapshotRepository>
       </distributionManagement>
     </profile>
@@ -265,7 +271,13 @@
       <dependency>
         <groupId>org.spockframework</groupId>
         <artifactId>spock-spring</artifactId>
-        <version>0.5-groovy-1.7-SNAPSHOT</version>
+        <version>${org.spockframework.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+          </exclusion>
+        </exclusions>
         <scope>test</scope>
       </dependency>
 
@@ -432,6 +444,18 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.spockframework</groupId>
+          <artifactId>spock-maven</artifactId>
+          <version>${org.spockframework.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>find-specs</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -447,6 +471,9 @@
       <id>spockframework</id>
       <name>Spock Framework</name>
       <url>http://m2repo.spockframework.org/snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </pluginRepository>
   </pluginRepositories>
   <repositories>
@@ -476,6 +503,9 @@
       <id>spockframework</id>
       <name>Spock Framework</name>
       <url>http://m2repo.spockframework.org/snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </repository>
   </repositories>
 

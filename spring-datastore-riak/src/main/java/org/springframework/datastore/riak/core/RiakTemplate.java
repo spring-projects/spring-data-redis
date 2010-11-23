@@ -691,7 +691,6 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     }
   }
 
-
   /*----------------- Utilities -----------------*/
 
   protected BucketKeyPair resolveBucketKeyPair(Object key, Object val) {
