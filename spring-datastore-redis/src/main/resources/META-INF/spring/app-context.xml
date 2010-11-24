@@ -5,6 +5,6 @@
 
 	<description>Example configuration to get you started.</description>
 
-	<bean id="service" class="org.springframework.datastore.ExampleService" />
+	<bean id="service" class="org.springframework.data.ExampleService" />
 
 </beans>
