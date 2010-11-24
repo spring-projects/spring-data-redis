@@ -13,6 +13,7 @@
 	
 	<properties>
     <jredis.ver>02112010</jredis.ver>
+    <jedis.ver>1.4.0</jedis.ver>
 	</properties>
 
 	<dependencies>
@@ -96,7 +97,7 @@
 	    <dependency>
 	      <groupId>redis.clients</groupId>
 	      <artifactId>jedis</artifactId>
-	      <version>1.3.2-binaryfork-121110</version>
+	      <version>${jedis.ver}</version>
 	      <scope>compile</scope>
 	    </dependency>
 
