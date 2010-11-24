@@ -17,6 +17,7 @@
 package org.springframework.datastore.redis.connection;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,10 +52,15 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testSetAndGet() {
-		connection.set("foo".getBytes(), "blah blah".getBytes());
-		assertEquals("blah blah", new String(connection.get("foo".getBytes())));
+		assumeTrue(!isJredis());
+		connection.set("foo".getBytes(), "blahblah".getBytes());
+		assertEquals("blahblah", new String(connection.get("foo".getBytes())));
 	}
 
+
+	private boolean isJredis() {
+		return connection.getClass().getSimpleName().startsWith("Jredis");
+	}
 
 	public void conversions() {
 		Person p = new Person("Joe", "Trader", 33);
