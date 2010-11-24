@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.connection;
+package org.springframework.datastore.redis.core;
 
-import org.springframework.datastore.redis.connection.RedisHashCommands.Entry;
+import java.util.List;
 
 /**
- * Default {@link Entry} implementation.
+ * List operations bound to a certain key.
  * 
  * @author Costin Leau
  */
-public class DefaultEntry implements Entry {
+public interface BoundListOperations<K, V> extends KeyBound<K> {
 
-	private final String field;
-	private final String value;
+	List<V> range(int start, int end);
 
-	public DefaultEntry(String field, String value) {
-		this.field = field;
-		this.value = value;
-	}
+	void trim(int start, int end);
 
-	@Override
-	public String getField() {
-		return null;
-	}
+	Integer length();
 
-	@Override
-	public String getValue() {
-		return null;
-	}
+	Integer leftPush(V value);
 
+	Integer rightPush(V value);
+
+	V leftPop();
+
+	V rightPop();
+
+	Integer remove(int i, Object value);
+
+	V index(int index);
 }

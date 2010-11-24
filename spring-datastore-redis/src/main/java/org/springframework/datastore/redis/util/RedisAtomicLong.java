@@ -17,11 +17,11 @@ package org.springframework.datastore.redis.util;
 
 import java.io.Serializable;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Atomic long backed by Redis.
- * Uses Redis atomic increment/decrement and watch/multi/exec commands for CAS operations.
+ * Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS operations.
  *  
  * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
@@ -29,29 +29,29 @@ import org.springframework.datastore.redis.connection.RedisCommands;
 public class RedisAtomicLong extends Number implements Serializable {
 
 	private final String key;
-	private RedisCommands commands;
+	private RedisOperations<String, Long> operations;
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance with an initial value of zero.
 	 *
 	 * @param redisCounter
-	 * @param commands
+	 * @param operations
 	 */
-	public RedisAtomicLong(String redisCounter, RedisCommands commands) {
-		this(redisCounter, commands, 0);
+	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations) {
+		this(redisCounter, operations, 0);
 	}
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance with the given initial value.
 	 *
 	 * @param redisCounter
-	 * @param commands
+	 * @param operations
 	 * @param initialValue
 	 */
-	public RedisAtomicLong(String redisCounter, RedisCommands commands, long initialValue) {
+	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations, long initialValue) {
 		this.key = redisCounter;
-		this.commands = commands;
-		commands.set(redisCounter, Long.toString(initialValue));
+		this.operations = operations;
+		operations.set(redisCounter, initialValue);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @return the current value
 	 */
 	public long get() {
-		return Long.valueOf(commands.get(key));
+		return operations.get(key);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @param newValue the new value
 	 */
 	public void set(long newValue) {
-		commands.set(key, Long.toString(newValue));
+		operations.set(key, newValue);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @return the previous value
 	 */
 	public long getAndSet(long newValue) {
-		return Long.valueOf(commands.getSet(key, Long.toString(newValue)));
+		return operations.getAndSet(key, newValue);
 	}
 
 	/**
@@ -93,11 +93,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public boolean compareAndSet(long expect, long update) {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			if (expect == get()) {
-				commands.multi();
+				operations.multi();
 				set(update);
-				if (commands.exec() != null) {
+				if (operations.exec() != null) {
 					return true;
 				}
 			}
@@ -112,11 +112,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long getAndIncrement() {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			long value = get();
-			commands.multi();
-			commands.incr(key);
-			if (commands.exec() != null) {
+			operations.multi();
+			operations.increment(key, 1);
+			if (operations.exec() != null) {
 				return value;
 			}
 		}
@@ -129,11 +129,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long getAndDecrement() {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			long value = get();
-			commands.multi();
-			commands.decr(key);
-			if (commands.exec() != null) {
+			operations.multi();
+			operations.increment(key, -1);
+			if (operations.exec() != null) {
 				return value;
 			}
 		}
@@ -147,11 +147,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long getAndAdd(long delta) {
 		for (;;) {
-			commands.watch(key);
+			operations.watch(key);
 			long value = get();
-			commands.multi();
+			operations.multi();
 			set(value + delta);
-			if (commands.exec() != null) {
+			if (operations.exec() != null) {
 				return value;
 			}
 		}
@@ -163,7 +163,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public long incrementAndGet() {
-		return commands.incr(key);
+		return operations.increment(key, 1);
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public long decrementAndGet() {
-		return commands.decr(key);
+		return operations.increment(key, -1);
 	}
 
 	/**
@@ -183,11 +183,12 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long addAndGet(long delta) {
 		// TODO: is this really safe
-		return commands.incrBy(key, (int) delta);
+		return operations.increment(key, (int) delta);
 	}
 
 	/**
 	 * Returns the String representation of the current value.
+	 * 
 	 * @return the String representation of the current value.
 	 */
 	public String toString() {

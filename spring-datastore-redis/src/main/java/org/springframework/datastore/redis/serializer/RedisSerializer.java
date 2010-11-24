@@ -23,7 +23,7 @@ package org.springframework.datastore.redis.serializer;
  */
 public interface RedisSerializer<T> {
 
-	byte[] serialize(T object);
+	byte[] serialize(T t);
 
 	T deserialize(byte[] bytes);
 }

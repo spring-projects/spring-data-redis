@@ -13,39 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.connection;
+package org.springframework.datastore.redis.core;
 
-import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
 
 /**
- * Default implementation for {@link Tuple} interface.
+ * Default {@link KeyBound} implementation.
  * 
  * @author Costin Leau
  */
-public class DefaultTuple implements Tuple {
+public class DefaultKeyBound<K> implements KeyBound<K> {
 
-	private final Double score;
-	private final byte[] value;
+	private final K key;
 
-
-	/**
-	 * Constructs a new <code>DefaultTuple</code> instance.
-	 *
-	 * @param value
-	 * @param score
-	 */
-	public DefaultTuple(byte[] value, Double score) {
-		this.score = score;
-		this.value = value;
+	public DefaultKeyBound(K key) {
+		this.key = key;
 	}
 
 	@Override
-	public Double getScore() {
-		return score;
-	}
-
-	@Override
-	public byte[] getValue() {
-		return value;
+	public K getKey() {
+		return key;
 	}
 }

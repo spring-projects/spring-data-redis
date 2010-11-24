@@ -26,27 +26,27 @@ import java.util.Collection;
 public interface RedisCommands extends RedisTxCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
 		RedisZSetCommands, RedisHashCommands {
 
-	Boolean exists(String key);
+	Boolean exists(byte[] key);
 
-	Integer del(String... keys);
+	Integer del(byte[]... keys);
 
-	DataType type(String key);
+	DataType type(byte[] key);
 
-	Collection<String> keys(String pattern);
+	Collection<byte[]> keys(byte[] pattern);
 
-	String randomKey();
+	byte[] randomKey();
 
-	void rename(String oldName, String newName);
+	void rename(byte[] oldName, byte[] newName);
 
-	Boolean renameNX(String oldName, String newName);
+	Boolean renameNX(byte[] oldName, byte[] newName);
 
 	Integer dbSize();
 
-	Boolean expire(String key, int seconds);
+	Boolean expire(byte[] key, int seconds);
 
-	Boolean persist(String key);
+	Boolean persist(byte[] key);
 
-	Integer ttl(String key);
+	Integer ttl(byte[] key);
 
 	void select(int dbIndex);
 

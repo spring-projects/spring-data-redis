@@ -13,39 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.connection;
+package org.springframework.datastore.redis.serializer;
 
-import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
+import java.nio.charset.Charset;
 
 /**
- * Default implementation for {@link Tuple} interface.
+ * Simple String to byte[] (and back) serializer. Relies on the specified charset
+ * to properly convert the String into bytes and vice-versa.
  * 
  * @author Costin Leau
  */
-public class DefaultTuple implements Tuple {
+public class StringRedisSerializer implements RedisSerializer<String> {
 
-	private final Double score;
-	private final byte[] value;
+	private final Charset charset;
 
+	public StringRedisSerializer() {
+		this(Charset.forName("UTF8"));
+	}
 
-	/**
-	 * Constructs a new <code>DefaultTuple</code> instance.
-	 *
-	 * @param value
-	 * @param score
-	 */
-	public DefaultTuple(byte[] value, Double score) {
-		this.score = score;
-		this.value = value;
+	public StringRedisSerializer(Charset charset) {
+		this.charset = charset;
 	}
 
 	@Override
-	public Double getScore() {
-		return score;
+	public String deserialize(byte[] bytes) {
+		return new String(bytes, charset);
 	}
 
 	@Override
-	public byte[] getValue() {
-		return value;
+	public byte[] serialize(String object) {
+		return object.toString().getBytes(charset);
 	}
 }

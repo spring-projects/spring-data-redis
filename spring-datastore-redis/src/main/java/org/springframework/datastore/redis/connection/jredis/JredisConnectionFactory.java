@@ -15,6 +15,8 @@
  */
 package org.springframework.datastore.redis.connection.jredis;
 
+import java.nio.charset.Charset;
+
 import org.jredis.JRedis;
 import org.jredis.connector.ConnectionSpec;
 import org.jredis.connector.Connection.Socket.Property;
@@ -36,7 +38,6 @@ import org.springframework.util.StringUtils;
  */
 public class JredisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
-	private String encoding = "UTF-8";
 	private ConnectionSpec connectionSpec;
 
 	private String password;
@@ -47,6 +48,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	private JRedisService pool = null;
 	// taken from JRedis code
 	private int poolSize = 5;
+
+
+	private Charset charset = Charset.forName("UTF8");
 
 
 	/**
@@ -88,7 +92,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		this.connectionSpec = connectionSpec;
 	}
 
-
 	@Override
 	public void afterPropertiesSet() {
 		if (StringUtils.hasLength(password)) {
@@ -117,29 +120,13 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public RedisConnection getConnection() {
-		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)), getEncoding());
+		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)), charset);
 	}
 
 
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return null;
-	}
-
-	/**
-	 * Returns the encoding.
-	 *
-	 * @return Returns the encoding
-	 */
-	public String getEncoding() {
-		return encoding;
-	}
-
-	/**
-	 * @param encoding The encoding to set.
-	 */
-	public void setEncoding(String encoding) {
-		this.encoding = encoding;
 	}
 
 	/**
@@ -190,5 +177,22 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		Assert.isTrue(poolSize > 0, "pool size needs to be bigger then zero");
 		this.poolSize = poolSize;
 		usePool = true;
+	}
+
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Charset getCharset() {
+		return charset;
+	}
+
+
+	/**
+	 * @param charset
+	 */
+	public void setCharset(Charset charset) {
+		this.charset = charset;
 	}
 }

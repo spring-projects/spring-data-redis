@@ -21,13 +21,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Default {@link RedisMap} implementation.
  * 
  * @author Costin Leau
  */
-public class DefaultRedisMap implements RedisMap {
+public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	private class DefaultRedisMapEntry implements Map.Entry<String, String> {
 
@@ -60,17 +61,25 @@ public class DefaultRedisMap implements RedisMap {
 	}
 
 	protected final String redisKey;
-	protected final RedisCommands commands;
+	protected final RedisOperations<String, ?> operations;
+	private final MapOperations<String, K, V> mapOps;
+
 
 	/**
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
 	 *
 	 * @param key
-	 * @param commands
+	 * @param operations
 	 */
-	public DefaultRedisMap(String key, RedisCommands commands) {
+	public DefaultRedisMap(String key, RedisOperations<K, V> operations) {
 		this.redisKey = key;
-		this.commands = commands;
+		this.operations = operations;
+		this.maps = operations.forMap(key);
+	}
+
+	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
+		super(key, operations);
+		listOps = operations.listOps();
 	}
 
 	@Override
@@ -86,6 +95,11 @@ public class DefaultRedisMap implements RedisMap {
 	@Override
 	public String getKey() {
 		return redisKey;
+	}
+
+	@Override
+	public RedisCommands getOperations() {
+		return commands;
 	}
 
 	@Override

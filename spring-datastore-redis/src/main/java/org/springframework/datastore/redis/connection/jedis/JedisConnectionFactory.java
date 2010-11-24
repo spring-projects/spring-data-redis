@@ -117,10 +117,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			int size = getPoolSize();
 			pool = new JedisPool(shardInfo);
 			pool.setResourcesNumber(size);
+			pool.init();
 		}
 	}
 
-	public void destroy() throws Exception {
+	public void destroy() {
 		if (usePool && pool != null) {
 			pool.destroy();
 			pool = null;

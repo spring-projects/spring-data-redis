@@ -16,23 +16,18 @@
 
 package org.springframework.datastore.redis.connection.jredis;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.jredis.RedisException;
 import org.jredis.RedisType;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.datastore.redis.connection.DataType;
-import org.springframework.datastore.redis.connection.DefaultEntry;
-import org.springframework.datastore.redis.connection.RedisHashCommands.Entry;
 
 /**
  * Helper class featuring methods for JRedis connection handling, providing support for exception translation. 
@@ -45,27 +40,16 @@ public abstract class JredisUtils {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}
 
-	static String convertToString(byte[] bytes, String encoding) {
-		try {
-			return new String(bytes, encoding);
-		} catch (UnsupportedEncodingException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
-		}
+	static String convert(Charset charset, byte[] bytes) {
+		return new String(bytes, charset);
 	}
 
-	static <T extends Collection<String>> T convertToStringCollection(List<byte[]> bytes, String encoding, Class<T> collectionType) {
-
-		Collection<String> col = (List.class.isAssignableFrom(collectionType) ? new ArrayList<String>(bytes.size())
-				: new LinkedHashSet<String>(bytes.size()));
-
-		try {
-			for (byte[] bs : bytes) {
-				col.add(new String(bs, encoding));
-			}
-			return (T) col;
-		} catch (UnsupportedEncodingException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+	static String[] convertMultiple(Charset charset, byte[]... bytes) {
+		String[] result = new String[bytes.length];
+		for (int i = 0; i < bytes.length; i++) {
+			result[i] = new String(bytes[i], charset);
 		}
+		return result;
 	}
 
 	static DataType convertDataType(RedisType type) {
@@ -87,23 +71,31 @@ public abstract class JredisUtils {
 		return null;
 	}
 
-	static Set<Entry> convert(Map<String, byte[]> map, String encoding) {
-		Set<Entry> entries = new LinkedHashSet<Entry>(map.size());
-		try {
-			for (Map.Entry<String, byte[]> entry : map.entrySet()) {
-				entries.add(new DefaultEntry(entry.getKey(), new String(entry.getValue(), encoding)));
-			}
-		} catch (UnsupportedEncodingException ex) {
-			throw new DataRetrievalFailureException("Unsupported encoding " + encoding, ex);
+	static Map<byte[], byte[]> convertMap(Charset charset, Map<String, byte[]> map) {
+		Map<byte[], byte[]> result = new LinkedHashMap<byte[], byte[]>(map.size());
+		for (Map.Entry<String, byte[]> entry : map.entrySet()) {
+			result.put(entry.getKey().getBytes(charset), entry.getValue());
 		}
-		return entries;
+		return result;
 	}
 
-	static Map<String, byte[]> convert(String[] keys, String[] values) {
-		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(keys.length);
+	static Collection<byte[]> convert(Charset charset, List<String> keys) {
+		Collection<byte[]> list = new ArrayList<byte[]>(keys.size());
 
-		for (int i = 0; i < values.length; i++) {
-			result.put(keys[i], values[i].getBytes());
+		for (String string : keys) {
+			list.add(string.getBytes(charset));
+		}
+		return list;
+	}
+
+	static byte[] convert(Charset charset, String string) {
+		return string.getBytes(charset);
+	}
+
+	static Map<String, byte[]> convert(Charset charset, Map<byte[], byte[]> tuple) {
+		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(tuple.size());
+		for (Map.Entry<byte[], byte[]> entry : tuple.entrySet()) {
+			result.put(new String(entry.getKey(), charset), entry.getValue());
 		}
 		return result;
 	}

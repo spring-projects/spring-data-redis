@@ -46,6 +46,10 @@ public abstract class RedisConnectionUtils {
 		if (connHolder != null)
 			return connHolder.getConnection();
 
+		if (!allowCreate) {
+			throw new IllegalArgumentException("No connection found and allowCreate = false");
+		}
+
 		if (log.isDebugEnabled())
 			log.debug("Opening RedisConnection");
 
@@ -56,10 +60,9 @@ public abstract class RedisConnectionUtils {
 			TransactionSynchronizationManager.registerSynchronization(new RedisConnectionSynchronization(connHolder,
 					factory, true));
 			TransactionSynchronizationManager.bindResource(factory, connHolder);
-
+			return connHolder.getConnection();
 		}
-		return connHolder.getConnection();
-
+		return conn;
 	}
 
 	public static void releaseConnection(RedisConnection conn, RedisConnectionFactory factory) {

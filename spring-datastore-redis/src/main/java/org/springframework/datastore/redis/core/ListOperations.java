@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.connection;
+package org.springframework.datastore.redis.core;
 
-import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
+import java.util.List;
 
 /**
- * Default implementation for {@link Tuple} interface.
+ * Redis, list specific operations.
  * 
  * @author Costin Leau
  */
-public class DefaultTuple implements Tuple {
+public interface ListOperations<K, V> {
 
-	private final Double score;
-	private final byte[] value;
+	List<V> range(K key, int start, int end);
 
+	void trim(K key, int start, int end);
 
-	/**
-	 * Constructs a new <code>DefaultTuple</code> instance.
-	 *
-	 * @param value
-	 * @param score
-	 */
-	public DefaultTuple(byte[] value, Double score) {
-		this.score = score;
-		this.value = value;
-	}
+	Integer length(K key);
 
-	@Override
-	public Double getScore() {
-		return score;
-	}
+	Integer leftPush(K key, V value);
 
-	@Override
-	public byte[] getValue() {
-		return value;
-	}
+	Integer rightPush(K key, V value);
+
+	void set(K key, int index, V value);
+
+	Integer remove(K key, int i, Object value);
+
+	V index(K key, int index);
+
+	V leftPop(K key);
+
+	V rightPop(K key);
+
+	List<V> blockingLeftPop(int timeout, K... keys);
+
+	List<V> blockingRightPop(int timeout, K... keys);
 }

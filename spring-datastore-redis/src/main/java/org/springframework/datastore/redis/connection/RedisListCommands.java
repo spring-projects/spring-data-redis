@@ -25,29 +25,29 @@ import java.util.List;
  */
 public interface RedisListCommands {
 
-	Integer rPush(String key, String value);
+	Integer rPush(byte[] key, byte[] value);
 	
-	Integer lPush(String key, String value);
+	Integer lPush(byte[] key, byte[] value);
 
-	Integer lLen(String key);
+	Integer lLen(byte[] key);
 
-	List<String> lRange(String key, int start, int end);
+	List<byte[]> lRange(byte[] key, int start, int end);
 
-	void lTrim(String key, int start, int end);
+	void lTrim(byte[] key, int start, int end);
 
-	String lIndex(String key, int index);
+	byte[] lIndex(byte[] key, int index);
 
-	void lSet(String key, int index, String value);
+	void lSet(byte[] key, int index, byte[] value);
 
-	Integer lRem(String key, int count, String value);
+	Integer lRem(byte[] key, int count, byte[] value);
 
-	String lPop(String key);
+	byte[] lPop(byte[] key);
 
-	String rPop(String key);
+	byte[] rPop(byte[] key);
 
-	List<String> bLPop(int timeout, String... keys);
+	List<byte[]> bLPop(int timeout, byte[]... keys);
 
-	List<String> bRPop(int timeout, String... keys);
+	List<byte[]> bRPop(int timeout, byte[]... keys);
 
-	String rPopLPush(String srcKey, String dstKey);
+	byte[] rPopLPush(byte[] srcKey, byte[] dstKey);
 }

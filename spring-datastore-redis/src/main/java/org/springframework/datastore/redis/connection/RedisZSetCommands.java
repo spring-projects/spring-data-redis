@@ -31,52 +31,52 @@ public interface RedisZSetCommands {
 	}
 
 	public interface Tuple {
-		String getValue();
+		byte[] getValue();
 
 		Double getScore();
 	}
 
-	Boolean zAdd(String key, double score, String value);
+	Boolean zAdd(byte[] key, double score, byte[] value);
 
-	Boolean zRem(String key, String value);
+	Boolean zRem(byte[] key, byte[] value);
 
-	Double zIncrBy(String key, double increment, String value);
+	Double zIncrBy(byte[] key, double increment, byte[] value);
 
-	Integer zRank(String key, String value);
+	Integer zRank(byte[] key, byte[] value);
 
-	Integer zRevRank(String key, String value);
+	Integer zRevRank(byte[] key, byte[] value);
 
-	Set<String> zRange(String key, int start, int end);
+	Set<byte[]> zRange(byte[] key, int start, int end);
 
-	Set<Tuple> zRangeWithScore(String key, int start, int end);
+	Set<Tuple> zRangeWithScore(byte[] key, int start, int end);
 
-	Set<String> zRevRange(String key, int start, int end);
+	Set<byte[]> zRevRange(byte[] key, int start, int end);
 
-	Set<Tuple> zRevRangeWithScore(String key, int start, int end);
+	Set<Tuple> zRevRangeWithScore(byte[] key, int start, int end);
 
-	Set<String> zRangeByScore(String key, double min, double max);
+	Set<byte[]> zRangeByScore(byte[] key, double min, double max);
 
-	Set<Tuple> zRangeByScoreWithScore(String key, double min, double max);
+	Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max);
 
-	Set<String> zRangeByScore(String key, double min, double max, int offset, int count);
+	Set<byte[]> zRangeByScore(byte[] key, double min, double max, int offset, int count);
 
-	Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, int offset, int count);
+	Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, int offset, int count);
 
-	Integer zCount(String key, double min, double max);
+	Integer zCount(byte[] key, double min, double max);
 
-	Integer zCard(String key);
+	Integer zCard(byte[] key);
 
-	Double zScore(String key, String value);
+	Double zScore(byte[] key, byte[] value);
 
-	Integer zRemRange(String key, int start, int end);
+	Integer zRemRange(byte[] key, int start, int end);
 
-	Integer zRemRangeByScore(String key, double min, double max);
+	Integer zRemRangeByScore(byte[] key, double min, double max);
 
-	Integer zUnionStore(String destKey, String... sets);
+	Integer zUnionStore(byte[] destKey, byte[]... sets);
 
-	Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	Integer zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
 
-	Integer zInterStore(String destKey, String... sets);
+	Integer zInterStore(byte[] destKey, byte[]... sets);
 
-	Integer zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	Integer zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
 }

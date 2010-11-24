@@ -15,18 +15,27 @@
  */
 package org.springframework.datastore.redis.util;
 
+import org.springframework.datastore.redis.core.RedisOperations;
+
 
 /**
  * Basic interface for Redis-based collections.
  * 
  * @author Costin Leau
  */
-public interface RedisStore {
+public interface RedisStore<K> {
 
 	/**
 	 * Returns the key used by the backing Redis store for this collection.
 	 *  
 	 * @return Redis key
 	 */
-	String getKey();
+	K getKey();
+
+	/**
+	 * Returns the underlying Redis operations used by the backing implementation.
+	 * 
+	 * @return operations
+	 */
+	RedisOperations<K, ?> getOperations();
 }

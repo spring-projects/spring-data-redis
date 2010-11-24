@@ -18,21 +18,23 @@ package org.springframework.datastore.redis.util;
 import java.util.AbstractCollection;
 import java.util.Collection;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Base implementation for Redis collections. 
  * 
  * @author Costin Leau
  */
-public abstract class AbstractRedisCollection extends AbstractCollection<String> implements RedisStore {
+public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisStore<String> {
+
+	public static final String ENCODING = "UTF-8";
 
 	protected final String key;
-	protected final RedisCommands commands;
+	protected final RedisOperations<String, E> operations;
 
-	public AbstractRedisCollection(String key, RedisCommands commands) {
+	public <K> AbstractRedisCollection(String key, RedisOperations<String, E> operations) {
 		this.key = key;
-		this.commands = commands;
+		this.operations = operations;
 	}
 
 	@Override
@@ -41,15 +43,20 @@ public abstract class AbstractRedisCollection extends AbstractCollection<String>
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends String> c) {
+	public RedisOperations<String, E> getOperations() {
+		return operations;
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
 		boolean modified = false;
-		for (String string : c) {
-			modified |= add(string);
+		for (E e : c) {
+			modified |= add(e);
 		}
 		return modified;
 	}
 
-	public abstract boolean add(String e);
+	public abstract boolean add(E e);
 
 	public abstract void clear();
 
@@ -78,4 +85,34 @@ public abstract class AbstractRedisCollection extends AbstractCollection<String>
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+
+		if (o instanceof RedisStore) {
+			return key.equals(((RedisStore) o).getKey());
+		}
+		if (o instanceof AbstractRedisCollection) {
+			return o.hashCode() == hashCode();
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 17 + getClass().hashCode();
+		result = result * 31 + key.hashCode();
+		return result;
+	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("RedisStore for key:");
+		sb.append(getKey());
+		return sb.toString();
+	}
 }

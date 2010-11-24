@@ -21,98 +21,133 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
-import org.springframework.datastore.redis.connection.RedisCommands;
+import org.springframework.datastore.redis.core.ListOperations;
+import org.springframework.datastore.redis.core.RedisOperations;
 
 /**
  * Default implementation for {@link RedisList}. 
  * 
  * @author Costin Leau
  */
-public class DefaultRedisList extends AbstractRedisCollection implements RedisList {
+public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
-	private class DefaultRedisListIterator extends RedisIterator {
+	private final ListOperations<String, E> listOps;
 
-		public DefaultRedisListIterator(Iterator<String> delegate) {
+	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
+
+		public DefaultRedisListIterator(Iterator<E> delegate) {
 			super(delegate);
 		}
 
 		@Override
-		protected void removeFromRedisStorage(String item) {
+		protected void removeFromRedisStorage(E item) {
 			DefaultRedisList.this.remove(item);
 		}
 	}
 
-	public DefaultRedisList(String key, RedisCommands commands) {
-		super(key, commands);
+	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
+		super(key, operations);
+		listOps = operations.listOps();
 	}
 
 	@Override
-	public List<String> range(int start, int end) {
-		return commands.lRange(key, start, end);
+	public List<E> range(int start, int end) {
+		return listOps.range(key, start, end);
 	}
 
 	@Override
-	public RedisList trim(int start, int end) {
-		commands.lTrim(key, start, end);
+	public RedisList<E> trim(int start, int end) {
+		listOps.trim(key, start, end);
 		return this;
 	}
 
-	private List<String> content() {
-		return commands.lRange(key, 0, -1);
+	private List<E> content() {
+		return listOps.range(key, 0, -1);
 	}
 
 	@Override
-	public Iterator<String> iterator() {
+	public Iterator<E> iterator() {
 		return content().iterator();
 	}
 
 	@Override
 	public int size() {
-		return commands.lLen(key);
+		return listOps.length(key);
 	}
 
 
 	@Override
-	public boolean add(String value) {
-		commands.rPush(key, value);
+	public boolean add(E value) {
+		listOps.rightPush(key, value);
 		return true;
 	}
 
 	@Override
 	public void clear() {
-		commands.lTrim(key, 0, -1);
+		listOps.trim(key, size() + 1, 0);
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		Integer result = commands.lRem(key, 0, o.toString());
+		Integer result = listOps.remove(key, 0, o);
 		return (result != null && result.intValue() > 0);
 	}
 
 	@Override
-	public void add(int index, String element) {
+	public void add(int index, E element) {
 		if (index == 0) {
-			commands.lPush(key, element);
+			listOps.leftPush(key, element);
+			return;
 		}
-		else if (index == size()) {
-			commands.rPush(key, element);
+
+		int size = size();
+
+		if (index == size()) {
+			listOps.rightPush(key, element);
+			return;
+		}
+
+		if (index < 0 || index > size) {
+			throw new IndexOutOfBoundsException();
 		}
 
 		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
 	}
 
 	@Override
-	public boolean addAll(int index, Collection<? extends String> c) {
-		for (String string : c) {
-			add(index, string);
+	public boolean addAll(int index, Collection<? extends E> c) {
+		// insert collection in reverse
+		if (index == 0) {
+			Collection<? extends E> reverseC = CollectionUtils.reverse(c);
+
+			for (E e : reverseC) {
+				listOps.leftPush(key, e);
+			}
+			return true;
 		}
 
-		return true;
+		int size = size();
+
+		if (index == size()) {
+			for (E e : c) {
+				listOps.rightPush(key, e);
+			}
+			return true;
+		}
+
+		if (index < 0 || index > size) {
+			throw new IndexOutOfBoundsException();
+		}
+
+		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
 	}
 
 	@Override
-	public String get(int index) {
-		return commands.lIndex(key, index);
+	public E get(int index) {
+		if (index < 0 || index > size()) {
+			throw new IndexOutOfBoundsException();
+		}
+		return listOps.index(key, index);
 	}
 
 	@Override
@@ -126,37 +161,37 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 	}
 
 	@Override
-	public ListIterator<String> listIterator() {
+	public ListIterator<E> listIterator() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ListIterator<String> listIterator(int index) {
+	public ListIterator<E> listIterator(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String remove(int index) {
+	public E remove(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 
 	@Override
-	public String set(int index, String element) {
-		String object = get(index);
-		commands.lSet(key, index, element);
+	public E set(int index, E e) {
+		E object = get(index);
+		listOps.set(key, index, e);
 		return object;
 	}
 
 	@Override
-	public List<String> subList(int fromIndex, int toIndex) {
+	public List<E> subList(int fromIndex, int toIndex) {
 		throw new UnsupportedOperationException();
 	}
 
 
 	@Override
-	public String element() {
-		String value = peek();
+	public E element() {
+		E value = peek();
 		if (value == null)
 			throw new NoSuchElementException();
 
@@ -165,27 +200,29 @@ public class DefaultRedisList extends AbstractRedisCollection implements RedisLi
 
 
 	@Override
-	public boolean offer(String e) {
-		commands.lPush(key, e);
+	public boolean offer(E e) {
+		listOps.leftPush(key, e);
 		return true;
 	}
 
 
 	@Override
-	public String peek() {
-		return commands.lIndex(key, 0);
+	public E peek() {
+		E element = listOps.index(key, 0);
+		return (element == null ? null : element);
 	}
 
 
 	@Override
-	public String poll() {
-		return commands.lPop(key);
+	public E poll() {
+		E element = listOps.leftPop(key);
+		return (element == null ? null : element);
 	}
 
 
 	@Override
-	public String remove() {
-		String value = poll();
+	public E remove() {
+		E value = poll();
 		if (value == null)
 			throw new NoSuchElementException();
 

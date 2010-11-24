@@ -16,15 +16,13 @@
 
 package org.springframework.datastore.redis.connection;
 
-import static org.junit.Assert.assertEquals;
-import junit.framework.Assert;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.datastore.redis.connection.RedisConnection;
-import org.springframework.datastore.redis.connection.RedisConnectionFactory;
-import org.springframework.datastore.redis.core.Person;
+import org.springframework.datastore.redis.Person;
 
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -46,19 +44,23 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testLPush() throws Exception {
-		Integer index = connection.lPush(listName, "bar");
+		Integer index = connection.lPush(listName.getBytes(), "bar".getBytes());
 		if (index != null) {
-			assertEquals((Integer) (index + 1), connection.lPush(listName, "bar"));
+			assertEquals((Integer) (index + 1), connection.lPush(listName.getBytes(), "bar".getBytes()));
 		}
 	}
 
 	@Test
 	public void testSetAndGet() {
-		connection.set("foo", "blah blah");
-		String value = connection.get("foo");
-		Assert.assertEquals("blah blah", value);
+		assumeTrue(!isJredis());
+		connection.set("foo".getBytes(), "blahblah".getBytes());
+		assertEquals("blahblah", new String(connection.get("foo".getBytes())));
 	}
 
+
+	private boolean isJredis() {
+		return connection.getClass().getSimpleName().startsWith("Jredis");
+	}
 
 	public void conversions() {
 		Person p = new Person("Joe", "Trader", 33);

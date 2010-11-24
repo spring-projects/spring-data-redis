@@ -17,6 +17,7 @@
 package org.springframework.datastore.redis.connection;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * String specific commands supported by Redis.
@@ -25,31 +26,31 @@ import java.util.List;
  */
 public interface RedisStringCommands {
 
-	void set(String key, String value);
+	void set(byte[] key, byte[] value);
 
-	String get(String key);
+	byte[] get(byte[] key);
 
-	String getSet(String key, String value);
+	byte[] getSet(byte[] key, byte[] value);
 
-	List<String> mGet(String... keys);
+	List<byte[]> mGet(byte[]... keys);
 
-	Boolean setNX(String key, String value);
+	Boolean setNX(byte[] key, byte[] value);
 
-	void setEx(String key, int seconds, String value);
+	void setEx(byte[] key, int seconds, byte[] value);
 
-	void mSet(String[] keys, String[] values);
+	void mSet(Map<byte[], byte[]> tuple);
 
-	void mSetNX(String[] keys, String[] values);
+	void mSetNX(Map<byte[], byte[]> tuple);
 
-	Integer incr(String key);
+	Integer incr(byte[] key);
 
-	Integer incrBy(String key, int value);
+	Integer incrBy(byte[] key, int value);
 
-	Integer decr(String key);
+	Integer decr(byte[] key);
 
-	Integer decrBy(String key, int value);
+	Integer decrBy(byte[] key, int value);
 
-	Integer append(String key, String value);
+	Integer append(byte[] key, byte[] value);
 
-	String substr(String key, int start, int end);
+	byte[] substr(byte[] key, int start, int end);
 }

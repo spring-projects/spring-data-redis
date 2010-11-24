@@ -13,17 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.core;
+package org.springframework.datastore.redis;
 
 import java.io.Serializable;
 
+/**
+ * Simple serializable class.
+ * 
+ * @author Mark Pollack
+ * @author Costin Leau
+ */
 public class Person implements Serializable {
 
+	private static final long serialVersionUID = 92633004015631981L;
+
 	private String firstName;
-	
 	private String lastName;
-	
-	private int age;
+
+	private Integer age;
+	private Address address;
+
+	public Person() {
+	}
+
+	public Person(String firstName, String lastName, int age) {
+		this(firstName, lastName, age, null);
+	}
+
+	public Person(String firstName, String lastName, int age, Address address) {
+		super();
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.age = age;
+		this.address = address;
+	}
 
 	public String getFirstName() {
 		return firstName;
@@ -49,22 +72,22 @@ public class Person implements Serializable {
 		this.age = age;
 	}
 
-	public Person(String firstName, String lastName, int age) {
-		super();
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.age = age;
+	public Address getAddress() {
+		return address;
+	}
+
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + age;
-		result = prime * result
-				+ ((firstName == null) ? 0 : firstName.hashCode());
-		result = prime * result
-				+ ((lastName == null) ? 0 : lastName.hashCode());
+		result = prime * result + ((address == null) ? 0 : address.hashCode());
+		result = prime * result + ((age == null) ? 0 : age.hashCode());
+		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
+		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
 		return result;
 	}
 
@@ -74,22 +97,33 @@ public class Person implements Serializable {
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof Person))
 			return false;
 		Person other = (Person) obj;
-		if (age != other.age)
+		if (address == null) {
+			if (other.address != null)
+				return false;
+		}
+		else if (!address.equals(other.address))
+			return false;
+		if (age == null) {
+			if (other.age != null)
+				return false;
+		}
+		else if (!age.equals(other.age))
 			return false;
 		if (firstName == null) {
 			if (other.firstName != null)
 				return false;
-		} else if (!firstName.equals(other.firstName))
+		}
+		else if (!firstName.equals(other.firstName))
 			return false;
 		if (lastName == null) {
 			if (other.lastName != null)
 				return false;
-		} else if (!lastName.equals(other.lastName))
+		}
+		else if (!lastName.equals(other.lastName))
 			return false;
 		return true;
 	}
-	
 }

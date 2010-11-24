@@ -17,8 +17,8 @@ package org.springframework.datastore.redis.connection.jedis;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +30,8 @@ import org.springframework.datastore.redis.connection.DataType;
 import org.springframework.datastore.redis.connection.RedisConnection;
 import org.springframework.util.ReflectionUtils;
 
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
@@ -46,13 +48,13 @@ public class JedisConnection implements RedisConnection {
 	private static final Field CLIENT_FIELD;
 
 	static {
-		CLIENT_FIELD = ReflectionUtils.findField(Jedis.class, "client", Client.class);
+		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
 	}
 
 	private final Jedis jedis;
 	private final Client client;
-	private final Transaction transaction;
+	private final BinaryTransaction transaction;
 
 	public JedisConnection(Jedis jedis) {
 		this.jedis = jedis;
@@ -84,11 +86,6 @@ public class JedisConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
-	}
-
-	@Override
-	public String getEncoding() {
-		return "UTF-8";
 	}
 
 	@Override
@@ -124,7 +121,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer del(String... keys) {
+	public Integer del(byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.del(keys);
@@ -155,7 +152,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean exists(String key) {
+	public Boolean exists(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.exists(key);
@@ -168,7 +165,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean expire(String key, int seconds) {
+	public Boolean expire(byte[] key, int seconds) {
 		try {
 			if (isQueueing()) {
 				transaction.expire(key, seconds);
@@ -181,7 +178,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Collection<String> keys(String pattern) {
+	public Collection<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {
 				transaction.keys(pattern);
@@ -203,7 +200,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean persist(String key) {
+	public Boolean persist(byte[] key) {
 		try {
 			if (isQueueing()) {
 				client.persist(key);
@@ -216,20 +213,20 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String randomKey() {
+	public byte[] randomKey() {
 		try {
 			if (isQueueing()) {
-				transaction.randomKey();
+				transaction.randomBinaryKey();
 				return null;
 			}
-			return jedis.randomKey();
+			return jedis.randomBinaryKey();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void rename(String oldName, String newName) {
+	public void rename(byte[] oldName, byte[] newName) {
 		try {
 			if (isQueueing()) {
 				transaction.rename(oldName, newName);
@@ -241,7 +238,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean renameNX(String oldName, String newName) {
+	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		try {
 			if (isQueueing()) {
 				transaction.renamenx(oldName, newName);
@@ -266,7 +263,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer ttl(String key) {
+	public Integer ttl(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.ttl(key);
@@ -279,7 +276,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public DataType type(String key) {
+	public DataType type(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.type(key);
@@ -301,14 +298,14 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void watch(String... keys) {
+	public void watch(byte[]... keys) {
 		if (isQueueing()) {
 			// ignore (as watch not allowed in multi)
 			return;
 		}
 
 		try {
-			for (String key : keys) {
+			for (byte[] key : keys) {
 				jedis.watch(key);
 			}
 		} catch (Exception ex) {
@@ -321,7 +318,7 @@ public class JedisConnection implements RedisConnection {
 	//
 
 	@Override
-	public String get(String key) {
+	public byte[] get(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.get(key);
@@ -335,7 +332,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void set(String key, String value) {
+	public void set(byte[] key, byte[] value) {
 		try {
 			jedis.set(key, value);
 		} catch (Exception ex) {
@@ -345,7 +342,7 @@ public class JedisConnection implements RedisConnection {
 
 
 	@Override
-	public String getSet(String key, String value) {
+	public byte[] getSet(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.getSet(key, value);
@@ -358,7 +355,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer append(String key, String value) {
+	public Integer append(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.append(key, value);
@@ -371,7 +368,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<String> mGet(String... keys) {
+	public List<byte[]> mGet(byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.mget(keys);
@@ -384,31 +381,31 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void mSet(String[] keys, String[] values) {
+	public void mSet(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
-				transaction.mset(JedisUtils.arrange(keys, values));
+				transaction.mset(JedisUtils.convert(tuples));
 			}
-			jedis.mset(JedisUtils.arrange(keys, values));
+			jedis.mset(JedisUtils.convert(tuples));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void mSetNX(String[] keys, String[] values) {
+	public void mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
-				transaction.msetnx(JedisUtils.arrange(keys, values));
+				transaction.msetnx(JedisUtils.convert(tuples));
 			}
-			jedis.msetnx(JedisUtils.arrange(keys, values));
+			jedis.msetnx(JedisUtils.convert(tuples));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public void setEx(String key, int time, String value) {
+	public void setEx(byte[] key, int time, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.setex(key, time, value);
@@ -420,7 +417,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean setNX(String key, String value) {
+	public Boolean setNX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.setnx(key, value);
@@ -432,7 +429,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String substr(String key, int start, int end) {
+	public byte[] substr(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.substr(key, start, end);
@@ -445,7 +442,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer decr(String key) {
+	public Integer decr(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.decr(key);
@@ -458,7 +455,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer decrBy(String key, int value) {
+	public Integer decrBy(byte[] key, int value) {
 		try {
 			if (isQueueing()) {
 				transaction.decrBy(key, value);
@@ -471,7 +468,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer incr(String key) {
+	public Integer incr(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.incr(key);
@@ -484,7 +481,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer incrBy(String key, int value) {
+	public Integer incrBy(byte[] key, int value) {
 		try {
 			if (isQueueing()) {
 				transaction.incrBy(key, value);
@@ -502,7 +499,7 @@ public class JedisConnection implements RedisConnection {
 
 
 	@Override
-	public Integer lPush(String key, String value) {
+	public Integer lPush(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.lpush(key, value);
@@ -515,7 +512,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer rPush(String key, String value) {
+	public Integer rPush(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.rpush(key, value);
@@ -528,7 +525,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<String> bLPop(int timeout, String... keys) {
+	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -540,7 +537,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<String> bRPop(int timeout, String... keys) {
+	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -552,7 +549,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String lIndex(String key, int index) {
+	public byte[] lIndex(byte[] key, int index) {
 		try {
 			if (isQueueing()) {
 				transaction.lindex(key, index);
@@ -565,7 +562,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer lLen(String key) {
+	public Integer lLen(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.llen(key);
@@ -578,7 +575,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String lPop(String key) {
+	public byte[] lPop(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.lpop(key);
@@ -591,7 +588,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<String> lRange(String key, int start, int end) {
+	public List<byte[]> lRange(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.lrange(key, start, end);
@@ -604,7 +601,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer lRem(String key, int count, String value) {
+	public Integer lRem(byte[] key, int count, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.lrem(key, count, value);
@@ -617,7 +614,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void lSet(String key, int index, String value) {
+	public void lSet(byte[] key, int index, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.lset(key, index, value);
@@ -629,7 +626,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void lTrim(String key, int start, int end) {
+	public void lTrim(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.ltrim(key, start, end);
@@ -641,7 +638,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String rPop(String key) {
+	public byte[] rPop(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.rpop(key);
@@ -654,7 +651,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String rPopLPush(String srcKey, String dstKey) {
+	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		try {
 			if (isQueueing()) {
 				transaction.rpoplpush(srcKey, dstKey);
@@ -672,7 +669,7 @@ public class JedisConnection implements RedisConnection {
 	//
 
 	@Override
-	public Boolean sAdd(String key, String value) {
+	public Boolean sAdd(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.sadd(key, value);
@@ -685,7 +682,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer sCard(String key) {
+	public Integer sCard(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.scard(key);
@@ -698,7 +695,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> sDiff(String... keys) {
+	public Set<byte[]> sDiff(byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sdiff(keys);
@@ -711,7 +708,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void sDiffStore(String destKey, String... keys) {
+	public void sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sdiffstore(destKey, keys);
@@ -723,7 +720,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> sInter(String... keys) {
+	public Set<byte[]> sInter(byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sinter(keys);
@@ -736,7 +733,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void sInterStore(String destKey, String... keys) {
+	public void sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sinterstore(destKey, keys);
@@ -748,7 +745,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean sIsMember(String key, String value) {
+	public Boolean sIsMember(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.sismember(key, value);
@@ -761,7 +758,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> sMembers(String key) {
+	public Set<byte[]> sMembers(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.smembers(key);
@@ -774,7 +771,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean sMove(String srcKey, String destKey, String value) {
+	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.smove(srcKey, destKey, value);
@@ -787,7 +784,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String sPop(String key) {
+	public byte[] sPop(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.spop(key);
@@ -800,7 +797,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String sRandMember(String key) {
+	public byte[] sRandMember(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.srandmember(key);
@@ -813,7 +810,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean sRem(String key, String value) {
+	public Boolean sRem(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.srem(key, value);
@@ -826,7 +823,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> sUnion(String... keys) {
+	public Set<byte[]> sUnion(byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sunion(keys);
@@ -839,7 +836,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void sUnionStore(String destKey, String... keys) {
+	public void sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sunionstore(destKey, keys);
@@ -855,7 +852,7 @@ public class JedisConnection implements RedisConnection {
 	//
 
 	@Override
-	public Boolean zAdd(String key, double score, String value) {
+	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.zadd(key, score, value);
@@ -868,7 +865,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zCard(String key) {
+	public Integer zCard(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.zcard(key);
@@ -881,7 +878,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zCount(String key, double min, double max) {
+	public Integer zCount(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -893,7 +890,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Double zIncrBy(String key, double increment, String value) {
+	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.zincrby(key, increment, value);
@@ -906,7 +903,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+	public Integer zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -920,7 +917,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zInterStore(String destKey, String... sets) {
+	public Integer zInterStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -932,7 +929,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> zRange(String key, int start, int end) {
+	public Set<byte[]> zRange(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.zrange(key, start, end);
@@ -945,7 +942,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeWithScore(String key, int start, int end) {
+	public Set<Tuple> zRangeWithScore(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.zrangeWithScores(key, start, end);
@@ -958,7 +955,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> zRangeByScore(String key, double min, double max) {
+	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -970,7 +967,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max) {
+	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -982,7 +979,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeWithScore(String key, int start, int end) {
+	public Set<Tuple> zRevRangeWithScore(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.zrangeWithScores(key, start, end);
@@ -995,7 +992,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> zRangeByScore(String key, double min, double max, int offset, int count) {
+	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, int offset, int count) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1007,7 +1004,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, int offset, int count) {
+	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, int offset, int count) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1019,7 +1016,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zRank(String key, String value) {
+	public Integer zRank(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.zrank(key, value);
@@ -1032,7 +1029,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean zRem(String key, String value) {
+	public Boolean zRem(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.zrem(key, value);
@@ -1045,7 +1042,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zRemRange(String key, int start, int end) {
+	public Integer zRemRange(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1057,7 +1054,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zRemRangeByScore(String key, double min, double max) {
+	public Integer zRemRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1069,7 +1066,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> zRevRange(String key, int start, int end) {
+	public Set<byte[]> zRevRange(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.zrevrange(key, start, end);
@@ -1082,7 +1079,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zRevRank(String key, String value) {
+	public Integer zRevRank(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.zrevrank(key, value);
@@ -1095,7 +1092,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Double zScore(String key, String value) {
+	public Double zScore(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.zscore(key, value);
@@ -1108,7 +1105,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+	public Integer zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1122,7 +1119,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Integer zUnionStore(String destKey, String... sets) {
+	public Integer zUnionStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1138,7 +1135,7 @@ public class JedisConnection implements RedisConnection {
 	//
 
 	@Override
-	public Boolean hSet(String key, String field, String value) {
+	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.hset(key, field, value);
@@ -1151,7 +1148,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean hSetNX(String key, String field, String value) {
+	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isQueueing()) {
 				transaction.hsetnx(key, field, value);
@@ -1164,7 +1161,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean hDel(String key, String field) {
+	public Boolean hDel(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
 				transaction.hdel(key, field);
@@ -1177,7 +1174,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Boolean hExists(String key, String field) {
+	public Boolean hExists(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
 				transaction.hexists(key, field);
@@ -1190,7 +1187,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public String hGet(String key, String field) {
+	public byte[] hGet(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
 				transaction.hget(key, field);
@@ -1203,20 +1200,20 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Entry> hGetAll(String key) {
+	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.hgetAll(key);
 				return null;
 			}
-			return JedisUtils.convert(jedis.hgetAll(key));
+			return jedis.hgetAll(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer hIncrBy(String key, String field, int delta) {
+	public Integer hIncrBy(byte[] key, byte[] field, int delta) {
 		try {
 			if (isQueueing()) {
 				transaction.hincrBy(key, field, delta);
@@ -1229,20 +1226,20 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<String> hKeys(String key) {
+	public Set<byte[]> hKeys(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.hkeys(key);
 				return null;
 			}
-			return new LinkedHashSet<String>(jedis.hkeys(key));
+			return jedis.hkeys(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public Integer hLen(String key) {
+	public Integer hLen(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.hlen(key);
@@ -1255,7 +1252,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<String> hMGet(String key, String... fields) {
+	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		try {
 			if (isQueueing()) {
 				transaction.hmget(key, fields);
@@ -1268,26 +1265,25 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void hMSet(String key, String[] fields, String[] values) {
-		Map<String, String> param = JedisUtils.convert(fields, values);
+	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
 		try {
 			if (isQueueing()) {
-				transaction.hmset(key, param);
+				transaction.hmset(key, tuple);
 			}
-			jedis.hmset(key, param);
+			jedis.hmset(key, tuple);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
 	@Override
-	public List<String> hVals(String key) {
+	public List<byte[]> hVals(byte[] key) {
 		try {
 			if (isQueueing()) {
 				transaction.hvals(key);
 				return null;
 			}
-			return jedis.hvals(key);
+			return new ArrayList<byte[]>(jedis.hvals(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

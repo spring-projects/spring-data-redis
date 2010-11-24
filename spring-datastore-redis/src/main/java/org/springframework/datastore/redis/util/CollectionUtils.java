@@ -13,39 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.datastore.redis.connection;
+package org.springframework.datastore.redis.util;
 
-import org.springframework.datastore.redis.connection.RedisZSetCommands.Tuple;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Default implementation for {@link Tuple} interface.
+ * Utility class used mainly for type conversion by the default collection implementations.
  * 
  * @author Costin Leau
  */
-public class DefaultTuple implements Tuple {
+abstract class CollectionUtils {
 
-	private final Double score;
-	private final byte[] value;
+	@SuppressWarnings("unchecked")
+	static <E> Collection<E> reverse(Collection<? extends E> c) {
+		Object[] reverse = new Object[c.size()];
+		int index = c.size();
+		for (E e : c) {
+			reverse[--index] = e;
+		}
 
-
-	/**
-	 * Constructs a new <code>DefaultTuple</code> instance.
-	 *
-	 * @param value
-	 * @param score
-	 */
-	public DefaultTuple(byte[] value, Double score) {
-		this.score = score;
-		this.value = value;
-	}
-
-	@Override
-	public Double getScore() {
-		return score;
-	}
-
-	@Override
-	public byte[] getValue() {
-		return value;
+		return (List<E>) Arrays.asList(reverse);
 	}
 }

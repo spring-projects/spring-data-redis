@@ -17,6 +17,7 @@
 package org.springframework.datastore.redis.connection;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,33 +27,27 @@ import java.util.Set;
  */
 public interface RedisHashCommands {
 
-	public interface Entry {
-		public String getField();
+	Boolean hSet(byte[] key, byte[] field, byte[] value);
 
-		public String getValue();
-	}
+	Boolean hSetNX(byte[] key, byte[] field, byte[] value);
 
-	Boolean hSet(String key, String field, String value);
+	byte[] hGet(byte[] key, byte[] field);
 
-	Boolean hSetNX(String key, String field, String value);
+	List<byte[]> hMGet(byte[] key, byte[]... fields);
 
-	String hGet(String key, String field);
+	void hMSet(byte[] key, Map<byte[], byte[]> hashes);
 
-	List<String> hMGet(String key, String... fields);
+	Integer hIncrBy(byte[] key, byte[] field, int delta);
 
-	void hMSet(String key, String[] fields, String[] values);
+	Boolean hExists(byte[] key, byte[] field);
 
-	Integer hIncrBy(String key, String field, int delta);
+	Boolean hDel(byte[] key, byte[] field);
 
-	Boolean hExists(String key, String field);
+	Integer hLen(byte[] key);
 
-	Boolean hDel(String key, String field);
+	Set<byte[]> hKeys(byte[] key);
 
-	Integer hLen(String key);
+	List<byte[]> hVals(byte[] key);
 
-	Set<String> hKeys(String key);
-
-	List<String> hVals(String key);
-
-	Set<Entry> hGetAll(String key);
+	Map<byte[], byte[]> hGetAll(byte[] key);
 }
