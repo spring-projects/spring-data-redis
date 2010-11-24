@@ -4,13 +4,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.springframework.data</groupId>
-    <artifactId>spring-datastore-keyvalue-parent</artifactId>
+    <artifactId>spring-data-keyvalue-parent</artifactId>
     <version>1.0.0.BUILD-SNAPSHOT</version>
-    <relativePath>../spring-datastore-keyvalue-parent/pom.xml</relativePath>
+    <relativePath>../spring-data-keyvalue-parent/pom.xml</relativePath>
   </parent>
-  <artifactId>spring-datastore-riak</artifactId>
+  <artifactId>spring-data-riak</artifactId>
   <packaging>jar</packaging>
-  <name>Spring Datastore Riak Support</name>
+  <name>Spring Data Riak Support</name>
 
   <dependencies>
     <!--  Spring -->
@@ -34,7 +34,7 @@
     <!--  Spring Data -->
     <dependency>
       <groupId>org.springframework.data</groupId>
-      <artifactId>spring-datastore-keyvalue-core</artifactId>
+      <artifactId>spring-data-keyvalue-core</artifactId>
     </dependency>
 
     <!-- Jackson JSON -->
