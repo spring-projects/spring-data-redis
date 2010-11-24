@@ -27,7 +27,7 @@ import org.springframework.datastore.redis.Address;
 import org.springframework.datastore.redis.Person;
 
 
-public class SimpleRedisSerializerTest {
+public class SimpleRedisSerializerTests {
 
 	private static class A implements Serializable {
 		private Integer value = Integer.valueOf(30);

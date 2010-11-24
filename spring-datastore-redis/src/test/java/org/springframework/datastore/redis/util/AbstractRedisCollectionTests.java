@@ -41,7 +41,7 @@ import org.junit.Test;
  *  
  * @author Costin Leau
  */
-public abstract class AbstractRedisCollectionTest<T> {
+public abstract class AbstractRedisCollectionTests<T> {
 
 	protected AbstractRedisCollection<T> collection;
 

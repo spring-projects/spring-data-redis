@@ -17,31 +17,29 @@ package org.springframework.datastore.redis.util;
 
 import java.util.UUID;
 
-import org.springframework.datastore.redis.Address;
-import org.springframework.datastore.redis.Person;
 import org.springframework.datastore.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.datastore.redis.core.RedisOperations;
 import org.springframework.datastore.redis.core.RedisTemplate;
 
 
 /**
- * Person-based Redis List test.
+ * String-based Redis List test.
  * 
  * @author Costin Leau
  */
-public class PersonRedisListTest extends AbstractRedisListTest<Person> {
+public class StringRedisListTests extends AbstractRedisListTests<String> {
 
 	private JedisConnectionFactory factory;
-	private int counter = 0;
 
 	@Override
-	AbstractRedisCollection<Person> createCollection() {
+	AbstractRedisCollection<String> createCollection() {
 		String redisName = getClass().getName();
 		factory = new JedisConnectionFactory();
 		factory.setPooling(false);
 		factory.afterPropertiesSet();
 
-		RedisTemplate<String, Person> template = new RedisTemplate<String, Person>(factory);
-		return new DefaultRedisList<Person>(redisName, template);
+		RedisTemplate<String, String> template = new RedisTemplate<String, String>(factory);
+		return new DefaultRedisList<String>(redisName, template);
 	}
 
 	@Override
@@ -50,15 +48,13 @@ public class PersonRedisListTest extends AbstractRedisListTest<Person> {
 	}
 
 	@Override
-	RedisStore<Person> copyStore(RedisStore<Person> store) {
-		//return new DefaultRedisList<Person>(store.getKey(), (RedisOperations<String, Person>) store.getOperations());
-		return null;
+	RedisStore<String> copyStore(RedisStore<String> store) {
+		return new DefaultRedisList<String>(store.getKey(), (RedisOperations<String, String>) store.getOperations());
 	}
 
 	@Override
-	Person getT() {
-		String uuid = UUID.randomUUID().toString();
-		return new Person(uuid, uuid, ++counter, new Address(uuid, counter));
+	String getT() {
+		return UUID.randomUUID().toString();
 	}
 }
 

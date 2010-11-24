@@ -29,7 +29,7 @@ import org.junit.Test;
  * 
  * @author Costin Leau
  */
-public abstract class AbstractRedisListTest<T> extends AbstractRedisCollectionTest<T> {
+public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionTests<T> {
 
 	protected RedisList<T> list;
 
