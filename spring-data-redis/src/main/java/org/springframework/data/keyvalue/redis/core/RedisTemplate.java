@@ -540,7 +540,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void diffAndStore(K destKey, final K key, final K... keys) {
+		public void diffAndStore(final K key, K destKey, final K... keys) {
 			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
 			final byte[] rawDestKey = rawKey(destKey);
 			Object rawValues = execute(new RedisCallback<Object>() {
