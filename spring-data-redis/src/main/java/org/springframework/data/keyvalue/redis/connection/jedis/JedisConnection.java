@@ -120,6 +120,19 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+
+	@Override
+	public void flushDb() {
+		try {
+			if (isQueueing()) {
+				transaction.flushDB();
+			}
+			jedis.flushDB();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
 	@Override
 	public Integer del(byte[]... keys) {
 		try {

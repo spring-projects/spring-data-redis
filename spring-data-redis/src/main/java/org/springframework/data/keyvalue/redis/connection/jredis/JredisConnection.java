@@ -85,6 +85,15 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
+	public void flushDb() {
+		try {
+			jredis.flushall();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Integer del(byte[]... keys) {
 		try {
 			return Integer.valueOf((int) jredis.del(JredisUtils.convertMultiple(charset, keys)));

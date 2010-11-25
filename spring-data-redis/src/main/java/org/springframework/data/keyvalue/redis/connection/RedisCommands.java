@@ -50,4 +50,5 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	void select(int dbIndex);
 
+	void flushDb();
 }
