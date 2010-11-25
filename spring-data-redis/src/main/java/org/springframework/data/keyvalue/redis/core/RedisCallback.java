@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 
 /**
@@ -33,5 +34,5 @@ public interface RedisCallback<T> {
 	 * @return
 	 * @throws Exception
 	 */
-	T doInRedis(RedisConnection connection) throws Exception;
+	T doInRedis(RedisConnection connection) throws DataAccessException;
 }

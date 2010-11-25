@@ -105,7 +105,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		template.execute(new RedisCallback<Object>() {
 
 			@Override
-			public Object doInRedis(RedisConnection connection) throws Exception {
+			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;
 			}

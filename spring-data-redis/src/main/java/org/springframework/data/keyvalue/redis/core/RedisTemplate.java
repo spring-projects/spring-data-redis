@@ -67,7 +67,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public void del(final String redisKey) {
 		execute(new RedisCallback<Object>() {
 			@Override
-			public Object doInRedis(RedisConnection connection) throws Exception {
+			public Object doInRedis(RedisConnection connection) {
 				connection.del(keySerializer.serialize(redisKey));
 				return null;
 			}
@@ -96,9 +96,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			T result = action.doInRedis(connToExpose);
 			// TODO: should do flush?
 			return postProcessResult(result, conn, existingConnection);
-		} catch (Exception ex) {
-			// TODO: too generic ?
-			throw tryToConvertRedisAccessException(ex);
 		} finally {
 			RedisConnectionUtils.releaseConnection(conn, factory);
 		}
@@ -229,7 +226,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public final V doInRedis(RedisConnection connection) throws Exception {
+		public final V doInRedis(RedisConnection connection) {
 			byte[] result = inRedis(rawKey(key), connection);
 			if (result != null) {
 				return (V) valueSerializer.deserialize(result);
@@ -281,7 +278,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Integer>() {
 			@Override
-			public Integer doInRedis(RedisConnection connection) throws Exception {
+			public Integer doInRedis(RedisConnection connection) {
 				if (delta == 1) {
 					return connection.incr(rawKey);
 				}
@@ -327,7 +324,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		execute(new RedisCallback<Object>() {
 			@Override
-			public Object doInRedis(RedisConnection connection) throws Exception {
+			public Object doInRedis(RedisConnection connection) {
 				connection.watch(rawKeys);
 				return null;
 			}
@@ -340,7 +337,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		execute(new RedisCallback<Object>() {
 			@Override
-			public Object doInRedis(RedisConnection connection) throws Exception {
+			public Object doInRedis(RedisConnection connection) {
 				connection.del(rawKeys);
 				return null;
 			}
@@ -359,7 +356,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return execute(new RedisCallback<List<V>>() {
 				@Override
-				public List<V> doInRedis(RedisConnection connection) throws Exception {
+				public List<V> doInRedis(RedisConnection connection) {
 					return values(connection.bLPop(timeout, rawKeys), List.class);
 				}
 			}, true);
@@ -370,7 +367,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[][] rawKeys = rawKeys(keys);
 			return execute(new RedisCallback<List<V>>() {
 				@Override
-				public List<V> doInRedis(RedisConnection connection) throws Exception {
+				public List<V> doInRedis(RedisConnection connection) {
 					return values(connection.bRPop(timeout, rawKeys), List.class);
 				}
 			}, true);
@@ -402,7 +399,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawValue = rawValue(value);
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.lPush(rawKey, rawValue);
 				}
 			}, true);
@@ -413,7 +410,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawKey = rawKey(key);
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.lLen(rawKey);
 				}
 			}, true);
@@ -424,7 +421,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawKey = rawKey(key);
 			return execute(new RedisCallback<List<V>>() {
 				@Override
-				public List<V> doInRedis(RedisConnection connection) throws Exception {
+				public List<V> doInRedis(RedisConnection connection) {
 					return values(connection.lRange(rawKey, start, end), List.class);
 				}
 			}, true);
@@ -436,7 +433,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawValue = rawValue(value);
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.lRem(rawKey, count, rawValue);
 				}
 			}, true);
@@ -458,7 +455,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawValue = rawValue(value);
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.rPush(rawKey, rawValue);
 				}
 			}, true);
@@ -520,7 +517,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawValue = rawValue(value);
 			return execute(new RedisCallback<Boolean>() {
 				@Override
-				public Boolean doInRedis(RedisConnection connection) throws Exception {
+				public Boolean doInRedis(RedisConnection connection) {
 					return connection.sAdd(rawKey, rawValue);
 				}
 			}, true);
@@ -531,7 +528,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.sDiff(rawKeys);
 				}
 			}, true);
@@ -545,7 +542,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawDestKey = rawKey(destKey);
 			Object rawValues = execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.sDiffStore(rawDestKey, rawKeys);
 					return null;
 				}
@@ -562,7 +559,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.sInter(rawKeys);
 				}
 			}, true);
@@ -576,7 +573,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawDestKey = rawKey(destKey);
 			Object rawValues = execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.sInterStore(rawDestKey, rawKeys);
 					return null;
 				}
@@ -589,7 +586,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawValue = rawValue(o);
 			return execute(new RedisCallback<Boolean>() {
 				@Override
-				public Boolean doInRedis(RedisConnection connection) throws Exception {
+				public Boolean doInRedis(RedisConnection connection) {
 					return connection.sIsMember(rawKey, rawValue);
 				}
 			}, true);
@@ -600,7 +597,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawKey = rawKey(key);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.sMembers(rawKey);
 				}
 			}, true);
@@ -614,7 +611,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawValue = rawValue(o);
 			return execute(new RedisCallback<Boolean>() {
 				@Override
-				public Boolean doInRedis(RedisConnection connection) throws Exception {
+				public Boolean doInRedis(RedisConnection connection) {
 					return connection.sRem(rawKey, rawValue);
 				}
 			}, true);
@@ -625,7 +622,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawKey = rawKey(key);
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.sCard(rawKey);
 				}
 			}, true);
@@ -636,7 +633,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.sUnion(rawKeys);
 				}
 			}, true);
@@ -650,7 +647,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.sUnionStore(rawDestKey, rawKeys);
 					return null;
 				}
@@ -681,7 +678,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return execute(new RedisCallback<Boolean>() {
 				@Override
-				public Boolean doInRedis(RedisConnection connection) throws Exception {
+				public Boolean doInRedis(RedisConnection connection) {
 					return connection.zAdd(rawKey, score, rawValue);
 				}
 			}, true);
@@ -698,7 +695,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.zInterStore(rawDestKey, rawKeys);
 					return null;
 				}
@@ -711,7 +708,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.zRange(rawKey, start, end);
 				}
 			}, true);
@@ -725,7 +722,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.zRangeByScore(rawKey, min, max);
 				}
 			}, true);
@@ -740,7 +737,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.zRank(rawKey, rawValue);
 				}
 			}, true);
@@ -753,7 +750,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return execute(new RedisCallback<Boolean>() {
 				@Override
-				public Boolean doInRedis(RedisConnection connection) throws Exception {
+				public Boolean doInRedis(RedisConnection connection) {
 					return connection.zRem(rawKey, rawValue);
 				}
 			}, true);
@@ -764,7 +761,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawKey = rawKey(key);
 			execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.zRemRange(rawKey, start, end);
 					return null;
 				}
@@ -776,7 +773,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawKey = rawKey(key);
 			execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.zRemRangeByScore(rawKey, min, max);
 					return null;
 				}
@@ -789,7 +786,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
-				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
+				public Set<byte[]> doInRedis(RedisConnection connection) {
 					return connection.zRevRange(rawKey, start, end);
 				}
 			}, true);
@@ -803,7 +800,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return execute(new RedisCallback<Integer>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) throws Exception {
+				public Integer doInRedis(RedisConnection connection) {
 					return connection.zCard(rawKey);
 				}
 			}, true);
@@ -815,7 +812,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
-				public Object doInRedis(RedisConnection connection) throws Exception {
+				public Object doInRedis(RedisConnection connection) {
 					connection.zUnionStore(rawDestKey, rawKeys);
 					return null;
 				}
