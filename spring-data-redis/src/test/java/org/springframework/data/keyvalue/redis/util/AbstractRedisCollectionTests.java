@@ -16,26 +16,25 @@
 package org.springframework.data.keyvalue.redis.util;
 
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.matchers.JUnitMatchers.hasItem;
-import static org.junit.matchers.JUnitMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.keyvalue.redis.util.AbstractRedisCollection;
-import org.springframework.data.keyvalue.redis.util.RedisStore;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 
 /**
@@ -43,9 +42,14 @@ import org.springframework.data.keyvalue.redis.util.RedisStore;
  *  
  * @author Costin Leau
  */
+@RunWith(Parameterized.class)
 public abstract class AbstractRedisCollectionTests<T> {
 
 	protected AbstractRedisCollection<T> collection;
+	protected ObjectFactory<T> factory;
+	protected RedisTemplate template;
+
+	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
 
 	@Before
 	public void setUp() throws Exception {
@@ -54,22 +58,41 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 	abstract AbstractRedisCollection<T> createCollection();
 
-	abstract void destroyCollection();
-
 	abstract RedisStore<T> copyStore(RedisStore<T> store);
 
+
+	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {
+		this.factory = factory;
+		this.template = template;
+		connFactories.add(template.getConnectionFactory());
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		if (connFactories != null) {
+			for (RedisConnectionFactory connectionFactory : connFactories) {
+				try {
+					((DisposableBean) connectionFactory).destroy();
+					System.out.println("Succesfully cleaned up factory " + connectionFactory);
+				} catch (Exception ex) {
+					System.err.println("Cannot clean factory " + connectionFactory + ex);
+				}
+			}
+		}
+	}
 
 	/**
 	 * Return a new instance of T
 	 * @return
 	 */
-	abstract T getT();
+	protected T getT() {
+		return factory.instance();
+	}
 
 	@After
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
 		collection.getOperations().delete(collection.getKey());
-		destroyCollection();
 	}
 
 	@Test
@@ -107,7 +130,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 	}
 
 	@Test
-	public void containsObject() {
+	public void testContainsObject() {
 		T t1 = getT();
 		assertThat(collection, not(hasItem(t1)));
 		assertThat(collection.add(t1), is(true));
@@ -116,7 +139,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void containsAll() {
+	public void testContainsAll() {
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -241,7 +264,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
 
 		assertThat(collection.addAll(list), is(true));
-		
+
 		Object[] array = collection.toArray();
 		assertArrayEquals(expectedArray, array);
 	}
@@ -263,5 +286,10 @@ public abstract class AbstractRedisCollectionTests<T> {
 		String name = collection.toString();
 		collection.add(getT());
 		assertEquals(name, collection.toString());
+	}
+
+	@Test
+	public void testGetKey() throws Exception {
+		assertNotNull(collection.getKey());
 	}
 }

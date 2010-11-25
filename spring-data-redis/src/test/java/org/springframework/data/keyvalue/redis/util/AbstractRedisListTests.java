@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.keyvalue.redis.util.RedisList;
+import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 /**
  * Integration test for RedisList
@@ -33,6 +33,16 @@ import org.springframework.data.keyvalue.redis.util.RedisList;
 public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionTests<T> {
 
 	protected RedisList<T> list;
+
+	/**
+	 * Constructs a new <code>AbstractRedisListTests</code> instance.
+	 *
+	 * @param factory
+	 * @param template
+	 */
+	public AbstractRedisListTests(ObjectFactory<T> factory, RedisTemplate template) {
+		super(factory, template);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Before
