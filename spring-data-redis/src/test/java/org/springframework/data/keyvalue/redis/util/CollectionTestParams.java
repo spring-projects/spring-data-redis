@@ -39,6 +39,13 @@ public abstract class CollectionTestParams {
 		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
 
+		//		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
+		//		jredisConnFactory.setPooling(false);
+		//		jredisConnFactory.afterPropertiesSet();
+		//
+		//		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
+		//		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate } });
 	}
 }
