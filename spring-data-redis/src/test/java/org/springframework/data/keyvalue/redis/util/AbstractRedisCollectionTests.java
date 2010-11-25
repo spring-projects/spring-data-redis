@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,8 +33,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.core.RedisCallback;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 
@@ -81,6 +85,11 @@ public abstract class AbstractRedisCollectionTests<T> {
 		}
 	}
 
+	@Parameters
+	public static Collection<Object[]> testParams() {
+		return CollectionTestParams.testParams();
+	}
+
 	/**
 	 * Return a new instance of T
 	 * @return
@@ -93,6 +102,14 @@ public abstract class AbstractRedisCollectionTests<T> {
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
 		collection.getOperations().delete(collection.getKey());
+		template.execute(new RedisCallback<Object>() {
+
+			@Override
+			public Object doInRedis(RedisConnection connection) throws Exception {
+				connection.flushDb();
+				return null;
+			}
+		});
 	}
 
 	@Test

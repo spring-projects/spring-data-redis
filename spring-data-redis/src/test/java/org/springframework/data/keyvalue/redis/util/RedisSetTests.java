@@ -18,30 +18,30 @@ package org.springframework.data.keyvalue.redis.util;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 /**
- * Parameterized instance of Redis tests. 
+ * Parameterized instance of Redis tests.
  * 
  * @author Costin Leau
  */
-public class RedisListTests extends AbstractRedisListTests<Object> {
+public class RedisSetTests extends AbstractRedisSetTests<Object> {
 
 	/**
-	 * Constructs a new <code>RedisListTests</code> instance.
+	 * Constructs a new <code>RedisSetTests</code> instance.
 	 *
 	 * @param factory
-	 * @param connFactory
+	 * @param template
 	 */
-	public RedisListTests(ObjectFactory<Object> factory, RedisTemplate template) {
+	public RedisSetTests(ObjectFactory<Object> factory, RedisTemplate template) {
 		super(factory, template);
 	}
 
 	@Override
 	RedisStore copyStore(RedisStore store) {
-		return new DefaultRedisList(store.getKey().toString(), store.getOperations());
+		return new DefaultRedisSet(store.getKey().toString(), store.getOperations());
 	}
 
 	@Override
 	AbstractRedisCollection<Object> createCollection() {
 		String redisName = getClass().getName();
-		return new DefaultRedisList(redisName, template);
+		return new DefaultRedisSet(redisName, template);
 	}
 }
