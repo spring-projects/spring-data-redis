@@ -262,7 +262,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.get(rawKey);
 			}
-		}, false);
+		}, true);
 	}
 
 	@Override
@@ -273,7 +273,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getSet(rawKey, rawValue);
 			}
-		}, false);
+		}, true);
 	}
 
 	@Override
@@ -296,7 +296,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 				return connection.incrBy(rawKey, delta);
 			}
-		}, false);
+		}, true);
 	}
 
 	@Override
@@ -318,7 +318,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				connection.set(rawKey, rawValue);
 				return null;
 			}
-		}, false);
+		}, true);
 	}
 
 	@Override
@@ -331,7 +331,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				connection.watch(rawKeys);
 				return null;
 			}
-		}, false);
+		}, true);
 	}
 
 	@Override
@@ -344,7 +344,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				connection.del(rawKeys);
 				return null;
 			}
-		}, false);
+		}, true);
 	}
 
 	//
@@ -362,7 +362,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public List<V> doInRedis(RedisConnection connection) throws Exception {
 					return values(connection.bLPop(timeout, rawKeys), List.class);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -373,7 +373,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public List<V> doInRedis(RedisConnection connection) throws Exception {
 					return values(connection.bRPop(timeout, rawKeys), List.class);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -383,7 +383,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 					return connection.lIndex(rawKey, index);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -393,7 +393,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 					return connection.lPop(rawKey);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -405,7 +405,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.lPush(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -416,7 +416,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.lLen(rawKey);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -427,7 +427,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public List<V> doInRedis(RedisConnection connection) throws Exception {
 					return values(connection.lRange(rawKey, start, end), List.class);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -439,7 +439,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.lRem(rawKey, count, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -449,7 +449,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 					return connection.rPop(rawKey);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -461,7 +461,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.rPush(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -473,7 +473,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.lSet(rawKey, index, rawValue);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -484,7 +484,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.lTrim(rawKey, start, end);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 	}
 
@@ -523,7 +523,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Boolean doInRedis(RedisConnection connection) throws Exception {
 					return connection.sAdd(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -534,7 +534,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.sDiff(rawKeys);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -549,7 +549,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.sDiffStore(rawDestKey, rawKeys);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -565,7 +565,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.sInter(rawKeys);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -580,7 +580,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.sInterStore(rawDestKey, rawKeys);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -592,7 +592,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Boolean doInRedis(RedisConnection connection) throws Exception {
 					return connection.sIsMember(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -603,7 +603,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.sMembers(rawKey);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -617,7 +617,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Boolean doInRedis(RedisConnection connection) throws Exception {
 					return connection.sRem(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -628,7 +628,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.sCard(rawKey);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -639,7 +639,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.sUnion(rawKeys);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -654,7 +654,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.sUnionStore(rawDestKey, rawKeys);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 	}
 
@@ -684,7 +684,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Boolean doInRedis(RedisConnection connection) throws Exception {
 					return connection.zAdd(rawKey, score, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -702,7 +702,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.zInterStore(rawDestKey, rawKeys);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -714,7 +714,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.zRange(rawKey, start, end);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -728,7 +728,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.zRangeByScore(rawKey, min, max);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -743,7 +743,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.zRank(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -756,7 +756,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Boolean doInRedis(RedisConnection connection) throws Exception {
 					return connection.zRem(rawKey, rawValue);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -768,7 +768,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.zRemRange(rawKey, start, end);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -780,7 +780,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.zRemRangeByScore(rawKey, min, max);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -792,7 +792,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Set<byte[]> doInRedis(RedisConnection connection) throws Exception {
 					return connection.zRevRange(rawKey, start, end);
 				}
-			}, false);
+			}, true);
 
 			return values(rawValues, Set.class);
 		}
@@ -806,7 +806,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				public Integer doInRedis(RedisConnection connection) throws Exception {
 					return connection.zCard(rawKey);
 				}
-			}, false);
+			}, true);
 		}
 
 		@Override
@@ -819,7 +819,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					connection.zUnionStore(rawDestKey, rawKeys);
 					return null;
 				}
-			}, false);
+			}, true);
 		}
 	}
 }
