@@ -129,7 +129,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	}
 
 	private String[] extractKeys(RedisSet<?>... sets) {
-		String[] keys = new String[sets.length + 1];
+		String[] keys = new String[sets.length];
 		for (int i = 0; i < keys.length; i++) {
 			keys[i] = sets[i].getKey();
 		}
