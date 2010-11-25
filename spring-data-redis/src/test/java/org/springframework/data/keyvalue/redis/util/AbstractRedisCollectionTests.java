@@ -194,8 +194,9 @@ public abstract class AbstractRedisCollectionTests<T> {
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
+		T t4 = getT();
 
-		List<T> list = Arrays.asList(t1, t2, t3);
+		List<T> list = Arrays.asList(t1, t2, t3, t4);
 
 		assertThat(collection.addAll(list), is(true));
 		Iterator<T> iterator = collection.iterator();
@@ -203,6 +204,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		assertEquals(t1, iterator.next());
 		assertEquals(t2, iterator.next());
 		assertEquals(t3, iterator.next());
+		assertEquals(t4, iterator.next());
 		assertFalse(iterator.hasNext());
 	}
 
