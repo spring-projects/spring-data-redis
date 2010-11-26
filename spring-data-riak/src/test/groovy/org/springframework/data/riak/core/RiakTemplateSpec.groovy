@@ -178,7 +178,7 @@ class RiakTemplateSpec extends Specification {
 
   }
 
-  def "Test Map/Reduce"() {
+  def "Test Map/Reduce returning Integer"() {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
@@ -193,7 +193,29 @@ class RiakTemplateSpec extends Specification {
         addPhase(reducePhase)
 
     when:
-    def result = riak.execute(job, List)
+    def result = riak.execute(job, Integer)
+
+    then:
+    1 == result
+
+  }
+
+  def "Test Map/Reduce returning List"() {
+
+    given:
+    MapReduceJob job = riak.createMapReduceJob()
+    def mapJs = new JavascriptMapReduceOperation("function(v){ return [1]; }")
+    def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
+
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ return [v.length]; }")
+    def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
+
+    job.addInputs(["test"]).
+        addPhase(mapPhase).
+        addPhase(reducePhase)
+
+    when:
+    def result = riak.execute(job)
 
     then:
     1 == result.size()

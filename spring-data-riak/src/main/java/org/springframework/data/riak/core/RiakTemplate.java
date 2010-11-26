@@ -548,11 +548,25 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
 
   public <T> T execute(MapReduceJob job, Class<T> targetType) {
     RestTemplate restTemplate = getRestTemplate();
-    ResponseEntity<T> resp = restTemplate.postForEntity(mapReduceUri,
+    ResponseEntity<List> resp = restTemplate.postForEntity(mapReduceUri,
         job.toJson(),
-        targetType);
+        List.class);
     if (resp.hasBody()) {
-      return resp.getBody();
+      if (!targetType.isAssignableFrom(List.class)) {
+        List<?> results = (List<?>) resp.getBody();
+        if (results.size() == 1) {
+          Object obj = results.get(0);
+          if (obj.getClass() != targetType) {
+            ConversionService conv = getConversionService();
+            if (conv.canConvert(obj.getClass(), targetType)) {
+              return conv.convert(obj, targetType);
+            }
+          } else {
+            return (T) obj;
+          }
+        }
+      }
+      return (T) resp.getBody();
     }
     return null;
   }
