@@ -22,15 +22,15 @@ import org.springframework.data.keyvalue.redis.core.RedisTemplate;
  * 
  * @author Costin Leau
  */
-public class RedisZSetTest extends AbstractRedisZSetTest<Object> {
+public class RedisZSetTests extends AbstractRedisZSetTest<Object> {
 
 	/**
-	 * Constructs a new <code>RedisZSetTest</code> instance.
+	 * Constructs a new <code>RedisZSetTests</code> instance.
 	 *
 	 * @param factory
 	 * @param template
 	 */
-	public RedisZSetTest(ObjectFactory<Object> factory, RedisTemplate template) {
+	public RedisZSetTests(ObjectFactory<Object> factory, RedisTemplate template) {
 		super(factory, template);
 	}
 
