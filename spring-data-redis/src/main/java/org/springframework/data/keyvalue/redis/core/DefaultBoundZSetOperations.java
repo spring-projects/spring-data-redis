@@ -63,6 +63,16 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
+	public Integer reverseRank(Object o) {
+		return ops.reverseRank(getKey(), o);
+	}
+
+	@Override
+	public Double score(Object o) {
+		return ops.score(getKey(), o);
+	}
+
+	@Override
 	public boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}

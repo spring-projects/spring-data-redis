@@ -744,6 +744,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public Integer reverseRank(K key, Object o) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(o);
+
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) {
+					return connection.zRevRank(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
 		public boolean remove(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);
@@ -792,6 +805,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}, true);
 
 			return values(rawValues, Set.class);
+		}
+
+		@Override
+		public Double score(K key, Object o) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(o);
+
+			return execute(new RedisCallback<Double>() {
+				@Override
+				public Double doInRedis(RedisConnection connection) {
+					return connection.zScore(rawKey, rawValue);
+				}
+			}, true);
 		}
 
 		@Override

@@ -31,6 +31,8 @@ public interface ZSetOperations<K, V> {
 
 	Set<V> rangeByScore(K key, double min, double max);
 
+	Set<V> reverseRange(K key, int start, int end);
+
 	void removeRange(K key, int start, int end);
 
 	void removeRangeByScore(K key, double min, double max);
@@ -41,11 +43,13 @@ public interface ZSetOperations<K, V> {
 
 	Integer rank(K key, Object o);
 
+	Integer reverseRank(K key, Object o);
+
+	Double score(K key, Object o);
+
 	boolean remove(K key, Object o);
 
 	int size(K key);
-
-	Set<V> reverseRange(K key, int start, int end);
 
 	RedisOperations<K, V> getOperations();
 }

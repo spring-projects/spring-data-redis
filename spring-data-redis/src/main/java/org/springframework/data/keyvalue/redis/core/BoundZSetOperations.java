@@ -34,6 +34,8 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	Set<V> rangeByScore(double min, double max);
 
+	Set<V> reverseRange(int start, int end);
+
 	void removeRange(int start, int end);
 
 	void removeRangeByScore(double min, double max);
@@ -44,9 +46,11 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	Integer rank(Object o);
 
+	Integer reverseRank(Object o);
+
 	boolean remove(Object o);
 
 	int size();
 
-	Set<V> reverseRange(int start, int end);
+	Double score(Object o);
 }
