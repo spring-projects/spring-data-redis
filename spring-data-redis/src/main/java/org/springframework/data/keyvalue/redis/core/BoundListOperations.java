@@ -24,6 +24,8 @@ import java.util.List;
  */
 public interface BoundListOperations<K, V> extends KeyBound<K> {
 
+	RedisOperations<K, V> getOperations();
+
 	List<V> range(int start, int end);
 
 	void trim(int start, int end);
@@ -41,4 +43,6 @@ public interface BoundListOperations<K, V> extends KeyBound<K> {
 	Integer remove(int i, Object value);
 
 	V index(int index);
+
+	void set(int index, V value);
 }

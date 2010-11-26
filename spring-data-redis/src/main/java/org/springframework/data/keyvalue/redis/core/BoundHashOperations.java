@@ -1,51 +1,46 @@
 /*
  * Copyright 2010 the original author or authors.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Set operations bound to a certain key.
- * 
  * @author Costin Leau
  */
-public interface BoundSetOperations<K, V> extends KeyBound<K> {
+public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
-	RedisOperations<K, V> getOperations();
+	RedisOperations<H, ?> getOperations();
 
-	Set<V> diff(K... keys);
+	boolean hasKey(Object key);
 
-	void diffAndStore(K destKey, K... keys);
+	Integer increment(HK key, int delta);
 
-	Set<V> intersect(K... keys);
+	HV get(Object key);
 
-	void intersectAndStore(K destKey, K... keys);
+	void set(HK key, HV value);
 
-	Set<V> union(K... keys);
+	void multiSet(Map<? extends HK, ? extends HV> m);
 
-	void unionAndStore(K destKey, K... keys);
+	Set<HK> keys();
 
-	Boolean add(V value);
+	Collection<HV> values();
 
-	boolean isMember(Object o);
+	Integer length();
 
-	Set<V> members();
-
-	boolean remove(Object o);
-
-	int size();
+	void delete(Object key);
 }

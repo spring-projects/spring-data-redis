@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
-import org.springframework.data.keyvalue.redis.core.ListOperations;
+import org.springframework.data.keyvalue.redis.core.BoundListOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
@@ -31,7 +31,7 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
-	private final ListOperations<String, E> listOps;
+	private final BoundListOperations<String, E> listOps;
 
 	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
 
@@ -45,24 +45,35 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		}
 	}
 
+	/**
+	 * Constructs a new <code>DefaultRedisList</code> instance.
+	 *
+	 * @param key
+	 * @param operations
+	 */
 	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
 		super(key, operations);
-		listOps = operations.listOps();
+		listOps = operations.forList(key);
+	}
+
+	public DefaultRedisList(BoundListOperations<String, E> boundOps) {
+		super(boundOps.getKey(), boundOps.getOperations());
+		listOps = boundOps;
 	}
 
 	@Override
 	public List<E> range(int start, int end) {
-		return listOps.range(key, start, end);
+		return listOps.range(start, end);
 	}
 
 	@Override
 	public RedisList<E> trim(int start, int end) {
-		listOps.trim(key, start, end);
+		listOps.trim(start, end);
 		return this;
 	}
 
 	private List<E> content() {
-		return listOps.range(key, 0, -1);
+		return listOps.range(0, -1);
 	}
 
 	@Override
@@ -72,38 +83,38 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public int size() {
-		return listOps.length(key);
+		return listOps.length();
 	}
 
 
 	@Override
 	public boolean add(E value) {
-		listOps.rightPush(key, value);
+		listOps.rightPush(value);
 		return true;
 	}
 
 	@Override
 	public void clear() {
-		listOps.trim(key, size() + 1, 0);
+		listOps.trim(size() + 1, 0);
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		Integer result = listOps.remove(key, 0, o);
+		Integer result = listOps.remove(0, o);
 		return (result != null && result.intValue() > 0);
 	}
 
 	@Override
 	public void add(int index, E element) {
 		if (index == 0) {
-			listOps.leftPush(key, element);
+			listOps.leftPush(element);
 			return;
 		}
 
 		int size = size();
 
 		if (index == size()) {
-			listOps.rightPush(key, element);
+			listOps.rightPush(element);
 			return;
 		}
 
@@ -121,7 +132,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 			Collection<? extends E> reverseC = CollectionUtils.reverse(c);
 
 			for (E e : reverseC) {
-				listOps.leftPush(key, e);
+				listOps.leftPush(e);
 			}
 			return true;
 		}
@@ -130,7 +141,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		if (index == size()) {
 			for (E e : c) {
-				listOps.rightPush(key, e);
+				listOps.rightPush(e);
 			}
 			return true;
 		}
@@ -147,7 +158,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		if (index < 0 || index > size()) {
 			throw new IndexOutOfBoundsException();
 		}
-		return listOps.index(key, index);
+		return listOps.index(index);
 	}
 
 	@Override
@@ -179,7 +190,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public E set(int index, E e) {
 		E object = get(index);
-		listOps.set(key, index, e);
+		listOps.set(index, e);
 		return object;
 	}
 
@@ -201,21 +212,21 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean offer(E e) {
-		listOps.leftPush(key, e);
+		listOps.leftPush(e);
 		return true;
 	}
 
 
 	@Override
 	public E peek() {
-		E element = listOps.index(key, 0);
+		E element = listOps.index(0);
 		return (element == null ? null : element);
 	}
 
 
 	@Override
 	public E poll() {
-		E element = listOps.leftPop(key);
+		E element = listOps.leftPop();
 		return (element == null ? null : element);
 	}
 

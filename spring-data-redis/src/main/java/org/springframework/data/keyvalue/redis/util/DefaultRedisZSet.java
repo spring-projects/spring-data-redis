@@ -27,7 +27,7 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
  * 
  * @author Costin Leau
  */
-class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
+public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
 	private final BoundZSetOperations<String, E> boundZSetOps;
 	private double defaultScore = 1;
