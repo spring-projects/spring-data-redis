@@ -130,6 +130,45 @@
         <groupId>org.spockframework</groupId>
         <artifactId>spock-maven</artifactId>
       </plugin>
+      <!-- For running Groovy/Spock tests -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <configuration>
+          <tasks>
+            <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc"/>
+            <groovyc srcdir="src/test/groovy"
+                     destdir="${project.build.testOutputDirectory}"
+                     listfiles="yes"
+                     classpathref="maven.test.classpath"/>
+          </tasks>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>1.7.5</version>
+          </dependency>
+          <dependency>
+            <groupId>asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>3.2</version>
+          </dependency>
+          <dependency>
+            <groupId>antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>2.7.7</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
     </plugins>
   </build>
 
