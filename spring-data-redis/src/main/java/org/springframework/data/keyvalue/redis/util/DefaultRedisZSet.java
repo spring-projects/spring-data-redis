@@ -15,23 +15,23 @@
  */
 package org.springframework.data.keyvalue.redis.util;
 
-import java.util.Comparator;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.SortedSet;
 
 import org.springframework.data.keyvalue.redis.core.BoundZSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
- * Default implementation for {@link RedisSortedSet}.
+ * Default implementation for {@link RedisZSet}.
  * 
  * @author Costin Leau
  */
-class DefaultRedisSortedSet<E> extends AbstractRedisCollection<E> implements RedisSortedSet<E> {
+class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
 	private final BoundZSetOperations<String, E> boundZSetOps;
-	
+	private double defaultScore = 1;
+
 	private class DefaultRedisSortedSetIterator extends RedisIterator<E> {
 
 		public DefaultRedisSortedSetIterator(Iterator<E> delegate) {
@@ -40,8 +40,18 @@ class DefaultRedisSortedSet<E> extends AbstractRedisCollection<E> implements Red
 
 		@Override
 		protected void removeFromRedisStorage(E item) {
-			DefaultRedisSortedSet.this.remove(item);
+			DefaultRedisZSet.this.remove(item);
 		}
+	}
+
+	/**
+	 * Constructs a new <code>DefaultRedisZSet</code> instance with a default score of '1'.
+	 *
+	 * @param key
+	 * @param operations
+	 */
+	public DefaultRedisZSet(String key, RedisOperations<String, E> operations) {
+		this(key, operations, 1);
 	}
 
 	/**
@@ -49,22 +59,40 @@ class DefaultRedisSortedSet<E> extends AbstractRedisCollection<E> implements Red
 	 *
 	 * @param key
 	 * @param operations
+	 * @param defaultScore
 	 */
-	public DefaultRedisSortedSet(String key, RedisOperations<String, E> operations) {
+	public DefaultRedisZSet(String key, RedisOperations<String, E> operations, double defaultScore) {
 		super(key, operations);
 		boundZSetOps = operations.forZSet(key);
+		this.defaultScore = defaultScore;
 	}
 
 
-	public DefaultRedisSortedSet(BoundZSetOperations<String, E> boundOps) {
+	/**
+	 * Constructs a new <code>DefaultRedisZSet</code> instance with a default score of '1'.
+	 *
+	 * @param boundOps
+	 */
+	public DefaultRedisZSet(BoundZSetOperations<String, E> boundOps) {
+		this(boundOps, 1);
+	}
+
+	/**
+	 * Constructs a new <code>DefaultRedisZSet</code> instance.
+	 *
+	 * @param boundOps
+	 * @param defaultScore
+	 */
+	public DefaultRedisZSet(BoundZSetOperations<String, E> boundOps, double defaultScore) {
 		super(boundOps.getKey(), boundOps.getOperations());
 		this.boundZSetOps = boundOps;
+		this.defaultScore = defaultScore;
 	}
 
 	@Override
-	public RedisSortedSet<E> intersectAndStore(String destKey, RedisSortedSet<E>... sets) {
+	public RedisZSet<E> intersectAndStore(String destKey, RedisZSet<E>... sets) {
 		boundZSetOps.intersectAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSortedSet<E>(boundZSetOps.getOperations().forZSet(destKey));
+		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().forZSet(destKey), getDefaultScore());
 	}
 
 	@Override
@@ -73,31 +101,41 @@ class DefaultRedisSortedSet<E> extends AbstractRedisCollection<E> implements Red
 	}
 
 	@Override
+	public Set<E> reverseRange(int start, int end) {
+		return boundZSetOps.reverseRange(start, end);
+	}
+
+	@Override
 	public Set<E> rangeByScore(double min, double max) {
 		return boundZSetOps.rangeByScore(min, max);
 	}
 
 	@Override
-	public RedisSortedSet<E> remove(int start, int end) {
+	public RedisZSet<E> remove(int start, int end) {
 		boundZSetOps.removeRange(start, end);
 		return this;
 	}
 
 	@Override
-	public RedisSortedSet<E> removeByScore(double min, double max) {
+	public RedisZSet<E> removeByScore(double min, double max) {
 		boundZSetOps.removeRangeByScore(min, max);
 		return this;
 	}
 
 	@Override
-	public RedisSortedSet<E> unionAndStore(String destKey, RedisSortedSet<E>... sets) {
+	public RedisZSet<E> unionAndStore(String destKey, RedisZSet<E>... sets) {
 		boundZSetOps.unionAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSortedSet<E>(boundZSetOps.getOperations().forZSet(destKey));
+		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().forZSet(destKey), getDefaultScore());
 	}
 
 	@Override
 	public boolean add(E e) {
-		return boundZSetOps.add(e, 0);
+		return add(e, getDefaultScore());
+	}
+
+	@Override
+	public boolean add(E e, double score) {
+		return boundZSetOps.add(e, score);
 	}
 
 	@Override
@@ -126,36 +164,42 @@ class DefaultRedisSortedSet<E> extends AbstractRedisCollection<E> implements Red
 	}
 
 	@Override
-	public Comparator<? super E> comparator() {
-		return null;
+	public Double getDefaultScore() {
+		return defaultScore;
 	}
 
 	@Override
 	public E first() {
-		return boundZSetOps.range(0, 0).iterator().next();
-	}
-
-	@Override
-	public SortedSet<E> headSet(E toElement) {
-		throw new UnsupportedOperationException();
+		Iterator<E> iterator = boundZSetOps.range(0, 0).iterator();
+		if (iterator.hasNext())
+			return iterator.next();
+		throw new NoSuchElementException();
 	}
 
 	@Override
 	public E last() {
-		return boundZSetOps.reverseRange(0, 0).iterator().next();
+		Iterator<E> iterator = boundZSetOps.reverseRange(0, 0).iterator();
+		if (iterator.hasNext())
+			return iterator.next();
+		throw new NoSuchElementException();
 	}
 
 	@Override
-	public SortedSet<E> subSet(E fromElement, E toElement) {
-		throw new UnsupportedOperationException();
+	public Integer rank(Object o) {
+		return boundZSetOps.rank(o);
 	}
 
 	@Override
-	public SortedSet<E> tailSet(E fromElement) {
-		throw new UnsupportedOperationException();
+	public Integer reverseRank(Object o) {
+		return boundZSetOps.reverseRank(o);
 	}
 
-	private String[] extractKeys(RedisSortedSet<E>... sets) {
+	@Override
+	public Double score(Object o) {
+		return boundZSetOps.score(o);
+	}
+
+	private String[] extractKeys(RedisZSet<E>... sets) {
 		String[] keys = new String[sets.length + 1];
 		keys[0] = key;
 		for (int i = 0; i < keys.length; i++) {
