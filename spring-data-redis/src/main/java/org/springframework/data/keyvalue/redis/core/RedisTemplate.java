@@ -483,6 +483,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 		}
+
+		@Override
+		public RedisOperations<K, V> getOperations() {
+			return RedisTemplate.this;
+		}
 	}
 
 	//
@@ -571,7 +576,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		public void intersectAndStore(K key, K destKey, K... keys) {
 			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
 			final byte[] rawDestKey = rawKey(destKey);
-			Object rawValues = execute(new RedisCallback<Object>() {
+			execute(new RedisCallback<Object>() {
 				@Override
 				public Object doInRedis(RedisConnection connection) {
 					connection.sInterStore(rawDestKey, rawKeys);

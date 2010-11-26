@@ -47,4 +47,6 @@ public interface ListOperations<K, V> {
 	List<V> blockingLeftPop(int timeout, K... keys);
 
 	List<V> blockingRightPop(int timeout, K... keys);
+
+	RedisOperations<K, V> getOperations();
 }

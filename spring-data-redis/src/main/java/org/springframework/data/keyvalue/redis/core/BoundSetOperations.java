@@ -25,11 +25,11 @@ import java.util.Set;
  */
 public interface BoundSetOperations<K, V> extends KeyBound<K> {
 
+	RedisOperations<K, V> getOperations();
+
 	Set<V> diff(K... keys);
 
 	void diffAndStore(K destKey, K... keys);
-
-	RedisOperations<K, V> getOperations();
 
 	Set<V> intersect(K... keys);
 
