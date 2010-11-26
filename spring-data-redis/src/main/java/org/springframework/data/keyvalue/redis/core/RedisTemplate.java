@@ -850,4 +850,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}, true);
 		}
 	}
+
+
+	//
+	// Hash Operations
+	//
+
+	@Override
+	public <HF, HV> BoundHashOperations<K, HF, HV> forHash(K key) {
+		return new DefaultBoundHashOperations<K, HF, HV>(key);
+	}
+
+	@Override
+	public <HF, HV> HashOperations<HF, HV> hashOps() {
+		return new DefaultHashOperations<HF, HV>();
+	}
+
+	private class DefaultHashOperations<HF, HV> implements HashOperations<HF, HV> {
+
+	}
 }

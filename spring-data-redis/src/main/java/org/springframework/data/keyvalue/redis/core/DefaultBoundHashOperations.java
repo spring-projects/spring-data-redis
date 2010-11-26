@@ -15,43 +15,19 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
-
 /**
- * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
+ * Default implementation for {@link HashOperations}.
  * 
  * @author Costin Leau
  */
-public interface RedisOperations<K, V> {
+class DefaultBoundHashOperations<K, HF, HV> extends DefaultKeyBound<K> implements BoundHashOperations<K, HF, HV> {
 
-	void set(K key, V value);
-
-	V get(K key);
-
-	V getAndSet(K key, V newValue);
-
-	void watch(K... keys);
-
-	void multi();
-
-	Object exec();
-
-	Integer increment(K key, int delta);
-
-	void delete(K... keys);
-
-	ListOperations<K, V> listOps();
-
-	BoundListOperations<K, V> forList(K key);
-
-	SetOperations<K, V> setOps();
-
-	BoundSetOperations<K, V> forSet(K key);
-
-	ZSetOperations<K, V> zSetOps();
-
-	BoundZSetOperations<K, V> forZSet(K key);
-	
-	<HF, HV> HashOperations<HF, HV> hashOps();
-
-	<HF, HV> BoundHashOperations<K, HF, HV> forHash(K key);
+	/**
+	 * Constructs a new <code>DefaultBoundHashOperations</code> instance.
+	 *
+	 * @param key
+	 */
+	public DefaultBoundHashOperations(K key) {
+		super(key);
+	}
 }

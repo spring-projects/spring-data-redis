@@ -26,54 +26,65 @@ import java.util.List;
 public class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements BoundListOperations<K, V> {
 
 	private final ListOperations<K, V> ops;
-	
+
 	public DefaultBoundListOperations(K key, RedisTemplate<K, V> template) {
 		super(key);
 		this.ops = template.listOps();
 	}
-	
+
+
+	@Override
+	public RedisOperations<K, V> getOperations() {
+		return ops.getOperations();
+	}
+
 	@Override
 	public V index(int index) {
-		throw new UnsupportedOperationException();
+		return ops.index(getKey(), index);
 	}
 
 	@Override
 	public V leftPop() {
-		throw new UnsupportedOperationException();
+		return ops.leftPop(getKey());
 	}
 
 	@Override
 	public Integer leftPush(V value) {
-		throw new UnsupportedOperationException();
+		return ops.leftPush(getKey(), value);
 	}
 
 	@Override
 	public Integer length() {
-		throw new UnsupportedOperationException();
+		return ops.length(getKey());
 	}
 
 	@Override
 	public List<V> range(int start, int end) {
-		throw new UnsupportedOperationException();
+		return ops.range(getKey(), start, end);
 	}
 
 	@Override
 	public Integer remove(int i, Object value) {
-		throw new UnsupportedOperationException();
+		return ops.remove(getKey(), i, value);
 	}
 
 	@Override
 	public V rightPop() {
-		throw new UnsupportedOperationException();
+		return ops.rightPop(getKey());
 	}
 
 	@Override
 	public Integer rightPush(V value) {
-		throw new UnsupportedOperationException();
+		return ops.rightPush(getKey(), value);
 	}
 
 	@Override
 	public void trim(int start, int end) {
-		throw new UnsupportedOperationException();
+		ops.trim(getKey(), start, end);
+	}
+
+	@Override
+	public void set(int index, V value) {
+		ops.set(getKey(), index, value);
 	}
 }
