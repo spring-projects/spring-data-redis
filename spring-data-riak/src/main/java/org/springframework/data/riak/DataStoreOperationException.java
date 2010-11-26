@@ -23,6 +23,8 @@ import org.springframework.dao.DataAccessException;
  */
 public class DataStoreOperationException extends DataAccessException {
 
+  public static final long serialVersionUID = 1L;
+
   public DataStoreOperationException(String msg) {
     super(msg);
   }

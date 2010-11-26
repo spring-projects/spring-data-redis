@@ -23,6 +23,8 @@ import org.springframework.dao.DataAccessResourceFailureException;
  */
 public class DataStoreConnectionFailureException extends DataAccessResourceFailureException {
 
+  public static final long serialVersionUID = 1L;
+
   public DataStoreConnectionFailureException(String msg) {
     super(msg);
   }
