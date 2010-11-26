@@ -21,8 +21,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
@@ -209,6 +211,17 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		return (T) values;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <H> Collection<H> arbitraryValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
+		Collection<H> values = (List.class.isAssignableFrom(type) ? new ArrayList<H>(rawValues.size())
+				: new LinkedHashSet<H>(rawValues.size()));
+		for (byte[] bs : rawValues) {
+			values.add((H) valueSerializer.deserialize(bs));
+		}
+
+		return values;
 	}
 
 	// utility methods for the template internal methods
@@ -857,16 +870,145 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	//
 
 	@Override
-	public <HF, HV> BoundHashOperations<K, HF, HV> forHash(K key) {
-		return new DefaultBoundHashOperations<K, HF, HV>(key);
+	public <HK, HV> BoundHashOperations<K, HK, HV> forHash(K key) {
+		return new DefaultBoundHashOperations<K, HK, HV>(key, this);
 	}
 
 	@Override
-	public <HF, HV> HashOperations<HF, HV> hashOps() {
-		return new DefaultHashOperations<HF, HV>();
+	public <HK, HV> HashOperations<K, HK, HV> hashOps() {
+		return new DefaultHashOperations<HK, HV>();
 	}
 
-	private class DefaultHashOperations<HF, HV> implements HashOperations<HF, HV> {
+	private class DefaultHashOperations<HK, HV> implements HashOperations<K, HK, HV> {
 
+		@Override
+		public HV get(K key, Object hashKey) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawHashKey = rawValue(hashKey);
+
+			byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
+				@Override
+				public byte[] doInRedis(RedisConnection connection) {
+					return connection.hGet(rawKey, rawHashKey);
+				}
+			}, true);
+
+			return (HV) valueSerializer.deserialize(rawHashValue);
+		}
+
+		@Override
+		public Boolean hasKey(K key, Object hashKey) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawHashKey = rawValue(hashKey);
+
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) {
+					return connection.hExists(rawKey, rawHashKey);
+				}
+			}, true);
+		}
+
+		@Override
+		public Integer increment(K key, HK hashKey, final int delta) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawHashKey = rawValue(hashKey);
+
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) {
+					return connection.hIncrBy(rawKey, rawHashKey, delta);
+				}
+			}, true);
+
+		}
+
+		@Override
+		public Set<HK> keys(K key) {
+			final byte[] rawKey = rawKey(key);
+
+			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+				@Override
+				public Set<byte[]> doInRedis(RedisConnection connection) {
+					return connection.hKeys(rawKey);
+				}
+			}, true);
+
+			return (Set<HK>) arbitraryValues(rawValues, Set.class);
+		}
+
+		@Override
+		public Integer length(K key) {
+			final byte[] rawKey = rawKey(key);
+
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) {
+					return connection.hLen(rawKey);
+				}
+			}, true);
+		}
+
+		@Override
+		public void multiSet(K key, Map<? extends HK, ? extends HV> m) {
+			final byte[] rawKey = rawKey(key);
+
+			final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
+
+			for (Map.Entry<byte[], byte[]> entry : hashes.entrySet()) {
+				hashes.put(rawValue(entry.getKey()), rawValue(entry.getValue()));
+			}
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) {
+					connection.hMSet(rawKey, hashes);
+					return null;
+				}
+			}, true);
+		}
+
+		@Override
+		public void set(K key, HK hashKey, HV value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashValue = rawValue(value);
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) {
+					connection.hSet(rawKey, rawHashKey, rawHashValue);
+					return null;
+				}
+			}, true);
+		}
+
+		@Override
+		public List<HV> values(K key) {
+			final byte[] rawKey = rawKey(key);
+
+			List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+				@Override
+				public List<byte[]> doInRedis(RedisConnection connection) {
+					return connection.hVals(rawKey);
+				}
+			}, true);
+
+			return (List<HV>) arbitraryValues(rawValues, List.class);
+		}
+
+		@Override
+		public void delete(K key, Object hashKey) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawHashKey = rawValue(hashKey);
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) {
+					connection.hDel(rawKey, rawHashKey);
+					return null;
+				}
+			}, true);
+		}
 	}
 }

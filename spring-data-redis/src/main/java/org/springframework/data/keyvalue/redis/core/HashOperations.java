@@ -15,12 +15,32 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Redis map specific operations working on a hash.
  * 
  * @author Costin Leau
  */
-public interface HashOperations<HF, HV> {
+public interface HashOperations<H, HK, HV> {
 
+	void delete(H key, Object hashKey);
 
+	Boolean hasKey(H key, Object hashKey);
+
+	HV get(H key, Object hashKey);
+
+	Integer increment(H key, HK hashKey, int delta);
+
+	Set<HK> keys(H key);
+
+	Integer length(H key);
+
+	void multiSet(H key, Map<? extends HK, ? extends HV> m);
+
+	void set(H key, HK hashKey, HV value);
+
+	Collection<HV> values(H key);
 }

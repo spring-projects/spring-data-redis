@@ -15,19 +15,78 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Default implementation for {@link HashOperations}.
  * 
  * @author Costin Leau
  */
-class DefaultBoundHashOperations<K, HF, HV> extends DefaultKeyBound<K> implements BoundHashOperations<K, HF, HV> {
+class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implements BoundHashOperations<H, HK, HV> {
+
+	private final HashOperations<H, HK, HV> ops;
+	private RedisOperations<H, ?> template;
 
 	/**
 	 * Constructs a new <code>DefaultBoundHashOperations</code> instance.
 	 *
 	 * @param key
+	 * @param template
 	 */
-	public DefaultBoundHashOperations(K key) {
+	public DefaultBoundHashOperations(H key, RedisTemplate<H, ?> template) {
 		super(key);
+		this.ops = template.hashOps();
+	}
+
+	@Override
+	public void delete(Object key) {
+		ops.delete(getKey(), key);
+	}
+
+	@Override
+	public HV get(Object key) {
+		return ops.get(getKey(), key);
+	}
+
+	@Override
+	public RedisOperations<H, ?> getOperations() {
+		return template;
+	}
+
+	@Override
+	public boolean hasKey(Object key) {
+		return ops.hasKey(getKey(), key);
+	}
+
+	@Override
+	public Integer increment(HK key, int delta) {
+		return ops.increment(getKey(), key, delta);
+	}
+
+	@Override
+	public Set<HK> keys() {
+		return ops.keys(getKey());
+	}
+
+	@Override
+	public Integer length() {
+		return ops.length(getKey());
+	}
+
+	@Override
+	public void multiSet(Map<? extends HK, ? extends HV> m) {
+		ops.multiSet(getKey(), m);
+	}
+
+	@Override
+	public void set(HK key, HV value) {
+		ops.set(getKey(), key, value);
+	}
+
+	@Override
+	public Collection<HV> values() {
+		return ops.values(getKey());
 	}
 }

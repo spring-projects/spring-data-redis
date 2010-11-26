@@ -51,7 +51,7 @@ public interface RedisOperations<K, V> {
 
 	BoundZSetOperations<K, V> forZSet(K key);
 	
-	<HF, HV> HashOperations<HF, HV> hashOps();
+	<HK, HV> HashOperations<K, HK, HV> hashOps();
 
-	<HF, HV> BoundHashOperations<K, HF, HV> forHash(K key);
+	<HK, HV> BoundHashOperations<K, HK, HV> forHash(K key);
 }

@@ -15,10 +15,32 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * @author Costin Leau
  */
-public interface BoundHashOperations<K, HF, HV> extends KeyBound<K> {
+public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
+	RedisOperations<H, ?> getOperations();
 
+	boolean hasKey(Object key);
+
+	Integer increment(HK key, int delta);
+
+	HV get(Object key);
+
+	void set(HK key, HV value);
+
+	void multiSet(Map<? extends HK, ? extends HV> m);
+
+	Set<HK> keys();
+
+	Collection<HV> values();
+
+	Integer length();
+
+	void delete(Object key);
 }

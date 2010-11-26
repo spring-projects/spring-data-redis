@@ -41,32 +41,36 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public Integer increment(K key, int delta) {
-		throw new UnsupportedOperationException();
+		return hashOps.increment(key, delta);
 	}
 
 	@Override
 	public boolean putIfAbsent(K key, V value) {
-		throw new UnsupportedOperationException();
+		if (!hashOps.hasKey(key)) {
+			put(key, value);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public String getKey() {
-		throw new UnsupportedOperationException();
+		return hashOps.getKey();
 	}
 
 	@Override
 	public RedisOperations<String, ?> getOperations() {
-		throw new UnsupportedOperationException();
+		return hashOps.getOperations();
 	}
 
 	@Override
 	public void clear() {
-		throw new UnsupportedOperationException();
+		getOperations().delete(getKey());
 	}
 
 	@Override
 	public boolean containsKey(Object key) {
-		throw new UnsupportedOperationException();
+		return hashOps.hasKey(key);
 	}
 
 	@Override
@@ -81,41 +85,45 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public V get(Object key) {
-		throw new UnsupportedOperationException();
+		return hashOps.get(key);
 	}
 
 	@Override
 	public boolean isEmpty() {
-		throw new UnsupportedOperationException();
+		return size() == 0;
 	}
 
 	@Override
 	public Set<K> keySet() {
-		throw new UnsupportedOperationException();
+		return hashOps.keys();
 	}
 
 	@Override
 	public V put(K key, V value) {
-		throw new UnsupportedOperationException();
+		V oldV = get(key);
+		hashOps.set(key, value);
+		return oldV;
 	}
 
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
-		throw new UnsupportedOperationException();
+		hashOps.multiSet(m);
 	}
 
 	@Override
 	public V remove(Object key) {
-		throw new UnsupportedOperationException();
+		V v = get(key);
+		hashOps.delete(key);
+		return v;
 	}
 
 	@Override
 	public int size() {
-		throw new UnsupportedOperationException();
+		return hashOps.length();
 	}
 
 	@Override
 	public Collection<V> values() {
-		throw new UnsupportedOperationException();
+		return hashOps.values();
 	}
 }
