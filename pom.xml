@@ -12,7 +12,7 @@
     <module>spring-data-keyvalue-parent</module>
     <module>spring-data-keyvalue-core</module>
     <module>spring-data-redis</module>
-    <module>spring-datastore-riak</module>
+    <module>spring-data-riak</module>
   </modules>
 
   <build>
