@@ -1018,11 +1018,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		@Override
 		public void multiSet(K key, Map<? extends HK, ? extends HV> m) {
+			if (m.isEmpty()) {
+				return;
+			}
+
 			final byte[] rawKey = rawKey(key);
 
 			final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
 
-			for (Map.Entry<byte[], byte[]> entry : hashes.entrySet()) {
+			for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
 				hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
 			}
 

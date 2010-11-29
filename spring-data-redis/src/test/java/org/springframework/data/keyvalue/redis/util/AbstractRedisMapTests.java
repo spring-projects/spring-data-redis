@@ -17,11 +17,15 @@ package org.springframework.data.keyvalue.redis.util;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.Map.Entry;
 
 import org.junit.After;
@@ -31,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisCallback;
@@ -162,8 +167,15 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertFalse(newInstance.equals(map));
 	}
 
-	public V get(Object key) {
-		return map.get(key);
+	@Test
+	public void testGet() {
+		K k1 = getKey();
+		V v1 = getValue();
+
+		assertNull(map.get(UUID.randomUUID()));
+		assertNull(map.get(k1));
+		map.put(k1, v1);
+		assertEquals(v1, map.get(k1));
 	}
 
 	@Test
@@ -171,8 +183,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertNotNull(map.getKey());
 	}
 
-	public RedisOperations<String, ?> getOperations() {
-		return map.getOperations();
+	@Test
+	public void testGetOperations() {
+		assertEquals(template, map.getOperations());
 	}
 
 	@Test
@@ -181,39 +194,153 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(map.hashCode(), copyStore(map).hashCode());
 	}
 
-	public Integer increment(K key, int delta) {
-		return map.increment(key, delta);
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void testIncrement() {
+		K k1 = getKey();
+		V v1 = getValue();
+
+		map.put(k1, v1);
+		Integer value = map.increment(k1, 1);
+		System.out.println("Value is " + value);
 	}
 
-	public boolean isEmpty() {
-		return map.isEmpty();
+	@Test
+	public void testIsEmpty() {
+		map.clear();
+		assertTrue(map.isEmpty());
+		map.put(getKey(), getValue());
+		assertFalse(map.isEmpty());
+		map.clear();
+		assertTrue(map.isEmpty());
 	}
 
-	public Set<K> keySet() {
-		return map.keySet();
+	@Test
+	public void testKeySet() {
+		map.clear();
+		assertTrue(map.keySet().isEmpty());
+		K k1 = getKey();
+		K k2 = getKey();
+		K k3 = getKey();
+
+		map.put(k1, getValue());
+		map.put(k2, getValue());
+		map.put(k3, getValue());
+
+		Iterator<K> iterator = map.keySet().iterator();
+		assertEquals(k1, iterator.next());
+		assertEquals(k2, iterator.next());
+		assertEquals(k3, iterator.next());
+		assertFalse(iterator.hasNext());
 	}
 
-	public V put(K key, V value) {
-		return map.put(key, value);
+	@Test
+	public void testPut() {
+		K k1 = getKey();
+		K k2 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		map.put(k2, v2);
+
+		assertEquals(v1, map.get(k1));
+		assertEquals(v2, map.get(k2));
 	}
 
-	public void putAll(Map<? extends K, ? extends V> m) {
+	@Test
+	public void testPutAll() {
+		Map<K, V> m = new LinkedHashMap<K, V>();
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		m.put(k1, v1);
+		m.put(k2, v2);
+
+		assertNull(map.get(k1));
+		assertNull(map.get(k2));
+
 		map.putAll(m);
+
+		assertEquals(v1, map.get(k1));
+		assertEquals(v2, map.get(k2));
 	}
 
-	public boolean putIfAbsent(K key, V value) {
-		return map.putIfAbsent(key, value);
+	@Test
+	public void testPutIfAbsent() {
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		assertNull(map.get(k1));
+		assertTrue(map.putIfAbsent(k1, v1));
+		assertFalse(map.putIfAbsent(k1, v2));
+		assertEquals(v1, map.get(k1));
+
+		assertTrue(map.putIfAbsent(k2, v2));
+		assertFalse(map.putIfAbsent(k2, v1));
+
+		assertEquals(v2, map.get(k2));
 	}
 
-	public V remove(Object key) {
-		return map.remove(key);
+	@Test
+	public void testRemove() {
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		assertNull(map.remove(k1));
+		assertNull(map.remove(k2));
+
+		map.put(k1, v1);
+		map.put(k2, v2);
+
+		assertEquals(v1, map.remove(k1));
+		assertNull(map.remove(k1));
+		assertNull(map.get(k1));
+
+		assertEquals(v2, map.remove(k2));
+		assertNull(map.remove(k2));
+		assertNull(map.get(k2));
 	}
 
-	public int size() {
-		return map.size();
+	@Test
+	public void testSize() {
+		assertEquals(0, map.size());
+		map.put(getKey(), getValue());
+		assertEquals(1, map.size());
+		K k = getKey();
+		map.put(k, getValue());
+		assertEquals(2, map.size());
+		map.remove(k);
+		assertEquals(1, map.size());
+
+		map.clear();
+		assertEquals(0, map.size());
 	}
 
-	public Collection<V> values() {
-		return map.values();
+	@Test
+	public void testValues() {
+		V v1 = getValue();
+		V v2 = getValue();
+		V v3 = getValue();
+
+		map.put(getKey(), v1);
+		map.put(getKey(), v2);
+
+		Collection<V> values = map.values();
+		assertEquals(2, values.size());
+		assertThat(values, hasItems(v1, v2));
+
+		map.put(getKey(), v3);
+		values = map.values();
+		assertEquals(3, values.size());
+		assertThat(values, hasItems(v1, v2, v3));
 	}
 }
