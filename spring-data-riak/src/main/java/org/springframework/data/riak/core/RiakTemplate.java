@@ -47,10 +47,7 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -312,6 +309,8 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
       if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
         throw new DataStoreOperationException(e.getMessage(), e);
       }
+    } catch (EOFException eof) {
+      // IGNORE this one
     } catch (IOException e) {
       log.error(e.getMessage(), e);
     }
