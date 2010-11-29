@@ -56,7 +56,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private boolean exposeConnection = false;
 	private RedisSerializer keySerializer = new StringRedisSerializer();
 	private RedisSerializer valueSerializer = new SimpleRedisSerializer();
-	private RedisSerializer defaultSerializer = new SimpleRedisSerializer();
+	private RedisSerializer hashKeySerializer = new SimpleRedisSerializer();
+	private RedisSerializer hashValueSerializer = new SimpleRedisSerializer();
 
 	public RedisTemplate() {
 	}
@@ -82,7 +83,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
-		return execute(action, isExposeConnection(), defaultSerializer);
+		return execute(action, exposeConnection, valueSerializer);
 	}
 
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer returnSerializer) {
@@ -133,17 +134,42 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		this.exposeConnection = exposeConnection;
 	}
 
+	/**
+	 * Sets the key serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}.
+	 * 
+	 * @param serializer
+	 */
 	public void setKeySerializer(RedisSerializer serializer) {
 		this.keySerializer = serializer;
 	}
 
+	/**
+	 * Sets the value serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}.
+	 * 
+	 * @param serializer
+	 */
 	public void setValueSerializer(RedisSerializer serializer) {
 		this.valueSerializer = serializer;
 	}
 
-	public void setDefaultSerializer(RedisSerializer serializer) {
-		this.defaultSerializer = serializer;
+	/**
+	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}. 
+	 * 
+	 * @param hashKeySerializer The hashKeySerializer to set.
+	 */
+	public void setHashKeySerializer(RedisSerializer hashKeySerializer) {
+		this.hashKeySerializer = hashKeySerializer;
 	}
+
+	/**
+	 * Sets the hash value serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}. 
+	 * 
+	 * @param hashValueSerializer The hashValueSerializer to set.
+	 */
+	public void setHashValueSerializer(RedisSerializer hashValueSerializer) {
+		this.hashValueSerializer = hashValueSerializer;
+	}
+
 
 	/**
 	 * Invocation handler that suppresses close calls on JDO PersistenceManagers.
@@ -202,36 +228,75 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return rawKeys;
 	}
 
+	private <HK> byte[] rawHashKey(HK value) {
+		return (value != null ? hashKeySerializer.serialize(value) : null);
+	}
+
+	private <HV> byte[] rawHashValue(HV value) {
+		return (value != null ? hashValueSerializer.serialize(value) : null);
+	}
+
+
 	@SuppressWarnings("unchecked")
 	private <T extends Collection<V>> T values(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<V> values = (List.class.isAssignableFrom(type) ? new ArrayList<V>(rawValues.size())
 				: new LinkedHashSet<V>(rawValues.size()));
 		for (byte[] bs : rawValues) {
-			values.add((V) valueSerializer.deserialize(bs));
+			if (bs != null) {
+				values.add((V) valueSerializer.deserialize(bs));
+			}
 		}
 
 		return (T) values;
 	}
 
 	@SuppressWarnings("unchecked")
-	private <H> Collection<H> arbitraryValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
+	private <H> Collection<H> hashValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<H> values = (List.class.isAssignableFrom(type) ? new ArrayList<H>(rawValues.size())
 				: new LinkedHashSet<H>(rawValues.size()));
 		for (byte[] bs : rawValues) {
-			values.add((H) valueSerializer.deserialize(bs));
+			if (bs != null) {
+				values.add((H) hashValueSerializer.deserialize(bs));
+			}
 		}
 
 		return values;
 	}
 
+	@SuppressWarnings("unchecked")
+	private K deserializeKey(byte[] value) {
+		return (K) deserialize(value, keySerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	private V deserializeValue(byte[] value) {
+		return (V) deserialize(value, valueSerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <HK> HK deserializeHashKey(byte[] value) {
+		return (HK) deserialize(value, hashKeySerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <HV> HV deserializeHashValue(byte[] value) {
+		return (HV) deserialize(value, hashValueSerializer);
+	}
+
+	private <T> T deserialize(byte[] value, RedisSerializer<T> serializer) {
+		if (isEmpty(value)) {
+			return null;
+		}
+		return (T) serializer.deserialize(value);
+	}
+
+	private static boolean isEmpty(byte[] data) {
+		return (data == null || data.length == 0);
+	}
+
 	// utility methods for the template internal methods
 	private abstract class ValueDeserializingRedisCallback implements RedisCallback<V> {
 		private K key;
-
-		public ValueDeserializingRedisCallback() {
-			this(null);
-
-		}
 
 		public ValueDeserializingRedisCallback(K key) {
 			this.key = key;
@@ -241,10 +306,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public final V doInRedis(RedisConnection connection) {
 			byte[] result = inRedis(rawKey(key), connection);
-			if (result != null) {
-				return (V) valueSerializer.deserialize(result);
-			}
-			return null;
+			return deserializeValue(result);
 		}
 
 		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
@@ -558,7 +620,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		public void diffAndStore(final K key, K destKey, final K... keys) {
 			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
 			final byte[] rawDestKey = rawKey(destKey);
-			Object rawValues = execute(new RedisCallback<Object>() {
+			execute(new RedisCallback<Object>() {
 				@Override
 				public Object doInRedis(RedisConnection connection) {
 					connection.sDiffStore(rawDestKey, rawKeys);
@@ -882,9 +944,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private class DefaultHashOperations<HK, HV> implements HashOperations<K, HK, HV> {
 
 		@Override
+		public RedisOperations<K, ?> getOperations() {
+			return RedisTemplate.this;
+		}
+
+		@Override
 		public HV get(K key, Object hashKey) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
 				@Override
@@ -893,13 +960,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (HV) valueSerializer.deserialize(rawHashValue);
+			return (HV) deserializeHashValue(rawHashValue);
 		}
 
 		@Override
 		public Boolean hasKey(K key, Object hashKey) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			return execute(new RedisCallback<Boolean>() {
 				@Override
@@ -912,7 +979,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public Integer increment(K key, HK hashKey, final int delta) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			return execute(new RedisCallback<Integer>() {
 				@Override
@@ -934,7 +1001,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (Set<HK>) arbitraryValues(rawValues, Set.class);
+			return (Set<HK>) hashValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -951,12 +1018,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		@Override
 		public void multiSet(K key, Map<? extends HK, ? extends HV> m) {
+			if (m.isEmpty()) {
+				return;
+			}
+
 			final byte[] rawKey = rawKey(key);
 
 			final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
 
-			for (Map.Entry<byte[], byte[]> entry : hashes.entrySet()) {
-				hashes.put(rawValue(entry.getKey()), rawValue(entry.getValue()));
+			for (Map.Entry<? extends HK, ? extends HV> entry : m.entrySet()) {
+				hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
 			}
 
 			execute(new RedisCallback<Object>() {
@@ -971,8 +1042,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public void set(K key, HK hashKey, HV value) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
-			final byte[] rawHashValue = rawValue(value);
+			final byte[] rawHashKey = rawHashKey(hashKey);
+			final byte[] rawHashValue = rawHashValue(value);
 
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -994,13 +1065,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (List<HV>) arbitraryValues(rawValues, List.class);
+			return (List<HV>) hashValues(rawValues, List.class);
 		}
 
 		@Override
 		public void delete(K key, Object hashKey) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			execute(new RedisCallback<Object>() {
 				@Override

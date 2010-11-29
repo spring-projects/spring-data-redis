@@ -31,8 +31,8 @@ public class SimpleRedisSerializer implements RedisSerializer<Object> {
 	private Converter<Object, byte[]> serializer = new SerializingConverter();
 	private Converter<byte[], Object> deserializer = new DeserializingConverter();
 
-	private sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-	private sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
+	//	private sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
+	//	private sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
 
 	@SuppressWarnings("unchecked")
 	@Override

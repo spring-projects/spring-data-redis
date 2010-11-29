@@ -43,4 +43,6 @@ public interface HashOperations<H, HK, HV> {
 	void set(H key, HK hashKey, HV value);
 
 	Collection<HV> values(H key);
+
+	RedisOperations<H, ?> getOperations();
 }

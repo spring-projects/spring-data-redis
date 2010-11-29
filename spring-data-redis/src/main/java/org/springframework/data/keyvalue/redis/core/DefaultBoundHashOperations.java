@@ -27,7 +27,6 @@ import java.util.Set;
 class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implements BoundHashOperations<H, HK, HV> {
 
 	private final HashOperations<H, HK, HV> ops;
-	private RedisOperations<H, ?> template;
 
 	/**
 	 * Constructs a new <code>DefaultBoundHashOperations</code> instance.
@@ -52,7 +51,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 
 	@Override
 	public RedisOperations<H, ?> getOperations() {
-		return template;
+		return ops.getOperations();
 	}
 
 	@Override

@@ -31,10 +31,21 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	private final BoundHashOperations<String, K, V> hashOps;
 
+	/**
+	 * Constructs a new <code>DefaultRedisMap</code> instance.
+	 *
+	 * @param key
+	 * @param operations
+	 */
 	public DefaultRedisMap(String key, RedisOperations<String, ?> operations) {
 		this.hashOps = operations.forHash(key);
 	}
 
+	/**
+	 * Constructs a new <code>DefaultRedisMap</code> instance.
+	 *
+	 * @param boundOps
+	 */
 	public DefaultRedisMap(BoundHashOperations<String, K, V> boundOps) {
 		this.hashOps = boundOps;
 	}
@@ -125,5 +136,32 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public Collection<V> values() {
 		return hashOps.values();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+
+		if (o instanceof RedisMap) {
+			return o.hashCode() == hashCode();
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 17 + getClass().hashCode();
+		result = result * 31 + getKey().hashCode();
+		return result;
+	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("RedisStore for key:");
+		sb.append(getKey());
+		return sb.toString();
 	}
 }
