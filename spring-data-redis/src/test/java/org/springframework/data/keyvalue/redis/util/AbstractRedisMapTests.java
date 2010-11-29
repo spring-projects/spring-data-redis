@@ -343,4 +343,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(3, values.size());
 		assertThat(values, hasItems(v1, v2, v3));
 	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEntrySet() {
+		map.entrySet();
+	}
 }
