@@ -31,10 +31,21 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	private final BoundHashOperations<String, K, V> hashOps;
 
+	/**
+	 * Constructs a new <code>DefaultRedisMap</code> instance.
+	 *
+	 * @param key
+	 * @param operations
+	 */
 	public DefaultRedisMap(String key, RedisOperations<String, ?> operations) {
 		this.hashOps = operations.forHash(key);
 	}
 
+	/**
+	 * Constructs a new <code>DefaultRedisMap</code> instance.
+	 *
+	 * @param boundOps
+	 */
 	public DefaultRedisMap(BoundHashOperations<String, K, V> boundOps) {
 		this.hashOps = boundOps;
 	}
