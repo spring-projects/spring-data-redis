@@ -896,7 +896,12 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
         }
       }
     }
-    return (null != obj ? (T) obj.get() : null);
+
+    if (null != obj && obj.getClass() == requiredType) {
+      return (T) obj.get();
+    } else {
+      return null;
+    }
   }
 
 }
