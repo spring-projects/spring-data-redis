@@ -960,7 +960,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (HV) deserializeHashValue(rawHashValue);
+			return RedisTemplate.this.<HV> deserializeHashValue(rawHashValue);
 		}
 
 		@Override
