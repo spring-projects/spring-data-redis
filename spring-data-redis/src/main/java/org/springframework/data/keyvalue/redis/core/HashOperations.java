@@ -32,6 +32,8 @@ public interface HashOperations<H, HK, HV> {
 
 	HV get(H key, Object hashKey);
 
+	Collection<HV> multiGet(H key, Set<HK> hashKeys);
+
 	Integer increment(H key, HK hashKey, int delta);
 
 	Set<HK> keys(H key);

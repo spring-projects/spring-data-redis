@@ -50,6 +50,11 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	}
 
 	@Override
+	public Collection<HV> multiGet(Set<HK> hashKeys) {
+		return ops.multiGet(getKey(), hashKeys);
+	}
+
+	@Override
 	public RedisOperations<H, ?> getOperations() {
 		return ops.getOperations();
 	}
