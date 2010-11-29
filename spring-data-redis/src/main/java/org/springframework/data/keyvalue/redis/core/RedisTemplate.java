@@ -228,6 +228,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return rawKeys;
 	}
 
+	private <HK> byte[] rawHashKey(HK value) {
+		return (value != null ? hashKeySerializer.serialize(value) : null);
+	}
+
+	private <HV> byte[] rawHashValue(HV value) {
+		return (value != null ? hashValueSerializer.serialize(value) : null);
+	}
+
+
 	@SuppressWarnings("unchecked")
 	private <T extends Collection<V>> T values(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<V> values = (List.class.isAssignableFrom(type) ? new ArrayList<V>(rawValues.size())
@@ -242,12 +251,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
-	private <H> Collection<H> arbitraryValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
+	private <H> Collection<H> hashValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<H> values = (List.class.isAssignableFrom(type) ? new ArrayList<H>(rawValues.size())
 				: new LinkedHashSet<H>(rawValues.size()));
 		for (byte[] bs : rawValues) {
 			if (bs != null) {
-				values.add((H) valueSerializer.deserialize(bs));
+				values.add((H) hashValueSerializer.deserialize(bs));
 			}
 		}
 
@@ -942,7 +951,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public HV get(K key, Object hashKey) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
 				@Override
@@ -957,7 +966,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public Boolean hasKey(K key, Object hashKey) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			return execute(new RedisCallback<Boolean>() {
 				@Override
@@ -970,7 +979,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public Integer increment(K key, HK hashKey, final int delta) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			return execute(new RedisCallback<Integer>() {
 				@Override
@@ -992,7 +1001,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (Set<HK>) arbitraryValues(rawValues, Set.class);
+			return (Set<HK>) hashValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1014,7 +1023,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			final Map<byte[], byte[]> hashes = new LinkedHashMap<byte[], byte[]>(m.size());
 
 			for (Map.Entry<byte[], byte[]> entry : hashes.entrySet()) {
-				hashes.put(rawValue(entry.getKey()), rawValue(entry.getValue()));
+				hashes.put(rawHashKey(entry.getKey()), rawHashValue(entry.getValue()));
 			}
 
 			execute(new RedisCallback<Object>() {
@@ -1029,8 +1038,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		@Override
 		public void set(K key, HK hashKey, HV value) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
-			final byte[] rawHashValue = rawValue(value);
+			final byte[] rawHashKey = rawHashKey(hashKey);
+			final byte[] rawHashValue = rawHashValue(value);
 
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1052,13 +1061,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (List<HV>) arbitraryValues(rawValues, List.class);
+			return (List<HV>) hashValues(rawValues, List.class);
 		}
 
 		@Override
 		public void delete(K key, Object hashKey) {
 			final byte[] rawKey = rawKey(key);
-			final byte[] rawHashKey = rawValue(hashKey);
+			final byte[] rawHashKey = rawHashKey(hashKey);
 
 			execute(new RedisCallback<Object>() {
 				@Override
