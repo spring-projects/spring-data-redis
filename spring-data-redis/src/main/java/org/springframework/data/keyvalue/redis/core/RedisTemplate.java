@@ -83,7 +83,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
-		return execute(action, isExposeConnection(), valueSerializer);
+		return execute(action, exposeConnection, valueSerializer);
 	}
 
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer returnSerializer) {
