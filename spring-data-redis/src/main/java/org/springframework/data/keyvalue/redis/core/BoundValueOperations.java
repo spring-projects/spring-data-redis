@@ -15,38 +15,23 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
-import java.util.Date;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.data.keyvalue.redis.connection.DataType;
-
 /**
- * Redis operations available for all keys.
- * 
  * @author Costin Leau
  */
-public interface KeyOperations<K> {
+public interface BoundValueOperations<K, V> extends KeyBound<K> {
 
-	Boolean exists(K key);
+	void set(V value);
 
-	void delete(K key);
+	void set(V value, long timeout, TimeUnit unit);
 
-	DataType type(K key);
+	Boolean setIfAbsent(V value);
 
-	Set<K> keys(String pattern);
+	V get();
 
-	K randomKey();
+	V getAndSet(V value);
 
-	void rename(K oldKey, K newKey);
+	V increment(int delta);
 
-	Boolean renameIfAbsent(K oldKey, K newKey);
-
-	Boolean expire(K key, long timeout, TimeUnit unit);
-
-	Boolean expireAt(K key, Date date);
-
-	void persist(K key);
-
-	long getExpire(K key);
 }

@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.util;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public void clear() {
-		getOperations().delete(getKey());
+		getOperations().delete(Collections.singleton(getKey()));
 	}
 
 	@Override

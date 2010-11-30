@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.util;
 import java.io.Serializable;
 
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import org.springframework.data.keyvalue.redis.core.ValueOperations;
 
 /**
  * Atomic integer backed by Redis.
@@ -29,7 +30,8 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 public class RedisAtomicInteger extends Number implements Serializable {
 
 	private final String key;
-	private RedisOperations<String, Integer> operations;
+	private ValueOperations<String, Integer> operations;
+	private RedisOperations<String, Integer> generalOps;
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance with an initial value of zero.
@@ -50,8 +52,9 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations, int initialValue) {
 		this.key = redisCounter;
-		this.operations = operations;
-		operations.set(redisCounter, initialValue);
+		this.operations = operations.valueOps();
+		this.generalOps = operations;
+		this.operations.set(redisCounter, initialValue);
 	}
 
 	/**
@@ -92,11 +95,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public boolean compareAndSet(int expect, int update) {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			if (expect == get()) {
-				operations.multi();
+				generalOps.multi();
 				set(update);
-				if (operations.exec() != null) {
+				if (generalOps.exec() != null) {
 					return true;
 				}
 			}
@@ -112,11 +115,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndIncrement() {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			int value = get();
-			operations.multi();
+			generalOps.multi();
 			operations.increment(key, 1);
-			if (operations.exec() != null) {
+			if (generalOps.exec() != null) {
 				return value;
 			}
 		}
@@ -129,11 +132,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndDecrement() {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			int value = get();
-			operations.multi();
+			generalOps.multi();
 			operations.increment(key, -1);
-			if (operations.exec() != null) {
+			if (generalOps.exec() != null) {
 				return value;
 			}
 		}
@@ -147,11 +150,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndAdd(int delta) {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			int value = get();
-			operations.multi();
+			generalOps.multi();
 			set(value + delta);
-			if (operations.exec() != null) {
+			if (generalOps.exec() != null) {
 				return value;
 			}
 		}

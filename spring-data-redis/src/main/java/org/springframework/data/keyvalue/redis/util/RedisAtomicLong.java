@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.util;
 import java.io.Serializable;
 
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import org.springframework.data.keyvalue.redis.core.ValueOperations;
 
 /**
  * Atomic long backed by Redis.
@@ -29,7 +30,8 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 public class RedisAtomicLong extends Number implements Serializable {
 
 	private final String key;
-	private RedisOperations<String, Long> operations;
+	private ValueOperations<String, Long> operations;
+	private RedisOperations<String, Long> generalOps;
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance with an initial value of zero.
@@ -50,8 +52,8 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations, long initialValue) {
 		this.key = redisCounter;
-		this.operations = operations;
-		operations.set(redisCounter, initialValue);
+		this.operations = operations.valueOps();
+		this.operations.set(redisCounter, initialValue);
 	}
 
 	/**
@@ -93,11 +95,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public boolean compareAndSet(long expect, long update) {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			if (expect == get()) {
-				operations.multi();
+				generalOps.multi();
 				set(update);
-				if (operations.exec() != null) {
+				if (generalOps.exec() != null) {
 					return true;
 				}
 			}
@@ -114,11 +116,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long getAndIncrement() {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			long value = get();
-			operations.multi();
+			generalOps.multi();
 			operations.increment(key, 1);
-			if (operations.exec() != null) {
+			if (generalOps.exec() != null) {
 				return value;
 			}
 		}
@@ -131,11 +133,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long getAndDecrement() {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			long value = get();
-			operations.multi();
+			generalOps.multi();
 			operations.increment(key, -1);
-			if (operations.exec() != null) {
+			if (generalOps.exec() != null) {
 				return value;
 			}
 		}
@@ -149,11 +151,11 @@ public class RedisAtomicLong extends Number implements Serializable {
 	 */
 	public long getAndAdd(long delta) {
 		for (;;) {
-			operations.watch(key);
+			generalOps.watch(key);
 			long value = get();
-			operations.multi();
+			generalOps.multi();
 			set(value + delta);
-			if (operations.exec() != null) {
+			if (generalOps.exec() != null) {
 				return value;
 			}
 		}

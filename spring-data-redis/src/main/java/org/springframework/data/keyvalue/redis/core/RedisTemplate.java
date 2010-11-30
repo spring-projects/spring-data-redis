@@ -22,13 +22,16 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
@@ -212,7 +215,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
-	private byte[] rawKey(K key) {
+	private byte[] rawKey(Object key) {
 		return (key != null ? keySerializer.serialize(key) : null);
 	}
 
@@ -225,6 +228,17 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		for (int i = 0; i < keys.length; i++) {
 			rawKeys[i] = rawKey(keys[i]);
+		}
+
+		return rawKeys;
+	}
+
+	private byte[][] rawKeys(Collection<K> keys) {
+		final byte[][] rawKeys = new byte[keys.size()][];
+
+		int i = 0;
+		for (K key : keys) {
+			rawKeys[i++] = rawKey(key);
 		}
 
 		return rawKeys;
@@ -298,9 +312,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	// utility methods for the template internal methods
 	private abstract class ValueDeserializingRedisCallback implements RedisCallback<V> {
-		private K key;
+		private Object key;
 
-		public ValueDeserializingRedisCallback(K key) {
+		public ValueDeserializingRedisCallback(Object key) {
 			this.key = key;
 		}
 
@@ -331,58 +345,178 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public BoundListOperations<K, V> forList(K key) {
-		return new DefaultBoundListOperations<K, V>(key, this);
-	}
+	public void delete(Collection<K> keys) {
+		final byte[][] rawKeys = rawKeys(keys);
 
-	@Override
-	public V get(final K key) {
-		return execute(new ValueDeserializingRedisCallback(key) {
+		execute(new RedisCallback<Object>() {
 			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.get(rawKey);
+			public Object doInRedis(RedisConnection connection) {
+				connection.del(rawKeys);
+				return null;
 			}
 		}, true);
 	}
 
 	@Override
-	public V getAndSet(K key, V newValue) {
-		final byte[] rawValue = rawValue(newValue);
-		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.getSet(rawKey, rawValue);
-			}
-		}, true);
+	public Boolean exists(K key) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Integer increment(K key, final int delta) {
-		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Integer>() {
-			@Override
-			public Integer doInRedis(RedisConnection connection) {
-				if (delta == 1) {
-					return connection.incr(rawKey);
-				}
+	public Boolean expire(K key, long timeout, TimeUnit unit) {
+		throw new UnsupportedOperationException();
+	}
 
-				if (delta == -1) {
-					return connection.decr(rawKey);
-				}
+	@Override
+	public Boolean expireAt(K key, Date date) {
+		throw new UnsupportedOperationException();
+	}
 
-				if (delta < 0) {
-					return connection.decrBy(rawKey, delta);
-				}
+	//
+	// Value operations
+	//
 
-				return connection.incrBy(rawKey, delta);
-			}
-		}, true);
+	@Override
+	public long getExpire(K key) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<K> keys(String pattern) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void persist(K key) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public K randomKey() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void rename(K oldKey, K newKey) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Boolean renameIfAbsent(K oldKey, K newKey) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public DataType type(K key) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public BoundValueOperations<K, V> forValue(K key) {
+		return new DefaultBoundValueOperations<K, V>(key, this);
+	}
+
+	@Override
+	public ValueOperations<K, V> valueOps() {
+		return new DefaultValueOperations();
+	}
+
+	private class DefaultValueOperations implements ValueOperations<K, V> {
+
+		@Override
+		public V get(final Object key) {
+
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.get(rawKey);
+				}
+			}, true);
+		}
+
+		@Override
+		public V getAndSet(K key, V newValue) {
+			final byte[] rawValue = rawValue(newValue);
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.getSet(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
+		public V increment(K key, final int delta) {
+			final byte[] rawKey = rawKey(key);
+			// TODO add conversion service in here ?
+			return (V) execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) {
+					if (delta == 1) {
+						return connection.incr(rawKey);
+					}
+
+					if (delta == -1) {
+						return connection.decr(rawKey);
+					}
+
+					if (delta < 0) {
+						return connection.decrBy(rawKey, delta);
+					}
+
+					return connection.incrBy(rawKey, delta);
+				}
+			}, true);
+		}
+
+		@Override
+		public Collection<V> multiGet(Set<K> keys) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void multiSet(Map<? extends K, ? extends V> m) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void multiSetIfAbsent(Map<? extends K, ? extends V> m) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void set(K key, V value) {
+			final byte[] rawValue = rawValue(value);
+			execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					connection.set(rawKey, rawValue);
+					return null;
+				}
+			}, true);
+		}
+
+		@Override
+		public void set(K key, V value, long timeout, TimeUnit unit) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Boolean setIfAbsent(K key, V value) {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	@Override
 	public ListOperations<K, V> listOps() {
 		return new DefaultListOperations();
 	}
+
+	@Override
+	public BoundListOperations<K, V> forList(K key) {
+		return new DefaultBoundListOperations<K, V>(key, this);
+	}
+
 
 	@Override
 	public void multi() {
@@ -396,18 +530,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public void set(K key, V value) {
-		final byte[] rawValue = rawValue(value);
-		execute(new ValueDeserializingRedisCallback(key) {
-			@Override
-			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				connection.set(rawKey, rawValue);
-				return null;
-			}
-		}, true);
-	}
-
-	@Override
 	public void watch(K... keys) {
 		final byte[][] rawKeys = rawKeys(keys);
 
@@ -415,19 +537,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.watch(rawKeys);
-				return null;
-			}
-		}, true);
-	}
-
-	@Override
-	public void delete(K... keys) {
-		final byte[][] rawKeys = rawKeys(keys);
-
-		execute(new RedisCallback<Object>() {
-			@Override
-			public Object doInRedis(RedisConnection connection) {
-				connection.del(rawKeys);
 				return null;
 			}
 		}, true);
