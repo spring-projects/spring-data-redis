@@ -100,7 +100,9 @@ public class RedisAtomicInteger extends Number implements Serializable {
 					return true;
 				}
 			}
-			return false;
+			else {
+				return false;
+			}
 		}
 	}
 

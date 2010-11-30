@@ -101,7 +101,9 @@ public class RedisAtomicLong extends Number implements Serializable {
 					return true;
 				}
 			}
-			return false;
+			else {
+				return false;
+			}
 		}
 	}
 

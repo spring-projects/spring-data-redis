@@ -270,25 +270,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 	@Test
-	public void testPutIfAbsent() {
-		K k1 = getKey();
-		K k2 = getKey();
-
-		V v1 = getValue();
-		V v2 = getValue();
-
-		assertNull(map.get(k1));
-		assertTrue(map.putIfAbsent(k1, v1));
-		assertFalse(map.putIfAbsent(k1, v2));
-		assertEquals(v1, map.get(k1));
-
-		assertTrue(map.putIfAbsent(k2, v2));
-		assertFalse(map.putIfAbsent(k2, v1));
-
-		assertEquals(v2, map.get(k2));
-	}
-
-	@Test
 	public void testRemove() {
 		K k1 = getKey();
 		K k2 = getKey();
@@ -374,5 +355,66 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(keys, hasItems(k1, k2));
 		assertThat(values, hasItem(v1));
 		assertThat(values, not(hasItem(v2)));
+	}
+
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentPutIfAbsent() {
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		assertNull(map.get(k1));
+		assertNull(map.putIfAbsent(k1, v1));
+		assertEquals(v1, map.putIfAbsent(k1, v2));
+		assertEquals(v1, map.get(k1));
+
+		assertNull(map.putIfAbsent(k2, v2));
+		assertEquals(v2, map.putIfAbsent(k2, v1));
+
+		assertEquals(v2, map.get(k2));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentRemove() {
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		assertFalse(map.remove(k1, v1));
+		assertEquals(v1, map.get(k1));
+		assertTrue(map.remove(k1, v1));
+		assertNull(map.get(k1));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentReplaceTwoArgs() {
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+
+		assertFalse(map.replace(k1, v2, v1));
+		assertEquals(v1, map.get(k1));
+		assertTrue(map.replace(k1, v1, v2));
+		assertEquals(v2, map.get(k1));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentReplaceOneArg() {
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		assertNull(map.replace(k1, v1));
+		map.put(k1, v1);
+		assertNull(map.replace(getKey(), v1));
+		assertEquals(v1, map.replace(k1, v2));
+		assertEquals(v2, map.get(k1));
+
 	}
 }

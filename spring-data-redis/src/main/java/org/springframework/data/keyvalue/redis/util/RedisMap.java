@@ -15,16 +15,15 @@
  */
 package org.springframework.data.keyvalue.redis.util;
 
-import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 
 /**
  * Map view of a Redis hash.
  * 
  * @author Costin Leau
  */
-public interface RedisMap<K, V> extends RedisStore<String>, Map<K, V> {
-
-	boolean putIfAbsent(K key, V value);
+public interface RedisMap<K, V> extends RedisStore<String>, ConcurrentMap<K, V> {
 
 	Integer increment(K key, int delta);
 }

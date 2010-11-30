@@ -84,15 +84,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public boolean putIfAbsent(K key, V value) {
-		if (!hashOps.hasKey(key)) {
-			put(key, value);
-			return true;
-		}
-		return false;
-	}
-
-	@Override
 	public String getKey() {
 		return hashOps.getKey();
 	}
@@ -202,5 +193,105 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		sb.append("RedisStore for key:");
 		sb.append(getKey());
 		return sb.toString();
+	}
+
+	@Override
+	public V putIfAbsent(K key, V value) {
+		throw new UnsupportedOperationException();
+
+		//		RedisOperations<String, ?> ops = hashOps.getOperations();
+		//
+		//		for (;;) {
+		//			ops.watch(getKey());
+		//			V v = get(key);
+		//			if (v == null) {
+		//				ops.multi();
+		//				put(key, value);
+		//				if (ops.exec() != null) {
+		//					return null;
+		//				}
+		//			}
+		//			else {
+		//				return v;
+		//			}
+		//		}
+	}
+
+	@Override
+	public boolean remove(Object key, Object value) {
+		throw new UnsupportedOperationException();
+
+		//		if (value == null){
+		//			throw new NullPointerException();
+		//		}
+		//
+		//		RedisOperations<String, ?> ops = hashOps.getOperations();
+		//
+		//		for (;;) {
+		//			ops.watch(getKey());
+		//			V v = get(key);
+		//			if (value.equals(v)) {
+		//				ops.multi();
+		//				remove(key);
+		//				if (ops.exec() != null) {
+		//					return true;
+		//				}
+		//			}
+		//			else {
+		//				return false;
+		//			}
+		//		}
+	}
+
+	@Override
+	public boolean replace(K key, V oldValue, V newValue) {
+		throw new UnsupportedOperationException();
+
+		//		if (newValue == null || oldValue == null) {
+		//			throw new NullPointerException();
+		//		}
+		//
+		//		RedisOperations<String, ?> ops = hashOps.getOperations();
+		//
+		//		for (;;) {
+		//			ops.watch(getKey());
+		//			V v = get(key);
+		//			if (oldValue.equals(v)) {
+		//				ops.multi();
+		//				put(key, newValue);
+		//				if (ops.exec() != null) {
+		//					return true;
+		//				}
+		//			}
+		//			else {
+		//				return false;
+		//			}
+		//		}
+	}
+
+	@Override
+	public V replace(K key, V value) {
+		throw new UnsupportedOperationException();
+
+
+		//		if (value == null) {
+		//			throw new NullPointerException();
+		//		}
+		//
+		//		RedisOperations<String, ?> ops = hashOps.getOperations();
+		//
+		//		for (;;) {
+		//			ops.watch(getKey());
+		//			if (containsKey(key)) {
+		//				ops.multi();
+		//				V oldValue = put(key, value);
+		//				if (ops.exec() != null) {
+		//					return oldValue;
+		//				}
+		//			}
+		//			else {
+		//				return null;
+		//			}
+		//		}
 	}
 }
