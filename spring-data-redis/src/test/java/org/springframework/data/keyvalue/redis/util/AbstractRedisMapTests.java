@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -344,8 +345,34 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(values, hasItems(v1, v2, v3));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testEntrySet() {
-		map.entrySet();
+		Set<Entry<K, V>> entries = map.entrySet();
+		assertTrue(entries.isEmpty());
+
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		map.put(k2, v1);
+
+		entries = map.entrySet();
+
+		Set<K> keys = new LinkedHashSet<K>();
+		Collection<V> values = new ArrayList<V>();
+
+		for (Entry<K, V> entry : entries) {
+			keys.add(entry.getKey());
+			values.add(entry.getValue());
+		}
+
+		assertEquals(2, keys.size());
+
+		assertThat(keys, hasItems(k1, k2));
+		assertThat(values, hasItem(v1));
+		assertThat(values, not(hasItem(v2)));
 	}
 }
