@@ -61,7 +61,7 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 
 	@Override
 	public Integer length() {
-		return ops.length(getKey());
+		return ops.size(getKey());
 	}
 
 	@Override

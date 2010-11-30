@@ -28,7 +28,7 @@ public interface ListOperations<K, V> {
 
 	void trim(K key, int start, int end);
 
-	Integer length(K key);
+	Integer size(K key);
 
 	Integer leftPush(K key, V value);
 
