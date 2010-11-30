@@ -280,6 +280,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
+	private Collection<K> deserializeKeys(Collection<byte[]> rawKeys, Class<? extends Collection> type) {
+		Collection<K> values = (List.class.isAssignableFrom(type) ? new ArrayList<K>(rawKeys.size())
+				: new LinkedHashSet<K>(rawKeys.size()));
+		for (byte[] bs : rawKeys) {
+			if (bs != null) {
+				values.add((K) hashValueSerializer.deserialize(bs));
+			}
+		}
+
+		return values;
+	}
+
+	@SuppressWarnings("unchecked")
 	private K deserializeKey(byte[] value) {
 		return (K) deserialize(value, keySerializer);
 	}
@@ -359,17 +372,40 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public Boolean exists(K key) {
-		throw new UnsupportedOperationException();
+		final byte[] rawKey = rawKey(key);
+
+		return execute(new RedisCallback<Boolean>() {
+			@Override
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.exists(rawKey);
+			}
+		}, true);
 	}
 
 	@Override
 	public Boolean expire(K key, long timeout, TimeUnit unit) {
-		throw new UnsupportedOperationException();
+		final byte[] rawKey = rawKey(key);
+		final int rawTimeout = (int) unit.toSeconds(timeout);
+
+		return execute(new RedisCallback<Boolean>() {
+			@Override
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.expire(rawKey, rawTimeout);
+			}
+		}, true);
 	}
 
 	@Override
 	public Boolean expireAt(K key, Date date) {
-		throw new UnsupportedOperationException();
+		final byte[] rawKey = rawKey(key);
+		final long rawTimeout = date.getTime();
+
+		return execute(new RedisCallback<Boolean>() {
+			@Override
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.expireAt(rawKey, rawTimeout);
+			}
+		}, true);
 	}
 
 	//
@@ -378,37 +414,92 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public long getExpire(K key) {
-		throw new UnsupportedOperationException();
+		final byte[] rawKey = rawKey(key);
+
+		return execute(new RedisCallback<Long>() {
+			@Override
+			public Long doInRedis(RedisConnection connection) {
+				return Long.valueOf(connection.ttl(rawKey));
+			}
+		}, true);
 	}
 
 	@Override
-	public Set<K> keys(String pattern) {
-		throw new UnsupportedOperationException();
+	public Set<K> keys(K pattern) {
+		final byte[] rawKey = rawKey(pattern);
+
+		Collection<byte[]> rawKeys = execute(new RedisCallback<Collection<byte[]>>() {
+			@Override
+			public Collection<byte[]> doInRedis(RedisConnection connection) {
+				return connection.keys(rawKey);
+			}
+		}, true);
+		
+		return (Set<K>) deserializeKeys(rawKeys, Set.class);
 	}
 
 	@Override
 	public void persist(K key) {
-		throw new UnsupportedOperationException();
+		final byte[] rawKey = rawKey(key);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.persist(rawKey);
+				return null;
+			}
+		}, true);
 	}
 
 	@Override
 	public K randomKey() {
-		throw new UnsupportedOperationException();
+		byte[] rawKey = execute(new RedisCallback<byte[]>() {
+			@Override
+			public byte[] doInRedis(RedisConnection connection) {
+				return connection.randomKey();
+			}
+		}, true);
+
+		return deserializeKey(rawKey);
 	}
 
 	@Override
 	public void rename(K oldKey, K newKey) {
-		throw new UnsupportedOperationException();
+		final byte[] rawOldKey = rawKey(oldKey);
+		final byte[] rawNewKey = rawKey(newKey);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.rename(rawOldKey, rawNewKey);
+				return null;
+			}
+		}, true);
 	}
 
 	@Override
 	public Boolean renameIfAbsent(K oldKey, K newKey) {
-		throw new UnsupportedOperationException();
+		final byte[] rawOldKey = rawKey(oldKey);
+		final byte[] rawNewKey = rawKey(newKey);
+
+		return execute(new RedisCallback<Boolean>() {
+			@Override
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.renameNX(rawOldKey, rawNewKey);
+			}
+		}, true);
 	}
 
 	@Override
 	public DataType type(K key) {
-		throw new UnsupportedOperationException();
+		final byte[] rawKey = rawKey(key);
+
+		return execute(new RedisCallback<DataType>() {
+			@Override
+			public DataType doInRedis(RedisConnection connection) {
+				return connection.type(rawKey);
+			}
+		}, true);
 	}
 
 	@Override

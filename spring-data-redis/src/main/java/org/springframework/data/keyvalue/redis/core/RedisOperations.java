@@ -36,7 +36,7 @@ public interface RedisOperations<K, V> {
 
 	DataType type(K key);
 
-	Set<K> keys(String pattern);
+	Set<K> keys(K pattern);
 
 	K randomKey();
 
