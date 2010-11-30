@@ -1287,7 +1287,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer length(K key) {
+		public Integer size(K key) {
 			final byte[] rawKey = rawKey(key);
 
 			return execute(new RedisCallback<Integer>() {

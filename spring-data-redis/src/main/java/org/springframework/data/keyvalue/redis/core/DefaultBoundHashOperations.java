@@ -76,7 +76,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 
 	@Override
 	public Integer length() {
-		return ops.length(getKey());
+		return ops.size(getKey());
 	}
 
 	@Override

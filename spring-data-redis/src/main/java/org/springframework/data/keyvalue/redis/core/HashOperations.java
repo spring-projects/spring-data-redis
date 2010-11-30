@@ -38,7 +38,7 @@ public interface HashOperations<H, HK, HV> {
 
 	Set<HK> keys(H key);
 
-	Integer length(H key);
+	Integer size(H key);
 
 	void multiSet(H key, Map<? extends HK, ? extends HV> m);
 
