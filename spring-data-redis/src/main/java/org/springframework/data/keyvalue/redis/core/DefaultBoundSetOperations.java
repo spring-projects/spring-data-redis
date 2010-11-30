@@ -28,6 +28,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	private final SetOperations<K, V> ops;
 
 
+	/**
+	 * Constructs a new <code>DefaultBoundSetOperations</code> instance.
+	 *
+	 * @param key
+	 * @param template
+	 */
 	DefaultBoundSetOperations(K key, RedisTemplate<K, V> template) {
 		super(key);
 		this.ops = template.setOps();

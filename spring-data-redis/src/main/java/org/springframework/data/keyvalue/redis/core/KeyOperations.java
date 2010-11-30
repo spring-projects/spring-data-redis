@@ -15,26 +15,38 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.keyvalue.redis.connection.DataType;
 
 /**
- * Default {@link KeyBound} implementation.
+ * Redis operations available for all keys.
  * 
  * @author Costin Leau
  */
-class DefaultKeyBound<K> implements KeyBound<K> {
+public interface KeyOperations<K> {
 
-	private K key;
+	Boolean exists(K key);
 
-	public DefaultKeyBound(K key) {
-		setKey(key);
-	}
+	void delete(K key);
 
-	@Override
-	public K getKey() {
-		return key;
-	}
+	DataType type(K key);
 
-	protected void setKey(K key) {
-		this.key = key;
-	}
+	Set<K> keys(String pattern);
+
+	K randomKey();
+
+	void rename(K oldKey, K newKey);
+
+	Boolean renameIfAbsent(K oldKey, K newKey);
+
+	Boolean expire(K key, long timeout, TimeUnit unit);
+
+	Boolean expireAt(K key, Date date);
+
+	void persist(K key);
+
+	long getExpire(K key);
 }

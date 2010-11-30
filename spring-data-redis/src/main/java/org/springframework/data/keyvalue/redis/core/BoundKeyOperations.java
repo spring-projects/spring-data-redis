@@ -15,26 +15,33 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.keyvalue.redis.connection.DataType;
 
 /**
- * Default {@link KeyBound} implementation.
+ * Key operations bound to a certain value.
  * 
  * @author Costin Leau
  */
-class DefaultKeyBound<K> implements KeyBound<K> {
+public interface BoundKeyOperations<K> extends KeyBound<K> {
 
-	private K key;
+	Boolean exists();
 
-	public DefaultKeyBound(K key) {
-		setKey(key);
-	}
+	void delete();
 
-	@Override
-	public K getKey() {
-		return key;
-	}
+	DataType type();
 
-	protected void setKey(K key) {
-		this.key = key;
-	}
+	void rename(K newKey);
+
+	Boolean renameIfAbsent(K newKey);
+
+	Boolean expire(long timeout, TimeUnit unit);
+
+	Boolean expireAt(Date date);
+
+	long getExpire();
+
+	void persist();
 }

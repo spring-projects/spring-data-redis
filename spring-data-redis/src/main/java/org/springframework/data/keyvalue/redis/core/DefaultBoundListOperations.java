@@ -23,10 +23,16 @@ import java.util.List;
  * 
  * @author Costin Leau
  */
-public class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements BoundListOperations<K, V> {
+class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements BoundListOperations<K, V> {
 
 	private final ListOperations<K, V> ops;
 
+	/**
+	 * Constructs a new <code>DefaultBoundListOperations</code> instance.
+	 *
+	 * @param key
+	 * @param template
+	 */
 	public DefaultBoundListOperations(K key, RedisTemplate<K, V> template) {
 		super(key);
 		this.ops = template.listOps();

@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Hash operations bound to a certain key.
+ * 
  * @author Costin Leau
  */
 public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
