@@ -562,17 +562,67 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		@Override
 		public Collection<V> multiGet(Set<K> keys) {
-			throw new UnsupportedOperationException();
+			if (keys.isEmpty()) {
+				return Collections.emptyList();
+			}
+
+			final byte[][] rawKeys = new byte[keys.size()][];
+
+			int counter = 0;
+			for (K hashKey : keys) {
+				rawKeys[counter++] = rawKey(hashKey);
+			}
+
+			List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+				@Override
+				public List<byte[]> doInRedis(RedisConnection connection) {
+					return connection.mGet(rawKeys);
+				}
+			}, true);
+
+			return (List<V>) values(rawValues, List.class);
 		}
 
 		@Override
 		public void multiSet(Map<? extends K, ? extends V> m) {
-			throw new UnsupportedOperationException();
+			if (m.isEmpty()) {
+				return;
+			}
+
+			final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
+
+			for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+				rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
+			}
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) {
+					connection.mSet(rawKeys);
+					return null;
+				}
+			}, true);
 		}
 
 		@Override
 		public void multiSetIfAbsent(Map<? extends K, ? extends V> m) {
-			throw new UnsupportedOperationException();
+			if (m.isEmpty()) {
+				return;
+			}
+
+			final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
+
+			for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+				rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
+			}
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) {
+					connection.mSetNX(rawKeys);
+					return null;
+				}
+			}, true);
 		}
 
 		@Override
@@ -589,12 +639,30 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		@Override
 		public void set(K key, V value, long timeout, TimeUnit unit) {
-			throw new UnsupportedOperationException();
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			final long rawTimeout = unit.toSeconds(timeout);
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) throws DataAccessException {
+					connection.setEx(rawKey, (int) rawTimeout, rawValue);
+					return null;
+				}
+			}, true);
 		}
 
 		@Override
 		public Boolean setIfAbsent(K key, V value) {
-			throw new UnsupportedOperationException();
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+					return connection.setNX(rawKey, rawValue);
+				}
+			}, true);
 		}
 	}
 
