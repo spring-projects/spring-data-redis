@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -960,7 +961,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (HV) deserializeHashValue(rawHashValue);
+			return RedisTemplate.this.<HV> deserializeHashValue(rawHashValue);
 		}
 
 		@Override
@@ -1037,6 +1038,32 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					return null;
 				}
 			}, true);
+		}
+
+
+		@Override
+		public Collection<HV> multiGet(K key, Set<HK> fields) {
+			if (fields.isEmpty()) {
+				return Collections.emptyList();
+			}
+
+			final byte[] rawKey = rawKey(key);
+
+			final byte[][] rawHashKeys = new byte[fields.size()][];
+
+			int counter = 0;
+			for (HK hashKey : fields) {
+				rawHashKeys[counter++] = rawHashKey(hashKey);
+			}
+
+			List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+				@Override
+				public List<byte[]> doInRedis(RedisConnection connection) {
+					return connection.hMGet(rawKey, rawHashKeys);
+				}
+			}, true);
+
+			return (List<HV>) hashValues(rawValues, List.class);
 		}
 
 		@Override

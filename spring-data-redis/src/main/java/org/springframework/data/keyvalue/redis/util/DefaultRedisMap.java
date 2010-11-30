@@ -16,6 +16,8 @@
 package org.springframework.data.keyvalue.redis.util;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +32,32 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	private final BoundHashOperations<String, K, V> hashOps;
+
+	private class DefaultRedisMapEntry implements Map.Entry<K, V> {
+
+		private K key;
+		private V value;
+
+		public DefaultRedisMapEntry(K key, V value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public K getKey() {
+			return key;
+		}
+
+		@Override
+		public V getValue() {
+			return value;
+		}
+
+		@Override
+		public V setValue(V value) {
+			throw new UnsupportedOperationException();
+		}
+	}
 
 	/**
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
@@ -91,7 +119,18 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
-		throw new UnsupportedOperationException();
+		Set<K> keySet = keySet();
+		Collection<V> multiGet = hashOps.multiGet(keySet);
+
+		Iterator<K> keys = keySet.iterator();
+		Iterator<V> values = multiGet.iterator();
+
+		Set<Map.Entry<K, V>> entries = new LinkedHashSet<Entry<K, V>>();
+		while (keys.hasNext()) {
+			entries.add(new DefaultRedisMapEntry(keys.next(), values.next()));
+		}
+
+		return entries;
 	}
 
 	@Override

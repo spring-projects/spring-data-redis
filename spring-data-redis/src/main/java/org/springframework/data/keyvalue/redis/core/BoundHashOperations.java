@@ -34,6 +34,8 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
 	void set(HK key, HV value);
 
+	Collection<HV> multiGet(Set<HK> keys);
+
 	void multiSet(Map<? extends HK, ? extends HV> m);
 
 	Set<HK> keys();
@@ -43,4 +45,5 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 	Integer length();
 
 	void delete(Object key);
+
 }
