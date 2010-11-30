@@ -52,7 +52,7 @@ public interface RedisOperations<K, V> {
 
 	long getExpire(K key);
 
-	void watch(K... keys);
+	void watch(Collection<K> keys);
 
 	void multi();
 

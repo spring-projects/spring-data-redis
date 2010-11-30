@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.util;
 
 import java.io.Serializable;
+import java.util.Collections;
 
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
@@ -95,7 +96,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public boolean compareAndSet(int expect, int update) {
 		for (;;) {
-			generalOps.watch(key);
+			generalOps.watch(Collections.singleton(key));
 			if (expect == get()) {
 				generalOps.multi();
 				set(update);
@@ -115,7 +116,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndIncrement() {
 		for (;;) {
-			generalOps.watch(key);
+			generalOps.watch(Collections.singleton(key));
 			int value = get();
 			generalOps.multi();
 			operations.increment(key, 1);
@@ -132,7 +133,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndDecrement() {
 		for (;;) {
-			generalOps.watch(key);
+			generalOps.watch(Collections.singleton(key));
 			int value = get();
 			generalOps.multi();
 			operations.increment(key, -1);
@@ -150,7 +151,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 */
 	public int getAndAdd(int delta) {
 		for (;;) {
-			generalOps.watch(key);
+			generalOps.watch(Collections.singleton(key));
 			int value = get();
 			generalOps.multi();
 			set(value + delta);

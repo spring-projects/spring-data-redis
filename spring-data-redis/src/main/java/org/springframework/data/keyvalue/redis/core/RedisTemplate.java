@@ -689,7 +689,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public void watch(K... keys) {
+	public void watch(Collection<K> keys) {
 		final byte[][] rawKeys = rawKeys(keys);
 
 		execute(new RedisCallback<Object>() {
