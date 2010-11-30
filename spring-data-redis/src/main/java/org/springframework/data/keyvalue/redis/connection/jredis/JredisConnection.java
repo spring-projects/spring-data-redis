@@ -135,6 +135,15 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Boolean expireAt(byte[] key, long unixTime) {
+		try {
+			return jredis.expireat(JredisUtils.convert(charset, key), unixTime);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Collection<byte[]> keys(byte[] pattern) {
 		try {
 			return JredisUtils.convert(charset, jredis.keys(JredisUtils.convert(charset, pattern)));

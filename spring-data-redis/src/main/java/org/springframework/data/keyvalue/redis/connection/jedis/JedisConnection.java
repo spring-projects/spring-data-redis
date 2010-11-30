@@ -191,6 +191,19 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Boolean expireAt(byte[] key, long unixTime) {
+		try {
+			if (isQueueing()) {
+				transaction.expireAt(key, unixTime);
+				return null;
+			}
+			return (jedis.expireAt(key, unixTime) == 1);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Collection<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {

@@ -44,6 +44,8 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	Boolean expire(byte[] key, int seconds);
 
+	Boolean expireAt(byte[] key, long unixTime);
+
 	Boolean persist(byte[] key);
 
 	Integer ttl(byte[] key);
