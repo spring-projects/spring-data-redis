@@ -27,29 +27,29 @@ public interface ZSetOperations<K, V> {
 
 	void intersectAndStore(K key, K destKey, K... keys);
 
-	Set<V> range(K key, int start, int end);
+	Set<V> range(K key, long start, long end);
 
 	Set<V> rangeByScore(K key, double min, double max);
 
-	Set<V> reverseRange(K key, int start, int end);
+	Set<V> reverseRange(K key, long start, long end);
 
-	void removeRange(K key, int start, int end);
+	void removeRange(K key, long start, long end);
 
 	void removeRangeByScore(K key, double min, double max);
 
 	void unionAndStore(K key, K destKey, K... keys);
 
-	boolean add(K key, V value, double score);
+	Boolean add(K key, V value, double score);
 
-	Integer rank(K key, Object o);
+	Long rank(K key, Object o);
 
-	Integer reverseRank(K key, Object o);
+	Long reverseRank(K key, Object o);
 
 	Double score(K key, Object o);
 
-	boolean remove(K key, Object o);
+	Boolean remove(K key, Object o);
 
-	int size(K key);
+	Long size(K key);
 
 	RedisOperations<K, V> getOperations();
 }

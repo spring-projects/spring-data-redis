@@ -15,6 +15,13 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.data.keyvalue.redis.connection.DataType;
+
 
 /**
  * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
@@ -23,21 +30,37 @@ package org.springframework.data.keyvalue.redis.core;
  */
 public interface RedisOperations<K, V> {
 
-	void set(K key, V value);
+	Boolean exists(K key);
 
-	V get(K key);
+	void delete(Collection<K> key);
 
-	V getAndSet(K key, V newValue);
+	DataType type(K key);
 
-	void watch(K... keys);
+	Set<K> keys(K pattern);
+
+	K randomKey();
+
+	void rename(K oldKey, K newKey);
+
+	Boolean renameIfAbsent(K oldKey, K newKey);
+
+	Boolean expire(K key, long timeout, TimeUnit unit);
+
+	Boolean expireAt(K key, Date date);
+
+	void persist(K key);
+
+	long getExpire(K key);
+
+	void watch(Collection<K> keys);
 
 	void multi();
 
 	Object exec();
 
-	Integer increment(K key, int delta);
+	ValueOperations<K, V> valueOps();
 
-	void delete(K... keys);
+	BoundValueOperations<K, V> forValue(K key);
 
 	ListOperations<K, V> listOps();
 

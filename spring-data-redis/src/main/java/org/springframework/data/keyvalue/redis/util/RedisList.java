@@ -26,7 +26,7 @@ import java.util.Queue;
  */
 public interface RedisList<E> extends RedisStore<String>, List<E>, Queue<E> {
 
-	List<E> range(int start, int end);
+	List<E> range(long start, long end);
 
 	RedisList<E> trim(int start, int end);
 }

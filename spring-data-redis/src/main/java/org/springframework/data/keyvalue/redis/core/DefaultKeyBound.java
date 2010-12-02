@@ -21,16 +21,20 @@ package org.springframework.data.keyvalue.redis.core;
  * 
  * @author Costin Leau
  */
-public class DefaultKeyBound<K> implements KeyBound<K> {
+class DefaultKeyBound<K> implements KeyBound<K> {
 
-	private final K key;
+	private K key;
 
 	public DefaultKeyBound(K key) {
-		this.key = key;
+		setKey(key);
 	}
 
 	@Override
 	public K getKey() {
 		return key;
+	}
+
+	protected void setKey(K key) {
+		this.key = key;
 	}
 }

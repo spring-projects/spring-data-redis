@@ -62,7 +62,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public List<E> range(int start, int end) {
+	public List<E> range(long start, long end) {
 		return listOps.range(start, end);
 	}
 
@@ -83,7 +83,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public int size() {
-		return listOps.length();
+		return listOps.size().intValue();
 	}
 
 
@@ -100,8 +100,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean remove(Object o) {
-		Integer result = listOps.remove(0, o);
-		return (result != null && result.intValue() > 0);
+		Long result = listOps.remove(0, o);
+		return (result != null && result.longValue() > 0);
 	}
 
 	@Override

@@ -26,23 +26,23 @@ public interface BoundListOperations<K, V> extends KeyBound<K> {
 
 	RedisOperations<K, V> getOperations();
 
-	List<V> range(int start, int end);
+	List<V> range(long start, long end);
 
-	void trim(int start, int end);
+	void trim(long start, long end);
 
-	Integer length();
+	Long size();
 
-	Integer leftPush(V value);
+	Long leftPush(V value);
 
-	Integer rightPush(V value);
+	Long rightPush(V value);
 
 	V leftPop();
 
 	V rightPop();
 
-	Integer remove(int i, Object value);
+	Long remove(long i, Object value);
 
-	V index(int index);
+	V index(long index);
 
-	void set(int index, V value);
+	void set(long index, V value);
 }

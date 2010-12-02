@@ -21,6 +21,7 @@ import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -101,7 +102,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@After
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
-		map.getOperations().delete(map.getKey());
+		map.getOperations().delete(Collections.singleton(map.getKey()));
 		template.execute(new RedisCallback<Object>() {
 
 			@Override
@@ -201,7 +202,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 
 		map.put(k1, v1);
-		Integer value = map.increment(k1, 1);
+		Long value = map.increment(k1, 1);
 		System.out.println("Value is " + value);
 	}
 
@@ -266,25 +267,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.putAll(m);
 
 		assertEquals(v1, map.get(k1));
-		assertEquals(v2, map.get(k2));
-	}
-
-	@Test
-	public void testPutIfAbsent() {
-		K k1 = getKey();
-		K k2 = getKey();
-
-		V v1 = getValue();
-		V v2 = getValue();
-
-		assertNull(map.get(k1));
-		assertTrue(map.putIfAbsent(k1, v1));
-		assertFalse(map.putIfAbsent(k1, v2));
-		assertEquals(v1, map.get(k1));
-
-		assertTrue(map.putIfAbsent(k2, v2));
-		assertFalse(map.putIfAbsent(k2, v1));
-
 		assertEquals(v2, map.get(k2));
 	}
 
@@ -374,5 +356,66 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(keys, hasItems(k1, k2));
 		assertThat(values, hasItem(v1));
 		assertThat(values, not(hasItem(v2)));
+	}
+
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentPutIfAbsent() {
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		assertNull(map.get(k1));
+		assertNull(map.putIfAbsent(k1, v1));
+		assertEquals(v1, map.putIfAbsent(k1, v2));
+		assertEquals(v1, map.get(k1));
+
+		assertNull(map.putIfAbsent(k2, v2));
+		assertEquals(v2, map.putIfAbsent(k2, v1));
+
+		assertEquals(v2, map.get(k2));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentRemove() {
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		assertFalse(map.remove(k1, v1));
+		assertEquals(v1, map.get(k1));
+		assertTrue(map.remove(k1, v1));
+		assertNull(map.get(k1));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentReplaceTwoArgs() {
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+
+		assertFalse(map.replace(k1, v2, v1));
+		assertEquals(v1, map.get(k1));
+		assertTrue(map.replace(k1, v1, v2));
+		assertEquals(v2, map.get(k1));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testConcurrentReplaceOneArg() {
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+
+		assertNull(map.replace(k1, v1));
+		map.put(k1, v1);
+		assertNull(map.replace(getKey(), v1));
+		assertEquals(v1, map.replace(k1, v2));
+		assertEquals(v2, map.get(k1));
+
 	}
 }

@@ -22,6 +22,7 @@ import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -101,7 +102,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 	@After
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
-		collection.getOperations().delete(collection.getKey());
+		collection.getOperations().delete(Collections.singleton(collection.getKey()));
 		template.execute(new RedisCallback<Object>() {
 
 			@Override

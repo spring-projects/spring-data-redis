@@ -50,8 +50,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jedisConnFactory.setPooling(false);
 		jedisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
-		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
+
 
 		//		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		//		jredisConnFactory.setPooling(false);
@@ -60,7 +60,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		//		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
 		//		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, stringTemplate },
-				{ personFactory, personFactory, personTemplate } });
+		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
+				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
+				{ personFactory, stringFactory, genericTemplate } });
 	}
 }

@@ -16,13 +16,13 @@
 
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
-import java.util.concurrent.TimeoutException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
@@ -99,8 +99,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 				return pool.getResource();
 			}
 			return new Jedis(getShardInfo());
-		} catch (TimeoutException ex) {
-			throw JedisUtils.convertJedisAccessException(ex);
+		} catch (Exception ex) {
+			throw new DataAccessResourceFailureException("Cannot get Jedis connection", ex);
 		}
 	}
 
@@ -115,15 +115,18 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		if (usePool) {
 			int size = getPoolSize();
-			pool = new JedisPool(shardInfo);
-			pool.setResourcesNumber(size);
-			pool.init();
+			pool = new JedisPool(new GenericObjectPool.Config(), shardInfo.getHost(), shardInfo.getPort(),
+					shardInfo.getTimeout(), shardInfo.getPassword());
 		}
 	}
 
 	public void destroy() {
 		if (usePool && pool != null) {
-			pool.destroy();
+			try {
+				pool.destroy();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close Jedis pool", ex);
+			}
 			pool = null;
 		}
 	}

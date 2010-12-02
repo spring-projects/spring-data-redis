@@ -18,34 +18,30 @@ package org.springframework.data.keyvalue.redis.core;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Hash operations bound to a certain key.
+ * Redis operations for simple (or in Redis terminology 'string') values.
  * 
  * @author Costin Leau
  */
-public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
+public interface ValueOperations<K, V> {
 
-	RedisOperations<H, ?> getOperations();
+	void set(K key, V value);
 
-	boolean hasKey(Object key);
+	void set(K key, V value, long timeout, TimeUnit unit);
 
-	Long increment(HK key, long delta);
+	Boolean setIfAbsent(K key, V value);
 
-	HV get(Object key);
+	void multiSet(Map<? extends K, ? extends V> m);
 
-	void set(HK key, HV value);
+	void multiSetIfAbsent(Map<? extends K, ? extends V> m);
 
-	Collection<HV> multiGet(Set<HK> keys);
+	V get(Object key);
 
-	void multiSet(Map<? extends HK, ? extends HV> m);
+	V getAndSet(K key, V value);
 
-	Set<HK> keys();
+	Collection<V> multiGet(Set<K> keys);
 
-	Collection<HV> values();
-
-	Long size();
-
-	void delete(Object key);
-
+	V increment(K key, long delta);
 }

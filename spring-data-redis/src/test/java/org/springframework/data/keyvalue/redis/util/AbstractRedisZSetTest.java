@@ -136,9 +136,9 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t2, 4);
 		zSet.add(t3, 5);
 
-		assertEquals(Integer.valueOf(0), zSet.rank(t1));
-		assertEquals(Integer.valueOf(1), zSet.rank(t2));
-		assertEquals(Integer.valueOf(2), zSet.rank(t3));
+		assertEquals(Long.valueOf(0), zSet.rank(t1));
+		assertEquals(Long.valueOf(1), zSet.rank(t2));
+		assertEquals(Long.valueOf(2), zSet.rank(t3));
 		assertNull(zSet.rank(getT()));
 	}
 
@@ -152,9 +152,9 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t2, 4);
 		zSet.add(t3, 5);
 
-		assertEquals(Integer.valueOf(0), zSet.reverseRank(t3));
-		assertEquals(Integer.valueOf(1), zSet.reverseRank(t2));
-		assertEquals(Integer.valueOf(2), zSet.reverseRank(t1));
+		assertEquals(Long.valueOf(0), zSet.reverseRank(t3));
+		assertEquals(Long.valueOf(1), zSet.reverseRank(t2));
+		assertEquals(Long.valueOf(2), zSet.reverseRank(t1));
 		assertNull(zSet.rank(getT()));
 	}
 

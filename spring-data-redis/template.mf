@@ -1,5 +1,5 @@
 Bundle-SymbolicName: org.springframework.data.redis
-Bundle-Name: Spring Datastore Redis Support
+Bundle-Name: Spring Data Redis Support
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
 Import-Package: 
@@ -22,4 +22,5 @@ Import-Template:
  org.springframework.transaction.support.*;version="[3.0.0, 4.0.0)",
  redis.clients.jedis.*;version="[1.0.0, 2.0.0)",
  redis.clients.util.*;version="[1.0.0, 2.0.0)",
+ org.apache.commons.pool.impl.*;version="[1.0.0, 3.0.0)"
 

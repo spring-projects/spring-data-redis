@@ -25,21 +25,21 @@ import java.util.List;
  */
 public interface RedisListCommands {
 
-	Integer rPush(byte[] key, byte[] value);
+	Long rPush(byte[] key, byte[] value);
 	
-	Integer lPush(byte[] key, byte[] value);
+	Long lPush(byte[] key, byte[] value);
 
-	Integer lLen(byte[] key);
+	Long lLen(byte[] key);
 
-	List<byte[]> lRange(byte[] key, int start, int end);
+	List<byte[]> lRange(byte[] key, long start, long end);
 
-	void lTrim(byte[] key, int start, int end);
+	void lTrim(byte[] key, long start, long end);
 
-	byte[] lIndex(byte[] key, int index);
+	byte[] lIndex(byte[] key, long index);
 
-	void lSet(byte[] key, int index, byte[] value);
+	void lSet(byte[] key, long index, byte[] value);
 
-	Integer lRem(byte[] key, int count, byte[] value);
+	Long lRem(byte[] key, long count, byte[] value);
 
 	byte[] lPop(byte[] key);
 

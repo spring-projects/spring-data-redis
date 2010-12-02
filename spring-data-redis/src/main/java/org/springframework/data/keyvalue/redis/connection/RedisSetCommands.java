@@ -33,7 +33,7 @@ public interface RedisSetCommands {
 
 	Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value);
 
-	Integer sCard(byte[] key);
+	Long sCard(byte[] key);
 
 	Boolean sIsMember(byte[] key, byte[] value);
 

@@ -41,11 +41,11 @@ public interface BoundSetOperations<K, V> extends KeyBound<K> {
 
 	Boolean add(V value);
 
-	boolean isMember(Object o);
+	Boolean isMember(Object o);
 
 	Set<V> members();
 
-	boolean remove(Object o);
+	Boolean remove(Object o);
 
-	int size();
+	Long size();
 }

@@ -23,10 +23,16 @@ import java.util.List;
  * 
  * @author Costin Leau
  */
-public class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements BoundListOperations<K, V> {
+class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements BoundListOperations<K, V> {
 
 	private final ListOperations<K, V> ops;
 
+	/**
+	 * Constructs a new <code>DefaultBoundListOperations</code> instance.
+	 *
+	 * @param key
+	 * @param template
+	 */
 	public DefaultBoundListOperations(K key, RedisTemplate<K, V> template) {
 		super(key);
 		this.ops = template.listOps();
@@ -39,7 +45,7 @@ public class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> impleme
 	}
 
 	@Override
-	public V index(int index) {
+	public V index(long index) {
 		return ops.index(getKey(), index);
 	}
 
@@ -49,22 +55,22 @@ public class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> impleme
 	}
 
 	@Override
-	public Integer leftPush(V value) {
+	public Long leftPush(V value) {
 		return ops.leftPush(getKey(), value);
 	}
 
 	@Override
-	public Integer length() {
-		return ops.length(getKey());
+	public Long size() {
+		return ops.size(getKey());
 	}
 
 	@Override
-	public List<V> range(int start, int end) {
+	public List<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
 	@Override
-	public Integer remove(int i, Object value) {
+	public Long remove(long i, Object value) {
 		return ops.remove(getKey(), i, value);
 	}
 
@@ -74,17 +80,17 @@ public class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> impleme
 	}
 
 	@Override
-	public Integer rightPush(V value) {
+	public Long rightPush(V value) {
 		return ops.rightPush(getKey(), value);
 	}
 
 	@Override
-	public void trim(int start, int end) {
+	public void trim(long start, long end) {
 		ops.trim(getKey(), start, end);
 	}
 
 	@Override
-	public void set(int index, V value) {
+	public void set(long index, V value) {
 		ops.set(getKey(), index, value);
 	}
 }

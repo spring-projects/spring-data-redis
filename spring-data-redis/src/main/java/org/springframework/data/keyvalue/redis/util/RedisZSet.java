@@ -32,13 +32,13 @@ public interface RedisZSet<E> extends RedisStore<String>, Set<E> {
 
 	RedisZSet<E> unionAndStore(String destKey, RedisZSet<E>... sets);
 
-	Set<E> range(int start, int end);
+	Set<E> range(long start, long end);
 
-	Set<E> reverseRange(int start, int end);
+	Set<E> reverseRange(long start, long end);
 
 	Set<E> rangeByScore(double min, double max);
 
-	RedisZSet<E> remove(int start, int end);
+	RedisZSet<E> remove(long start, long end);
 
 	RedisZSet<E> removeByScore(double min, double max);
 
@@ -78,7 +78,7 @@ public interface RedisZSet<E> extends RedisStore<String>, Set<E> {
 	 * @param o object
 	 * @return rank of the given object
 	 */
-	Integer rank(Object o);
+	Long rank(Object o);
 
 	/**
 	 * Returns the rank (position) of the given element in the set, in descending order.
@@ -87,7 +87,7 @@ public interface RedisZSet<E> extends RedisStore<String>, Set<E> {
 	 * @param o object
 	 * @return reverse rank of the given object
 	 */
-	Integer reverseRank(Object o);
+	Long reverseRank(Object o);
 
 	/**
 	 * Returns the default score used by this set.
