@@ -34,11 +34,11 @@ public interface HashOperations<H, HK, HV> {
 
 	Collection<HV> multiGet(H key, Set<HK> hashKeys);
 
-	Integer increment(H key, HK hashKey, int delta);
+	Long increment(H key, HK hashKey, long delta);
 
 	Set<HK> keys(H key);
 
-	Integer size(H key);
+	Long size(H key);
 
 	void multiSet(H key, Map<? extends HK, ? extends HV> m);
 

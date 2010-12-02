@@ -537,12 +537,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public V increment(K key, final int delta) {
+		public V increment(K key, final long delta) {
 			final byte[] rawKey = rawKey(key);
 			// TODO add conversion service in here ?
-			return (V) execute(new RedisCallback<Integer>() {
+			return (V) execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					if (delta == 1) {
 						return connection.incr(rawKey);
 					}
@@ -731,7 +731,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public V index(K key, final int index) {
+		public V index(K key, final long index) {
 			return execute(new ValueDeserializingRedisCallback(key) {
 				@Override
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
@@ -751,30 +751,30 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer leftPush(K key, V value) {
+		public Long leftPush(K key, V value) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(value);
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.lPush(rawKey, rawValue);
 				}
 			}, true);
 		}
 
 		@Override
-		public Integer size(K key) {
+		public Long size(K key) {
 			final byte[] rawKey = rawKey(key);
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.lLen(rawKey);
 				}
 			}, true);
 		}
 
 		@Override
-		public List<V> range(K key, final int start, final int end) {
+		public List<V> range(K key, final long start, final long end) {
 			final byte[] rawKey = rawKey(key);
 			return execute(new RedisCallback<List<V>>() {
 				@Override
@@ -785,12 +785,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer remove(K key, final int count, Object value) {
+		public Long remove(K key, final long count, Object value) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(value);
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.lRem(rawKey, count, rawValue);
 				}
 			}, true);
@@ -807,19 +807,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer rightPush(K key, V value) {
+		public Long rightPush(K key, V value) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(value);
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.rPush(rawKey, rawValue);
 				}
 			}, true);
 		}
 
 		@Override
-		public void set(K key, final int index, V value) {
+		public void set(K key, final long index, V value) {
 			final byte[] rawValue = rawValue(value);
 			execute(new ValueDeserializingRedisCallback(key) {
 				@Override
@@ -831,7 +831,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void trim(K key, final int start, final int end) {
+		public void trim(K key, final long start, final long end) {
 			execute(new ValueDeserializingRedisCallback(key) {
 				@Override
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
@@ -943,7 +943,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public boolean isMember(K key, Object o) {
+		public Boolean isMember(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);
 			return execute(new RedisCallback<Boolean>() {
@@ -968,7 +968,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public boolean remove(K key, Object o) {
+		public Boolean remove(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);
 			return execute(new RedisCallback<Boolean>() {
@@ -980,11 +980,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public int size(K key) {
+		public Long size(K key) {
 			final byte[] rawKey = rawKey(key);
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.sCard(rawKey);
 				}
 			}, true);
@@ -1034,7 +1034,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private class DefaultZSetOperations implements ZSetOperations<K, V> {
 
 		@Override
-		public boolean add(final K key, final V value, final double score) {
+		public Boolean add(final K key, final V value, final double score) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(value);
 
@@ -1065,7 +1065,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> range(K key, final int start, final int end) {
+		public Set<V> range(K key, final long start, final long end) {
 			final byte[] rawKey = rawKey(key);
 
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
@@ -1093,33 +1093,33 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer rank(K key, Object o) {
+		public Long rank(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);
 
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.zRank(rawKey, rawValue);
 				}
 			}, true);
 		}
 
 		@Override
-		public Integer reverseRank(K key, Object o) {
+		public Long reverseRank(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);
 
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.zRevRank(rawKey, rawValue);
 				}
 			}, true);
 		}
 
 		@Override
-		public boolean remove(K key, Object o) {
+		public Boolean remove(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);
 
@@ -1132,7 +1132,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void removeRange(K key, final int start, final int end) {
+		public void removeRange(K key, final long start, final long end) {
 			final byte[] rawKey = rawKey(key);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1156,7 +1156,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> reverseRange(K key, final int start, final int end) {
+		public Set<V> reverseRange(K key, final long start, final long end) {
 			final byte[] rawKey = rawKey(key);
 
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
@@ -1183,12 +1183,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public int size(K key) {
+		public Long size(K key) {
 			final byte[] rawKey = rawKey(key);
 
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.zCard(rawKey);
 				}
 			}, true);
@@ -1259,13 +1259,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer increment(K key, HK hashKey, final int delta) {
+		public Long increment(K key, HK hashKey, final long delta) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawHashKey = rawHashKey(hashKey);
 
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.hIncrBy(rawKey, rawHashKey, delta);
 				}
 			}, true);
@@ -1287,12 +1287,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Integer size(K key) {
+		public Long size(K key) {
 			final byte[] rawKey = rawKey(key);
 
-			return execute(new RedisCallback<Integer>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
-				public Integer doInRedis(RedisConnection connection) {
+				public Long doInRedis(RedisConnection connection) {
 					return connection.hLen(rawKey);
 				}
 			}, true);

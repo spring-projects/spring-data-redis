@@ -202,7 +202,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 
 		map.put(k1, v1);
-		Integer value = map.increment(k1, 1);
+		Long value = map.increment(k1, 1);
 		System.out.println("Value is " + value);
 	}
 

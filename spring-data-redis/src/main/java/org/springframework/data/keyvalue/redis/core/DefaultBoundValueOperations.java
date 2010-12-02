@@ -46,7 +46,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	}
 
 	@Override
-	public V increment(int delta) {
+	public V increment(long delta) {
 		return ops.increment(getKey(), delta);
 	}
 

@@ -30,27 +30,27 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	void intersectAndStore(K destKey, K... keys);
 
-	Set<V> range(int start, int end);
+	Set<V> range(long start, long end);
 
 	Set<V> rangeByScore(double min, double max);
 
-	Set<V> reverseRange(int start, int end);
+	Set<V> reverseRange(long start, long end);
 
-	void removeRange(int start, int end);
+	void removeRange(long start, long end);
 
 	void removeRangeByScore(double min, double max);
 
 	void unionAndStore(K destKey, K... keys);
 
-	boolean add(V value, double score);
+	Boolean add(V value, double score);
 
-	Integer rank(Object o);
+	Long rank(Object o);
 
-	Integer reverseRank(Object o);
+	Long reverseRank(Object o);
 
-	boolean remove(Object o);
+	Boolean remove(Object o);
 
-	int size();
+	Long size();
 
 	Double score(Object o);
 }

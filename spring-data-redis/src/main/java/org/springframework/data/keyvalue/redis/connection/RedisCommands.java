@@ -28,7 +28,7 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	Boolean exists(byte[] key);
 
-	Integer del(byte[]... keys);
+	Long del(byte[]... keys);
 
 	DataType type(byte[] key);
 
@@ -40,15 +40,15 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	Boolean renameNX(byte[] oldName, byte[] newName);
 
-	Integer dbSize();
+	Long dbSize();
 
-	Boolean expire(byte[] key, int seconds);
+	Boolean expire(byte[] key, long seconds);
 
 	Boolean expireAt(byte[] key, long unixTime);
 
 	Boolean persist(byte[] key);
 
-	Integer ttl(byte[] key);
+	Long ttl(byte[] key);
 
 	void select(int dbIndex);
 

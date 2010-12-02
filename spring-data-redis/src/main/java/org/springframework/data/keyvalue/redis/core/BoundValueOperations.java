@@ -32,6 +32,6 @@ public interface BoundValueOperations<K, V> extends KeyBound<K> {
 
 	V getAndSet(V value);
 
-	V increment(int delta);
+	V increment(long delta);
 
 }

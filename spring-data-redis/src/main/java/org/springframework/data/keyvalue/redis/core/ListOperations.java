@@ -24,21 +24,21 @@ import java.util.List;
  */
 public interface ListOperations<K, V> {
 
-	List<V> range(K key, int start, int end);
+	List<V> range(K key, long start, long end);
 
-	void trim(K key, int start, int end);
+	void trim(K key, long start, long end);
 
-	Integer size(K key);
+	Long size(K key);
 
-	Integer leftPush(K key, V value);
+	Long leftPush(K key, V value);
 
-	Integer rightPush(K key, V value);
+	Long rightPush(K key, V value);
 
-	void set(K key, int index, V value);
+	void set(K key, long index, V value);
 
-	Integer remove(K key, int i, Object value);
+	Long remove(K key, long i, Object value);
 
-	V index(K key, int index);
+	V index(K key, long index);
 
 	V leftPop(K key);
 

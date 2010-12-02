@@ -25,5 +25,5 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface RedisMap<K, V> extends RedisStore<String>, ConcurrentMap<K, V> {
 
-	Integer increment(K key, int delta);
+	Long increment(K key, long delta);
 }

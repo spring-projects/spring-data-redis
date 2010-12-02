@@ -42,41 +42,41 @@ public interface RedisZSetCommands {
 
 	Double zIncrBy(byte[] key, double increment, byte[] value);
 
-	Integer zRank(byte[] key, byte[] value);
+	Long zRank(byte[] key, byte[] value);
 
-	Integer zRevRank(byte[] key, byte[] value);
+	Long zRevRank(byte[] key, byte[] value);
 
-	Set<byte[]> zRange(byte[] key, int start, int end);
+	Set<byte[]> zRange(byte[] key, long start, long end);
 
-	Set<Tuple> zRangeWithScore(byte[] key, int start, int end);
+	Set<Tuple> zRangeWithScore(byte[] key, long start, long end);
 
-	Set<byte[]> zRevRange(byte[] key, int start, int end);
+	Set<byte[]> zRevRange(byte[] key, long start, long end);
 
-	Set<Tuple> zRevRangeWithScore(byte[] key, int start, int end);
+	Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end);
 
 	Set<byte[]> zRangeByScore(byte[] key, double min, double max);
 
 	Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max);
 
-	Set<byte[]> zRangeByScore(byte[] key, double min, double max, int offset, int count);
+	Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count);
 
-	Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, int offset, int count);
+	Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count);
 
-	Integer zCount(byte[] key, double min, double max);
+	Long zCount(byte[] key, double min, double max);
 
-	Integer zCard(byte[] key);
+	Long zCard(byte[] key);
 
 	Double zScore(byte[] key, byte[] value);
 
-	Integer zRemRange(byte[] key, int start, int end);
+	Long zRemRange(byte[] key, long start, long end);
 
-	Integer zRemRangeByScore(byte[] key, double min, double max);
+	Long zRemRangeByScore(byte[] key, double min, double max);
 
-	Integer zUnionStore(byte[] destKey, byte[]... sets);
+	Long zUnionStore(byte[] destKey, byte[]... sets);
 
-	Integer zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+	Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
 
-	Integer zInterStore(byte[] destKey, byte[]... sets);
+	Long zInterStore(byte[] destKey, byte[]... sets);
 
-	Integer zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+	Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
 }

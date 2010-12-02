@@ -125,7 +125,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	@Override
 	public int size() {
-		return boundSetOps.size();
+		return boundSetOps.size().intValue();
 	}
 
 	private String[] extractKeys(RedisSet<?>... sets) {

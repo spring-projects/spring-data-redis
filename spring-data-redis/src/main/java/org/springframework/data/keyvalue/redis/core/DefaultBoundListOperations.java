@@ -45,7 +45,7 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public V index(int index) {
+	public V index(long index) {
 		return ops.index(getKey(), index);
 	}
 
@@ -55,22 +55,22 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public Integer leftPush(V value) {
+	public Long leftPush(V value) {
 		return ops.leftPush(getKey(), value);
 	}
 
 	@Override
-	public Integer length() {
+	public Long size() {
 		return ops.size(getKey());
 	}
 
 	@Override
-	public List<V> range(int start, int end) {
+	public List<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
 	@Override
-	public Integer remove(int i, Object value) {
+	public Long remove(long i, Object value) {
 		return ops.remove(getKey(), i, value);
 	}
 
@@ -80,17 +80,17 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public Integer rightPush(V value) {
+	public Long rightPush(V value) {
 		return ops.rightPush(getKey(), value);
 	}
 
 	@Override
-	public void trim(int start, int end) {
+	public void trim(long start, long end) {
 		ops.trim(getKey(), start, end);
 	}
 
 	@Override
-	public void set(int index, V value) {
+	public void set(long index, V value) {
 		ops.set(getKey(), index, value);
 	}
 }

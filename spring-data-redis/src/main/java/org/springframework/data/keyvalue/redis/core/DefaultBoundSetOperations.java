@@ -70,7 +70,7 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
-	public boolean isMember(Object o) {
+	public Boolean isMember(Object o) {
 		return ops.isMember(getKey(), o);
 	}
 
@@ -80,12 +80,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
-	public boolean remove(Object o) {
+	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}
 
 	@Override
-	public int size() {
+	public Long size() {
 		return ops.size(getKey());
 	}
 

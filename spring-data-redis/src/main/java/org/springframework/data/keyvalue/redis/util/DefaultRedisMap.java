@@ -80,7 +80,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public Integer increment(K key, int delta) {
+	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
 	}
 
@@ -161,7 +161,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public int size() {
-		return hashOps.length();
+		return hashOps.size().intValue();
 	}
 
 	@Override

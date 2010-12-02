@@ -70,8 +70,8 @@ public abstract class JedisUtils {
 		return status != null && (OK_CODE.equals(status) || OK_MULTI_CODE.equals(status));
 	}
 
-	static Boolean convertCodeReply(Integer code) {
-		return (code != null ? code == 1 : null);
+	static Boolean convertCodeReply(Number code) {
+		return (code != null ? code.intValue() == 1 : null);
 	}
 
 	static Set<Tuple> convertJedisTuple(Set<redis.clients.jedis.Tuple> tuples) {

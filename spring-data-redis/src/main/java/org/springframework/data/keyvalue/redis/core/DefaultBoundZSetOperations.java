@@ -39,7 +39,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public boolean add(V value, double score) {
+	public Boolean add(V value, double score) {
 		return ops.add(getKey(), value, score);
 	}
 
@@ -54,7 +54,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public Set<V> range(int start, int end) {
+	public Set<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
@@ -64,12 +64,12 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public Integer rank(Object o) {
+	public Long rank(Object o) {
 		return ops.rank(getKey(), o);
 	}
 
 	@Override
-	public Integer reverseRank(Object o) {
+	public Long reverseRank(Object o) {
 		return ops.reverseRank(getKey(), o);
 	}
 
@@ -79,12 +79,12 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public boolean remove(Object o) {
+	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}
 
 	@Override
-	public void removeRange(int start, int end) {
+	public void removeRange(long start, long end) {
 		ops.removeRange(getKey(), start, end);
 	}
 
@@ -94,12 +94,12 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public Set<V> reverseRange(int start, int end) {
+	public Set<V> reverseRange(long start, long end) {
 		return ops.reverseRange(getKey(), start, end);
 	}
 
 	@Override
-	public int size() {
+	public Long size() {
 		return ops.size(getKey());
 	}
 

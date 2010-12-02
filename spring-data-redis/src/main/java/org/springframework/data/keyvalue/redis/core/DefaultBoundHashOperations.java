@@ -65,7 +65,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	}
 
 	@Override
-	public Integer increment(HK key, int delta) {
+	public Long increment(HK key, long delta) {
 		return ops.increment(getKey(), key, delta);
 	}
 
@@ -75,7 +75,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	}
 
 	@Override
-	public Integer length() {
+	public Long size() {
 		return ops.size(getKey());
 	}
 

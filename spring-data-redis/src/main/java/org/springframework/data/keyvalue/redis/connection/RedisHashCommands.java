@@ -37,13 +37,13 @@ public interface RedisHashCommands {
 
 	void hMSet(byte[] key, Map<byte[], byte[]> hashes);
 
-	Integer hIncrBy(byte[] key, byte[] field, int delta);
+	Long hIncrBy(byte[] key, byte[] field, long delta);
 
 	Boolean hExists(byte[] key, byte[] field);
 
 	Boolean hDel(byte[] key, byte[] field);
 
-	Integer hLen(byte[] key);
+	Long hLen(byte[] key);
 
 	Set<byte[]> hKeys(byte[] key);
 

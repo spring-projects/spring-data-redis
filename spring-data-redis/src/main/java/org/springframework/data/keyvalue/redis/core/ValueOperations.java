@@ -43,5 +43,5 @@ public interface ValueOperations<K, V> {
 
 	Collection<V> multiGet(Set<K> keys);
 
-	V increment(K key, int delta);
+	V increment(K key, long delta);
 }

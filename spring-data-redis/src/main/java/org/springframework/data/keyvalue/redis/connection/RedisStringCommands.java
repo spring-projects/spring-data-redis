@@ -36,21 +36,21 @@ public interface RedisStringCommands {
 
 	Boolean setNX(byte[] key, byte[] value);
 
-	void setEx(byte[] key, int seconds, byte[] value);
+	void setEx(byte[] key, long seconds, byte[] value);
 
 	void mSet(Map<byte[], byte[]> tuple);
 
 	void mSetNX(Map<byte[], byte[]> tuple);
 
-	Integer incr(byte[] key);
+	Long incr(byte[] key);
 
-	Integer incrBy(byte[] key, int value);
+	Long incrBy(byte[] key, long value);
 
-	Integer decr(byte[] key);
+	Long decr(byte[] key);
 
-	Integer decrBy(byte[] key, int value);
+	Long decrBy(byte[] key, long value);
 
-	Integer append(byte[] key, byte[] value);
+	Long append(byte[] key, byte[] value);
 
-	byte[] substr(byte[] key, int start, int end);
+	byte[] substr(byte[] key, long start, long end);
 }

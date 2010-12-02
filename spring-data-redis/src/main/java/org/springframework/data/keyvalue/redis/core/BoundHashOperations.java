@@ -30,7 +30,7 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
 	boolean hasKey(Object key);
 
-	Integer increment(HK key, int delta);
+	Long increment(HK key, long delta);
 
 	HV get(Object key);
 
@@ -44,7 +44,7 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
 	Collection<HV> values();
 
-	Integer length();
+	Long size();
 
 	void delete(Object key);
 

@@ -96,12 +96,12 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public Set<E> range(int start, int end) {
+	public Set<E> range(long start, long end) {
 		return boundZSetOps.range(start, end);
 	}
 
 	@Override
-	public Set<E> reverseRange(int start, int end) {
+	public Set<E> reverseRange(long start, long end) {
 		return boundZSetOps.reverseRange(start, end);
 	}
 
@@ -111,7 +111,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public RedisZSet<E> remove(int start, int end) {
+	public RedisZSet<E> remove(long start, long end) {
 		boundZSetOps.removeRange(start, end);
 		return this;
 	}
@@ -160,7 +160,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public int size() {
-		return boundZSetOps.size();
+		return boundZSetOps.size().intValue();
 	}
 
 	@Override
@@ -185,12 +185,12 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public Integer rank(Object o) {
+	public Long rank(Object o) {
 		return boundZSetOps.rank(o);
 	}
 
 	@Override
-	public Integer reverseRank(Object o) {
+	public Long reverseRank(Object o) {
 		return boundZSetOps.reverseRank(o);
 	}
 

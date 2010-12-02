@@ -23,8 +23,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.Person;
-import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
 public abstract class AbstractConnectionIntegrationTests {
 
@@ -46,9 +44,9 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testLPush() throws Exception {
-		Integer index = connection.lPush(listName.getBytes(), "bar".getBytes());
+		Long index = connection.lPush(listName.getBytes(), "bar".getBytes());
 		if (index != null) {
-			assertEquals((Integer) (index + 1), connection.lPush(listName.getBytes(), "bar".getBytes()));
+			assertEquals((Long) (index + 1), connection.lPush(listName.getBytes(), "bar".getBytes()));
 		}
 	}
 

@@ -41,12 +41,12 @@ public interface SetOperations<K, V> {
 
 	Boolean add(K key, V value);
 
-	boolean isMember(K key, Object o);
+	Boolean isMember(K key, Object o);
 
 	Set<V> members(K key);
 
-	boolean remove(K key, Object o);
+	Boolean remove(K key, Object o);
 
-	int size(K key);
+	Long size(K key);
 
 }
