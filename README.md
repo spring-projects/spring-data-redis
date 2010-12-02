@@ -19,51 +19,45 @@ For those in a hurry:
 
 * Download the jar through Maven:
 
-    <dependency>
-      <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-keyvalue</artifactId>
-      <version>1.0.0-BUILD-SNAPSHOT</version>
-    </dependency> 
+      <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-keyvalue</artifactId>
+        <version>1.0.0-BUILD-SNAPSHOT</version>
+      </dependency> 
 
 
-    <repository>
-      <id>spring-maven-snapshot</id>
-      <snapshots><enabled>true</enabled></snapshots>
-      <name>Springframework Maven SNAPSHOT Repository</name>
-      <url>http://maven.springframework.org/snapshot</url>
-    </repository> 
+      <repository>
+        <id>spring-maven-snapshot</id>
+        <snapshots><enabled>true</enabled></snapshots>
+        <name>Springframework Maven SNAPSHOT Repository</name>
+        <url>http://maven.springframework.org/snapshot</url>
+      </repository> 
 
 
 * Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis)):
 
-
-     <beans xmlns="http://www.springframework.org/schema/beans"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
-      xmlns:p="http://www.springframework.org/schema/p"
-      xsi:schemaLocation="
-      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-      
-      <bean id="jedisFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
-      
-      <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate"
-          p:connection-factory="jedisFactory"/>
-     </beans>
-
+      <beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
+        xmlns:p="http://www.springframework.org/schema/p"
+        xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+        <bean id="jedisFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
+        
+        <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate"
+            p:connection-factory="jedisFactory"/>
+      </beans>
 
 * Use RedisTemplate to interact with the Redis store:
 
-
-    String random = template.randomKey();
-    template.set(random, new Person("John", "Smith"));
-
+      String random = template.randomKey();
+      template.set(random, new Person("John", "Smith"));
 
 * Use Redis 'views' to execute specific operations based on the underlying Redis type:
 
-
-    ListOperations<String, Person> listOps = template.listOps();
-    listOps.rightPush(random, new Person("Jane", "Smith"));
-    List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
-
+      ListOperations<String, Person> listOps = template.listOps();
+      listOps.rightPush(random, new Person("Jane", "Smith"));
+      List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
 
 # Riak
 
