@@ -25,12 +25,14 @@ For those in a hurry:
       <version>1.0.0-BUILD-SNAPSHOT</version>
     </dependency> 
 
+
     <repository>
       <id>spring-maven-snapshot</id>
       <snapshots><enabled>true</enabled></snapshots>
       <name>Springframework Maven SNAPSHOT Repository</name>
       <url>http://maven.springframework.org/snapshot</url>
     </repository> 
+
 
 * Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis) ):
 
@@ -42,13 +44,16 @@ For those in a hurry:
       
       <bean id="jedisFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
       
-      <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate" p:connection-factory="jedisFactory"/>
+      <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate"
+          p:connection-factory="jedisFactory"/>
     </beans>
+
 
 * Use RedisTemplate to interact with the Redis store
   
     String random = template.randomKey();
     template.set(random, new Person("John", "Smith"));
+
 
 * Use Redis 'views' to execute specific operations based on the underlying Redis type
 
