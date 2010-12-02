@@ -7,7 +7,7 @@ As the name implies, the **Key Value** modules provides integration with key val
 Getting Help
 ------------
 
-Read the main project [website](http://www.springsource.org/spring-data)) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects).
+Read the main project [website](http://www.springsource.org/spring-data)) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
 
 Quick Start
 -----------
