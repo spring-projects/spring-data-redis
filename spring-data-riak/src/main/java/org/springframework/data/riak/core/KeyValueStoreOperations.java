@@ -36,6 +36,18 @@ public interface KeyValueStoreOperations {
   <K, V> KeyValueStoreOperations set(K key, V value);
 
   /**
+   * Variation on set() that allows the user to specify {@link org.springframework.data.riak.core.QosParameters}.
+   *
+   * @param key
+   * @param value
+   * @param qosParams
+   * @param <K>
+   * @param <V>
+   * @return
+   */
+  <K, V> KeyValueStoreOperations set(K key, V value, QosParameters qosParams);
+
+  /**
    * Set a value as a byte array at a specified key.
    *
    * @param key
@@ -43,6 +55,20 @@ public interface KeyValueStoreOperations {
    * @return This template interface
    */
   <K> KeyValueStoreOperations setAsBytes(K key, byte[] value);
+
+  /**
+   * Variation on setWithMetaData() that allows the user to pass {@link
+   * org.springframework.data.riak.core.QosParameters}.
+   *
+   * @param key
+   * @param value
+   * @param metaData
+   * @param qosParams
+   * @param <K>
+   * @param <V>
+   * @return
+   */
+  <K, V> KeyValueStoreOperations setWithMetaData(K key, V value, Map<String, String> metaData, QosParameters qosParams);
 
   // Get operations
 
@@ -237,4 +263,7 @@ public interface KeyValueStoreOperations {
    */
   <B> Map<String, Object> getBucketSchema(B bucket, boolean listKeys);
 
+  <K> KeyValueStoreOperations setAsBytes(K key, byte[] value, QosParameters qosParams);
+
+  <K, V> KeyValueStoreOperations setWithMetaData(K key, V value, Map<String, String> metaData);
 }
