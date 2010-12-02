@@ -141,6 +141,10 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
    * A list of resolvers to turn a single object into a {@link BucketKeyPair}.
    */
   protected List<BucketKeyResolver> bucketKeyResolvers;
+  /**
+   * The default QosParameters to use for all operations through this template.
+   */
+  protected QosParameters defaultQosParameters = null;
 
   /**
    * Take all the defaults.
@@ -156,6 +160,7 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
    */
   public RiakTemplate(ClientHttpRequestFactory requestFactory) {
     super(requestFactory);
+    setRestTemplate(new RestTemplate());
   }
 
   /**
@@ -234,17 +239,27 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return setWithMetaData(key, value, null);
   }
 
+  public <K, V> KeyValueStoreOperations set(K key, V value, QosParameters qosParams) {
+    return setWithMetaData(key, value, null, qosParams);
+  }
+
   public <K> KeyValueStoreOperations setAsBytes(K key, byte[] value) {
+    return setAsBytes(key, value, null);
+  }
+
+  public <K> KeyValueStoreOperations setAsBytes(K key, byte[] value, QosParameters qosParams) {
     Assert.notNull(key, "Can't store an object with a NULL key.");
     BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, value);
     String bucketName = (null != bucketKeyPair.getBucket() ? bucketKeyPair.getBucket()
         .toString() : "bytes");
+    String keyName = (null != qosParams ? bucketKeyPair.getKey()
+        .toString() + extractQosParameters(qosParams) : bucketKeyPair.getKey().toString());
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.set("X-Riak-ClientId", RIAK_CLIENT_ID);
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
     HttpEntity<byte[]> entity = new HttpEntity<byte[]>(value, headers);
-    restTemplate.put(defaultUri, entity, bucketName, bucketKeyPair.getKey());
+    restTemplate.put(defaultUri, entity, bucketName, keyName);
     if (log.isDebugEnabled()) {
       log.debug(String.format("PUT byte[]: bucket=%s, key=%s",
           bucketKeyPair.getBucket(),
@@ -253,8 +268,10 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return this;
   }
 
-  public <K, V> KeyValueStoreOperations setWithMetaData(K key, V value, Map<String, String> metaData) {
+  public <K, V> KeyValueStoreOperations setWithMetaData(K key, V value, Map<String, String> metaData, QosParameters qosParams) {
     BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, value);
+    String keyName = (null != qosParams ? bucketKeyPair.getKey()
+        .toString() + extractQosParameters(qosParams) : bucketKeyPair.getKey().toString());
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.set("X-Riak-ClientId", RIAK_CLIENT_ID);
@@ -268,7 +285,7 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     restTemplate.put(defaultUri,
         entity,
         bucketKeyPair.getBucket(),
-        bucketKeyPair.getKey());
+        keyName);
     if (log.isDebugEnabled()) {
       log.debug(String.format("PUT object: bucket=%s, key=%s, value=%s",
           bucketKeyPair.getBucket(),
@@ -276,6 +293,10 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
           value));
     }
     return this;
+  }
+
+  public <K, V> KeyValueStoreOperations setWithMetaData(K key, V value, Map<String, String> metaData) {
+    return setWithMetaData(key, value, metaData, null);
   }
 
   /*----------------- Get Operations -----------------*/
@@ -872,7 +893,6 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return meta;
   }
 
-
   protected <K, T> T checkCache(K key, Class<T> requiredType) {
     BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, requiredType);
     RiakValue<?> obj = cache.get(bucketKeyPair);
@@ -901,6 +921,29 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     } else {
       return null;
     }
+  }
+
+  protected String extractQosParameters(QosParameters qosParams) {
+    List<String> params = new LinkedList<String>();
+    if (null != qosParams.getReadThreshold()) {
+      params.add(String.format("r=%s", qosParams.<Object>getReadThreshold()));
+    } else if (null != defaultQosParameters && null != defaultQosParameters.getReadThreshold()) {
+      params.add(String.format("r=%s", defaultQosParameters.getReadThreshold()));
+    }
+    if (null != qosParams.getWriteThreshold()) {
+      params.add(String.format("w=%s", qosParams.<Object>getWriteThreshold()));
+    } else if (null != defaultQosParameters && null != defaultQosParameters.getWriteThreshold()) {
+      params.add(String.format("w=%s", defaultQosParameters.getWriteThreshold()));
+    }
+    if (null != qosParams.getDurableWriteThreshold()) {
+      params.add(String.format("dw=%s", qosParams.<Object>getDurableWriteThreshold()));
+    } else if (null != defaultQosParameters && null != defaultQosParameters.getDurableWriteThreshold()) {
+      params.add(String.format("dw=%s", defaultQosParameters.getDurableWriteThreshold()));
+    }
+
+    return (params.size() > 0 ? "?" + StringUtils.collectionToDelimitedString(
+        params,
+        "&") : "");
   }
 
 }

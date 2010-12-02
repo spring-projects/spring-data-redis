@@ -94,6 +94,21 @@ class RiakTemplateSpec extends Specification {
 
   }
 
+  def "Test setting QosParameters"() {
+
+    given:
+    def obj = riak.get("test:test")
+
+    when:
+    def qos = new RiakQosParameters()
+    qos.durableWriteThreshold = "all"
+    riak.set("test:test", obj, qos)
+
+    then:
+    true
+
+  }
+
   def "Test containsKey"() {
 
     when:
