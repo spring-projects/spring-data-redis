@@ -19,14 +19,23 @@ package org.springframework.data.keyvalue.redis.connection;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
+import java.util.UUID;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
+import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.SimpleRedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 public abstract class AbstractConnectionIntegrationTests {
 
 	protected RedisConnection connection;
+	protected RedisSerializer serializer = new SimpleRedisSerializer();
+	protected RedisSerializer stringSerializer = new StringRedisSerializer();
+
 	private static final String listName = "test-list";
 
 	@Before
@@ -57,12 +66,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals("blahblah", new String(connection.get("foo".getBytes())));
 	}
 
-
 	private boolean isJredis() {
 		return connection.getClass().getSimpleName().startsWith("Jredis");
 	}
 
-	public void conversions() {
-		Person p = new Person("Joe", "Trader", 33);
+	@Test
+	public void testByteValue() {
+		String value = UUID.randomUUID().toString();
+		Person person = new Person(value, value, 1, new Address(value, 2));
+		String key = getClass() + ":byteValue";
+		byte[] rawKey = stringSerializer.serialize(key);
+		
+		connection.set(rawKey, serializer.serialize(person));
+		byte[] rawValue = connection.get(rawKey);
+		assertNotNull(rawValue);
+		assertEquals(person, serializer.deserialize(rawValue));
 	}
 }
