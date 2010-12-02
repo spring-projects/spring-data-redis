@@ -25,6 +25,7 @@ For those in a hurry:
       <version>1.0.0-BUILD-SNAPSHOT</version>
     </dependency> 
 
+
     <repository>
       <id>spring-maven-snapshot</id>
       <snapshots><enabled>true</enabled></snapshots>
@@ -32,9 +33,11 @@ For those in a hurry:
       <url>http://maven.springframework.org/snapshot</url>
     </repository> 
 
-* Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis) ):
 
-    <beans xmlns="http://www.springframework.org/schema/beans"
+* Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis)):
+
+
+     <beans xmlns="http://www.springframework.org/schema/beans"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
       xmlns:p="http://www.springframework.org/schema/p"
       xsi:schemaLocation="
@@ -42,15 +45,20 @@ For those in a hurry:
       
       <bean id="jedisFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
       
-      <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate" p:connection-factory="jedisFactory"/>
-    </beans>
+      <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate"
+          p:connection-factory="jedisFactory"/>
+     </beans>
 
-* Use RedisTemplate to interact with the Redis store
-  
+
+* Use RedisTemplate to interact with the Redis store:
+
+
     String random = template.randomKey();
     template.set(random, new Person("John", "Smith"));
 
-* Use Redis 'views' to execute specific operations based on the underlying Redis type
+
+* Use Redis 'views' to execute specific operations based on the underlying Redis type:
+
 
     ListOperations<String, Person> listOps = template.listOps();
     listOps.rightPush(random, new Person("Jane", "Smith"));
