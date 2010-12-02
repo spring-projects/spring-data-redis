@@ -70,7 +70,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		return connection.getClass().getSimpleName().startsWith("Jredis");
 	}
 
-	@Test
+
 	public void testByteValue() {
 		String value = UUID.randomUUID().toString();
 		Person person = new Person(value, value, 1, new Address(value, 2));

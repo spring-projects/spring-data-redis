@@ -12,7 +12,7 @@ Read the main project [website](http://www.springsource.org/spring-data)) and th
 Quick Start
 -----------
 
-# Redis
+## Redis
 
 For those in a hurry:
 
@@ -59,7 +59,7 @@ For those in a hurry:
       listOps.rightPush(random, new Person("Jane", "Smith"));
       List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
 
-# Riak
+## Riak
 
 
 Contributing to Spring Data
