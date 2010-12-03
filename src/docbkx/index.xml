@@ -3,7 +3,7 @@
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <bookinfo>
-        <title>Spring Datastore Key-Value - Reference Documentation</title>
+        <title>Spring Data Key-Value - Reference Documentation</title>
         <releaseinfo>&version;</releaseinfo>
 
         <authorgroup>

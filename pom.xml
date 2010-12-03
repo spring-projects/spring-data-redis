@@ -8,6 +8,10 @@
   <version>1.0.0.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <properties>
+    <javadoc.loc>src/main/javadoc</javadoc.loc>
+  </properties>
+  
   <modules>
     <module>spring-data-keyvalue-parent</module>
     <module>spring-data-keyvalue-core</module>
@@ -15,6 +19,7 @@
     <module>spring-data-riak</module>
   </modules>
 
+  
   <build>
     <extensions>
       <extension>
@@ -153,7 +158,62 @@
 
       <finalName>${dist.finalName}</finalName>
       -->
-
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.7</version>
+         <executions>
+           <execution>
+             <id>aggregate</id>
+             <phase>pre-site</phase>
+             <goals>
+               <goal>aggregate</goal>
+             </goals>
+           </execution>
+         </executions>
+         <configuration>
+           <javadoc:aggregate>true</javadoc:aggregate>
+           <breakiterator>true</breakiterator>
+           <header>Spring Data Key-Value</header>
+           <source>1.5</source>
+           <show>protected</show>
+           <quiet>true</quiet>
+           <javadocDirectory>${javadoc.loc}</javadocDirectory>
+           <overview>${javadoc.loc}/overview.html</overview>
+           <stylesheetfile>${javadoc.loc}/javadoc.css</stylesheetfile>
+           <docfilessubdirs>true</docfilessubdirs>
+           
+           <groups>
+             <group>
+                <title>Spring Data Key Value Core</title>
+                <packages>org.springframework.data.keyvalue.core*</packages>
+             </group>            
+             <group>
+                <title>Spring Data Redis Support</title>
+                <packages>org.springframework.data.keyvalue.redis*</packages>
+             </group>            
+             <group>
+                <title>Spring Data Riak Support</title>
+                <packages>org.springframework.data.keyvalue.riak*</packages>
+             </group>            
+           </groups>
+           <links>
+             <link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
+             <link>http://download.oracle.com/javase/6/docs/api/</link>
+           </links>
+         </configuration>
+      </plugin>      
     </plugins>
   </build>
 
@@ -163,7 +223,7 @@
     <site>
       <id>static.springframework.org</id>
       <url>
-        scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/datastore-keyvalue/snapshot-site/
+        scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-data/data-keyvalue/snapshot-site/
       </url>
     </site>
     <repository>

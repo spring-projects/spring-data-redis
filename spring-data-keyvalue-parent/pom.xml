@@ -22,15 +22,23 @@
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
     <!-- dist.* properties are used by the antrun tasks below -->
     <dist.id>spring-data-keyvalue</dist.id>
-    <dist.name>Spring data Key-Value</dist.name>
-    <dist.key>DATADOC</dist.key>
+    <dist.name>Spring Data Key-Value</dist.name>
+    <dist.key>DATAKV</dist.key>
     <dist.version>${project.version}</dist.version>
     <dist.releaseType>snapshot</dist.releaseType>
     <dist.finalName>${dist.id}-${dist.version}</dist.finalName>
     <dist.fileName>${dist.finalName}.zip</dist.fileName>
     <dist.filePath>target/${dist.fileName}</dist.filePath>
     <dist.bucketName>dist.springframework.org</dist.bucketName>
+    
+    <!-- javadoc -->
+    <javadoc.loc>../src/main/javadoc</javadoc.loc>
   </properties>
+
+  <organization>
+    <name>SpringSource</name>
+    <url>http://www.SpringSource.org</url>
+  </organization>
 
 
   <developers>
@@ -57,7 +65,6 @@
       </roles>
       <timezone>+2</timezone>
     </developer>
-
   </developers>
 
   <licenses>
@@ -394,48 +401,6 @@
           </archive>
         </configuration>
       </plugin>
-
-      <!--
-         <plugin>
-           <artifactId>maven-source-plugin</artifactId>
-           <executions>
-             <execution>
-               <id>attach-sources</id>
-               <goals>
-                 <goal>jar</goal>
-               </goals>
-             </execution>
-           </executions>
-         </plugin>
-         <plugin>
-           <artifactId>maven-javadoc-plugin</artifactId>
-           <version>2.5</version>
-           <executions>
-             <execution>
-               <id>aggregate</id>
-               <goals>
-                 <goal>aggregate</goal>
-               </goals>
-               <phase>package</phase>
-               <configuration>
-                 <javadoc:aggregate>true</javadoc:aggregate>
-                 <breakiterator>true</breakiterator>
-                 <header>Spring data Key-Value</header>
-                 <source>1.5</source>
-                 <quiet>true</quiet>
-                 <javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
-                 <overview>${project.basedir}/src/main/javadoc/overview.html</overview>
-                 <stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
-                 <docfilessubdirs>true</docfilessubdirs>
-                 <links>
-                   <link>http://static.springframework.org/spring/docs/3.0.x/javadoc-api</link>
-                   <link>http://java.sun.com/javase/6/docs/api</link>
-                 </links>
-               </configuration>
-             </execution>
-           </executions>
-         </plugin>
-         -->
     </plugins>
     <pluginManagement>
       <plugins>
@@ -486,6 +451,21 @@
             </execution>
           </executions>
         </plugin>
+        <!--
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.7</version>
+          <executions>
+            <execution>
+              <id>aggregate</id>
+              <phase>pre-site</phase>
+              <goals>
+                <goal>aggregate</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        -->
       </plugins>
     </pluginManagement>
   </build>

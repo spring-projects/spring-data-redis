@@ -4,7 +4,7 @@
 <preface id="preface">
   <title>Preface</title>
 
-  <para>The Spring Datastore Key-Value project applies core Spring concepts to the development of solutions using a key-value style data store. 
+  <para>The Spring Data Key-Value project applies core Spring concepts to the development of solutions using a key-value style data store. 
 	We provide a "template" as a high-level abstraction for sending and receiving messages. 
 	You will notice similarities to the JDBC support in the Spring Framework. 
 	</para>

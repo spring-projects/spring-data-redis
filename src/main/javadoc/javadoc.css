@@ -1,0 +1,48 @@
+/* Spring-specific Javadoc style sheet rules */
+
+#overviewBody {
+
+}
+
+.code {
+	border: 1px solid black;
+	background-color: #F4F4F4;
+	padding: 5px;
+}
+
+/* Vanilla Javadoc style sheet rules */
+
+body {
+	font-family: Helvetica, Arial, sans-serif;
+	background-color: white;
+	font-size: 10pt;
+}
+
+td { font-size: 10pt; font-family: Helvetica, Arial, sans-serif }/* Javadoc style sheet */
+
+/* Define colors, fonts and other style attributes here to override the defaults */
+
+/* Page background color */
+body { background-color: #FFFFFF }
+
+/* Headings */
+h1 { font-size: 145% }
+
+/* Table colors */
+.TableHeadingColor     { background: #CCCCFF } /* Dark mauve */
+.TableSubHeadingColor  { background: #EEEEFF } /* Light mauve */
+.TableRowColor         { background: #FFFFFF } /* White */
+
+/* Font used in left-hand frame lists */
+.FrameTitleFont   { font-size: 100%; font-family: Helvetica, Arial, sans-serif }
+.FrameHeadingFont { font-size:  90%; font-family: Helvetica, Arial, sans-serif }
+.FrameItemFont    { font-size:  90%; font-family: Helvetica, Arial, sans-serif }
+
+/* Navigation bar fonts and colors */
+.NavBarCell1    { background-color:#EEEEFF;} /* Light mauve */
+.NavBarCell1Rev { background-color:#00008B;} /* Dark Blue */
+.NavBarFont1    { font-family: Arial, Helvetica, sans-serif; color:#000000;}
+.NavBarFont1Rev { font-family: Arial, Helvetica, sans-serif; color:#FFFFFF;}
+
+.NavBarCell2    { font-family: Arial, Helvetica, sans-serif; background-color:#FFFFFF;}
+.NavBarCell3    { font-family: Arial, Helvetica, sans-serif; background-color:#FFFFFF;}

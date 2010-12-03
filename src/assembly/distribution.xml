@@ -42,8 +42,8 @@
 		<moduleSet>
 			<!-- adds module jars to the distribution archive under the 'dist' directory -->
 			<includes>
-				<include>org.springframework.data:spring-datastore-keyvalue-core</include>
-				<include>org.springframework.data:spring-datastore-redis</include>
+				<include>org.springframework.data:spring-data-keyvalue-core</include>
+				<include>org.springframework.data:spring-data-redis</include>
 			</includes>
 			<binaries>
 				<outputDirectory>dist</outputDirectory>
@@ -55,8 +55,8 @@
 			<!-- adds module source jars to the distribution archive under the 'src' directory
 				 see pom.xml 'maven-source-plugin' declaration -->
 			<includes>
-				<include>org.springframework.data:spring-datastore-keyvalue-core</include>
-				<include>org.springframework.data:spring-datastore-redis</include>
+				<include>org.springframework.data:spring-data-keyvalue-core</include>
+				<include>org.springframework.data:spring-data-redis</include>
 			</includes>
 			<binaries>
 				<attachmentClassifier>sources</attachmentClassifier>
