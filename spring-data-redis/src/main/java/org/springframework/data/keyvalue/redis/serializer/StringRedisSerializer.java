@@ -42,6 +42,6 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 
 	@Override
 	public byte[] serialize(String object) {
-		return object.toString().getBytes(charset);
+		return object.getBytes(charset);
 	}
 }
