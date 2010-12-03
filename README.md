@@ -7,7 +7,7 @@ As the name implies, the **Key Value** modules provides integration with key val
 Getting Help
 ------------
 
-Read the main project [website](http://www.springsource.org/spring-data)) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
+Read the main project [website](http://www.springsource.org/spring-data)) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](http://static.springsource.org/spring-data/data-keyvalue/snapshot-site/spring-data-redis/apidocs/). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
 
 Quick Start
 -----------
@@ -61,6 +61,50 @@ For those in a hurry:
 
 ## Riak
 
+* Download the jar through Maven:
+
+      <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-riak</artifactId>
+        <version>1.0.0-BUILD-SNAPSHOT</version>
+      </dependency> 
+
+      <repository>
+        <id>spring-maven-snapshot</id>
+        <snapshots><enabled>true</enabled></snapshots>
+        <name>Springframework Maven SNAPSHOT Repository</name>
+        <url>http://maven.springframework.org/snapshot</url>
+      </repository> 
+
+* Configure the RiakTemplate in your Spring ApplicationContext:
+
+      <beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
+        xmlns:p="http://www.springframework.org/schema/p"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+  
+        <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.RiakTemplate"
+            p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
+            p:mapReduceUri="http://localhost:8098/mapred"/>
+
+      </beans>
+
+* Use the RiakTemplate in your code:
+
+      Java:
+      -----
+      
+      MyObject obj = new MyObject("value1", "value2");
+      riakTemplate.set("mybucket:mykey", obj);
+      
+      Map returnObj = riakTemplate.getAsType("mybucket:mykey", Map.class);
+      
+      Groovy:
+      -----
+      
+      def obj = [first: "value1", second: "value2"]
+      riakTemplate.set([bucket: "mybucket", key: "mykey"], obj)
+      
 
 Contributing to Spring Data
 ---------------------------
