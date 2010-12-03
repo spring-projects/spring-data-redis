@@ -236,18 +236,13 @@
 
       <finalName>${dist.finalName}</finalName>
       
-      -->      
-    </plugins>
-  </build>
-
-  <reporting>
-    <plugins>
-
+      -->
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.7</version>
          <configuration>
            <javadoc:aggregate>true</javadoc:aggregate>
+           <aggregate>true</aggregate>
            <breakiterator>true</breakiterator>
            <header>Spring Data Key-Value</header>
            <source>1.5</source>
@@ -279,6 +274,11 @@
          </configuration>
       </plugin>
 
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
       <plugin>
         <artifactId>maven-source-plugin</artifactId>
       </plugin>
