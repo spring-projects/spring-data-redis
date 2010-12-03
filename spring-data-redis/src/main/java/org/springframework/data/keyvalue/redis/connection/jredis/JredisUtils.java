@@ -16,11 +16,9 @@
 
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.jredis.RedisException;
@@ -38,18 +36,6 @@ public abstract class JredisUtils {
 
 	public static DataAccessException convertJredisAccessException(RedisException ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-	}
-
-	static String convert(Charset charset, byte[] bytes) {
-		return new String(bytes, charset);
-	}
-
-	static String[] convertMultiple(Charset charset, byte[]... bytes) {
-		String[] result = new String[bytes.length];
-		for (int i = 0; i < bytes.length; i++) {
-			result[i] = new String(bytes[i], charset);
-		}
-		return result;
 	}
 
 	static DataType convertDataType(RedisType type) {
@@ -71,31 +57,44 @@ public abstract class JredisUtils {
 		return null;
 	}
 
-	static Map<byte[], byte[]> convertMap(Charset charset, Map<String, byte[]> map) {
-		Map<byte[], byte[]> result = new LinkedHashMap<byte[], byte[]>(map.size());
-		for (Map.Entry<String, byte[]> entry : map.entrySet()) {
-			result.put(entry.getKey().getBytes(charset), entry.getValue());
+	static String decode(byte[] bytes) {
+		return Base64.encodeToString(bytes, false);
+	}
+
+	static String[] decodeMultiple(byte[]... bytes) {
+		String[] result = new String[bytes.length];
+		for (int i = 0; i < bytes.length; i++) {
+			result[i] = decode(bytes[i]);
 		}
 		return result;
 	}
 
-	static Collection<byte[]> convert(Charset charset, List<String> keys) {
+	static byte[] encode(String string) {
+		return Base64.decode(string);
+	}
+
+	static Map<byte[], byte[]> encodeMap(Map<String, byte[]> map) {
+		Map<byte[], byte[]> result = new LinkedHashMap<byte[], byte[]>(map.size());
+		for (Map.Entry<String, byte[]> entry : map.entrySet()) {
+			result.put(encode(entry.getKey()), entry.getValue());
+		}
+		return result;
+	}
+
+	static Collection<byte[]> convertCollection(Collection<String> keys) {
 		Collection<byte[]> list = new ArrayList<byte[]>(keys.size());
 
 		for (String string : keys) {
-			list.add(string.getBytes(charset));
+			list.add(Base64.decode(string));
 		}
 		return list;
 	}
 
-	static byte[] convert(Charset charset, String string) {
-		return string.getBytes(charset);
-	}
 
-	static Map<String, byte[]> convert(Charset charset, Map<byte[], byte[]> tuple) {
+	static Map<String, byte[]> decodeMap(Map<byte[], byte[]> tuple) {
 		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(tuple.size());
 		for (Map.Entry<byte[], byte[]> entry : tuple.entrySet()) {
-			result.put(new String(entry.getKey(), charset), entry.getValue());
+			result.put(decode(entry.getKey()), entry.getValue());
 		}
 		return result;
 	}
