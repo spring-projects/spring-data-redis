@@ -7,10 +7,10 @@ As the name implies, the **Key Value** modules provides integration with key val
 Getting Help
 ------------
 
-Read the main project [website](http://www.springsource.org/spring-data)) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](http://static.springsource.org/spring-data/data-keyvalue/snapshot-site/apidocs/). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
+Read the main project [website](http://www.springsource.org/spring-data) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](http://static.springsource.org/spring-data/data-keyvalue/snapshot-site/apidocs/). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
 
-Quick Start
------------
+# Quick Start
+
 
 ## Redis
 
@@ -47,7 +47,7 @@ For those in a hurry:
             p:connection-factory="jedisFactory"/>
       </beans>
 
-* Use RedisTemplate to interact with the Redis store:
+* Use `RedisTemplate` to interact with the Redis store:
 
       String random = template.randomKey();
       template.set(random, new Person("John", "Smith"));
@@ -75,7 +75,7 @@ For those in a hurry:
         <url>http://maven.springframework.org/snapshot</url>
       </repository> 
 
-* Configure the RiakTemplate in your Spring ApplicationContext:
+* Configure the `RiakTemplate` in your Spring ApplicationContext:
 
       <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
@@ -88,7 +88,7 @@ For those in a hurry:
 
       </beans>
 
-* Use the RiakTemplate in your code:
+* Use the `RiakTemplate` in your code:
 
       Java:
       -----
