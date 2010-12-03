@@ -434,7 +434,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				return connection.keys(rawKey);
 			}
 		}, true);
-		
+
 		return (Set<K>) deserializeKeys(rawKeys, Set.class);
 	}
 
@@ -1100,7 +1100,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<Long>() {
 				@Override
 				public Long doInRedis(RedisConnection connection) {
-					return connection.zRank(rawKey, rawValue);
+					Long zRank = connection.zRank(rawKey, rawValue);
+					return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
 				}
 			}, true);
 		}
@@ -1113,7 +1114,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<Long>() {
 				@Override
 				public Long doInRedis(RedisConnection connection) {
-					return connection.zRevRank(rawKey, rawValue);
+					Long zRank = connection.zRevRank(rawKey, rawValue);
+					return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
 				}
 			}, true);
 		}
