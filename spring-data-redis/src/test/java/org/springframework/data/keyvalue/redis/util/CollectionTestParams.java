@@ -20,6 +20,7 @@ import java.util.Collection;
 
 import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 /**
@@ -39,13 +40,15 @@ public abstract class CollectionTestParams {
 		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
 
-		//		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		//		jredisConnFactory.setPooling(false);
-		//		jredisConnFactory.afterPropertiesSet();
-		//
-		//		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
-		//		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
+		jredisConnFactory.setPooling(false);
+		jredisConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate } });
+		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
+		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+
+		return Arrays.asList(new Object[][] { { stringFactory, stringTemplateJR }, { personFactory, personTemplateJR },
+				{ stringFactory, stringTemplate },
+				{ personFactory, personTemplate } });
 	}
 }

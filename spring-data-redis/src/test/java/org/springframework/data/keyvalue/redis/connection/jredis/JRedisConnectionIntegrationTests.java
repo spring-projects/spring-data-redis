@@ -16,9 +16,10 @@
 
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
+import org.jredis.JRedis;
+import org.junit.Test;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
-import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -33,5 +34,15 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Override
 	protected RedisConnectionFactory getConnectionFactory() {
 		return factory;
+	}
+
+	@Test
+	public void testRaw() throws Exception {
+		JRedis jr = (JRedis) factory.getConnection().getNativeConnection();
+		
+		System.out.println(jr.dbsize());
+		System.out.println(jr.exists("foobar"));
+		jr.set("foobar", "barfoo");
+		System.out.println(jr.get("foobar"));
 	}
 }

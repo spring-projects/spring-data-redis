@@ -17,7 +17,6 @@
 package org.springframework.data.keyvalue.redis.connection;
 
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 
 import java.util.UUID;
 
@@ -61,7 +60,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testSetAndGet() {
-		assumeTrue(!isJredis());
 		connection.set("foo".getBytes(), "blahblah".getBytes());
 		assertEquals("blahblah", new String(connection.get("foo".getBytes())));
 	}
@@ -71,6 +69,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 
+	@Test
 	public void testByteValue() {
 		String value = UUID.randomUUID().toString();
 		Person person = new Person(value, value, 1, new Address(value, 2));

@@ -17,12 +17,12 @@ package org.springframework.data.keyvalue.redis.util;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -196,14 +196,19 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(map.hashCode(), copyStore(map).hashCode());
 	}
 
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test
 	public void testIncrement() {
+		assumeTrue(!isJredis());
 		K k1 = getKey();
 		V v1 = getValue();
 
 		map.put(k1, v1);
-		Long value = map.increment(k1, 1);
-		System.out.println("Value is " + value);
+		try {
+			Long value = map.increment(k1, 1);
+			System.out.println("Value is " + value);
+		} catch (InvalidDataAccessApiUsageException ex) {
+			// expected
+		}
 	}
 
 	@Test
@@ -228,11 +233,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k2, getValue());
 		map.put(k3, getValue());
 
-		Iterator<K> iterator = map.keySet().iterator();
-		assertEquals(k1, iterator.next());
-		assertEquals(k2, iterator.next());
-		assertEquals(k3, iterator.next());
-		assertFalse(iterator.hasNext());
+		Set<K> keySet = map.keySet();
+		assertThat(keySet, hasItems(k1, k2, k3));
+		assertEquals(3, keySet.size());
 	}
 
 	@Test
@@ -251,6 +254,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testPutAll() {
+		assumeTrue(!isJredis());
 		Map<K, V> m = new LinkedHashMap<K, V>();
 		K k1 = getKey();
 		K k2 = getKey();
@@ -329,6 +333,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testEntrySet() {
+		assumeTrue(!isJredis());
 		Set<Entry<K, V>> entries = map.entrySet();
 		assertTrue(entries.isEmpty());
 
@@ -417,5 +422,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(v1, map.replace(k1, v2));
 		assertEquals(v2, map.get(k1));
 
+	}
+
+	private boolean isJredis() {
+		return template.getConnectionFactory().getClass().getSimpleName().startsWith("Jredis");
 	}
 }

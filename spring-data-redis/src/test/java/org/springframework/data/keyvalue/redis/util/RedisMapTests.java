@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 /**
@@ -53,15 +54,17 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
 
 
-		//		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		//		jredisConnFactory.setPooling(false);
-		//		jredisConnFactory.afterPropertiesSet();
-		//
-		//		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
-		//		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
+		jredisConnFactory.setPooling(false);
+		jredisConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
 				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
-				{ personFactory, stringFactory, genericTemplate } });
+				{ personFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, genericTemplateJR },
+				{ personFactory, personFactory, genericTemplateJR },
+				{ stringFactory, personFactory, genericTemplateJR },
+				{ personFactory, stringFactory, genericTemplateJR } });
 	}
 }
