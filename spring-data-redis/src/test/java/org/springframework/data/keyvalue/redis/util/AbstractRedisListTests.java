@@ -268,4 +268,18 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertEquals(1, list.size());
 		assertEquals(t1, list.get(0));
 	}
+
+	@Test
+	public void testCappedCollection() throws Exception {
+		RedisList<T> cappedList = new DefaultRedisList<T>(template.forList(collection.key + ":capped"), 1);
+		T first = getT();
+		cappedList.offer(first);
+		assertEquals(1, cappedList.size());
+		cappedList.add(getT());
+		assertEquals(1, cappedList.size());
+		T last = getT();
+		cappedList.add(last);
+		assertEquals(1, cappedList.size());
+		assertEquals(first, cappedList.get(0));
+	}
 }

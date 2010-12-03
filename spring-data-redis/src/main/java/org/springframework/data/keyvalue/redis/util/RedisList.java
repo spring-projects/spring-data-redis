@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Queue;
 
 /**
- * Redis extension for the {@link List} contract. Supports {@link List} specific
+ * Redis extension for the {@link List} contract. Supports {@link List} and {@link Queue} specific
  * operations backed by Redis operations.
  * 
  * @author Costin Leau

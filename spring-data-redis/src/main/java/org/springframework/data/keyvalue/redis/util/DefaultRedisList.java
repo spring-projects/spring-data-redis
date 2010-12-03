@@ -25,13 +25,18 @@ import org.springframework.data.keyvalue.redis.core.BoundListOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
- * Default implementation for {@link RedisList}. 
+ * Default implementation for {@link RedisList}. Allows the maximum size (or the cap) to
+ * be specified to prevent the list from overgrowing.
  * 
  * @author Costin Leau
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
 	private final BoundListOperations<String, E> listOps;
+
+	private volatile long maxSize = 0;
+
+	private volatile boolean capped = false;
 
 	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
 
@@ -46,19 +51,44 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	/**
-	 * Constructs a new <code>DefaultRedisList</code> instance.
+	 * Constructs a new, uncapped <code>DefaultRedisList</code> instance.
 	 *
 	 * @param key
 	 * @param operations
 	 */
 	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
-		super(key, operations);
-		listOps = operations.forList(key);
+		this(operations.forList(key));
 	}
 
+	/**
+	 * Constructs a new, uncapped <code>DefaultRedisList</code> instance.
+	 *
+	 * @param boundOps
+	 */
 	public DefaultRedisList(BoundListOperations<String, E> boundOps) {
+		this(boundOps, 0);
+	}
+
+	/**
+	 * Constructs a new <code>DefaultRedisList</code> instance.
+	 *
+	 * @param boundOps
+	 * @param maxSize
+	 */
+	public DefaultRedisList(BoundListOperations<String, E> boundOps, long maxSize) {
 		super(boundOps.getKey(), boundOps.getOperations());
 		listOps = boundOps;
+		setMaxSize(maxSize);
+	}
+
+	/**
+	 * Sets the maximum size of the (capped) list. A value of 0 means unlimited.
+	 * 
+	 * @param maxSize list maximum size
+	 */
+	public void setMaxSize(long maxSize) {
+		this.maxSize = maxSize;
+		capped = (maxSize > 0);
 	}
 
 	@Override
@@ -76,6 +106,13 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return listOps.range(0, -1);
 	}
 
+	private void cap() {
+		if (capped) {
+			listOps.trim(0, maxSize - 1);
+		}
+	}
+
+
 	@Override
 	public Iterator<E> iterator() {
 		return content().iterator();
@@ -90,6 +127,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public boolean add(E value) {
 		listOps.rightPush(value);
+		cap();
 		return true;
 	}
 
@@ -108,6 +146,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public void add(int index, E element) {
 		if (index == 0) {
 			listOps.leftPush(element);
+			cap();
 			return;
 		}
 
@@ -115,6 +154,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		if (index == size()) {
 			listOps.rightPush(element);
+			cap();
 			return;
 		}
 
@@ -133,6 +173,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 			for (E e : reverseC) {
 				listOps.leftPush(e);
+				cap();
 			}
 			return true;
 		}
@@ -142,6 +183,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		if (index == size()) {
 			for (E e : c) {
 				listOps.rightPush(e);
+				cap();
 			}
 			return true;
 		}
@@ -213,6 +255,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public boolean offer(E e) {
 		listOps.leftPush(e);
+		cap();
 		return true;
 	}
 
