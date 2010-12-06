@@ -145,7 +145,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean remove(Object o) {
-		Long result = listOps.remove(0, o);
+		Long result = listOps.remove(1, o);
 		return (result != null && result.longValue() > 0);
 	}
 
@@ -272,15 +272,13 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E peek() {
-		E element = listOps.index(0);
-		return (element == null ? null : element);
+		return listOps.index(0);
 	}
 
 
 	@Override
 	public E poll() {
-		E element = listOps.leftPop();
-		return (element == null ? null : element);
+		return listOps.leftPop();
 	}
 
 
@@ -292,6 +290,112 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		return value;
 	}
+
+	//
+	// Dequeue
+	//
+
+	@Override
+	public void addFirst(E e) {
+		listOps.leftPush(e);
+		cap();
+	}
+
+	@Override
+	public void addLast(E e) {
+		add(e);
+	}
+
+	@Override
+	public Iterator<E> descendingIterator() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public E getFirst() {
+		return element();
+	}
+
+	@Override
+	public E getLast() {
+		E e = peekLast();
+		if (e == null) {
+			throw new NoSuchElementException();
+		}
+		return e;
+	}
+
+	@Override
+	public boolean offerFirst(E e) {
+		addFirst(e);
+		return true;
+	}
+
+	@Override
+	public boolean offerLast(E e) {
+		addLast(e);
+		return true;
+	}
+
+	@Override
+	public E peekFirst() {
+		return peek();
+	}
+
+	@Override
+	public E peekLast() {
+		return listOps.index(-1);
+	}
+
+	@Override
+	public E pollFirst() {
+		return poll();
+	}
+
+	@Override
+	public E pollLast() {
+		return listOps.rightPop();
+	}
+
+	@Override
+	public E pop() {
+		E e = pollFirst();
+		if (e == null) {
+			throw new NoSuchElementException();
+		}
+		return e;
+	}
+
+	@Override
+	public void push(E e) {
+		addFirst(e);
+	}
+
+	@Override
+	public E removeFirst() {
+		return pop();
+	}
+
+	@Override
+	public boolean removeFirstOccurrence(Object o) {
+		return remove(o);
+	}
+
+	@Override
+	public E removeLast() {
+		E e = pollLast();
+		if (e == null) {
+			throw new NoSuchElementException();
+		}
+		return e;
+	}
+
+	@Override
+	public boolean removeLastOccurrence(Object o) {
+		Long result = listOps.remove(-1, o);
+		return (result != null && result.longValue() > 0);
+	}
+
 
 	//
 	// BlockingQueue
@@ -343,6 +447,4 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public E take() throws InterruptedException {
 		return poll(0, TimeUnit.SECONDS);
 	}
-
-
 }
