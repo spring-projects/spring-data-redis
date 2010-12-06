@@ -171,7 +171,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.exists(key);
 				return null;
 			}
-			return (jedis.exists(key) == 1);
+			return jedis.exists(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -777,7 +777,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.sismember(key, value);
 				return null;
 			}
-			return JedisUtils.convertCodeReply(jedis.sismember(key, value));
+			return jedis.sismember(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1206,7 +1206,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.hexists(key, field);
 				return null;
 			}
-			return JedisUtils.convertCodeReply(jedis.hexists(key, field));
+			return jedis.hexists(key, field);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
