@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -29,6 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.core.BoundSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisSet;
+import org.springframework.data.keyvalue.redis.support.collections.RedisSet;
 
 /**
  * Integration test for Redis set.

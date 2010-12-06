@@ -13,21 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisMap;
+import org.springframework.data.keyvalue.redis.support.collections.RedisMap;
 
 /**
+ * Integration test for RedisMap.
+ * 
  * @author Costin Leau
  */
-public abstract class CollectionTestParams {
+public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
+	public RedisMapTests(ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory, RedisTemplate template) {
+		super(keyFactory, valueFactory, template);
+	}
+
+	@Override
+	RedisMap<Object, Object> createMap() {
+		String redisName = getClass().getName();
+		return new DefaultRedisMap<Object, Object>(redisName, template);
+	}
+
+	@Parameters
 	public static Collection<Object[]> testParams() {
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -37,18 +53,20 @@ public abstract class CollectionTestParams {
 		jedisConnFactory.setPooling(false);
 		jedisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
-		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
+
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		jredisConnFactory.setPooling(false);
 		jredisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
-		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplateJR }, { personFactory, personTemplateJR },
-				{ stringFactory, stringTemplate },
-				{ personFactory, personTemplate } });
+		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
+				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
+				{ personFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, genericTemplateJR },
+				{ personFactory, personFactory, genericTemplateJR },
+				{ stringFactory, personFactory, genericTemplateJR },
+				{ personFactory, stringFactory, genericTemplateJR } });
 	}
 }

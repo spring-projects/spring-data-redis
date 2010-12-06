@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
+
+import java.util.UUID;
 
 /**
- * Simple object factory. 
+ * String object factory based on UUID.
  * 
  * @author Costin Leau
  */
-public interface ObjectFactory<T> {
+public class StringObjectFactory implements ObjectFactory<String> {
 
-	T instance();
+	@Override
+	public String instance() {
+		return UUID.randomUUID().toString();
+	}
 }

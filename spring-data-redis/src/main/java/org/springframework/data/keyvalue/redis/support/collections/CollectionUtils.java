@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import java.util.concurrent.ConcurrentMap;
-
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Map view of a Redis hash.
+ * Utility class used mainly for type conversion by the default collection implementations.
  * 
  * @author Costin Leau
  */
-public interface RedisMap<K, V> extends RedisStore<String>, ConcurrentMap<K, V> {
+abstract class CollectionUtils {
 
-	Long increment(K key, long delta);
+	@SuppressWarnings("unchecked")
+	static <E> Collection<E> reverse(Collection<? extends E> c) {
+		Object[] reverse = new Object[c.size()];
+		int index = c.size();
+		for (E e : c) {
+			reverse[--index] = e;
+		}
+
+		return (List<E>) Arrays.asList(reverse);
+	}
 }

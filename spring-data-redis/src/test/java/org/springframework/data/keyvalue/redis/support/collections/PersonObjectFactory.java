@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.UUID;
+
+import org.springframework.data.keyvalue.redis.Address;
+import org.springframework.data.keyvalue.redis.Person;
 
 /**
- * Utility class used mainly for type conversion by the default collection implementations.
- * 
  * @author Costin Leau
  */
-abstract class CollectionUtils {
+public class PersonObjectFactory implements ObjectFactory<Person> {
 
-	@SuppressWarnings("unchecked")
-	static <E> Collection<E> reverse(Collection<? extends E> c) {
-		Object[] reverse = new Object[c.size()];
-		int index = c.size();
-		for (E e : c) {
-			reverse[--index] = e;
-		}
+	private int counter = 0;
 
-		return (List<E>) Arrays.asList(reverse);
+	@Override
+	public Person instance() {
+		String uuid = UUID.randomUUID().toString();
+		return new Person(uuid, uuid, ++counter, new Address(uuid, counter));
 	}
 }

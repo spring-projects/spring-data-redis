@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -22,79 +22,79 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
 
 /**
- * Atomic integer backed by Redis.
- * Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS operations. 
- * 
- * @see java.util.concurrent.atomic.AtomicInteger
+ * Atomic long backed by Redis.
+ * Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS operations.
+ *  
+ * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
  */
-public class RedisAtomicInteger extends Number implements Serializable {
+public class RedisAtomicLong extends Number implements Serializable {
 
 	private final String key;
-	private ValueOperations<String, Integer> operations;
-	private RedisOperations<String, Integer> generalOps;
+	private ValueOperations<String, Long> operations;
+	private RedisOperations<String, Long> generalOps;
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance with an initial value of zero.
+	 * Constructs a new <code>RedisAtomicLong</code> instance with an initial value of zero.
 	 *
 	 * @param redisCounter
 	 * @param operations
 	 */
-	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations) {
+	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations) {
 		this(redisCounter, operations, 0);
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance with the given initial value.
+	 * Constructs a new <code>RedisAtomicLong</code> instance with the given initial value.
 	 *
 	 * @param redisCounter
 	 * @param operations
 	 * @param initialValue
 	 */
-	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations, int initialValue) {
+	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations, long initialValue) {
 		this.key = redisCounter;
 		this.operations = operations.valueOps();
-		this.generalOps = operations;
 		this.operations.set(redisCounter, initialValue);
 	}
 
 	/**
-	 * Get the current value.
+	 * Gets the current value.
 	 *
 	 * @return the current value
 	 */
-	public int get() {
-		return Integer.valueOf(operations.get(key));
+	public long get() {
+		return operations.get(key);
 	}
 
 	/**
-	 * Set to the given value.
+	 * Sets to the given value.
 	 *
 	 * @param newValue the new value
 	 */
-	public void set(int newValue) {
+	public void set(long newValue) {
 		operations.set(key, newValue);
 	}
 
 	/**
-	 * Set to the give value and return the old value.
+	 * Atomically sets to the given value and returns the old value.
 	 *
 	 * @param newValue the new value
 	 * @return the previous value
 	 */
-	public int getAndSet(int newValue) {
+	public long getAndSet(long newValue) {
 		return operations.getAndSet(key, newValue);
 	}
 
 	/**
-	 * Atomically set the value to the given updated value
-	 * if the current value <tt>==</tt> the expected value.
+	 * Atomically sets the value to the given updated value
+	 * if the current value {@code ==} the expected value.
+	 *
 	 * @param expect the expected value
 	 * @param update the new value
 	 * @return true if successful. False return indicates that
 	 * the actual value was not equal to the expected value.
 	 */
-	public boolean compareAndSet(int expect, int update) {
+	public boolean compareAndSet(long expect, long update) {
 		for (;;) {
 			generalOps.watch(Collections.singleton(key));
 			if (expect == get()) {
@@ -111,13 +111,14 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	}
 
 	/**
-	 * Atomically increment by one the current value.
+	 * Atomically increments by one the current value.
+	 *
 	 * @return the previous value
 	 */
-	public int getAndIncrement() {
+	public long getAndIncrement() {
 		for (;;) {
 			generalOps.watch(Collections.singleton(key));
-			int value = get();
+			long value = get();
 			generalOps.multi();
 			operations.increment(key, 1);
 			if (generalOps.exec() != null) {
@@ -126,15 +127,15 @@ public class RedisAtomicInteger extends Number implements Serializable {
 		}
 	}
 
-
 	/**
-	 * Atomically decrement by one the current value.
+	 * Atomically decrements by one the current value.
+	 *
 	 * @return the previous value
 	 */
-	public int getAndDecrement() {
+	public long getAndDecrement() {
 		for (;;) {
 			generalOps.watch(Collections.singleton(key));
-			int value = get();
+			long value = get();
 			generalOps.multi();
 			operations.increment(key, -1);
 			if (generalOps.exec() != null) {
@@ -143,16 +144,16 @@ public class RedisAtomicInteger extends Number implements Serializable {
 		}
 	}
 
-
 	/**
-	 * Atomically add the given value to current value.
+	 * Atomically adds the given value to the current value.
+	 *
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
-	public int getAndAdd(int delta) {
+	public long getAndAdd(long delta) {
 		for (;;) {
 			generalOps.watch(Collections.singleton(key));
-			int value = get();
+			long value = get();
 			generalOps.multi();
 			set(value + delta);
 			if (generalOps.exec() != null) {
@@ -162,42 +163,46 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	}
 
 	/**
-	 * Atomically increment by one the current value.
+	 * Atomically increments by one the current value.
+	 *
 	 * @return the updated value
 	 */
-	public int incrementAndGet() {
+	public long incrementAndGet() {
 		return operations.increment(key, 1);
 	}
 
 	/**
-	 * Atomically decrement by one the current value.
+	 * Atomically decrements by one the current value.
+	 *
 	 * @return the updated value
 	 */
-	public int decrementAndGet() {
+	public long decrementAndGet() {
 		return operations.increment(key, -1);
 	}
 
-
 	/**
-	 * Atomically add the given value to current value.
+	 * Atomically adds the given value to the current value.
+	 *
 	 * @param delta the value to add
 	 * @return the updated value
 	 */
-	public int addAndGet(int delta) {
-		return operations.increment(key, delta);
+	public long addAndGet(long delta) {
+		// TODO: is this really safe
+		return operations.increment(key, (int) delta);
 	}
 
 	/**
 	 * Returns the String representation of the current value.
+	 * 
 	 * @return the String representation of the current value.
 	 */
 	public String toString() {
-		return Integer.toString(get());
+		return Long.toString(get());
 	}
 
 
 	public int intValue() {
-		return get();
+		return (int) get();
 	}
 
 	public long longValue() {

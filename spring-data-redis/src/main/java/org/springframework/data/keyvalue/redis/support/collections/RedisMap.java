@@ -13,29 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import java.util.concurrent.ConcurrentMap;
 
 
 /**
- * Basic interface for Redis-based collections.
+ * Map view of a Redis hash.
  * 
  * @author Costin Leau
  */
-public interface RedisStore<K> {
+public interface RedisMap<K, V> extends RedisStore<String>, ConcurrentMap<K, V> {
 
-	/**
-	 * Returns the key used by the backing Redis store for this collection.
-	 *  
-	 * @return Redis key
-	 */
-	K getKey();
-
-	/**
-	 * Returns the underlying Redis operations used by the backing implementation.
-	 * 
-	 * @return operations
-	 */
-	RedisOperations<K, ?> getOperations();
+	Long increment(K key, long delta);
 }

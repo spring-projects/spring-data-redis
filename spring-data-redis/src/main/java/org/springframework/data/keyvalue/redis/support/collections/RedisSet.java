@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import java.util.UUID;
+import java.util.Set;
 
 /**
- * String object factory based on UUID.
+ * Redis extension for the {@link Set} contract. Supports {@link Set} specific
+ * operations backed by Redis operations.
  * 
  * @author Costin Leau
  */
-public class StringObjectFactory implements ObjectFactory<String> {
+public interface RedisSet<E> extends RedisStore<String>, Set<E> {
 
-	@Override
-	public String instance() {
-		return UUID.randomUUID().toString();
-	}
+	Set<E> intersect(RedisSet<? extends E>... sets);
+
+	Set<E> union(RedisSet<? extends E>... sets);
+
+	Set<E> diff(RedisSet<? extends E>... sets);
+
+	RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets);
+
+	RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets);
+
+	RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets);
 }

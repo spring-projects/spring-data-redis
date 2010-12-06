@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2006-2009 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingDeque;
 
 /**
- * Redis extension for the {@link Set} contract. Supports {@link Set} specific
+ * Redis extension for the {@link List} contract. Supports {@link List} and {@link Queue} specific
  * operations backed by Redis operations.
  * 
  * @author Costin Leau
  */
-public interface RedisSet<E> extends RedisStore<String>, Set<E> {
+public interface RedisList<E> extends RedisStore<String>, List<E>, BlockingDeque<E> {
 
-	Set<E> intersect(RedisSet<? extends E>... sets);
+	List<E> range(long start, long end);
 
-	Set<E> union(RedisSet<? extends E>... sets);
-
-	Set<E> diff(RedisSet<? extends E>... sets);
-
-	RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets);
-
-	RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets);
-
-	RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets);
+	RedisList<E> trim(int start, int end);
 }

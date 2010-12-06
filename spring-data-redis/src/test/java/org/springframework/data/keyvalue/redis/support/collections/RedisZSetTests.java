@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.support.collections.AbstractRedisCollection;
+import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisZSet;
+import org.springframework.data.keyvalue.redis.support.collections.RedisStore;
 
 /**
  * Parameterized instance of Redis sorted set tests.

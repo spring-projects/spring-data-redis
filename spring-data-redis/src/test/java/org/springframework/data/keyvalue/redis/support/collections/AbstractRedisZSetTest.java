@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
@@ -27,6 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.core.BoundZSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisZSet;
+import org.springframework.data.keyvalue.redis.support.collections.RedisZSet;
 
 /**
  * Integration test for Redis ZSet.

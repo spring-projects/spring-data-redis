@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.util;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import java.util.UUID;
+import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
-import org.springframework.data.keyvalue.redis.Address;
-import org.springframework.data.keyvalue.redis.Person;
 
 /**
+ * Basic interface for Redis-based collections.
+ * 
  * @author Costin Leau
  */
-public class PersonObjectFactory implements ObjectFactory<Person> {
+public interface RedisStore<K> {
 
-	private int counter = 0;
+	/**
+	 * Returns the key used by the backing Redis store for this collection.
+	 *  
+	 * @return Redis key
+	 */
+	K getKey();
 
-	@Override
-	public Person instance() {
-		String uuid = UUID.randomUUID().toString();
-		return new Person(uuid, uuid, ++counter, new Address(uuid, counter));
-	}
+	/**
+	 * Returns the underlying Redis operations used by the backing implementation.
+	 * 
+	 * @return operations
+	 */
+	RedisOperations<K, ?> getOperations();
 }
