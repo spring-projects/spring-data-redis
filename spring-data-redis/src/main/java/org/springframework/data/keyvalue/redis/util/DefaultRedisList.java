@@ -447,4 +447,50 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	public E take() throws InterruptedException {
 		return poll(0, TimeUnit.SECONDS);
 	}
+
+
+	//
+	// BlockingDeque
+	//
+
+	@Override
+	public boolean offerFirst(E e, long timeout, TimeUnit unit) throws InterruptedException {
+		return offerFirst(e);
+	}
+
+	@Override
+	public boolean offerLast(E e, long timeout, TimeUnit unit) throws InterruptedException {
+		return offerLast(e);
+	}
+
+	@Override
+	public E pollFirst(long timeout, TimeUnit unit) throws InterruptedException {
+		return poll(timeout, unit);
+	}
+
+	@Override
+	public E pollLast(long timeout, TimeUnit unit) throws InterruptedException {
+		E element = listOps.rightPop(timeout, unit);
+		return (element == null ? null : element);
+	}
+
+	@Override
+	public void putFirst(E e) throws InterruptedException {
+		add(e);
+	}
+
+	@Override
+	public void putLast(E e) throws InterruptedException {
+		put(e);
+	}
+
+	@Override
+	public E takeFirst() throws InterruptedException {
+		return take();
+	}
+
+	@Override
+	public E takeLast() throws InterruptedException {
+		return pollLast(0, TimeUnit.SECONDS);
+	}
 }
