@@ -6,15 +6,15 @@
    - the classpath is set up for you
 
 ant -f src/ant/upload-dist.xml \
-    -Ddist.id=spring-datastore-keyvalue \
+    -Ddist.id=spring-data-keyvalue \
     -Ddist.name='Spring Datastore Key-Value' \
     -Ddist.key=DATADOC \
     -Ddist.releaseType=milestone \
     -Ddist.accessKey=<access key> \
     -Ddist.secretKey=<secret key> \
     -Ddist.bucketName=dist.springframework.org \
-    -Ddist.fileName=spring-datastore-keyvalue-1.0.0.M1.zip \
-    -Ddist.filePath=../../spring-datastore-keyvalue-1.0.0.M1.zip \
+    -Ddist.fileName=spring-data-keyvalue-1.0.0.M1.zip \
+    -Ddist.filePath=../../spring-data-keyvalue-1.0.0.M1.zip \
     -Ddist.version=1.0.0.M1 \
     upload-dist
 -->
