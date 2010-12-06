@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.core;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Redis, list specific operations.
@@ -42,11 +43,11 @@ public interface ListOperations<K, V> {
 
 	V leftPop(K key);
 
+	V leftPop(K key, long timeout, TimeUnit unit);
+
 	V rightPop(K key);
 
-	List<V> blockingLeftPop(int timeout, K... keys);
-
-	List<V> blockingRightPop(int timeout, K... keys);
+	V rightPop(K key, long timeout, TimeUnit unit);
 
 	RedisOperations<K, V> getOperations();
 }

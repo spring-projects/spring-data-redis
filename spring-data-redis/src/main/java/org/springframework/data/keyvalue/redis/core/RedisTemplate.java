@@ -708,29 +708,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private class DefaultListOperations implements ListOperations<K, V> {
 
 		@Override
-		public List<V> blockingLeftPop(final int timeout, K... keys) {
-			final byte[][] rawKeys = rawKeys(keys);
-
-			return execute(new RedisCallback<List<V>>() {
-				@Override
-				public List<V> doInRedis(RedisConnection connection) {
-					return values(connection.bLPop(timeout, rawKeys), List.class);
-				}
-			}, true);
-		}
-
-		@Override
-		public List<V> blockingRightPop(final int timeout, K... keys) {
-			final byte[][] rawKeys = rawKeys(keys);
-			return execute(new RedisCallback<List<V>>() {
-				@Override
-				public List<V> doInRedis(RedisConnection connection) {
-					return values(connection.bRPop(timeout, rawKeys), List.class);
-				}
-			}, true);
-		}
-
-		@Override
 		public V index(K key, final long index) {
 			return execute(new ValueDeserializingRedisCallback(key) {
 				@Override
@@ -749,6 +726,20 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 		}
+
+		@Override
+		public V leftPop(K key, long timeout, TimeUnit unit) {
+			final int tm = (int) unit.toSeconds(timeout);
+
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.bLPop(tm, rawKey).get(0);
+				}
+			}, true);
+		}
+
+
 
 		@Override
 		public Long leftPush(K key, V value) {
@@ -802,6 +793,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				@Override
 				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 					return connection.rPop(rawKey);
+				}
+			}, true);
+		}
+
+		@Override
+		public V rightPop(K key, long timeout, TimeUnit unit) {
+			final int tm = (int) unit.toSeconds(timeout);
+
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.bRPop(tm, rawKey).get(0);
 				}
 			}, true);
 		}

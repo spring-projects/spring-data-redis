@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.core;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * List operations bound to a certain key.
@@ -38,11 +39,16 @@ public interface BoundListOperations<K, V> extends KeyBound<K> {
 
 	V leftPop();
 
+	V leftPop(long timeout, TimeUnit unit);
+
 	V rightPop();
+
+	V rightPop(long timeout, TimeUnit unit);
 
 	Long remove(long i, Object value);
 
 	V index(long index);
 
 	void set(long index, V value);
+
 }

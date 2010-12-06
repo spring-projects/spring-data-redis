@@ -20,23 +20,30 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.redis.core.BoundListOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
- * Default implementation for {@link RedisList}. Allows the maximum size (or the cap) to
- * be specified to prevent the list from overgrowing.
+ * Default implementation for {@link RedisList}. 
  * 
+ * Allows the maximum size (or the cap) to be specified to prevent the list from over growing.
+ * 
+ * Note that all write operations will execute immediately, whether a cap is specified or not - the list 
+ * will always accept new items (trimming the tail after each insert in case of capped collections).
+ *  
  * @author Costin Leau
  */
 public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements RedisList<E> {
 
 	private final BoundListOperations<String, E> listOps;
 
-	private volatile long maxSize = 0;
+	private volatile int maxSize = 0;
 
 	private volatile boolean capped = false;
+
+	private volatile long defaultWait = 0;
 
 	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
 
@@ -75,7 +82,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 * @param boundOps
 	 * @param maxSize
 	 */
-	public DefaultRedisList(BoundListOperations<String, E> boundOps, long maxSize) {
+	public DefaultRedisList(BoundListOperations<String, E> boundOps, int maxSize) {
 		super(boundOps.getKey(), boundOps.getOperations());
 		listOps = boundOps;
 		setMaxSize(maxSize);
@@ -86,7 +93,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 * 
 	 * @param maxSize list maximum size
 	 */
-	public void setMaxSize(long maxSize) {
+	public void setMaxSize(int maxSize) {
 		this.maxSize = maxSize;
 		capped = (maxSize > 0);
 	}
@@ -241,6 +248,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		throw new UnsupportedOperationException();
 	}
 
+	//
+	// Queue methods
+	//
 
 	@Override
 	public E element() {
@@ -254,7 +264,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public boolean offer(E e) {
-		listOps.leftPush(e);
+		listOps.rightPush(e);
 		cap();
 		return true;
 	}
@@ -282,4 +292,57 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 		return value;
 	}
+
+	//
+	// BlockingQueue
+	//
+
+	@Override
+	public int drainTo(Collection<? super E> c, int maxElements) {
+		if (this.equals(c)) {
+			throw new IllegalArgumentException("Cannot drain a queue to itself");
+		}
+
+		int size = size();
+		int loop = (size >= maxElements ? maxElements : size);
+
+		for (int index = 0; index < loop; index++) {
+			c.add(poll());
+		}
+
+		return loop;
+	}
+
+	@Override
+	public int drainTo(Collection<? super E> c) {
+		return drainTo(c, size());
+	}
+
+	@Override
+	public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
+		return offer(e);
+	}
+
+	@Override
+	public E poll(long timeout, TimeUnit unit) throws InterruptedException {
+		E element = listOps.leftPop(timeout, unit);
+		return (element == null ? null : element);
+	}
+
+	@Override
+	public void put(E e) throws InterruptedException {
+		offer(e);
+	}
+
+	@Override
+	public int remainingCapacity() {
+		return Integer.MAX_VALUE;
+	}
+
+	@Override
+	public E take() throws InterruptedException {
+		return poll(0, TimeUnit.SECONDS);
+	}
+
+
 }

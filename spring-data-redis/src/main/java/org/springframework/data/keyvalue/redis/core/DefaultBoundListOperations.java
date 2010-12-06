@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.core;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -55,6 +56,11 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
+	public V leftPop(long timeout, TimeUnit unit) {
+		return ops.leftPop(getKey(), timeout, unit);
+	}
+
+	@Override
 	public Long leftPush(V value) {
 		return ops.leftPush(getKey(), value);
 	}
@@ -78,6 +84,12 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	public V rightPop() {
 		return ops.rightPop(getKey());
 	}
+
+	@Override
+	public V rightPop(long timeout, TimeUnit unit) {
+		return ops.rightPop(getKey(), timeout, unit);
+	}
+
 
 	@Override
 	public Long rightPush(V value) {

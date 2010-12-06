@@ -17,6 +17,7 @@ package org.springframework.data.keyvalue.redis.util;
 
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Redis extension for the {@link List} contract. Supports {@link List} and {@link Queue} specific
@@ -24,7 +25,7 @@ import java.util.Queue;
  * 
  * @author Costin Leau
  */
-public interface RedisList<E> extends RedisStore<String>, List<E>, Queue<E> {
+public interface RedisList<E> extends RedisStore<String>, List<E>, BlockingQueue<E> {
 
 	List<E> range(long start, long end);
 
