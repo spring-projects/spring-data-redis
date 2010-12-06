@@ -16,8 +16,11 @@
 package org.springframework.data.keyvalue.redis.util;
 
 import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -151,11 +154,11 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	public void testIndexOfObject() {
 		T t1 = getT();
 		T t2 = getT();
-		
+
 		assertEquals(-1, list.indexOf(t1));
 		list.add(t1);
 		assertEquals(0, list.indexOf(t1));
-		
+
 		assertEquals(-1, list.indexOf(t2));
 		list.add(t2);
 		assertEquals(1, list.indexOf(t1));
@@ -198,6 +201,11 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		} catch (NoSuchElementException nse) {
 			// expected
 		}
+	}
+
+	@Test
+	public void testPop() {
+		testPoll();
 	}
 
 	@Test
@@ -281,5 +289,210 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		cappedList.add(last);
 		assertEquals(1, cappedList.size());
 		assertEquals(first, cappedList.get(0));
+	}
+
+	@Test
+	public void testAddFirst() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.addFirst(t1);
+		list.addFirst(t2);
+		list.addFirst(t3);
+
+		Iterator<T> iterator = list.iterator();
+		assertEquals(t3, iterator.next());
+		assertEquals(t2, iterator.next());
+		assertEquals(t1, iterator.next());
+	}
+
+	@Test
+	public void testAddLast() {
+		testAdd();
+	}
+
+	@Test
+	public void testDescendingIterator() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t3);
+
+		Iterator<T> iterator = list.descendingIterator();
+		assertEquals(t3, iterator.next());
+		assertEquals(t2, iterator.next());
+		assertEquals(t1, iterator.next());
+
+	}
+
+	@Test
+	public void testDrainToCollectionWithMaxElements() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t3);
+
+		List<T> c = new ArrayList<T>();
+
+		list.drainTo(c, 2);
+		assertEquals(1, list.size());
+		assertThat(list, hasItem(t3));
+		assertEquals(2, c.size());
+		assertThat(c, hasItems(t1, t2));
+	}
+
+	@Test
+	public void testDrainToCollection() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t3);
+
+		List<T> c = new ArrayList<T>();
+
+		list.drainTo(c);
+		assertTrue(list.isEmpty());
+		assertEquals(3, c.size());
+		assertThat(c, hasItems(t1, t2, t3));
+	}
+
+	@Test
+	public void testGetFirst() {
+		T t1 = getT();
+		T t2 = getT();
+
+		list.add(t1);
+		list.add(t2);
+
+		assertEquals(t1, list.getFirst());
+	}
+
+	@Test
+	public void testLast() {
+		testAdd();
+	}
+
+	@Test
+	public void testOfferFirst() {
+		testAddFirst();
+	}
+
+	@Test
+	public void testOfferLast() {
+		testAddLast();
+	}
+
+	@Test
+	public void testPeekFirst() {
+		testPeek();
+	}
+
+	@Test
+	public void testPeekLast() {
+		T t1 = getT();
+		T t2 = getT();
+
+		list.add(t1);
+		list.add(t2);
+
+		assertEquals(t2, list.peekLast());
+		assertEquals(2, list.size());
+	}
+
+	@Test
+	public void testPollFirst() {
+		testPoll();
+	}
+
+	@Test
+	public void testPollLast() {
+		T t1 = getT();
+		T t2 = getT();
+
+		list.add(t1);
+		list.add(t2);
+
+		T last = list.pollLast();
+		assertEquals(t2, last);
+		assertEquals(1, list.size());
+		assertThat(list, hasItem(t1));
+	}
+
+	@Test
+	public void testPut() {
+		testOffer();
+	}
+
+	@Test
+	public void testPutFirst() {
+		testAdd();
+	}
+
+	@Test
+	public void testPutLast() {
+		testPut();
+	}
+
+	@Test
+	public void testRemainingCapacity() {
+		assertEquals(Integer.MAX_VALUE, list.remainingCapacity());
+	}
+
+	@Test
+	public void testRemoveFirst() {
+		testPop();
+	}
+
+	@Test
+	public void testRemoveFirstOccurrence() {
+		testRemove();
+	}
+
+	@Test
+	public void testRemoveLast() {
+		testPollLast();
+	}
+
+	@Test
+	public void testRmoveLastOccurrence() {
+		T t1 = getT();
+		T t2 = getT();
+
+		list.add(t1);
+		list.add(t2);
+		list.add(t1);
+		list.add(t2);
+
+		list.removeLastOccurrence(t2);
+		assertEquals(3, list.size());
+		Iterator<T> iterator = list.iterator();
+		assertEquals(t1, iterator.next());
+		assertEquals(t2, iterator.next());
+		assertEquals(t1, iterator.next());
+	}
+
+	@Test
+	public void testTake() {
+		testPoll();
+	}
+
+	@Test
+	public void testTakeFirst() {
+		testTake();
+	}
+
+	@Test
+	public void testTakeLast() {
+		testPollLast();
 	}
 }

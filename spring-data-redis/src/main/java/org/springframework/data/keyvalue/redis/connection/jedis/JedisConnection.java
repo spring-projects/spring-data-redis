@@ -670,7 +670,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.rpop(key);
 				return null;
 			}
-			return jedis.lpop(key);
+			return jedis.rpop(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.util;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -45,7 +46,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	private volatile long defaultWait = 0;
 
-	private class DefaultRedisListIterator<E> extends RedisIterator<E> {
+	private class DefaultRedisListIterator extends RedisIterator<E> {
 
 		public DefaultRedisListIterator(Iterator<E> delegate) {
 			super(delegate);
@@ -122,7 +123,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public Iterator<E> iterator() {
-		return content().iterator();
+		return new DefaultRedisListIterator(content().iterator());
 	}
 
 	@Override
@@ -308,7 +309,9 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public Iterator<E> descendingIterator() {
-		throw new UnsupportedOperationException();
+		List<E> content = content();
+		Collections.reverse(content);
+		return new DefaultRedisListIterator(content.iterator());
 	}
 
 	@Override
@@ -359,7 +362,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	@Override
 	public E pop() {
-		E e = pollFirst();
+		E e = poll();
 		if (e == null) {
 			throw new NoSuchElementException();
 		}
