@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
+import org.jredis.connector.Connection;
 import org.jredis.connector.ConnectionSpec;
 import org.jredis.connector.Connection.Socket.Property;
 import org.jredis.ri.alphazero.JRedisClient;
@@ -46,13 +47,19 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	// taken from JRedis code
 	private int poolSize = 5;
 
+	private static final int DEFAULT_REDIS_PORT = 6379;
+	private static final int DEFAULT_REDIS_DB = 0;
+	private static final byte[] DEFAULT_REDIS_PASSWORD = null;
+
+
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
 	 */
 	public JredisConnectionFactory() {
-		this(DefaultConnectionSpec.newSpec());
+		ConnectionSpec newSpec = DefaultConnectionSpec.newSpec();
+		newSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
+		this.connectionSpec = newSpec;
 	}
-
 
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
@@ -60,8 +67,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 * @param hostName
 	 */
 	public JredisConnectionFactory(String hostName) {
-		Assert.hasText(hostName);
-		throw new UnsupportedOperationException();
+		this(hostName, DEFAULT_REDIS_PORT);
 	}
 
 
@@ -73,7 +79,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 */
 	public JredisConnectionFactory(String hostName, int port) {
 		Assert.hasText(hostName);
-		throw new UnsupportedOperationException();
+		ConnectionSpec newSpec = DefaultConnectionSpec.newSpec(hostName, port, DEFAULT_REDIS_DB, DEFAULT_REDIS_PASSWORD);
+		newSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
+		this.connectionSpec = newSpec;
 	}
 
 	/**
