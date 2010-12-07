@@ -41,7 +41,7 @@ import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
 
 /**
- * Jedis based {@link RedisConnection}.
+ * {@code RedisConnection} implementation on top of <a href="http://github.com/xetorthio/jedis">Jedis</a> library.
  * 
  * @author Costin Leau
  */
@@ -58,6 +58,11 @@ public class JedisConnection implements RedisConnection {
 	private final Client client;
 	private final BinaryTransaction transaction;
 
+	/**
+	 * Constructs a new <code>JedisConnection</code> instance.
+	 *
+	 * @param jedis Jedis entity
+	 */
 	public JedisConnection(Jedis jedis) {
 		this.jedis = jedis;
 		// extract underlying connection for batch operations

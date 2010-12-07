@@ -38,6 +38,12 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
  */
 public abstract class JredisUtils {
 
+	/**
+	 * Converts the given, native JRedis exception to Spring's DAO hierarchy.
+	 * 
+	 * @param ex JRedis exception
+	 * @return converted exception
+	 */
 	public static DataAccessException convertJredisAccessException(RedisException ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}

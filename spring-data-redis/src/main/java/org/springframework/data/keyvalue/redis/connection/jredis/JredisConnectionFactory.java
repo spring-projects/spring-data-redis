@@ -15,9 +15,6 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
-import java.nio.charset.Charset;
-
-import org.jredis.JRedis;
 import org.jredis.connector.ConnectionSpec;
 import org.jredis.connector.Connection.Socket.Property;
 import org.jredis.ri.alphazero.JRedisClient;
@@ -32,7 +29,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Connection factory on top of {@link JRedis} connection. 
+ * Connection factory using creating <a href="http://github.com/alphazero/jredis">JRedis</a> based connections. 
  * 
  * @author Costin Leau
  */
@@ -48,10 +45,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	private JRedisService pool = null;
 	// taken from JRedis code
 	private int poolSize = 5;
-
-
-	private Charset charset = Charset.forName("UTF8");
-
 
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
@@ -120,7 +113,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public RedisConnection getConnection() {
-		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)), charset);
+		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)));
 	}
 
 
@@ -130,13 +123,17 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 	/**
-	 * @return the password
+	 * Returns the password used for authenticating with the Redis server.
+	 * 
+	 * @return password for authentication
 	 */
 	public String getPassword() {
 		return password;
 	}
 
 	/**
+	 * Sets the password used for authenticating with the Redis server.
+	 * 
 	 * @param password the password to set
 	 */
 	public void setPassword(String password) {
@@ -162,7 +159,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 	/**
-	 * Returns the poolSize.
+	 * Returns the pool size of this factory.
 	 *
 	 * @return Returns the poolSize
 	 */
@@ -171,28 +168,13 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 	/**
+	 * Sets the connection pool size of the underlying factory.
+	 * 
 	 * @param poolSize The poolSize to set.
 	 */
 	public void setPoolSize(int poolSize) {
 		Assert.isTrue(poolSize > 0, "pool size needs to be bigger then zero");
 		this.poolSize = poolSize;
 		usePool = true;
-	}
-
-
-	/**
-	 * 
-	 * @return
-	 */
-	public Charset getCharset() {
-		return charset;
-	}
-
-
-	/**
-	 * @param charset
-	 */
-	public void setCharset(Charset charset) {
-		this.charset = charset;
 	}
 }

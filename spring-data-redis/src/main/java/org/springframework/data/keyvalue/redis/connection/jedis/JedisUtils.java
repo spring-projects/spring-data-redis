@@ -47,10 +47,22 @@ public abstract class JedisUtils {
 	private static final String OK_CODE = "OK";
 	private static final String OK_MULTI_CODE = "+OK";
 
+	/**
+	 * Converts the given, native Jedis exception to Spring's DAO hierarchy.
+	 * 
+	 * @param ex Jedis exception
+	 * @return converted exception
+	 */
 	public static DataAccessException convertJedisAccessException(JedisException ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}
 
+	/**
+	 * Converts the given, native, runtime Jedis exception to Spring's DAO hierarchy.
+	 * 
+	 * @param ex Jedis runtime/unchecked exception
+	 * @return converted exception
+	 */
 	public static DataAccessException convertJedisAccessException(RuntimeException ex) {
 		if (ex instanceof JedisException) {
 			return convertJedisAccessException((JedisException) ex);

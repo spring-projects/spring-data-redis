@@ -15,7 +15,6 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -35,7 +34,7 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 
 /**
- * JRedis based implementation.
+ * {@code RedisConnection} implementation on top of <a href="http://github.com/alphazero/jredis">JRedis</a> library.
  * 
  * @author Costin Leau
  */
@@ -43,11 +42,13 @@ public class JredisConnection implements RedisConnection {
 
 	private final JRedis jredis;
 
-	private final Charset charset;
-
-	public JredisConnection(JRedis jredis, Charset charset) {
+	/**
+	 * Constructs a new <code>JredisConnection</code> instance.
+	 *
+	 * @param jredis JRedis connection
+	 */
+	public JredisConnection(JRedis jredis) {
 		this.jredis = jredis;
-		this.charset = charset;
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {

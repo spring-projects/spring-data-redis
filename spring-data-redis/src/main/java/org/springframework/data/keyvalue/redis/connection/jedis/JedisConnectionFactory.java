@@ -33,7 +33,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisShardInfo;
 
 /**
- * Connection factory using Jedis underneath. 
+ * Connection factory using creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
  * 
  * @author Costin Leau
  */
@@ -48,8 +48,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private boolean usePool = true;
 
 	private JedisPool pool = null;
-	// taken from Jedis code
-	private int poolSize = 10;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance.
@@ -114,7 +112,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		if (usePool) {
-			int size = getPoolSize();
 			pool = new JedisPool(new GenericObjectPool.Config(), shardInfo.getHost(), shardInfo.getPort(),
 					shardInfo.getTimeout(), shardInfo.getPassword());
 		}
@@ -145,13 +142,17 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * @return the password
+	 * Returns the password used for authenticating with the Redis server.
+	 * 
+	 * @return password for authentication
 	 */
 	public String getPassword() {
 		return password;
 	}
 
 	/**
+	 * Sets the password used for authenticating with the Redis server.
+	 * 
 	 * @param password the password to set
 	 */
 	public void setPassword(String password) {
@@ -168,6 +169,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
+	 * Sets the shard info for this factory.
+	 * 
 	 * @param shardInfo The shardInfo to set.
 	 */
 	public void setShardInfo(JedisShardInfo shardInfo) {
@@ -206,23 +209,5 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public void setPooling(boolean usePool) {
 		this.usePool = usePool;
-	}
-
-	/**
-	 * Returns the poolSize.
-	 *
-	 * @return Returns the poolSize
-	 */
-	public int getPoolSize() {
-		return poolSize;
-	}
-
-	/**
-	 * @param poolSize The poolSize to set.
-	 */
-	public void setPoolSize(int poolSize) {
-		Assert.isTrue(poolSize > 0, "pool size needs to be bigger then zero");
-		this.poolSize = poolSize;
-		usePool = true;
 	}
 }

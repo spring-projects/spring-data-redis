@@ -16,7 +16,7 @@
 package org.springframework.data.keyvalue.redis.connection;
 
 /**
- * Parameters for the SORT operation.
+ * Entity containing the parameters for the SORT operation.
  * 
  * @author Costin Leau
  */
