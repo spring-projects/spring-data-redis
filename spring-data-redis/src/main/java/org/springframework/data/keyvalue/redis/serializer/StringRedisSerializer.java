@@ -18,8 +18,10 @@ package org.springframework.data.keyvalue.redis.serializer;
 import java.nio.charset.Charset;
 
 /**
- * Simple String to byte[] (and back) serializer. Relies on the specified charset
- * to properly convert the String into bytes and vice-versa.
+ * Simple String to byte[] (and back) serializer. Relies on the specified charset 
+ * (by default UTF-8) to properly convert the String into bytes and vice-versa.
+ * 
+ * Useful when the interaction with the Redis happens mainly through Strings. 
  * 
  * @author Costin Leau
  */

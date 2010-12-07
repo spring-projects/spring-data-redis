@@ -21,7 +21,7 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 
 /**
- * Simple Redis serializer delegating to the default serializer in Spring 3.
+ * Simple Redis serializer delegating to the default (Java based) serializer in Spring 3.
  * 
  * @author Mark Pollack
  * @author Costin Leau

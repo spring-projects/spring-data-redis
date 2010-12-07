@@ -28,6 +28,8 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
  * Default implementation for {@link RedisList}. 
+ * Suitable for not just lists, but also queues (FIFO ordering) or stacks (LIFO ordering) and deques
+ * (or double ended queues).
  * 
  * Allows the maximum size (or the cap) to be specified to prevent the list from over growing.
  * 

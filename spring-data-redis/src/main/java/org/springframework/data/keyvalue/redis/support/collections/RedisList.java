@@ -15,13 +15,14 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.util.Deque;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingDeque;
 
 /**
- * Redis extension for the {@link List} contract. Supports {@link List} and {@link Queue} specific
- * operations backed by Redis operations.
+ * Redis extension for the {@link List} contract. Supports {@link List}, {@link Queue} and {@link Deque} contracts
+ * as well as their equivalent blocking siblings {@link BlockingDeque} and {@link BlockingDeque}.
  * 
  * @author Costin Leau
  */

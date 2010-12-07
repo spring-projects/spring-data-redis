@@ -22,6 +22,7 @@ import java.util.List;
 
 /**
  * Utility class used mainly for type conversion by the default collection implementations.
+ * Meant for internal use.
  * 
  * @author Costin Leau
  */
