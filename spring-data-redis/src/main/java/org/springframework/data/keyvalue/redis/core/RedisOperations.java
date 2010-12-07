@@ -17,10 +17,12 @@ package org.springframework.data.keyvalue.redis.core;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 
 
 /**
@@ -57,6 +59,10 @@ public interface RedisOperations<K, V> {
 	void multi();
 
 	Object exec();
+
+	List<V> sort(K key, SortParameters params);
+
+	Long sort(K key, SortParameters params, K destination);
 
 	ValueOperations<K, V> valueOps();
 

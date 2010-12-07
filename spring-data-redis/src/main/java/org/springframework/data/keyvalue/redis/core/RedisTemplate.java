@@ -34,6 +34,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.SimpleRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -254,7 +255,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 
 	@SuppressWarnings("unchecked")
-	private <T extends Collection<V>> T values(Collection<byte[]> rawValues, Class<? extends Collection> type) {
+	private <T extends Collection<V>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<V> values = (List.class.isAssignableFrom(type) ? new ArrayList<V>(rawValues.size())
 				: new LinkedHashSet<V>(rawValues.size()));
 		for (byte[] bs : rawValues) {
@@ -267,7 +268,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
-	private <H> Collection<H> hashValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
+	private <H> Collection<H> deserializeHashValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<H> values = (List.class.isAssignableFrom(type) ? new ArrayList<H>(rawValues.size())
 				: new LinkedHashSet<H>(rawValues.size()));
 		for (byte[] bs : rawValues) {
@@ -407,6 +408,34 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		}, true);
 	}
+
+	@Override
+	public List<V> sort(K key, final SortParameters params) {
+		final byte[] rawKey = rawKey(key);
+
+		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+			@Override
+			public List<byte[]> doInRedis(RedisConnection connection) {
+				return connection.sort(rawKey, params);
+			}
+		}, true);
+
+		return deserializeValues(rawValues, List.class);
+	}
+
+	@Override
+	public Long sort(K key, final SortParameters params, K destination) {
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawDestKey = rawKey(destination);
+
+		return execute(new RedisCallback<Long>() {
+			@Override
+			public Long doInRedis(RedisConnection connection) {
+				return connection.sort(rawKey, params, rawDestKey);
+			}
+		}, true);
+	}
+
 
 	//
 	// Value operations
@@ -580,7 +609,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (List<V>) values(rawValues, List.class);
+			return (List<V>) deserializeValues(rawValues, List.class);
 		}
 
 		@Override
@@ -770,7 +799,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<List<V>>() {
 				@Override
 				public List<V> doInRedis(RedisConnection connection) {
-					return values(connection.lRange(rawKey, start, end), List.class);
+					return deserializeValues(connection.lRange(rawKey, start, end), List.class);
 				}
 			}, true);
 		}
@@ -898,7 +927,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -929,7 +958,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -967,7 +996,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1003,7 +1032,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1078,7 +1107,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1092,7 +1121,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1171,7 +1200,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return values(rawValues, Set.class);
+			return deserializeValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1288,7 +1317,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (Set<HK>) hashValues(rawValues, Set.class);
+			return (Set<HK>) deserializeHashValues(rawValues, Set.class);
 		}
 
 		@Override
@@ -1349,7 +1378,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (List<HV>) hashValues(rawValues, List.class);
+			return (List<HV>) deserializeHashValues(rawValues, List.class);
 		}
 
 		@Override
@@ -1378,7 +1407,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (List<HV>) hashValues(rawValues, List.class);
+			return (List<HV>) deserializeHashValues(rawValues, List.class);
 		}
 
 		@Override
