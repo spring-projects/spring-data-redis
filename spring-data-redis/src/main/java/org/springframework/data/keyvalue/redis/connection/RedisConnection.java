@@ -19,8 +19,9 @@ package org.springframework.data.keyvalue.redis.connection;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 
 /**
- * A connection (session) to a Redis server.
- * The methods namings follows as much as possible the Redis conventions.  
+ * A connection to a Redis server. 
+ * 
+ * The methods follow as much as possible the Redis names and conventions.  
  *  
  * @author Costin Leau
  */

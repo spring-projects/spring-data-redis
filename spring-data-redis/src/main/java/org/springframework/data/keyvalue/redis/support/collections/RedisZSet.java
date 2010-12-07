@@ -27,7 +27,7 @@ import java.util.SortedSet;
  * 
  * @author Costin Leau
  */
-public interface RedisZSet<E> extends RedisStore<String>, Set<E> {
+public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	RedisZSet<E> intersectAndStore(String destKey, Collection<? extends RedisZSet<?>> sets);
 

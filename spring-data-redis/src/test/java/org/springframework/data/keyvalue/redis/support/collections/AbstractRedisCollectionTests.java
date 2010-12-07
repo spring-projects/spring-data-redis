@@ -40,8 +40,6 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisCallback;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.AbstractRedisCollection;
-import org.springframework.data.keyvalue.redis.support.collections.RedisStore;
 
 
 /**
@@ -65,7 +63,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 	abstract AbstractRedisCollection<T> createCollection();
 
-	abstract RedisStore<T> copyStore(RedisStore<T> store);
+	abstract RedisStore copyStore(RedisStore store);
 
 
 	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {

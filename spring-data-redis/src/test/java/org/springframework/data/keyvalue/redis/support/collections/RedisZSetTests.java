@@ -16,9 +16,6 @@
 package org.springframework.data.keyvalue.redis.support.collections;
 
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.AbstractRedisCollection;
-import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisZSet;
-import org.springframework.data.keyvalue.redis.support.collections.RedisStore;
 
 /**
  * Parameterized instance of Redis sorted set tests.
@@ -38,7 +35,7 @@ public class RedisZSetTests extends AbstractRedisZSetTest<Object> {
 	}
 
 	@Override
-	RedisStore<Object> copyStore(RedisStore<Object> store) {
+	RedisStore copyStore(RedisStore store) {
 		return new DefaultRedisZSet(store.getKey().toString(), store.getOperations());
 	}
 

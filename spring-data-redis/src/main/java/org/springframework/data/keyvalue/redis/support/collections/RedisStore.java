@@ -15,27 +15,23 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import org.springframework.data.keyvalue.redis.core.KeyBound;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
-
 /**
- * Basic interface for Redis-based collections.
+ * Basic interface for Redis-based collections. 
+ * 
+ * Offers access to the {@link RedisOperations} entity
+ * used for executing commands against the backing store.
  * 
  * @author Costin Leau
  */
-public interface RedisStore<K> {
-
-	/**
-	 * Returns the key used by the backing Redis store for this collection.
-	 *  
-	 * @return Redis key
-	 */
-	K getKey();
+public interface RedisStore extends KeyBound<String> {
 
 	/**
 	 * Returns the underlying Redis operations used by the backing implementation.
 	 * 
 	 * @return operations
 	 */
-	RedisOperations<K, ?> getOperations();
+	RedisOperations<String, ?> getOperations();
 }

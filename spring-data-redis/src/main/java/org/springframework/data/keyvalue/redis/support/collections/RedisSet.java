@@ -24,7 +24,7 @@ import java.util.Set;
  * 
  * @author Costin Leau
  */
-public interface RedisSet<E> extends RedisStore<String>, Set<E> {
+public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 
 	Set<E> intersect(Collection<? extends RedisSet<?>> sets);
 

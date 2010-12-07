@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 import java.io.Serializable;
 import java.util.Collections;
 
+import org.springframework.data.keyvalue.redis.core.KeyBound;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
 
@@ -28,7 +29,7 @@ import org.springframework.data.keyvalue.redis.core.ValueOperations;
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
  */
-public class RedisAtomicInteger extends Number implements Serializable {
+public class RedisAtomicInteger extends Number implements Serializable, KeyBound<String> {
 
 	private final String key;
 	private ValueOperations<String, Integer> operations;
@@ -56,6 +57,11 @@ public class RedisAtomicInteger extends Number implements Serializable {
 		this.operations = operations.valueOps();
 		this.generalOps = operations;
 		this.operations.set(redisCounter, initialValue);
+	}
+
+	@Override
+	public String getKey() {
+		return key;
 	}
 
 	/**

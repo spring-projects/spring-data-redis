@@ -109,7 +109,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		// intersect the set with a non existing one
 		// TODO: find a safer way to clean the set
 		String randomKey = UUID.randomUUID().toString();
-		boundSetOps.intersectAndStore(key, Collections.singleton(randomKey));
+		boundSetOps.intersectAndStore(getKey(), Collections.singleton(randomKey));
 	}
 
 	@Override

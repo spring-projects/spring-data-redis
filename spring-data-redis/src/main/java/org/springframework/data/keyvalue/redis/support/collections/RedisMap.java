@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentMap;
  * 
  * @author Costin Leau
  */
-public interface RedisMap<K, V> extends RedisStore<String>, ConcurrentMap<K, V> {
+public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
 
 	Long increment(K key, long delta);
 }

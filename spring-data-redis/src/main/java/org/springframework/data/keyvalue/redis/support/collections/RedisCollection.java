@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,13 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.BlockingDeque;
+import java.util.Collection;
 
 /**
- * Redis extension for the {@link List} contract. Supports {@link List} and {@link Queue} specific
- * operations backed by Redis operations.
+ * Redis extension for the {@link Collection} contract.
  * 
  * @author Costin Leau
  */
-public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque<E> {
+public interface RedisCollection<E> extends RedisStore {
 
-	List<E> range(long start, long end);
-
-	RedisList<E> trim(int start, int end);
 }

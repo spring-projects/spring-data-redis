@@ -27,8 +27,6 @@ import java.util.NoSuchElementException;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisList;
-import org.springframework.data.keyvalue.redis.support.collections.RedisList;
 
 /**
  * Integration test for RedisList
@@ -281,7 +279,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testCappedCollection() throws Exception {
-		RedisList<T> cappedList = new DefaultRedisList<T>(template.forList(collection.key + ":capped"), 1);
+		RedisList<T> cappedList = new DefaultRedisList<T>(template.forList(collection.getKey() + ":capped"), 1);
 		T first = getT();
 		cappedList.offer(first);
 		assertEquals(1, cappedList.size());

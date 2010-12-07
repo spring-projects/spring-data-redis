@@ -16,16 +16,17 @@
 package org.springframework.data.keyvalue.redis.core;
 
 /**
- * Redis store for a certain key. Useful for creating views into Redis 'collection' types.
+ * Contract defining the bind of the implementing entity to a Redis 'key'.
+ * Useful for executing 'bound' operations or operating over Redis 'collection' or 'views'.
  *  
  * @author Costin Leau
  */
 public interface KeyBound<K> {
 
 	/**
-	 * Returns the key associated with this store.
+	 * Returns the key associated with this entity.
 	 * 
-	 * @return
+	 * @return key associated with the implementing entity
 	 */
 	K getKey();
 }

@@ -43,9 +43,6 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory
 import org.springframework.data.keyvalue.redis.core.RedisCallback;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisMap;
-import org.springframework.data.keyvalue.redis.support.collections.RedisMap;
-import org.springframework.data.keyvalue.redis.support.collections.RedisStore;
 
 /**
  * Integration test for Redis Map.
@@ -98,7 +95,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		return valueFactory.instance();
 	}
 
-	protected RedisStore<String> copyStore(RedisStore<String> store) {
+	protected RedisStore copyStore(RedisStore store) {
 		return new DefaultRedisMap(store.getKey(), store.getOperations());
 	}
 
@@ -158,7 +155,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testEquals() {
-		RedisStore<String> clone = copyStore(map);
+		RedisStore clone = copyStore(map);
 		assertEquals(clone, map);
 		assertEquals(clone, clone);
 		assertEquals(map, map);
@@ -167,7 +164,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testNotEquals() {
 		RedisOperations<String, ?> ops = map.getOperations();
-		RedisStore<String> newInstance = new DefaultRedisMap<K, V>(ops.<K, V> forHash(map.getKey() + ":new"));
+		RedisStore newInstance = new DefaultRedisMap<K, V>(ops.<K, V> forHash(map.getKey() + ":new"));
 		assertFalse(map.equals(newInstance));
 		assertFalse(newInstance.equals(map));
 	}

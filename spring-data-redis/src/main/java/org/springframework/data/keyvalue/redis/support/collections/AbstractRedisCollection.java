@@ -21,16 +21,17 @@ import java.util.Collection;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
- * Base implementation for Redis collections. 
+ * Base implementation for {@link RedisCollection}.
+ * Provides a skeletal implementation.
  * 
  * @author Costin Leau
  */
-public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisStore<String> {
+public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisCollection<E> {
 
 	public static final String ENCODING = "UTF-8";
 
-	protected final String key;
-	protected final RedisOperations<String, E> operations;
+	private final String key;
+	private final RedisOperations<String, E> operations;
 
 	public <K> AbstractRedisCollection(String key, RedisOperations<String, E> operations) {
 		this.key = key;

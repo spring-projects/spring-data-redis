@@ -38,10 +38,10 @@ abstract class CollectionUtils {
 		return (List<E>) Arrays.asList(reverse);
 	}
 
-	static Collection<String> extractKeys(Collection<? extends RedisStore<String>> stores) {
+	static Collection<String> extractKeys(Collection<? extends RedisStore> stores) {
 		Collection<String> keys = new ArrayList<String>(stores.size());
 
-		for (RedisStore<String> store : stores) {
+		for (RedisStore store : stores) {
 			keys.add(store.getKey());
 		}
 
