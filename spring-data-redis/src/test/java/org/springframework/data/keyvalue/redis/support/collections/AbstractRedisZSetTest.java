@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.junit.matchers.JUnitMatchers.*;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -27,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.core.BoundZSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisZSet;
-import org.springframework.data.keyvalue.redis.support.collections.RedisZSet;
 
 /**
  * Integration test for Redis ZSet.
@@ -208,7 +207,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		interSet2.add(t3, 3);
 
 		String resultName = "test:zset:inter:result:1";
-		RedisZSet<T> inter = zSet.intersectAndStore(resultName, interSet1, interSet2);
+		RedisZSet<T> inter = zSet.intersectAndStore(resultName, Arrays.asList(interSet1, interSet2));
 
 		assertEquals(1, inter.size());
 		assertThat(inter, hasItem(t2));
@@ -328,7 +327,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		unionSet2.add(t3, 6);
 
 		String resultName = "test:zset:union:result:1";
-		RedisZSet<T> union = zSet.unionAndStore(resultName, unionSet1, unionSet2);
+		RedisZSet<T> union = zSet.unionAndStore(resultName, Arrays.asList(unionSet1, unionSet2));
 		assertEquals(4, union.size());
 		assertThat(union, hasItems(t1, t2, t3, t4));
 		assertEquals(resultName, union.getKey());

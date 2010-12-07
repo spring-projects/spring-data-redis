@@ -26,15 +26,15 @@ import java.util.Set;
  */
 public interface RedisSet<E> extends RedisStore<String>, Set<E> {
 
-	Set<E> intersect(Collection<RedisSet<? extends E>> sets);
+	Set<E> intersect(Collection<? extends RedisSet<?>> sets);
 
-	Set<E> union(Collection<RedisSet<? extends E>> sets);
+	Set<E> union(Collection<? extends RedisSet<?>> sets);
 
-	Set<E> diff(Collection<RedisSet<? extends E>> sets);
+	Set<E> diff(Collection<? extends RedisSet<?>> sets);
 
-	RedisSet<E> intersectAndStore(String destKey, Collection<RedisSet<? extends E>> sets);
+	RedisSet<E> intersectAndStore(String destKey, Collection<? extends RedisSet<?>> sets);
 
-	RedisSet<E> unionAndStore(String destKey, Collection<RedisSet<? extends E>> sets);
+	RedisSet<E> unionAndStore(String destKey, Collection<? extends RedisSet<?>> sets);
 
-	RedisSet<E> diffAndStore(String destKey, Collection<RedisSet<? extends E>> sets);
+	RedisSet<E> diffAndStore(String destKey, Collection<? extends RedisSet<?>> sets);
 }

@@ -29,8 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.core.BoundSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisSet;
-import org.springframework.data.keyvalue.redis.support.collections.RedisSet;
 
 /**
  * Integration test for Redis set.
@@ -80,7 +78,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		diffSet1.add(t2);
 		diffSet2.add(t3);
 
-		Set<T> diff = set.diff(diffSet1, diffSet2);
+		Set<T> diff = set.diff(Arrays.asList(diffSet1, diffSet2));
 		assertEquals(1, diff.size());
 		assertThat(diff, hasItem(t1));
 	}
@@ -104,7 +102,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		diffSet2.add(t4);
 
 		String resultName = "test:set:diff:result:1";
-		RedisSet<T> diff = set.diffAndStore(resultName, diffSet1, diffSet2);
+		RedisSet<T> diff = set.diffAndStore(resultName, Arrays.asList(diffSet1, diffSet2));
 
 		assertEquals(1, diff.size());
 		assertThat(diff, hasItem(t1));
@@ -130,7 +128,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		intSet2.add(t2);
 		intSet2.add(t3);
 
-		Set<T> inter = set.intersect(intSet1, intSet2);
+		Set<T> inter = set.intersect(Arrays.asList(intSet1, intSet2));
 		assertEquals(1, inter.size());
 		assertThat(inter, hasItem(t2));
 	}
@@ -155,7 +153,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		intSet2.add(t3);
 
 		String resultName = "test:set:intersect:result:1";
-		RedisSet<T> inter = set.intersectAndStore(resultName, intSet1, intSet2);
+		RedisSet<T> inter = set.intersectAndStore(resultName, Arrays.asList(intSet1, intSet2));
 		assertEquals(1, inter.size());
 		assertThat(inter, hasItem(t2));
 		assertEquals(resultName, inter.getKey());
@@ -178,7 +176,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		unionSet1.add(t4);
 		unionSet2.add(t3);
 
-		Set<T> union = set.union(unionSet1, unionSet2);
+		Set<T> union = set.union(Arrays.asList(unionSet1, unionSet2));
 		assertEquals(4, union.size());
 		assertThat(union, hasItems(t1, t2, t3, t4));
 	}
@@ -201,7 +199,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		unionSet2.add(t3);
 
 		String resultName = "test:set:union:result:1";
-		RedisSet<T> union = set.unionAndStore(resultName, unionSet1, unionSet2);
+		RedisSet<T> union = set.unionAndStore(resultName, Arrays.asList(unionSet1, unionSet2));
 		assertEquals(4, union.size());
 		assertThat(union, hasItems(t1, t2, t3, t4));
 		assertEquals(resultName, union.getKey());
