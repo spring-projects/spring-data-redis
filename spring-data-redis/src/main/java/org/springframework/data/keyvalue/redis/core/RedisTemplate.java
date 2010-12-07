@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
@@ -562,11 +561,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public V increment(K key, final long delta) {
+		public Long increment(K key, final long delta) {
 			final byte[] rawKey = rawKey(key);
 			// TODO add conversion service in here ?
-			ConversionService cs;
-			return (V) execute(new RedisCallback<Long>() {
+			return execute(new RedisCallback<Long>() {
 				@Override
 				public Long doInRedis(RedisConnection connection) {
 					if (delta == 1) {

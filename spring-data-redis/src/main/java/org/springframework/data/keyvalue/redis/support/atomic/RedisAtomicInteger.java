@@ -166,7 +166,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int incrementAndGet() {
-		return operations.increment(key, 1);
+		return operations.increment(key, 1).intValue();
 	}
 
 	/**
@@ -174,7 +174,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int decrementAndGet() {
-		return operations.increment(key, -1);
+		return operations.increment(key, -1).intValue();
 	}
 
 
@@ -184,7 +184,7 @@ public class RedisAtomicInteger extends Number implements Serializable {
 	 * @return the updated value
 	 */
 	public int addAndGet(int delta) {
-		return operations.increment(key, delta);
+		return operations.increment(key, delta).intValue();
 	}
 
 	/**
