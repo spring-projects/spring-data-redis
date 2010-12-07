@@ -59,7 +59,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance.
 	 *
-	 * @param hostname
+	 * @param hostName
 	 */
 	public JedisConnectionFactory(String hostName) {
 		Assert.hasText(hostName);
@@ -69,7 +69,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance.
 	 *
-	 * @param hostname
+	 * @param hostName
 	 * @param port
 	 */
 	public JedisConnectionFactory(String hostName, int port) {

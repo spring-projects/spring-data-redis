@@ -22,8 +22,9 @@ import java.util.Set;
 import java.util.SortedSet;
 
 /**
- * Redis ZSet contract. Acts as a {@link SortedSet} based on the given priorities. Since using a {@link Comparator}
- * does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
+ * Redis ZSet (or sorted set (by weight)). Acts as a {@link SortedSet} based on the given priorities or weights associated with each item.
+ * <p/>
+ * Since using a {@link Comparator} does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
  * 
  * @author Costin Leau
  */
