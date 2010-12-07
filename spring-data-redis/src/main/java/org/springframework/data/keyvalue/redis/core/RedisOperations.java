@@ -26,11 +26,29 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters;
 
 
 /**
- * Basic set of Redis operations, implemented by {@link RedisTemplate}. 
+ * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}.
+ * Not often used but a useful option for extensibility and testability (as it can be easily mocked or stubbed). 
  * 
  * @author Costin Leau
  */
 public interface RedisOperations<K, V> {
+
+	/**
+	 * Executes the given action within a Redis connection.
+	 * 
+	 * Application exceptions thrown by the action object get propagated to the caller (can only be unchecked) whenever possible.
+	 * Redis exceptions are transformed into appropriate DAO ones. 
+	 * Allows for returning a result object, that is a domain object or a collection of domain objects.
+	 * Performs automatic serialization/deserialization for the given objects to and from binary data suitable for the Redis storage.   
+	 * 
+	 * Note: Callback code is not supposed to handle transactions itself! Use an appropriate transaction manager. 
+	 * Generally, callback code must not touch any Connection lifecycle methods, like close, to let the template do its work. 
+	 * 
+	 * @param <T> return type
+	 * @param action callback object that specifies the Redis action
+	 * @return a result object returned by the action or <tt>null</tt>
+	 */
+	<T> T execute(RedisCallback<T> action);
 
 	Boolean exists(K key);
 
@@ -79,7 +97,7 @@ public interface RedisOperations<K, V> {
 	ZSetOperations<K, V> zSetOps();
 
 	BoundZSetOperations<K, V> forZSet(K key);
-	
+
 	<HK, HV> HashOperations<K, HK, HV> hashOps();
 
 	<HK, HV> BoundHashOperations<K, HK, HV> forHash(K key);

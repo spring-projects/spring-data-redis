@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Redis, list specific operations.
+ * Redis list specific operations.
  * 
  * @author Costin Leau
  */

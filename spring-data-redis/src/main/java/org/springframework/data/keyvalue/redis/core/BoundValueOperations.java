@@ -18,6 +18,8 @@ package org.springframework.data.keyvalue.redis.core;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Value (or String in Redis terminology) operations bound to a certain key. 
+ * 
  * @author Costin Leau
  */
 public interface BoundValueOperations<K, V> extends KeyBound<K> {

@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.core;
 
 /**
  * Default {@link KeyBound} implementation.
+ * Meant for internal usage.
  * 
  * @author Costin Leau
  */

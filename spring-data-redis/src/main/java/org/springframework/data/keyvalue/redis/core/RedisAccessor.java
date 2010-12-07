@@ -22,6 +22,9 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory
 import org.springframework.util.Assert;
 
 /**
+ * Base class for {@link RedisTemplate} defining common properties.
+ * Not intended to be used directly. 
+ * 
  * @author Costin Leau
  */
 public class RedisAccessor implements InitializingBean {
@@ -51,9 +54,5 @@ public class RedisAccessor implements InitializingBean {
 	 */
 	public void setConnectionFactory(RedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
-	}
-
-	public RuntimeException tryToConvertRedisAccessException(Exception ex) {
-		throw new UnsupportedOperationException("wire this into dialects/XXXClient utils");
 	}
 }

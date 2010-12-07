@@ -43,19 +43,26 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- * 
- * Helper class that simplifies Redis data access code. Automatically converts Redis connection exceptions into 
- * DataAccessExceptions, following the org.springframework.dao exception hierarchy.
- *
+ * Helper class that simplifies Redis data access code. 
+ * <p/>
+ * Performs automatic serialization/deserialization between the given objects and the underlying binary data in the Redis store.
+ * <p/>
  * The central method is execute, supporting Redis access code implementing the {@link RedisCallback} interface.
  * It provides {@link RedisConnection} handling such that neither the {@link RedisCallback} implementation nor 
- * the calling code needs to explicitly care about retrieving/closing Redis connections, or handling Session 
+ * the calling code needs to explicitly care about retrieving/closing Redis connections, or handling Connection 
  * lifecycle exceptions. For typical single step actions, there are various convenience methods.
- *  
+ * <p/>
+ * Once configured, this class is thread-safe.
+ * 
+ * <p/>Note that while the template is generified, it is up to the serializers/deserializers to properly convert the given Objects
+ * to and from binary data. When using a generic serialization mechanism (such as Java serialization or JSON) the types lose their
+ * importance and can be skipped or only used as syntactic sugar. 
+ * <p/>
  * <b>This is the central class in Redis support</b>.
- * Simplifies the use of Redis and helps avoid common errors.
  * 
  * @author Costin Leau
+ * @param <K> the Redis key type against which the template works (usually a String)
+ * @param <V> the Redis value type against which the template works
  */
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
@@ -65,9 +72,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private RedisSerializer hashKeySerializer = new SimpleRedisSerializer();
 	private RedisSerializer hashValueSerializer = new SimpleRedisSerializer();
 
+	/**
+	 * Constructs a new <code>RedisTemplate</code> instance.
+	 *
+	 */
 	public RedisTemplate() {
 	}
 
+	/**
+	 * Constructs a new <code>RedisTemplate</code> instance.
+	 *
+	 * @param connectionFactory connection factory for creating new connections
+	 */
 	public RedisTemplate(RedisConnectionFactory connectionFactory) {
 		this.setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
@@ -77,10 +93,28 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(action, isExposeConnection());
 	}
 
+	/**
+	 * Executes the given action object within a connection, which can be exposed or not.
+	 *   
+	 * @param <T> return type
+	 * @param action callback object that specifies the Redis action
+	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code 
+	 * @return object returned by the action
+	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
 		return execute(action, exposeConnection, valueSerializer);
 	}
 
+	/**
+	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
+	 * to be specified for the returned object.
+	 * 
+	 * @param <T> return type
+	 * @param action action callback object that specifies the Redis action
+	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
+	 * @param returnSerializer serializer used for converting the binary data to the custom return type
+	 * @return returned by the action
+	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer<?> returnSerializer) {
 		Assert.notNull(action, "Callback object must not be null");
 
@@ -110,9 +144,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Returns the exposeConnection.
+	 * Returns whether to expose the native Redis connection to RedisCallback code, or rather a connection proxy (the default). 
 	 *
-	 * @return Returns the exposeConnection
+	 * @return whether to expose the native Redis connection or not
 	 */
 	public boolean isExposeConnection() {
 		return exposeConnection;
