@@ -32,11 +32,11 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	 * Constructs a new <code>DefaultBoundZSetOperations</code> instance.
 	 *
 	 * @param key
-	 * @param template
+	 * @param oeprations
 	 */
-	public DefaultBoundZSetOperations(K key, RedisTemplate<K, V> template) {
+	public DefaultBoundZSetOperations(K key, RedisOperations<K, V> oeprations) {
 		super(key);
-		this.ops = template.zSetOps();
+		this.ops = oeprations.zSetOps();
 	}
 
 	@Override

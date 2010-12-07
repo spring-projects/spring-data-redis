@@ -32,11 +32,11 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	 * Constructs a new <code>DefaultBoundListOperations</code> instance.
 	 *
 	 * @param key
-	 * @param template
+	 * @param operations
 	 */
-	public DefaultBoundListOperations(K key, RedisTemplate<K, V> template) {
+	public DefaultBoundListOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = template.listOps();
+		this.ops = operations.listOps();
 	}
 
 

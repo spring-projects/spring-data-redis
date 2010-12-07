@@ -28,11 +28,11 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	 * Constructs a new <code>DefaultBoundValueOperations</code> instance.
 	 *
 	 * @param key
-	 * @param template
+	 * @param operations
 	 */
-	public DefaultBoundValueOperations(K key, RedisTemplate<K, V> template) {
+	public DefaultBoundValueOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = template.valueOps();
+		this.ops = operations.valueOps();
 	}
 
 	@Override

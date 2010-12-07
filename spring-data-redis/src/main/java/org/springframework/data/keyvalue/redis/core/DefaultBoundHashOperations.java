@@ -34,9 +34,9 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	 * @param key
 	 * @param template
 	 */
-	public DefaultBoundHashOperations(H key, RedisTemplate<H, ?> template) {
+	public DefaultBoundHashOperations(H key, RedisOperations<H, ?> operations) {
 		super(key);
-		this.ops = template.hashOps();
+		this.ops = operations.hashOps();
 	}
 
 	@Override

@@ -33,11 +33,11 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	 * Constructs a new <code>DefaultBoundSetOperations</code> instance.
 	 *
 	 * @param key
-	 * @param template
+	 * @param operations
 	 */
-	DefaultBoundSetOperations(K key, RedisTemplate<K, V> template) {
+	DefaultBoundSetOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = template.setOps();
+		this.ops = operations.setOps();
 	}
 
 	@Override
