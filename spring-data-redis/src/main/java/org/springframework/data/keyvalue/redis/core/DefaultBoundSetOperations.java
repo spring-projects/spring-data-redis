@@ -16,6 +16,7 @@
 
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -45,12 +46,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
-	public Set<V> diff(K... keys) {
+	public Set<V> diff(Collection<K> keys) {
 		return ops.diff(getKey(), keys);
 	}
 
 	@Override
-	public void diffAndStore(K destKey, K... keys) {
+	public void diffAndStore(K destKey, Collection<K> keys) {
 		ops.diffAndStore(getKey(), destKey, keys);
 	}
 
@@ -60,12 +61,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
-	public Set<V> intersect(K... keys) {
+	public Set<V> intersect(Collection<K> keys) {
 		return ops.intersect(getKey(), keys);
 	}
 
 	@Override
-	public void intersectAndStore(K destKey, K... keys) {
+	public void intersectAndStore(K destKey, Collection<K> keys) {
 		ops.intersectAndStore(getKey(), destKey, keys);
 	}
 
@@ -90,12 +91,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
-	public Set<V> union(K... keys) {
+	public Set<V> union(Collection<K> keys) {
 		return ops.union(getKey(), keys);
 	}
 
 	@Override
-	public void unionAndStore(K destKey, K... keys) {
+	public void unionAndStore(K destKey, Collection<K> keys) {
 		ops.unionAndStore(getKey(), destKey, keys);
 	}
 }

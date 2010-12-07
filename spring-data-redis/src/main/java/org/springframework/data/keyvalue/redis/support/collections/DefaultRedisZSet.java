@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -90,8 +91,8 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public RedisZSet<E> intersectAndStore(String destKey, RedisZSet<E>... sets) {
-		boundZSetOps.intersectAndStore(destKey, extractKeys(sets));
+	public RedisZSet<E> intersectAndStore(String destKey, Collection<RedisZSet<? extends E>> sets) {
+		boundZSetOps.intersectAndStore(destKey, CollectionUtils.extractKeys(sets));
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().forZSet(destKey), getDefaultScore());
 	}
 
@@ -123,8 +124,8 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public RedisZSet<E> unionAndStore(String destKey, RedisZSet<E>... sets) {
-		boundZSetOps.unionAndStore(destKey, extractKeys(sets));
+	public RedisZSet<E> unionAndStore(String destKey, Collection<RedisZSet<? extends E>> sets) {
+		boundZSetOps.unionAndStore(destKey, CollectionUtils.extractKeys(sets));
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().forZSet(destKey), getDefaultScore());
 	}
 
@@ -197,15 +198,5 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public Double score(Object o) {
 		return boundZSetOps.score(o);
-	}
-
-	private String[] extractKeys(RedisZSet<E>... sets) {
-		String[] keys = new String[sets.length];
-		keys[0] = key;
-		for (int i = 0; i < keys.length; i++) {
-			keys[i] = sets[i].getKey();
-		}
-
-		return keys;
 	}
 }

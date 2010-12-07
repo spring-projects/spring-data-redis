@@ -50,7 +50,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	}
 
 	@Override
-	public Collection<HV> multiGet(Set<HK> hashKeys) {
+	public Collection<HV> multiGet(Collection<HK> hashKeys) {
 		return ops.multiGet(getKey(), hashKeys);
 	}
 

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -35,5 +36,15 @@ abstract class CollectionUtils {
 		}
 
 		return (List<E>) Arrays.asList(reverse);
+	}
+
+	static Collection<String> extractKeys(Collection<? extends RedisStore<String>> stores) {
+		Collection<String> keys = new ArrayList<String>(stores.size());
+
+		for (RedisStore<String> store : stores) {
+			keys.add(store.getKey());
+		}
+
+		return keys;
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -27,17 +28,17 @@ public interface BoundSetOperations<K, V> extends KeyBound<K> {
 
 	RedisOperations<K, V> getOperations();
 
-	Set<V> diff(K... keys);
+	Set<V> diff(Collection<K> keys);
 
-	void diffAndStore(K destKey, K... keys);
+	void diffAndStore(K destKey, Collection<K> keys);
 
-	Set<V> intersect(K... keys);
+	Set<V> intersect(Collection<K> keys);
 
-	void intersectAndStore(K destKey, K... keys);
+	void intersectAndStore(K destKey, Collection<K> keys);
 
-	Set<V> union(K... keys);
+	Set<V> union(Collection<K> keys);
 
-	void unionAndStore(K destKey, K... keys);
+	void unionAndStore(K destKey, Collection<K> keys);
 
 	Boolean add(V value);
 

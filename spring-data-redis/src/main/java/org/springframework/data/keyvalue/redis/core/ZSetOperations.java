@@ -16,6 +16,7 @@
 
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -25,7 +26,7 @@ import java.util.Set;
  */
 public interface ZSetOperations<K, V> {
 
-	void intersectAndStore(K key, K destKey, K... keys);
+	void intersectAndStore(K key, K destKey, Collection<K> keys);
 
 	Set<V> range(K key, long start, long end);
 
@@ -37,7 +38,7 @@ public interface ZSetOperations<K, V> {
 
 	void removeRangeByScore(K key, double min, double max);
 
-	void unionAndStore(K key, K destKey, K... keys);
+	void unionAndStore(K key, K destKey, Collection<K> keys);
 
 	Boolean add(K key, V value, double score);
 

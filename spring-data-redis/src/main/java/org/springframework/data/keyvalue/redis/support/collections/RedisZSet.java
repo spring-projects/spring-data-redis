@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -28,9 +29,9 @@ import java.util.SortedSet;
  */
 public interface RedisZSet<E> extends RedisStore<String>, Set<E> {
 
-	RedisZSet<E> intersectAndStore(String destKey, RedisZSet<E>... sets);
+	RedisZSet<E> intersectAndStore(String destKey, Collection<RedisZSet<? extends E>> sets);
 
-	RedisZSet<E> unionAndStore(String destKey, RedisZSet<E>... sets);
+	RedisZSet<E> unionAndStore(String destKey, Collection<RedisZSet<? extends E>> sets);
 
 	Set<E> range(long start, long end);
 

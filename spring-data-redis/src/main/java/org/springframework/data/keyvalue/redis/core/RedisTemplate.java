@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
@@ -73,17 +74,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		afterPropertiesSet();
 	}
 
-	public void del(final String redisKey) {
-		execute(new RedisCallback<Object>() {
-			@Override
-			public Object doInRedis(RedisConnection connection) {
-				connection.del(keySerializer.serialize(redisKey));
-				return null;
-			}
-		});
-	}
-
-
 	public <T> T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
@@ -92,7 +82,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(action, exposeConnection, valueSerializer);
 	}
 
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer returnSerializer) {
+	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer<?> returnSerializer) {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
@@ -145,7 +135,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * 
 	 * @param serializer
 	 */
-	public void setKeySerializer(RedisSerializer serializer) {
+	public void setKeySerializer(RedisSerializer<?> serializer) {
 		this.keySerializer = serializer;
 	}
 
@@ -154,7 +144,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * 
 	 * @param serializer
 	 */
-	public void setValueSerializer(RedisSerializer serializer) {
+	public void setValueSerializer(RedisSerializer<?> serializer) {
 		this.valueSerializer = serializer;
 	}
 
@@ -163,7 +153,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * 
 	 * @param hashKeySerializer The hashKeySerializer to set.
 	 */
-	public void setHashKeySerializer(RedisSerializer hashKeySerializer) {
+	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
 		this.hashKeySerializer = hashKeySerializer;
 	}
 
@@ -172,7 +162,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * 
 	 * @param hashValueSerializer The hashValueSerializer to set.
 	 */
-	public void setHashValueSerializer(RedisSerializer hashValueSerializer) {
+	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
 		this.hashValueSerializer = hashValueSerializer;
 	}
 
@@ -216,22 +206,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private byte[] rawKey(Object key) {
 		return (key != null ? keySerializer.serialize(key) : null);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> byte[] rawValue(T value) {
 		return (value != null ? valueSerializer.serialize(value) : null);
-	}
-
-	private byte[][] rawKeys(K... keys) {
-		final byte[][] rawKeys = new byte[keys.length][];
-
-		for (int i = 0; i < keys.length; i++) {
-			rawKeys[i] = rawKey(keys[i]);
-		}
-
-		return rawKeys;
 	}
 
 	private byte[][] rawKeys(Collection<K> keys) {
@@ -245,10 +227,25 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return rawKeys;
 	}
 
+	private byte[][] rawKeys(K key, Collection<K> keys) {
+		final byte[][] rawKeys = new byte[keys.size() + 1][];
+
+
+		rawKeys[0] = rawKey(key);
+		int i = 1;
+		for (K k : keys) {
+			rawKeys[i++] = rawKey(k);
+		}
+
+		return rawKeys;
+	}
+
+	@SuppressWarnings("unchecked")
 	private <HK> byte[] rawHashKey(HK value) {
 		return (value != null ? hashKeySerializer.serialize(value) : null);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <HV> byte[] rawHashValue(HV value) {
 		return (value != null ? hashValueSerializer.serialize(value) : null);
 	}
@@ -303,7 +300,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (V) deserialize(value, valueSerializer);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings( { "unchecked", "unused" })
 	private <HK> HK deserializeHashKey(byte[] value) {
 		return (HK) deserialize(value, hashKeySerializer);
 	}
@@ -332,7 +329,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			this.key = key;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public final V doInRedis(RedisConnection connection) {
 			byte[] result = inRedis(rawKey(key), connection);
@@ -442,7 +438,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	//
 
 	@Override
-	public long getExpire(K key) {
+	public Long getExpire(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Long>() {
@@ -569,6 +565,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		public V increment(K key, final long delta) {
 			final byte[] rawKey = rawKey(key);
 			// TODO add conversion service in here ?
+			ConversionService cs;
 			return (V) execute(new RedisCallback<Long>() {
 				@Override
 				public Long doInRedis(RedisConnection connection) {
@@ -590,7 +587,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Collection<V> multiGet(Set<K> keys) {
+		public Collection<V> multiGet(Collection<K> keys) {
 			if (keys.isEmpty()) {
 				return Collections.emptyList();
 			}
@@ -883,16 +880,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// Set operations
 	//
 
-	private K[] aggregateKeys(K key, K... keys) {
-		Object[] aggregate = new Object[keys.length + 1];
-		aggregate[0] = key;
-		for (int i = 0; i < keys.length; i++) {
-			aggregate[i + 1] = keys[i];
-		}
-
-		return (K[]) aggregate;
-	}
-
 	@Override
 	public BoundSetOperations<K, V> forSet(K key) {
 		return new DefaultBoundSetOperations<K, V>(key, this);
@@ -918,8 +905,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> diff(final K key, final K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public Set<V> diff(final K key, final Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -931,8 +918,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void diffAndStore(final K key, K destKey, final K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public void diffAndStore(final K key, K destKey, final Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -949,8 +936,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> intersect(K key, K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public Set<V> intersect(K key, Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -962,8 +949,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void intersectAndStore(K key, K destKey, K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public void intersectAndStore(K key, K destKey, Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1023,8 +1010,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> union(K key, K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public Set<V> union(K key, Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1036,8 +1023,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void unionAndStore(K key, K destKey, K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public void unionAndStore(K key, K destKey, Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1084,8 +1071,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void intersectAndStore(K key, K destKey, K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public void intersectAndStore(K key, K destKey, Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1229,8 +1216,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void unionAndStore(K key, K destKey, K... keys) {
-			final byte[][] rawKeys = rawKeys(aggregateKeys(key, keys));
+		public void unionAndStore(K key, K destKey, Collection<K> keys) {
+			final byte[][] rawKeys = rawKeys(key, keys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1306,6 +1293,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public Set<HK> keys(K key) {
 			final byte[] rawKey = rawKey(key);
@@ -1356,8 +1344,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 
+		@SuppressWarnings("unchecked")
 		@Override
-		public Collection<HV> multiGet(K key, Set<HK> fields) {
+		public Collection<HV> multiGet(K key, Collection<HK> fields) {
 			if (fields.isEmpty()) {
 				return Collections.emptyList();
 			}
@@ -1396,6 +1385,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}, true);
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public List<HV> values(K key) {
 			final byte[] rawKey = rawKey(key);

@@ -16,6 +16,7 @@
 
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 
@@ -28,7 +29,7 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	RedisOperations<K, V> getOperations();
 
-	void intersectAndStore(K destKey, K... keys);
+	void intersectAndStore(K destKey, Collection<K> keys);
 
 	Set<V> range(long start, long end);
 
@@ -40,7 +41,7 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	void removeRangeByScore(double min, double max);
 
-	void unionAndStore(K destKey, K... keys);
+	void unionAndStore(K destKey, Collection<K> keys);
 
 	Boolean add(V value, double score);
 

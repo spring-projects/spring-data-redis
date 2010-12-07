@@ -16,6 +16,7 @@
 
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -49,7 +50,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public void intersectAndStore(K destKey, K... keys) {
+	public void intersectAndStore(K destKey, Collection<K> keys) {
 		ops.intersectAndStore(getKey(), destKey, keys);
 	}
 
@@ -104,7 +105,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public void unionAndStore(K destKey, K... keys) {
+	public void unionAndStore(K destKey, Collection<K> keys) {
 		ops.unionAndStore(getKey(), destKey, keys);
 	}
 }

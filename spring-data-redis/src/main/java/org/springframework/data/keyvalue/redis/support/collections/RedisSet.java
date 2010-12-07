@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -25,15 +26,15 @@ import java.util.Set;
  */
 public interface RedisSet<E> extends RedisStore<String>, Set<E> {
 
-	Set<E> intersect(RedisSet<? extends E>... sets);
+	Set<E> intersect(Collection<RedisSet<? extends E>> sets);
 
-	Set<E> union(RedisSet<? extends E>... sets);
+	Set<E> union(Collection<RedisSet<? extends E>> sets);
 
-	Set<E> diff(RedisSet<? extends E>... sets);
+	Set<E> diff(Collection<RedisSet<? extends E>> sets);
 
-	RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets);
+	RedisSet<E> intersectAndStore(String destKey, Collection<RedisSet<? extends E>> sets);
 
-	RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets);
+	RedisSet<E> unionAndStore(String destKey, Collection<RedisSet<? extends E>> sets);
 
-	RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets);
+	RedisSet<E> diffAndStore(String destKey, Collection<RedisSet<? extends E>> sets);
 }

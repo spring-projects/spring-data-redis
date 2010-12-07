@@ -17,7 +17,6 @@ package org.springframework.data.keyvalue.redis.core;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,7 +40,7 @@ public interface ValueOperations<K, V> {
 
 	V getAndSet(K key, V value);
 
-	Collection<V> multiGet(Set<K> keys);
+	Collection<V> multiGet(Collection<K> keys);
 
 	V increment(K key, long delta);
 }

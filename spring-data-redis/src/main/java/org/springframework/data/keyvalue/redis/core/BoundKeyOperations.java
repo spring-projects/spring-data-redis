@@ -41,7 +41,7 @@ public interface BoundKeyOperations<K> extends KeyBound<K> {
 
 	Boolean expireAt(Date date);
 
-	long getExpire();
+	Long getExpire();
 
 	void persist();
 }

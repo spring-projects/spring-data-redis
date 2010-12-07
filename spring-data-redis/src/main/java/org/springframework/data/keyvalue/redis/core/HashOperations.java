@@ -32,7 +32,7 @@ public interface HashOperations<H, HK, HV> {
 
 	HV get(H key, Object hashKey);
 
-	Collection<HV> multiGet(H key, Set<HK> hashKeys);
+	Collection<HV> multiGet(H key, Collection<HK> hashKeys);
 
 	Long increment(H key, HK hashKey, long delta);
 

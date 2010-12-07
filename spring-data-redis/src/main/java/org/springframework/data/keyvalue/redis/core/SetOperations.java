@@ -16,6 +16,7 @@
 
 package org.springframework.data.keyvalue.redis.core;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -25,19 +26,19 @@ import java.util.Set;
  */
 public interface SetOperations<K, V> {
 
-	Set<V> diff(K key, K... keys);
+	Set<V> diff(K key, Collection<K> keys);
 
-	void diffAndStore(K key, K destKey, K... keys);
+	void diffAndStore(K key, K destKey, Collection<K> keys);
 
 	RedisOperations<K, V> getOperations();
 
-	Set<V> intersect(K key, K... keys);
+	Set<V> intersect(K key, Collection<K> keys);
 
-	void intersectAndStore(K key, K destKey, K... keys);
+	void intersectAndStore(K key, K destKey, Collection<K> keys);
 
-	Set<V> union(K key, K... keys);
+	Set<V> union(K key, Collection<K> keys);
 
-	void unionAndStore(K key, K destKey, K... keys);
+	void unionAndStore(K key, K destKey, Collection<K> keys);
 
 	Boolean add(K key, V value);
 

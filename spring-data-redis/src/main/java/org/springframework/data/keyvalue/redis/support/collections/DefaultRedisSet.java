@@ -15,8 +15,11 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.data.keyvalue.redis.core.BoundSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
@@ -64,36 +67,36 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	}
 
 	@Override
-	public Set<E> diff(RedisSet<? extends E>... sets) {
-		return boundSetOps.diff(extractKeys(sets));
+	public Set<E> diff(Collection<RedisSet<? extends E>> sets) {
+		return boundSetOps.diff(CollectionUtils.extractKeys(sets));
 	}
 
 	@Override
-	public RedisSet<E> diffAndStore(String destKey, RedisSet<? extends E>... sets) {
-		boundSetOps.diffAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(boundSetOps.getOperations().forSet(destKey));
+	public RedisSet<E> diffAndStore(String destKey, Collection<RedisSet<? extends E>> sets) {
+		boundSetOps.diffAndStore(destKey, CollectionUtils.extractKeys(sets));
+		return new DefaultRedisSet<E>(boundSetOps.getOperations().forSet(destKey));
 	}
 
 	@Override
-	public Set<E> intersect(RedisSet<? extends E>... sets) {
-		return boundSetOps.intersect(extractKeys(sets));
+	public Set<E> intersect(Collection<RedisSet<? extends E>> sets) {
+		return boundSetOps.intersect(CollectionUtils.extractKeys(sets));
 	}
 
 	@Override
-	public RedisSet<E> intersectAndStore(String destKey, RedisSet<? extends E>... sets) {
-		boundSetOps.intersectAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(boundSetOps.getOperations().forSet(destKey));
+	public RedisSet<E> intersectAndStore(String destKey, Collection<RedisSet<? extends E>> sets) {
+		boundSetOps.intersectAndStore(destKey, CollectionUtils.extractKeys(sets));
+		return new DefaultRedisSet<E>(boundSetOps.getOperations().forSet(destKey));
 	}
 
 	@Override
-	public Set<E> union(RedisSet<? extends E>... sets) {
-		return boundSetOps.union(extractKeys(sets));
+	public Set<E> union(Collection<RedisSet<? extends E>> sets) {
+		return boundSetOps.union(CollectionUtils.extractKeys(sets));
 	}
 
 	@Override
-	public RedisSet<E> unionAndStore(String destKey, RedisSet<? extends E>... sets) {
-		boundSetOps.unionAndStore(destKey, extractKeys(sets));
-		return new DefaultRedisSet(boundSetOps.getOperations().forSet(destKey));
+	public RedisSet<E> unionAndStore(String destKey, Collection<RedisSet<? extends E>> sets) {
+		boundSetOps.unionAndStore(destKey, CollectionUtils.extractKeys(sets));
+		return new DefaultRedisSet<E>(boundSetOps.getOperations().forSet(destKey));
 	}
 
 	@Override
@@ -105,7 +108,8 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	public void clear() {
 		// intersect the set with a non existing one
 		// TODO: find a safer way to clean the set
-		boundSetOps.intersectAndStore(key, "NON-EXISTING");
+		String randomKey = UUID.randomUUID().toString();
+		boundSetOps.intersectAndStore(key, Collections.singleton(randomKey));
 	}
 
 	@Override
@@ -126,14 +130,5 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	@Override
 	public int size() {
 		return boundSetOps.size().intValue();
-	}
-
-	private String[] extractKeys(RedisSet<?>... sets) {
-		String[] keys = new String[sets.length];
-		for (int i = 0; i < keys.length; i++) {
-			keys[i] = sets[i].getKey();
-		}
-
-		return keys;
 	}
 }
