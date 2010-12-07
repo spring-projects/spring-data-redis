@@ -313,7 +313,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		if (isEmpty(value)) {
 			return null;
 		}
-		return (T) serializer.deserialize(value);
+		return serializer.deserialize(value);
 	}
 
 	private static boolean isEmpty(byte[] data) {

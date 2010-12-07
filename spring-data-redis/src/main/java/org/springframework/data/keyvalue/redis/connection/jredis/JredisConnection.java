@@ -331,7 +331,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public byte[] substr(byte[] key, long start, long end) {
 		try {
-			return jredis.substr(JredisUtils.decode(key), (long) start, (long) end);
+			return jredis.substr(JredisUtils.decode(key), start, end);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -390,7 +390,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public byte[] lIndex(byte[] key, long index) {
 		try {
-			return jredis.lindex(JredisUtils.decode(key), (long) index);
+			return jredis.lindex(JredisUtils.decode(key), index);
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
@@ -694,7 +694,7 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		try {
-			return new LinkedHashSet<byte[]>(jredis.zrange(JredisUtils.decode(key), (long) start, (long) end));
+			return new LinkedHashSet<byte[]>(jredis.zrange(JredisUtils.decode(key), start, end));
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
