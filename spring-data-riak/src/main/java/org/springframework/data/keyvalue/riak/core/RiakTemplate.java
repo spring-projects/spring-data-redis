@@ -132,9 +132,9 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
    */
   protected boolean useCache = true;
   /**
-   * Not yet used.
+   * {@link ExecutorService} to use for running asynchronous jobs.
    */
-  protected ExecutorService queue = Executors.newCachedThreadPool();
+  protected ExecutorService executorService = Executors.newCachedThreadPool();
   /**
    * The URI to use inside the RestTemplate.
    */
@@ -244,7 +244,14 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     return "/riak";
   }
 
-  /*----------------- Set Operations -----------------*/
+  public ExecutorService getExecutorService() {
+    return executorService;
+  }
+
+  public void setExecutorService(ExecutorService executorService) {
+    this.executorService = executorService;
+  }
+/*----------------- Set Operations -----------------*/
 
   public <K, V> KeyValueStoreOperations set(K key, V value) {
     return setWithMetaData(key, value, null);
@@ -301,10 +308,7 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
     }
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
     try {
-      restTemplate.put(defaultUri,
-          entity,
-          bucketKeyPair.getBucket(),
-          keyName);
+      restTemplate.put(defaultUri, entity, bucketKeyPair.getBucket(), keyName);
       if (log.isDebugEnabled()) {
         log.debug(String.format("PUT object: bucket=%s, key=%s, value=%s",
             bucketKeyPair.getBucket(),
@@ -597,35 +601,42 @@ public class RiakTemplate extends RestGatewaySupport implements KeyValueStoreOpe
 
   public <T> T execute(MapReduceJob job, Class<T> targetType) {
     RestTemplate restTemplate = getRestTemplate();
-    ResponseEntity<List> resp = restTemplate.postForEntity(mapReduceUri,
-        job.toJson(),
-        List.class);
-    if (resp.hasBody()) {
-      if (!targetType.isAssignableFrom(List.class)) {
-        // M/R jobs always return a List. Try to turn the List into something else.
-        List<?> results = (List<?>) resp.getBody();
-        if (results.size() == 1) {
-          // A List of size 1 get's returned as the object at list[0].
-          Object obj = results.get(0);
-          if (obj.getClass() != targetType) {
-            // I can't just return it as-is, I have to convert it first.
-            ConversionService conv = getConversionService();
-            if (conv.canConvert(obj.getClass(), targetType)) {
-              return conv.convert(obj, targetType);
+    try {
+      ResponseEntity<List> resp = restTemplate.postForEntity(mapReduceUri,
+          job.toJson(),
+          List.class);
+      if (resp.hasBody()) {
+        if (!targetType.isAssignableFrom(List.class)) {
+          // M/R jobs always return a List. Try to turn the List into something else.
+          List<?> results = (List<?>) resp.getBody();
+          if (results.size() == 1) {
+            // A List of size 1 get's returned as the object at list[0].
+            Object obj = results.get(0);
+            if (obj.getClass() != targetType) {
+              // I can't just return it as-is, I have to convert it first.
+              ConversionService conv = getConversionService();
+              if (conv.canConvert(obj.getClass(), targetType)) {
+                return conv.convert(obj, targetType);
+              } else {
+                throw new DataAccessResourceFailureException(
+                    "Can't find a converter to to convert " + obj.getClass() + " returned from M/R job to required type " + targetType);
+              }
+            } else {
+              return (T) obj;
             }
-          } else {
-            return (T) obj;
           }
         }
+        return (T) resp.getBody();
       }
-      return (T) resp.getBody();
+    } catch (RestClientException e) {
+      throw new DataStoreOperationException(e.getMessage(), e);
     }
     return null;
   }
 
   public <T> Future<List<T>> submit(MapReduceJob job) {
     // Run this job asynchronously.
-    return queue.submit(job);
+    return executorService.submit(job);
   }
 
   /*----------------- Link Operations -----------------*/
