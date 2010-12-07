@@ -49,13 +49,42 @@ public interface SortParameters {
 		}
 	}
 
+	/**
+	 * Returns the sorting order. Can be null if nothing is specified.
+	 * 
+	 * @return sorting order
+	 */
 	Order getOrder();
 
+	/**
+	 * Indicates if the sorting is numeric (default) or alphabetical (lexicographical).
+	 * Can be null if nothing is specified.
+	 * 
+	 * @return the type of sorting
+	 */
 	Boolean isAlphabetic();
 
+	/**
+	 * Returns the pattern (if set) for sorting by external keys (<tt>BY</tt>).
+	 * Can be null if nothing is specified.
+	 *  
+	 * @return <tt>BY</tt> pattern.
+	 */
 	byte[] getByPattern();
 
+	/**
+	 * Returns the pattern (if set) for retrieving external keys (<tt>GET</tt>).
+	 * Can be null if nothing is specified.
+	 * 
+	 * @return <tt>GET</tt> pattern.
+	 */
 	byte[] getGetPattern();
 
+	/**
+	 * Returns the sorting limit (range or pagination).
+	 * Can be null if nothing is specified.
+	 * 
+	 * @return sorting limit/range
+	 */
 	Range getLimit();
 }

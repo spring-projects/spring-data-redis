@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Commands supported by Redis .
+ * Interface for the commands supported by Redis.
  * 
  * @author Costin Leau
  */

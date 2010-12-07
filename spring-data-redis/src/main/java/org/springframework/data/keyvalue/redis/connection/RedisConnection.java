@@ -19,23 +19,35 @@ package org.springframework.data.keyvalue.redis.connection;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 
 /**
- * A connection to a Redis server. 
+ * A connection to a Redis server. Acts as an common abstraction across various
+ * Redis client libraries (or drivers). Additionally performs exception translation
+ * between the underlying Redis client library and Spring DAO exceptions.
  * 
- * The methods follow as much as possible the Redis names and conventions.  
- *  
+ * The methods follow as much as possible the Redis names and conventions.
+ * 
  * @author Costin Leau
  */
 public interface RedisConnection extends RedisCommands {
 
 	/**
-	 * Close (or quit) the connection.
+	 * Closes (or quits) the connection.
 	 * 
-	 * @throws UncategorizedRedisException
+	 * @throws UncategorizedRedisException in case of exceptions
 	 */
 	void close() throws UncategorizedRedisException;
 
+	/**
+	 * Indicates whether the underlying connection is closed or not.
+	 * 
+	 * @return true if the connection is closed, false otherwise.
+	 */
 	boolean isClosed();
 
+	/**
+	 * Returns the native connection (the underlying library/driver object).
+	 * 
+	 * @return underlying, native object
+	 */
 	Object getNativeConnection();
 
 	/**

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * String specific commands supported by Redis.
+ * String/Value-specific commands supported by Redis.
  * 
  * @author Costin Leau
  */

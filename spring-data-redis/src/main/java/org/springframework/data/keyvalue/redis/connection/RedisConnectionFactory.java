@@ -19,12 +19,16 @@ package org.springframework.data.keyvalue.redis.connection;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 
 /**
- * Thread-safe factory of Redis connections. Additionally performs exception translation
- * between the underlying Redis connection library and Spring DAO exceptions.
+ * Thread-safe factory of Redis connections.
  * 
  * @author Costin Leau
  */
 public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
+	/**
+	 * Provides a suitable connection for interacting with Redis.
+	 * 
+	 * @return connection for interacting with Redis.
+	 */
 	RedisConnection getConnection();
 }

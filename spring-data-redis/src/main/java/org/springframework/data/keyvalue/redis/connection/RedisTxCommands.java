@@ -19,7 +19,7 @@ import java.util.List;
 
 
 /**
- * Redis transaction (aka batch) commands.
+ * Transaction/Batch specific commands supported by Redis.
  * 
  * @author Costin Leau
  */
