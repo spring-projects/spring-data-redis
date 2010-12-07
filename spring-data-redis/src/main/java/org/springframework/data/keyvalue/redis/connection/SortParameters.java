@@ -40,14 +40,15 @@ public interface SortParameters {
 			this.count = count;
 		}
 
-		long start() {
+		public long getStart() {
 			return start;
 		}
 
-		long count() {
+		public long getCount() {
 			return count;
 		}
 	}
+
 	Order getOrder();
 
 	Boolean isAlphabetic();
@@ -55,10 +56,6 @@ public interface SortParameters {
 	byte[] getByPattern();
 
 	byte[] getGetPattern();
-
-	byte[] getHashKey();
-
-	byte[] getStoreKey();
 
 	Range getLimit();
 }

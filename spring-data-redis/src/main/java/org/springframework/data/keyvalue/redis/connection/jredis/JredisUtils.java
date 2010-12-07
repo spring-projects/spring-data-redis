@@ -23,9 +23,13 @@ import java.util.Map;
 
 import org.jredis.RedisException;
 import org.jredis.RedisType;
+import org.jredis.Sort;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
+import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 
 /**
  * Helper class featuring methods for JRedis connection handling, providing support for exception translation. 
@@ -97,5 +101,38 @@ public abstract class JredisUtils {
 			result.put(decode(entry.getKey()), entry.getValue());
 		}
 		return result;
+	}
+
+
+	static Sort applySortingParams(Sort jredisSort, SortParameters params, byte[] storeKey) {
+		if (params != null) {
+			byte[] byPattern = params.getByPattern();
+			if (byPattern != null) {
+				jredisSort.BY(decode(byPattern));
+			}
+			byte[] getPattern = params.getGetPattern();
+			if (getPattern != null) {
+				jredisSort.GET(decode(getPattern));
+			}
+			Range limit = params.getLimit();
+			if (limit != null) {
+				jredisSort.LIMIT(limit.getStart(), limit.getCount());
+			}
+			Order order = params.getOrder();
+			if (order != null && order.equals(Order.DESC)) {
+				jredisSort.DESC();
+			}
+			Boolean isAlpha = params.isAlphabetic();
+			if (isAlpha != null && isAlpha) {
+				jredisSort.ALPHA();
+			}
+		}
+
+		if (storeKey != null) {
+			jredisSort.STORE(decode(storeKey));
+		}
+
+
+		return jredisSort;
 	}
 }

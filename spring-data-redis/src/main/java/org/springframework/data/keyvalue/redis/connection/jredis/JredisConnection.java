@@ -25,11 +25,14 @@ import java.util.Set;
 
 import org.jredis.JRedis;
 import org.jredis.RedisException;
+import org.jredis.Sort;
+import org.jredis.Query.Support;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 
 /**
  * JRedis based implementation.
@@ -73,6 +76,28 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public boolean isQueueing() {
 		return false;
+	}
+
+	@Override
+	public List<byte[]> sort(byte[] key, SortParameters params) {
+		Sort sort = jredis.sort(JredisUtils.decode(key));
+		JredisUtils.applySortingParams(sort, params, null);
+		try {
+			return sort.exec();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
+		Sort sort = jredis.sort(JredisUtils.decode(key));
+		JredisUtils.applySortingParams(sort, params, null);
+		try {
+			return Support.unpackValue(sort.exec());
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
 	}
 
 	@Override

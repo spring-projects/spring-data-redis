@@ -17,6 +17,7 @@
 package org.springframework.data.keyvalue.redis.connection;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Commands supported by Redis .
@@ -53,4 +54,9 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 	void select(int dbIndex);
 
 	void flushDb();
+
+	// sort commands
+	List<byte[]> sort(byte[] key, SortParameters params);
+
+	Long sort(byte[] key, SortParameters params, byte[] storeKey);
 }

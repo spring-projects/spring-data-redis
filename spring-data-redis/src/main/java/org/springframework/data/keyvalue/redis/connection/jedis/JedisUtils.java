@@ -29,9 +29,13 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.RedisConnectionFailureException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
+import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 
 import redis.clients.jedis.JedisException;
+import redis.clients.jedis.SortingParams;
 
 /**
  * Helper class featuring methods for Jedis connection handling, providing support for exception translation. 
@@ -113,5 +117,38 @@ public abstract class JedisUtils {
 
 		}
 		return result;
+	}
+
+	static SortingParams convertSortParams(SortParameters params) {
+		SortingParams jedisParams = null;
+
+		if (params != null) {
+			jedisParams = new SortingParams();
+
+			byte[] byPattern = params.getByPattern();
+			if (byPattern != null) {
+				jedisParams.by(params.getByPattern());
+			}
+
+			byte[] getPattern = params.getGetPattern();
+			if (getPattern != null) {
+				jedisParams.get(getPattern);
+			}
+
+			Range limit = params.getLimit();
+			if (limit != null) {
+				jedisParams.limit((int) limit.getStart(), (int) limit.getCount());
+			}
+			Order order = params.getOrder();
+			if (order != null && order.equals(Order.DESC)) {
+				jedisParams.desc();
+			}
+			Boolean isAlpha = params.isAlphabetic();
+			if (isAlpha != null && isAlpha) {
+				jedisParams.alpha();
+			}
+		}
+
+		return jedisParams;
 	}
 }

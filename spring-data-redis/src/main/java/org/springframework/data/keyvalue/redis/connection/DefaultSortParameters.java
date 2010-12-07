@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.connection;
 
 /**
  * Default implementation for {@link SortParameters}.
+ * 
  * @author Costin Leau
  */
 public class DefaultSortParameters implements SortParameters {
@@ -25,16 +26,14 @@ public class DefaultSortParameters implements SortParameters {
 	private byte[] byPattern;
 	private Range limit;
 	private byte[] getPattern;
-	private byte[] hashKey;
 	private Order order;
 	private Boolean alphabetic;
-	private byte[] storeKey;
 
 	/**
 	 * Constructs a new <code>DefaultSortParameters</code> instance.
 	 */
 	public DefaultSortParameters() {
-		this(null, null, null, null, null, null, null);
+		this(null, null, null, null, null);
 	}
 
 	/**
@@ -45,7 +44,7 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param alphabetic
 	 */
 	public DefaultSortParameters(Range limit, Order order, Boolean alphabetic) {
-		this(null, limit, null, null, order, alphabetic, null);
+		this(null, limit, null, order, alphabetic);
 	}
 
 	/**
@@ -56,18 +55,14 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param getPattern
 	 * @param order
 	 * @param alphabetic
-	 * @param storeKey
 	 */
-	public DefaultSortParameters(byte[] by, Range limit, byte[] get, byte[] hashKey, Order order, Boolean alphabetic,
-			byte[] storeKey) {
+	public DefaultSortParameters(byte[] by, Range limit, byte[] get, Order order, Boolean alphabetic) {
 		super();
 		this.byPattern = by;
 		this.limit = limit;
 		this.getPattern = get;
-		this.hashKey = hashKey;
 		this.order = order;
 		this.alphabetic = alphabetic;
-		this.storeKey = storeKey;
 	}
 
 	@Override
@@ -98,15 +93,6 @@ public class DefaultSortParameters implements SortParameters {
 	}
 
 	@Override
-	public byte[] getHashKey() {
-		return hashKey;
-	}
-
-	public void setHashKey(byte[] hashKey) {
-		this.hashKey = hashKey;
-	}
-
-	@Override
 	public Order getOrder() {
 		return order;
 	}
@@ -124,12 +110,37 @@ public class DefaultSortParameters implements SortParameters {
 		this.alphabetic = alphabetic;
 	}
 
-	@Override
-	public byte[] getStoreKey() {
-		return storeKey;
+	//
+	// builder like methods
+	//
+
+	public SortParameters order(Order order) {
+		setOrder(order);
+		return this;
 	}
 
-	public void setStoreKey(byte[] storeKey) {
-		this.storeKey = storeKey;
+	public SortParameters alpha() {
+		setAlphabetic(true);
+		return this;
+	}
+
+	public SortParameters numeric() {
+		setAlphabetic(false);
+		return this;
+	}
+
+	public SortParameters get(byte[] pattern) {
+		setGetPattern(pattern);
+		return this;
+	}
+
+	public SortParameters by(byte[] pattern) {
+		setByPattern(pattern);
+		return this;
+	}
+
+	public SortParameters limit(long start, long count) {
+		setLimit(new Range(start, count));
+		return this;
 	}
 }

@@ -28,6 +28,7 @@ import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.BinaryJedis;
@@ -35,6 +36,7 @@ import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
+import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
 
@@ -105,6 +107,43 @@ public class JedisConnection implements RedisConnection {
 	@Override
 	public boolean isQueueing() {
 		return client.isInMulti();
+	}
+
+	@Override
+	public List<byte[]> sort(byte[] key, SortParameters params) {
+
+		SortingParams sortParams = JedisUtils.convertSortParams(params);
+
+		try {
+			if (isQueueing()) {
+				if (sortParams != null) {
+					transaction.sort(key, sortParams);
+				}
+				else {
+					transaction.sort(key);
+				}
+
+				return null;
+			}
+			return (sortParams != null ? jedis.sort(key, sortParams) : jedis.sort(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
+
+		SortingParams sortParams = JedisUtils.convertSortParams(params);
+
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException("Jedis does not support sort&store in MULTI/EXEC mode.");
+			}
+			return (sortParams != null ? jedis.sort(key, sortParams, sortKey) : jedis.sort(key, sortKey));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
