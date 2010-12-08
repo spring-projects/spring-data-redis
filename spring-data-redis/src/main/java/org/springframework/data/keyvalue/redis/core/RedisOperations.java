@@ -82,23 +82,85 @@ public interface RedisOperations<K, V> {
 
 	Long sort(K key, SortParameters params, K destination);
 
-	ValueOperations<K, V> valueOps();
+	// operation types
+	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology).
+	 * 
+	 * @return value operations
+	 */
+	ValueOperations<K, V> getValueOps();
 
-	BoundValueOperations<K, V> forValue(K key);
+	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) 
+	 * bound to the given key.
+	 * 
+	 * @param key Redis key
+	 * @return value operations bound to the given key
+	 */
+	BoundValueOperations<K, V> boundValueOps(K key);
 
-	ListOperations<K, V> listOps();
+	/**
+	 * Returns the operations performed on list values.
+	 *
+	 * @return list operations
+	 */
+	ListOperations<K, V> getListOps();
 
-	BoundListOperations<K, V> forList(K key);
+	/**
+	 * Returns the operations performed on list values bound to the given key.
+	 * 
+	 * @param key Redis key
+	 * @return list operations bound to the given key
+	 */
+	BoundListOperations<K, V> boundListOps(K key);
 
-	SetOperations<K, V> setOps();
+	/**
+	 * Returns the operations performed on set values.
+	 * 
+	 * @return set operations
+	 */
+	SetOperations<K, V> getSetOps();
 
-	BoundSetOperations<K, V> forSet(K key);
+	/**
+	 * Returns the operations performed on set values bound to the given key.
+	 * 
+	 * @param key Redis key
+	 * @return set operations bound to the given key
+	 */
+	BoundSetOperations<K, V> boundSetOps(K key);
 
-	ZSetOperations<K, V> zSetOps();
+	/**
+	 * Returns the operations performed on zset values (also known as sorted sets).
+	 * 
+	 * @return zset operations
+	 */
+	ZSetOperations<K, V> getZSetOps();
 
-	BoundZSetOperations<K, V> forZSet(K key);
+	/**
+	 * Returns the operations performed on zset values (also known as sorted sets)
+	 * bound to the given key.
+	 * 
+	 * @param key Redis key
+	 * @return zset operations bound to the given key.
+	 */
+	BoundZSetOperations<K, V> boundZSetOps(K key);
 
-	<HK, HV> HashOperations<K, HK, HV> hashOps();
+	/**
+	 * Returns the operations performed on hash values.
+	 * 
+	 * @param <HK> hash key (or field) type
+	 * @param <HV> hash value type
+	 * @return hash operations
+	 */
+	<HK, HV> HashOperations<K, HK, HV> getHashOps();
 
-	<HK, HV> BoundHashOperations<K, HK, HV> forHash(K key);
+	/**
+	 * Returns the operations performed on hash values bound to the given key.
+	 * 
+	 * @param <HK> hash key (or field) type
+	 * @param <HV> hash value type
+	 * @param key Redis key
+	 * @return hash operations bound to the given key.
+	 */
+	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
 }
