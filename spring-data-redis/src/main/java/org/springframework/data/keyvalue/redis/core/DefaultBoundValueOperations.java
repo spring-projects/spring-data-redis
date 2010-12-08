@@ -64,4 +64,9 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
 	}
+
+	@Override
+	public RedisOperations<K, V> getOperations() {
+		return ops.getOperations();
+	}
 }

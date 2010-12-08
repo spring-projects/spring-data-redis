@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
  */
 public interface BoundValueOperations<K, V> extends KeyBound<K> {
 
+	RedisOperations<K, V> getOperations();
+
 	void set(V value);
 
 	void set(V value, long timeout, TimeUnit unit);

@@ -30,8 +30,6 @@ public interface SetOperations<K, V> {
 
 	void diffAndStore(K key, K destKey, Collection<K> keys);
 
-	RedisOperations<K, V> getOperations();
-
 	Set<V> intersect(K key, Collection<K> keys);
 
 	void intersectAndStore(K key, K destKey, Collection<K> keys);
@@ -50,4 +48,5 @@ public interface SetOperations<K, V> {
 
 	Long size(K key);
 
+	RedisOperations<K, V> getOperations();
 }

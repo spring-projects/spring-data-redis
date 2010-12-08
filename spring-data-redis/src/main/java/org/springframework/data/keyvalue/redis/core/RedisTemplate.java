@@ -72,6 +72,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private RedisSerializer hashKeySerializer = new SimpleRedisSerializer();
 	private RedisSerializer hashValueSerializer = new SimpleRedisSerializer();
 
+	// cache singleton objects (where possible)
+	private final ValueOperations<K, V> valueOps = new DefaultValueOperations();
+	private final ListOperations<K, V> listOps = new DefaultListOperations();
+	private final SetOperations<K, V> setOps = new DefaultSetOperations();
+	private final ZSetOperations<K, V> zSetOps = new DefaultZSetOperations();
+
 	/**
 	 * Constructs a new <code>RedisTemplate</code> instance.
 	 *
@@ -567,7 +573,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public ValueOperations<K, V> getValueOps() {
-		return new DefaultValueOperations();
+		return valueOps;
 	}
 
 	private class DefaultValueOperations implements ValueOperations<K, V> {
@@ -722,11 +728,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 		}
+
+		@Override
+		public RedisOperations<K, V> getOperations() {
+			return RedisTemplate.this;
+		}
 	}
 
 	@Override
 	public ListOperations<K, V> getListOps() {
-		return new DefaultListOperations();
+		return listOps;
 	}
 
 	@Override
@@ -919,7 +930,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public SetOperations<K, V> getSetOps() {
-		return new DefaultSetOperations();
+		return setOps;
 	}
 
 	private class DefaultSetOperations implements SetOperations<K, V> {
@@ -1079,7 +1090,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public ZSetOperations<K, V> getZSetOps() {
-		return new DefaultZSetOperations();
+		return zSetOps;
 	}
 
 	private class DefaultZSetOperations implements ZSetOperations<K, V> {
