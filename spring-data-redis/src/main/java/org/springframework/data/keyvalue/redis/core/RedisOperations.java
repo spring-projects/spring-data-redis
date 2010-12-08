@@ -50,7 +50,7 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(RedisCallback<T> action);
 
-	Boolean exists(K key);
+	Boolean hasKey(K key);
 
 	void delete(Collection<K> key);
 

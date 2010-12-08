@@ -407,7 +407,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public Boolean exists(K key) {
+	public Boolean hasKey(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Boolean>() {
