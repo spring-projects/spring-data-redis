@@ -382,6 +382,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// RedisOperations
 	//
 
+
 	@Override
 	public Object exec() {
 		return execute(new RedisCallback<Object>() {
@@ -567,6 +568,57 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public void multi() {
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.multi();
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
+	public void discard() {
+		execute(new RedisCallback<Object>() {
+
+			@Override
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.discard();
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
+	public void watch(Collection<K> keys) {
+		final byte[][] rawKeys = rawKeys(keys);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.watch(rawKeys);
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
+	public void unwatch() {
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.unwatch();
+				return null;
+			}
+		}, true);
+	}
+
+	//
+	// Value Ops
+	//
+
+	@Override
 	public BoundValueOperations<K, V> boundValueOps(K key) {
 		return new DefaultBoundValueOperations<K, V>(key, this);
 	}
@@ -746,29 +798,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 
-	@Override
-	public void multi() {
-		execute(new RedisCallback<Object>() {
-			@Override
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.multi();
-				return null;
-			}
-		}, true);
-	}
 
-	@Override
-	public void watch(Collection<K> keys) {
-		final byte[][] rawKeys = rawKeys(keys);
-
-		execute(new RedisCallback<Object>() {
-			@Override
-			public Object doInRedis(RedisConnection connection) {
-				connection.watch(rawKeys);
-				return null;
-			}
-		}, true);
-	}
 
 	//
 	// List operations
@@ -807,7 +837,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 		}
-
 
 
 		@Override

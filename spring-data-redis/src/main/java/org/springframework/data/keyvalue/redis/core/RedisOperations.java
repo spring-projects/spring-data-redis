@@ -74,7 +74,11 @@ public interface RedisOperations<K, V> {
 
 	void watch(Collection<K> keys);
 
+	void unwatch();
+
 	void multi();
+
+	void discard();
 
 	Object exec();
 
