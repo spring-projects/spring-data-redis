@@ -21,6 +21,7 @@ import org.springframework.data.keyvalue.riak.mapreduce.JavascriptMapReduceOpera
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReducePhase
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Shared
 import spock.lang.Specification
 
 /**
@@ -34,6 +35,19 @@ class RiakTemplateSpec extends Specification {
   @Autowired
   RiakKeyValueTemplate riak
   int run = 1
+  @Shared def riakBin = System.getenv("RIAK_BIN")
+  @Shared def p
+
+  def setupSpec() {
+    p = "$riakBin start".execute()
+    p.waitFor()
+    Thread.sleep(2000)
+  }
+
+  def cleanupSpec() {
+    "$riakBin stop".execute()
+    p.waitFor()
+  }
 
   def "Test Map object"() {
 
@@ -126,10 +140,10 @@ class RiakTemplateSpec extends Specification {
 
     when:
     def val = riak.getWithMetaData("test:test", Map)
-    def result = val.metaData.properties["Link"].collect { it.contains("riaktag=\"test\"") }
+    def result = val.metaData.properties["Link"].find { it.contains("riaktag=\"test\"") }
 
     then:
-    1 == result.size()
+    null != result
 
   }
 
