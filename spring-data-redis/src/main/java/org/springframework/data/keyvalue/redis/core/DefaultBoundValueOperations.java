@@ -32,7 +32,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	 */
 	public DefaultBoundValueOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = operations.valueOps();
+		this.ops = operations.getValueOps();
 	}
 
 	@Override
@@ -51,6 +51,16 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	}
 
 	@Override
+	public Integer append(String value) {
+		return ops.append(getKey(), value);
+	}
+
+	@Override
+	public String substract(int start, int end) {
+		return ops.substract(getKey(), start, end);
+	}
+
+	@Override
 	public void set(V value, long timeout, TimeUnit unit) {
 		ops.set(getKey(), value, timeout, unit);
 	}
@@ -63,5 +73,10 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	@Override
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
+	}
+
+	@Override
+	public RedisOperations<K, V> getOperations() {
+		return ops.getOperations();
 	}
 }

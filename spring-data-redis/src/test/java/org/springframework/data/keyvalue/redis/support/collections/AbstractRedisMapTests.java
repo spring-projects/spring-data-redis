@@ -164,7 +164,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testNotEquals() {
 		RedisOperations<String, ?> ops = map.getOperations();
-		RedisStore newInstance = new DefaultRedisMap<K, V>(ops.<K, V> forHash(map.getKey() + ":new"));
+		RedisStore newInstance = new DefaultRedisMap<K, V>(ops.<K, V> boundHashOps(map.getKey() + ":new"));
 		assertFalse(map.equals(newInstance));
 		assertFalse(newInstance.equals(map));
 	}

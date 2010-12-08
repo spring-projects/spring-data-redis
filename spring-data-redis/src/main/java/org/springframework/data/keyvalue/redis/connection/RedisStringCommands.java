@@ -52,5 +52,5 @@ public interface RedisStringCommands {
 
 	Long append(byte[] key, byte[] value);
 
-	byte[] substr(byte[] key, long start, long end);
+	byte[] substr(byte[] key, int start, int end);
 }

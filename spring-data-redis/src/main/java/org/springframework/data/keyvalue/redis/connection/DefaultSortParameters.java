@@ -56,11 +56,11 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param order
 	 * @param alphabetic
 	 */
-	public DefaultSortParameters(byte[] by, Range limit, byte[] get, Order order, Boolean alphabetic) {
+	public DefaultSortParameters(byte[] byPattern, Range limit, byte[] getPattern, Order order, Boolean alphabetic) {
 		super();
-		this.byPattern = by;
+		this.byPattern = byPattern;
 		this.limit = limit;
-		this.getPattern = get;
+		this.getPattern = getPattern;
 		this.order = order;
 		this.alphabetic = alphabetic;
 	}

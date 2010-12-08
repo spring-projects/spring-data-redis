@@ -36,7 +36,7 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	 */
 	public DefaultBoundListOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = operations.listOps();
+		this.ops = operations.getListOps();
 	}
 
 

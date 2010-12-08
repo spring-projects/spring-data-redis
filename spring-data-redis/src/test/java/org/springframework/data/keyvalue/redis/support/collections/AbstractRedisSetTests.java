@@ -59,7 +59,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 	}
 
 	private RedisSet<T> createSetFor(String key) {
-		return new DefaultRedisSet<T>((BoundSetOperations<String, T>) set.getOperations().forSet(key));
+		return new DefaultRedisSet<T>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
 	}
 
 	@Test

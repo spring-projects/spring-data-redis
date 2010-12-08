@@ -46,7 +46,13 @@ public interface BoundSetOperations<K, V> extends KeyBound<K> {
 
 	Set<V> members();
 
+	Boolean move(K destKey, V value);
+
+	V randomMember();
+
 	Boolean remove(Object o);
+
+	V pop();
 
 	Long size();
 }

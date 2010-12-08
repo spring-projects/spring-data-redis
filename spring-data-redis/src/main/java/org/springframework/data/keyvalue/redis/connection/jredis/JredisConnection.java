@@ -330,7 +330,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public byte[] substr(byte[] key, long start, long end) {
+	public byte[] substr(byte[] key, int start, int end) {
 		try {
 			return jredis.substr(JredisUtils.decode(key), start, end);
 		} catch (RedisException ex) {

@@ -36,7 +36,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	 */
 	public DefaultBoundHashOperations(H key, RedisOperations<H, ?> operations) {
 		super(key);
-		this.ops = operations.hashOps();
+		this.ops = operations.getHashOps();
 	}
 
 	@Override

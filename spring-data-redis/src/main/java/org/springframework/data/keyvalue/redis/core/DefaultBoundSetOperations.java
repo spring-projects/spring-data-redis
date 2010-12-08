@@ -37,7 +37,7 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	 */
 	DefaultBoundSetOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = operations.setOps();
+		this.ops = operations.getSetOps();
 	}
 
 	@Override
@@ -47,12 +47,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 
 	@Override
 	public Set<V> diff(Collection<K> keys) {
-		return ops.diff(getKey(), keys);
+		return ops.difference(getKey(), keys);
 	}
 
 	@Override
 	public void diffAndStore(K destKey, Collection<K> keys) {
-		ops.diffAndStore(getKey(), destKey, keys);
+		ops.differenceAndStore(getKey(), destKey, keys);
 	}
 
 	@Override
@@ -81,8 +81,23 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
+	public Boolean move(K destKey, V value) {
+		return ops.move(getKey(), destKey, value);
+	}
+
+	@Override
+	public V randomMember() {
+		return ops.randomMember(getKey());
+	}
+
+	@Override
 	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
+	}
+
+	@Override
+	public V pop() {
+		return ops.pop(getKey());
 	}
 
 	@Override

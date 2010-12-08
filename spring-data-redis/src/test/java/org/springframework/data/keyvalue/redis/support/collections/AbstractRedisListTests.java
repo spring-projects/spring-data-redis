@@ -279,7 +279,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testCappedCollection() throws Exception {
-		RedisList<T> cappedList = new DefaultRedisList<T>(template.forList(collection.getKey() + ":capped"), 1);
+		RedisList<T> cappedList = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":capped"), 1);
 		T first = getT();
 		cappedList.offer(first);
 		assertEquals(1, cappedList.size());
