@@ -5,6 +5,7 @@
 
   <import resource="classpath:/META-INF/spring/app-context.xml"/>
 
-  <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.RiakTemplate"/>
+  <bean id="riakTemplate"
+        class="org.springframework.data.keyvalue.riak.core.RiakKeyValueTemplate"/>
 
 </beans>

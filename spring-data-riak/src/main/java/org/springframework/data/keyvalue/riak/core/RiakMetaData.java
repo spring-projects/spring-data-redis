@@ -20,6 +20,7 @@ package org.springframework.data.keyvalue.riak.core;
 
 import org.springframework.http.MediaType;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -44,6 +45,10 @@ public class RiakMetaData implements KeyValueStoreMetaData {
 
   public MediaType getContentType() {
     return mediaType;
+  }
+
+  public long getLastModified() {
+    return ((Date) properties.get("Last-Modified")).getTime();
   }
 
   public Map<String, Object> getProperties() {

@@ -15,14 +15,12 @@
  */
 package org.springframework.data.keyvalue.riak.core
 
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.data.keyvalue.riak.mapreduce.JavascriptMapReduceOperation
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReducePhase
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import spock.lang.Specification
 
 /**
@@ -34,7 +32,7 @@ class RiakTemplateSpec extends Specification {
   @Autowired
   ApplicationContext appCtx
   @Autowired
-  RiakTemplate riak
+  RiakKeyValueTemplate riak
   int run = 1
 
   def "Test Map object"() {
@@ -199,10 +197,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ var o=Riak.mapValuesJson(v); return [1]; }\n")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("Riak.reduceSum")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ var s=Riak.reduceSum(v); return s; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
@@ -222,10 +220,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ var o=Riak.mapValuesJson(v); return [1]; }\n")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("Riak.reduceSum")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).

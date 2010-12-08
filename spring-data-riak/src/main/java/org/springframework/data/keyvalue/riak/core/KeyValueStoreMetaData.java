@@ -36,6 +36,8 @@ public interface KeyValueStoreMetaData {
    */
   MediaType getContentType();
 
+  long getLastModified();
+
   /**
    * Get the arbitrary properties for this object.
    *
