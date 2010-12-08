@@ -81,6 +81,16 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
+	public Boolean move(K destKey, V value) {
+		return ops.move(getKey(), destKey, value);
+	}
+
+	@Override
+	public V randomMember() {
+		return ops.randomMember(getKey());
+	}
+
+	@Override
 	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}

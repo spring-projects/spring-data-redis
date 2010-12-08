@@ -1042,6 +1042,31 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public Boolean move(K key, K destKey, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawDestKey = rawKey(destKey);
+			final byte[] rawValue = rawValue(value);
+
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) {
+					return connection.sMove(rawKey, rawDestKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
+		public V randomMember(K key) {
+
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.randomKey();
+				}
+			}, true);
+		}
+
+		@Override
 		public Boolean remove(K key, Object o) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawValue = rawValue(o);

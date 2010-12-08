@@ -44,6 +44,10 @@ public interface SetOperations<K, V> {
 
 	Set<V> members(K key);
 
+	Boolean move(K key, K destKey, V value);
+
+	V randomMember(K key);
+
 	Boolean remove(K key, Object o);
 
 	V pop(K key);
