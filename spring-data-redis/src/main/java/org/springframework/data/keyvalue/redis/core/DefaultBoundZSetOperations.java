@@ -45,6 +45,11 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
+	public Double incrementScore(V value, double delta) {
+		return ops.incrementScore(getKey(), value, delta);
+	}
+
+	@Override
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}

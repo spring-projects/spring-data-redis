@@ -1156,6 +1156,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public Double incrementScore(K key, V value, final double delta) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+
+			return execute(new RedisCallback<Double>() {
+				@Override
+				public Double doInRedis(RedisConnection connection) {
+					return connection.zIncrBy(rawKey, delta, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
 		public RedisOperations<K, V> getOperations() {
 			return RedisTemplate.this;
 		}

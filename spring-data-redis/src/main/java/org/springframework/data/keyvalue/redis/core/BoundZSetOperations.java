@@ -45,6 +45,8 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	Boolean add(V value, double score);
 
+	Double incrementScore(V value, double delta);
+
 	Long rank(Object o);
 
 	Long reverseRank(Object o);

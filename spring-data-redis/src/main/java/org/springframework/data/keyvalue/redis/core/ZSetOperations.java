@@ -28,15 +28,17 @@ public interface ZSetOperations<K, V> {
 
 	void intersectAndStore(K key, K destKey, Collection<K> keys);
 
+	void unionAndStore(K key, K destKey, Collection<K> keys);
+
 	Set<V> range(K key, long start, long end);
 
 	Set<V> rangeByScore(K key, double min, double max);
 
 	Set<V> reverseRange(K key, long start, long end);
 
-	void unionAndStore(K key, K destKey, Collection<K> keys);
-
 	Boolean add(K key, V value, double score);
+
+	Double incrementScore(K key, V value, double delta);
 
 	Long rank(K key, Object o);
 
