@@ -26,9 +26,9 @@ import java.util.Set;
  */
 public interface SetOperations<K, V> {
 
-	Set<V> diff(K key, Collection<K> keys);
+	Set<V> difference(K key, Collection<K> keys);
 
-	void diffAndStore(K key, K destKey, Collection<K> keys);
+	void differenceAndStore(K key, K destKey, Collection<K> keys);
 
 	Set<V> intersect(K key, Collection<K> keys);
 

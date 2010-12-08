@@ -960,7 +960,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> diff(final K key, final Collection<K> keys) {
+		public Set<V> difference(final K key, final Collection<K> keys) {
 			final byte[][] rawKeys = rawKeys(key, keys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
@@ -973,7 +973,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void diffAndStore(final K key, K destKey, final Collection<K> keys) {
+		public void differenceAndStore(final K key, K destKey, final Collection<K> keys) {
 			final byte[][] rawKeys = rawKeys(key, keys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {

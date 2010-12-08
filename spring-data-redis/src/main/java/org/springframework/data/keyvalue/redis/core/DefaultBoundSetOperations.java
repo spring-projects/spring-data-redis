@@ -47,12 +47,12 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 
 	@Override
 	public Set<V> diff(Collection<K> keys) {
-		return ops.diff(getKey(), keys);
+		return ops.difference(getKey(), keys);
 	}
 
 	@Override
 	public void diffAndStore(K destKey, Collection<K> keys) {
-		ops.diffAndStore(getKey(), destKey, keys);
+		ops.differenceAndStore(getKey(), destKey, keys);
 	}
 
 	@Override
