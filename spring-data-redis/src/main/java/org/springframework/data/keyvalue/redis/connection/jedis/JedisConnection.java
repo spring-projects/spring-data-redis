@@ -499,7 +499,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public byte[] substr(byte[] key, long start, long end) {
+	public byte[] substr(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.substr(key, (int) start, (int) end);

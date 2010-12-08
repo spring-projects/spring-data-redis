@@ -51,6 +51,16 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	}
 
 	@Override
+	public Integer append(String value) {
+		return ops.append(getKey(), value);
+	}
+
+	@Override
+	public String substract(int start, int end) {
+		return ops.substract(getKey(), start, end);
+	}
+
+	@Override
 	public void set(V value, long timeout, TimeUnit unit) {
 		ops.set(getKey(), value, timeout, unit);
 	}

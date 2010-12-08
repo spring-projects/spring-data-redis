@@ -71,6 +71,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private RedisSerializer valueSerializer = new SimpleRedisSerializer();
 	private RedisSerializer hashKeySerializer = new SimpleRedisSerializer();
 	private RedisSerializer hashValueSerializer = new SimpleRedisSerializer();
+	private RedisSerializer stringSerializer = new StringRedisSerializer();
 
 	// cache singleton objects (where possible)
 	private final ValueOperations<K, V> valueOps = new DefaultValueOperations();
@@ -205,6 +206,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		this.hashValueSerializer = hashValueSerializer;
 	}
 
+	/**
+	 * Sets the string value serializer to be used by this template (when the arguments or return types
+	 * are always strings). Defaults to {@link StringRedisSerializer}.
+	 * 
+	 * @see ValueOperations#substract(Object, int, int)
+	 * @param stringSerializer The stringValueSerializer to set.
+	 */
+	public void setStringSerializer(RedisSerializer<?> stringSerializer) {
+		this.stringSerializer = stringSerializer;
+	}
 
 	/**
 	 * Invocation handler that suppresses close calls on JDO PersistenceManagers.
@@ -248,6 +259,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@SuppressWarnings("unchecked")
 	private byte[] rawKey(Object key) {
 		return (key != null ? keySerializer.serialize(key) : null);
+	}
+
+	@SuppressWarnings("unchecked")
+	private byte[] rawString(String key) {
+		return (key != null ? stringSerializer.serialize(key) : null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -339,6 +355,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (V) deserialize(value, valueSerializer);
 	}
 
+	@SuppressWarnings("unchecked")
+	private String deserializeString(byte[] value) {
+		return (String) deserialize(value, stringSerializer);
+	}
+
 	@SuppressWarnings( { "unchecked", "unused" })
 	private <HK> HK deserializeHashKey(byte[] value) {
 		return (HK) deserialize(value, hashKeySerializer);
@@ -355,6 +376,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 		return serializer.deserialize(value);
 	}
+
 
 	private static boolean isEmpty(byte[] data) {
 		return (data == null || data.length == 0);
@@ -674,6 +696,33 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					return connection.incrBy(rawKey, delta);
 				}
 			}, true);
+		}
+
+		@Override
+		public Integer append(K key, String value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawString = rawString(value);
+
+			return execute(new RedisCallback<Integer>() {
+				@Override
+				public Integer doInRedis(RedisConnection connection) {
+					return connection.append(rawKey, rawString).intValue();
+				}
+			}, true);
+		}
+
+		@Override
+		public String substract(K key, final int start, final int end) {
+			final byte[] rawKey = rawKey(key);
+
+			byte[] rawReturn = execute(new RedisCallback<byte[]>() {
+				@Override
+				public byte[] doInRedis(RedisConnection connection) {
+					return connection.substr(rawKey, start, end);
+				}
+			}, true);
+
+			return deserializeString(rawReturn);
 		}
 
 		@Override

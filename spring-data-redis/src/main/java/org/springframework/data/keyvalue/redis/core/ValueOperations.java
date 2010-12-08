@@ -44,5 +44,9 @@ public interface ValueOperations<K, V> {
 
 	Long increment(K key, long delta);
 
+	Integer append(K key, String value);
+
+	String substract(K key, int start, int end);
+
 	RedisOperations<K, V> getOperations();
 }

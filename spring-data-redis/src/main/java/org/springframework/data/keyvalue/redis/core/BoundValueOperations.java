@@ -38,4 +38,8 @@ public interface BoundValueOperations<K, V> extends KeyBound<K> {
 
 	Long increment(long delta);
 
+	Integer append(String value);
+
+	String substract(int start, int end);
+
 }
