@@ -67,7 +67,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	 * @param operations
 	 */
 	public DefaultRedisList(String key, RedisOperations<String, E> operations) {
-		this(operations.forList(key));
+		this(operations.boundListOps(key));
 	}
 
 	/**

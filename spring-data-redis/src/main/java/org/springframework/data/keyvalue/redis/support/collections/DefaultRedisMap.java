@@ -67,7 +67,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	 * @param operations
 	 */
 	public DefaultRedisMap(String key, RedisOperations<String, ?> operations) {
-		this.hashOps = operations.forHash(key);
+		this.hashOps = operations.boundHashOps(key);
 	}
 
 	/**

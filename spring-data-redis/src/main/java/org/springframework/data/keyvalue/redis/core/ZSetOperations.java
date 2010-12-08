@@ -34,10 +34,6 @@ public interface ZSetOperations<K, V> {
 
 	Set<V> reverseRange(K key, long start, long end);
 
-	void removeRange(K key, long start, long end);
-
-	void removeRangeByScore(K key, double min, double max);
-
 	void unionAndStore(K key, K destKey, Collection<K> keys);
 
 	Boolean add(K key, V value, double score);
@@ -49,6 +45,10 @@ public interface ZSetOperations<K, V> {
 	Double score(K key, Object o);
 
 	Boolean remove(K key, Object o);
+
+	void removeRange(K key, long start, long end);
+
+	void removeRangeByScore(K key, double min, double max);
 
 	Long size(K key);
 

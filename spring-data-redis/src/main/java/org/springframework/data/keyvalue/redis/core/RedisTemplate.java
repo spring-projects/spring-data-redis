@@ -561,12 +561,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public BoundValueOperations<K, V> forValue(K key) {
+	public BoundValueOperations<K, V> boundValueOps(K key) {
 		return new DefaultBoundValueOperations<K, V>(key, this);
 	}
 
 	@Override
-	public ValueOperations<K, V> valueOps() {
+	public ValueOperations<K, V> getValueOps() {
 		return new DefaultValueOperations();
 	}
 
@@ -725,12 +725,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public ListOperations<K, V> listOps() {
+	public ListOperations<K, V> getListOps() {
 		return new DefaultListOperations();
 	}
 
 	@Override
-	public BoundListOperations<K, V> forList(K key) {
+	public BoundListOperations<K, V> boundListOps(K key) {
 		return new DefaultBoundListOperations<K, V>(key, this);
 	}
 
@@ -913,12 +913,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	//
 
 	@Override
-	public BoundSetOperations<K, V> forSet(K key) {
+	public BoundSetOperations<K, V> boundSetOps(K key) {
 		return new DefaultBoundSetOperations<K, V>(key, this);
 	}
 
 	@Override
-	public SetOperations<K, V> setOps() {
+	public SetOperations<K, V> getSetOps() {
 		return new DefaultSetOperations();
 	}
 
@@ -1073,12 +1073,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	//
 
 	@Override
-	public BoundZSetOperations<K, V> forZSet(K key) {
+	public BoundZSetOperations<K, V> boundZSetOps(K key) {
 		return new DefaultBoundZSetOperations<K, V>(key, this);
 	}
 
 	@Override
-	public ZSetOperations<K, V> zSetOps() {
+	public ZSetOperations<K, V> getZSetOps() {
 		return new DefaultZSetOperations();
 	}
 
@@ -1267,12 +1267,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	//
 
 	@Override
-	public <HK, HV> BoundHashOperations<K, HK, HV> forHash(K key) {
+	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
 		return new DefaultBoundHashOperations<K, HK, HV>(key, this);
 	}
 
 	@Override
-	public <HK, HV> HashOperations<K, HK, HV> hashOps() {
+	public <HK, HV> HashOperations<K, HK, HV> getHashOps() {
 		return new DefaultHashOperations<HK, HV>();
 	}
 

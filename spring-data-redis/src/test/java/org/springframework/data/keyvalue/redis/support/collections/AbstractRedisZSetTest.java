@@ -183,7 +183,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	}
 
 	private RedisZSet<T> createZSetFor(String key) {
-		return new DefaultRedisZSet<T>((BoundZSetOperations<String, T>) zSet.getOperations().forZSet(key));
+		return new DefaultRedisZSet<T>((BoundZSetOperations<String, T>) zSet.getOperations().boundZSetOps(key));
 	}
 
 	@Test

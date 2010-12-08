@@ -54,7 +54,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 */
 	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations, long initialValue) {
 		this.key = redisCounter;
-		this.operations = operations.valueOps();
+		this.operations = operations.getValueOps();
 		this.operations.set(redisCounter, initialValue);
 	}
 
