@@ -49,7 +49,7 @@ public interface ListOperations<K, V> {
 
 	V rightPop(K key, long timeout, TimeUnit unit);
 
-	void rightPopAndLeftPush(K sourceKey, K destinationKey);
+	V rightPopAndLeftPush(K sourceKey, K destinationKey);
 
 	RedisOperations<K, V> getOperations();
 }
