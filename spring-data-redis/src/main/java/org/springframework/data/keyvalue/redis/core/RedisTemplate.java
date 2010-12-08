@@ -1054,6 +1054,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public V pop(K key) {
+			return execute(new ValueDeserializingRedisCallback(key) {
+				@Override
+				protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
+					return connection.sPop(rawKey);
+				}
+			}, true);
+		}
+
+		@Override
 		public Long size(K key) {
 			final byte[] rawKey = rawKey(key);
 			return execute(new RedisCallback<Long>() {

@@ -46,6 +46,8 @@ public interface SetOperations<K, V> {
 
 	Boolean remove(K key, Object o);
 
+	V pop(K key);
+
 	Long size(K key);
 
 	RedisOperations<K, V> getOperations();

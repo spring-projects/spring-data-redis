@@ -48,5 +48,7 @@ public interface BoundSetOperations<K, V> extends KeyBound<K> {
 
 	Boolean remove(Object o);
 
+	V pop();
+
 	Long size();
 }

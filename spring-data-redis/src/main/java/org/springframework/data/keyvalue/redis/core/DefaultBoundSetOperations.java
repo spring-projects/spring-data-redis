@@ -86,6 +86,11 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
+	public V pop() {
+		return ops.pop(getKey());
+	}
+
+	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}
