@@ -179,10 +179,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }\n")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }\n")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
@@ -202,10 +202,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }\n")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }\n")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
