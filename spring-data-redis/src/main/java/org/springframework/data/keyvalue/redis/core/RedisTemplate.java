@@ -35,8 +35,8 @@ import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
-import org.springframework.data.keyvalue.redis.serializer.SimpleRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -46,6 +46,8 @@ import org.springframework.util.ClassUtils;
  * Helper class that simplifies Redis data access code. 
  * <p/>
  * Performs automatic serialization/deserialization between the given objects and the underlying binary data in the Redis store.
+ * By default, it uses Java serialization for its objects (through {@link JdkSerializationRedisSerializer}). For String intensive
+ * operations consider the dedicated {@link StringRedisTemplate}.
  * <p/>
  * The central method is execute, supporting Redis access code implementing the {@link RedisCallback} interface.
  * It provides {@link RedisConnection} handling such that neither the {@link RedisCallback} implementation nor 
@@ -55,23 +57,23 @@ import org.springframework.util.ClassUtils;
  * Once configured, this class is thread-safe.
  * 
  * <p/>Note that while the template is generified, it is up to the serializers/deserializers to properly convert the given Objects
- * to and from binary data. When using a generic serialization mechanism (such as Java serialization or JSON) the types lose their
- * importance and can be skipped or only used as syntactic sugar. 
+ * to and from binary data. 
  * <p/>
  * <b>This is the central class in Redis support</b>.
  * 
  * @author Costin Leau
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
+ * @see StringRedisTemplate
  */
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
 	private boolean exposeConnection = false;
-	private RedisSerializer keySerializer = new StringRedisSerializer();
-	private RedisSerializer valueSerializer = new SimpleRedisSerializer();
-	private RedisSerializer hashKeySerializer = new SimpleRedisSerializer();
-	private RedisSerializer hashValueSerializer = new SimpleRedisSerializer();
-	private RedisSerializer stringSerializer = new StringRedisSerializer();
+	private RedisSerializer keySerializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer valueSerializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer hashKeySerializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer hashValueSerializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
 	// cache singleton objects (where possible)
 	private final ValueOperations<K, V> valueOps = new DefaultValueOperations();
@@ -171,7 +173,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the key serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}.
+	 * Sets the key serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}.
 	 * 
 	 * @param serializer
 	 */
@@ -180,7 +182,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the value serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}.
+	 * Sets the value serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}.
 	 * 
 	 * @param serializer
 	 */
@@ -189,7 +191,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}. 
+	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}. 
 	 * 
 	 * @param hashKeySerializer The hashKeySerializer to set.
 	 */
@@ -198,7 +200,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the hash value serializer to be used by this template. Defaults to {@link SimpleRedisSerializer}. 
+	 * Sets the hash value serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}. 
 	 * 
 	 * @param hashValueSerializer The hashValueSerializer to set.
 	 */
@@ -213,7 +215,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @see ValueOperations#substract(Object, int, int)
 	 * @param stringSerializer The stringValueSerializer to set.
 	 */
-	public void setStringSerializer(RedisSerializer<?> stringSerializer) {
+	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
 		this.stringSerializer = stringSerializer;
 	}
 
@@ -261,7 +263,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (key != null ? keySerializer.serialize(key) : null);
 	}
 
-	@SuppressWarnings("unchecked")
 	private byte[] rawString(String key) {
 		return (key != null ? stringSerializer.serialize(key) : null);
 	}

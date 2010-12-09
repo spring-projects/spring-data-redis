@@ -26,13 +26,13 @@ import org.junit.Test;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
-import org.springframework.data.keyvalue.redis.serializer.SimpleRedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 public abstract class AbstractConnectionIntegrationTests {
 
 	protected RedisConnection connection;
-	protected RedisSerializer serializer = new SimpleRedisSerializer();
+	protected RedisSerializer serializer = new JdkSerializationRedisSerializer();
 	protected RedisSerializer stringSerializer = new StringRedisSerializer();
 
 	private static final String listName = "test-list";

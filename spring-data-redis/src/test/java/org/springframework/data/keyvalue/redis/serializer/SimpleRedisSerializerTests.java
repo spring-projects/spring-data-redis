@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
-import org.springframework.data.keyvalue.redis.serializer.SimpleRedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 
 
 public class SimpleRedisSerializerTests {
@@ -103,7 +103,7 @@ public class SimpleRedisSerializerTests {
 
 	@Before
 	public void setUp() {
-		serializer = new SimpleRedisSerializer();
+		serializer = new JdkSerializationRedisSerializer();
 	}
 
 	@After

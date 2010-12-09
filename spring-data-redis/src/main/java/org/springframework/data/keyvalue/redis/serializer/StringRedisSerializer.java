@@ -17,16 +17,19 @@ package org.springframework.data.keyvalue.redis.serializer;
 
 import java.nio.charset.Charset;
 
+import org.springframework.util.Assert;
+
 /**
- * Simple String to byte[] (and back) serializer. Relies on the specified charset 
- * (by default UTF-8) to properly convert the String into bytes and vice-versa.
- * 
- * Useful when the interaction with the Redis happens mainly through Strings. 
+ * Simple String to byte[] (and back) serializer. Converts Strings into bytes and vice-versa
+ * using the specified charset (by default UTF-8).
+ * <p/> 
+ * Useful when the interaction with the Redis happens mainly through Strings.
  * 
  * @author Costin Leau
  */
 public class StringRedisSerializer implements RedisSerializer<String> {
 
+	private final static byte[] EMPTY_ARRAY = new byte[0];
 	private final Charset charset;
 
 	public StringRedisSerializer() {
@@ -34,6 +37,7 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	}
 
 	public StringRedisSerializer(Charset charset) {
+		Assert.notNull(charset);
 		this.charset = charset;
 	}
 
@@ -43,7 +47,7 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 	}
 
 	@Override
-	public byte[] serialize(String object) {
-		return object.getBytes(charset);
+	public byte[] serialize(String string) {
+		return (string == null ? EMPTY_ARRAY : string.getBytes(charset));
 	}
 }
