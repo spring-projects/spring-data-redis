@@ -37,7 +37,7 @@ class RiakKeyValueTemplateSpec extends Specification {
   @Autowired
   RiakKeyValueTemplate riak
   int run = 1
-  @Shared def riakBin = System.getenv("RIAK_BIN")
+  @Shared def riakBin = System.getenv("RIAK_BIN") ?: "/usr/sbin/riak"
   @Shared def p
 
   def setupSpec() {
