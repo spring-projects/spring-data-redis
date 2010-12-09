@@ -41,13 +41,13 @@ class RiakTemplateSpec extends Specification {
   @Shared def p
 
   def setupSpec() {
-    p = "$riakBin start".execute()
+    p = "/usr/sbin/riak start".execute()
     p.waitFor()
     Thread.sleep(2000)
   }
 
   def cleanupSpec() {
-    "$riakBin stop".execute()
+    p = "/usr/sbin/riak stop".execute()
     p.waitFor()
   }
 

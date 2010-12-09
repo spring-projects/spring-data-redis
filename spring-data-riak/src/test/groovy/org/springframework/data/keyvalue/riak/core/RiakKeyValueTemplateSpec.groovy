@@ -47,7 +47,7 @@ class RiakKeyValueTemplateSpec extends Specification {
   }
 
   def cleanupSpec() {
-    "/usr/sbin/riak stop".execute()
+    p = "/usr/sbin/riak stop".execute()
     p.waitFor()
   }
 
