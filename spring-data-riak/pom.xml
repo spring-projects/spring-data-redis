@@ -126,6 +126,7 @@
         <groupId>com.springsource.bundlor</groupId>
         <artifactId>com.springsource.bundlor.maven</artifactId>
       </plugin>
+
       <!-- For running Groovy/Spock tests
       <plugin>
         <groupId>org.spockframework</groupId>
@@ -167,8 +168,7 @@
             <version>2.7.7</version>
           </dependency>
         </dependencies>
-      </plugin>
-      -->
+      </plugin> -->
 
     </plugins>
   </build>
