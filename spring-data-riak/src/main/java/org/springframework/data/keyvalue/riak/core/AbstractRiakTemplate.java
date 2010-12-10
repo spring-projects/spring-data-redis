@@ -168,6 +168,14 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     this.useCache = useCache;
   }
 
+  public QosParameters getDefaultQosParameters() {
+    return defaultQosParameters;
+  }
+
+  public void setDefaultQosParameters(QosParameters defaultQosParameters) {
+    this.defaultQosParameters = defaultQosParameters;
+  }
+
   /**
    * Extract the prefix from the URI for use in creating links.
    *

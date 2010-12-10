@@ -29,13 +29,13 @@ import spock.lang.Specification
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-@ContextConfiguration(locations = "/org/springframework/data/RiakTemplateTests.xml")
-class RiakTemplateSpec extends Specification {
+@ContextConfiguration(locations = "/org/springframework/data/RiakKeyValueTemplateTests.xml")
+class RiakKeyValueTemplateSpec extends Specification {
 
   @Autowired
   ApplicationContext appCtx
   @Autowired
-  RiakTemplate riak
+  RiakKeyValueTemplate riak
   int run = 1
   @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
   @Shared def p
@@ -56,10 +56,10 @@ class RiakTemplateSpec extends Specification {
     given:
     def val = "value"
     def objIn = [test: val, integer: 12]
-    riak.set("test", "test", objIn)
+    riak.set("test:test", objIn)
 
     when:
-    def objOut = riak.get("test", "test")
+    def objOut = riak.get("test:test")
 
     then:
     objOut.test == val
@@ -70,10 +70,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     TestObject objIn = new TestObject()
-    riak.set(TestObject.name, "test", objIn)
+    riak.set("${TestObject.name}:test", objIn)
 
     when:
-    TestObject objOut = riak.get(TestObject.name, "test")
+    TestObject objOut = riak.get("${TestObject.name}:test")
 
     then:
     objOut.test == "value"
@@ -103,7 +103,7 @@ class RiakTemplateSpec extends Specification {
   def "Test get with metadata"() {
 
     when:
-    def val = riak.getWithMetaData("test", "test", LinkedHashMap)
+    def val = riak.getWithMetaData([bucket: "test", key: "test"], LinkedHashMap)
 
     then:
     val.metaData.properties["Server"].contains("WebMachine")
@@ -113,12 +113,12 @@ class RiakTemplateSpec extends Specification {
   def "Test setting QosParameters"() {
 
     given:
-    def obj = riak.get("test", "test")
+    def obj = riak.get("test:test")
 
     when:
     def qos = new RiakQosParameters()
     qos.durableWriteThreshold = "all"
-    riak.set("test", "test", obj, qos)
+    riak.set("test:test", obj, qos)
 
     then:
     true
@@ -128,7 +128,7 @@ class RiakTemplateSpec extends Specification {
   def "Test containsKey"() {
 
     when:
-    def containsKey = riak.containsKey("test", "test")
+    def containsKey = riak.containsKey([bucket: "test", key: "test"])
 
     then:
     true == containsKey
@@ -138,10 +138,10 @@ class RiakTemplateSpec extends Specification {
   def "Test linking"() {
 
     given:
-    riak.link(TestObject.name, "test", "test", "test", "test")
+    riak.link("${TestObject.name}:test", "test:test", "test")
 
     when:
-    def val = riak.getWithMetaData("test", "test", Map)
+    def val = riak.getWithMetaData("test:test", Map)
     def result = val.metaData.properties["Link"].find { it.contains("riaktag=\"test\"") }
 
     then:
@@ -152,7 +152,7 @@ class RiakTemplateSpec extends Specification {
   def "Test link walking"() {
 
     when:
-    def val = riak.linkWalk("test", "test", "test")
+    def val = riak.linkWalk("test:test", "test")
 
     then:
     null != val
@@ -161,15 +161,16 @@ class RiakTemplateSpec extends Specification {
 
   }
 
-  def "Test link walking as type"() {
+  def "Test multiple get"() {
 
     when:
-    def val = riak.linkWalkAsType("test", "test", "test", Map)
+    def objs = riak.getValues([
+        new SimpleBucketKeyPair("test", "test"),
+        new SimpleBucketKeyPair(TestObject.name, "test")
+    ])
 
     then:
-    null != val
-    1 == val.size()
-    val.get(0) instanceof Map
+    2 == objs.size()
 
   }
 
@@ -180,10 +181,31 @@ class RiakTemplateSpec extends Specification {
     def newObj = [test: "value $i", integer: 12]
 
     when:
-    def oldObj = riak.getAndSet("test", "test", newObj)
+    def oldObj = riak.getAndSet("test:test", newObj)
 
     then:
     "value" == oldObj.test
+
+  }
+
+  def "Test setMultipleIfKeysNonExistent with Map"() {
+
+    given:
+    def testKey = new SimpleBucketKeyPair("test", "test")
+    def testKey2 = new SimpleBucketKeyPair(TestObject.name, "test")
+    def newObj = [:]
+    newObj[testKey] = [test: "value", integer: 12]
+    newObj[testKey2] = [test: "value", integer: 12]
+
+    when:
+    def secondObj = riak.setMultipleIfKeysNonExistent(newObj).get(testKey2)
+    secondObj.test = "newValue"
+    def updObj = [:]
+    updObj[testKey2] = secondObj
+    def thirdObj = riak.setMultipleIfKeysNonExistent(updObj).get(testKey2)
+
+    then:
+    "value" == thirdObj.test
 
   }
 
@@ -191,11 +213,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def uuid = UUID.randomUUID().toString()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'map input: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'reduce input: '+JSON.stringify(v)); var s=Riak.reduceSum(v); ejsLog('/tmp/mapred.log', 'reduce output: '+JSON.stringify(s)); return s; }")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ var s=Riak.reduceSum(v); return s; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
@@ -215,11 +236,10 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def uuid = UUID.randomUUID().toString()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'map input: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
+    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'reduce input: '+JSON.stringify(v)); var s=Riak.reduceSum(v); ejsLog('/tmp/mapred.log', 'reduce output: '+JSON.stringify(s)); return s; }")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
@@ -235,7 +255,7 @@ class RiakTemplateSpec extends Specification {
 
   }
 
-  def "Test delete key"() {
+  def "Test deleteKeys"() {
 
     given:
     def testKey = new SimpleBucketKeyPair("test", "test")
