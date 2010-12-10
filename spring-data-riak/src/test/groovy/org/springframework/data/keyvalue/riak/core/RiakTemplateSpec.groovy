@@ -40,6 +40,7 @@ class RiakTemplateSpec extends Specification {
   @Shared def riakBin = System.getenv("RIAK_BIN") ?: "/usr/sbin/riak"
   @Shared def p
 
+  /*
   def setupSpec() {
     p = "/usr/sbin/riak start".execute()
     p.waitFor()
@@ -50,6 +51,7 @@ class RiakTemplateSpec extends Specification {
     p = "/usr/sbin/riak stop".execute()
     p.waitFor()
   }
+  */
 
   def "Test Map object"() {
 
@@ -161,6 +163,18 @@ class RiakTemplateSpec extends Specification {
 
   }
 
+  def "Test link walking as type"() {
+
+    when:
+    def val = riak.linkWalkAsType("test", "test", "test", Map)
+
+    then:
+    null != val
+    1 == val.size()
+    val.get(0) instanceof Map
+
+  }
+
   def "Test getAndSet with Map"() {
 
     given:
@@ -179,10 +193,11 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }\n")
+    def uuid = UUID.randomUUID().toString()
+    def mapJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'map input: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }\n")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'reduce input: '+JSON.stringify(v)); var s=Riak.reduceSum(v); ejsLog('/tmp/mapred.log', 'reduce output: '+JSON.stringify(s)); return s; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).
@@ -202,10 +217,11 @@ class RiakTemplateSpec extends Specification {
 
     given:
     MapReduceJob job = riak.createMapReduceJob()
-    def mapJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'map v: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }\n")
+    def uuid = UUID.randomUUID().toString()
+    def mapJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'map input: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
 
-    def reduceJs = new JavascriptMapReduceOperation("function(v){ ejsLog('/tmp/mapred.log', 'red v: '+JSON.stringify(v)); var s=Riak.reduceSum(v); return s; }\n")
+    def reduceJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'reduce input: '+JSON.stringify(v)); var s=Riak.reduceSum(v); ejsLog('/tmp/mapred.log', 'reduce output: '+JSON.stringify(s)); return s; }")
     def reducePhase = new RiakMapReducePhase("reduce", "javascript", reduceJs)
 
     job.addInputs(["test"]).

@@ -527,6 +527,25 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
    */
   @SuppressWarnings({"unchecked"})
   public <B, T, K> T linkWalk(B bucket, K key, String tag) {
+    return (T) linkWalkAsType(bucket, key, tag, null);
+  }
+
+  /**
+   * Use Riak's link walking mechanism to retrieve a multipart message that will be decoded like
+   * they were individual objects (e.g. using the built-in HttpMessageConverters of
+   * RestTemplate) and return the result as a list of objects of one of: <ol> <li>The type
+   * specified by <code>requiredType</code></li> <li>If that's null, try using the bucket name
+   * in which the object was stored</li> <li>If all else fails, use a {@link java.util.Map}</li>
+   * </ol>
+   *
+   * @param bucket
+   * @param key
+   * @param tag
+   * @param requiredType
+   * @return
+   */
+  @SuppressWarnings({"unchecked"})
+  public <B, T, K> T linkWalkAsType(B bucket, K key, String tag, final Class<T> requiredType) {
     final RestTemplate restTemplate = getRestTemplate();
     final List<MediaType> types = new ArrayList<MediaType>();
     types.add(MediaType.ALL);
@@ -540,7 +559,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
           }
         },
         new ResponseExtractor<Object>() {
-          @SuppressWarnings({"unchecked", "unchecked"})
+          @SuppressWarnings({"unchecked"})
           public Object extractData(ClientHttpResponse response) throws
               IOException {
             String contentType = ((List) response.getHeaders().get("Content-Type")).get(0)
@@ -575,12 +594,17 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
                           break;
                         }
                       }
-                      Class clazz = Map.class;
-                      if (null != bucketName) {
+                      Class<?> clazz = requiredType;
+                      if (null == clazz && null != bucketName) {
                         try {
                           clazz = Class.forName(bucketName);
                         } catch (ClassNotFoundException e) {
+                          // Default to a Map. We know that will work.
+                          clazz = Map.class;
                         }
+                      } else {
+                        // Default to a Map. We know that will work.
+                        clazz = Map.class;
                       }
 
                       // Can convert message?
