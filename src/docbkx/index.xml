@@ -11,14 +11,6 @@
                 <firstname>Costin</firstname>
                 <surname>Leau</surname>
             </author>
-            <author>
-                <firstname>Mark</firstname>
-                <surname>Pollack</surname>
-            </author>
-            <author>
-                <firstname>Thomas</firstname>
-                <surname>Risberg</surname>
-            </author>
         </authorgroup>
 
         <legalnotice>
@@ -35,13 +27,36 @@
 
     <xi:include href="preface.xml"/>
 
-    <part>
-        <title>Reference</title>
-        <partintro>
-            <para>
-                This part of the reference documentation details the ...
-            </para>
-        </partintro>
-        <!-- <xi:include href="redis.xml"/> -->
+    <part id="introduction">
+      <title>Introduction</title>
+       
+      <xi:include href="introduction/introduction.xml"/>
+      <xi:include href="introduction/why-sd-kv.xml"/>
+      <xi:include href="introduction/requirements.xml"/>
+      <xi:include href="introduction/getting-started.xml"/>
     </part>
+
+    <part id="reference">
+      <title>Reference Documentation</title>
+       
+      <xi:include href="reference/introduction.xml"/>
+      <xi:include href="reference/redis.xml"/>
+    </part>
+
+    <part id="resources">
+      <title>Other Documentation</title>
+       
+      <partintro>
+          <para>
+              In addition to this reference documentation, there are a number of
+              other resources that may help you learn how to use the various key value
+              stores and Spring Data. These additional, third-party resources are
+              enumerated in this section.
+          </para>
+      </partintro>
+      <!--
+      <xi:include href="links.xml"/>       
+      -->
+    </part>
+    
 </book>

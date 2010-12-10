@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="why-Spring Data-Key Value">
+    <title>Why Spring Data - Key Value?</title>
+
+    <para>The Spring Framework is the leading full-stack Java/JEE
+    application framework. It provides a lightweight container and a
+    non-invasive programming model enabled by the use of dependency
+    injection, AOP, and portable service abstractions.</para>
+    
+    <para><ulink url="http://en.wikipedia.org/wiki/NoSQL">NoSQL</ulink>
+    storages provide an alternative to classical RDBMS for horizontal scalability
+    and speed. In terms of implementation, Key Value stores represent one of the
+    largest (and oldest) member in the NoSQL space.</para>
+
+    <para>The Spring Data Key Value (or SDKV) framework makes it easy to 
+    write Spring applications that use a Key Value store by eliminating the redundant
+    tasks and boiler place code required for interacting with the store through
+    Spring's excellent infrastructure support.</para>
+</chapter>
