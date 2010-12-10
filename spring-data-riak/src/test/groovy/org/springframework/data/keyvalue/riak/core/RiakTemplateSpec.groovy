@@ -37,21 +37,19 @@ class RiakTemplateSpec extends Specification {
   @Autowired
   RiakTemplate riak
   int run = 1
-  @Shared def riakBin = System.getenv("RIAK_BIN") ?: "/usr/sbin/riak"
+  @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
   @Shared def p
 
-  /*
   def setupSpec() {
-    p = "/usr/sbin/riak start".execute()
+    p = "$riakBin start".execute()
     p.waitFor()
     Thread.sleep(2000)
   }
 
   def cleanupSpec() {
-    p = "/usr/sbin/riak stop".execute()
+    p = "$riakBin stop".execute()
     p.waitFor()
   }
-  */
 
   def "Test Map object"() {
 
