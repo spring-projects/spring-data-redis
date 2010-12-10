@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="redis">
+  <title>Redis support</title>
+
+	<para>One of the key value stores supported by SDKV is <ulink url="http://code.google.com/p/redis/">Redis</ulink>.
+	To quote the project home page:
+	<quote>
+	Redis is an advanced key-value store. It is similar to memcached but the dataset is not volatile, and values can be strings,
+	exactly like in memcached, but also lists, sets, and ordered sets. All this data types can be manipulated with atomic operations
+	to push/pop elements, add/remove elements, perform server side union, intersection, difference between sets, and so forth.
+	Redis supports different kind of sorting abilities.</quote>
+	
+	<para>Spring Data Key Value provides easy configuration and access to Redis from Spring application. Offers both low-level and
+	high-level abstraction for interacting with the store, freeing the user from infrastructural concerns.</para>
+	</para>
+	
+	<section id="redis:requirements">
+		<title>Redis Requirements</title>
+		<para>SDKV requires Redis 2.0 or above (work is underway to support the upcoming (at the time this document was written) 2.2) and
+		Java SE 6.0 or above.
+		In terms of language bindings (or connectors), SDKV integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink> and 
+		<ulink url="http://github.com/alphazero/jredis">JRedis</ulink>, two popular open source Java libraries for Redis. If you are aware of
+		any other connector that we should be integrating is, please send us feedback.
+		</para>
+	</section>
+	
+	<section id="redis:architecture">
+		<title>Redis Support High Level View</title>
+		
+		<para>The Redis support provides several components (in order of dependencies):</para>
+		<itemizedlist>
+			<listitem><emphasis>Low-Level Abstractions</emphasis> - for configuring and handling communication with Redis through the various connector libraries supported as
+			described in <xref linkend="redis:connectors"/>. </listitem>
+			<listitem><emphasis>High-Level Abstractions</emphasis> - providing a generified, user friendly template classes for interacting with Redis. 
+			<xref linkend="redis:template"/> explains the abstraction builds on top of the low-level <interfacename>Connection</interfacename> API to handle the 
+			infrastructural concerns and object conversion.</listitem>
+			<listitem><emphasis>Support Services</emphasis> - that offer reusable components (built on the aforementioned abstractions) such as 
+			<interfacename>java.util.Collection</interfacename> backed by Redis as documented in <xref linkend="redis:support"/></listitem>
+		</itemizedlist>
+		
+		<para>For most tasks, the high-level abstractions and support services are the best choice. Note that at any point, one can move between layers - for example, it's very
+		easy to get a hold of the low level connection (or even the native libray) to communicate directly with Redis.</para>
+  	</section>
+  
+  	<section id="redis:connectors">
+  		<title>Connecting to Redis</title>
+  	</section>
+  	
+  	<section id="redis:template">
+  		<title>Working with Objects through <classname>RedisTemplate</classname></title>
+  	</section>
+  	
+  	<section id="redis:support">
+  		<title>Support Services</title>
+  	</section>
+</chapter>
