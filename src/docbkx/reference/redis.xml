@@ -46,6 +46,98 @@
   
   	<section id="redis:connectors">
   		<title>Connecting to Redis</title>
+  		
+  		<para>One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required;
+  		currently SDKV has support for Jedis and JRedis. No matter the library one chooses, there only one set of SDKV API that one needs to use that behaves consistently 
+  		across all connectors, namely the <literal>org.springframework.data.keyvalue.redis.connection</literal> package and its 
+  		<interfacename>RedisConnection</interfacename> and <interfacename>RedisConnectionFactory</interfacename> interfaces for working respectively for retrieving active
+  		<literal>connection</literal> to Redis.</para>
+  		
+	  	<section id="redis:connectors:connection">
+  			<title><interfacename>RedisConnection</interfacename> and <interfacename>RedisConnectionFactory</interfacename></title>
+  			
+  			<para><interfacename>RedisConnection</interfacename> provides the building block for Redis communication as it handles the communication with the Redis back-end. 
+  			It also	automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception 
+  			<ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/dao.html#dao-exceptions">hierarchy</ulink> so one can switch the connectors
+  			without any code changes as the operation semantics remain the same.</para>
+  			
+  			<note>For the corner cases where the native library API is required, <interfacename>RedisConnection</interfacename> provides a dedicated method 
+  			<methodname>getNativeConnection</methodname> which returns the raw, underlying object used for communication.</note>
+  			
+  			<para>Active <interfacename>RedisConnection</interfacename> are created through <interfacename>RedisConnectionFactory</interfacename>. In addition, the factories act as
+  			<interfacename>PersistenceExceptionTranslator</interfacename> meaning once declared, allow one to do transparent exception translation for example through the use of the
+  			<literal>@Repository</literal> annotation and AOP. For more information see the dedicated 
+  			<ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/orm.html#orm-exception-translation">section</ulink> in Spring Framework documentation.</para> 
+  			
+  			<note>Depending on the underlying configuration, the factory can return a new connection or an existing connection (in case a pool is used).</note>
+  		</section>
+  		
+  		<para>The easiest way to work with a <interfacename>RedisConnectionFactory</interfacename> is to configure the appropriate connector through the IoC container and 
+  		inject it into the using class.</para>
+  		
+  		<sidebar>
+  			<title>Connector features</title>
+  			
+  			<para>Unfortunately, currently, not connectors support all of Redis features - in particular JRedis does not have support for hashes yet though this is currently being worked on.
+  			When invoking a method on the <interfacename>Connection</interfacename> API that is unsupported by the underlying library, a <classname>UnsupportedOperationException</classname>
+  			is thrown.
+  			This situation is likely to be fixed in the future, as the various connectors mature.
+  			</para>
+  		</sidebar>
+  		
+  		<section id="redis:connectors:jedis">
+  			<title>Configuring Jedis connector</title>
+  			
+  			<para><ulink url="http://github.com/xetorthio/jedis">Jedis</ulink> is one of the connectors supported by the Key Value module through the 
+  			<literal>org.springframework.data.keyvalue.redis.connection.jedis</literal> package. In its simples form, the Jedis configuration looks as follow:</para>
+  			
+  			<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <!-- Jedis ConnectionFactory -->
+	<bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
+</beans>]]></programlisting>
+
+			<para>For intense use however, one might want to enable connection pooling or set a certain host or password:</para>
+
+  			<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+	<bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"
+				p:host-name="server" p:use-pool="true"/>
+</beans>]]></programlisting>
+  			
+  		</section>
+
+  		<section id="redis:connectors:jredis">
+  			<title>Configuring JRedis connector</title>
+  			
+  			<para><ulink url="http://github.com/alphazero/jredis">JRedis</ulink> is another popular, open-source connector supported by SDKV through the
+  			<literal>org.springframework.data.keyvalue.redis.connection.jredis</literal> package.</para> 
+  			<note>Since JRedis itself does not support (yet) Redis 2.x commands, SDKV uses an updated fork available 
+  			<ulink url="http://github.com/anthonylauzon/jredis">here</ulink>.</note>
+  			
+  			<para>A typical JRedis configuration can looks like this:</para>
+
+  			<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+	<bean id="jredisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory"
+				p:host-name="server" p:use-pool="true"/>
+</beans>]]></programlisting>
+  		</section>
+
   	</section>
   	
   	<section id="redis:template">
