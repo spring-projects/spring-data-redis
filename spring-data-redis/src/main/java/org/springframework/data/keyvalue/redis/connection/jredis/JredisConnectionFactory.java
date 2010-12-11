@@ -38,7 +38,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	private ConnectionSpec connectionSpec;
 
-	private String password;
+	private String hostName = "localhost";
+	private int port = DEFAULT_REDIS_PORT;
+	private String password = null;
 	private int timeout;
 
 	private boolean usePool = true;
@@ -63,31 +65,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
+	 * Will override the other connection parameters passed to the factory. 
 	 *
-	 * @param hostName
-	 */
-	public JredisConnectionFactory(String hostName) {
-		this(hostName, DEFAULT_REDIS_PORT);
-	}
-
-
-	/**
-	 * Constructs a new <code>JredisConnectionFactory</code> instance.
-	 *
-	 * @param hostName
-	 * @param port
-	 */
-	public JredisConnectionFactory(String hostName, int port) {
-		Assert.hasText(hostName);
-		ConnectionSpec newSpec = DefaultConnectionSpec.newSpec(hostName, port, DEFAULT_REDIS_DB, DEFAULT_REDIS_PASSWORD);
-		newSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
-		this.connectionSpec = newSpec;
-	}
-
-	/**
-	 * Constructs a new <code>JredisConnectionFactory</code> instance.
-	 *
-	 * @param connectionSpec
+	 * @param connectionSpec already configured connection.
 	 */
 	public JredisConnectionFactory(ConnectionSpec connectionSpec) {
 		this.connectionSpec = connectionSpec;
@@ -95,12 +75,19 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public void afterPropertiesSet() {
-		if (StringUtils.hasLength(password)) {
-			connectionSpec.setCredentials(password);
-		}
+		if (connectionSpec == null) {
+			Assert.hasText(hostName);
+			connectionSpec = DefaultConnectionSpec.newSpec(hostName, DEFAULT_REDIS_PORT, DEFAULT_REDIS_DB,
+					DEFAULT_REDIS_PASSWORD);
+			connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
 
-		if (timeout > 0) {
-			connectionSpec.setSocketProperty(Property.SO_TIMEOUT, timeout);
+			if (StringUtils.hasLength(password)) {
+				connectionSpec.setCredentials(password);
+			}
+
+			if (timeout > 0) {
+				connectionSpec.setSocketProperty(Property.SO_TIMEOUT, timeout);
+			}
 		}
 
 		if (usePool) {
@@ -128,6 +115,44 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return null;
+	}
+
+
+	/**
+	 * Returns the Redis host name of this factory.
+	 *
+	 * @return Returns the hostName
+	 */
+	public String getHostName() {
+		return hostName;
+	}
+
+	/**
+	 * Sets the Redis host name for this factory.
+	 * 
+	 * @param hostName The hostName to set.
+	 */
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
+	}
+
+
+	/**
+	 * Returns the Redis port.
+	 *
+	 * @return Returns the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	/**
+	 * Sets the Redis port.
+	 * 
+	 * @param port The port to set.
+	 */
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	/**

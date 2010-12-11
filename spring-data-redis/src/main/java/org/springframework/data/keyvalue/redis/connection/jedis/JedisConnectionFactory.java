@@ -25,12 +25,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisShardInfo;
+import redis.clients.jedis.Protocol;
 
 /**
  * Connection factory using creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -42,8 +42,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 
 	private JedisShardInfo shardInfo;
+	private String hostName = "localhost";
+	private int port = Protocol.DEFAULT_PORT;
+	private int timeout = Protocol.DEFAULT_TIMEOUT;
 	private String password;
-	private int timeout;
 
 	private boolean usePool = true;
 
@@ -53,31 +55,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Constructs a new <code>JedisConnectionFactory</code> instance.
 	 */
 	public JedisConnectionFactory() {
-		this(getDefaultHostName());
 	}
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance.
-	 *
-	 * @param hostName
-	 */
-	public JedisConnectionFactory(String hostName) {
-		Assert.hasText(hostName);
-		shardInfo = new JedisShardInfo(hostName);
-	}
-
-	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance.
-	 *
-	 * @param hostName
-	 * @param port
-	 */
-	public JedisConnectionFactory(String hostName, int port) {
-		shardInfo = new JedisShardInfo(hostName, port);
-	}
-
-	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance.
+	 * Will override the other connection parameters passed to the factory. 
 	 *
 	 * @param shardInfo
 	 */
@@ -103,12 +85,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	public void afterPropertiesSet() {
-		if (StringUtils.hasLength(password)) {
-			shardInfo.setPassword(password);
-		}
+		if (shardInfo == null) {
+			shardInfo = new JedisShardInfo(hostName, port);
 
-		if (timeout > 0) {
-			shardInfo.setTimeout(timeout);
+			if (StringUtils.hasLength(password)) {
+				shardInfo.setPassword(password);
+			}
+
+			if (timeout > 0) {
+				shardInfo.setTimeout(timeout);
+			}
 		}
 
 		if (usePool) {
@@ -137,8 +123,22 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return JedisUtils.convertJedisAccessException(ex);
 	}
 
-	private static String getDefaultHostName() {
-		return "localhost";
+	/**
+	 * Returns the Redis hostName.
+	 *
+	 * @return Returns the hostName
+	 */
+	public String getHostName() {
+		return hostName;
+	}
+
+	/**
+	 * Sets the Redis hostName.
+	 * 
+	 * @param hostName The hostName to set.
+	 */
+	public void setHostName(String host) {
+		this.hostName = host;
 	}
 
 	/**
@@ -157,6 +157,25 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	/**
+	 * Returns the port used to connect to the Redis instance.
+	 * 
+	 * @return Redis port.
+	 */
+	public int getPort() {
+		return port;
+
+	}
+
+	/**
+	 * Sets the port used to connect to the Redis instance.
+	 * 
+	 * @param port Redis port
+	 */
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	/**
