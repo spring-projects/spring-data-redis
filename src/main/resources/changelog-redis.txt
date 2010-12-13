@@ -1,0 +1,15 @@
+SPRING DATA REDIS INTEGRATION CHANGELOG
+=======================================
+http://www.springsource.org/spring-data
+
+
+Changes in version 1.0.0.M1 (2010-12-13)
+----------------------------------------
+General
+* Configuration support for Redis Jedis and JRedis drivers/connectors
+* Connection package as low-level abstraction across multiple drivers
+* Exception translation
+* Generified RedisTemplate for exception translation and serialization support
+* Various serialization strategies
+* Atomic counter support classes
+* JDK Collection implementations on top of Redis

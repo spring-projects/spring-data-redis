@@ -1,5 +1,0 @@
-Spring Datastore Key-Value 1.0.0 Milestone 1 (?, 2010)
-=============================================
-
-New Features
-   * Lot's of good stuff
