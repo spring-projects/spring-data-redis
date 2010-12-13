@@ -137,8 +137,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * 
 	 * @param hostName The hostName to set.
 	 */
-	public void setHostName(String host) {
-		this.hostName = host;
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
 	}
 
 	/**

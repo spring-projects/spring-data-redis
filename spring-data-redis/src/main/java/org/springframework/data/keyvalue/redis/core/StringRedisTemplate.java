@@ -21,7 +21,7 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 /**
  * String-focused extension of RedisTemplate. Since most operations against Redis are String based,
  * this class provides a dedicated class that minimizes configuration of its more generic 
- * {@link template RedisTemplate} especially in terms of serializers.
+ * {@link RedisTemplate template} especially in terms of serializers.
  * 
  * @author Costin Leau
  */
