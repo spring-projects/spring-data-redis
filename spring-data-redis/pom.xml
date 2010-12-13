@@ -15,7 +15,7 @@
 	<properties>
     <!--<jredis.ver>02112010</jredis.ver>-->
     <jredis.ver>03122010</jredis.ver>
-    <jedis.ver>1.5.0-RC2</jedis.ver>
+    <jedis.ver>1.5.0</jedis.ver>
 	</properties>
 
 	<dependencies>
