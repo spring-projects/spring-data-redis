@@ -111,7 +111,7 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
 	<bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"
-				p:host-name="server" p:use-pool="true"/>
+				p:host-name="server" p:port="6379" p:use-pool="true"/>
 </beans>]]></programlisting>
   			
   		</section>
@@ -134,14 +134,88 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
 	<bean id="jredisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory"
-				p:host-name="server" p:use-pool="true"/>
+				p:host-name="server" p:port="6379" p:use-pool="true"/>
 </beans>]]></programlisting>
-  		</section>
 
+			<para>As one can note, the configuration is quite similar to the Jedis one.</para>
+  		</section>
+  		
   	</section>
   	
   	<section id="redis:template">
   		<title>Working with Objects through <classname>RedisTemplate</classname></title>
+  		
+  		<para>Most users are likely to use <classname>RedisTemplate</classname> and its coresponding package <literal>org.springframework.data.keyvalue.redis.core</literal>.
+  		The template offers a high-level abstraction for Redis interaction - while <interfacename>RedisConnection</interfacename> offer low level methods that accept and return
+  		binary values (<literal>byte</literal> arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.</para>
+  		
+  		<para>Moreover, the template provides operations views (following the grouping from Redis command <ulink url="http://code.google.com/p/redis/wiki/CommandReference">reference</ulink>)
+  		that offer rich, generified interfaces for working against a certain type or certain key (through the <interfacename>KeyBound</interfacename> interfaces) as described below:</para>
+  		
+  		<table  id="reids-template-operations-view" pgwide="1">
+  			<title>Operational views</title>
+  			
+  			<tgroup cols="2">
+  				<colspec colnum="c1"/>
+           		<colspec colnum="c2"/>
+           		<spanspec spanname="both" namest="c1" nameend="c2" colsep="0" align="right"/>
+  				<thead>
+  					<row>
+  						<entry>Interface</entry>
+  						<entry>Redis description</entry>
+  					</row>
+  				</thead>
+  				<tbody>
+  					<row rowsep="0">
+  						<entry spanname="both"><emphasis><![CDATA[Key Type Operations]]></emphasis></entry>
+  					</row>
+  					<row>
+  						<entry>ValueOperations</entry>
+  						<entry>Redis string (or value) operations</entry>
+  					</row>
+  					<row>
+  						<entry>ListOperations</entry>
+  						<entry>Redis list operations</entry>
+  					</row>
+  					<row>
+  						<entry>SetOperations</entry>
+  						<entry>Redis set operations</entry>
+  					</row>
+  					<row>
+  						<entry>ZSetOperations</entry>
+  						<entry>Redis zset (or sorted set) operations</entry>
+  					</row>
+  					<row>
+  						<entry>HashOperations</entry>
+  						<entry>Redis hash operations</entry>
+  					</row>
+  					<row>
+  						<entry spanname="both"><emphasis><![CDATA[Key Bound Operations]]></emphasis></entry>
+  					</row>
+  					<row>
+  						<entry>BoundValueOperations</entry>
+  						<entry>Redis string (or value) key bound operations</entry>
+  					</row>
+  					<row>
+  						<entry>BoundListOperations</entry>
+  						<entry>Redis list key bound operations</entry>
+  					</row>
+  					<row>
+  						<entry>BoundSetOperations</entry>
+  						<entry>Redis set key bound operations</entry>
+  					</row>
+  					<row>
+  						<entry>BoundZSetOperations</entry>
+  						<entry>Redis zset (or sorted set) key bound operations</entry>
+  					</row>
+  					<row>
+  						<entry>BoundHashOperations</entry>
+  						<entry>Redis hash key bound operations</entry>
+  					</row>  					
+  				</tbody>
+  			</tgroup>
+  		</table>
+  		
   	</section>
   	
   	<section id="redis:support">
