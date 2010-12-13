@@ -1,4 +1,4 @@
-Bundle-SymbolicName: org.springframework.data.redis
+Bundle-SymbolicName: org.springframework.data.keyvalue.redis
 Bundle-Name: Spring Data Redis Support
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
