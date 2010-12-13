@@ -138,6 +138,14 @@
 </beans>]]></programlisting>
 
 			<para>As one can note, the configuration is quite similar to the Jedis one.</para>
+			
+			<important><para>Currently, JRedis does not have support for binary keys. This forces the <classname>JredisConnection</classname> to perform encoding internally
+			(through <ulink url="http://en.wikipedia.org/wiki/Base64">base64</ulink> schema). In practice, this means it's safe to read/write arbitrary data however 
+			the Redis key stored values will differ from the decoded ones, even in the simplest cases, since everything (no matter the format) is encoded. This will not be
+			the case for Redis values.</para>
+			<para>This issue is currently being addressed in the JRedis project and once fixed, will be incorporated by Spring Data Redis.</para>  
+			</important>
+			
   		</section>
   		
   	</section>
@@ -145,24 +153,25 @@
   	<section id="redis:template">
   		<title>Working with Objects through <classname>RedisTemplate</classname></title>
   		
-  		<para>Most users are likely to use <classname>RedisTemplate</classname> and its coresponding package <literal>org.springframework.data.keyvalue.redis.core</literal>.
+  		<para>Most users are likely to use <classname>RedisTemplate</classname> and its coresponding package <literal>org.springframework.data.keyvalue.redis.core</literal> - the
+  		template is in fact the central class of the Redis module due to its rich feature set.
   		The template offers a high-level abstraction for Redis interaction - while <interfacename>RedisConnection</interfacename> offer low level methods that accept and return
   		binary values (<literal>byte</literal> arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.</para>
   		
   		<para>Moreover, the template provides operations views (following the grouping from Redis command <ulink url="http://code.google.com/p/redis/wiki/CommandReference">reference</ulink>)
   		that offer rich, generified interfaces for working against a certain type or certain key (through the <interfacename>KeyBound</interfacename> interfaces) as described below:</para>
   		
-  		<table  id="reids-template-operations-view" pgwide="1">
+  		<table  id="redis-template-operations-view" pgwide="1">
   			<title>Operational views</title>
   			
   			<tgroup cols="2">
-  				<colspec colnum="c1"/>
-           		<colspec colnum="c2"/>
-           		<spanspec spanname="both" namest="c1" nameend="c2" colsep="0" align="right"/>
+  				<colspec colname="c1" colwidth="1*" align="center"/>
+           		<colspec colname="c2" colwidth="1*" align="center"/>
+           		<spanspec spanname="both" namest="c1" nameend="c2" colsep="0" align="center" />
   				<thead>
   					<row>
   						<entry>Interface</entry>
-  						<entry>Redis description</entry>
+  						<entry>Description</entry>
   					</row>
   				</thead>
   				<tbody>
@@ -170,55 +179,105 @@
   						<entry spanname="both"><emphasis><![CDATA[Key Type Operations]]></emphasis></entry>
   					</row>
   					<row>
-  						<entry>ValueOperations</entry>
+  						<entry><interfacename>ValueOperations</interfacename></entry>
   						<entry>Redis string (or value) operations</entry>
   					</row>
   					<row>
-  						<entry>ListOperations</entry>
+  						<entry><interfacename>ListOperations</interfacename></entry>
   						<entry>Redis list operations</entry>
   					</row>
   					<row>
-  						<entry>SetOperations</entry>
+  						<entry><interfacename>SetOperations</interfacename></entry>
   						<entry>Redis set operations</entry>
   					</row>
   					<row>
-  						<entry>ZSetOperations</entry>
+  						<entry><interfacename>ZSetOperations</interfacename></entry>
   						<entry>Redis zset (or sorted set) operations</entry>
   					</row>
   					<row>
-  						<entry>HashOperations</entry>
+  						<entry><interfacename>HashOperations</interfacename></entry>
   						<entry>Redis hash operations</entry>
   					</row>
   					<row>
   						<entry spanname="both"><emphasis><![CDATA[Key Bound Operations]]></emphasis></entry>
   					</row>
   					<row>
-  						<entry>BoundValueOperations</entry>
+  						<entry><interfacename>BoundValueOperations</interfacename></entry>
   						<entry>Redis string (or value) key bound operations</entry>
   					</row>
   					<row>
-  						<entry>BoundListOperations</entry>
+  						<entry><interfacename>BoundListOperations</interfacename></entry>
   						<entry>Redis list key bound operations</entry>
   					</row>
   					<row>
-  						<entry>BoundSetOperations</entry>
+  						<entry><interfacename>BoundSetOperations</interfacename></entry>
   						<entry>Redis set key bound operations</entry>
   					</row>
   					<row>
-  						<entry>BoundZSetOperations</entry>
+  						<entry><interfacename>BoundZSetOperations</interfacename></entry>
   						<entry>Redis zset (or sorted set) key bound operations</entry>
   					</row>
   					<row>
-  						<entry>BoundHashOperations</entry>
+  						<entry><interfacename>BoundHashOperations</interfacename></entry>
   						<entry>Redis hash key bound operations</entry>
   					</row>  					
   				</tbody>
   			</tgroup>
   		</table>
   		
+  		<para>Once configured, the template is thread-safe and can be reused across multiple instances.</para>
+  		
+  		<para>Out of the box, <classname>RedisTemplate</classname> uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be
+  		serializer/deserialized through Java. The serialization mechanism can be easily changed on the template and the Redis module offers several implementations available in the 
+  		<literal>org.springframework.data.keyvalue.redis.serializer</literal> package.</para>
+  		
+  		<para>Since it's quite the keys and values stored in Redis can be <classname>java.lang.String</classname>, the Redis modules provides <classname>StringRedisTemplate</classname>,
+  		a convenient provides a one-stop solution for intensive operations operations. In addition to be bound to <literal>String</literal> keys, the template uses the 
+  		<classname>StringRedisSerializer</classname> underneath which means the stored keys and values are human readable (assuming the same encoding is used both in Redis and your code).
+  		For example:
+  		</para>
+  		
+  		<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+	<bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"
+				p:use-pool="true"/>
+	
+	<bean id="stringRedisTemplate" class="org.springframework.data.keyvalue.redis.core.StringRedisTemplate"
+		p:connection-factory-ref="jedisConnectionFactory"/>
+
+	...	
+</beans>]]></programlisting>
+  		
+  		<programlisting language="java"><![CDATA[public class Example {
+
+	@Autowired
+	private StringRedisTemplate redisTemplate;
+
+	public void addLink(String userId, URL url) {
+		redisTemplate.getListOps().leftPush(userId, url.toExternalForm());
+	}
+}]]></programlisting>
+  		<para>As with the other Spring templates, <classname>RedisTemplate</classname> and <classname>StringRedisTemplate</classname> allow the developer to talk directly to Redis through
+  		the <interfacename>RedisCallback</interfacename> interface: this gives complete control to the developer as it talks directly to the <interfacename>RedisConnection</interfacename>.
+  		</para>
+  		
+  	<programlisting language="java"><![CDATA[public void useCallback() {
+	redisTemplate.execute(new RedisCallback<Object>() {
+		
+		public Object doInRedis(RedisConnection connection) throws DataAccessException {
+			Long size = connection.dbSize();
+			...
+		}
+	});
+}]]></programlisting>
   	</section>
   	
   	<section id="redis:support">
-  		<title>Support Services</title>
+  		<title>Support Classes</title>
   	</section>
 </chapter>
