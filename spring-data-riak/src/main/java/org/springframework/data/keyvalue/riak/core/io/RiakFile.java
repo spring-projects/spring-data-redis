@@ -42,6 +42,7 @@ import java.util.Map;
  */
 public class RiakFile<B, K> extends File {
 
+  private static final long serialVersionUID = 1L;
   private static final Logger log = LoggerFactory.getLogger(RiakFile.class);
 
   private RiakTemplate riak;
