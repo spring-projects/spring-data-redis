@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-keyvalue-parent</artifactId>
-		<version>1.0.0.M1</version>
+		<version>1.0.0.M2-SNAPSHOT</version>
 		<relativePath>../spring-data-keyvalue-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-data-redis</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Data Redis Support</name>
-  <version>1.0.0.M1</version>	
+  <version>1.0.0.M2-SNAPSHOT</version>	
 	
 	<properties>
     <!--<jredis.ver>02112010</jredis.ver>-->
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-keyvalue-core</artifactId>
-			<version>1.0.0.M1</version>
+			<version>1.0.0.M2-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Logging -->
