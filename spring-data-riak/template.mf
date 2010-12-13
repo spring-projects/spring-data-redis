@@ -1,5 +1,5 @@
 Bundle-SymbolicName: org.springframework.data.keyvalue.riak
-Bundle-Name: Spring data Riak Support
+Bundle-Name: Spring Data Riak Support
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
 Import-Package:
