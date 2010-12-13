@@ -19,6 +19,7 @@ package org.springframework.data.keyvalue.riak.core
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.data.keyvalue.riak.core.io.RiakFile
 import org.springframework.data.keyvalue.riak.mapreduce.JavascriptMapReduceOperation
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReducePhase
@@ -39,7 +40,7 @@ class RiakTemplateSpec extends Specification {
   int run = 1
   @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
   @Shared def p
-
+/*
   def setupSpec() {
     p = "$riakBin start".execute()
     p.waitFor()
@@ -50,6 +51,7 @@ class RiakTemplateSpec extends Specification {
     p = "$riakBin stop".execute()
     p.waitFor()
   }
+*/
 
   def "Test Map object"() {
 
@@ -232,6 +234,25 @@ class RiakTemplateSpec extends Specification {
     then:
     1 == result.size()
     1 == result[0]
+
+  }
+
+  def "Test RiakFile"() {
+
+    given:
+    def file = new RiakFile(riak, "test", "test")
+
+    when:
+    def exists = file.exists()
+
+    then:
+    exists
+
+    when:
+    def content = file.toURI().toURL().openConnection().getContent()
+
+    then:
+    null != content
 
   }
 

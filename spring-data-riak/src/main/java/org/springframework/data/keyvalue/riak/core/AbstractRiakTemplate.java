@@ -176,6 +176,22 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     this.defaultQosParameters = defaultQosParameters;
   }
 
+  public String getHost() {
+    Matcher m = prefix.matcher(defaultUri);
+    if (m.matches()) {
+      return m.group(1);
+    }
+    return "localhost";
+  }
+
+  public Integer getPort() {
+    Matcher m = prefix.matcher(defaultUri);
+    if (m.matches()) {
+      return new Integer(m.group(2));
+    }
+    return 8098;
+  }
+
   /**
    * Extract the prefix from the URI for use in creating links.
    *
