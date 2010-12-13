@@ -44,6 +44,7 @@
       <xi:include href="reference/redis.xml"/>
     </part>
 
+    <!--
     <part id="resources">
       <title>Other Documentation</title>
        
@@ -55,9 +56,8 @@
               enumerated in this section.
           </para>
       </partintro>
-      <!--
       <xi:include href="links.xml"/>       
-      -->
     </part>
+    -->
     
 </book>

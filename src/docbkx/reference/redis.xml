@@ -36,7 +36,7 @@
 			<listitem><emphasis>High-Level Abstractions</emphasis> - providing a generified, user friendly template classes for interacting with Redis. 
 			<xref linkend="redis:template"/> explains the abstraction builds on top of the low-level <interfacename>Connection</interfacename> API to handle the 
 			infrastructural concerns and object conversion.</listitem>
-			<listitem><emphasis>Support Services</emphasis> - that offer reusable components (built on the aforementioned abstractions) such as 
+			<listitem><emphasis>Support Classes</emphasis> - that offer reusable components (built on the aforementioned abstractions) such as 
 			<interfacename>java.util.Collection</interfacename> backed by Redis as documented in <xref linkend="redis:support"/></listitem>
 		</itemizedlist>
 		
@@ -279,5 +279,39 @@
   	
   	<section id="redis:support">
   		<title>Support Classes</title>
+  		
+  		<para>Package <literal>org.springframework.data.keyvalue.redis.support</literal> offers various reusable components that rely on Redis as a backing store. Curently the package contains
+  		various JDK-based interface implementations on top of Redis such as <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/atomic/package-summary.html">atomic</ulink> 
+  		counters and JDK <interfacename><ulink url="http://download.oracle.com/javase/6/docs/api/java/util/Collection.html">Collections</ulink></interfacename>.</para>
+  		
+  		<para>The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API leakage: in particular
+  		the <interfacename>RedisSet</interfacename> and <interfacename>RedisZSet</interfacename> interfaces offer easy access to the <emphasis>set</emphasis> operations supported by Redis such as
+  		<literal>intersection</literal> and <literal>union</literal> while <interfacename>RedisList</interfacename> implements the <interfacename>List</interfacename>, 
+  		<interfacename>Queue</interfacename> and <interfacename>Deque</interfacename> contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a
+  		<emphasis>FIFO (First-In-First-Out)</emphasis>, <emphasis>LIFO (Last-In-First-Out)</emphasis> or <epmhasis>capped collection</epmhasis> with minimal configuration:</para>
+  		
+  		<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+	<bean id="queue" class="org.springframework.data.keyvalue.redis.support.collections.DefaultRedisList">
+		<constructor-arg ref="redisTemplat"/>
+		<constructor-arg value="queue-key"/>
+	</bean>
+		
+</beans>]]></programlisting>
+
+  	<programlisting language="java"><![CDATA[public class AnotherExample {
+
+	// injected
+	private Deque<String> queue;
+
+	public void addTag(String tag) {
+		queue.push(tag);
+	}
+}]]></programlisting>
   	</section>
 </chapter>
