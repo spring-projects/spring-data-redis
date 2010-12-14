@@ -12,6 +12,11 @@
                 <surname>Leau</surname>
                 <affiliation>SpringSource</affiliation>
             </author>
+            <author>
+                <firstname>Jon</firstname>
+                <surname>Brisbin</surname>
+                <affiliation>NPC International, Inc.</affiliation>
+            </author>
         </authorgroup>
 
         <legalnotice>
@@ -42,6 +47,7 @@
        
       <xi:include href="reference/introduction.xml"/>
       <xi:include href="reference/redis.xml"/>
+      <xi:include href="reference/riak.xml"/>
     </part>
 
     <!--

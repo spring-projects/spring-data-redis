@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="riak">
+  <title>Riak Support</title>
+  
+  <para><ulink url="https://wiki.basho.com/display/RIAK/Riak">Riak</ulink> is a Key/Value datastore that supports <ulink url="https://wiki.basho.com/pages/viewpage.action?pageId=1245320">Internet-scale data replication</ulink> for high performance and high availability. Spring Data Key/Value (SDKV) provides access to the Riak datastore over the <ulink url="https://wiki.basho.com/display/RIAK/REST+API">HTTP REST API</ulink> using a built-in driver based on Spring 3.0's <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/remoting.html#rest-resttemplate"><classname>RestTemplate</classname></ulink>. In addition to making Key/Value datastore access easier from Java, the <classname>RiakTemplate</classname> has been designed, from the ground up, to be used from alternative JVM languages like <ulink url="http://groovy.codehaus.org/">Groovy</ulink> or <ulink url="http://jruby.org/">JRuby</ulink>.</para> 
+  
+  <para>Since the SDKV support for Riak uses the stateless REST API, there are no connection factories to manage or other stateful objects to keep tabs on. The helper you'll spend the most time working with is likely the thread-safe <classname>RiakTemplate</classname> or <classname>RiakKeyValueTemplate</classname>. Your choice of which to use will depend on how you want to manage buckets and keys. SDKV supports two ways to interact with Riak. If you want to use the convention you're likely already familiar with, namely of storing an entry with a given key in a "bucket" by passing the bucket and key name separately, you'll want to use the <classname>RiakTemplate</classname>. If you want to use a single object to represent your bucket and key pair, you can use the <classname>RiakKeyValueTemplate</classname>. It supports a key object that is encoded using one of several different methods:
+  <itemizedlist>
+    <listitem><emphasis>Using a <classname>String</classname></emphasis> - You can concatenate two strings, separated by a colon: "mybucket:mykey".</listitem>
+    <listitem><emphasis>Using a <interfacename>BucketKeyPair</interfacename></emphasis> - You can pass an instance of <interfacename>BucketKeyPair</interfacename>, like <classname>SimpleBucketKeyPair</classname>.</listitem>
+    <listitem><emphasis>Using a <interfacename>Map</interfacename></emphasis> - You can pass a <interfacename>Map</interfacename> with keys for "bucket" and "key".</listitem>
+  </itemizedlist>
+  </para>
+  
+  <section id="riak:template:config">
+    <title>Configuring the <classname>RiakTemplate</classname></title>
+    
+    <para>This is likely the easiest path to using SDKV for Riak, as the bucket and key are passed separately. The examples that follow will assume you're using this version of the the template.</para>
+    
+    <para>There are only two options you need to set to specify the Riak server to use in your <classname>RiakTemplate</classname> object: "defaultUri" and "mapReduceUri". Encoded with the URI should be placeholders for the bucket and the key, which will be filled in by the <classname>RestTemplate</classname> when the request is made. 
+    
+      <important><para>You can also turn the internal, ETag-based object cache off by setting <literal>useCache="false"</literal>. It's generally recommended, however, to leave the internal cache on as the ETag matching will pick up any changes made to the entry on the Riak side and your application will benefit from greatly-increased performance for often-requested objects.</para></important>
+    
+      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.RiakTemplate" 
+          p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
+          p:mapReduceUri="http://localhost:8098/mapred"
+          p:useCache="true"/>
+    
+</beans>]]></programlisting>
+    </para>
+    
+    <para>There are a couple additional properties on the <classname>RiakTemplate</classname> that can be changed from their defaults. If you want to specify your own <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">ConversionService</ulink> to use when converting objects for storage inside Riak, then set it on the "conversionService" property:
+
+      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="conversionService" class="com.mycompany.convert.MyConversionService"/> 
+    <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.RiakTemplate" 
+          p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
+          p:mapReduceUri="http://localhost:8098/mapred"
+          p:conversionService-ref="conversionService"/>
+
+</beans>]]></programlisting>
+    </para>
+    
+    <para>Depending on the application, it might be useful to set default Quality-of-Service parameters. In Riak paralance, these are the <ulink url="https://wiki.basho.com/display/RIAK/REST+API#RESTAPI-Setbucketproperties">"dw", "w", and "r" parameters</ulink>. They can be set to an integer representing the number of vnodes that need to report having received the data before declaring the operation a success, or the string "one", "all", or (the default) "quorum". These values can be overridden by passing a different set of <interfacename>QosParameters</interfacename> to the set/get operation you're performing.
+    
+      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="qos" class="org.springframework.data.keyvalue.riak.core.RiakQosParameters"
+          p:durableWriteThreshold="all"
+          p:writeThreshold="all"/>
+    <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.RiakTemplate" 
+          p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
+          p:mapReduceUri="http://localhost:8098/mapred"
+          p:defaultQosParameters-ref="qos"/>
+
+</beans>]]></programlisting>
+    </para>
+    
+    <para>It might also be necessary to replace the default <classname>ExecutorService</classname> (by default a cached <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor</ulink>) with an executor you've explicitly configured. Set your <classname>ExecutorService</classname> on the template's "executorService" property.</para>
+    
+    <para></para>
+  </section>
+  
+  <section id="riak:template:objects">
+    <title>Working with Objects using the <classname>RiakTemplate</classname></title>
+    
+    <para>One of the primary goals of the SDKV project is to make accessing Key/Value stores easier for the developer by taking away the mundane tasks of basic IO, buffering, type conversion, exception handling, and sundry other logistical concerns so the developer can focus on creating great applications. SDKV for Riak works toward this goal by making basic persistence and data access as easy as using a <classname>Map</classname>.</para>
+    
+    <para>To store data in Riak, use one of the six different <literal>set</literal> methods:
+      <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+
+public class Example {
+
+    @Autowired
+    RiakTemplate riak;
+
+    public void setData(String bucket, String key, String data) throws Exception {
+        riak.set(bucket, key, data); // Set as Content-Type: text/plain
+        riak.setAsBytes(bucket, key, data.getBytes()); // Set as Content-Type: application/octet-stream
+    }
+    
+    public void setData(String bucket, String key, MyPojo data) throws Exception {
+        riak.set(bucket, key, data); // Converted to JSON automatically, Content-Type: application/json
+    }
+
+}
+      ]]></programlisting>
+    </para>
+    
+    <para>Additionally, there is a <literal>setWithMetaData</literal> method that takes a <classname>Map</classname> of metadata that will be set as the outgoing HTTP headers. To set custom metadata, your key should be prefixed with <literal>X-Riak-Meta-</literal> e.g. <literal>X-Riak-Meta-Custom-Header</literal>.</para>
+    
+    <para>Retrieving data from Riak is just as easy. There are actually 13 different <literal>get</literal> methods on <classname>RiakTemplate</classname> that give the developer a wide range options for accessing and converting your data.</para>
+    
+    <para>Assuming you've stored a POJO using an appropriate <literal>set</literal> method, you can retrieve that object from Riak using a <literal>get</literal>:
+      <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+
+public class Example {
+
+    @Autowired
+    RiakTemplate riak;
+
+    public void getData(String bucket, String key) throws Exception {
+        // What you get depends on Content-Type. 
+        // application/json=Map, text/plain=String, etc...
+        Object o = riak.get(bucket, key); 
+        
+        // If your entry is Content-Type: application/json...
+        // It will automatically be converted when retrieved.
+        MyPojo s = riak.getAsType(bucket, key, MyPojo.class);
+        
+        // If your entry is Content-Type: application/octet-stream,
+        // you can access the raw bytes.
+        byte[] b = riak.getAsBytes(bucket, key); // No conversion at all
+    }
+
+}
+      ]]></programlisting>
+    </para>
+
+  </section>
+  
+  <section id="riak:io">
+    <title>Working with streams</title>
+
+    <para>SDKV for Riak includes a couple of useful helper objects to make reading and writing plain text or binary data in Riak really easy. If you want to store a file in Riak, then you can create a <classname>RiakOutputStream</classname> and simply write your data to it (making sure to call the "flush" method, which actually sends the data to Riak).
+    
+      <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+import org.springframework.data.keyvalue.riak.core.io.RiakOutputStream;
+        
+public class Example {
+
+    @Autowired
+    RiakTemplate riak;
+
+    public void writeToRiak(String bucket, String key, String data) throws Exception {
+        OutputStream out = new RiakOutputStream(riak, bucket, key);
+        try {
+            out.write(data.getBytes());
+        } finally {
+            out.flush();
+            out.close();
+        }
+    }
+    
+}
+      ]]></programlisting>
+      
+      <para>Reading data from Riak is similarly easy. SDKV provides a <literal>java.io.File</literal> subclass that represents a resource in Riak. There's also a Spring IO Resource abstraction called <classname>RiakResource</classname> that can be used anywhere a <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/resources.html"><interfacename>Resource</interfacename></ulink> is required. There's also an <classname>InputStream</classname> implementation called <classname>RiakInputStream</classname>.</para>
+      
+      <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+import org.springframework.data.keyvalue.riak.core.io.RiakInputStream;
+        
+public class Example {
+
+    @Autowired
+    RiakTemplate riak;
+
+    public String readFromRiak(String bucket, String key) throws Exception {
+        InputStream in = new RiakInputStream(riak, bucket, key);
+        String data;
+        ...read data and work with it...
+        return data;
+    }
+    
+}
+      ]]></programlisting>
+      
+    </para>
+  </section>
+</chapter>

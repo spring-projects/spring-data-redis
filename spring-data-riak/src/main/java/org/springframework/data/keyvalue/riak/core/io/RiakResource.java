@@ -80,7 +80,7 @@ public class RiakResource<B, K> extends UrlResource {
   @Override
   public URI getURI() throws IOException {
     try {
-      return new URI(new RiakFile(riak, bucket, key).getUriAsString(true));
+      return new RiakFile(riak, bucket, key).toURI();
     } catch (URISyntaxException e) {
       log.error(e.getMessage(), e);
     }
@@ -92,6 +92,8 @@ public class RiakResource<B, K> extends UrlResource {
   public Resource createRelative(String relativePath) throws MalformedURLException {
     if (relativePath.startsWith("../")) {
       return new RiakResource(riak, bucket, relativePath.substring(3));
+    } else if (!relativePath.startsWith("/")) {
+      return new RiakResource(riak, bucket, relativePath);
     }
     return null;
   }
