@@ -38,9 +38,12 @@
 </beans>]]></programlisting>
     </para>
     
-    <para>There are a couple additional properties on the <classname>RiakTemplate</classname> that can be changed from their defaults. If you want to specify your own <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">ConversionService</ulink> to use when converting objects for storage inside Riak, then set it on the "conversionService" property:
+    <section id="riak:template:config:advanced">
+      <title>Advanced Template Configuration</title>
+      
+      <para>There are a couple additional properties on the <classname>RiakTemplate</classname> that can be changed from their defaults. If you want to specify your own <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">ConversionService</ulink> to use when converting objects for storage inside Riak, then set it on the "conversionService" property:
 
-      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+        <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:p="http://www.springframework.org/schema/p"
@@ -54,11 +57,11 @@
           p:conversionService-ref="conversionService"/>
 
 </beans>]]></programlisting>
-    </para>
+      </para>
     
-    <para>Depending on the application, it might be useful to set default Quality-of-Service parameters. In Riak paralance, these are the <ulink url="https://wiki.basho.com/display/RIAK/REST+API#RESTAPI-Setbucketproperties">"dw", "w", and "r" parameters</ulink>. They can be set to an integer representing the number of vnodes that need to report having received the data before declaring the operation a success, or the string "one", "all", or (the default) "quorum". These values can be overridden by passing a different set of <interfacename>QosParameters</interfacename> to the set/get operation you're performing.
+      <para>Depending on the application, it might be useful to set default Quality-of-Service parameters. In Riak paralance, these are the <ulink url="https://wiki.basho.com/display/RIAK/REST+API#RESTAPI-Setbucketproperties">"dw", "w", and "r" parameters</ulink>. They can be set to an integer representing the number of vnodes that need to report having received the data before declaring the operation a success, or the string "one", "all", or (the default) "quorum". These values can be overridden by passing a different set of <interfacename>QosParameters</interfacename> to the set/get operation you're performing.
     
-      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+        <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:p="http://www.springframework.org/schema/p"
@@ -74,11 +77,11 @@
           p:defaultQosParameters-ref="qos"/>
 
 </beans>]]></programlisting>
-    </para>
+      </para>
     
-    <para>It might also be necessary to replace the default <classname>ExecutorService</classname> (by default a cached <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor</ulink>) with an executor you've explicitly configured. Set your <classname>ExecutorService</classname> on the template's "executorService" property.</para>
+      <para>It might also be necessary to replace the default <classname>ExecutorService</classname> (by default a cached <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor</ulink>) with an executor you've explicitly configured. Set your <classname>ExecutorService</classname> on the template's "executorService" property.</para>
     
-    <para></para>
+    </section>
   </section>
   
   <section id="riak:template:objects">
@@ -86,8 +89,11 @@
     
     <para>One of the primary goals of the SDKV project is to make accessing Key/Value stores easier for the developer by taking away the mundane tasks of basic IO, buffering, type conversion, exception handling, and sundry other logistical concerns so the developer can focus on creating great applications. SDKV for Riak works toward this goal by making basic persistence and data access as easy as using a <classname>Map</classname>.</para>
     
-    <para>To store data in Riak, use one of the six different <literal>set</literal> methods:
-      <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+    <section id="riak:template:objects:get">
+      <title>Saving data into Riak</title>
+      
+      <para>To store data in Riak, use one of the six different <literal>set</literal> methods:
+        <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
 
 public class Example {
 
@@ -98,45 +104,49 @@ public class Example {
         riak.set(bucket, key, data); // Set as Content-Type: text/plain
         riak.setAsBytes(bucket, key, data.getBytes()); // Set as Content-Type: application/octet-stream
     }
-    
+  
     public void setData(String bucket, String key, MyPojo data) throws Exception {
         riak.set(bucket, key, data); // Converted to JSON automatically, Content-Type: application/json
     }
 
 }
-      ]]></programlisting>
-    </para>
+        ]]></programlisting>
+      </para>
     
-    <para>Additionally, there is a <literal>setWithMetaData</literal> method that takes a <classname>Map</classname> of metadata that will be set as the outgoing HTTP headers. To set custom metadata, your key should be prefixed with <literal>X-Riak-Meta-</literal> e.g. <literal>X-Riak-Meta-Custom-Header</literal>.</para>
+      <para>Additionally, there is a <literal>setWithMetaData</literal> method that takes a <classname>Map</classname> of metadata that will be set as the outgoing HTTP headers. To set <ulink url="https://wiki.basho.com/display/RIAK/REST+API#RESTAPI-Storeaneworexistingobjectwithakey">custom metadata</ulink>, your key should be prefixed with <literal>X-Riak-Meta-</literal> e.g. <literal>X-Riak-Meta-Custom-Header</literal>.</para>
+    </section>
     
-    <para>Retrieving data from Riak is just as easy. There are actually 13 different <literal>get</literal> methods on <classname>RiakTemplate</classname> that give the developer a wide range options for accessing and converting your data.</para>
+    <section id="riak:template:objects:set">
+      <title>Retrieving data from Riak</title>
     
-    <para>Assuming you've stored a POJO using an appropriate <literal>set</literal> method, you can retrieve that object from Riak using a <literal>get</literal>:
-      <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+      <para>Retrieving data from Riak is just as easy. There are actually 13 different <literal>get</literal> methods on <classname>RiakTemplate</classname> that give the developer a wide range options for accessing and converting your data.</para>
+    
+      <para>Assuming you've stored a POJO using an appropriate <literal>set</literal> method, you can retrieve that object from Riak using a <literal>get</literal>:
+        <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
 
-public class Example {
+  public class Example {
 
-    @Autowired
-    RiakTemplate riak;
+      @Autowired
+      RiakTemplate riak;
 
-    public void getData(String bucket, String key) throws Exception {
-        // What you get depends on Content-Type. 
-        // application/json=Map, text/plain=String, etc...
-        Object o = riak.get(bucket, key); 
+      public void getData(String bucket, String key) throws Exception {
+          // What you get depends on Content-Type. 
+          // application/json=Map, text/plain=String, etc...
+          Object o = riak.get(bucket, key); 
         
-        // If your entry is Content-Type: application/json...
-        // It will automatically be converted when retrieved.
-        MyPojo s = riak.getAsType(bucket, key, MyPojo.class);
+          // If your entry is Content-Type: application/json...
+          // It will automatically be converted when retrieved.
+          MyPojo s = riak.getAsType(bucket, key, MyPojo.class);
         
-        // If your entry is Content-Type: application/octet-stream,
-        // you can access the raw bytes.
-        byte[] b = riak.getAsBytes(bucket, key); // No conversion at all
-    }
+          // If your entry is Content-Type: application/octet-stream,
+          // you can access the raw bytes.
+          byte[] b = riak.getAsBytes(bucket, key); // No conversion at all
+      }
 
-}
-      ]]></programlisting>
-    </para>
-
+  }
+        ]]></programlisting>
+      </para>
+    </section>
   </section>
   
   <section id="riak:io">
