@@ -6,11 +6,11 @@
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-keyvalue-parent</artifactId>
     <relativePath>../spring-data-keyvalue-parent/pom.xml</relativePath>
+    <version>1.0.0.M2-SNAPSHOT</version>
   </parent>
   <artifactId>spring-data-riak</artifactId>
   <packaging>jar</packaging>
   <name>Spring Data Riak Support</name>
-  <version>1.0.0.M2-SNAPSHOT</version>
 
   <dependencies>
     <!--  Spring -->

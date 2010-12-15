@@ -5,12 +5,12 @@
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-keyvalue-parent</artifactId>
 		<relativePath>../spring-data-keyvalue-parent/pom.xml</relativePath>
+		<version>1.0.0.M2-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-data-redis</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Data Redis Support</name>
-  <version>1.0.0.M2-SNAPSHOT</version>	
-	
+  
 	<properties>
     <!--<jredis.ver>02112010</jredis.ver>-->
     <jredis.ver>03122010</jredis.ver>
