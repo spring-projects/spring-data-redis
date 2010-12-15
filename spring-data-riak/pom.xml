@@ -5,13 +5,12 @@
   <parent>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-keyvalue-parent</artifactId>
-    <version>1.0.0.M2-SNAPSHOT</version>
     <relativePath>../spring-data-keyvalue-parent/pom.xml</relativePath>
   </parent>
   <artifactId>spring-data-riak</artifactId>
   <packaging>jar</packaging>
   <name>Spring Data Riak Support</name>
-  <version>1.0.0.M1</version>
+  <version>1.0.0.M2-SNAPSHOT</version>
 
   <dependencies>
     <!--  Spring -->
