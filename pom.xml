@@ -25,7 +25,7 @@
     <url>http://www.SpringSource.org</url>
   </organization>
   
-    <developers>
+  <developers>
     <developer>
       <id>mpollack</id>
       <name>Mark Pollack</name>
@@ -48,6 +48,17 @@
         <role>Developer</role>
       </roles>
       <timezone>+2</timezone>
+    </developer>
+    <developer>
+      <id>jbrisbin</id>
+      <name>Jon Brisbin</name>
+      <email>jon at jbrisbin.com</email>
+      <organization>NPC International</organization>
+      <organizationUrl>http://www.npcinternational.com</organizationUrl>
+      <roles>
+        <role>Developer</role>
+      </roles>
+      <timezone>-6</timezone>
     </developer>
   </developers>
 
