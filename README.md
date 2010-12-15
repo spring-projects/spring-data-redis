@@ -94,15 +94,15 @@ For those in a hurry:
       -----
       
       MyObject obj = new MyObject("value1", "value2");
-      riakTemplate.set("mybucket:mykey", obj);
+      riakTemplate.set("mybucket", "mykey", obj);
       
-      Map returnObj = riakTemplate.getAsType("mybucket:mykey", Map.class);
+      Map returnObj = riakTemplate.getAsType("mybucket", "mykey", Map.class);
       
       Groovy:
       -----
       
       def obj = [first: "value1", second: "value2"]
-      riakTemplate.set([bucket: "mybucket", key: "mykey"], obj)
+      riakTemplate.set("mybucket", "mykey", obj)
       
 
 Contributing to Spring Data

@@ -98,6 +98,10 @@
       <groupId>javax.mail</groupId>
       <artifactId>mail</artifactId>
     </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.mockito</groupId>
@@ -129,7 +133,7 @@
         <artifactId>com.springsource.bundlor.maven</artifactId>
       </plugin>
 
-      <!-- For running Groovy/Spock tests 
+      <!-- For running Groovy/Spock tests
       <plugin>
         <groupId>org.spockframework</groupId>
         <artifactId>spock-maven</artifactId>
