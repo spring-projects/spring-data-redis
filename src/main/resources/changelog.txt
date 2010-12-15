@@ -16,8 +16,17 @@ Package o.s.d.k.redis.support
 * Refined AtomicInteger and AtomicLong constructors to use the backing store value as initial counter
 
 
-Changes in version 1.0.0.M1 (2010-12-13)
-----------------------------------------
+Changes in version Riak 1.0.0.M1 (2010-12-15)
+---------------------------------------------
+General
+* Generified RiakTemplate for exception translation, serialization, and data access
+* Built-in HTTP REST client based on Spring 3.0 RestTemplate
+* java.io and Spring IO resource abstractions for reading/writing streams
+* java.io.File subclass that represents a Riak resource
+
+
+Changes in version Redis 1.0.0.M1 (2010-12-13)
+----------------------------------------------
 General
 * Configuration support for Redis Jedis and JRedis drivers/connectors
 * Connection package as low-level abstraction across multiple drivers
