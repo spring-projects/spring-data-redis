@@ -3,6 +3,19 @@ SPRING DATA REDIS INTEGRATION CHANGELOG
 http://www.springsource.org/spring-data
 
 
+Changes in version 1.0.0.M2 (2011-xx-yy)
+----------------------------------------
+General
+* Improved documentation
+
+Package o.s.d.k.redis.connection
+* Renamed JedisConnectionFactory pooling to usePool
+* Renamed JredisConnectionFactory pooling to usePool
+
+Package o.s.d.k.redis.support
+* Refined AtomicInteger and AtomicLong constructors to use the backing store value as initial counter
+
+
 Changes in version 1.0.0.M1 (2010-12-13)
 ----------------------------------------
 General
