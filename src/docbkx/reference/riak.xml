@@ -89,7 +89,7 @@
     
     <para>One of the primary goals of the SDKV project is to make accessing Key/Value stores easier for the developer by taking away the mundane tasks of basic IO, buffering, type conversion, exception handling, and sundry other logistical concerns so the developer can focus on creating great applications. SDKV for Riak works toward this goal by making basic persistence and data access as easy as using a <classname>Map</classname>.</para>
     
-    <section id="riak:template:objects:get">
+    <section id="riak:template:objects:set">
       <title>Saving data into Riak</title>
       
       <para>To store data in Riak, use one of the six different <literal>set</literal> methods:
@@ -114,9 +114,30 @@ public class Example {
       </para>
     
       <para>Additionally, there is a <literal>setWithMetaData</literal> method that takes a <classname>Map</classname> of metadata that will be set as the outgoing HTTP headers. To set <ulink url="https://wiki.basho.com/display/RIAK/REST+API#RESTAPI-Storeaneworexistingobjectwithakey">custom metadata</ulink>, your key should be prefixed with <literal>X-Riak-Meta-</literal> e.g. <literal>X-Riak-Meta-Custom-Header</literal>.</para>
+      
+      <section id="riak:template:objects:set:genid">
+        <title>Letting Riak generate the key</title>
+      
+        <para>Riak has the ability to generate random IDs for you when storing objects. The <classname>RiakTemplate</classname> exposes this capability via the <literal>put</literal> method. It will return the ID it generated for you as a <classname>String</classname>.
+          <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.core.RiakTemplate;
+
+public class Example {
+
+    @Autowired
+    RiakTemplate riak;
+
+    public String setData(String bucket, String data) throws Exception {
+        String id = riak.put(bucket, data); // Returns the generated ID
+        return id;
+    }
+
+}
+          ]]></programlisting>
+        </para>
+      </section>
     </section>
     
-    <section id="riak:template:objects:set">
+    <section id="riak:template:objects:get">
       <title>Retrieving data from Riak</title>
     
       <para>Retrieving data from Riak is just as easy. There are actually 13 different <literal>get</literal> methods on <classname>RiakTemplate</classname> that give the developer a wide range options for accessing and converting your data.</para>

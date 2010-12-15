@@ -40,6 +40,7 @@ class RiakTemplateSpec extends Specification {
   int run = 1
   @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
   @Shared def p
+  @Shared def id
 /*
   def setupSpec() {
     p = "$riakBin start".execute()
@@ -65,6 +66,20 @@ class RiakTemplateSpec extends Specification {
 
     then:
     objOut.test == val
+
+  }
+
+  def "Test generating ID for object"() {
+
+    given:
+    def val = "value"
+    def objIn = [test: val, integer: 12]
+
+    when:
+    id = riak.put("test", objIn, null)
+
+    then:
+    null != id
 
   }
 
@@ -261,9 +276,10 @@ class RiakTemplateSpec extends Specification {
     given:
     def testKey = new SimpleBucketKeyPair("test", "test")
     def testKey2 = new SimpleBucketKeyPair(TestObject.name, "test")
+    def testKey3 = new SimpleBucketKeyPair("test", id)
 
     when:
-    def deleted = riak.deleteKeys(testKey, testKey2)
+    def deleted = riak.deleteKeys(testKey, testKey2, testKey3)
 
     then:
     true == deleted

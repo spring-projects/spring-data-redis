@@ -41,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -161,6 +162,52 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
 
   public <B, K, V> BucketKeyValueStoreOperations setWithMetaData(B bucket, K key, V value, Map<String, String> metaData) {
     return setWithMetaData(bucket, key, value, metaData, null);
+  }
+
+  /*----------------- Put Operations -----------------*/
+
+  /**
+   * Save an object to Riak and let it generate an ID for it.
+   *
+   * @param bucket
+   * @param value
+   * @return The generated ID
+   */
+  public <B, V> String put(B bucket, V value) {
+    return put(bucket, value, null);
+  }
+
+  /**
+   * Save an object to Riak and let it generate an ID for it.
+   *
+   * @param bucket
+   * @param value
+   * @param metaData
+   * @return The generated ID
+   */
+  public <B, V> String put(B bucket, V value, Map<String, String> metaData) {
+    String bucketName = bucket.toString();
+    RestTemplate restTemplate = getRestTemplate();
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("X-Riak-ClientId", RIAK_CLIENT_ID);
+    headers.setContentType(extractMediaType(value));
+    if (null != metaData) {
+      for (Map.Entry<String, String> entry : metaData.entrySet()) {
+        headers.set(entry.getKey(), entry.getValue());
+      }
+    }
+    HttpEntity<V> entity = new HttpEntity<V>(value, headers);
+    try {
+      URI uri = restTemplate.postForLocation(defaultUri, entity, bucketName, "");
+      String suri = uri.toString();
+      String id = suri.substring(suri.lastIndexOf("/") + 1);
+      if (log.isDebugEnabled()) {
+        log.debug("New ID: " + id);
+      }
+      return id;
+    } catch (RestClientException e) {
+      throw new DataStoreOperationException(e.getMessage(), e);
+    }
   }
 
   /*----------------- Get Operations -----------------*/

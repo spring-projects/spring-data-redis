@@ -3,7 +3,7 @@ SPRING DATA RIAK INTEGRATION CHANGELOG
 http://www.springsource.org/spring-data
 
 
-Changes in version 1.0.0.M2 (2010-12-dd)
+Changes in version 1.0.0.M1 (2010-12-dd)
 ----------------------------------------
 General
 * Generified RiakTemplate for exception translation, serialization, and data access
