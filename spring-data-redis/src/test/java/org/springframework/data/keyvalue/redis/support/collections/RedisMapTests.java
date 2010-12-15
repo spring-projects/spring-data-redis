@@ -50,14 +50,14 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setPooling(false);
+		jedisConnFactory.setUsePool(false);
 		jedisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
 
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setPooling(false);
+		jredisConnFactory.setUsePool(false);
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);

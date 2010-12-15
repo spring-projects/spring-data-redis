@@ -178,7 +178,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 *
 	 * @return Returns the use of connection pooling.
 	 */
-	public boolean isPooling() {
+	public boolean getUsePool() {
 		return usePool;
 	}
 
@@ -187,7 +187,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 * 
 	 * @param usePool The usePool to set.
 	 */
-	public void setPooling(boolean usePool) {
+	public void setUsePool(boolean usePool) {
 		this.usePool = usePool;
 	}
 

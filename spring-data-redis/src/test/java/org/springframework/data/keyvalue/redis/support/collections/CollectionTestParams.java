@@ -34,14 +34,14 @@ public abstract class CollectionTestParams {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setPooling(false);
+		jedisConnFactory.setUsePool(false);
 		jedisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setPooling(false);
+		jredisConnFactory.setUsePool(false);
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);

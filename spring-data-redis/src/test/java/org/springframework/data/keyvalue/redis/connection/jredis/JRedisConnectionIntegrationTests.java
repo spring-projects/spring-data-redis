@@ -27,7 +27,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	public JRedisConnectionIntegrationTests() {
 		factory = new JredisConnectionFactory();
-		factory.setPooling(false);
+		factory.setUsePool(false);
 		factory.afterPropertiesSet();
 	}
 

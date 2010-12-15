@@ -26,7 +26,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	public JedisConnectionIntegrationTests() {
 		factory = new JedisConnectionFactory();
-		factory.setPooling(false);
+		factory.setUsePool(false);
 		factory.afterPropertiesSet();
 	}
 
