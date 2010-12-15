@@ -36,13 +36,22 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	private RedisOperations<String, Long> generalOps;
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance with an initial value of zero.
+	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses as initial value
+	 * the data from the backing store (sets the counter to 0 if no value is found).
 	 *
+	 * Use {@link #RedisAtomicLong(String, RedisOperations, int)} to set the counter to a certain value
+	 * as an alternative constructor or {@link #set(int)}.
+	 * 
 	 * @param redisCounter
 	 * @param operations
 	 */
 	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations) {
-		this(redisCounter, operations, 0);
+		this.key = redisCounter;
+		this.operations = operations.getValueOps();
+		this.generalOps = operations;
+		if (this.operations.get(redisCounter) == null) {
+			set(0);
+		}
 	}
 
 	/**
