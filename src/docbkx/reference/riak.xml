@@ -161,13 +161,175 @@ public class Example {
         
           // If your entry is Content-Type: application/octet-stream,
           // you can access the raw bytes.
-          byte[] b = riak.getAsBytes(bucket, key); // No conversion at all
+          byte[] b = riak.getAsBytes(bucket, key); 
       }
 
   }
         ]]></programlisting>
       </para>
     </section>
+  </section>
+  
+  <section id="riak:links">
+    <title>Linking Entries</title>
+    
+    <para>Riak has the ability to <ulink url="https://wiki.basho.com/display/RIAK/Links">link entries together using an arbitrary tag</ulink>. This relationship information is stored in the <literal>Link</literal> header. The <classname>RiakTemplate</classname> exposes a method for linking entries together called <ulink url="../../api/org/springframework/data/keyvalue/riak/core/RiakTemplate.html#link(B1, K1, B2, K2, java.lang.String)"><literal>link</literal></ulink>. Its usage is quite simple:
+    
+      <important><para>A link is uni-directional, so keep in mind that the bucket and key you pass first should be that of the child (or target) object and the second set of bucket/key pairs you pass to the <literal>link</literal> method is the source of the relationship. It's this second entry that will receive an updated <literal>Link</literal> header that points to the child or target entry.</para></important>
+
+      <programlisting language="java"><![CDATA[
+@Autowired
+RiakTemplate riak;
+
+riak.link("childbucket", "childkey", "sourcebucket", "sourcekey", "tagname");
+      ]]></programlisting>
+      
+      <para>Now, querying the metadata on the entry at <literal>sourcebucket:sourcekey</literal> will result in a Link header that points to the child object: <literal>&lt;/riak/childbucket/childkey&gt;; riaktag="tagname"</literal></para>
+      
+    </para>
+
+    <section id="riak:links:walking">
+      <title>Link Walking</title>
+
+      <para>When entries are linked together in Riak, those relationships can be efficiently traversed on the server using a feature called <ulink url="http://blog.basho.com/2010/02/24/link-walking-by-example/">Link Walking</ulink>. Rather than requesting each object in a link's relationship individually, a link walk pulls all the related objects at once and sends that data back to the client as MIME-encoded multipart data. As such, it requires special processing to convert those multiple entries into a <interfacename>List</interfacename> of objects, just as if you had used a <literal>get</literal> method. If you don't specify a type to convert the objects to, the <ulink url="api/org/springframework/data/keyvalue/riak/core/RiakTemplate.html#linkWalk(B, K, java.lang.String)"><literal>linkWalk</literal></ulink> method will try to infer it from the bucket name. If the bucket name is not a valid class name, it will default to using a <interfacename>java.util.Map</interfacename>.</para>
+      
+      <para>To link walk a relationship and return a list of custom POJOs, you would do something like this:
+        <programlisting language="java"><![CDATA[
+@Autowired
+RiakTemplate riak;
+
+List<MyPojo> result = riak.linkWalk("sourcebucket", "sourcekey", "tagname", MyPojo.class);
+        ]]></programlisting>
+      </para>
+    </section>
+  </section>
+  
+  <section id="riak:mapred">
+    <title>Map/Reduce</title>
+    
+    <para>Riak supports Map/Reduce functionality in a couple different ways. You can specify the Javascript source to execute (termed "anonymous" Javascript), you can reference some Javascript already stored in Riak at a specfic bucket and key, or you can reference an Erlang module and function. The Map/Reduce support in SDKV covers all these bases by giving you meaningful abstractions over the Map/Reduce job that represent the various aspects of the Map/Reduce process.</para>
+    
+    <para>At the highest level, every Map/Reduce request is represented by a <ulink url="../../api/org/springframework/data/keyvalue/riak/mapreduce/MapReduceJob.html">MapReduceJob</ulink>. The <literal>MapReduceJob</literal> represents the <literal>inputs</literal>, the <literal>phases</literal>, and the optional <literal>arg</literal> to send to Riak to execute the Map/Reduce job. The <literal>toJson</literal> method is responsible for serializing the entire job into the appropriate JSON data to send to Riak.</para>
+    
+    <section id="riak:mapred:inputs">
+      <title>Specifying Inputs</title>
+    
+      <para>Riak will accept either a string denoting the bucket in which to get the list of keys to operate on, or a <interfacename>List</interfacename> of <interfacename>List</interfacename>s denoting the bucket/key pairs to operate on while executing this Map/Reduce job. If you call the <literal>addInputs</literal> method on the job passing a <interfacename>List</interfacename> with a single string entry, the job will assume you want to operate on an entire bucket. Otherwise, you'll need to pass a multi-dimensional <interfacename>List</interfacename> of bucket/key pairs.</para>
+      
+      <para>To operate on an entire bucket:
+        <programlisting language="java"><![CDATA[
+@Autowired
+RiakTemplate riak;
+
+RiakMapReduceJob job = riak.createMapReduceJob();
+List<String> bucket = new ArrayList<String>() {{
+  add("mybucket");
+}};
+job.addInputs(bucket); // Will M/R entire bucket
+        ]]></programlisting>
+      </para>
+      
+      <para>To operate on a set of keys:
+        <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.mapreduce.*;
+          
+@Autowired
+RiakTemplate riak;
+
+RiakMapReduceJob job = riak.createMapReduceJob();
+
+List<String> pair = new ArrayList<String>() {{
+  add("mybucket");
+  add("mykey");
+}};
+List<List<String, String> keys = new ArrayList<String>() {{
+  add(pair);
+}};
+job.addInputs(keys); // Will M/R only specified keys
+        ]]></programlisting>
+      </para>
+    </section>
+    
+    <section id="riak:mapred:phases">
+      <title>Defining Phases</title>
+      
+      <para>Map/Reduce operations in Riak are broken up into phases. Phases contain a <ulink url="../../api/org/springframework/data/keyvalue/riak/mapreduce/MapReduceOperation.html"><interfacename>MapReduceOperation</interfacename></ulink>. There are currently two implementations to handle Javascript or Erlang M/R operations: <ulink url="../../api/org/springframework/data/keyvalue/riak/mapreduce/JavascriptMapReduceOperation.html"><classname>JavascriptMapReduceOperation</classname></ulink> and <ulink url="../../api/org/springframework/data/keyvalue/riak/mapreduce/ErlangMapReduceOperation.html"><classname>ErlangMapReduceOperation</classname></ulink>.</para>
+      
+      <para>An example Map/Reduce job defining a single "map" phase defined in anonymous Javascript might look like this:
+        <programlisting language="java"><![CDATA[import org.springframework.data.keyvalue.riak.mapreduce.*;
+
+@Autowired
+RiakTemplate riak;
+
+RiakMapReduceJob job = riak.createMapReduceJob();
+List<String> bucket = new ArrayList<String>() {{
+  add("mybucket");
+}};
+
+job.addInputs(bucket); // M/R the entire bucket
+
+MapReduceOperation mapOper = new JavascriptMapReduceOperation("function(v){ ...M/R function body... }");
+MapReducePhase mapPhase = new RiakMapReducePhase("map", "javascript", mapOper);
+
+job.addPhase(mapPhase);
+        ]]></programlisting>
+        </para>
+    </section>
+    
+    <section id="riak:mapred:exec">
+      <title>Executing and Working with the Result</title>
+      
+      <para>To execute a configured job on your Riak server, use either the synchronous <literal>execute</literal> or asynchronous <literal>submit</literal> methods of your configured <classname>RiakTemplate</classname>:
+      
+        <programlisting language="java"><![CDATA[
+Object o = riak.execute(job); // Results of last Map or Reduce phase. Should be a List<?>
+
+...or...
+
+List<MyPojo> o = riak.execute(job, MyPojo.class); // Coerce to given type
+
+...or...
+
+Future<List<?>> f = riak.submit(job); // Job runs in a separate thread
+        ]]></programlisting>
+      </para>
+    </section>
+  </section>
+  
+  <section id="riak:buckets">
+    <title>Managing Bucket Properties</title>
+    
+    <para>It's sometimes useful to manage settings like the Quality-of-Service parameters <literal>w</literal> and <literal>dw</literal> (write and durable write thresholds) and the <literal>n_val</literal> setting at the bucket level. It's also possible to list the keys in a particular bucket by calling the <literal>getBucketSchema</literal> method, passing <literal>true</literal> as the second parameter, which tells the <classname>RiakTemplate</classname> to list the keys.</para>
+    
+    <para>To list the keys in a bucket, you would do something like this:
+
+      <programlisting language="java"><![CDATA[
+@Autowired
+RiakTemplate riak;
+
+Map<String, Object> schema = riak.getBucketSchema("mybucket");
+List<String> keys = schema.get("keys")
+for(String key : keys) {
+  ...do something with each key...
+}
+      ]]></programlisting>
+    </para>
+    
+    <para>To update the bucket settings, pass a <interfacename>Map</interfacename> of properties:
+    
+      <programlisting language="java"><![CDATA[
+@Autowired
+RiakTemplate riak;
+
+Map<String, Integer> props = new HashMap<String, Integer>();
+props.put("n_val", 6);
+props.put("dw", 3);
+
+riak.updateBucketSchema("mybucket", props);
+      ]]></programlisting>
+      
+      <para>Only the properties specified in the passed-in <interfacename>Map</interfacename> will be updated. Properties that have already been set in previous operations and not specified in this operation will be unaffected.</para>
+    </para>
+    
   </section>
   
   <section id="riak:io">
