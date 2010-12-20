@@ -201,4 +201,5 @@ public interface BucketKeyValueStoreOperations {
    * @return
    */
   <B, K, V> BucketKeyValueStoreOperations setWithMetaData(B bucket, K key, V value, Map<String, String> metaData);
+
 }

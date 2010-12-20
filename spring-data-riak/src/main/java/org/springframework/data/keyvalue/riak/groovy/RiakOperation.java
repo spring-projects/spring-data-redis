@@ -1,0 +1,238 @@
+/*
+ * Copyright (c) 2010 by J. Brisbin <jon@jbrisbin.com>
+ * Portions (c) 2010 by NPC International, Inc. or the
+ * original author(s).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.data.keyvalue.riak.groovy;
+
+import groovy.lang.Closure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.keyvalue.riak.core.AsyncKeyValueStoreOperation;
+import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
+import org.springframework.data.keyvalue.riak.core.KeyValueStoreMetaData;
+import org.springframework.data.keyvalue.riak.core.QosParameters;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author J. Brisbin <jon@jbrisbin.com>
+ */
+public class RiakOperation<T> implements Callable {
+
+  static enum Type {
+    SET, SETASBYTES, PUT, GET, GETASBYTES, CONTAINSKEY, DELETE
+  }
+
+  static String COMPLETED = "completed";
+  static String FAILED = "failed";
+
+  protected final Logger log = LoggerFactory.getLogger(getClass());
+
+  protected AsyncRiakTemplate riak;
+  protected Type type;
+  protected String bucket;
+  protected String key;
+  protected T value;
+  protected long timeout = -1L;
+  protected QosParameters qosParameters;
+  protected Map<String, List<GuardedClosure>> callbacks = new LinkedHashMap<String, List<GuardedClosure>>();
+  protected ClosureInvokingCallback callbackInvoker = new ClosureInvokingCallback();
+
+  public RiakOperation(AsyncRiakTemplate riak, Type type) {
+    this.riak = riak;
+    this.type = type;
+  }
+
+  public Type getType() {
+    return type;
+  }
+
+  public Map<String, List<GuardedClosure>> getCallbacks() {
+    return callbacks;
+  }
+
+  public QosParameters getQosParameters() {
+    return qosParameters;
+  }
+
+  public void setQosParameters(QosParameters qosParameters) {
+    this.qosParameters = qosParameters;
+  }
+
+  public String getBucket() {
+    return bucket;
+  }
+
+  public void setBucket(String bucket) {
+    this.bucket = bucket;
+  }
+
+  public String getKey() {
+    return key;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  public T getValue() {
+    return value;
+  }
+
+  public void setValue(T value) {
+    this.value = value;
+  }
+
+  public long getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(long timeout) {
+    this.timeout = timeout;
+  }
+
+  public void addHandler(String type, Closure handler, Closure guard) {
+    List<GuardedClosure> guardedClosures = callbacks.get(type);
+    if (null == guardedClosures) {
+      guardedClosures = new ArrayList<GuardedClosure>();
+      callbacks.put(type, guardedClosures);
+    }
+    guardedClosures.add(new GuardedClosure(handler, guard));
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public T call() throws Exception {
+    Future<?> f = null;
+    switch (type) {
+      case GET:
+        f = riak.get(bucket, key, callbackInvoker);
+        break;
+      case GETASBYTES:
+        f = riak.getAsBytes(bucket, key, callbackInvoker);
+        break;
+      case PUT:
+        throw new IllegalStateException("PUT not yet implemented in AsyncRiakTemplate");
+      case SET:
+        f = riak.set(bucket, key, value, callbackInvoker);
+        break;
+      case SETASBYTES:
+        if (value instanceof byte[]) {
+          f = riak.setAsBytes(bucket, key, (byte[]) value, callbackInvoker);
+        } else {
+          log.error("Need to convert obj to byte array first!");
+        }
+        break;
+      case CONTAINSKEY:
+        f = riak.containsKey(bucket, key, callbackInvoker);
+        break;
+      case DELETE:
+        f = riak.delete(bucket, key, callbackInvoker);
+        break;
+    }
+    return null != f && timeout > 0 ? (T) f.get(timeout, TimeUnit.MILLISECONDS) : null;
+  }
+
+  class GuardedClosure {
+
+    private Closure delegate;
+    private Closure guard;
+
+    GuardedClosure(Closure delegate, Closure guard) {
+      this.delegate = delegate;
+      this.guard = guard;
+    }
+
+    public Closure getDelegate() {
+      return delegate;
+    }
+
+    public Closure getGuard() {
+      return guard;
+    }
+
+  }
+
+  class ClosureInvokingCallback implements AsyncKeyValueStoreOperation {
+
+    public void completed(KeyValueStoreMetaData meta, Object result) {
+      for (GuardedClosure cl : callbacks.get(COMPLETED)) {
+        boolean execute = true;
+
+        Closure guardExpr = cl.getGuard();
+        if (null != guardExpr) {
+          int noOfParams = guardExpr.getParameterTypes().length;
+          Object guardResult;
+          if (noOfParams == 2) {
+            guardResult = guardExpr.call(new Object[]{result, meta});
+          } else {
+            guardResult = guardExpr.call(result);
+          }
+          if (null != guardResult) {
+            if (guardResult instanceof Boolean) {
+              execute = (Boolean) guardResult;
+            } else {
+              execute = true;
+            }
+          }
+        }
+
+        if (execute) {
+          Closure callback = cl.getDelegate();
+          if (callback.getParameterTypes().length == 2) {
+            // Pass value and metadata
+            callback.call(new Object[]{result, meta});
+          } else {
+            callback.call(result);
+          }
+          break;
+        }
+      }
+    }
+
+    public void failed(Throwable error) {
+      for (GuardedClosure cl : callbacks.get(FAILED)) {
+        boolean execute = true;
+        Object param;
+
+        Closure guardExpr = cl.getGuard();
+        if (null != guardExpr) {
+          Object guardResult = guardExpr.call(error);
+          if (null != guardResult) {
+            if (guardResult instanceof Boolean) {
+              execute = (Boolean) guardResult;
+            } else {
+              execute = true;
+            }
+          }
+        }
+
+        if (execute) {
+          Closure callback = cl.getDelegate();
+          callback.call(error);
+        }
+      }
+    }
+
+  }
+
+}

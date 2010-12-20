@@ -73,6 +73,10 @@ public class RiakMapReduceJob implements MapReduceJob {
     return this;
   }
 
+  public List<MapReducePhase> getPhases() {
+    return this.phases;
+  }
+
   public void setArg(Object arg) {
     this.arg = arg;
   }

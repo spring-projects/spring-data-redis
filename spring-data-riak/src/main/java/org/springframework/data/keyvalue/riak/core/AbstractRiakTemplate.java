@@ -59,10 +59,8 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractRiakTemplate extends RestGatewaySupport implements InitializingBean {
 
-  /**
-   * Client ID used by Riak to correlate updates.
-   */
-  protected static final String RIAK_CLIENT_ID = "org.springframework.data.keyvalue.riak.core.RiakTemplate/1.0";
+  protected static final String RIAK_META_CLASSNAME = "X-Riak-Meta-ClassName";
+
   /**
    * Regex used to extract host, port, and prefix from the given URI.
    */
@@ -81,6 +79,12 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
       "EEE, d MMM yyyy HH:mm:ss z");
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
+
+  /**
+   * Client ID used by Riak to correlate updates.
+   */
+  protected final String RIAK_CLIENT_ID = getClass().getName() + "/1.0";
+
   /**
    * For converting objects to/from other kinds of objects.
    */
@@ -378,6 +382,18 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     return (params.size() > 0 ? "?" + StringUtils.collectionToDelimitedString(
         params,
         "&") : "");
+  }
+
+  protected HttpHeaders defaultHeaders(Map<String, ?> metadata) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("X-Riak-ClientId", RIAK_CLIENT_ID);
+    if (null != metadata) {
+      for (Map.Entry<String, ?> entry : metadata.entrySet()) {
+        Object o = entry.getValue();
+        headers.set(entry.getKey(), (null != o ? o.toString() : null));
+      }
+    }
+    return headers;
   }
 
 }

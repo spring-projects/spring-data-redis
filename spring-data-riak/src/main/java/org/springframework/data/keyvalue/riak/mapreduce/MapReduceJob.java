@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * A generic interface to representing a Map/Reduce job to a data store that
- * supports that operation.
+ * A generic interface to representing a Map/Reduce job to a data store that supports that
+ * operation.
  *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
@@ -52,6 +52,13 @@ public interface MapReduceJob<T> extends Callable {
    * @return
    */
   MapReduceJob addPhase(MapReducePhase phase);
+
+  /**
+   * Get the list of phases for this job.
+   *
+   * @return
+   */
+  List<MapReducePhase> getPhases();
 
   /**
    * Set the static argument for this job.
