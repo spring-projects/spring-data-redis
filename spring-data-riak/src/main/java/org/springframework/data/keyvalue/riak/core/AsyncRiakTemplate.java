@@ -20,14 +20,17 @@ package org.springframework.data.keyvalue.riak.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.Assert;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -89,8 +92,18 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     Assert.notNull(key, "Cannot use a <NULL> key.");
     String keyName = (null != qosParams ? key.toString() + extractQosParameters(qosParams) : key
         .toString());
+
+    KeyValueStoreMetaData origMeta = getMetaData(bucket, keyName);
+    String vclock = null;
+    if (null != origMeta) {
+      vclock = origMeta.getProperties().get(RIAK_VCLOCK).toString();
+    }
+
     HttpHeaders headers = defaultHeaders(metaData);
     headers.setContentType(extractMediaType(value));
+    if (null != vclock) {
+      headers.set(RIAK_VCLOCK, vclock);
+    }
     headers.set(RIAK_META_CLASSNAME, value.getClass().getName());
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
     return (Future<V>) workerPool.submit(new AsyncPost<V>(bucketName,
@@ -103,17 +116,26 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     return getWithMetaData(bucket, key, null, callback);
   }
 
+  public <B, K> RiakMetaData getMetaData(B bucket, K key) {
+    RestTemplate restTemplate = getRestTemplate();
+    HttpHeaders headers;
+    try {
+      headers = restTemplate.headForHeaders(defaultUri, bucket, key);
+      return extractMetaData(headers);
+    } catch (ResourceAccessException e) {
+    } catch (IOException e) {
+      throw new DataAccessResourceFailureException(e.getMessage(), e);
+    }
+    return null;
+  }
+
   @SuppressWarnings({"unchecked"})
   public <B, K, T> Future<?> getWithMetaData(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T> callback) {
     String bucketName = (null != bucket ? bucket.toString() : requiredType.getName());
     // Get a key name that may or may not include the QOS parameters.
     Assert.notNull(key, "Cannot use a <NULL> key.");
     if (null == requiredType) {
-      try {
-        requiredType = (Class<T>) getType(bucketName, key.toString());
-      } catch (ClassNotFoundException e) {
-        throw new DataStoreOperationException(e.getMessage(), e);
-      }
+      requiredType = (Class<T>) getType(bucketName, key.toString());
     }
     return workerPool.submit(new AsyncGet<T>(bucketName,
         key.toString(),
@@ -227,32 +249,6 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
 
   public <B, K, V> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V> callback) {
     return setWithMetaData(bucket, key, value, metaData, null, callback);
-  }
-
-  protected Class<?> getType(String bucket, String key) throws ClassNotFoundException {
-    HttpHeaders headers = getRestTemplate().headForHeaders(defaultUri, bucket, key);
-    Class<?> clazz = null;
-    if (null != headers) {
-      String s = headers.getFirst(RIAK_META_CLASSNAME);
-      if (null != s) {
-        try {
-          clazz = Class.forName(s);
-        } catch (ClassNotFoundException ignored) {
-          if (headers.getContentType().equals(MediaType.APPLICATION_JSON)) {
-            clazz = Map.class;
-          } else if (headers.getContentType().equals(MediaType.TEXT_PLAIN)) {
-            clazz = String.class;
-          } else {
-            // handle as bytes
-            log.error("Need to handle bytes!");
-          }
-        }
-      }
-    }
-    if (null == clazz) {
-      clazz = byte[].class;
-    }
-    return clazz;
   }
 
   protected class AsyncPost<V> implements Runnable {

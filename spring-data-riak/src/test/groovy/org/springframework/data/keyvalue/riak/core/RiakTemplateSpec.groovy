@@ -35,24 +35,39 @@ class RiakTemplateSpec extends Specification {
 
   @Autowired
   ApplicationContext appCtx
-  @Autowired
-  RiakTemplate riak
+  @Shared RiakTemplate riak = new RiakTemplate()
   int run = 1
   @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
   @Shared def p
   @Shared def id
-/*
+  @Shared boolean shutdown = false
+
   def setupSpec() {
-    p = "$riakBin start".execute()
-    p.waitFor()
-    Thread.sleep(2000)
+    RiakQosParameters qos = new RiakQosParameters()
+    qos.setDurableWriteThreshold("all")
+    riak.setDefaultQosParameters(qos)
+
+    if (!riak.get("status", "")) {
+      p = "$riakBin start".execute()
+      p.waitFor()
+      shutdown = true
+      Thread.sleep(2000)
+    }
+
+    riak.getBucketSchema("test", true).keys.each {
+      riak.delete("test", it)
+    }
+    riak.getBucketSchema(TestObject.name, true).keys.each {
+      riak.delete("test", it)
+    }
   }
 
   def cleanupSpec() {
-    p = "$riakBin stop".execute()
-    p.waitFor()
+    if (shutdown) {
+      p = "$riakBin stop".execute()
+      p.waitFor()
+    }
   }
-*/
 
   def "Test Map object"() {
 
@@ -90,10 +105,27 @@ class RiakTemplateSpec extends Specification {
     riak.set(TestObject.name, "test", objIn)
 
     when:
-    TestObject objOut = riak.get(TestObject.name, "test")
+    TestObject objOut = riak.getAsType(TestObject.name, "test", TestObject)
 
     then:
     objOut.test == "value"
+
+  }
+
+  def "Test convert custom object from bytes"() {
+
+    given:
+    def qos = new RiakQosParameters()
+    qos.durableWriteThreshold = "all"
+    riak.setAsBytes(TestObject.name, "test", "{\"test\":\"string data\",\"integer\":1}".bytes, qos)
+
+    when:
+    def objOut = riak.getAsType(TestObject.name, "test", TestObject)
+    //riak.delete(TestObject.name, "test")
+
+    then:
+    objOut instanceof TestObject
+    objOut.test == "string data"
 
   }
 
@@ -155,6 +187,9 @@ class RiakTemplateSpec extends Specification {
   def "Test linking"() {
 
     given:
+    def qos = new RiakQosParameters()
+    qos.durableWriteThreshold = "all"
+    riak.set(TestObject.name, "test", new TestObject(), qos)
     riak.link(TestObject.name, "test", "test", "test", "test")
 
     when:
@@ -194,7 +229,7 @@ class RiakTemplateSpec extends Specification {
 
     given:
     def i = run++
-    def newObj = [test: "value $i", integer: 12]
+    def newObj = [test: "value $i".toString(), integer: 12]
 
     when:
     def oldObj = riak.getAndSet("test", "test", newObj)
@@ -224,7 +259,7 @@ class RiakTemplateSpec extends Specification {
     def result = riak.execute(job, Integer)
 
     then:
-    1 == result
+    2 == result
 
   }
 
@@ -248,7 +283,7 @@ class RiakTemplateSpec extends Specification {
 
     then:
     1 == result.size()
-    1 == result[0]
+    2 == result[0]
 
   }
 
@@ -273,13 +308,8 @@ class RiakTemplateSpec extends Specification {
 
   def "Test delete key"() {
 
-    given:
-    def testKey = new SimpleBucketKeyPair("test", "test")
-    def testKey2 = new SimpleBucketKeyPair(TestObject.name, "test")
-    def testKey3 = new SimpleBucketKeyPair("test", id)
-
     when:
-    def deleted = riak.deleteKeys(testKey, testKey2, testKey3)
+    def deleted = riak.deleteKeys("test:test", "${TestObject.name}:test", "test:$id")
 
     then:
     true == deleted

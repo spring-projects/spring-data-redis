@@ -43,7 +43,7 @@ class RiakBuilderSpec extends Specification {
     def result = null
 
     when:
-    riak.set(bucket: "test", key: "test", qos: [dw: "all"], value: obj, wait: 3000L) {
+    riak.set(bucket: "test", key: "test", qos: [dw: "all"], value: obj) {
 
       completed(when: { v -> v.integer == 12 }) { v, meta ->
         result = v.test
@@ -66,7 +66,7 @@ class RiakBuilderSpec extends Specification {
     def result = null
 
     when:
-    riak.get(bucket: "test", key: "test", wait: 3000L) {
+    riak.get(bucket: "test", key: "test") {
 
       completed(when: { v -> v.integer == 12 }) { v, meta ->
         result = v.test
@@ -90,7 +90,7 @@ class RiakBuilderSpec extends Specification {
     def result = null
 
     when:
-    riak.setAsBytes(bucket: "test", key: "test", value: obj, qos: [dw: "all"], wait: 3000L) {
+    riak.setAsBytes(bucket: "test", key: "test", value: obj, qos: [dw: "all"]) {
       completed { v -> result = "success" }
       failed { e -> result = "failure" }
     }

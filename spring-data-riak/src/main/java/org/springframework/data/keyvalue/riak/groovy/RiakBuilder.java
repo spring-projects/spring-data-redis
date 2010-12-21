@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import groovy.util.BuilderSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
 import org.springframework.data.keyvalue.riak.core.RiakQosParameters;
 
@@ -35,7 +36,9 @@ import java.util.concurrent.Executors;
 public class RiakBuilder extends BuilderSupport {
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
+  @Autowired
   protected AsyncRiakTemplate riak;
+  @Autowired
   protected ExecutorService workerPool = Executors.newCachedThreadPool();
 
   public RiakBuilder(AsyncRiakTemplate riak) {
@@ -112,8 +115,17 @@ public class RiakBuilder extends BuilderSupport {
       }
 
       o = attributes.get("wait");
-      if (null != o && o instanceof Long) {
-        op.setTimeout((Long) o);
+      if (null != o) {
+        if (o instanceof Long) {
+          op.setTimeout((Long) o);
+        } else if (o instanceof String) {
+          op.setTimeout(new Long(o.toString()));
+        } else if (o instanceof Integer) {
+          op.setTimeout(new Long((Integer) o));
+        } else {
+          throw new IllegalArgumentException(
+              "Timeout should be an Integer, a Long, or a String denoting milliseconds");
+        }
       }
       return op;
     }

@@ -30,7 +30,9 @@ import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.convert.KeyValueStoreMetaData;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
@@ -40,7 +42,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,6 +64,7 @@ import java.util.regex.Pattern;
 public abstract class AbstractRiakTemplate extends RestGatewaySupport implements InitializingBean {
 
   protected static final String RIAK_META_CLASSNAME = "X-Riak-Meta-ClassName";
+  protected static final String RIAK_VCLOCK = "X-Riak-Vclock";
 
   /**
    * Regex used to extract host, port, and prefix from the given URI.
@@ -112,7 +117,9 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   /**
    * A list of resolvers to turn a single object into a {@link BucketKeyPair}.
    */
-  protected List<BucketKeyResolver> bucketKeyResolvers;
+  protected List<BucketKeyResolver> bucketKeyResolvers = new ArrayList<BucketKeyResolver>() {{
+    add(new SimpleBucketKeyResolver());
+  }};
   /**
    * The default QosParameters to use for all operations through this template.
    */
@@ -220,10 +227,6 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   public void afterPropertiesSet() throws Exception {
     Assert.notNull(conversionService,
         "Must specify a valid ConversionService.");
-    if (null == bucketKeyResolvers) {
-      bucketKeyResolvers = new ArrayList<BucketKeyResolver>();
-      bucketKeyResolvers.add(new SimpleBucketKeyResolver());
-    }
 
     List<HttpMessageConverter<?>> converters = getRestTemplate().getMessageConverters();
     ObjectMapper mapper = new ObjectMapper();
@@ -324,6 +327,49 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   }
 
   @SuppressWarnings({"unchecked"})
+  protected <T> RiakValue<T> extractValue(final ResponseEntity<?> response, Class<?> origType, Class<T> requiredType) throws
+      IOException {
+    if (response.hasBody()) {
+      RiakMetaData meta = extractMetaData(response.getHeaders());
+      Object o = response.getBody();
+      if (!origType.equals(requiredType)) {
+        if (conversionService.canConvert(origType, requiredType)) {
+          o = conversionService.convert(o, requiredType);
+        } else {
+          if (o instanceof byte[] || o instanceof String) {
+            // Peek inside, see if it's a string of something we recognize
+            String s = (o instanceof byte[] ? new String((byte[]) o) : (String) o);
+            if (s.charAt(0) == '{' || s.charAt(0) == '[') {
+              // Looks like it might be a JSON string. Use the JSON converter
+              for (HttpMessageConverter conv : getRestTemplate().getMessageConverters()) {
+                if (conv instanceof MappingJacksonHttpMessageConverter) {
+                  o = conv.read(requiredType, new HttpInputMessage() {
+                    public InputStream getBody() throws IOException {
+                      Object body = response.getBody();
+                      return new ByteArrayInputStream((body instanceof byte[] ? (byte[]) body : ((String) body)
+                          .getBytes()));
+                    }
+
+                    public HttpHeaders getHeaders() {
+                      return response.getHeaders();
+                    }
+                  });
+                  break;
+                }
+              }
+
+            }
+          } else {
+            throw new DataStoreOperationException("Cannot convert object of type " + origType + " to type " + requiredType);
+          }
+        }
+      }
+      return new RiakValue<T>((T) o, meta);
+    }
+    return null;
+  }
+
+  @SuppressWarnings({"unchecked"})
   protected <K, T> T checkCache(K key, Class<T> requiredType) {
     BucketKeyPair bucketKeyPair = resolveBucketKeyPair(key, requiredType);
     RiakValue<?> obj = cache.get(bucketKeyPair);
@@ -394,6 +440,32 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
       }
     }
     return headers;
+  }
+
+  protected <B, K> Class<?> getType(B bucket, K key) {
+    HttpHeaders headers = getRestTemplate().headForHeaders(defaultUri, bucket, key);
+    Class<?> clazz = null;
+    if (null != headers) {
+      String s = headers.getFirst(RIAK_META_CLASSNAME);
+      if (null != s) {
+        try {
+          clazz = Class.forName(s);
+        } catch (ClassNotFoundException ignored) {
+        }
+      }
+    }
+    if (null == clazz) {
+      if (headers.getContentType().equals(MediaType.APPLICATION_JSON)) {
+        clazz = Map.class;
+      } else if (headers.getContentType().equals(MediaType.TEXT_PLAIN)) {
+        clazz = String.class;
+      } else {
+        // handle as bytes
+        log.error("Need to handle bytes!");
+        clazz = byte[].class;
+      }
+    }
+    return clazz;
   }
 
 }

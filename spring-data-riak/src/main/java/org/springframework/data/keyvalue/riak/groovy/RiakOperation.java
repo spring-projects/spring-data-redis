@@ -149,7 +149,21 @@ public class RiakOperation<T> implements Callable {
         f = riak.delete(bucket, key, callbackInvoker);
         break;
     }
-    return null != f && timeout > 0 ? (T) f.get(timeout, TimeUnit.MILLISECONDS) : null;
+
+    if (null != f) {
+      if (timeout == 0) {
+        // Don't wait at all
+        return (T) f;
+      } else if (timeout > 0) {
+        // Block until finished or timeout
+        return (T) f.get(timeout, TimeUnit.MILLISECONDS);
+      } else {
+        // Block indefinitely
+        return (T) f.get();
+      }
+    }
+
+    return null;
   }
 
   class GuardedClosure {

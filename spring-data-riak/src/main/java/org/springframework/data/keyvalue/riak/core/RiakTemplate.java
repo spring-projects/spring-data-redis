@@ -113,41 +113,33 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
   }
 
   public <B, K> BucketKeyValueStoreOperations setAsBytes(B bucket, K key, byte[] value, QosParameters qosParams) {
-    Assert.notNull(key, "Key cannot be null!");
-    // If I don't give a bucket name, since I don't have an object type, use 'bytes'
-    String bucketName = (null != bucket ? bucket.toString() : "bytes");
-    // Get a key name that may or may not include the QOS parameters.
-    String keyName = (null != qosParams ? key.toString() + extractQosParameters(qosParams) : key
-        .toString());
-    RestTemplate restTemplate = getRestTemplate();
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("X-Riak-ClientId", RIAK_CLIENT_ID);
-    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-    HttpEntity<byte[]> entity = new HttpEntity<byte[]>(value, headers);
-    try {
-      restTemplate.put(defaultUri, entity, bucketName, keyName);
-      if (log.isDebugEnabled()) {
-        log.debug(String.format("PUT byte[]: bucket=%s, key=%s", bucketName, keyName));
-      }
-    } catch (RestClientException e) {
-      throw new DataStoreOperationException(e.getMessage(), e);
-    }
-    return this;
+    return setWithMetaData(bucket, key, value, null, qosParams);
   }
 
   public <B, K, V> BucketKeyValueStoreOperations setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, QosParameters qosParams) {
+    Assert.notNull(key, "Key cannot be null!");
     // Get a key name that may or may not include the QOS parameters.
     String keyName = (null != qosParams ? key.toString() + extractQosParameters(qosParams) : key
         .toString());
+
+    KeyValueStoreMetaData origMeta = getMetaData(bucket, keyName);
+    String vclock = null;
+    if (null != origMeta) {
+      vclock = origMeta.getProperties().get(RIAK_VCLOCK).toString();
+    }
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
     headers.set("X-Riak-ClientId", RIAK_CLIENT_ID);
     headers.setContentType(extractMediaType(value));
+    if (null != vclock) {
+      headers.set(RIAK_VCLOCK, vclock);
+    }
     if (null != metaData) {
       for (Map.Entry<String, String> entry : metaData.entrySet()) {
         headers.set(entry.getKey(), entry.getValue());
       }
     }
+    headers.set(RIAK_META_CLASSNAME, value.getClass().getName());
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
     try {
       restTemplate.put(defaultUri, entity, bucket, keyName);
@@ -186,6 +178,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
    * @return The generated ID
    */
   public <B, V> String put(B bucket, V value, Map<String, String> metaData) {
+    Assert.notNull(bucket, "Bucket cannot be null.");
     String bucketName = bucket.toString();
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
@@ -196,6 +189,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
         headers.set(entry.getKey(), entry.getValue());
       }
     }
+    headers.set(RIAK_META_CLASSNAME, value.getClass().getName());
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
     try {
       URI uri = restTemplate.postForLocation(defaultUri, entity, bucketName, "");
@@ -214,7 +208,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
 
   public <B, K> RiakMetaData getMetaData(B bucket, K key) {
     RestTemplate restTemplate = getRestTemplate();
-    HttpHeaders headers = null;
+    HttpHeaders headers;
     try {
       headers = restTemplate.headForHeaders(defaultUri, bucket, key);
       return extractMetaData(headers);
@@ -225,6 +219,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
     return null;
   }
 
+  @SuppressWarnings({"unchecked"})
   public <B, K, T> RiakValue<T> getWithMetaData(B bucket, K key, Class<T> requiredType) {
     // If no bucket name is given, infer it from the type name.
     String bucketName = (null != bucket ? bucket.toString() : requiredType.getName());
@@ -235,44 +230,74 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
           key,
           requiredType.getName()));
     }
-
+    Class<?> origType = getType(bucket, key);
+    RiakValue<T> val = null;
     try {
-      ResponseEntity<T> result = restTemplate.getForEntity(defaultUri,
+      ResponseEntity<?> result = restTemplate.getForEntity(defaultUri,
           requiredType,
           bucketName,
           key);
-      if (result.hasBody()) {
-        RiakMetaData meta = extractMetaData(result.getHeaders());
-        RiakValue<T> val = new RiakValue<T>(result.getBody(), meta);
-        if (useCache) {
-          cache.put(new SimpleBucketKeyPair<Object, Object>(bucket, key), val);
-        }
-        return val;
-      }
+      val = extractValue(result, requiredType, requiredType);
     } catch (HttpClientErrorException e) {
+      switch (e.getStatusCode()) {
+        case NOT_ACCEPTABLE:
+          // Can't convert using HttpMessageConverter. Try fetching as the original type
+          // and using the conversion service to convert.
+          ResponseEntity<?> result = restTemplate.getForEntity(defaultUri,
+              origType,
+              bucketName,
+              key);
+          try {
+            val = extractValue(result, origType, requiredType);
+          } catch (IOException ioe) {
+            throw new DataStoreOperationException(ioe.getMessage(), ioe);
+          }
+        case NOT_FOUND:
+          // IGNORED
+          break;
+        default:
+          throw new DataStoreOperationException(e.getMessage(), e);
+      }
       if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
         throw new DataStoreOperationException(e.getMessage(), e);
       }
     } catch (RestClientException rce) {
-      // IGNORE
+      if (rce.getMessage().contains("HTTP response code: 406")) {
+        // Can't convert using HttpMessageConverter. Try fetching as the original type
+        // and using the conversion service to convert.
+        ResponseEntity<?> result = restTemplate.getForEntity(defaultUri,
+            origType,
+            bucketName,
+            key);
+        try {
+          val = extractValue(result, origType, requiredType);
+        } catch (IOException ioe) {
+          throw new DataStoreOperationException(rce.getMessage(), rce);
+        }
+      } else {
+        // IGNORE
+        if (log.isDebugEnabled()) {
+          log.debug("RestClientException: " + rce.getMessage());
+        }
+      }
     } catch (EOFException eof) {
       // IGNORE
+      if (log.isDebugEnabled()) {
+        log.debug("EOFException: " + eof.getMessage(), eof);
+      }
     } catch (IOException e) {
       log.error(e.getMessage(), e);
     }
-    return null;
+
+    if (null != val && useCache) {
+      cache.put(new SimpleBucketKeyPair<Object, Object>(bucket, key), val);
+    }
+    return val;
   }
 
   @SuppressWarnings({"unchecked"})
   public <B, K, T> T get(B bucket, K key) {
-    Class targetClass;
-    try {
-      // Since no type is specified, first try using the bucket name as the target class...
-      targetClass = Class.forName(bucket.toString());
-    } catch (Throwable ignored) {
-      // ...if that doesn't work, just use a Map, which we know will work.
-      targetClass = Map.class;
-    }
+    Class targetClass = getType(bucket, key);
     RiakValue<T> obj = getWithMetaData(bucket, key, targetClass);
     return (null != obj ? obj.get() : null);
   }
@@ -537,6 +562,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
     }
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(fromObj.getMetaData().getContentType());
+    headers.set(RIAK_VCLOCK, fromObj.getMetaData().getProperties().get(RIAK_VCLOCK).toString());
     Object linksObj = fromObj.getMetaData().getProperties().get("Link");
     List<String> links = new ArrayList<String>();
     // First add all existing links...
@@ -630,6 +656,8 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
                       final BodyPart partBody = part.getBodyPart(j);
                       String partType = partBody.getContentType();
                       String link = partBody.getHeader("Link")[0];
+                      String location = partBody.getHeader("Location")[0];
+                      String key = location.substring(location.lastIndexOf("/") + 1);
                       String[] links = StringUtils.delimitedListToStringArray(link, ",");
                       String bucketName = null;
                       for (String s : links) {
@@ -642,16 +670,8 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
                         }
                       }
                       Class<?> clazz = requiredType;
-                      if (null == clazz && null != bucketName) {
-                        try {
-                          clazz = Class.forName(bucketName);
-                        } catch (ClassNotFoundException e) {
-                          // Default to a Map. We know that will work.
-                          clazz = Map.class;
-                        }
-                      } else {
-                        // Default to a Map. We know that will work.
-                        clazz = Map.class;
+                      if (null == clazz) {
+                        clazz = getType(bucketName, key);
                       }
 
                       // Can convert message?
@@ -676,7 +696,9 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
                         }
                       }
 
-                      log.debug(String.format("results=%s", results));
+                      if (log.isDebugEnabled()) {
+                        log.debug(String.format("results=%s", results));
+                      }
                     }
                   }
                 }
