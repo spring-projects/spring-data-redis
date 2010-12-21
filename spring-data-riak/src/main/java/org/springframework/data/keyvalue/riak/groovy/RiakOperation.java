@@ -39,7 +39,7 @@ import java.util.concurrent.*;
 public class RiakOperation<T> implements Callable {
 
   static enum Type {
-    SET, SETASBYTES, PUT, GET, GETASBYTES, CONTAINSKEY, DELETE, EACH
+    SET, SETASBYTES, PUT, GET, GETASBYTES, GETASTYPE, CONTAINSKEY, DELETE, EACH
   }
 
   static String COMPLETED = "completed";
@@ -52,6 +52,7 @@ public class RiakOperation<T> implements Callable {
   protected String bucket;
   protected String key;
   protected T value;
+  protected Class<?> requiredType = null;
   protected long timeout = -1L;
   protected QosParameters qosParameters;
   protected Map<String, List<GuardedClosure>> callbacks = new LinkedHashMap<String, List<GuardedClosure>>();
@@ -102,6 +103,14 @@ public class RiakOperation<T> implements Callable {
     this.value = value;
   }
 
+  public Class<?> getRequiredType() {
+    return requiredType;
+  }
+
+  public void setRequiredType(Class<?> requiredType) {
+    this.requiredType = requiredType;
+  }
+
   public long getTimeout() {
     return timeout;
   }
@@ -128,6 +137,9 @@ public class RiakOperation<T> implements Callable {
         break;
       case GETASBYTES:
         f = riak.getAsBytes(bucket, key, callbackInvoker);
+        break;
+      case GETASTYPE:
+        f = riak.getAsType(bucket, key, requiredType, callbackInvoker);
         break;
       case PUT:
         f = riak.put(bucket, value, callbackInvoker);

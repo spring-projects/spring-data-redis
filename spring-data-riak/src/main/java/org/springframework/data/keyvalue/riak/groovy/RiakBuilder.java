@@ -23,6 +23,7 @@ import groovy.util.BuilderSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
 import org.springframework.data.keyvalue.riak.core.RiakQosParameters;
 
@@ -98,6 +99,20 @@ public class RiakBuilder extends BuilderSupport {
       op.setKey((null != o ? o.toString() : null));
       o = attributes.get("value");
       op.setValue(o);
+      o = attributes.get("type");
+      if (null != o) {
+        if (o instanceof Class) {
+          op.setRequiredType((Class<?>) o);
+        } else if (o instanceof String) {
+          try {
+            op.setRequiredType(Class.forName((String) o));
+          } catch (ClassNotFoundException e) {
+            throw new DataStoreOperationException(e.getMessage(), e);
+          }
+        } else {
+          op.setRequiredType(o.getClass());
+        }
+      }
       o = attributes.get("qos");
       if (null != o) {
         RiakQosParameters qos = new RiakQosParameters();
@@ -180,7 +195,7 @@ public class RiakBuilder extends BuilderSupport {
   @Override
   protected void nodeCompleted(Object parent, Object node) {
     log.debug("nodeCompleted: " + parent + " " + node);
-    if (null == parent && node instanceof RiakOperation) {
+    if (node instanceof RiakOperation) {
       RiakOperation<Object> op = (RiakOperation<Object>) node;
       try {
         op.call();

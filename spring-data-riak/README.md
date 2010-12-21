@@ -16,14 +16,10 @@ One cool new feature just added is a Groovy DSL for data access using SDKV/Riak:
     def result = null
 
     riak.set(bucket: "test", key: "test", qos: [dw: "all"], value: obj, wait: 3000L) {
+      completed(when: { it.integer == 12 }) { result = it.test }
+      completed { result = "otherwise" }
 
-      completed(when: { v -> v.integer == 12 }) { v, meta ->
-        result = v.test
-      }
-      completed { v -> result = "otherwise" }
-
-      failed { e -> println "failure: $e" }
-
+      failed { it.printStackTrace() }
     }
 
 The Groovy DSL will respond to the following methods:
@@ -33,17 +29,36 @@ The Groovy DSL will respond to the following methods:
 * put
 * get
 * getAsBytes
+* getAsType
 * containsKey
 * delete
 * each
 
-You can nest them, of course. To delete all keys from a bucket using the DSL:
+Each completed or failed closure can be accompanied by a "guard" closure. For example,
+to process an entry differently, based on the type:
 
-    riak.each(bucket: "test") {
-      completed { v, meta ->
-        delete(bucket: meta.bucket, key: meta.key)
+    riak.get(bucket: "test", key: "test") {
+      completed(when: { it instanceof Map }) { processMap(it) }
+      completed(when: { it instanceof String }) { processString(it) }
+      completed(when: { it instanceof byte[] }) { processBytes(it) }
+      completed { result = "otherwise" }
+
+      failed { it.printStackTrace() }
+    }
+
+You can nest them, of course. To insert data and then delete all keys from a bucket:
+
+    riak {
+      put(bucket: "test", value: [test: "value 1"])
+      put(bucket: "test", value: [test: "value 2"])
+      put(bucket: "test", value: [test: "value 3"])
+
+      each(bucket: "test") {
+        completed { v, meta ->
+          delete(bucket: meta.bucket, key: meta.key)
+        }
+        failed { it.printStackTrace() }
       }
-      failed { e -> println "failure: $e" }
     }
 
 

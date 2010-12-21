@@ -43,13 +43,12 @@ class RiakBuilderSpec extends Specification {
     def result = null
 
     when:
-    riak.set(bucket: "test", key: "test", qos: [dw: "all"], value: obj) {
-
-      completed(when: { it.integer == 12 }) { result = it.test }
-      completed { result = "otherwise" }
-
-      failed { it.printStackTrace() }
-
+    riak {
+      set(bucket: "test", key: "test", qos: [dw: "all"], value: obj) {
+        completed(when: { it.integer == 12 }) { result = it.test }
+        completed { result = "otherwise" }
+        failed { it.printStackTrace() }
+      }
     }
 
     then:
@@ -65,12 +64,27 @@ class RiakBuilderSpec extends Specification {
 
     when:
     riak.get(bucket: "test", key: "test") {
-
       completed(when: { it.integer == 12 }) { result = it.test }
       completed { result = "otherwise" }
-
       failed { it.printStackTrace() }
+    }
 
+    then:
+    "value" == result
+
+  }
+
+  def "Test builder getAsType"() {
+
+    given:
+    def riak = new RiakBuilder(riakTemplate)
+    def result = null
+
+    when:
+    riak.getAsType(bucket: "test", key: "test", type: Map) {
+      completed(when: { it instanceof Map }) { result = it.test }
+      completed { result = "otherwise" }
+      failed { it.printStackTrace() }
     }
 
     then:
@@ -147,6 +161,30 @@ class RiakBuilderSpec extends Specification {
 
     then:
     idCnt > 0
+
+  }
+
+  def "Test builder batch operations"() {
+
+    given:
+    def riak = new RiakBuilder(riakTemplate)
+    def ids = []
+
+    when:
+    riak {
+      put(bucket: "test", value: [test: "value 1"])
+      put(bucket: "test", value: [test: "value 2"])
+      put(bucket: "test", value: [test: "value 3"])
+
+      each(bucket: "test") {
+        completed { v, meta -> ids << meta.key }
+        failed { it.printStackTrace() }
+      }
+    }
+
+    then:
+    null != ids
+    3 <= ids.size()
 
   }
 
