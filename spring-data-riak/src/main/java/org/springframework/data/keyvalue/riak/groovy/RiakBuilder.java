@@ -150,11 +150,14 @@ public class RiakBuilder extends BuilderSupport {
     if (log.isDebugEnabled()) {
       log.debug("invokeMethod: " + methodName + " " + arg);
     }
+
+    Object[] args = (Object[]) arg;
+    Map<String, Object> params;
+    Closure handler = null;
+    RiakOperation<Object> op;
+
     if ("completed".equals(methodName) || "failed".equals(methodName)) {
-      RiakOperation<Object> op = (RiakOperation<Object>) getCurrent();
-      Object[] args = (Object[]) arg;
-      Map<String, Object> params;
-      Closure handler = null;
+      op = (RiakOperation<Object>) getCurrent();
       Closure guard = null;
       for (Object o : args) {
         if (o instanceof Map) {
@@ -169,6 +172,7 @@ public class RiakBuilder extends BuilderSupport {
       op.addHandler(methodName, handler, guard);
       return op;
     }
+
     return super.invokeMethod(methodName, arg);
   }
 
@@ -188,9 +192,11 @@ public class RiakBuilder extends BuilderSupport {
     }
   }
 
+  @SuppressWarnings({"unchecked"})
   @Override
   protected Object postNodeCompletion(Object parent, Object node) {
     log.debug("postNodeCompletion: " + parent + " " + node);
     return super.postNodeCompletion(parent, node);
   }
+
 }

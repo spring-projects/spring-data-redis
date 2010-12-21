@@ -211,7 +211,10 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
     HttpHeaders headers;
     try {
       headers = restTemplate.headForHeaders(defaultUri, bucket, key);
-      return extractMetaData(headers);
+      RiakMetaData meta = extractMetaData(headers);
+      meta.setBucket((null != bucket ? bucket.toString() : null));
+      meta.setKey((null != key ? key.toString() : null));
+      return meta;
     } catch (ResourceAccessException e) {
     } catch (IOException e) {
       throw new DataAccessResourceFailureException(e.getMessage(), e);
@@ -309,7 +312,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
   }
 
   @SuppressWarnings({"unchecked"})
-  public <B, K> RiakValue<byte[]> getAsBytesWithMetaData(B bucket, K key) {
+  public <B, K> RiakValue<byte[]> getAsBytesWithMetaData(final B bucket, final K key) {
     final RestTemplate restTemplate = getRestTemplate();
     if (log.isDebugEnabled()) {
       log.debug(String.format("GET object: bucket=%s, key=%s, type=byte[]",
@@ -343,6 +346,8 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
 
               HttpHeaders headers = response.getHeaders();
               RiakMetaData meta = extractMetaData(headers);
+              meta.setBucket((null != bucket ? bucket.toString() : null));
+              meta.setKey((null != key ? key.toString() : null));
               RiakValue<byte[]> val = new RiakValue<byte[]>(out.toByteArray(),
                   meta);
               return val;

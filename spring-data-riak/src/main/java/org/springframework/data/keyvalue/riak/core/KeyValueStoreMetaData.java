@@ -29,6 +29,10 @@ import java.util.Map;
  */
 public interface KeyValueStoreMetaData {
 
+  String getBucket();
+
+  String getKey();
+
   /**
    * Get the Content-Type of this object.
    *

@@ -119,21 +119,61 @@ class RiakBuilderSpec extends Specification {
 
   }
 
-  def "Test builder delete"() {
+  def "Test builder put"() {
+
+    given:
+    def obj = [test: "value", integer: 12]
+    def riak = new RiakBuilder(riakTemplate)
+    def id = null
+
+    when:
+    riak.put(bucket: "test", qos: [dw: "all"], value: obj) {
+
+      completed { v, meta ->
+        id = meta.key
+      }
+
+      failed { e -> println "failure: $e" }
+
+    }
+
+    then:
+    null != id
+
+  }
+
+  def "Test builder each"() {
 
     given:
     def riak = new RiakBuilder(riakTemplate)
-    def result = null
+    def idCnt = 0
 
     when:
-    riak.delete(bucket: "test", key: "test", wait: 3000L) {
-      completed { v -> result = v }
+    riak.each(bucket: "test") {
+      completed { v, meta -> idCnt++ }
       failed { e -> println "failure: $e" }
     }
 
     then:
-    null != result
-    result
+    idCnt > 0
+
+  }
+
+  def "Test builder delete"() {
+
+    given:
+    def riak = new RiakBuilder(riakTemplate)
+
+    when:
+    riak.each(bucket: "test") {
+      completed { v, meta ->
+        delete(bucket: meta.bucket, key: meta.key)
+      }
+      failed { e -> println "failure: $e" }
+    }
+
+    then:
+    true
 
   }
 

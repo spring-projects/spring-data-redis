@@ -21,6 +21,7 @@ package org.springframework.data.keyvalue.riak.groovy;
 import groovy.lang.Closure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.core.AsyncKeyValueStoreOperation;
 import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
 import org.springframework.data.keyvalue.riak.core.KeyValueStoreMetaData;
@@ -30,9 +31,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
@@ -40,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class RiakOperation<T> implements Callable {
 
   static enum Type {
-    SET, SETASBYTES, PUT, GET, GETASBYTES, CONTAINSKEY, DELETE
+    SET, SETASBYTES, PUT, GET, GETASBYTES, CONTAINSKEY, DELETE, EACH
   }
 
   static String COMPLETED = "completed";
@@ -131,22 +130,54 @@ public class RiakOperation<T> implements Callable {
         f = riak.getAsBytes(bucket, key, callbackInvoker);
         break;
       case PUT:
-        throw new IllegalStateException("PUT not yet implemented in AsyncRiakTemplate");
+        f = riak.put(bucket, value, callbackInvoker);
+        break;
       case SET:
         f = riak.set(bucket, key, value, callbackInvoker);
         break;
       case SETASBYTES:
+        byte[] bytes;
         if (value instanceof byte[]) {
-          f = riak.setAsBytes(bucket, key, (byte[]) value, callbackInvoker);
+          bytes = (byte[]) value;
         } else {
-          log.error("Need to convert obj to byte array first!");
+          bytes = riak.getConversionService().convert(value, byte[].class);
         }
+        f = riak.setAsBytes(bucket, key, bytes, callbackInvoker);
         break;
       case CONTAINSKEY:
         f = riak.containsKey(bucket, key, callbackInvoker);
         break;
       case DELETE:
         f = riak.delete(bucket, key, callbackInvoker);
+        break;
+      case EACH:
+        f = riak.getBucketSchema(bucket,
+            null,
+            new AsyncKeyValueStoreOperation<Map<String, Object>>() {
+              public void completed(KeyValueStoreMetaData meta, Map<String, Object> result) {
+                List<String> keys = (List<String>) result.get("keys");
+                for (String key : keys) {
+                  try {
+                    Future<?> getFut = riak.get(bucket, key, callbackInvoker);
+                    if (timeout > 0) {
+                      getFut.get(timeout, TimeUnit.MILLISECONDS);
+                    } else if (timeout < 0) {
+                      getFut.get();
+                    }
+                  } catch (InterruptedException e) {
+                    throw new DataStoreOperationException(e.getMessage(), e);
+                  } catch (ExecutionException e) {
+                    throw new DataStoreOperationException(e.getMessage(), e);
+                  } catch (TimeoutException e) {
+                    throw new DataStoreOperationException(e.getMessage(), e);
+                  }
+                }
+              }
+
+              public void failed(Throwable error) {
+                log.error(error.getMessage(), error);
+              }
+            });
         break;
     }
 
@@ -189,6 +220,9 @@ public class RiakOperation<T> implements Callable {
   class ClosureInvokingCallback implements AsyncKeyValueStoreOperation {
 
     public void completed(KeyValueStoreMetaData meta, Object result) {
+      if (!callbacks.containsKey(COMPLETED)) {
+        return;
+      }
       for (GuardedClosure cl : callbacks.get(COMPLETED)) {
         boolean execute = true;
 

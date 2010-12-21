@@ -31,6 +31,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +113,27 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
         callback));
   }
 
+  public <B, V> Future<V> put(B bucket, V value, AsyncKeyValueStoreOperation<V> callback) {
+    return put(bucket, value, null, null, callback);
+  }
+
+  public <B, V> Future<V> put(B bucket, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V> callback) {
+    return put(bucket, value, metaData, null, callback);
+  }
+
+  @SuppressWarnings({"unchecked"})
+  public <B, V> Future<V> put(B bucket, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V> callback) {
+    Assert.notNull(bucket, "Bucket cannot be null");
+    String bucketName = (null != qosParams ? bucket.toString() + extractQosParameters(qosParams) : bucket
+        .toString());
+
+    HttpHeaders headers = defaultHeaders(metaData);
+    headers.setContentType(extractMediaType(value));
+    headers.set(RIAK_META_CLASSNAME, value.getClass().getName());
+    HttpEntity<V> entity = new HttpEntity<V>(value, headers);
+    return (Future<V>) workerPool.submit(new AsyncPut<V>(bucketName, entity, callback));
+  }
+
   public <B, K, V> Future<?> get(B bucket, K key, AsyncKeyValueStoreOperation<V> callback) {
     return getWithMetaData(bucket, key, null, callback);
   }
@@ -121,7 +143,10 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     HttpHeaders headers;
     try {
       headers = restTemplate.headForHeaders(defaultUri, bucket, key);
-      return extractMetaData(headers);
+      RiakMetaData meta = extractMetaData(headers);
+      meta.setBucket((null != bucket ? bucket.toString() : null));
+      meta.setKey((null != key ? key.toString() : null));
+      return meta;
     } catch (ResourceAccessException e) {
     } catch (IOException e) {
       throw new DataAccessResourceFailureException(e.getMessage(), e);
@@ -130,10 +155,35 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
   }
 
   @SuppressWarnings({"unchecked"})
+  public <B> Future<?> getBucketSchema(B bucket, QosParameters qosParams, final AsyncKeyValueStoreOperation<Map<String, Object>> callback) {
+    Assert.notNull(bucket, "Bucket cannot be null");
+    Assert.notNull(callback, "Callback cannot be null");
+
+    String bucketName = (null != qosParams ? bucket.toString() + extractQosParameters(qosParams) : bucket
+        .toString());
+
+    return workerPool.submit(new AsyncGet(bucketName,
+        "?keys=true",
+        Map.class,
+        new AsyncKeyValueStoreOperation<Object>() {
+          @SuppressWarnings({"unchecked"})
+          public void completed(KeyValueStoreMetaData meta, Object result) {
+            callback.completed(meta, (Map<String, Object>) result);
+          }
+
+          public void failed(Throwable error) {
+            callback.failed(error);
+          }
+        }));
+  }
+
+  @SuppressWarnings({"unchecked"})
   public <B, K, T> Future<?> getWithMetaData(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T> callback) {
     String bucketName = (null != bucket ? bucket.toString() : requiredType.getName());
     // Get a key name that may or may not include the QOS parameters.
-    Assert.notNull(key, "Cannot use a <NULL> key.");
+    Assert.notNull(key, "Cannot use a null key.");
+    Assert.notNull(callback, "Callback cannot be null");
+
     if (null == requiredType) {
       requiredType = (Class<T>) getType(bucketName, key.toString());
     }
@@ -251,6 +301,43 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     return setWithMetaData(bucket, key, value, metaData, null, callback);
   }
 
+  protected class AsyncPut<V> implements Runnable {
+
+    private String bucket;
+    private HttpEntity<V> entity = null;
+    private AsyncKeyValueStoreOperation<V> callback = null;
+
+    public AsyncPut(String bucket, HttpEntity<V> entity, AsyncKeyValueStoreOperation<V> callback) {
+      this.bucket = bucket;
+      this.entity = entity;
+      this.callback = callback;
+    }
+
+    public void run() {
+      try {
+        URI location = getRestTemplate().postForLocation(defaultUri, entity, bucket, "");
+        String path = location.getPath();
+        String key = path.substring(path.lastIndexOf("/") + 1);
+
+        HttpHeaders headers = getRestTemplate().headForHeaders(defaultUri, bucket, key);
+        if (null != callback) {
+          RiakMetaData meta = extractMetaData(headers);
+          meta.setBucket((null != bucket ? bucket.toString() : null));
+          meta.setKey((null != key ? key.toString() : null));
+          callback.completed(meta, entity.getBody());
+        }
+      } catch (Throwable t) {
+        DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
+        if (null != callback) {
+          callback.failed(dsoe);
+        } else {
+          defaultErrorHandler.failed(dsoe);
+        }
+      }
+    }
+
+  }
+
   protected class AsyncPost<V> implements Runnable {
 
     private String bucket;
@@ -280,7 +367,10 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
               entity));
         }
         if (null != callback) {
-          callback.completed(extractMetaData(result.getHeaders()), (V) result.getBody());
+          RiakMetaData meta = extractMetaData(result.getHeaders());
+          meta.setBucket((null != bucket ? bucket.toString() : null));
+          meta.setKey((null != key ? key.toString() : null));
+          callback.completed(meta, (V) result.getBody());
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
@@ -316,6 +406,8 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
             key);
         if (result.hasBody()) {
           RiakMetaData meta = extractMetaData(result.getHeaders());
+          meta.setBucket((null != bucket ? bucket.toString() : null));
+          meta.setKey((null != key ? key.toString() : null));
           RiakValue<T> val = new RiakValue<T>(result.getBody(), meta);
           if (useCache) {
             cache.put(new SimpleBucketKeyPair<Object, Object>(bucket, key), val);

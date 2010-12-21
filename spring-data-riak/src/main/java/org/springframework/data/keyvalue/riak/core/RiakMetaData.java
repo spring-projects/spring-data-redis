@@ -33,6 +33,8 @@ public class RiakMetaData implements KeyValueStoreMetaData {
 
   private MediaType mediaType = MediaType.APPLICATION_JSON;
   private Map<String, Object> properties;
+  private String bucket = null;
+  private String key = null;
 
   public RiakMetaData(Map<String, Object> properties) {
     this.properties = properties;
@@ -41,6 +43,29 @@ public class RiakMetaData implements KeyValueStoreMetaData {
   public RiakMetaData(MediaType mediaType, Map<String, Object> properties) {
     this.mediaType = mediaType;
     this.properties = properties;
+  }
+
+  public RiakMetaData(MediaType mediaType, Map<String, Object> properties, String bucket, String key) {
+    this.mediaType = mediaType;
+    this.properties = properties;
+    this.bucket = bucket;
+    this.key = key;
+  }
+
+  public void setBucket(String bucket) {
+    this.bucket = bucket;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  public String getBucket() {
+    return this.bucket;
+  }
+
+  public String getKey() {
+    return this.key;
   }
 
   public MediaType getContentType() {
