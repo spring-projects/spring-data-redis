@@ -252,6 +252,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
           } catch (IOException ioe) {
             throw new DataStoreOperationException(ioe.getMessage(), ioe);
           }
+          break;
         case NOT_FOUND:
           // IGNORED
           break;
