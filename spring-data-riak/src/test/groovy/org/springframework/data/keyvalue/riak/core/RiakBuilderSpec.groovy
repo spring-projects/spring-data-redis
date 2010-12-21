@@ -45,12 +45,10 @@ class RiakBuilderSpec extends Specification {
     when:
     riak.set(bucket: "test", key: "test", qos: [dw: "all"], value: obj) {
 
-      completed(when: { v -> v.integer == 12 }) { v, meta ->
-        result = v.test
-      }
-      completed { v -> result = "otherwise" }
+      completed(when: { it.integer == 12 }) { result = it.test }
+      completed { result = "otherwise" }
 
-      failed { e -> println "failure: $e" }
+      failed { it.printStackTrace() }
 
     }
 
@@ -68,12 +66,10 @@ class RiakBuilderSpec extends Specification {
     when:
     riak.get(bucket: "test", key: "test") {
 
-      completed(when: { v -> v.integer == 12 }) { v, meta ->
-        result = v.test
-      }
-      completed { v -> result = "otherwise" }
+      completed(when: { it.integer == 12 }) { result = it.test }
+      completed { result = "otherwise" }
 
-      failed { e -> println "failure: $e" }
+      failed { it.printStackTrace() }
 
     }
 
@@ -91,8 +87,8 @@ class RiakBuilderSpec extends Specification {
 
     when:
     riak.setAsBytes(bucket: "test", key: "test", value: obj, qos: [dw: "all"]) {
-      completed { v -> result = "success" }
-      failed { e -> result = "failure" }
+      completed { result = "success" }
+      failed { it.printStackTrace() }
     }
 
     then:
@@ -108,9 +104,9 @@ class RiakBuilderSpec extends Specification {
     def result = null
 
     when:
-    riak.get(bucket: "test", key: "test", wait: 3000L) {
-      completed { v -> result = v }
-      failed { e -> println "failure: $e" }
+    riak.get(bucket: "test", key: "test") {
+      completed { result = it }
+      failed { it.printStackTrace() }
     }
 
     then:
@@ -128,13 +124,8 @@ class RiakBuilderSpec extends Specification {
 
     when:
     riak.put(bucket: "test", qos: [dw: "all"], value: obj) {
-
-      completed { v, meta ->
-        id = meta.key
-      }
-
-      failed { e -> println "failure: $e" }
-
+      completed { v, meta -> id = meta.key }
+      failed { it.printStackTrace() }
     }
 
     then:
@@ -150,8 +141,8 @@ class RiakBuilderSpec extends Specification {
 
     when:
     riak.each(bucket: "test") {
-      completed { v, meta -> idCnt++ }
-      failed { e -> println "failure: $e" }
+      completed { idCnt++ }
+      failed { it.printStackTrace() }
     }
 
     then:
@@ -163,17 +154,21 @@ class RiakBuilderSpec extends Specification {
 
     given:
     def riak = new RiakBuilder(riakTemplate)
+    def deleted = false
 
     when:
     riak.each(bucket: "test") {
       completed { v, meta ->
-        delete(bucket: meta.bucket, key: meta.key)
+        delete(bucket: meta.bucket, key: meta.key) {
+          completed { deleted = true }
+          failed { deleted = false }
+        }
       }
-      failed { e -> println "failure: $e" }
+      failed { it.printStackTrace() }
     }
 
     then:
-    true
+    deleted
 
   }
 

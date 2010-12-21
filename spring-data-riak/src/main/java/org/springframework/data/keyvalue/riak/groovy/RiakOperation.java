@@ -182,19 +182,16 @@ public class RiakOperation<T> implements Callable {
     }
 
     if (null != f) {
-      if (timeout == 0) {
-        // Don't wait at all
-        return (T) f;
-      } else if (timeout > 0) {
+      if (timeout > 0) {
         // Block until finished or timeout
         return (T) f.get(timeout, TimeUnit.MILLISECONDS);
-      } else {
+      } else if (timeout < 0) {
         // Block indefinitely
         return (T) f.get();
       }
     }
 
-    return null;
+    return (T) f;
   }
 
   class GuardedClosure {
