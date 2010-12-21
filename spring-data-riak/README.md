@@ -73,4 +73,4 @@ Some things to note here:
   closure, you can define a "guard" closure, which is called before the main closure and
   should return non-null or Boolean `true` if the closure should be executed or null or
   Boolean `false` if the closure is to be skipped. This functionality is inspired by the
-  use of (the guard expression in Erlang case statements)[http://en.wikibooks.org/wiki/Erlang_Programming/guards].
+  use of [the guard expression in Erlang case statements](http://en.wikibooks.org/wiki/Erlang_Programming/guards).
