@@ -26,13 +26,36 @@ One cool new feature just added is a Groovy DSL for data access using SDKV/Riak:
 
     }
 
+The Groovy DSL will respond to the following methods:
+
+* set
+* setAsBytes
+* put
+* get
+* getAsBytes
+* containsKey
+* delete
+* each
+
+You can nest them, of course. To delete all keys from a bucket using the DSL:
+
+    riak.each(bucket: "test") {
+      completed { v, meta ->
+        delete(bucket: meta.bucket, key: meta.key)
+      }
+      failed { e -> println "failure: $e" }
+    }
+
+
 Some things to note here:
 
 * The Groovy DSL utilizes the new AsyncRiakTemplate, so all closure calls happen
-  asynchronously. To block execution until the operation has completed, provide a non-zero
-  timeout value as the `wait` parameter.
+  asynchronously. By default, the operation will block indefinitely. To not block at all
+  and continue on immediately, set the `wait` to `0`. To block until a specified timeout,
+  set the `wait` to the number of milliseconds to wait for the operation to complete before
+  timing out and throwing an exception.
 * Callbacks are defined as either `completed` or `failed` closures. In addition to the
   closure, you can define a "guard" closure, which is called before the main closure and
   should return non-null or Boolean `true` if the closure should be executed or null or
   Boolean `false` if the closure is to be skipped. This functionality is inspired by the
-  use of (guard expression in Erlang case statements)[http://en.wikibooks.org/wiki/Erlang_Programming/guards].
+  use of (the guard expression in Erlang case statements)[http://en.wikibooks.org/wiki/Erlang_Programming/guards].
