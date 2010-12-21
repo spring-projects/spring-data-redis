@@ -117,9 +117,7 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   /**
    * A list of resolvers to turn a single object into a {@link BucketKeyPair}.
    */
-  protected List<BucketKeyResolver> bucketKeyResolvers = new ArrayList<BucketKeyResolver>() {{
-    add(new SimpleBucketKeyResolver());
-  }};
+  protected List<BucketKeyResolver> bucketKeyResolvers = new ArrayList<BucketKeyResolver>();
   /**
    * The default QosParameters to use for all operations through this template.
    */
@@ -130,6 +128,7 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
    */
   public AbstractRiakTemplate() {
     setRestTemplate(new RestTemplate());
+    bucketKeyResolvers.add(new SimpleBucketKeyResolver());
   }
 
   /**
@@ -140,6 +139,7 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   public AbstractRiakTemplate(ClientHttpRequestFactory requestFactory) {
     super(requestFactory);
     setRestTemplate(new RestTemplate());
+    bucketKeyResolvers.add(new SimpleBucketKeyResolver());
   }
 
   public ConversionService getConversionService() {
