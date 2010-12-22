@@ -6,6 +6,7 @@ Key/Value store.
 
 ## Recent Changes:
 
+* 12/22/2010: Added async Map/Reduce support to AsyncRiakTemplate and Groovy DSL
 * 12/20/2010: AsyncRiakTemplate and Groovy DSL
 
 ### Groovy DSL
@@ -61,6 +62,36 @@ You can nest them, of course. To insert data and then delete all keys from a buc
       }
     }
 
+You can also use a "default" bucket by nesting your operations inside an arbitrary block. In
+the example below, the `test{}` closure sets a default bucket of "test" and all the
+subsequent operations check for this if a `bucket` is not specified (you can override the
+default by specifying a `bucket` property on the operation itself).
+
+The Groovy DSL for Riak now has Map/Reduce support. You build up a Map/Reduce job using the
+closures shown in the example. You can pass static arguments to the phases, as well. You can
+also specify a `wait` timeout on the `mapreduce` closure, just like with the other operations.
+
+    riak {
+      test {
+        put(value: [test: "value"])
+        put(value: [test: "value"])
+        put(value: [test: "value"])
+        put(value: [test: "value"])
+
+        mapreduce {
+          query {
+            map(arg: [test: "arg", alist: [1, 2, 3, 4]]) {
+              source "function(v){ return [1]; }"
+            }
+            reduce {
+              source "function(v){ return Riak.reduceSum(v); }"
+            }
+          }
+          completed { println "result $it" }
+          failed { it.printStackTrace() }
+        }
+      }
+    }
 
 Some things to note here:
 
