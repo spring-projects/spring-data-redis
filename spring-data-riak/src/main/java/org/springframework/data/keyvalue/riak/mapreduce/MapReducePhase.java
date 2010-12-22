@@ -52,4 +52,17 @@ public interface MapReducePhase {
    */
   MapReduceOperation getOperation();
 
+  /**
+   * Set the static argument for this job.
+   *
+   * @param arg
+   */
+  void setArg(Object arg);
+
+  /**
+   * Get the static argument for this phase.
+   *
+   * @return
+   */
+  Object getArg();
 }

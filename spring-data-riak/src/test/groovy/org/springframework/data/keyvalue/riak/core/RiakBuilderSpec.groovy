@@ -147,14 +147,14 @@ class RiakBuilderSpec extends Specification {
 
   }
 
-  def "Test builder each"() {
+  def "Test builder foreach"() {
 
     given:
     def riak = new RiakBuilder(riakTemplate)
     def idCnt = 0
 
     when:
-    riak.each(bucket: "test") {
+    riak.foreach(bucket: "test") {
       completed { idCnt++ }
       failed { it.printStackTrace() }
     }
@@ -176,7 +176,7 @@ class RiakBuilderSpec extends Specification {
       put(bucket: "test", value: [test: "value 2"])
       put(bucket: "test", value: [test: "value 3"])
 
-      each(bucket: "test") {
+      foreach(bucket: "test") {
         completed { v, meta -> ids << meta.key }
         failed { it.printStackTrace() }
       }
@@ -188,6 +188,61 @@ class RiakBuilderSpec extends Specification {
 
   }
 
+  def "Test builder bucket as node"() {
+
+    given:
+    def riak = new RiakBuilder(riakTemplate)
+    def ids = []
+
+    when:
+    riak {
+      "test" {
+        put(value: [test: "value 1"])
+        put(value: [test: "value 2"])
+        put(value: [test: "value 3"])
+
+        foreach {
+          completed { v, meta -> ids << meta.key }
+          failed { it.printStackTrace() }
+        }
+      }
+    }
+
+    then:
+    null != ids
+    3 <= ids.size()
+
+  }
+
+  def "Test builder Map/Reduce"() {
+
+    given:
+    def riak = new RiakBuilder(riakTemplate)
+    def result = []
+
+    when:
+    riak {
+      mapreduce {
+        inputs "test"
+        query {
+          map(arg: [test: "arg", alist: [1, 2, 3, 4]]) {
+            source "function(v, keyInfo, arg){ ejsLog('/tmp/mapred.log', JSON.stringify(v)); ejsLog('/tmp/mapred.log', JSON.stringify(keyInfo)); ejsLog('/tmp/mapred.log', JSON.stringify(arg)); return [1]; }"
+          }
+          reduce {
+            source "function(v){ ejsLog('/tmp/mapred.log', JSON.stringify(arguments)); return Riak.reduceSum(v); }"
+          }
+        }
+        completed { result = it }
+        failed { it.printStackTrace() }
+      }
+    }
+
+    then:
+    null != result
+    1 <= result.size()
+
+  }
+
   def "Test builder delete"() {
 
     given:
@@ -195,14 +250,18 @@ class RiakBuilderSpec extends Specification {
     def deleted = false
 
     when:
-    riak.each(bucket: "test") {
-      completed { v, meta ->
-        delete(bucket: meta.bucket, key: meta.key) {
-          completed { deleted = true }
-          failed { deleted = false }
+    riak {
+      "test" {
+        foreach {
+          completed { v, meta ->
+            delete(bucket: meta.bucket, key: meta.key) {
+              completed { deleted = true }
+              failed { deleted = false }
+            }
+          }
+          failed { it.printStackTrace() }
         }
       }
-      failed { it.printStackTrace() }
     }
 
     then:

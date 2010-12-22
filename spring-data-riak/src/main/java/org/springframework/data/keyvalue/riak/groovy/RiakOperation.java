@@ -39,7 +39,7 @@ import java.util.concurrent.*;
 public class RiakOperation<T> implements Callable {
 
   static enum Type {
-    SET, SETASBYTES, PUT, GET, GETASBYTES, GETASTYPE, CONTAINSKEY, DELETE, EACH
+    SET, SETASBYTES, PUT, GET, GETASBYTES, GETASTYPE, CONTAINSKEY, DELETE, FOREACH
   }
 
   static String COMPLETED = "completed";
@@ -162,7 +162,7 @@ public class RiakOperation<T> implements Callable {
       case DELETE:
         f = riak.delete(bucket, key, callbackInvoker);
         break;
-      case EACH:
+      case FOREACH:
         f = riak.getBucketSchema(bucket,
             null,
             new AsyncKeyValueStoreOperation<Map<String, Object>>() {

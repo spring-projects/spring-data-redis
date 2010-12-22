@@ -30,6 +30,7 @@ public class RiakMapReducePhase implements MapReducePhase {
   protected String language;
   protected MapReduceOperation operation;
   protected boolean keepResults = false;
+  protected Object arg;
 
   public RiakMapReducePhase(String phase, String language, MapReduceOperation oper) {
     this.phase = Phase.valueOf(phase.toUpperCase());
@@ -66,5 +67,13 @@ public class RiakMapReducePhase implements MapReducePhase {
   public void setOperation(MapReduceOperation oper) {
 
     this.operation = oper;
+  }
+
+  public Object getArg() {
+    return arg;
+  }
+
+  public void setArg(Object arg) {
+    this.arg = arg;
   }
 }

@@ -22,8 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
+import org.springframework.data.keyvalue.riak.mapreduce.AsyncMapReduceOperations;
+import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.Assert;
@@ -43,7 +46,7 @@ import java.util.concurrent.Future;
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBucketKeyValueStoreOperations {
+public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBucketKeyValueStoreOperations, AsyncMapReduceOperations {
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -301,6 +304,17 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     return setWithMetaData(bucket, key, value, metaData, null, callback);
   }
 
+  /* ---------------- Map/Reduce ---------------- */
+
+  @SuppressWarnings({"unchecked"})
+  public Future<?> execute(MapReduceJob job, AsyncKeyValueStoreOperation<List<?>> callback) {
+    HttpHeaders headers = defaultHeaders(null);
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> json = new HttpEntity<String>(job.toJson(), headers);
+    return workerPool.submit(new AsyncMapReduce(json, callback));
+  }
+
+  /* ---------------- Runnable helpers ---------------- */
   protected class AsyncPut<V> implements Runnable {
 
     private String bucket;
@@ -371,6 +385,41 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
           meta.setBucket((null != bucket ? bucket.toString() : null));
           meta.setKey((null != key ? key.toString() : null));
           callback.completed(meta, (V) result.getBody());
+        }
+      } catch (Throwable t) {
+        DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
+        if (null != callback) {
+          callback.failed(dsoe);
+        } else {
+          defaultErrorHandler.failed(dsoe);
+        }
+      }
+    }
+
+  }
+
+  protected class AsyncMapReduce implements Runnable {
+
+    private HttpEntity<String> entity = null;
+    private AsyncKeyValueStoreOperation<List<?>> callback = null;
+
+    public AsyncMapReduce(HttpEntity<String> entity, AsyncKeyValueStoreOperation<List<?>> callback) {
+      this.entity = entity;
+      this.callback = callback;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public void run() {
+      try {
+        HttpEntity<List> result = getRestTemplate().postForEntity(mapReduceUri,
+            entity,
+            List.class);
+        if (log.isDebugEnabled()) {
+          log.debug(String.format("M/R: json=%s", entity.getBody()));
+        }
+        if (null != callback) {
+          RiakMetaData meta = extractMetaData(result.getHeaders());
+          callback.completed(meta, result.getBody());
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);

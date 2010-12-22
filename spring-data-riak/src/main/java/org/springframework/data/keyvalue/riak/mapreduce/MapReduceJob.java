@@ -61,21 +61,6 @@ public interface MapReduceJob<T> extends Callable {
   List<MapReducePhase> getPhases();
 
   /**
-   * Set the static argument for this job.
-   *
-   * @param arg
-   */
-  void setArg(T arg);
-
-  /**
-   * Get the static argument for this job.
-   *
-   * @param <T>
-   * @return
-   */
-  <T> T getArg();
-
-  /**
    * Convert this job into the appropriate JSON to send to the server.
    *
    * @return
