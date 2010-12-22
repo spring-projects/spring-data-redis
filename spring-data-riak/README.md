@@ -54,7 +54,7 @@ You can nest them, of course. To insert data and then delete all keys from a buc
       put(bucket: "test", value: [test: "value 2"])
       put(bucket: "test", value: [test: "value 3"])
 
-      each(bucket: "test") {
+      foreach(bucket: "test") {
         completed { v, meta ->
           delete(bucket: meta.bucket, key: meta.key)
         }
