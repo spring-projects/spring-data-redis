@@ -281,6 +281,7 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     });
   }
 
+  @SuppressWarnings({"unchecked"})
   public <B, K, R> Future<?> containsKey(B bucket, K key, final AsyncKeyValueStoreOperation<Boolean, R> callback) {
     Assert.notNull(bucket, "Bucket cannot be null when checking for existence.");
     Assert.notNull(key, "Key cannot be null when checking for existence");
@@ -297,6 +298,7 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
         }));
   }
 
+  @SuppressWarnings({"unchecked"})
   public <B, K, R> Future<?> delete(B bucket, K key, AsyncKeyValueStoreOperation<Boolean, R> callback) {
     Assert.notNull(bucket, "Bucket cannot be null when deleting.");
     Assert.notNull(key, "Key cannot be null when deleting.");
