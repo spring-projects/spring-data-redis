@@ -82,17 +82,19 @@ public class RiakMapReduceOperation implements Callable {
   }
 
   public Object call() throws Exception {
-    Future<?> f = riak.execute(job, new AsyncKeyValueStoreOperation<List<?>>() {
-      public void completed(KeyValueStoreMetaData meta, List<?> result) {
+    Future<?> f = riak.execute(job, new AsyncKeyValueStoreOperation<List<?>, Object>() {
+      public Object completed(KeyValueStoreMetaData meta, List<?> result) {
         Object arg = new Object[]{result, meta};
         if (null != completed) {
-          completed.call(arg);
+          return completed.call(arg);
+        } else {
+          return new Object[]{result, meta};
         }
       }
 
-      public void failed(Throwable error) {
+      public Object failed(Throwable error) {
         if (null != failed) {
-          failed.call(error);
+          return failed.call(error);
         } else {
           throw new RuntimeException(error);
         }

@@ -36,6 +36,6 @@ public interface AsyncMapReduceOperations {
    * @param job
    * @return
    */
-  Future<?> execute(MapReduceJob job, AsyncKeyValueStoreOperation<List<?>> callback);
+  <R> Future<?> execute(MapReduceJob job, AsyncKeyValueStoreOperation<List<?>, R> callback);
 
 }

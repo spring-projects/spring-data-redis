@@ -33,7 +33,7 @@ The Groovy DSL will respond to the following methods:
 * getAsType
 * containsKey
 * delete
-* each
+* foreach
 
 Each completed or failed closure can be accompanied by a "guard" closure. For example,
 to process an entry differently, based on the type:

@@ -27,10 +27,7 @@ import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
 import org.springframework.data.keyvalue.riak.core.KeyValueStoreMetaData;
 import org.springframework.data.keyvalue.riak.core.QosParameters;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -129,7 +126,7 @@ public class RiakOperation<T> implements Callable {
   }
 
   @SuppressWarnings({"unchecked"})
-  public T call() throws Exception {
+  public Object call() throws Exception {
     Future<?> f = null;
     switch (type) {
       case GET:
@@ -165,16 +162,25 @@ public class RiakOperation<T> implements Callable {
       case FOREACH:
         f = riak.getBucketSchema(bucket,
             null,
-            new AsyncKeyValueStoreOperation<Map<String, Object>>() {
-              public void completed(KeyValueStoreMetaData meta, Map<String, Object> result) {
+            new AsyncKeyValueStoreOperation<Map<String, Object>, Object>() {
+              public Object completed(KeyValueStoreMetaData meta, Map<String, Object> result) {
+                List<Object> results = new LinkedList<Object>();
                 List<String> keys = (List<String>) result.get("keys");
                 for (String key : keys) {
                   try {
                     Future<?> getFut = riak.get(bucket, key, callbackInvoker);
                     if (timeout > 0) {
-                      getFut.get(timeout, TimeUnit.MILLISECONDS);
+                      Object o = getFut.get(timeout, TimeUnit.MILLISECONDS);
+                      if (null != o) {
+                        results.add(o);
+                      }
                     } else if (timeout < 0) {
-                      getFut.get();
+                      Object o = getFut.get();
+                      if (null != o) {
+                        results.add(o);
+                      }
+                    } else {
+                      results.add(getFut);
                     }
                   } catch (InterruptedException e) {
                     throw new DataStoreOperationException(e.getMessage(), e);
@@ -184,10 +190,11 @@ public class RiakOperation<T> implements Callable {
                     throw new DataStoreOperationException(e.getMessage(), e);
                   }
                 }
+                return (results.size() > 0 ? results : null);
               }
 
-              public void failed(Throwable error) {
-                log.error(error.getMessage(), error);
+              public Object failed(Throwable error) {
+                throw new RuntimeException(error);
               }
             });
         break;
@@ -196,14 +203,14 @@ public class RiakOperation<T> implements Callable {
     if (null != f) {
       if (timeout > 0) {
         // Block until finished or timeout
-        return (T) f.get(timeout, TimeUnit.MILLISECONDS);
+        return f.get(timeout, TimeUnit.MILLISECONDS);
       } else if (timeout < 0) {
         // Block indefinitely
-        return (T) f.get();
+        return f.get();
       }
     }
 
-    return (T) f;
+    return f;
   }
 
   class GuardedClosure {
@@ -228,9 +235,9 @@ public class RiakOperation<T> implements Callable {
 
   class ClosureInvokingCallback implements AsyncKeyValueStoreOperation {
 
-    public void completed(KeyValueStoreMetaData meta, Object result) {
+    public Object completed(KeyValueStoreMetaData meta, Object result) {
       if (!callbacks.containsKey(COMPLETED)) {
-        return;
+        return new Object[]{result, meta};
       }
       for (GuardedClosure cl : callbacks.get(COMPLETED)) {
         boolean execute = true;
@@ -256,21 +263,21 @@ public class RiakOperation<T> implements Callable {
         if (execute) {
           Closure callback = cl.getDelegate();
           if (callback.getParameterTypes().length == 2) {
-            // Pass value and metadata
-            callback.call(new Object[]{result, meta});
+            return callback.call(new Object[]{result, meta});
           } else {
-            callback.call(result);
+            return callback.call(result);
           }
-          break;
         }
       }
+      return null;
     }
 
-    public void failed(Throwable error) {
+    public Object failed(Throwable error) {
+      if (!callbacks.containsKey(FAILED)) {
+        throw new RuntimeException(error);
+      }
       for (GuardedClosure cl : callbacks.get(FAILED)) {
         boolean execute = true;
-        Object param;
-
         Closure guardExpr = cl.getGuard();
         if (null != guardExpr) {
           Object guardResult = guardExpr.call(error);
@@ -285,9 +292,10 @@ public class RiakOperation<T> implements Callable {
 
         if (execute) {
           Closure callback = cl.getDelegate();
-          callback.call(error);
+          return callback.call(error);
         }
       }
+      return null;
     }
 
   }

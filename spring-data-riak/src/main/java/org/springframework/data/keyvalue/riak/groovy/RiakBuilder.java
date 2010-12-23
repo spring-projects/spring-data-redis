@@ -30,6 +30,7 @@ import org.springframework.data.keyvalue.riak.core.SimpleBucketKeyPair;
 import org.springframework.data.keyvalue.riak.mapreduce.*;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -46,6 +47,7 @@ public class RiakBuilder extends BuilderSupport {
   @Autowired(required = false)
   protected ExecutorService workerPool = Executors.newCachedThreadPool();
   protected String defaultBucketName;
+  protected List<Object> results = new LinkedList<Object>();
 
   public RiakBuilder() {
   }
@@ -297,7 +299,11 @@ public class RiakBuilder extends BuilderSupport {
         }
         return oper;
       }
+    } else if ("call".equals(methodName)) {
+      results.clear();
+      defaultBucketName = null;
     }
+    // By default
     return super.invokeMethod(methodName, arg);
   }
 
@@ -305,14 +311,7 @@ public class RiakBuilder extends BuilderSupport {
   @Override
   protected void nodeCompleted(Object parent, Object node) {
     log.debug("nodeCompleted: parent=" + parent + ", node=" + node);
-    if (node instanceof RiakOperation) {
-      RiakOperation<Object> op = (RiakOperation<Object>) node;
-      try {
-        op.call();
-      } catch (Exception e) {
-        log.error(e.getMessage(), e);
-      }
-    } else if (parent instanceof RiakMapReduceOperation && node instanceof QueryPhase) {
+    if (parent instanceof RiakMapReduceOperation && node instanceof QueryPhase) {
       QueryPhase p = (QueryPhase) node;
       MapReduceOperation oper = null;
       if ("javascript".equals(p.language)) {
@@ -341,15 +340,28 @@ public class RiakBuilder extends BuilderSupport {
   @Override
   protected Object postNodeCompletion(Object parent, Object node) {
     log.debug("postNodeCompletion: " + parent + " " + node);
-    if (null == parent && node instanceof RiakMapReduceOperation) {
-      RiakMapReduceOperation oper = (RiakMapReduceOperation) node;
+    if (node instanceof RiakOperation) {
+      RiakOperation<Object> op = (RiakOperation<Object>) node;
       try {
-        return oper.call();
+        Object o = op.call();
+        if (null != o) {
+          results.add(o);
+        }
+        return o;
       } catch (Exception e) {
         log.error(e.getMessage(), e);
       }
-    } else if (null == parent && node == parent) {
-      defaultBucketName = null;
+    } else if (null == parent && node instanceof RiakMapReduceOperation) {
+      RiakMapReduceOperation oper = (RiakMapReduceOperation) node;
+      try {
+        Object o = oper.call();
+        if (null != o) {
+          results.add(o);
+        }
+        return o;
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+      }
     }
 
     return super.postNodeCompletion(parent, node);

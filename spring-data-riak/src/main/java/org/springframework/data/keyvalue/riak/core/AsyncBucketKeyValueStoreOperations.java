@@ -37,7 +37,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param value
    * @param callback Called with the update value pulled from Riak
    */
-  <B, K, V> Future<?> set(B bucket, K key, V value, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> set(B bucket, K key, V value, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
@@ -46,7 +46,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param qosParams
    * @return
    */
-  <B, K, V> Future<?> set(B bucket, K key, V value, QosParameters qosParams, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> set(B bucket, K key, V value, QosParameters qosParams, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
@@ -54,7 +54,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param value
    * @return
    */
-  <B, K> Future<?> setAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[]> callback);
+  <B, K, R> Future<?> setAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[], R> callback);
 
   /**
    * @param bucket
@@ -63,7 +63,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param qosParams
    * @return
    */
-  <B, K> Future<?> setAsBytes(B bucket, K key, byte[] value, QosParameters qosParams, AsyncKeyValueStoreOperation<byte[]> callback);
+  <B, K, R> Future<?> setAsBytes(B bucket, K key, byte[] value, QosParameters qosParams, AsyncKeyValueStoreOperation<byte[], R> callback);
 
   /**
    * @param bucket
@@ -72,7 +72,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param metaData
    * @return
    */
-  <B, K, V> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
@@ -82,21 +82,21 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param qosParams
    * @return
    */
-  <B, K, V> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
    * @param key
    * @return
    */
-  <B, K, V> Future<?> get(B bucket, K key, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> get(B bucket, K key, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
    * @param key
    * @return
    */
-  <B, K> Future<?> getAsBytes(B bucket, K key, AsyncKeyValueStoreOperation<byte[]> callback);
+  <B, K, R> Future<?> getAsBytes(B bucket, K key, AsyncKeyValueStoreOperation<byte[], R> callback);
 
   /**
    * @param bucket
@@ -104,7 +104,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param requiredType
    * @return
    */
-  <B, K, T> Future<?> getAsType(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T> callback);
+  <B, K, T, R> Future<?> getAsType(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T, R> callback);
 
   /**
    * @param bucket
@@ -112,7 +112,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param value
    * @return
    */
-  <B, K, V> Future<?> getAndSet(B bucket, K key, V value, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> getAndSet(B bucket, K key, V value, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
@@ -120,7 +120,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param value
    * @return
    */
-  <B, K> Future<?> getAndSetAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[]> callback);
+  <B, K, R> Future<?> getAndSetAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[], R> callback);
 
   /**
    * @param bucket
@@ -129,7 +129,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param requiredType
    * @return
    */
-  <B, K, V, T> Future<?> getAndSetAsType(B bucket, K key, V value, Class<T> requiredType, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, T, R> Future<?> getAndSetAsType(B bucket, K key, V value, Class<T> requiredType, AsyncKeyValueStoreOperation<T, R> callback);
 
   /**
    * @param bucket
@@ -137,7 +137,7 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param value
    * @return
    */
-  <B, K, V> Future<?> setIfKeyNonExistent(B bucket, K key, V value, AsyncKeyValueStoreOperation<V> callback);
+  <B, K, V, R> Future<?> setIfKeyNonExistent(B bucket, K key, V value, AsyncKeyValueStoreOperation<V, R> callback);
 
   /**
    * @param bucket
@@ -145,14 +145,14 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param value
    * @return
    */
-  <B, K> Future<?> setIfKeyNonExistentAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[]> callback);
+  <B, K, R> Future<?> setIfKeyNonExistentAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[], R> callback);
 
   /**
    * @param bucket
    * @param key
    * @return
    */
-  <B, K> Future<?> containsKey(B bucket, K key, AsyncKeyValueStoreOperation<Boolean> callback);
+  <B, K, R> Future<?> containsKey(B bucket, K key, AsyncKeyValueStoreOperation<Boolean, R> callback);
 
   /**
    * Delete a specific entry from this data store.
@@ -161,6 +161,6 @@ public interface AsyncBucketKeyValueStoreOperations {
    * @param key
    * @return
    */
-  <B, K> Future<?> delete(B bucket, K key, AsyncKeyValueStoreOperation<Boolean> callback);
+  <B, K, R> Future<?> delete(B bucket, K key, AsyncKeyValueStoreOperation<Boolean, R> callback);
 
 }

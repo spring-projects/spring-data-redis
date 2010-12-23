@@ -38,10 +38,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
@@ -51,7 +48,7 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
   protected ExecutorService workerPool = Executors.newCachedThreadPool();
-  protected AsyncKeyValueStoreOperation<Throwable> defaultErrorHandler = new LoggingErrorHandler();
+  protected AsyncKeyValueStoreOperation<Throwable, Object> defaultErrorHandler = new LoggingErrorHandler();
 
   public AsyncRiakTemplate() {
     super();
@@ -69,28 +66,28 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     this.workerPool = workerPool;
   }
 
-  public AsyncKeyValueStoreOperation<Throwable> getDefaultErrorHandler() {
+  public AsyncKeyValueStoreOperation<Throwable, Object> getDefaultErrorHandler() {
     return defaultErrorHandler;
   }
 
-  public void setDefaultErrorHandler(AsyncKeyValueStoreOperation<Throwable> defaultErrorHandler) {
+  public void setDefaultErrorHandler(AsyncKeyValueStoreOperation<Throwable, Object> defaultErrorHandler) {
     this.defaultErrorHandler = defaultErrorHandler;
   }
 
-  public <B, K, V> Future<?> set(B bucket, K key, V value, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, R> Future<?> set(B bucket, K key, V value, AsyncKeyValueStoreOperation<V, R> callback) {
     return setWithMetaData(bucket, key, value, null, null, callback);
   }
 
-  public <B, K, V> Future<?> set(B bucket, K key, V value, QosParameters qosParams, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, R> Future<?> set(B bucket, K key, V value, QosParameters qosParams, AsyncKeyValueStoreOperation<V, R> callback) {
     return setWithMetaData(bucket, key, value, null, qosParams, callback);
   }
 
-  public <B, K> Future<?> setAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[]> callback) {
+  public <B, K, R> Future<?> setAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[], R> callback) {
     return setWithMetaData(bucket, key, value, null, null, callback);
   }
 
   @SuppressWarnings({"unchecked"})
-  public <B, K, V> Future<V> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, R> Future<V> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V, R> callback) {
     String bucketName = (null != bucket ? bucket.toString() : value.getClass().getName());
     // Get a key name that may or may not include the QOS parameters.
     Assert.notNull(key, "Cannot use a <NULL> key.");
@@ -110,22 +107,22 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     }
     headers.set(RIAK_META_CLASSNAME, value.getClass().getName());
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
-    return (Future<V>) workerPool.submit(new AsyncPost<V>(bucketName,
+    return (Future<V>) workerPool.submit(new AsyncPost<V, R>(bucketName,
         keyName,
         entity,
         callback));
   }
 
-  public <B, V> Future<V> put(B bucket, V value, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, V, R> Future<V> put(B bucket, V value, AsyncKeyValueStoreOperation<V, R> callback) {
     return put(bucket, value, null, null, callback);
   }
 
-  public <B, V> Future<V> put(B bucket, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, V, R> Future<V> put(B bucket, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V, R> callback) {
     return put(bucket, value, metaData, null, callback);
   }
 
   @SuppressWarnings({"unchecked"})
-  public <B, V> Future<V> put(B bucket, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, V, R> Future<V> put(B bucket, V value, Map<String, String> metaData, QosParameters qosParams, AsyncKeyValueStoreOperation<V, R> callback) {
     Assert.notNull(bucket, "Bucket cannot be null");
     String bucketName = (null != qosParams ? bucket.toString() + extractQosParameters(qosParams) : bucket
         .toString());
@@ -134,10 +131,10 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     headers.setContentType(extractMediaType(value));
     headers.set(RIAK_META_CLASSNAME, value.getClass().getName());
     HttpEntity<V> entity = new HttpEntity<V>(value, headers);
-    return (Future<V>) workerPool.submit(new AsyncPut<V>(bucketName, entity, callback));
+    return (Future<V>) workerPool.submit(new AsyncPut<V, R>(bucketName, entity, callback));
   }
 
-  public <B, K, V> Future<?> get(B bucket, K key, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, R> Future<?> get(B bucket, K key, AsyncKeyValueStoreOperation<V, R> callback) {
     return getWithMetaData(bucket, key, null, callback);
   }
 
@@ -158,7 +155,7 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
   }
 
   @SuppressWarnings({"unchecked"})
-  public <B> Future<?> getBucketSchema(B bucket, QosParameters qosParams, final AsyncKeyValueStoreOperation<Map<String, Object>> callback) {
+  public <B, R> Future<?> getBucketSchema(B bucket, QosParameters qosParams, final AsyncKeyValueStoreOperation<Map<String, Object>, R> callback) {
     Assert.notNull(bucket, "Bucket cannot be null");
     Assert.notNull(callback, "Callback cannot be null");
 
@@ -168,20 +165,20 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     return workerPool.submit(new AsyncGet(bucketName,
         "?keys=true",
         Map.class,
-        new AsyncKeyValueStoreOperation<Object>() {
+        new AsyncKeyValueStoreOperation<Object, Object>() {
           @SuppressWarnings({"unchecked"})
-          public void completed(KeyValueStoreMetaData meta, Object result) {
-            callback.completed(meta, (Map<String, Object>) result);
+          public Object completed(KeyValueStoreMetaData meta, Object result) {
+            return callback.completed(meta, (Map<String, Object>) result);
           }
 
-          public void failed(Throwable error) {
-            callback.failed(error);
+          public Object failed(Throwable error) {
+            return callback.failed(error);
           }
         }));
   }
 
   @SuppressWarnings({"unchecked"})
-  public <B, K, T> Future<?> getWithMetaData(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T> callback) {
+  public <B, K, T, R> Future<?> getWithMetaData(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T, R> callback) {
     String bucketName = (null != bucket ? bucket.toString() : requiredType.getName());
     // Get a key name that may or may not include the QOS parameters.
     Assert.notNull(key, "Cannot use a null key.");
@@ -190,32 +187,32 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     if (null == requiredType) {
       requiredType = (Class<T>) getType(bucketName, key.toString());
     }
-    return workerPool.submit(new AsyncGet<T>(bucketName,
+    return workerPool.submit(new AsyncGet<T, R>(bucketName,
         key.toString(),
         requiredType,
         callback));
   }
 
-  public <B, K> Future<?> getAsBytes(B bucket, K key, AsyncKeyValueStoreOperation<byte[]> callback) {
+  public <B, K, R> Future<?> getAsBytes(B bucket, K key, AsyncKeyValueStoreOperation<byte[], R> callback) {
     return getWithMetaData(bucket, key, byte[].class, callback);
   }
 
-  public <B, K, T> Future<?> getAsType(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T> callback) {
+  public <B, K, T, R> Future<?> getAsType(B bucket, K key, Class<T> requiredType, AsyncKeyValueStoreOperation<T, R> callback) {
     return getWithMetaData(bucket, key, requiredType, callback);
   }
 
-  public <B, K, V> Future<?> getAndSet(final B bucket, final K key, final V value, final AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, R> Future<?> getAndSet(final B bucket, final K key, final V value, final AsyncKeyValueStoreOperation<V, R> callback) {
     final List<Future<?>> futures = new ArrayList<Future<?>>();
     try {
-      getWithMetaData(bucket, key, null, new AsyncKeyValueStoreOperation<Object>() {
+      getWithMetaData(bucket, key, null, new AsyncKeyValueStoreOperation<Object, Object>() {
         @SuppressWarnings({"unchecked"})
-        public void completed(KeyValueStoreMetaData meta, Object result) {
+        public Object completed(KeyValueStoreMetaData meta, Object result) {
           futures.add(setWithMetaData(bucket, key, value, null, null, null));
-          callback.completed(meta, (V) result);
+          return callback.completed(meta, (V) result);
         }
 
-        public void failed(Throwable error) {
-          callback.failed(error);
+        public Object failed(Throwable error) {
+          return callback.failed(error);
         }
       }).get();
     } catch (InterruptedException e) {
@@ -226,88 +223,98 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     return futures.size() > 0 ? futures.get(0) : null;
   }
 
-  public <B, K> Future<?> getAndSetAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[]> callback) {
+  public <B, K, R> Future<?> getAndSetAsBytes(B bucket, K key, byte[] value, AsyncKeyValueStoreOperation<byte[], R> callback) {
     return getAndSet(bucket, key, value, callback);
   }
 
-  public <B, K, V, T> Future<?> getAndSetAsType(final B bucket, final K key, final V value, final Class<T> requiredType, final AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, T, R> Future<?> getAndSetAsType(final B bucket, final K key, final V value, final Class<T> requiredType, final AsyncKeyValueStoreOperation<T, R> callback) {
     final List<Future<?>> futures = new ArrayList<Future<?>>();
-    getWithMetaData(bucket, key, requiredType, new AsyncKeyValueStoreOperation<T>() {
+    getWithMetaData(bucket, key, requiredType, new AsyncKeyValueStoreOperation<T, R>() {
       @SuppressWarnings({"unchecked"})
-      public void completed(KeyValueStoreMetaData meta, T result) {
-        futures.add(setWithMetaData(bucket, key, value, null, null, null));
-        callback.completed(meta, (V) result);
+      public R completed(KeyValueStoreMetaData meta, T result) {
+        try {
+          setWithMetaData(bucket, key, value, null, null, null).get();
+          return callback.completed(meta, result);
+        } catch (InterruptedException e) {
+          return callback.failed(e);
+        } catch (ExecutionException e) {
+          return callback.failed(e);
+        }
       }
 
-      public void failed(Throwable error) {
-        callback.failed(error);
+      public R failed(Throwable error) {
+        return callback.failed(error);
       }
     });
     return futures.size() > 0 ? futures.get(0) : null;
   }
 
-  public <B, K, V> Future<?> setIfKeyNonExistent(final B bucket, final K key, final V value, final AsyncKeyValueStoreOperation<V> callback) {
-    return containsKey(bucket, key, new AsyncKeyValueStoreOperation<Boolean>() {
-      public void completed(KeyValueStoreMetaData meta, Boolean result) {
+  public <B, K, V, R> Future<?> setIfKeyNonExistent(final B bucket, final K key, final V value, final AsyncKeyValueStoreOperation<V, R> callback) {
+    return containsKey(bucket, key, new AsyncKeyValueStoreOperation<Boolean, Object>() {
+      public Object completed(KeyValueStoreMetaData meta, Boolean result) {
         if (!result) {
-          setWithMetaData(bucket, key, value, null, null, callback);
+          return setWithMetaData(bucket, key, value, null, null, callback);
+        } else {
+          return null;
         }
       }
 
-      public void failed(Throwable error) {
-        callback.failed(error);
+      public Object failed(Throwable error) {
+        return callback.failed(error);
       }
     });
   }
 
-  public <B, K> Future<?> setIfKeyNonExistentAsBytes(final B bucket, final K key, final byte[] value, final AsyncKeyValueStoreOperation<byte[]> callback) {
-    return containsKey(bucket, key, new AsyncKeyValueStoreOperation<Boolean>() {
-      public void completed(KeyValueStoreMetaData meta, Boolean result) {
+  public <B, K, R> Future<?> setIfKeyNonExistentAsBytes(final B bucket, final K key, final byte[] value, final AsyncKeyValueStoreOperation<byte[], R> callback) {
+    return containsKey(bucket, key, new AsyncKeyValueStoreOperation<Boolean, Object>() {
+      public Object completed(KeyValueStoreMetaData meta, Boolean result) {
         if (!result) {
-          setWithMetaData(bucket, key, value, null, null, callback);
+          return setWithMetaData(bucket, key, value, null, null, callback);
+        } else {
+          return null;
         }
       }
 
-      public void failed(Throwable error) {
-        callback.failed(error);
+      public Object failed(Throwable error) {
+        return callback.failed(error);
       }
     });
   }
 
-  public <B, K> Future<?> containsKey(B bucket, K key, final AsyncKeyValueStoreOperation<Boolean> callback) {
+  public <B, K, R> Future<?> containsKey(B bucket, K key, final AsyncKeyValueStoreOperation<Boolean, R> callback) {
     Assert.notNull(bucket, "Bucket cannot be null when checking for existence.");
     Assert.notNull(key, "Key cannot be null when checking for existence");
     return workerPool.submit(new AsyncHead(bucket.toString(),
         key.toString(),
-        new AsyncKeyValueStoreOperation<HttpHeaders>() {
-          public void completed(KeyValueStoreMetaData meta, HttpHeaders result) {
-            callback.completed(null, (null != result));
+        new AsyncKeyValueStoreOperation<HttpHeaders, Object>() {
+          public Object completed(KeyValueStoreMetaData meta, HttpHeaders result) {
+            return callback.completed(null, (null != result));
           }
 
-          public void failed(Throwable error) {
-            callback.failed(error);
+          public Object failed(Throwable error) {
+            return callback.failed(error);
           }
         }));
   }
 
-  public <B, K> Future<?> delete(B bucket, K key, AsyncKeyValueStoreOperation<Boolean> callback) {
+  public <B, K, R> Future<?> delete(B bucket, K key, AsyncKeyValueStoreOperation<Boolean, R> callback) {
     Assert.notNull(bucket, "Bucket cannot be null when deleting.");
     Assert.notNull(key, "Key cannot be null when deleting.");
     return workerPool.submit(new AsyncDelete(bucket.toString(), key.toString(), callback));
   }
 
-  public <B, K> Future<?> setAsBytes(B bucket, K key, byte[] value, QosParameters qosParams, AsyncKeyValueStoreOperation<byte[]> callback) {
+  public <B, K, R> Future<?> setAsBytes(B bucket, K key, byte[] value, QosParameters qosParams, AsyncKeyValueStoreOperation<byte[], R> callback) {
     return setWithMetaData(bucket, key, value, null, qosParams, callback);
   }
 
-  public <B, K, V> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V> callback) {
+  public <B, K, V, R> Future<?> setWithMetaData(B bucket, K key, V value, Map<String, String> metaData, AsyncKeyValueStoreOperation<V, R> callback) {
     return setWithMetaData(bucket, key, value, metaData, null, callback);
   }
 
   /* ---------------- Map/Reduce ---------------- */
 
   @SuppressWarnings({"unchecked"})
-  public Future<?> execute(MapReduceJob job, AsyncKeyValueStoreOperation<List<?>> callback) {
+  public <R> Future<?> execute(MapReduceJob job, AsyncKeyValueStoreOperation<List<?>, R> callback) {
     HttpHeaders headers = defaultHeaders(null);
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<String> json = new HttpEntity<String>(job.toJson(), headers);
@@ -315,19 +322,19 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
   }
 
   /* ---------------- Runnable helpers ---------------- */
-  protected class AsyncPut<V> implements Runnable {
+  protected class AsyncPut<V, R> implements Callable {
 
     private String bucket;
     private HttpEntity<V> entity = null;
-    private AsyncKeyValueStoreOperation<V> callback = null;
+    private AsyncKeyValueStoreOperation<V, R> callback = null;
 
-    public AsyncPut(String bucket, HttpEntity<V> entity, AsyncKeyValueStoreOperation<V> callback) {
+    public AsyncPut(String bucket, HttpEntity<V> entity, AsyncKeyValueStoreOperation<V, R> callback) {
       this.bucket = bucket;
       this.entity = entity;
       this.callback = callback;
     }
 
-    public void run() {
+    public R call() throws Exception {
       try {
         URI location = getRestTemplate().postForLocation(defaultUri, entity, bucket, "");
         String path = location.getPath();
@@ -338,28 +345,29 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
           RiakMetaData meta = extractMetaData(headers);
           meta.setBucket((null != bucket ? bucket.toString() : null));
           meta.setKey((null != key ? key.toString() : null));
-          callback.completed(meta, entity.getBody());
+          return callback.completed(meta, entity.getBody());
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
         if (null != callback) {
-          callback.failed(dsoe);
+          return callback.failed(dsoe);
         } else {
           defaultErrorHandler.failed(dsoe);
         }
       }
+      return null;
     }
 
   }
 
-  protected class AsyncPost<V> implements Runnable {
+  protected class AsyncPost<V, R> implements Callable {
 
     private String bucket;
     private String key;
     private HttpEntity<V> entity = null;
-    private AsyncKeyValueStoreOperation<V> callback = null;
+    private AsyncKeyValueStoreOperation<V, R> callback = null;
 
-    public AsyncPost(String bucket, String key, HttpEntity<V> entity, AsyncKeyValueStoreOperation<V> callback) {
+    public AsyncPost(String bucket, String key, HttpEntity<V> entity, AsyncKeyValueStoreOperation<V, R> callback) {
       this.bucket = bucket;
       this.key = key;
       this.entity = entity;
@@ -367,7 +375,7 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
     }
 
     @SuppressWarnings({"unchecked"})
-    public void run() {
+    public R call() throws Exception {
       try {
         HttpEntity<?> result = getRestTemplate().postForEntity(defaultUri,
             entity,
@@ -384,32 +392,33 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
           RiakMetaData meta = extractMetaData(result.getHeaders());
           meta.setBucket((null != bucket ? bucket.toString() : null));
           meta.setKey((null != key ? key.toString() : null));
-          callback.completed(meta, (V) result.getBody());
+          return callback.completed(meta, (V) result.getBody());
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
         if (null != callback) {
-          callback.failed(dsoe);
+          return callback.failed(dsoe);
         } else {
           defaultErrorHandler.failed(dsoe);
         }
       }
+      return null;
     }
 
   }
 
-  protected class AsyncMapReduce implements Runnable {
+  protected class AsyncMapReduce<R> implements Callable {
 
     private HttpEntity<String> entity = null;
-    private AsyncKeyValueStoreOperation<List<?>> callback = null;
+    private AsyncKeyValueStoreOperation<List<?>, R> callback = null;
 
-    public AsyncMapReduce(HttpEntity<String> entity, AsyncKeyValueStoreOperation<List<?>> callback) {
+    public AsyncMapReduce(HttpEntity<String> entity, AsyncKeyValueStoreOperation<List<?>, R> callback) {
       this.entity = entity;
       this.callback = callback;
     }
 
     @SuppressWarnings({"unchecked"})
-    public void run() {
+    public R call() throws Exception {
       try {
         HttpEntity<List> result = getRestTemplate().postForEntity(mapReduceUri,
             entity,
@@ -419,35 +428,36 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
         }
         if (null != callback) {
           RiakMetaData meta = extractMetaData(result.getHeaders());
-          callback.completed(meta, result.getBody());
+          return callback.completed(meta, result.getBody());
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
         if (null != callback) {
-          callback.failed(dsoe);
+          return callback.failed(dsoe);
         } else {
           defaultErrorHandler.failed(dsoe);
         }
       }
+      return null;
     }
 
   }
 
-  protected class AsyncGet<T> implements Runnable {
+  protected class AsyncGet<T, R> implements Callable {
 
     private String bucket;
     private String key;
     private Class<T> requiredType;
-    private AsyncKeyValueStoreOperation<T> callback = null;
+    private AsyncKeyValueStoreOperation<T, R> callback = null;
 
-    public AsyncGet(String bucket, String key, Class<T> requiredType, AsyncKeyValueStoreOperation<T> callback) {
+    public AsyncGet(String bucket, String key, Class<T> requiredType, AsyncKeyValueStoreOperation<T, R> callback) {
       this.bucket = bucket;
       this.key = key;
       this.requiredType = requiredType;
       this.callback = callback;
     }
 
-    public void run() {
+    public R call() throws Exception {
       try {
         ResponseEntity<T> result = getRestTemplate().getForEntity(defaultUri,
             requiredType,
@@ -462,7 +472,7 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
             cache.put(new SimpleBucketKeyPair<Object, Object>(bucket, key), val);
           }
           if (null != callback) {
-            callback.completed(meta, val.get());
+            return callback.completed(meta, val.get());
           }
           if (log.isDebugEnabled()) {
             log.debug(String.format("GET object: bucket=%s, key=%s, type=%s",
@@ -474,80 +484,85 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
         if (null != callback) {
-          callback.failed(dsoe);
+          return callback.failed(dsoe);
         } else {
           defaultErrorHandler.failed(dsoe);
         }
       }
+      return null;
     }
   }
 
-  protected class AsyncHead implements Runnable {
+  protected class AsyncHead<V, R> implements Callable {
 
     private String bucket;
     private String key;
-    private AsyncKeyValueStoreOperation<HttpHeaders> callback = null;
+    private AsyncKeyValueStoreOperation<HttpHeaders, R> callback = null;
 
-    public AsyncHead(String bucket, String key, AsyncKeyValueStoreOperation<HttpHeaders> callback) {
+    public AsyncHead(String bucket, String key, AsyncKeyValueStoreOperation<HttpHeaders, R> callback) {
       this.bucket = bucket;
       this.key = key;
       this.callback = callback;
     }
 
-    public void run() {
+    public R call() throws Exception {
       try {
         HttpHeaders headers = getRestTemplate().headForHeaders(defaultUri, bucket, key);
         if (null != headers) {
           if (null != callback) {
-            callback.completed(null, headers);
+            return callback.completed(null, headers);
           }
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
         if (null != callback) {
-          callback.failed(dsoe);
+          return callback.failed(dsoe);
         } else {
           defaultErrorHandler.failed(dsoe);
         }
       }
+      return null;
     }
   }
 
-  protected class AsyncDelete implements Runnable {
+  protected class AsyncDelete<V, R> implements Callable {
 
     private String bucket;
     private String key;
-    private AsyncKeyValueStoreOperation<Boolean> callback = null;
+    private AsyncKeyValueStoreOperation<Boolean, R> callback = null;
 
-    public AsyncDelete(String bucket, String key, AsyncKeyValueStoreOperation<Boolean> callback) {
+    public AsyncDelete(String bucket, String key, AsyncKeyValueStoreOperation<Boolean, R> callback) {
       this.bucket = bucket;
       this.key = key;
       this.callback = callback;
     }
 
-    public void run() {
+    public R call() throws Exception {
       try {
         getRestTemplate().delete(defaultUri, bucket, key);
         if (null != callback) {
-          callback.completed(null, true);
+          return callback.completed(null, true);
         }
       } catch (Throwable t) {
         DataStoreOperationException dsoe = new DataStoreOperationException(t.getMessage(), t);
         if (null != callback) {
-          callback.failed(dsoe);
+          return callback.failed(dsoe);
         } else {
           defaultErrorHandler.failed(dsoe);
         }
       }
+      return null;
     }
   }
 
-  protected class LoggingErrorHandler implements AsyncKeyValueStoreOperation<Throwable> {
-    public void completed(KeyValueStoreMetaData meta, Throwable result) {
+  protected class LoggingErrorHandler implements AsyncKeyValueStoreOperation<Throwable, Object> {
+    public Object completed(KeyValueStoreMetaData meta, Throwable result) {
+      return null;
     }
 
-    public void failed(Throwable error) {
+    public Object failed(Throwable error) {
       log.error(error.getMessage(), error);
+      return null;
     }
   }
 

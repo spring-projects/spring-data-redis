@@ -21,9 +21,9 @@ package org.springframework.data.keyvalue.riak.core;
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-public interface AsyncKeyValueStoreOperation<V> {
+public interface AsyncKeyValueStoreOperation<V, T> {
 
-  void completed(KeyValueStoreMetaData meta, V result);
+  T completed(KeyValueStoreMetaData meta, V result);
 
-  void failed(Throwable error);
+  T failed(Throwable error);
 }

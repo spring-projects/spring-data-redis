@@ -18,6 +18,7 @@
 
 package org.springframework.data.keyvalue.riak.core
 
+import java.util.concurrent.Future
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.data.keyvalue.riak.groovy.RiakBuilder
@@ -70,7 +71,27 @@ class RiakBuilderSpec extends Specification {
     }
 
     then:
+    null != result
     "value" == result
+
+  }
+
+  def "Test builder async get"() {
+
+    given:
+    def riak = new RiakBuilder(riakTemplate)
+    def result = null
+
+    when:
+    def f = riak.get(bucket: "test", key: "test", wait: 0) {
+      completed(when: { it.integer == 12 }) { result = it.test }
+      completed { result = "otherwise" }
+      failed { it.printStackTrace() }
+    }
+
+    then:
+    f instanceof Future
+    null != f.get()
 
   }
 
@@ -115,17 +136,15 @@ class RiakBuilderSpec extends Specification {
 
     given:
     def riak = new RiakBuilder(riakTemplate)
-    def result = null
 
     when:
-    riak.get(bucket: "test", key: "test") {
-      completed { result = it }
+    def result = riak.get(bucket: "test", key: "test") {
       failed { it.printStackTrace() }
     }
 
     then:
     null != result
-    "test bytes".bytes == result
+    "test bytes".bytes == result[0]
 
   }
 
@@ -134,11 +153,10 @@ class RiakBuilderSpec extends Specification {
     given:
     def obj = [test: "value", integer: 12]
     def riak = new RiakBuilder(riakTemplate)
-    def id = null
 
     when:
-    riak.put(bucket: "test", qos: [dw: "all"], value: obj) {
-      completed { v, meta -> id = meta.key }
+    def id = riak.put(bucket: "test", qos: [dw: "all"], value: obj) {
+      completed { v, meta -> meta.key }
       failed { it.printStackTrace() }
     }
 
@@ -218,7 +236,6 @@ class RiakBuilderSpec extends Specification {
 
     given:
     def riak = new RiakBuilder(riakTemplate)
-    def result = []
 
     when:
     riak {
@@ -232,14 +249,14 @@ class RiakBuilderSpec extends Specification {
             source "function(v){ ejsLog('/tmp/mapred.log', JSON.stringify(arguments)); return Riak.reduceSum(v); }"
           }
         }
-        completed { result = it }
+        completed { it }
         failed { it.printStackTrace() }
       }
     }
 
     then:
-    null != result
-    1 <= result.size()
+    null != riak.results
+    1 <= riak.results.size()
 
   }
 
