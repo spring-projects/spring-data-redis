@@ -39,6 +39,7 @@ import org.springframework.http.converter.json.MappingJacksonHttpMessageConverte
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
 
@@ -93,7 +94,8 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   /**
    * For converting objects to/from other kinds of objects.
    */
-  protected ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
+  protected ConversionService conversionService = ConversionServiceFactory
+      .createDefaultConversionService();
   /**
    * For caching objects based on ETags.
    */
@@ -122,6 +124,9 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
    * The default QosParameters to use for all operations through this template.
    */
   protected QosParameters defaultQosParameters = null;
+
+  protected Class<?> defaultType = String.class;
+  protected ClassLoader classLoader = null;
 
   /**
    * Take all the defaults.
@@ -185,6 +190,42 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
 
   public void setDefaultQosParameters(QosParameters defaultQosParameters) {
     this.defaultQosParameters = defaultQosParameters;
+  }
+
+  /**
+   * Get the default type to use if none can be inferred.
+   *
+   * @return
+   */
+  public Class<?> getDefaultType() {
+    return defaultType;
+  }
+
+  /**
+   * Set the default type to use if none can be inferred.
+   *
+   * @param defaultType
+   */
+  public void setDefaultType(Class<?> defaultType) {
+    this.defaultType = defaultType;
+  }
+
+  /**
+   * Get the {@link ClassLoader} to use when trying to load objects from the store.
+   *
+   * @return
+   */
+  public ClassLoader getClassLoader() {
+    return classLoader;
+  }
+
+  /**
+   * Set the {@link ClassLoader} to use when trying to load objects from the store.
+   *
+   * @param classLoader
+   */
+  public void setClassLoader(ClassLoader classLoader) {
+    this.classLoader = classLoader;
   }
 
   public String getHost() {
@@ -278,7 +319,7 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
 
   protected MediaType extractMediaType(Object value) {
     MediaType mediaType = (value instanceof byte[] ? MediaType.APPLICATION_OCTET_STREAM : MediaType.APPLICATION_JSON);
-    if (value.getClass().getAnnotations().length > 0) {
+    if (null != value && value.getClass().getAnnotations().length > 0) {
       KeyValueStoreMetaData meta = value.getClass()
           .getAnnotation(KeyValueStoreMetaData.class);
       if (null != meta) {
@@ -327,7 +368,8 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   }
 
   @SuppressWarnings({"unchecked"})
-  protected <T> RiakValue<T> extractValue(final ResponseEntity<?> response, Class<?> origType, Class<T> requiredType) throws
+  protected <T> RiakValue<T> extractValue(final ResponseEntity<?> response, Class<?> origType,
+                                          Class<T> requiredType) throws
       IOException {
     if (response.hasBody()) {
       RiakMetaData meta = extractMetaData(response.getHeaders());
@@ -346,8 +388,9 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
                   o = conv.read(requiredType, new HttpInputMessage() {
                     public InputStream getBody() throws IOException {
                       Object body = response.getBody();
-                      return new ByteArrayInputStream((body instanceof byte[] ? (byte[]) body : ((String) body)
-                          .getBytes()));
+                      return new ByteArrayInputStream(
+                          (body instanceof byte[] ? (byte[]) body : ((String) body)
+                              .getBytes()));
                     }
 
                     public HttpHeaders getHeaders() {
@@ -360,7 +403,8 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
 
             }
           } else {
-            throw new DataStoreOperationException("Cannot convert object of type " + origType + " to type " + requiredType);
+            throw new DataStoreOperationException(
+                "Cannot convert object of type " + origType + " to type " + requiredType);
           }
         }
       }
@@ -377,19 +421,23 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
       String bucketName = (null != bucketKeyPair.getBucket() ? bucketKeyPair.getBucket()
           .toString() : requiredType.getName());
       RestTemplate restTemplate = getRestTemplate();
-      HttpHeaders resp = restTemplate.headForHeaders(defaultUri,
-          bucketName,
-          bucketKeyPair.getKey());
-      if (!obj.getMetaData()
-          .getProperties()
-          .get("ETag")
-          .toString()
-          .equals(resp.getETag())) {
-        obj = null;
-      } else {
-        if (log.isDebugEnabled()) {
-          log.debug("Returning CACHED object: " + obj);
+      try {
+        HttpHeaders resp = restTemplate.headForHeaders(defaultUri,
+            bucketName,
+            bucketKeyPair.getKey());
+        if (!obj.getMetaData()
+            .getProperties()
+            .get("ETag")
+            .toString()
+            .equals(resp.getETag())) {
+          obj = null;
+        } else {
+          if (log.isDebugEnabled()) {
+            log.debug("Returning CACHED object: " + obj);
+          }
         }
+      } catch (ResourceAccessException ignored) {
+        return null;
       }
     }
 
@@ -411,17 +459,20 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     List<String> params = new LinkedList<String>();
     if (null != qosParams.getReadThreshold()) {
       params.add(String.format("r=%s", qosParams.<Object>getReadThreshold()));
-    } else if (null != defaultQosParameters && null != defaultQosParameters.getReadThreshold()) {
+    } else if (null != defaultQosParameters && null != defaultQosParameters
+        .getReadThreshold()) {
       params.add(String.format("r=%s", defaultQosParameters.getReadThreshold()));
     }
     if (null != qosParams.getWriteThreshold()) {
       params.add(String.format("w=%s", qosParams.<Object>getWriteThreshold()));
-    } else if (null != defaultQosParameters && null != defaultQosParameters.getWriteThreshold()) {
+    } else if (null != defaultQosParameters && null != defaultQosParameters
+        .getWriteThreshold()) {
       params.add(String.format("w=%s", defaultQosParameters.getWriteThreshold()));
     }
     if (null != qosParams.getDurableWriteThreshold()) {
       params.add(String.format("dw=%s", qosParams.<Object>getDurableWriteThreshold()));
-    } else if (null != defaultQosParameters && null != defaultQosParameters.getDurableWriteThreshold()) {
+    } else if (null != defaultQosParameters && null != defaultQosParameters
+        .getDurableWriteThreshold()) {
       params.add(String.format("dw=%s", defaultQosParameters.getDurableWriteThreshold()));
     }
 
@@ -443,27 +494,39 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   }
 
   protected <B, K> Class<?> getType(B bucket, K key) {
-    HttpHeaders headers = getRestTemplate().headForHeaders(defaultUri, bucket, key);
+    return getType(bucket, key, getClass().getClassLoader());
+  }
+
+  protected <B, K> Class<?> getType(B bucket, K key, ClassLoader classLoader) {
     Class<?> clazz = null;
-    if (null != headers) {
-      String s = headers.getFirst(RIAK_META_CLASSNAME);
-      if (null != s) {
-        try {
-          clazz = Class.forName(s);
-        } catch (ClassNotFoundException ignored) {
+    try {
+      HttpHeaders headers = getRestTemplate().headForHeaders(defaultUri, bucket, key);
+      if (null != headers) {
+        String s = headers.getFirst(RIAK_META_CLASSNAME);
+        if (null != s) {
+          try {
+            if (null != classLoader) {
+              clazz = Class.forName(s, false, classLoader);
+            } else {
+              clazz = Class.forName(s);
+            }
+          } catch (ClassNotFoundException ignored) {
+          }
         }
       }
-    }
-    if (null == clazz) {
-      if (headers.getContentType().equals(MediaType.APPLICATION_JSON)) {
-        clazz = Map.class;
-      } else if (headers.getContentType().equals(MediaType.TEXT_PLAIN)) {
-        clazz = String.class;
-      } else {
-        // handle as bytes
-        log.error("Need to handle bytes!");
-        clazz = byte[].class;
+      if (null == clazz) {
+        if (headers.getContentType().equals(MediaType.APPLICATION_JSON)) {
+          clazz = Map.class;
+        } else if (headers.getContentType().equals(MediaType.TEXT_PLAIN)) {
+          clazz = String.class;
+        } else {
+          // handle as bytes
+          log.error("Need to handle bytes!");
+          clazz = byte[].class;
+        }
       }
+    } catch (ResourceAccessException notFound) {
+      clazz = String.class;
     }
     return clazz;
   }
