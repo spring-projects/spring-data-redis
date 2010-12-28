@@ -38,16 +38,43 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
+ * An implementation of {@link AsyncBucketKeyValueStoreOperations} and {@link
+ * AsyncMapReduceOperations} for the Riak datastore.
+ * <p/>
+ * To use the AsyncRiakTemplate, create a singleton in your Spring application-context.xml:
+ * <pre><code>
+ * &lt;bean id="riak" class="org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate"
+ *     p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
+ *     p:mapReduceUri="http://localhost:8098/mapred"/>
+ * </code></pre>
+ * To store and retrieve objects in Riak, use the setXXX and getXXX methods (example in
+ * Groovy):
+ * <pre><code>
+ * def callback = [
+ *   completed: { v, meta ->
+ *     ... do something with results ...
+ *   },
+ *   failed: { err ->
+ *   }
+ * ] as AsyncKeyValueStoreOperation
+ * def obj = new TestObject(name: "My Name", age: 40)
+ * def future = riak.set("mybucket", "mykey", obj, callback)
+ * ... this runs asynchronously, so do other work ...
+ * def name = future.get().name
+ * println "Hello $name!"
+ * </code></pre>
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBucketKeyValueStoreOperations, AsyncMapReduceOperations {
 
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
-  protected ExecutorService workerPool = Executors.newCachedThreadPool();
   protected AsyncKeyValueStoreOperation<Throwable, Object> defaultErrorHandler = new LoggingErrorHandler();
 
   public AsyncRiakTemplate() {
@@ -56,14 +83,6 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
 
   public AsyncRiakTemplate(ClientHttpRequestFactory requestFactory) {
     super(requestFactory);
-  }
-
-  public ExecutorService getWorkerPool() {
-    return workerPool;
-  }
-
-  public void setWorkerPool(ExecutorService workerPool) {
-    this.workerPool = workerPool;
   }
 
   public AsyncKeyValueStoreOperation<Throwable, Object> getDefaultErrorHandler() {

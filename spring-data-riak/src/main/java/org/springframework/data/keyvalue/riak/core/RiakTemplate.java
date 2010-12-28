@@ -129,7 +129,10 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
     KeyValueStoreMetaData origMeta = getMetaData(bucket, keyName);
     String vclock = null;
     if (null != origMeta) {
-      vclock = origMeta.getProperties().get(RIAK_VCLOCK).toString();
+      Object o = origMeta.getProperties().get(RIAK_VCLOCK);
+      if (null != o) {
+        vclock = o.toString();
+      }
     }
     RestTemplate restTemplate = getRestTemplate();
     HttpHeaders headers = new HttpHeaders();
@@ -552,7 +555,7 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
   @SuppressWarnings({"unchecked"})
   public <T> Future<List<T>> submit(MapReduceJob job) {
     // Run this job asynchronously.
-    return executorService.submit(job);
+    return workerPool.submit(job);
   }
 
   /*----------------- Link Operations -----------------*/

@@ -78,8 +78,24 @@
 
 </beans>]]></programlisting>
       </para>
-    
-      <para>It might also be necessary to replace the default <classname>ExecutorService</classname> (by default a cached <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor</ulink>) with an executor you've explicitly configured. Set your <classname>ExecutorService</classname> on the template's "executorService" property.</para>
+          
+      <para>You can also set a specific <literal>ClassLoader</literal> to use when loading objects from Riak. Just set the <literal>classLoader</literal> property:
+      
+        <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.RiakTemplate" 
+          p:defaultUri="http://localhost:8098/riak/{bucket}/{key}"
+          p:mapReduceUri="http://localhost:8098/mapred"
+          p:classLoader-ref="customClassLoader"/>
+
+</beans>]]></programlisting>
+      
+      </para>
     
     </section>
   </section>
@@ -191,7 +207,7 @@ riak.link("childbucket", "childkey", "sourcebucket", "sourcekey", "tagname");
     <section id="riak:links:walking">
       <title>Link Walking</title>
 
-      <para>When entries are linked together in Riak, those relationships can be efficiently traversed on the server using a feature called <ulink url="http://blog.basho.com/2010/02/24/link-walking-by-example/">Link Walking</ulink>. Rather than requesting each object in a link's relationship individually, a link walk pulls all the related objects at once and sends that data back to the client as MIME-encoded multipart data. As such, it requires special processing to convert those multiple entries into a <interfacename>List</interfacename> of objects, just as if you had used a <literal>get</literal> method. If you don't specify a type to convert the objects to, the <ulink url="api/org/springframework/data/keyvalue/riak/core/RiakTemplate.html#linkWalk(B, K, java.lang.String)"><literal>linkWalk</literal></ulink> method will try to infer it from the bucket name. If the bucket name is not a valid class name, it will default to using a <interfacename>java.util.Map</interfacename>.</para>
+      <para>When entries are linked together in Riak, those relationships can be efficiently traversed on the server using a feature called <ulink url="http://blog.basho.com/2010/02/24/link-walking-by-example/">Link Walking</ulink>. Rather than requesting each object in a link's relationship individually, a link walk pulls all the related objects at once and sends that data back to the client as MIME-encoded multipart data. As such, it requires special processing to convert those multiple entries into a <interfacename>List</interfacename> of objects, just as if you had used a <literal>get</literal> method. If you don't specify a type to convert the objects to, the <ulink url="../../api/org/springframework/data/keyvalue/riak/core/RiakTemplate.html#linkWalk(B, K, java.lang.String)"><literal>linkWalk</literal></ulink> method will try to infer it from the bucket name. If the bucket name is not a valid class name, it will default to using a <interfacename>java.util.Map</interfacename>.</para>
       
       <para>To link walk a relationship and return a list of custom POJOs, you would do something like this:
         <programlisting language="java"><![CDATA[
@@ -241,7 +257,7 @@ List<String> pair = new ArrayList<String>() {{
   add("mybucket");
   add("mykey");
 }};
-List<List<String, String> keys = new ArrayList<String>() {{
+List<List<String>> keys = new ArrayList<List<String>>() {{
   add(pair);
 }};
 job.addInputs(keys); // Will M/R only specified keys
@@ -331,6 +347,156 @@ riak.updateBucketSchema("mybucket", props);
     </para>
     
   </section>
+  
+  <section id="riak:async">
+    <title>Asynchronous Access</title>
+    
+    <para>SDKV for Riak also includes an asynchronous version of most of the methods available to the <classname>RiakTemplate</classname>, whose method calls are all synchronous. The asynchronous version of the template is called <classname>AsyncRiakTemplate</classname>.</para>
+    
+    <section id="riak:async:config">
+      <title>Template Configuration</title>
+      
+      <para>The <classname>AsyncRiakTemplate</classname> has the same basic configuration properties as the synchronous <classname>RiakTemplate</classname>. The only other property specific to the <classname>AsyncRiakTemplate</classname> you might want to configure is the thread pool the template uses to execute tasks asynchronously (by default a cached <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor</ulink>). Set your <classname>ExecutorService</classname> on the template's <literal>workerPool</literal> property.</para>
+      
+    </section>
+
+    <section id="riak:async:callbacks">
+      <title>Callbacks</title>
+      
+      <para>Using the asynchronous Riak support in SDKV means you'll be relying on callbacks to execute your business logic when the requested operation is completed. All asynchronous operations follow a similar pattern:
+        <itemizedlist>
+          <listitem>They are named similarly to their synchronous counterparts.</listitem>
+          <listitem>They take a <interfacename>AsyncKeyValueStoreOperation&lt;?, ?&gt;</interfacename> as a final parameter.</listitem>
+          <listitem>They return a <interfacename>Future&lt;?&gt;</interfacename>.</listitem>
+        </itemizedlist>
+      </para>
+      
+      <para>To perform an asynchronous <literal>get</literal> on a JSON-serialized <interfacename>Map</interfacename> object which returns a custom object from the callback, you'd do something like:
+        <programlisting language="java"><![CDATA[@Autowired
+AsyncRiakTemplate riak;
+
+Future<MyObject> future = riak.get("mybucket", "mykey", new AsyncKeyValueStoreOperation<Map, MyObject>() {
+
+  MyObject obj = new MyObject();
+  
+  MyObject completed(KeyValueStoreMetaData meta, Map result) {
+    obj.setName(result.get("name"));
+    return obj;
+  }
+
+  MyObject failed(Throwable error) {
+    obj.setError(error);
+    return obj;
+  }
+  
+});
+
+// Maybe do other work while waiting...
+MyObject obj = future.get();
+        ]]></programlisting>
+      </para>
+    </section>
+    
+  </section>
+
+  <section id="riak:groovy">
+    <title>Groovy Builder Support</title>
+    
+    <para>If your application uses Groovy, either in a standalone context, or as part of a Grails application, then you could benefit from using the Groovy <ulink url="../../api/org/springframework/data/keyvalue/riak/groovy/RiakBuilder.html"><classname>RiakBuilder</classname></ulink> that comes with SDKV for Riak. Underneath, it uses the <classname>AsyncRiakTemplate</classname>. To use the <classname>RiakBuilder</classname>, pass the constructor a configured <classname>AsyncRiakTemplate</classname>.</para> 
+    
+    <important><para>Instances of <classname>RiakBuilder</classname> are NOT thread-safe and should not be shared across threads.</para></important>
+    
+    <para>The <classname>RiakBuilder</classname> implements an easy-to-use DSL for interacting with Riak. It doesn't implement the full set of methods available on the underlying <classname>AsyncRiakTemplate</classname> but a subset. The methods that the <classname>RiakBuilder</classname> responds to are:
+      <itemizedlist>
+        <listitem>set</listitem>
+        <listitem>setAsBytes</listitem>
+        <listitem>put</listitem>
+        <listitem>get</listitem>
+        <listitem>getAsBytes</listitem>
+        <listitem>getAsType</listitem>
+        <listitem>containsKey</listitem>
+        <listitem>delete</listitem>
+        <listitem>foreach</listitem>
+      </itemizedlist>
+    </para>
+    
+    <section id="riak:groovy:dsl">
+      <title>Riak DSL Usage</title>
+      
+      <para>The following example illustrates the different uses of the Riak DSL, including batching requests together into a logical group, using a default bucket name (the node directly beneath <literal>riak</literal> will be considered the default bucket to use for the contained operations unless a different one is specified on the operation itself):
+        <programlisting language="java"><![CDATA[
+def riak = new RiakBuilder(asyncRiakTemplate)
+riak {
+  test {
+    put(value: [test: "value"]) { completed { v, meta -> meta.key }}
+    put(value: [test: "value"]) { completed { v, meta -> meta.key }}
+    put(value: [test: "value"]) { completed { v, meta -> meta.key }}
+    put(value: [test: "value"]) { completed { v, meta -> meta.key }}
+
+    mapreduce {
+      query {
+        map(arg: [test: "arg", alist: [1, 2, 3, 4]]) {
+          source "function(v, keyInfo, arg){ return [1]; }"
+        }
+        reduce {
+          source "function(v){ return Riak.reduceSum(v); }"
+        }
+      }
+      failed { it.printStackTrace() }
+    }
+  }
+}
+def results = riak.results
+
+riak.foreach(bucket: "test") {
+  completed { v, meta ->
+    riak.delete(bucket: "test", key: meta.key)
+  }
+}
+        ]]></programlisting>
+      </para>
+      
+      <para>Some important things to note from this example:
+        <itemizedlist>
+          <listitem>Each operation in the Riak DSL has two callbacks: <literal>completed</literal> and <literal>failed</literal>.</listitem>
+          <listitem>The <literal>completed</literal> closure is passed either the result object, or, if your closure is defined with two parameters, the result object and the <ulink url="../../api/org/springframework/data/keyvalue/riak/core/RiakMetaData.html">metadata</ulink> associated with that entry.</listitem>
+          <listitem>Operations can be enclosed in an arbitrarily-named closure which the builder interprets as a default bucket name (in this case, the node "test" tells the builder to use the bucket name "test" for a default, unless one is specified on one of the enclosed operations).</listitem>
+          <listitem>Each operation within a builder's execution will be accumulated inside the special <literal>results</literal> property. Code that needs to know the output of individual operations within the batch can get access to that object through this property. Note that this means that <classname>RiakBuilder</classname> instances are NOT thread-safe.</listitem>
+        </itemizedlist>
+      </para>
+      
+      <important><para>Even though the Riak DSL uses an asynchronous template underneath, all operations performed through the DSL will, by default, block until complete. To get a truly asynchronous operation, pass the parameter <literal>wait: 0</literal> (or give a meaningful timeout in milliseconds to wait for the operation to complete) on the operation.</para></important>
+      
+      <section id="riak:groovy:dsl:qos">
+        <title>QosParameters on Riak DSL Operations</title>
+        
+        <para>You can pass <interfacename>QosParameters</interfacename> to Riak DSL operations by simply defining them as parameters to the operation:
+          <programlisting language="java"><![CDATA[
+def riak = new RiakBuilder(asyncRiakTemplate)
+
+def myobj = riak.set(bucket: "mybucket", key: "mykey", qos: ["dw": "all"])
+          ]]></programlisting>
+        </para>
+      </section>
+        
+      <section id="riak:groovy:dsl:output">
+        <title>Working with Riak DSL Output</title>
+        
+        <para>The output of DSL operations will either be passed to the configured <literal>completed</literal> callback, or be returned to the caller if no callback is specified. In the example above, the <literal>mapreduce</literal> operation has no <literal>completed</literal> closure. Therefore, the return of the reduce phase is simply passed back to the builder, which makes that output available on the special <literal>results</literal> property.</para>
+        
+        <para>To gain access to the operation's results immediately, simply assign it to a variable:
+          <programlisting language="java"><![CDATA[
+def riak = new RiakBuilder(asyncRiakTemplate)
+
+def myobj = riak.get(bucket: "mybucket", key: "mykey")
+          ]]></programlisting>
+          
+          <para>If you add a non-zero <literal>wait</literal> value to the operation, "myobj" will contain a <interfacename>Future&lt;?&gt;</interfacename> rather than the result object itself.</para>
+          
+        </para>
+      </section>
+    </section>
+  </section>    
   
   <section id="riak:io">
     <title>Working with streams</title>

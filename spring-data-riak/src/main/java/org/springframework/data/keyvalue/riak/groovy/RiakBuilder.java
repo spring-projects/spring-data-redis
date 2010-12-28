@@ -37,6 +37,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * A Groovy Builder that implements a powerful and syntactically succinct DSL for Riak datastore
+ * access using SDKV for Riak's {@link AsyncRiakTemplate}.
+ * <p/>
+ * The DSL responds to most of the important methods from the <code>AsyncRiakTemplate</code>:
+ * <ul><li>set</li><li>setAsBytes</li><li>put</li><li>get</li><li>getAsBytes</li>
+ * <li>getAsType</li><li>containsKey</li><li>delete</li><li>foreach</li></ul>
+ * <p/>
+ * An example of DSL usage (to delete all entries in a bucket):
+ * <pre><code>riak.foreach(bucket: "test") {
+ *   completed { v, meta ->
+ *     delete(bucket: "test", key: meta.key)
+ *   }
+ * }
+ * </code></pre>
+ *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public class RiakBuilder extends BuilderSupport {
@@ -310,7 +325,9 @@ public class RiakBuilder extends BuilderSupport {
   @SuppressWarnings({"unchecked"})
   @Override
   protected void nodeCompleted(Object parent, Object node) {
-    log.debug("nodeCompleted: parent=" + parent + ", node=" + node);
+    if (log.isDebugEnabled()) {
+      log.debug("nodeCompleted: parent=" + parent + ", node=" + node);
+    }
     if (parent instanceof RiakMapReduceOperation && node instanceof QueryPhase) {
       QueryPhase p = (QueryPhase) node;
       MapReduceOperation oper = null;
@@ -339,7 +356,9 @@ public class RiakBuilder extends BuilderSupport {
   @SuppressWarnings({"unchecked"})
   @Override
   protected Object postNodeCompletion(Object parent, Object node) {
-    log.debug("postNodeCompletion: " + parent + " " + node);
+    if (log.isDebugEnabled()) {
+      log.debug("postNodeCompletion: " + parent + " " + node);
+    }
     if (node instanceof RiakOperation) {
       RiakOperation<Object> op = (RiakOperation<Object>) node;
       try {

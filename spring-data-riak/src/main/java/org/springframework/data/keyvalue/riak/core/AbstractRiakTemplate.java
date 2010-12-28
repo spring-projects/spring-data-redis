@@ -105,10 +105,6 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
    */
   protected boolean useCache = true;
   /**
-   * {@link java.util.concurrent.ExecutorService} to use for running asynchronous jobs.
-   */
-  protected ExecutorService executorService = Executors.newCachedThreadPool();
-  /**
    * The URI to use inside the RestTemplate.
    */
   protected String defaultUri = "http://localhost:8098/riak/{bucket}/{key}";
@@ -124,6 +120,10 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
    * The default QosParameters to use for all operations through this template.
    */
   protected QosParameters defaultQosParameters = null;
+  /**
+   * {@link java.util.concurrent.ExecutorService} to use for running asynchronous jobs.
+   */
+  protected ExecutorService workerPool = Executors.newCachedThreadPool();
 
   protected Class<?> defaultType = String.class;
   protected ClassLoader classLoader = null;
@@ -192,6 +192,15 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     this.defaultQosParameters = defaultQosParameters;
   }
 
+  public ExecutorService getWorkerPool() {
+    return workerPool;
+  }
+
+  public void setWorkerPool(ExecutorService workerPool) {
+    this.workerPool = workerPool;
+  }
+
+
   /**
    * Get the default type to use if none can be inferred.
    *
@@ -255,14 +264,6 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
       return "/" + m.group(3);
     }
     return "/riak";
-  }
-
-  public ExecutorService getExecutorService() {
-    return executorService;
-  }
-
-  public void setExecutorService(ExecutorService executorService) {
-    this.executorService = executorService;
   }
 
   public void afterPropertiesSet() throws Exception {

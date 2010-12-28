@@ -264,10 +264,9 @@ class RiakBuilderSpec extends Specification {
 
     given:
     def riak = new RiakBuilder(riakTemplate)
-    def deleted = false
 
     when:
-    riak {
+    def deleted = riak {
       "test" {
         foreach {
           completed { v, meta ->
