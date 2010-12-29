@@ -360,10 +360,10 @@ public class RiakBuilder extends BuilderSupport {
             }
             return oper;
           }
+          break;
         case CALL:
           results.clear();
           defaultBucketName = null;
-          break;
       }
     }
 
