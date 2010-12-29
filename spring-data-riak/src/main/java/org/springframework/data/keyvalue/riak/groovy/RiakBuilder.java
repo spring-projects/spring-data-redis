@@ -363,6 +363,7 @@ public class RiakBuilder extends BuilderSupport {
         case CALL:
           results.clear();
           defaultBucketName = null;
+          break;
       }
     }
 
