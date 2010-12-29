@@ -220,10 +220,10 @@ public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBuck
   @SuppressWarnings({"unchecked"})
   public <B, K, T, R> Future<?> getWithMetaData(B bucket, K key, Class<T> requiredType,
                                                 AsyncKeyValueStoreOperation<T, R> callback) {
-    String bucketName = (null != bucket ? bucket.toString() : requiredType.getName());
-    // Get a key name that may or may not include the QOS parameters.
     Assert.notNull(key, "Cannot use a null key.");
     Assert.notNull(callback, "Callback cannot be null");
+
+    String bucketName = (null != bucket ? bucket.toString() : requiredType.getName());
 
     if (null == requiredType) {
       requiredType = (Class<T>) getType(bucketName, key.toString());

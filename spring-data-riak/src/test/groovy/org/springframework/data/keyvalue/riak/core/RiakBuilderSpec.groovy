@@ -190,13 +190,15 @@ class RiakBuilderSpec extends Specification {
 
     when:
     riak {
-      put(bucket: "test", value: [test: "value 1"])
-      put(bucket: "test", value: [test: "value 2"])
-      put(bucket: "test", value: [test: "value 3"])
+      test {
+        put(value: [test: "value 1"])
+        put(value: [test: "value 2"])
+        put(value: [test: "value 3"])
 
-      foreach(bucket: "test") {
-        completed { v, meta -> ids << meta.key }
-        failed { it.printStackTrace() }
+        foreach {
+          completed { v, meta -> ids << meta.key }
+          failed { it.printStackTrace() }
+        }
       }
     }
 
