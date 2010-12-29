@@ -129,9 +129,12 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
     KeyValueStoreMetaData origMeta = getMetaData(bucket, keyName);
     String vclock = null;
     if (null != origMeta) {
-      Object o = origMeta.getProperties().get(RIAK_VCLOCK);
-      if (null != o) {
-        vclock = o.toString();
+      Map<String, Object> mprops = origMeta.getProperties();
+      if (null != mprops) {
+        Object o = mprops.get(RIAK_VCLOCK);
+        if (null != o) {
+          vclock = o.toString();
+        }
       }
     }
     RestTemplate restTemplate = getRestTemplate();

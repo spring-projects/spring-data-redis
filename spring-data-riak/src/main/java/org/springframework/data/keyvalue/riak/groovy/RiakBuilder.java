@@ -81,7 +81,8 @@ public class RiakBuilder extends BuilderSupport {
     this.riak = riak;
   }
 
-  public RiakBuilder(Closure nameMappingClosure, BuilderSupport proxyBuilder, AsyncRiakTemplate riak) {
+  public RiakBuilder(Closure nameMappingClosure, BuilderSupport proxyBuilder,
+                     AsyncRiakTemplate riak) {
     super(nameMappingClosure, proxyBuilder);
     this.riak = riak;
   }
@@ -276,7 +277,8 @@ public class RiakBuilder extends BuilderSupport {
   @Override
   public Object invokeMethod(String methodName) {
     log.debug("invokeMethod/1 " + methodName);
-    return super.invokeMethod(methodName);    //To change body of overridden methods use File | Settings | File Templates.
+    return super.invokeMethod(
+        methodName);    //To change body of overridden methods use File | Settings | File Templates.
   }
 
   @SuppressWarnings({"unchecked"})
@@ -363,7 +365,7 @@ public class RiakBuilder extends BuilderSupport {
       RiakOperation<Object> op = (RiakOperation<Object>) node;
       try {
         Object o = op.call();
-        if (null != o) {
+        if (null != o && !o.equals(results)) {
           results.add(o);
         }
         return o;

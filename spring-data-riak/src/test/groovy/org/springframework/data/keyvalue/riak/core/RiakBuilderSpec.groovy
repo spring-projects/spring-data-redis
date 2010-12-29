@@ -266,22 +266,17 @@ class RiakBuilderSpec extends Specification {
     def riak = new RiakBuilder(riakTemplate)
 
     when:
-    def deleted = riak {
+    riak {
       "test" {
         foreach {
-          completed { v, meta ->
-            delete(bucket: meta.bucket, key: meta.key) {
-              completed { deleted = true }
-              failed { deleted = false }
-            }
-          }
-          failed { it.printStackTrace() }
+          completed { v, meta -> delete(key: meta.key) }
+          failed { deleted = false }
         }
       }
     }
 
     then:
-    deleted
+    !riak.results.find { !it }
 
   }
 
