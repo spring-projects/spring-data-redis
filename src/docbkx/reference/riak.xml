@@ -322,7 +322,7 @@ Future<List<?>> f = riak.submit(job); // Job runs in a separate thread
 @Autowired
 RiakTemplate riak;
 
-Map<String, Object> schema = riak.getBucketSchema("mybucket");
+Map<String, Object> schema = riak.getBucketSchema("mybucket", true);
 List<String> keys = schema.get("keys")
 for(String key : keys) {
   ...do something with each key...

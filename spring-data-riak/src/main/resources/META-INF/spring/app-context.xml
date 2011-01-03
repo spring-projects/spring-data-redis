@@ -5,6 +5,4 @@
 
   <description>Example configuration to get you started.</description>
 
-  <bean id="conversionService" class="org.springframework.core.convert.support.GenericConversionService"/>
-
 </beans>
