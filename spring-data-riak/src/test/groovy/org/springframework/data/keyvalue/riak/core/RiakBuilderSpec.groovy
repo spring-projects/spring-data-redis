@@ -245,10 +245,10 @@ class RiakBuilderSpec extends Specification {
         inputs "test"
         query {
           map(arg: [test: "arg", alist: [1, 2, 3, 4]]) {
-            source "function(v, keyInfo, arg){ ejsLog('/tmp/mapred.log', JSON.stringify(v)); ejsLog('/tmp/mapred.log', JSON.stringify(keyInfo)); ejsLog('/tmp/mapred.log', JSON.stringify(arg)); return [1]; }"
+            source "function(v, keyInfo, arg){ return [1]; }"
           }
           reduce {
-            source "function(v){ ejsLog('/tmp/mapred.log', JSON.stringify(arguments)); return Riak.reduceSum(v); }"
+            source "function(v){ return Riak.reduceSum(v); }"
           }
         }
         completed { it }
