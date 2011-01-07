@@ -18,11 +18,11 @@
 
 package org.springframework.data.keyvalue.riak.mapreduce;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.keyvalue.riak.core.BucketKeyPair;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ import java.util.Map;
 @SuppressWarnings({"unchecked"})
 public abstract class AbstractRiakMapReduceJob implements MapReduceJob {
 
-  protected final Logger log = LoggerFactory.getLogger(getClass());
+  protected final Log log = LogFactory.getLog(getClass());
   protected List<Object> inputs = new LinkedList<Object>();
   protected List<MapReducePhase> phases = new ArrayList<MapReducePhase>();
 

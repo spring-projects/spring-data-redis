@@ -17,24 +17,20 @@
  */
 package org.springframework.data.keyvalue.riak.core
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.data.keyvalue.riak.core.io.RiakFile
 import org.springframework.data.keyvalue.riak.mapreduce.JavascriptMapReduceOperation
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob
+import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReducePhase
-import org.springframework.test.context.ContextConfiguration
+import org.springframework.data.keyvalue.riak.util.Ignore404sErrorHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-@ContextConfiguration(locations = "/org/springframework/data/RiakTemplateTests.xml")
 class RiakTemplateSpec extends Specification {
 
-  @Autowired
-  ApplicationContext appCtx
   @Shared RiakTemplate riak = new RiakTemplate()
   int run = 1
   @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
@@ -46,6 +42,7 @@ class RiakTemplateSpec extends Specification {
     RiakQosParameters qos = new RiakQosParameters()
     qos.setDurableWriteThreshold("all")
     riak.setDefaultQosParameters(qos)
+    riak.getRestTemplate().setErrorHandler(new Ignore404sErrorHandler())
 
     if (!riak.get("status", "")) {
       p = "$riakBin start".execute()
@@ -242,7 +239,7 @@ class RiakTemplateSpec extends Specification {
   def "Test Map/Reduce returning Integer"() {
 
     given:
-    MapReduceJob job = riak.createMapReduceJob()
+    MapReduceJob job = new RiakMapReduceJob(riak)
     def uuid = UUID.randomUUID().toString()
     def mapJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'map input: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)
@@ -266,7 +263,7 @@ class RiakTemplateSpec extends Specification {
   def "Test Map/Reduce returning List"() {
 
     given:
-    MapReduceJob job = riak.createMapReduceJob()
+    MapReduceJob job = new RiakMapReduceJob(riak)
     def uuid = UUID.randomUUID().toString()
     def mapJs = new JavascriptMapReduceOperation("function(v){ var uuid='$uuid'; ejsLog('/tmp/mapred.log', 'map input: '+JSON.stringify(v)); var o=Riak.mapValuesJson(v); return [1]; }")
     def mapPhase = new RiakMapReducePhase("map", "javascript", mapJs)

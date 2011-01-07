@@ -18,8 +18,6 @@
 
 package org.springframework.data.keyvalue.riak.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.mapreduce.AsyncMapReduceOperations;
@@ -72,8 +70,6 @@ import java.util.concurrent.Future;
  * @author J. Brisbin <jon@jbrisbin.com>
  */
 public class AsyncRiakTemplate extends AbstractRiakTemplate implements AsyncBucketKeyValueStoreOperations, AsyncMapReduceOperations {
-
-  protected final Logger log = LoggerFactory.getLogger(getClass());
 
   protected AsyncKeyValueStoreOperation<Throwable, Object> defaultErrorHandler = new LoggingErrorHandler();
 

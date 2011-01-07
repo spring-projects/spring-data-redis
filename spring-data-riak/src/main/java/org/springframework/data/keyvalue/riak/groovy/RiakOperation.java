@@ -19,8 +19,8 @@
 package org.springframework.data.keyvalue.riak.groovy;
 
 import groovy.lang.Closure;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.core.AsyncKeyValueStoreOperation;
 import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
@@ -42,7 +42,7 @@ public class RiakOperation<T> implements Callable {
   static String COMPLETED = "completed";
   static String FAILED = "failed";
 
-  protected final Logger log = LoggerFactory.getLogger(getClass());
+  protected final Log log = LogFactory.getLog(getClass());
 
   protected AsyncRiakTemplate riak;
   protected Type type;

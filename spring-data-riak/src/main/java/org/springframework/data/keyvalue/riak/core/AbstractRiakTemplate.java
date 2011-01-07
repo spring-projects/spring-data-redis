@@ -18,12 +18,13 @@
 
 package org.springframework.data.keyvalue.riak.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.groovy.runtime.GStringImpl;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ser.CustomSerializerFactory;
 import org.codehaus.jackson.map.ser.ToStringSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
@@ -62,7 +63,7 @@ import java.util.regex.Pattern;
  *
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-public abstract class AbstractRiakTemplate extends RestGatewaySupport implements InitializingBean {
+public abstract class AbstractRiakTemplate extends RestGatewaySupport implements InitializingBean, BeanClassLoaderAware {
 
   protected static final String RIAK_META_CLASSNAME = "X-Riak-Meta-ClassName";
   protected static final String RIAK_VCLOCK = "X-Riak-Vclock";
@@ -75,16 +76,16 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   /**
    * Do we need to handle Groovy strings in the Jackson JSON processor?
    */
-  protected static final boolean groovyPresent = ClassUtils.isPresent(
+  protected final boolean groovyPresent = ClassUtils.isPresent(
       "org.codehaus.groovy.runtime.GStringImpl",
-      RiakTemplate.class.getClassLoader());
+      getClass().getClassLoader());
   /**
    * For getting a <code>java.util.Date</code> from the Last-Modified header.
    */
   protected static SimpleDateFormat httpDate = new SimpleDateFormat(
       "EEE, d MMM yyyy HH:mm:ss z");
 
-  protected final Logger log = LoggerFactory.getLogger(getClass());
+  protected final Log log = LogFactory.getLog(getClass());
 
   /**
    * Client ID used by Riak to correlate updates.
@@ -124,8 +125,14 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
    * {@link java.util.concurrent.ExecutorService} to use for running asynchronous jobs.
    */
   protected ExecutorService workerPool = Executors.newCachedThreadPool();
-
+  /**
+   * Default type to use when trying to deserialize objects and we can't otherwise tell what to
+   * do.
+   */
   protected Class<?> defaultType = String.class;
+  /**
+   * ClassLoader to use for saving/loading objects using the automatic converters.
+   */
   protected ClassLoader classLoader = null;
 
   /**
@@ -133,7 +140,6 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
    */
   public AbstractRiakTemplate() {
     setRestTemplate(new RestTemplate());
-    bucketKeyResolvers.add(new SimpleBucketKeyResolver());
   }
 
   /**
@@ -144,7 +150,6 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
   public AbstractRiakTemplate(ClientHttpRequestFactory requestFactory) {
     super(requestFactory);
     setRestTemplate(new RestTemplate());
-    bucketKeyResolvers.add(new SimpleBucketKeyResolver());
   }
 
   public ConversionService getConversionService() {
@@ -219,21 +224,7 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     this.defaultType = defaultType;
   }
 
-  /**
-   * Get the {@link ClassLoader} to use when trying to load objects from the store.
-   *
-   * @return
-   */
-  public ClassLoader getClassLoader() {
-    return classLoader;
-  }
-
-  /**
-   * Set the {@link ClassLoader} to use when trying to load objects from the store.
-   *
-   * @param classLoader
-   */
-  public void setClassLoader(ClassLoader classLoader) {
+  public void setBeanClassLoader(ClassLoader classLoader) {
     this.classLoader = classLoader;
   }
 
@@ -285,6 +276,7 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
       }
     }
   }
+
   /*----------------- Utilities -----------------*/
 
   @SuppressWarnings({"unchecked"})
@@ -296,26 +288,24 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
         break;
       }
     }
-    BucketKeyPair bucketKeyPair;
-    if (null != resolver) {
-      bucketKeyPair = resolver.resolve(key);
-      if (null == bucketKeyPair.getBucket() && null != val) {
-        // No bucket specified, check for an annotation that specified bucket name.
-        Annotation meta = (val instanceof Class ? (Class) val : val.getClass()).getAnnotation(
-            org.springframework.data.keyvalue.riak.convert.KeyValueStoreMetaData.class);
-        if (null != meta) {
-          String bucket = ((KeyValueStoreMetaData) meta).bucket();
-          if (null != bucket) {
-            return new SimpleBucketKeyPair<String, Object>(bucket,
-                bucketKeyPair.getKey());
-          }
+    if (null == resolver) {
+      resolver = new SimpleBucketKeyResolver();
+    }
+
+    BucketKeyPair bucketKeyPair = resolver.resolve(key);
+    if (null == bucketKeyPair.getBucket() && null != val) {
+      // No bucket specified, check for an annotation that specified bucket name.
+      Annotation meta = (val instanceof Class ? (Class) val : val.getClass()).getAnnotation(
+          org.springframework.data.keyvalue.riak.convert.KeyValueStoreMetaData.class);
+      if (null != meta) {
+        String bucket = ((KeyValueStoreMetaData) meta).bucket();
+        if (null != bucket) {
+          return new SimpleBucketKeyPair<String, Object>(bucket,
+              bucketKeyPair.getKey());
         }
       }
-      return bucketKeyPair;
     }
-    throw new DataStoreOperationException(String.format(
-        "No resolvers available to resolve bucket/key pair from %s",
-        key));
+    return bucketKeyPair;
   }
 
   protected MediaType extractMediaType(Object value) {
