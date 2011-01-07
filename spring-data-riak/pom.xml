@@ -14,7 +14,7 @@
 
   <dependencies>
 
-    <!-- Logging -->
+    <!-- Logging
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -52,6 +52,12 @@
         </exclusion>
       </exclusions>
       <scope>provided</scope>
+    </dependency>
+    -->
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
     </dependency>
 
     <!--  Spring -->
