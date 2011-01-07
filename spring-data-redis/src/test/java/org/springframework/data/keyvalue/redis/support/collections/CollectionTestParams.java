@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.springframework.data.keyvalue.redis.Person;
+import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
@@ -35,6 +36,10 @@ public abstract class CollectionTestParams {
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(false);
+
+		jedisConnFactory.setPort(SettingsUtils.getPort());
+		jedisConnFactory.setHostName(SettingsUtils.getHost());
+
 		jedisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
@@ -42,6 +47,10 @@ public abstract class CollectionTestParams {
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		jredisConnFactory.setUsePool(false);
+
+		jredisConnFactory.setPort(SettingsUtils.getPort());
+		jredisConnFactory.setHostName(SettingsUtils.getHost());
+
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);

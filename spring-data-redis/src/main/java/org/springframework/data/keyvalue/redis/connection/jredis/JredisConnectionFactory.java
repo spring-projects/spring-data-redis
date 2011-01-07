@@ -58,9 +58,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
 	 */
 	public JredisConnectionFactory() {
-		ConnectionSpec newSpec = DefaultConnectionSpec.newSpec();
-		newSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
-		this.connectionSpec = newSpec;
 	}
 
 	/**
@@ -77,7 +74,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	public void afterPropertiesSet() {
 		if (connectionSpec == null) {
 			Assert.hasText(hostName);
-			connectionSpec = DefaultConnectionSpec.newSpec(hostName, DEFAULT_REDIS_PORT, DEFAULT_REDIS_DB,
+			connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, DEFAULT_REDIS_DB,
 					DEFAULT_REDIS_PASSWORD);
 			connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
 

@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.connection.jredis;
 
 import org.jredis.JRedis;
 import org.junit.Test;
+import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
@@ -27,6 +28,9 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	public JRedisConnectionIntegrationTests() {
 		factory = new JredisConnectionFactory();
+		factory.setPort(SettingsUtils.getPort());
+		factory.setHostName(SettingsUtils.getHost());
+
 		factory.setUsePool(false);
 		factory.afterPropertiesSet();
 	}

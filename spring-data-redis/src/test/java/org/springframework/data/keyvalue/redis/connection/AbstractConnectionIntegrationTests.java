@@ -25,8 +25,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
-import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 public abstract class AbstractConnectionIntegrationTests {

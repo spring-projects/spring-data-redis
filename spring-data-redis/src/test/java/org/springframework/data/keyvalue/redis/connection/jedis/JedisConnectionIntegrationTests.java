@@ -16,9 +16,9 @@
 
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
+import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
-import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -27,6 +27,10 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	public JedisConnectionIntegrationTests() {
 		factory = new JedisConnectionFactory();
 		factory.setUsePool(false);
+
+		factory.setPort(SettingsUtils.getPort());
+		factory.setHostName(SettingsUtils.getHost());
+
 		factory.afterPropertiesSet();
 	}
 

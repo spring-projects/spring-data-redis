@@ -20,11 +20,10 @@ import java.util.Collection;
 
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.keyvalue.redis.Person;
+import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
-import org.springframework.data.keyvalue.redis.support.collections.DefaultRedisMap;
-import org.springframework.data.keyvalue.redis.support.collections.RedisMap;
 
 /**
  * Integration test for RedisMap.
@@ -51,6 +50,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(false);
+
+		jedisConnFactory.setPort(SettingsUtils.getPort());
+		jedisConnFactory.setHostName(SettingsUtils.getHost());
+
 		jedisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
@@ -58,6 +61,11 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		jredisConnFactory.setUsePool(false);
+
+		jredisConnFactory.setPort(SettingsUtils.getPort());
+		jredisConnFactory.setHostName(SettingsUtils.getHost());
+
+
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
