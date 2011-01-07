@@ -22,7 +22,6 @@ import org.springframework.data.keyvalue.riak.mapreduce.JavascriptMapReduceOpera
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReducePhase
-import org.springframework.data.keyvalue.riak.util.Ignore404sErrorHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -42,7 +41,7 @@ class RiakTemplateSpec extends Specification {
     RiakQosParameters qos = new RiakQosParameters()
     qos.setDurableWriteThreshold("all")
     riak.setDefaultQosParameters(qos)
-    riak.getRestTemplate().setErrorHandler(new Ignore404sErrorHandler())
+    riak.ignoreNotFound = true
 
     if (!riak.get("status", "")) {
       p = "$riakBin start".execute()

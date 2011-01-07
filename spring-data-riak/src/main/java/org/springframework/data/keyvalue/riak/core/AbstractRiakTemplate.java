@@ -30,6 +30,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.convert.KeyValueStoreMetaData;
+import org.springframework.data.keyvalue.riak.util.Ignore404sErrorHandler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
@@ -40,6 +41,7 @@ import org.springframework.http.converter.json.MappingJacksonHttpMessageConverte
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
@@ -205,6 +207,19 @@ public abstract class AbstractRiakTemplate extends RestGatewaySupport implements
     this.workerPool = workerPool;
   }
 
+  public void setIgnoreNotFound(boolean b) {
+    if (b) {
+      getRestTemplate().setErrorHandler(new Ignore404sErrorHandler());
+    } else {
+      if (getRestTemplate().getErrorHandler() instanceof Ignore404sErrorHandler) {
+        getRestTemplate().setErrorHandler(new DefaultResponseErrorHandler());
+      }
+    }
+  }
+
+  public boolean getIgnoreNotFound() {
+    return (getRestTemplate().getErrorHandler() instanceof Ignore404sErrorHandler);
+  }
 
   /**
    * Get the default type to use if none can be inferred.
