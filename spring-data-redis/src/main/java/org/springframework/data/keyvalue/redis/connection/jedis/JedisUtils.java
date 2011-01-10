@@ -30,12 +30,15 @@ import org.springframework.data.keyvalue.redis.RedisConnectionFailureException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.connection.RedisListCommands.POSITION;
 import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
+import org.springframework.util.Assert;
 
 import redis.clients.jedis.JedisException;
 import redis.clients.jedis.SortingParams;
+import redis.clients.jedis.BinaryClient.LIST_POSITION;
 
 /**
  * Helper class featuring methods for Jedis connection handling, providing support for exception translation. 
@@ -168,5 +171,10 @@ public abstract class JedisUtils {
 
 	static byte[] asBit(boolean value) {
 		return (value ? ONE : ZERO);
+	}
+
+	static LIST_POSITION convertPosition(POSITION where) {
+		Assert.notNull("list positions are mandatory");
+		return (POSITION.AFTER.equals(where) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
 	}
 }

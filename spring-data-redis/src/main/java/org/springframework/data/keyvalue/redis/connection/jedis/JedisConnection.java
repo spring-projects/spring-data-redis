@@ -672,6 +672,18 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.linsert(key, JedisUtils.convertPosition(where), pivot, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Long lLen(byte[] key) {
 		try {
 			if (isQueueing()) {

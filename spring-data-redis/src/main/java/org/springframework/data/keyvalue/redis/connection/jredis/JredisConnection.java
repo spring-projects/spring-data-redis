@@ -511,6 +511,12 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
+	@Override
+	public Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value) {
+		throw new UnsupportedOperationException();
+	}
+
+
 	//
 	// Set commands
 	//

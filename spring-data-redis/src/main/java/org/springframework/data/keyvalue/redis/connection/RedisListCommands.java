@@ -25,6 +25,10 @@ import java.util.List;
  */
 public interface RedisListCommands {
 
+	public enum POSITION {
+		BEFORE, AFTER
+	}
+
 	Long rPush(byte[] key, byte[] value);
 	
 	Long lPush(byte[] key, byte[] value);
@@ -36,6 +40,8 @@ public interface RedisListCommands {
 	void lTrim(byte[] key, long start, long end);
 
 	byte[] lIndex(byte[] key, long index);
+
+	Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value);
 
 	void lSet(byte[] key, long index, byte[] value);
 
