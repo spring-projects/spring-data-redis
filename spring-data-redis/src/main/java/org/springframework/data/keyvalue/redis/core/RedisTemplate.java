@@ -1606,6 +1606,21 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}, true);
 		}
 
+		@Override
+		public Boolean putIfAbsent(K key, HK hashKey, HV value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawHashKey = rawHashKey(hashKey);
+			final byte[] rawHashValue = rawHashValue(value);
+
+			return execute(new RedisCallback<Boolean>() {
+				@Override
+				public Boolean doInRedis(RedisConnection connection) {
+					return connection.hSetNX(rawKey, rawHashKey, rawHashValue);
+				}
+			}, true);
+		}
+
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public List<HV> values(K key) {

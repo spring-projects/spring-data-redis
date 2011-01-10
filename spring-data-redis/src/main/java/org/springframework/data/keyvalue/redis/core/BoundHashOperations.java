@@ -36,6 +36,8 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
 	void put(HK key, HV value);
 
+	Boolean putIfAbsent(HK key, HV value);
+
 	Collection<HV> multiGet(Collection<HK> keys);
 
 	void putAll(Map<? extends HK, ? extends HV> m);

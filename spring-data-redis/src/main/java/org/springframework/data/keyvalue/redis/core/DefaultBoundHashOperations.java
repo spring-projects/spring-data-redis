@@ -90,6 +90,11 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	}
 
 	@Override
+	public Boolean putIfAbsent(HK key, HV value) {
+		return ops.putIfAbsent(getKey(), key, value);
+	}
+
+	@Override
 	public Collection<HV> values() {
 		return ops.values(getKey());
 	}

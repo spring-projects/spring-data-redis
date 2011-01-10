@@ -44,6 +44,8 @@ public interface HashOperations<H, HK, HV> {
 
 	void put(H key, HK hashKey, HV value);
 
+	Boolean putIfAbsent(H key, HK hashKey, HV value);
+
 	Collection<HV> values(H key);
 
 	Map<HK, HV> entries(H key);
