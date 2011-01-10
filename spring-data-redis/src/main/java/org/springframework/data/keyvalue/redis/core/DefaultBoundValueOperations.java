@@ -56,8 +56,8 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	}
 
 	@Override
-	public String substract(int start, int end) {
-		return ops.substract(getKey(), start, end);
+	public String get(int start, int end) {
+		return ops.get(getKey(), start, end);
 	}
 
 	@Override
@@ -73,6 +73,16 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	@Override
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
+	}
+
+	@Override
+	public void set(int start, int end) {
+		ops.set(getKey(), start, end);
+	}
+
+	@Override
+	public Long size() {
+		return ops.size(getKey());
 	}
 
 	@Override

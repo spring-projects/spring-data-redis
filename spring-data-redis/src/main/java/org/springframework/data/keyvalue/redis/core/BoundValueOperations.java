@@ -40,6 +40,9 @@ public interface BoundValueOperations<K, V> extends KeyBound<K> {
 
 	Integer append(String value);
 
-	String substract(int start, int end);
+	String get(int start, int end);
 
+	void set(int start, int end);
+
+	Long size();
 }

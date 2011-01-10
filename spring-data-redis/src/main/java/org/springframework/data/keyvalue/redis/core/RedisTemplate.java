@@ -212,7 +212,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * Sets the string value serializer to be used by this template (when the arguments or return types
 	 * are always strings). Defaults to {@link StringRedisSerializer}.
 	 * 
-	 * @see ValueOperations#substract(Object, int, int)
+	 * @see ValueOperations#get(Object, int, int)
 	 * @param stringSerializer The stringValueSerializer to set.
 	 */
 	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
@@ -713,7 +713,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public String substract(K key, final int start, final int end) {
+		public String get(K key, final int start, final int end) {
 			final byte[] rawKey = rawKey(key);
 
 			byte[] rawReturn = execute(new RedisCallback<byte[]>() {
@@ -827,6 +827,32 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				@Override
 				public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
 					return connection.setNX(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+
+		@Override
+		public void set(K key, final int start, final int end) {
+			final byte[] rawKey = rawKey(key);
+
+			execute(new RedisCallback<Object>() {
+				@Override
+				public Object doInRedis(RedisConnection connection) {
+					connection.setRange(rawKey, start, end);
+					return null;
+				}
+			}, true);
+		}
+
+		@Override
+		public Long size(K key) {
+			final byte[] rawKey = rawKey(key);
+
+			return execute(new RedisCallback<Long>() {
+				@Override
+				public Long doInRedis(RedisConnection connection) {
+					return connection.strLen(rawKey);
 				}
 			}, true);
 		}

@@ -46,7 +46,11 @@ public interface ValueOperations<K, V> {
 
 	Integer append(K key, String value);
 
-	String substract(K key, int start, int end);
+	String get(K key, int start, int end);
+
+	void set(K key, int start, int end);
+
+	Long size(K key);
 
 	RedisOperations<K, V> getOperations();
 }
