@@ -719,7 +719,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			byte[] rawReturn = execute(new RedisCallback<byte[]>() {
 				@Override
 				public byte[] doInRedis(RedisConnection connection) {
-					return connection.substr(rawKey, start, end);
+					return connection.getRange(rawKey, start, end);
 				}
 			}, true);
 

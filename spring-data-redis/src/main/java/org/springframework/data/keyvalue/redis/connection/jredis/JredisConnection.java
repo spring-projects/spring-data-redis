@@ -330,7 +330,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public byte[] substr(byte[] key, int start, int end) {
+	public byte[] getRange(byte[] key, int start, int end) {
 		try {
 			return jredis.substr(JredisUtils.decode(key), start, end);
 		} catch (RedisException ex) {
@@ -372,6 +372,26 @@ public class JredisConnection implements RedisConnection {
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
+	}
+
+	@Override
+	public Boolean getBit(byte[] key, long offset) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void setBit(byte[] key, long offset, boolean value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void setRange(byte[] key, int start, int end) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Long strLen(byte[] key) {
+		throw new UnsupportedOperationException();
 	}
 
 	//

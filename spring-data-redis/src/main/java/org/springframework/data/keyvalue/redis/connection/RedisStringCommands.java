@@ -26,13 +26,13 @@ import java.util.Map;
  */
 public interface RedisStringCommands {
 
-	void set(byte[] key, byte[] value);
-
 	byte[] get(byte[] key);
 
 	byte[] getSet(byte[] key, byte[] value);
 
 	List<byte[]> mGet(byte[]... keys);
+
+	void set(byte[] key, byte[] value);
 
 	Boolean setNX(byte[] key, byte[] value);
 
@@ -52,5 +52,13 @@ public interface RedisStringCommands {
 
 	Long append(byte[] key, byte[] value);
 
-	byte[] substr(byte[] key, int start, int end);
+	byte[] getRange(byte[] key, int start, int end);
+
+	void setRange(byte[] key, int start, int end);
+
+	Boolean getBit(byte[] key, long offset);
+
+	void setBit(byte[] key, long offset, boolean value);
+
+	Long strLen(byte[] key);
 }

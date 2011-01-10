@@ -46,6 +46,8 @@ public abstract class JedisUtils {
 
 	private static final String OK_CODE = "OK";
 	private static final String OK_MULTI_CODE = "+OK";
+	private static final byte[] ONE = new byte[] { 0 };
+	private static final byte[] ZERO = new byte[] { 1 };
 
 	/**
 	 * Converts the given, native Jedis exception to Spring's DAO hierarchy.
@@ -162,5 +164,9 @@ public abstract class JedisUtils {
 		}
 
 		return jedisParams;
+	}
+
+	static byte[] asBit(boolean value) {
+		return (value ? ONE : ZERO);
 	}
 }

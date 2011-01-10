@@ -499,7 +499,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public byte[] substr(byte[] key, int start, int end) {
+	public byte[] getRange(byte[] key, int start, int end) {
 		try {
 			if (isQueueing()) {
 				transaction.substr(key, (int) start, (int) end);
@@ -563,10 +563,50 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	@Override
+	public Boolean getBit(byte[] key, long offset) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return (jedis.getbit(key, (int) offset) == 0 ? Boolean.FALSE : Boolean.TRUE);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setBit(byte[] key, long offset, boolean value) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.setbit(key, (int) offset, JedisUtils.asBit(value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setRange(byte[] key, int start, int end) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Long strLen(byte[] key) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.strlen(key);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
 	//
 	// List commands
 	//
-
 
 	@Override
 	public Long lPush(byte[] key, byte[] value) {
