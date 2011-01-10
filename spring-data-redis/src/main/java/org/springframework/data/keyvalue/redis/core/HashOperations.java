@@ -40,9 +40,9 @@ public interface HashOperations<H, HK, HV> {
 
 	Long size(H key);
 
-	void multiSet(H key, Map<? extends HK, ? extends HV> m);
+	void putAll(H key, Map<? extends HK, ? extends HV> m);
 
-	void set(H key, HK hashKey, HV value);
+	void put(H key, HK hashKey, HV value);
 
 	Collection<HV> values(H key);
 

@@ -143,13 +143,13 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public V put(K key, V value) {
 		V oldV = get(key);
-		hashOps.set(key, value);
+		hashOps.put(key, value);
 		return oldV;
 	}
 
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
-		hashOps.multiSet(m);
+		hashOps.putAll(m);
 	}
 
 	@Override

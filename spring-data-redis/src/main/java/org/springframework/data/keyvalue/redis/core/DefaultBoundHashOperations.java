@@ -80,13 +80,13 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	}
 
 	@Override
-	public void multiSet(Map<? extends HK, ? extends HV> m) {
-		ops.multiSet(getKey(), m);
+	public void putAll(Map<? extends HK, ? extends HV> m) {
+		ops.putAll(getKey(), m);
 	}
 
 	@Override
-	public void set(HK key, HV value) {
-		ops.set(getKey(), key, value);
+	public void put(HK key, HV value) {
+		ops.put(getKey(), key, value);
 	}
 
 	@Override

@@ -34,11 +34,11 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
 	HV get(Object key);
 
-	void set(HK key, HV value);
+	void put(HK key, HV value);
 
 	Collection<HV> multiGet(Collection<HK> keys);
 
-	void multiSet(Map<? extends HK, ? extends HV> m);
+	void putAll(Map<? extends HK, ? extends HV> m);
 
 	Set<HK> keys();
 

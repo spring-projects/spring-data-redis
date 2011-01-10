@@ -1542,7 +1542,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void multiSet(K key, Map<? extends HK, ? extends HV> m) {
+		public void putAll(K key, Map<? extends HK, ? extends HV> m) {
 			if (m.isEmpty()) {
 				return;
 			}
@@ -1592,7 +1592,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void set(K key, HK hashKey, HV value) {
+		public void put(K key, HK hashKey, HV value) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawHashKey = rawHashKey(hashKey);
 			final byte[] rawHashValue = rawHashValue(value);
