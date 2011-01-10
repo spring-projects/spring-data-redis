@@ -333,6 +333,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return values;
 	}
 
+
+	@SuppressWarnings("unchecked")
+	private <HK, HV> Map<HK, HV> deserializeHashMap(Map<byte[], byte[]> entries) {
+		Map<HK, HV> map = new LinkedHashMap<HK, HV>(entries.size());
+
+		for (Map.Entry<byte[], byte[]> entry : entries.entrySet()) {
+			map.put((HK) deserializeHashKey(entry.getKey()), (HV) deserializeHashValue(entry.getValue()));
+		}
+
+		return map;
+	}
+
+
 	@SuppressWarnings("unchecked")
 	private Collection<K> deserializeKeys(Collection<byte[]> rawKeys, Class<? extends Collection> type) {
 		Collection<K> values = (List.class.isAssignableFrom(type) ? new ArrayList<K>(rawKeys.size())
@@ -361,7 +374,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (String) deserialize(value, stringSerializer);
 	}
 
-	@SuppressWarnings( { "unchecked", "unused" })
+	@SuppressWarnings( { "unchecked" })
 	private <HK> HK deserializeHashKey(byte[] value) {
 		return (HK) deserialize(value, hashKeySerializer);
 	}
@@ -1620,6 +1633,20 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					return null;
 				}
 			}, true);
+		}
+
+		@Override
+		public Map<HK, HV> entries(K key) {
+			final byte[] rawKey = rawKey(key);
+
+			Map<byte[], byte[]> entries = execute(new RedisCallback<Map<byte[], byte[]>>() {
+				@Override
+				public Map<byte[], byte[]> doInRedis(RedisConnection connection) {
+					return connection.hGetAll(rawKey);
+				}
+			}, true);
+			
+			return deserializeHashMap(entries);
 		}
 	}
 }

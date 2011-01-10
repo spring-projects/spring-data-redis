@@ -48,4 +48,5 @@ public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
 
 	void delete(Object key);
 
+	Map<HK, HV> entries();
 }
