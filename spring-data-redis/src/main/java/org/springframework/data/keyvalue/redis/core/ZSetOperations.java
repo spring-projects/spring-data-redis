@@ -52,6 +52,8 @@ public interface ZSetOperations<K, V> {
 
 	void removeRangeByScore(K key, double min, double max);
 
+	Long count(K key, double min, double max);
+
 	Long size(K key);
 
 	RedisOperations<K, V> getOperations();

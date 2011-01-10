@@ -53,6 +53,8 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	Boolean remove(Object o);
 
+	Long count(double min, double max);
+
 	Long size();
 
 	Double score(Object o);

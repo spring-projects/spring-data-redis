@@ -105,6 +105,11 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
+	public Long count(double min, double max) {
+		return ops.count(getKey(), min, max);
+	}
+
+	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}

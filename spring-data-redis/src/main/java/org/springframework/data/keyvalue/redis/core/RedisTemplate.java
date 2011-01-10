@@ -1489,6 +1489,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public Long count(K key, final double min, final double max) {
+			final byte[] rawKey = rawKey(key);
+
+			return execute(new RedisCallback<Long>() {
+				@Override
+				public Long doInRedis(RedisConnection connection) {
+					return connection.zCount(rawKey, min, max);
+				}
+			}, true);
+		}
+
+		@Override
 		public Long size(K key) {
 			final byte[] rawKey = rawKey(key);
 
