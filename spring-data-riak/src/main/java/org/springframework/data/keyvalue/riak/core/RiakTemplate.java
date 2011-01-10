@@ -23,7 +23,6 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob;
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceOperations;
-import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReduceJob;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -509,10 +508,6 @@ public class RiakTemplate extends AbstractRiakTemplate implements BucketKeyValue
   }
 
   /*----------------- Map/Reduce Operations -----------------*/
-
-  public RiakMapReduceJob createMapReduceJob() {
-    return new RiakMapReduceJob(this);
-  }
 
   public Object execute(MapReduceJob job) {
     return execute(job, List.class);

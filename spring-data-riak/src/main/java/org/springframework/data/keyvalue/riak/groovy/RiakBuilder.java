@@ -20,8 +20,8 @@ package org.springframework.data.keyvalue.riak.groovy;
 
 import groovy.lang.Closure;
 import groovy.util.BuilderSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate;
@@ -60,7 +60,7 @@ public class RiakBuilder extends BuilderSupport {
     CALL, FOREACH, MAPREDUCE, QUERY, MAP, REDUCE, INPUTS, LANGUAGE, SOURCE, KEEP, ARG, COMPLETED, FAILED
   }
 
-  protected final Logger log = LoggerFactory.getLogger(getClass());
+  protected final Log log = LogFactory.getLog(getClass());
   @Autowired(required = false)
   protected AsyncRiakTemplate riak;
   @Autowired(required = false)

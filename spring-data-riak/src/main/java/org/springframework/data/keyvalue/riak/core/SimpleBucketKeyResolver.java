@@ -30,9 +30,9 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"unchecked"})
 public class SimpleBucketKeyResolver implements BucketKeyResolver {
 
-  private static final boolean groovyPresent = ClassUtils.isPresent(
+  private final boolean groovyPresent = ClassUtils.isPresent(
       "org.codehaus.groovy.runtime.GStringImpl",
-      RiakTemplate.class.getClassLoader());
+      getClass().getClassLoader());
 
   protected Pattern bucketColonKey = Pattern.compile("(.+):(.+)");
 

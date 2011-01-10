@@ -18,8 +18,8 @@
 
 package org.springframework.data.keyvalue.riak.core.io;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.keyvalue.riak.core.RiakTemplate;
@@ -40,7 +40,7 @@ import java.net.URL;
  */
 public class RiakResource<B, K> extends UrlResource {
 
-  private static final Logger log = LoggerFactory.getLogger(RiakResource.class);
+  protected final Log log = LogFactory.getLog(getClass());
 
   private RiakTemplate riak;
   private B bucket;

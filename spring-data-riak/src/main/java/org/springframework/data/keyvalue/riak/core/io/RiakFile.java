@@ -18,8 +18,8 @@
 
 package org.springframework.data.keyvalue.riak.core.io;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.keyvalue.riak.DataStoreOperationException;
 import org.springframework.data.keyvalue.riak.core.KeyValueStoreMetaData;
 import org.springframework.data.keyvalue.riak.core.RiakTemplate;
@@ -43,7 +43,7 @@ import java.util.Map;
 public class RiakFile<B, K> extends File {
 
   private static final long serialVersionUID = 1L;
-  private static final Logger log = LoggerFactory.getLogger(RiakFile.class);
+  protected final Log log = LogFactory.getLog(getClass());
 
   private RiakTemplate riak;
   private B bucket;

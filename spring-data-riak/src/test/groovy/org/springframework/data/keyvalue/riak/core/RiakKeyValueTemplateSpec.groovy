@@ -17,38 +17,49 @@
  */
 package org.springframework.data.keyvalue.riak.core
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.data.keyvalue.riak.mapreduce.JavascriptMapReduceOperation
 import org.springframework.data.keyvalue.riak.mapreduce.MapReduceJob
 import org.springframework.data.keyvalue.riak.mapreduce.RiakMapReducePhase
-import org.springframework.test.context.ContextConfiguration
+import org.springframework.data.keyvalue.riak.util.Ignore404sErrorHandler
 import spock.lang.Shared
 import spock.lang.Specification
 
 /**
  * @author J. Brisbin <jon@jbrisbin.com>
  */
-@ContextConfiguration(locations = "/org/springframework/data/RiakKeyValueTemplateTests.xml")
 class RiakKeyValueTemplateSpec extends Specification {
 
-  @Autowired
-  ApplicationContext appCtx
-  @Autowired
-  RiakKeyValueTemplate riak
+  @Shared RiakKeyValueTemplate riak = new RiakKeyValueTemplate()
   int run = 1
   @Shared def riakBin = System.properties["bamboo.RIAK_BIN"] ?: "/usr/sbin/riak"
   @Shared def p
 
   def setupSpec() {
-    p = "$riakBin start".execute()
-    p.waitFor()
-    Thread.sleep(2000)
+    RiakQosParameters qos = new RiakQosParameters()
+    qos.setDurableWriteThreshold("all")
+    riak.setDefaultQosParameters(qos)
+    riak.getRestTemplate().setErrorHandler(new Ignore404sErrorHandler())
+
+    if (!riak.get("status", "")) {
+      p = "$riakBin start".execute()
+      p.waitFor()
+      shutdown = true
+      Thread.sleep(2000)
+    }
+
+    riak.getBucketSchema("test", true).keys.each {
+      riak.delete("test", it)
+    }
+    riak.getBucketSchema(TestObject.name, true).keys.each {
+      riak.delete("test", it)
+    }
   }
 
   def cleanupSpec() {
-    p = "$riakBin stop".execute()
-    p.waitFor()
+    if (shutdown) {
+      p = "$riakBin stop".execute()
+      p.waitFor()
+    }
   }
 
   def "Test Map object"() {

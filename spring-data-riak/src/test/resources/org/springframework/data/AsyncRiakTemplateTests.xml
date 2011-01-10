@@ -27,8 +27,8 @@
   <bean id="qos" class="org.springframework.data.keyvalue.riak.core.RiakQosParameters"
         p:durableWriteThreshold="all"
         p:writeThreshold="all"/>
-  <bean id="riakTemplate"
-        class="org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate"
+  <bean id="riakTemplate" class="org.springframework.data.keyvalue.riak.core.AsyncRiakTemplate"
+        p:ignoreNotFound="true"
         p:defaultQosParameters-ref="qos"/>
 
 </beans>
