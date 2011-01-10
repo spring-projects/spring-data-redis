@@ -33,6 +33,10 @@ public interface RedisListCommands {
 	
 	Long lPush(byte[] key, byte[] value);
 
+	Long rPushX(byte[] key, byte[] value);
+
+	Long lPushX(byte[] key, byte[] value);
+
 	Long lLen(byte[] key);
 
 	List<byte[]> lRange(byte[] key, long start, long end);
@@ -56,4 +60,6 @@ public interface RedisListCommands {
 	List<byte[]> bRPop(int timeout, byte[]... keys);
 
 	byte[] rPopLPush(byte[] srcKey, byte[] dstKey);
+
+	byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey);
 }

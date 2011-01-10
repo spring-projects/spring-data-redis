@@ -785,6 +785,42 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	@Override
+	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.brpoplpush(srcKey, dstKey, timeout).getBytes();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long lPushX(byte[] key, byte[] value) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.lpushx(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long rPushX(byte[] key, byte[] value) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.rpushx(key, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
 
 	//
 	// Set commands

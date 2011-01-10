@@ -516,6 +516,21 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Long lPushX(byte[] key, byte[] value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Long rPushX(byte[] key, byte[] value) {
+		throw new UnsupportedOperationException();
+	}
+
 
 	//
 	// Set commands
