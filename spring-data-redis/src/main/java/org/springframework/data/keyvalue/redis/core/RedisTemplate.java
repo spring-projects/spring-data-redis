@@ -941,6 +941,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public Long leftPushIfPresent(K key, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Long>() {
+				@Override
+				public Long doInRedis(RedisConnection connection) {
+					return connection.lPushX(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
 		public Long leftPush(K key, V pivot, V value) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawPivot = rawValue(pivot);
@@ -1022,6 +1034,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
+		public Long rightPushIfPresent(K key, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Long>() {
+				@Override
+				public Long doInRedis(RedisConnection connection) {
+					return connection.rPushX(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
 		public Long rightPush(K key, V pivot, V value) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawPivot = rawValue(pivot);
@@ -1043,6 +1067,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				@Override
 				protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 					return connection.rPopLPush(rawSourceKey, rawDestKey);
+				}
+			}, true);
+		}
+
+		@Override
+		public V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit) {
+			final int tm = (int) unit.toSeconds(timeout);
+			final byte[] rawDestKey = rawKey(destinationKey);
+
+			return execute(new ValueDeserializingRedisCallback(sourceKey) {
+				@Override
+				protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
+					return connection.bRPopLPush(tm, rawSourceKey, rawDestKey);
 				}
 			}, true);
 		}

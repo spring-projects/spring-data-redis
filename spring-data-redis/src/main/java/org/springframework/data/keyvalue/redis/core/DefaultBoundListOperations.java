@@ -66,6 +66,11 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
+	public Long leftPushIfPresent(V value) {
+		return ops.leftPushIfPresent(getKey(), value);
+	}
+
+	@Override
 	public Long leftPush(V pivot, V value) {
 		return ops.leftPush(getKey(), pivot, value);
 	}
@@ -95,6 +100,10 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 		return ops.rightPop(getKey(), timeout, unit);
 	}
 
+	@Override
+	public Long rightPushIfPresent(V value) {
+		return ops.rightPushIfPresent(getKey(), value);
+	}
 
 	@Override
 	public Long rightPush(V value) {
