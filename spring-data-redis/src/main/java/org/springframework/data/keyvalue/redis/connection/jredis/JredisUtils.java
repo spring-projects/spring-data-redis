@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.jredis.RedisException;
 import org.jredis.RedisType;
@@ -140,5 +141,11 @@ public abstract class JredisUtils {
 
 
 		return jredisSort;
+	}
+
+	static Properties info(Map<String, String> map) {
+		Properties info = new Properties();
+		info.putAll(map);
+		return info;
 	}
 }

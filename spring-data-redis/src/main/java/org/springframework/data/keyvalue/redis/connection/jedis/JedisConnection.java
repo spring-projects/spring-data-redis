@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
@@ -172,6 +173,126 @@ public class JedisConnection implements RedisConnection {
 				transaction.flushDB();
 			}
 			jedis.flushDB();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void flushAll() {
+		try {
+			if (isQueueing()) {
+				transaction.flushAll();
+			}
+			jedis.flushAll();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void bgSave() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.bgsave();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void bgWriteAof() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.bgrewriteaof();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> getConfig(String param) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.configGet(param);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Properties info() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return JedisUtils.info(jedis.info());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long lastSave() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.lastsave();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setConfig(String param, String value) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.configSet(param, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void shutdown() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.shutdown();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public byte[] echo(byte[] message) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.echo(message);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String ping() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.ping();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

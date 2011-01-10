@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.jredis.JRedis;
@@ -113,10 +114,88 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public void flushDb() {
 		try {
+			jredis.flushdb();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void flushAll() {
+		try {
 			jredis.flushall();
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
+	}
+
+	@Override
+	public byte[] echo(byte[] message) {
+		try {
+			return jredis.echo(message);
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public String ping() {
+		try {
+			jredis.ping();
+			return "PONG";
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void bgSave() {
+		try {
+			jredis.bgsave();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void bgWriteAof() {
+		try {
+			jredis.bgrewriteaof();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<String> getConfig(String pattern) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Properties info() {
+		try {
+			return JredisUtils.info(jredis.info());
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Long lastSave() {
+		try {
+			return jredis.lastsave();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void setConfig(String param, String value) {
+		throw new UnsupportedOperationException();	}
+
+	@Override
+	public void shutdown() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

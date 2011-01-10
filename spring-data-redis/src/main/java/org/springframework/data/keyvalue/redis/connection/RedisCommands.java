@@ -25,7 +25,7 @@ import java.util.List;
  * @author Costin Leau
  */
 public interface RedisCommands extends RedisTxCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
-		RedisZSetCommands, RedisHashCommands {
+		RedisZSetCommands, RedisHashCommands, RedisServerCommands {
 
 	Boolean exists(byte[] key);
 
@@ -41,8 +41,6 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	Boolean renameNX(byte[] oldName, byte[] newName);
 
-	Long dbSize();
-
 	Boolean expire(byte[] key, long seconds);
 
 	Boolean expireAt(byte[] key, long unixTime);
@@ -53,7 +51,9 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	void select(int dbIndex);
 
-	void flushDb();
+	byte[] echo(byte[] message);
+
+	String ping();
 
 	// sort commands
 	List<byte[]> sort(byte[] key, SortParameters params);

@@ -17,10 +17,12 @@
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
@@ -176,5 +178,15 @@ public abstract class JedisUtils {
 	static LIST_POSITION convertPosition(POSITION where) {
 		Assert.notNull("list positions are mandatory");
 		return (POSITION.AFTER.equals(where) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
+	}
+
+	static Properties info(String string) {
+		Properties info = new Properties();
+		try {
+			info.load(new StringReader(string));
+		} catch (Exception ex) {
+			throw new UncategorizedRedisException("Cannot read Redis info", ex);
+		}
+		return info;
 	}
 }
