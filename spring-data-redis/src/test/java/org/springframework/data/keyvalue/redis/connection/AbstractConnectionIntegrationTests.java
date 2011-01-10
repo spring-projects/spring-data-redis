@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.connection;
 
 import static org.junit.Assert.*;
 
+import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.After;
@@ -75,10 +76,25 @@ public abstract class AbstractConnectionIntegrationTests {
 		Person person = new Person(value, value, 1, new Address(value, 2));
 		String key = getClass() + ":byteValue";
 		byte[] rawKey = stringSerializer.serialize(key);
-		
+
 		connection.set(rawKey, serializer.serialize(person));
 		byte[] rawValue = connection.get(rawKey);
 		assertNotNull(rawValue);
 		assertEquals(person, serializer.deserialize(rawValue));
+	}
+
+	@Test
+	public void testPingPong() throws Exception {
+		assertEquals("PONG", connection.ping());
+	}
+
+	@Test
+	public void testInfo() throws Exception {
+		Properties info = connection.info();
+		assertNotNull(info);
+		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		String version = info.getProperty("redis_version");
+		assertNotNull(version);
+		System.out.println(info);
 	}
 }
