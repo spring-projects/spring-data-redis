@@ -35,7 +35,11 @@ public interface BoundListOperations<K, V> extends KeyBound<K> {
 
 	Long leftPush(V value);
 
+	Long leftPush(V pivot, V value);
+
 	Long rightPush(V value);
+
+	Long rightPush(V pivot, V value);
 
 	V leftPop();
 
@@ -50,5 +54,4 @@ public interface BoundListOperations<K, V> extends KeyBound<K> {
 	V index(long index);
 
 	void set(long index, V value);
-
 }

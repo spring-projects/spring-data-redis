@@ -35,6 +35,7 @@ import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.connection.RedisListCommands.POSITION;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -927,7 +928,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}, true);
 		}
 
-
 		@Override
 		public Long leftPush(K key, V value) {
 			final byte[] rawKey = rawKey(key);
@@ -936,6 +936,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				@Override
 				public Long doInRedis(RedisConnection connection) {
 					return connection.lPush(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
+		public Long leftPush(K key, V pivot, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawPivot = rawValue(pivot);
+			final byte[] rawValue = rawValue(value);
+			return execute(new RedisCallback<Long>() {
+				@Override
+				public Long doInRedis(RedisConnection connection) {
+					return connection.lInsert(rawKey, POSITION.BEFORE, rawPivot, rawValue);
 				}
 			}, true);
 		}
@@ -1004,6 +1017,20 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				@Override
 				public Long doInRedis(RedisConnection connection) {
 					return connection.rPush(rawKey, rawValue);
+				}
+			}, true);
+		}
+
+		@Override
+		public Long rightPush(K key, V pivot, V value) {
+			final byte[] rawKey = rawKey(key);
+			final byte[] rawPivot = rawValue(pivot);
+			final byte[] rawValue = rawValue(value);
+
+			return execute(new RedisCallback<Long>() {
+				@Override
+				public Long doInRedis(RedisConnection connection) {
+					return connection.lInsert(rawKey, POSITION.AFTER, rawPivot, rawValue);
 				}
 			}, true);
 		}

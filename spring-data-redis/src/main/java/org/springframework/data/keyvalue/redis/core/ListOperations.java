@@ -33,7 +33,11 @@ public interface ListOperations<K, V> {
 
 	Long leftPush(K key, V value);
 
+	Long leftPush(K key, V pivot, V value);
+
 	Long rightPush(K key, V value);
+
+	Long rightPush(K key, V pivot, V value);
 
 	void set(K key, long index, V value);
 

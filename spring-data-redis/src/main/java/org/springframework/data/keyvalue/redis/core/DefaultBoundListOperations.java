@@ -66,6 +66,11 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
+	public Long leftPush(V pivot, V value) {
+		return ops.leftPush(getKey(), pivot, value);
+	}
+
+	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}
@@ -94,6 +99,11 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	@Override
 	public Long rightPush(V value) {
 		return ops.rightPush(getKey(), value);
+	}
+
+	@Override
+	public Long rightPush(V pivot, V value) {
+		return ops.rightPush(getKey(), pivot, value);
 	}
 
 	@Override
