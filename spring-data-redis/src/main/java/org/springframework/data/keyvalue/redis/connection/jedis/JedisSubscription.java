@@ -38,10 +38,22 @@ class JedisSubscription implements Subscription {
 	private final Collection<byte[]> channels = new ArrayList<byte[]>(2);
 	private final Collection<byte[]> patterns = new ArrayList<byte[]>(2);
 
-	JedisSubscription(MessageListener listener, JedisPubSub jedisPubSub) {
+	JedisSubscription(MessageListener listener, JedisPubSub jedisPubSub, byte[][] channels, byte[][] patterns) {
 		Assert.notNull(listener);
 		this.listener = listener;
 		this.jedisPubSub = jedisPubSub;
+
+		if (!ObjectUtils.isArray(channels)) {
+			for (byte[] bs : channels) {
+				this.channels.add(bs);
+			}
+		}
+
+		if (!ObjectUtils.isArray(patterns)) {
+			for (byte[] bs : patterns) {
+				this.patterns.add(bs);
+			}
+		}
 	}
 
 	@Override

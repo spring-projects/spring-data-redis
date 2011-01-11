@@ -1619,7 +1619,7 @@ public class JedisConnection implements RedisConnection {
 			String[] pats = JedisUtils.convert(patterns);
 			JedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
 
-			subscription = new JedisSubscription(listener, jedisPubSub);
+			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
 			jedis.psubscribe(jedisPubSub, pats);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -1641,7 +1641,7 @@ public class JedisConnection implements RedisConnection {
 			String[] chs = JedisUtils.convert(channels);
 			JedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
 
-			subscription = new JedisSubscription(listener, jedisPubSub);
+			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
 			jedis.subscribe(jedisPubSub, chs);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
