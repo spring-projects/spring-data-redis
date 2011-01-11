@@ -16,8 +16,12 @@
 
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
+import static org.junit.Assert.*;
+
+import org.junit.Test;
 import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
@@ -26,7 +30,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	public JedisConnectionIntegrationTests() {
 		factory = new JedisConnectionFactory();
-		factory.setUsePool(false);
+		factory.setUsePool(true);
 
 		factory.setPort(SettingsUtils.getPort());
 		factory.setHostName(SettingsUtils.getHost());
@@ -37,6 +41,44 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@Override
 	protected RedisConnectionFactory getConnectionFactory() {
 		return factory;
+	}
+
+	@Test
+	public void testPubSub() {
+		final byte[] expectedChannel = "channel1".getBytes();
+		final byte[] expectedMessage = "msg".getBytes();
+
+		MessageListener listener = new MessageListener() {
+
+			@Override
+			public void onMessage(byte[] message, byte[] channel, byte[] pattern) {
+				assertArrayEquals(expectedChannel, channel);
+				assertArrayEquals(expectedMessage, message);
+				System.out.println("Received message '" + new String(message) + "'");
+			}
+		};
+
+		Thread th = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// sleep 1 second to let the registration happen
+				try {
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				// open a new connection
+				JedisConnection connection2 = factory.getConnection();
+				connection2.publish(expectedMessage, expectedChannel);
+				connection2.close();
+				// unsubscribe connection
+				connection.getSubscription().unsubscribe();
+			}
+		});
+
+		th.start();
+		connection.subscribe(listener, expectedChannel);
 	}
 
 //	@Test

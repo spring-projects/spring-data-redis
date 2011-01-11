@@ -43,13 +43,13 @@ class JedisSubscription implements Subscription {
 		this.listener = listener;
 		this.jedisPubSub = jedisPubSub;
 
-		if (!ObjectUtils.isArray(channels)) {
+		if (!ObjectUtils.isEmpty(channels)) {
 			for (byte[] bs : channels) {
 				this.channels.add(bs);
 			}
 		}
 
-		if (!ObjectUtils.isArray(patterns)) {
+		if (!ObjectUtils.isEmpty(patterns)) {
 			for (byte[] bs : patterns) {
 				this.patterns.add(bs);
 			}
