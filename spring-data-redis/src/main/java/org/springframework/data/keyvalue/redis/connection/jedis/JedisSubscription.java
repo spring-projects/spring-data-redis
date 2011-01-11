@@ -41,6 +41,7 @@ class JedisSubscription implements Subscription {
 	JedisSubscription(MessageListener listener, JedisPubSub jedisPubSub) {
 		Assert.notNull(listener);
 		this.listener = listener;
+		this.jedisPubSub = jedisPubSub;
 	}
 
 	@Override
