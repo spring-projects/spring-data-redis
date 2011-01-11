@@ -25,7 +25,7 @@ import java.util.List;
  * @author Costin Leau
  */
 public interface RedisCommands extends RedisTxCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
-		RedisZSetCommands, RedisHashCommands, RedisServerCommands {
+		RedisZSetCommands, RedisHashCommands, RedisServerCommands, RedisPubSubCommands {
 
 	Boolean exists(byte[] key);
 

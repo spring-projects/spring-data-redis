@@ -31,8 +31,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.connection.Subscription;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="http://github.com/alphazero/jredis">JRedis</a> library.
@@ -1024,5 +1026,34 @@ public class JredisConnection implements RedisConnection {
 		} catch (RedisException ex) {
 			throw JredisUtils.convertJredisAccessException(ex);
 		}
+	}
+
+	//
+	// PubSub commands
+	//
+
+	@Override
+	public Subscription getSubscription() {
+		return null;
+	}
+
+	@Override
+	public boolean isSubscribed() {
+		return false;
+	}
+
+	@Override
+	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Long publish(byte[] message, byte[] channel) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void subscribe(MessageListener listener, byte[]... channels) {
+		throw new UnsupportedOperationException();
 	}
 }

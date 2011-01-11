@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2010-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.RedisConnectionFailureException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
+import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisListCommands.POSITION;
 import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tuple;
@@ -39,6 +40,7 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
 
 import redis.clients.jedis.JedisException;
+import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 
@@ -188,5 +190,19 @@ public abstract class JedisUtils {
 			throw new UncategorizedRedisException("Cannot read Redis info", ex);
 		}
 		return info;
+	}
+
+	static JedisPubSub adaptPubSub(MessageListener listener) {
+		return new JedisMessageListener(listener);
+	}
+
+	static String[] convert(byte[]... raw) {
+		String[] result = new String[raw.length];
+
+		for (int i = 0; i < raw.length; i++) {
+			result[i] = new String(raw[i]);
+		}
+
+		return result;
 	}
 }

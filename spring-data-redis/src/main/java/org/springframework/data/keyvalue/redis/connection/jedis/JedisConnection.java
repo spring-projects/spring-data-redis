@@ -26,10 +26,13 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
+import org.springframework.data.keyvalue.redis.SubscribedRedisConnectionException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.BinaryJedis;
@@ -37,6 +40,7 @@ import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
+import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
@@ -58,6 +62,8 @@ public class JedisConnection implements RedisConnection {
 	private final Jedis jedis;
 	private final Client client;
 	private final BinaryTransaction transaction;
+
+	private volatile JedisSubscription subscription;
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance.
@@ -1565,6 +1571,86 @@ public class JedisConnection implements RedisConnection {
 			return new ArrayList<byte[]>(jedis.hvals(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
+		}
+	}
+
+
+	//
+	// Pub/Sub functionality
+	//
+	@Override
+	public Long publish(byte[] message, byte[] channel) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+
+			String msg = new String(message);
+			String chn = new String(channel);
+
+			return jedis.publish(chn, msg);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Subscription getSubscription() {
+		return subscription;
+	}
+
+	@Override
+	public boolean isSubscribed() {
+		return (subscription != null && subscription.isAlive());
+	}
+
+	@Override
+	public void pSubscribe(MessageListener listener, byte[]... patterns) {
+		if (isSubscribed()) {
+			throw new SubscribedRedisConnectionException(
+					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
+		}
+
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+
+			String[] pats = JedisUtils.convert(patterns);
+			JedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
+
+			subscription = new JedisSubscription(listener, jedisPubSub);
+			jedis.psubscribe(jedisPubSub, pats);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public void subscribe(MessageListener listener, byte[]... channels) {
+		if (isSubscribed()) {
+			throw new SubscribedRedisConnectionException(
+					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
+		}
+
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+
+			String[] chs = JedisUtils.convert(channels);
+			JedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
+
+			subscription = new JedisSubscription(listener, jedisPubSub);
+			jedis.subscribe(jedisPubSub, chs);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	private void checkSubscription() {
+		if (isSubscribed()) {
+			throw new SubscribedRedisConnectionException("Cannot execute command - connection is subscribed");
 		}
 	}
 }
