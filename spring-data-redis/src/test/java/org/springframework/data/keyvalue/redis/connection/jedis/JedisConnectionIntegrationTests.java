@@ -44,7 +44,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	public void testPubSub() {
+	public void testPubSubWithNamedChannels() {
 		final byte[] expectedChannel = "channel1".getBytes();
 		final byte[] expectedMessage = "msg".getBytes();
 
@@ -79,6 +79,45 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		th.start();
 		connection.subscribe(listener, expectedChannel);
+	}
+
+	@Test
+	public void testPubSubWithPatterns() {
+		final byte[] expectedPattern = "channel*".getBytes();
+		final byte[] expectedMessage = "msg".getBytes();
+
+		MessageListener listener = new MessageListener() {
+
+			@Override
+			public void onMessage(byte[] message, byte[] channel, byte[] pattern) {
+				assertArrayEquals(expectedPattern, pattern);
+				assertArrayEquals(expectedMessage, message);
+				System.out.println("Received message '" + new String(message) + "'");
+			}
+		};
+
+		Thread th = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// sleep 1 second to let the registration happen
+				try {
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				// open a new connection
+				JedisConnection connection2 = factory.getConnection();
+				connection2.publish(expectedMessage, "channel1".getBytes());
+				connection2.publish(expectedMessage, "channel2".getBytes());
+				connection2.close();
+				// unsubscribe connection
+				connection.getSubscription().pUnsubscribe(expectedPattern);
+			}
+		});
+
+		th.start();
+		connection.pSubscribe(listener, expectedPattern);
 	}
 
 //	@Test

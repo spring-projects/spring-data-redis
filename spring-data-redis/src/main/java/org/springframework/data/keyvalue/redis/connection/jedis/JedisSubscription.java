@@ -44,21 +44,27 @@ class JedisSubscription implements Subscription {
 		this.jedisPubSub = jedisPubSub;
 
 		if (!ObjectUtils.isEmpty(channels)) {
-			for (byte[] bs : channels) {
-				this.channels.add(bs);
+			synchronized (this.channels) {
+				for (byte[] bs : channels) {
+					this.channels.add(bs);
+				}
 			}
 		}
 
 		if (!ObjectUtils.isEmpty(patterns)) {
-			for (byte[] bs : patterns) {
-				this.patterns.add(bs);
+			synchronized (this.patterns) {
+				for (byte[] bs : patterns) {
+					this.patterns.add(bs);
+				}
 			}
 		}
 	}
 
 	@Override
 	public Collection<byte[]> getChannels() {
-		return channels;
+		synchronized (channels) {
+			return new ArrayList<byte[]>(channels);
+		}
 	}
 
 	@Override
@@ -68,15 +74,19 @@ class JedisSubscription implements Subscription {
 
 	@Override
 	public Collection<byte[]> getPatterns() {
-		return patterns;
+		synchronized (patterns) {
+			return new ArrayList<byte[]>(patterns);
+		}
 	}
 
 	@Override
 	public void pSubscribe(byte[]... patterns) {
 		Assert.notEmpty(patterns, "at least one pattern required");
 
-		for (byte[] bs : patterns) {
-			this.patterns.add(bs);
+		synchronized (this.patterns) {
+			for (byte[] bs : patterns) {
+				this.patterns.add(bs);
+			}
 		}
 
 		jedisPubSub.psubscribe(JedisUtils.convert(patterns));
@@ -84,6 +94,9 @@ class JedisSubscription implements Subscription {
 
 	@Override
 	public void pUnsubscribe() {
+		synchronized (patterns) {
+			patterns.clear();
+		}
 		jedisPubSub.punsubscribe();
 	}
 
@@ -94,8 +107,10 @@ class JedisSubscription implements Subscription {
 		}
 
 		else {
-			for (byte[] bs : patterns) {
-				this.patterns.remove(bs);
+			synchronized (this.patterns) {
+				for (byte[] bs : patterns) {
+					this.patterns.remove(bs);
+				}
 			}
 
 			jedisPubSub.punsubscribe(JedisUtils.convert(patterns));
@@ -106,8 +121,10 @@ class JedisSubscription implements Subscription {
 	public void subscribe(byte[]... channels) {
 		Assert.notEmpty(patterns, "at least one pattern required");
 
-		for (byte[] bs : patterns) {
-			this.patterns.add(bs);
+		synchronized (this.channels) {
+			for (byte[] bs : channels) {
+				this.channels.add(bs);
+			}
 		}
 
 		jedisPubSub.subscribe(JedisUtils.convert(channels));
@@ -115,6 +132,9 @@ class JedisSubscription implements Subscription {
 
 	@Override
 	public void unsubscribe() {
+		synchronized (channels) {
+			channels.clear();
+		}
 		jedisPubSub.unsubscribe();
 	}
 
@@ -124,8 +144,10 @@ class JedisSubscription implements Subscription {
 			unsubscribe();
 		}
 		else {
-			for (byte[] bs : patterns) {
-				this.patterns.remove(bs);
+			synchronized (this.channels) {
+				for (byte[] bs : channels) {
+					this.channels.remove(bs);
+				}
 			}
 
 			jedisPubSub.unsubscribe(JedisUtils.convert(channels));
