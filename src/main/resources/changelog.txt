@@ -7,6 +7,8 @@ Changes in version 1.0.0.M2 (2011-xx-yy)
 ----------------------------------------
 General
 * Improved documentation
+* Upgraded to Redis 2.2
+* Updraded to Jedis 1.5.1
 
 Package o.s.d.k.redis.connection
 * Renamed JedisConnectionFactory pooling to usePool
