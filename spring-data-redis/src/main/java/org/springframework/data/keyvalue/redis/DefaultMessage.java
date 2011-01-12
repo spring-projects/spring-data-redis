@@ -13,20 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.connection;
+package org.springframework.data.keyvalue.redis;
+
+import org.springframework.data.keyvalue.redis.connection.Message;
 
 /**
- * Listener of messages published in Redis.
+ * Default message implementation.
  * 
  * @author Costin Leau
  */
-public interface MessageListener {
+public class DefaultMessage implements Message {
 
-	/**
-	 * Callback for processing received objects through Redis.
-	 * 
-	 * @param message message
-	 * @param pattern pattern matching the channel (if specified) - can be null
-	 */
-	void onMessage(Message message, byte[] pattern);
+	private final byte[] payload;
+	private final byte[] channel;
+
+	public DefaultMessage(byte[] payload, byte[] channel) {
+		this.payload = payload;
+		this.channel = channel;
+	}
+
+	@Override
+	public byte[] getChannel() {
+		return channel;
+	}
+
+	@Override
+	public byte[] getPayload() {
+		return payload;
+	}
 }

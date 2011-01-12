@@ -15,18 +15,16 @@
  */
 package org.springframework.data.keyvalue.redis.connection;
 
+import java.io.Serializable;
+
 /**
- * Listener of messages published in Redis.
+ * Class encapsulating a Redis message body and its properties.
  * 
  * @author Costin Leau
  */
-public interface MessageListener {
+public interface Message extends Serializable {
 
-	/**
-	 * Callback for processing received objects through Redis.
-	 * 
-	 * @param message message
-	 * @param pattern pattern matching the channel (if specified) - can be null
-	 */
-	void onMessage(Message message, byte[] pattern);
+	byte[] getPayload();
+	
+	byte[] getChannel();
 }

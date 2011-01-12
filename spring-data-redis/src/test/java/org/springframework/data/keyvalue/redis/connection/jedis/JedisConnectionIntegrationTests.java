@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.keyvalue.redis.connection.Message;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
@@ -51,10 +52,10 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		MessageListener listener = new MessageListener() {
 
 			@Override
-			public void onMessage(byte[] message, byte[] channel, byte[] pattern) {
-				assertArrayEquals(expectedChannel, channel);
-				assertArrayEquals(expectedMessage, message);
-				System.out.println("Received message '" + new String(message) + "'");
+			public void onMessage(Message message, byte[] pattern) {
+				assertArrayEquals(expectedChannel, message.getChannel());
+				assertArrayEquals(expectedMessage, message.getPayload());
+				System.out.println("Received message '" + new String(message.getPayload()) + "'");
 			}
 		};
 
@@ -89,10 +90,10 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		MessageListener listener = new MessageListener() {
 
 			@Override
-			public void onMessage(byte[] message, byte[] channel, byte[] pattern) {
+			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedPattern, pattern);
-				assertArrayEquals(expectedMessage, message);
-				System.out.println("Received message '" + new String(message) + "'");
+				assertArrayEquals(expectedMessage, message.getPayload());
+				System.out.println("Received message '" + new String(message.getPayload()) + "'");
 			}
 		};
 

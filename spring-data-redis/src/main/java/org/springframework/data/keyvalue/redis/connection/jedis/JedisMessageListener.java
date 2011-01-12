@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
+import org.springframework.data.keyvalue.redis.DefaultMessage;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.util.Assert;
 
@@ -36,12 +37,12 @@ class JedisMessageListener extends JedisPubSub {
 
 	@Override
 	public void onMessage(String channel, String message) {
-		listener.onMessage(message.getBytes(), channel.getBytes(), null);
+		listener.onMessage(new DefaultMessage(message.getBytes(), channel.getBytes()), null);
 	}
 
 	@Override
 	public void onPMessage(String pattern, String channel, String message) {
-		listener.onMessage(message.getBytes(), channel.getBytes(), pattern.getBytes());
+		listener.onMessage(new DefaultMessage(message.getBytes(), channel.getBytes()), pattern.getBytes());
 	}
 
 	@Override
