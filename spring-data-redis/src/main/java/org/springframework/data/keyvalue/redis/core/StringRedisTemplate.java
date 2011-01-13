@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2010-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
@@ -27,7 +28,24 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
  */
 public class StringRedisTemplate extends RedisTemplate<String, String> {
 
+	/**
+	 * Constructs a new <code>StringRedisTemplate</code> instance.
+	 */
 	public StringRedisTemplate() {
+		RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+		setKeySerializer(stringSerializer);
+		setValueSerializer(stringSerializer);
+		setHashKeySerializer(stringSerializer);
+		setHashValueSerializer(stringSerializer);
+	}
+
+	/**
+	 * Constructs a new <code>StringRedisTemplate</code> instance.
+	 *
+	 * @param connectionFactory connection factory for creating new connections
+	 */
+	public StringRedisTemplate(RedisConnectionFactory connectionFactory) {
+		super(connectionFactory);
 		RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 		setKeySerializer(stringSerializer);
 		setValueSerializer(stringSerializer);
