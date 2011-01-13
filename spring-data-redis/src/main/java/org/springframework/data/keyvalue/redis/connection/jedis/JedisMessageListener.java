@@ -15,7 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
-import org.springframework.data.keyvalue.redis.DefaultMessage;
+import org.springframework.data.keyvalue.redis.connection.DefaultMessage;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.util.Assert;
 
