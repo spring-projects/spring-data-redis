@@ -13,31 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.connection;
-
+package org.springframework.data.keyvalue.redis.listener;
 
 /**
- * Default message implementation.
+ * Pattern topic (matching multiple channels).
  * 
  * @author Costin Leau
  */
-public class DefaultMessage implements Message {
+public class PatternTopic implements Topic {
 
-	private final byte[] payload;
-	private final byte[] channel;
+	private final String channelPattern;
 
-	public DefaultMessage(byte[] payload, byte[] channel) {
-		this.payload = payload;
-		this.channel = channel;
+	public PatternTopic(String pattern) {
+		this.channelPattern = pattern;
 	}
 
-	@Override
-	public byte[] getChannel() {
-		return (channel != null ? channel.clone() : null);
-	}
-
-	@Override
-	public byte[] getPayload() {
-		return (payload != null ? payload.clone() : null);
+	public String getTopic() {
+		return channelPattern;
 	}
 }

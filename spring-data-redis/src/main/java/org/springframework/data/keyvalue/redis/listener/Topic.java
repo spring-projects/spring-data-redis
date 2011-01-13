@@ -13,31 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.connection;
-
+package org.springframework.data.keyvalue.redis.listener;
 
 /**
- * Default message implementation.
+ * Topic for a Redis message. Acts a high-level abstraction on top
+ * of Redis low-level channels or patterns.
  * 
  * @author Costin Leau
  */
-public class DefaultMessage implements Message {
+public interface Topic {
 
-	private final byte[] payload;
-	private final byte[] channel;
-
-	public DefaultMessage(byte[] payload, byte[] channel) {
-		this.payload = payload;
-		this.channel = channel;
-	}
-
-	@Override
-	public byte[] getChannel() {
-		return (channel != null ? channel.clone() : null);
-	}
-
-	@Override
-	public byte[] getPayload() {
-		return (payload != null ? payload.clone() : null);
-	}
+	String getTopic();
 }

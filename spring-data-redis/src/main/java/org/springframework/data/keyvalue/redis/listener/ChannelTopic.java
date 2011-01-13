@@ -13,31 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.connection;
-
+package org.springframework.data.keyvalue.redis.listener;
 
 /**
- * Default message implementation.
+ * Topic describing a channel.
  * 
  * @author Costin Leau
  */
-public class DefaultMessage implements Message {
+public class ChannelTopic implements Topic {
 
-	private final byte[] payload;
-	private final byte[] channel;
+	private final String channelName;
 
-	public DefaultMessage(byte[] payload, byte[] channel) {
-		this.payload = payload;
-		this.channel = channel;
+	/**
+	 * Constructs a new <code>ChannelTopic</code> instance.
+	 *
+	 * @param name
+	 */
+	public ChannelTopic(String name) {
+		this.channelName = name;
 	}
 
-	@Override
-	public byte[] getChannel() {
-		return (channel != null ? channel.clone() : null);
-	}
-
-	@Override
-	public byte[] getPayload() {
-		return (payload != null ? payload.clone() : null);
+	/**
+	 * Returns the channel name.
+	 *  
+	 * @return
+	 */
+	public String getTopic() {
+		return channelName;
 	}
 }
