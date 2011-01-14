@@ -15,8 +15,10 @@
  */
 package org.springframework.data.keyvalue.redis.listener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -34,6 +36,7 @@ import org.springframework.data.keyvalue.redis.connection.Message;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -171,7 +174,7 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	@Override
 	public void stop() {
 		running = false;
-		throw new UnsupportedOperationException();
+		subscriptionTask.cancel();
 	}
 
 	/**
@@ -213,7 +216,8 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	 * the {@link #setTaskExecutor(Executor)} will be used. In some cases, this might be undersired as
 	 * the listening to the connection is a long running task.
 	 *
-	 * <p/>Note: This implementation uses at most one thread (depending on whether there are any listeners registered or not). 
+	 * <p/>Note: This implementation uses at most one long running thread (depending on whether there are any listeners registered or not)
+	 * and up to two threads during the initial registration. 
 	 * 
 	 * @param subscriptionExecutor The subscriptionExecutor to set.
 	 */
@@ -279,29 +283,41 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	}
 
 	/**
-	 * Method inspecting whether listening for messages (and thus using a thread) is actually needed.
+	 * Method inspecting whether listening for messages (and thus using a thread) is actually needed and triggering it.
 	 */
 	private void lazyListen() {
 		boolean debug = log.isDebugEnabled();
+		boolean started = false;
 
-		if (channelMapping.size() > 0 || patternMapping.size() > 0) {
-			subscriptionExecutor.execute(subscriptionTask);
-			listening = true;
+		if (!listening) {
+			synchronized (monitor) {
+				if (!listening) {
+					if (channelMapping.size() > 0 || patternMapping.size() > 0) {
+						subscriptionExecutor.execute(subscriptionTask);
+						listening = true;
+						started = true;
+					}
+				}
+				else {
+					listening = false;
+				}
 
-			if (debug) {
-				log.debug("Started listening for Redis messages");
 			}
-		}
-		else {
-			listening = false;
 			if (debug) {
-				log.debug("Postpone listening for Redis messages until actual listeners are added");
+				if (started) {
+					log.debug("Started listening for Redis messages");
+				}
+				else {
+					log.debug("Postpone listening for Redis messages until actual listeners are added");
+				}
 			}
 		}
 	}
 
-
 	private void addListener(MessageListener listener, Collection<Topic> topics) {
+		List<byte[]> channels = new ArrayList<byte[]>(topics.size());
+		List<byte[]> patterns = new ArrayList<byte[]>(topics.size());
+
 		for (Topic topic : topics) {
 
 			ArrayHolder holder = new ArrayHolder(serializer.serialize(topic.getTopic()));
@@ -313,6 +329,7 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 					channelMapping.put(holder, collection);
 				}
 				collection.add(listener);
+				channels.add(holder.array);
 			}
 
 			else if (topic instanceof PatternTopic) {
@@ -322,11 +339,21 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 					patternMapping.put(holder, collection);
 				}
 				collection.add(listener);
+				patterns.add(holder.array);
 			}
 
 			else {
 				throw new IllegalArgumentException("Unknown topic type '" + topic.getClass() + "'");
 			}
+		}
+
+		// check the current listening state
+		if (listening) {
+			subscriptionTask.subscribeChannel(channels.toArray(new byte[channels.size()][]));
+			subscriptionTask.subscribePattern(patterns.toArray(new byte[patterns.size()][]));
+		}
+		else {
+			lazyListen();
 		}
 	}
 
@@ -338,6 +365,52 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	 */
 	private class SubscriptionTask implements SchedulingAwareRunnable {
 
+		/**
+		 * Runnable used, on a parallel thread, to do the initial pSubscribe.
+		 * This is required since, during initialization, both subscribe and pSubscribe
+		 * might be needed but since the first call is blocking, the second call needs to
+		 * executed in parallel.
+		 *  
+		 * @author Costin Leau
+		 */
+		private class PatternSubscriptionTask implements SchedulingAwareRunnable {
+
+			private long WAIT = 1000;
+			private long ROUNDS = 3;
+
+			@Override
+			public boolean isLongLived() {
+				return false;
+			}
+
+			@Override
+			public void run() {
+				// wait for subscription to be initialized
+				boolean done = false;
+				// wait 3 rounds for subscription to be initialized
+				for (int i = 0; i < ROUNDS || done; i++) {
+					if (connection != null) {
+						synchronized (localMonitor) {
+							if (connection != null && connection.isSubscribed()) {
+								done = true;
+								connection.getSubscription().pSubscribe(unwrap(patternMapping.keySet()));
+							}
+							else {
+								try {
+									Thread.sleep(WAIT);
+								} catch (InterruptedException ex) {
+									done = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		private volatile RedisConnection connection;
+		private final Object localMonitor = new Object();
+
 		@Override
 		public boolean isLongLived() {
 			return true;
@@ -345,10 +418,9 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 
 		@Override
 		public void run() {
-			RedisConnection connection = connectionFactory.getConnection();
+			connection = connectionFactory.getConnection();
 			try {
 				if (connection.isSubscribed()) {
-					listening = false;
 					throw new IllegalStateException("Retrieved connection is already subscribed; aborting listening");
 				}
 
@@ -357,14 +429,26 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 				// subscribe one way or the other
 				// and schedule the rest
 				if (!channelMapping.isEmpty()) {
+					// schedule the rest of the subscription
+					subscriptionExecutor.execute(new PatternSubscriptionTask());
 					connection.subscribe(new DispatchMessageListener(), unwrap(channelMapping.keySet()));
 				}
 				else {
 					connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
 				}
+
 			} finally {
+				// this block is executed once the subscription has ended
+				// meaning cleanup is required
+				listening = false;
+
 				if (connection != null) {
-					connection.close();
+					synchronized (localMonitor) {
+						if (connection != null) {
+							connection.close();
+							connection = null;
+						}
+					}
 				}
 			}
 		}
@@ -382,6 +466,80 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 			}
 
 			return unwrapped;
+		}
+
+		void cancel() {
+			if (connection != null) {
+				synchronized (localMonitor) {
+					if (connection != null) {
+						Subscription sub = connection.getSubscription();
+						if (sub != null) {
+							sub.pUnsubscribe();
+							sub.unsubscribe();
+						}
+					}
+				}
+			}
+		}
+
+		void subscribeChannel(byte[]... channels) {
+			if (channels != null && channels.length > 0) {
+				if (connection != null) {
+					synchronized (localMonitor) {
+						if (connection != null) {
+							Subscription sub = connection.getSubscription();
+							if (sub != null) {
+								sub.subscribe(channels);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		void subscribePattern(byte[]... patterns) {
+			if (patterns != null && patterns.length > 0) {
+				if (connection != null) {
+					synchronized (localMonitor) {
+						if (connection != null) {
+							Subscription sub = connection.getSubscription();
+							if (sub != null) {
+								sub.pSubscribe(patterns);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		void unsubscribeChannel(byte[]... channels) {
+			if (channels != null && channels.length > 0) {
+				if (connection != null) {
+					synchronized (localMonitor) {
+						if (connection != null) {
+							Subscription sub = connection.getSubscription();
+							if (sub != null) {
+								sub.unsubscribe(channels);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		void unsubscribePattern(byte[]... patterns) {
+			if (patterns != null && patterns.length > 0) {
+				if (connection != null) {
+					synchronized (localMonitor) {
+						if (connection != null) {
+							Subscription sub = connection.getSubscription();
+							if (sub != null) {
+								sub.pUnsubscribe(patterns);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
