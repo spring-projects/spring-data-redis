@@ -1585,6 +1585,7 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
+			// FIXME: DATAKV-24 once Jedis adds support for binary messages
 			String msg = new String(message);
 			String chn = new String(channel);
 

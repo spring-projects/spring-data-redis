@@ -206,19 +206,15 @@ public class MessageListenerAdapter implements MessageListener {
 	/**
 	 * Handle the given exception that arose during listener execution.
 	 * The default implementation logs the exception at error level.
-	 * <p>This method only applies when used as standard JMS {@link MessageListener}.
-	 * In case of the Spring {@link SessionAwareMessageListener} mechanism,
-	 * exceptions get handled by the caller instead.
 	 * @param ex the exception to handle
-	 * @see #onMessage(javax.jms.Message)
 	 */
 	protected void handleListenerException(Throwable ex) {
 		logger.error("Listener execution failed", ex);
 	}
 
 	/**
-	 * Extract the message body from the given JMS message.
-	 * @param message the JMS <code>Message</code>
+	 * Extract the message body from the given Redis message.
+	 * @param message the Redis <code>Message</code>
 	 * @return the content of the message, to be passed into the
 	 * listener method as argument
 	 */

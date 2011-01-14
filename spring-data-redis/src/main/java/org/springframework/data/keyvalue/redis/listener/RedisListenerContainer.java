@@ -98,7 +98,7 @@ public class RedisListenerContainer implements InitializingBean, DisposableBean,
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
 	private final MessageListener multiplexer = new DispatchMessageListener();
-	private RedisSerializer<String> serializer = new StringRedisSerializer();
+	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
 
 
 	@Override

@@ -183,12 +183,30 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
+	 * Returns the key serializer used by this template.
+	 * 
+	 * @return
+	 */
+	public RedisSerializer<?> getKeySerializer() {
+		return keySerializer;
+	}
+
+	/**
 	 * Sets the value serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}.
 	 * 
 	 * @param serializer
 	 */
 	public void setValueSerializer(RedisSerializer<?> serializer) {
 		this.valueSerializer = serializer;
+	}
+
+	/**
+	 * Returns the value serializer used by this template.
+	 * 
+	 * @return
+	 */
+	public RedisSerializer<?> getValueSerializer() {
+		return valueSerializer;
 	}
 
 	/**

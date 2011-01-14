@@ -15,12 +15,14 @@
  */
 package org.springframework.data.keyvalue.redis.listener;
 
+import static org.junit.Assert.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -31,10 +33,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.data.keyvalue.redis.connection.Message;
-import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.keyvalue.redis.support.collections.ObjectFactory;
 
 /**
@@ -52,14 +53,26 @@ public class PubSubTests<T> {
 	protected RedisTemplate template;
 	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
 
-	private MessageListener testListener;
+	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(4);
+
+	private final Object handler = new Object() {
+		void handleMessage(String message) {
+			System.out.println("Received message " + message);
+			bag.add(message);
+		}
+	};
+
+	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
 
 	@Before
 	public void setUp() throws Exception {
+		adapter.setSerializer(template.getValueSerializer());
+
 		container = new RedisListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
 		container.afterPropertiesSet();
+
 	}
 
 	@After
@@ -102,21 +115,18 @@ public class PubSubTests<T> {
 
 	@Test
 	public void testContainerSubscribe() throws Exception {
-		final BlockingQueue<Message> bag = new ArrayBlockingQueue<Message>(4);
 
-		container.addMessageListener(new MessageListener() {
+		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 
-			@Override
-			public void onMessage(Message message, byte[] pattern) {
-				System.out.println("Received message " + message + " and pattern=" + pattern);
-				bag.add(message);
-			}
-		}, Arrays.asList(new ChannelTopic(CHANNEL)));
+		// wait for the container to start the registration
 
 		Thread.sleep(500);
-		template.convertAndSend(CHANNEL, "bar");
-		template.convertAndSend(CHANNEL, "bar1");
-		System.out.println("Found in bag " + bag.poll(1, TimeUnit.SECONDS));
-		System.out.println("Found in bag " + bag.poll(1, TimeUnit.SECONDS));
+		String payload1 = "do";
+		String payload2 = "re mi";
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(CHANNEL, payload2);
+
+		assertEquals(payload1, bag.pollFirst(1, TimeUnit.SECONDS));
+		assertEquals(payload2, bag.pollFirst(1, TimeUnit.SECONDS));
 	}
 }
