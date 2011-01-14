@@ -81,10 +81,14 @@ public interface RedisOperations<K, V> {
 	void discard();
 
 	Object exec();
-
+	
 	List<V> sort(K key, SortParameters params);
 
 	Long sort(K key, SortParameters params, K destination);
+
+	// pubsub functionality on the template
+	void convertAndSend(String destination, Object message);
+
 
 	// operation types
 	/**

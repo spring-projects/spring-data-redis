@@ -269,7 +269,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> byte[] rawValue(T value) {
+	private byte[] rawValue(Object value) {
 		return (value != null ? valueSerializer.serialize(value) : null);
 	}
 
@@ -505,6 +505,22 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			@Override
 			public Long doInRedis(RedisConnection connection) {
 				return connection.sort(rawKey, params, rawDestKey);
+			}
+		}, true);
+	}
+
+	@Override
+	public void convertAndSend(String channel, Object message) {
+		Assert.hasText(channel, "a non-empty channel is required");
+
+		final byte[] rawChannel = rawString(channel);
+		final byte[] rawMessage = rawValue(message);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.publish(rawMessage, rawChannel);
+				return null;
 			}
 		}, true);
 	}
@@ -886,7 +902,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public BoundListOperations<K, V> boundListOps(K key) {
 		return new DefaultBoundListOperations<K, V>(key, this);
 	}
-
 
 
 
@@ -1736,7 +1751,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					return connection.hGetAll(rawKey);
 				}
 			}, true);
-			
+
 			return deserializeHashMap(entries);
 		}
 	}

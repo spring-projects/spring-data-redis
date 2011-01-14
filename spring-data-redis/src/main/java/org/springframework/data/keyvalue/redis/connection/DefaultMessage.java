@@ -25,6 +25,7 @@ public class DefaultMessage implements Message {
 
 	private final byte[] payload;
 	private final byte[] channel;
+	private String toString;
 
 	public DefaultMessage(byte[] payload, byte[] channel) {
 		this.payload = payload;
@@ -39,5 +40,13 @@ public class DefaultMessage implements Message {
 	@Override
 	public byte[] getPayload() {
 		return (payload != null ? payload.clone() : null);
+	}
+
+	@Override
+	public String toString() {
+		if (toString == null){
+			toString = new String(payload);
+		}
+		return toString;
 	}
 }

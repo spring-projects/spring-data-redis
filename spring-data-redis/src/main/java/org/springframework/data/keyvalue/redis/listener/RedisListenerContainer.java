@@ -56,15 +56,14 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Costin Leau
  */
-public class RedisListeningContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
+public class RedisListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
-	private static final Log log = LogFactory.getLog(RedisListeningContainer.class);
+	private static final Log log = LogFactory.getLog(RedisListenerContainer.class);
 
 	/**
 	 * Default thread name prefix: "RedisListeningContainer-".
 	 */
-	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisListeningContainer.class)
-			+ "-";
+	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisListenerContainer.class) + "-";
 
 
 	private Executor subscriptionExecutor;
@@ -137,6 +136,10 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 		if (manageExecutor) {
 			if (taskExecutor instanceof DisposableBean) {
 				((DisposableBean) taskExecutor).destroy();
+
+				if (log.isDebugEnabled()) {
+					log.debug("Stopped internally-managed task executor");
+				}
 			}
 		}
 	}
@@ -168,6 +171,9 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 		if (!running) {
 			running = true;
 			lazyListen();
+			if (log.isDebugEnabled()) {
+				log.debug("Started RedisListenerContainer");
+			}
 		}
 	}
 
@@ -175,6 +181,10 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	public void stop() {
 		running = false;
 		subscriptionTask.cancel();
+
+		if (log.isDebugEnabled()) {
+			log.debug("Stopped RedisListenerContainer");
+		}
 	}
 
 	/**
@@ -318,6 +328,8 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 		List<byte[]> channels = new ArrayList<byte[]>(topics.size());
 		List<byte[]> patterns = new ArrayList<byte[]>(topics.size());
 
+		boolean trace = log.isTraceEnabled();
+
 		for (Topic topic : topics) {
 
 			ArrayHolder holder = new ArrayHolder(serializer.serialize(topic.getTopic()));
@@ -330,6 +342,9 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 				}
 				collection.add(listener);
 				channels.add(holder.array);
+
+				if (trace)
+					log.trace("Adding listener '" + listener + "' on channel '" + topic.getTopic() + "'");
 			}
 
 			else if (topic instanceof PatternTopic) {
@@ -340,6 +355,9 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 				}
 				collection.add(listener);
 				patterns.add(holder.array);
+
+				if (trace)
+					log.trace("Adding listener '" + listener + "' for pattern '" + topic.getTopic() + "'");
 			}
 
 			else {
@@ -430,7 +448,9 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 				// and schedule the rest
 				if (!channelMapping.isEmpty()) {
 					// schedule the rest of the subscription
-					subscriptionExecutor.execute(new PatternSubscriptionTask());
+					if (!patternMapping.isEmpty()) {
+						subscriptionExecutor.execute(new PatternSubscriptionTask());
+					}
 					connection.subscribe(new DispatchMessageListener(), unwrap(channelMapping.keySet()));
 				}
 				else {
