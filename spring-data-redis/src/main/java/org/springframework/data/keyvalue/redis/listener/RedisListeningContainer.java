@@ -245,7 +245,7 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	 * 
 	 * @param listeners map of message listeners and their associated topics
 	 */
-	public void setMessageListeners(Map<? extends MessageListener, Collection<Topic>> listeners) {
+	public void setMessageListeners(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
 		initMapping(listeners);
 	}
 
@@ -256,12 +256,12 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 	 * @param listener message listener
 	 * @param topics message listener topic
 	 */
-	public void addMessageListener(MessageListener listener, Collection<Topic> topics) {
+	public void addMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
 		addListener(listener, topics);
 		lazyListen();
 	}
 
-	private void initMapping(Map<? extends MessageListener, Collection<Topic>> listeners) {
+	private void initMapping(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
 		// stop the listener if currently running
 		if (isRunning()) {
 			stop();
@@ -271,7 +271,7 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 		channelMapping.clear();
 
 		if (!CollectionUtils.isEmpty(listeners)) {
-			for (Map.Entry<? extends MessageListener, Collection<Topic>> entry : listeners.entrySet()) {
+			for (Map.Entry<? extends MessageListener, Collection<? extends Topic>> entry : listeners.entrySet()) {
 				addListener(entry.getKey(), entry.getValue());
 			}
 		}
@@ -314,7 +314,7 @@ public class RedisListeningContainer implements InitializingBean, DisposableBean
 		}
 	}
 
-	private void addListener(MessageListener listener, Collection<Topic> topics) {
+	private void addListener(MessageListener listener, Collection<? extends Topic> topics) {
 		List<byte[]> channels = new ArrayList<byte[]>(topics.size());
 		List<byte[]> patterns = new ArrayList<byte[]>(topics.size());
 
