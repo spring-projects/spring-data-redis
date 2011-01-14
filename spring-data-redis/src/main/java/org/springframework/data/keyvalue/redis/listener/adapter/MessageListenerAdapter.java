@@ -166,26 +166,31 @@ public class MessageListenerAdapter implements MessageListener {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void onMessage(Message message, byte[] pattern) {
-		// Check whether the delegate is a MessageListener impl itself.
-		// In that case, the adapter will simply act as a pass-through.
-		if (delegate != this) {
-			if (delegate instanceof MessageListener) {
-				((MessageListener) delegate).onMessage(message, pattern);
+		try {
+
+			// Check whether the delegate is a MessageListener impl itself.
+			// In that case, the adapter will simply act as a pass-through.
+			if (delegate != this) {
+				if (delegate instanceof MessageListener) {
+					((MessageListener) delegate).onMessage(message, pattern);
+				}
 			}
-		}
 
-		// Regular case: find a handler method reflectively.
-		Object convertedMessage = extractMessage(message);
-		String methodName = getListenerMethodName(message, convertedMessage);
-		if (methodName == null) {
-			throw new InvalidDataAccessApiUsageException("No default listener method specified: "
-					+ "Either specify a non-null value for the 'defaultListenerMethod' property or "
-					+ "override the 'getListenerMethodName' method.");
-		}
+			// Regular case: find a handler method reflectively.
+			Object convertedMessage = extractMessage(message);
+			String methodName = getListenerMethodName(message, convertedMessage);
+			if (methodName == null) {
+				throw new InvalidDataAccessApiUsageException("No default listener method specified: "
+						+ "Either specify a non-null value for the 'defaultListenerMethod' property or "
+						+ "override the 'getListenerMethodName' method.");
+			}
 
-		// Invoke the handler method with appropriate arguments.
-		Object[] listenerArguments = buildListenerArguments(convertedMessage);
-		invokeListenerMethod(methodName, listenerArguments);
+			// Invoke the handler method with appropriate arguments.
+			Object[] listenerArguments = buildListenerArguments(convertedMessage);
+			invokeListenerMethod(methodName, listenerArguments);
+		} catch (Throwable th) {
+			handleListenerException(th);
+		}
 	}
 
 	/**
