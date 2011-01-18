@@ -16,7 +16,7 @@
     <junit.version>4.8.1</junit.version>
     <log4j.version>1.2.15</log4j.version>
     <org.codehaus.jackson.version>1.6.1</org.codehaus.jackson.version>
-    <org.mockito.version>1.8.4</org.mockito.version>
+    <org.mockito.version>1.8.5</org.mockito.version>
     <org.slf4j.version>1.5.8</org.slf4j.version>
     <org.spockframework.version>0.5-groovy-1.7-SNAPSHOT</org.spockframework.version>
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
