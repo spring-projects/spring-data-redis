@@ -60,8 +60,8 @@ import org.springframework.util.ObjectUtils;
  * }</pre>
  *
  * For further examples and discussion please do refer to the Spring Data
- * reference documentation which describes this class (and it's attendant
- * XML configuration) in detail.
+ * reference documentation which describes this class (and its attendant
+ * configuration) in detail.
  *
  * @author Juergen Hoeller
  * @author Costin Leau

@@ -48,7 +48,7 @@ public class PubSubTests<T> {
 
 	private static final String CHANNEL = "pubsub::test";
 
-	protected RedisListenerContainer container;
+	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
 	protected RedisTemplate template;
 	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
@@ -68,7 +68,7 @@ public class PubSubTests<T> {
 	public void setUp() throws Exception {
 		adapter.setSerializer(template.getValueSerializer());
 
-		container = new RedisListenerContainer();
+		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
 		container.afterPropertiesSet();

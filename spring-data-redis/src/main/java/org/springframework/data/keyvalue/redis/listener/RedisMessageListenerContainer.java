@@ -56,14 +56,14 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Costin Leau
  */
-public class RedisListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
+public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
-	private static final Log log = LogFactory.getLog(RedisListenerContainer.class);
+	private static final Log log = LogFactory.getLog(RedisMessageListenerContainer.class);
 
 	/**
 	 * Default thread name prefix: "RedisListeningContainer-".
 	 */
-	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisListenerContainer.class) + "-";
+	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class) + "-";
 
 
 	private Executor subscriptionExecutor;
@@ -172,7 +172,7 @@ public class RedisListenerContainer implements InitializingBean, DisposableBean,
 			running = true;
 			lazyListen();
 			if (log.isDebugEnabled()) {
-				log.debug("Started RedisListenerContainer");
+				log.debug("Started RedisMessageListenerContainer");
 			}
 		}
 	}
@@ -183,7 +183,7 @@ public class RedisListenerContainer implements InitializingBean, DisposableBean,
 		subscriptionTask.cancel();
 
 		if (log.isDebugEnabled()) {
-			log.debug("Stopped RedisListenerContainer");
+			log.debug("Stopped RedisMessageListenerContainer");
 		}
 	}
 
@@ -369,9 +369,6 @@ public class RedisListenerContainer implements InitializingBean, DisposableBean,
 		if (listening) {
 			subscriptionTask.subscribeChannel(channels.toArray(new byte[channels.size()][]));
 			subscriptionTask.subscribePattern(patterns.toArray(new byte[patterns.size()][]));
-		}
-		else {
-			lazyListen();
 		}
 	}
 
