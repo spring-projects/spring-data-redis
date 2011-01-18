@@ -81,11 +81,11 @@ template.publish("hello!", "world");]]></programlisting>
       <title>Message Listener Containers</title>
 
       <para>Due to its blocking nature, low-level subscription is not attractive as it requires connection and thread management for every single
-      listener. To alleviate this problem, Spring Data offers <classname>RedisListenerContainer</classname> which does all the heavy lifting
+      listener. To alleviate this problem, Spring Data offers <classname>RedisMessageListenerContainer</classname> which does all the heavy lifting
       on behalf of the user - users familiar with EJB and JMS should find the concepts familiar as it is designed as close as possible to the
       support in Spring Framework and its message-driven POJOs (MDPs)</para> 
       
-      <para><classname>RedisListenerContainer</classname> acts as a message listener container; it is used to receive messages from a
+      <para><classname>RedisMessageListenerContainer</classname> acts as a message listener container; it is used to receive messages from a
       Redis channel and drive the MessageListener that are injected into
       it. The listener container is responsible for all threading of message
       reception and dispatches into the listener for processing. A message
@@ -97,7 +97,7 @@ template.publish("hello!", "world");]]></programlisting>
       boilerplate Redis infrastructure concerns to the framework.
       </para>
 
-	  <para>Further more, to minimize the application footprint, <classname>RedisListenerContainer</classname> performs allows one connection and one thread
+	  <para>Further more, to minimize the application footprint, <classname>RedisMessageListenerContainer</classname> performs allows one connection and one thread
 	  to be shared by multiple listeners even though they do not share a subscription. Thus no matter how many listeners or channels an application tracks,
 	  the runtime cost will remain the same through out its lifetime. Moreover, the container allows runtime configuration changes so one can add or remove
 	  listeners while an application is running without the need for restart. Additionally, the container uses a lazy subscription approach, using a
