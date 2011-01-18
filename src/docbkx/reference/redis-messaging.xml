@@ -60,7 +60,8 @@ template.publish("hello!", "world");]]></programlisting>
 	  <important>Subscribing commands are synchronized and thus blocking. That is, calling subscribe on a connection will cause
 	  the current thread to block as it will start waiting for messages - the thread will be released only if the subscription
 	  is canceled, that is an additional thread invokes <methodname>unsubscribe</methodname> respectively <methodname>pUnsubscribe</methodname>
-	  on the <emphasis>same</emphasis> connection.</important>
+	  on the <emphasis>same</emphasis> connection. See <link linkend="redis:pubsub:subscribe:containers">message listener container</link> below
+	  for a solution to these problem.</important>
 	  
 	  <para>As mentioned above, one subscribed a connection starts waiting for messages - no other commands can be invoked on it except
 	  for adding new subscriptions or modifying/canceling the existing ones, that is invoking anything else then <methodname>subscribe</methodname>,
