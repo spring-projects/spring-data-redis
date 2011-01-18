@@ -126,7 +126,11 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		assertEquals(payload1, bag.pollFirst(1, TimeUnit.SECONDS));
-		assertEquals(payload2, bag.pollFirst(1, TimeUnit.SECONDS));
+		Set<String> set = new LinkedHashSet<String>();
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+
+		assertTrue(set.contains(payload1));
+		assertTrue(set.contains(payload2));
 	}
 }
