@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="redis">
+<chapter xmlns:xi="http://www.w3.org/2001/XInclude" id="redis">
   <title>Redis support</title>
 
   <para>One of the key value stores supported by SDKV is <ulink url="http://code.google.com/p/redis/">Redis</ulink>.
@@ -317,6 +317,8 @@
 	<para>As shown in the example above, the consuming code is decoupled from the actual storage implementation - in fact there is no indication that Redis is used underneath. This makes moving from
 	development to production environments transparent and highly increases testability (the Redis implementation can just as well be replaced with an in-memory one).</para>
     </section>
+    
+    <xi:include href="redis-messaging.xml"/>
     
     <section id="redis:future">
     	<title>Roadmap ahead</title>

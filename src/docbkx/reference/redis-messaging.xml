@@ -2,9 +2,7 @@
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <section>
-  <section id="redis:pubsub:intro">
-    <title>Introduction</title>
-
+  <title>Redis Messaging/PubSub</title>
     <para>Spring Data provides dedicated messaging integration for Redis, 
     very similar in functionality and naming to the JMS integration in
     Spring Framework; in fact, users familiar with the JMS support in Spring, should
@@ -22,7 +20,6 @@
     <para>The package <literal>org.springframework.data.keyvalue.redis.connection</literal> and
     <literal>org.springframework.data.keyvalue.redis.listener</literal> provide
     the core functionality for using Redis messaging.</para>
-  </section>
 
   <section id="redis:pubsub:publish">
     <title>Sending/Publishing messages</title>
