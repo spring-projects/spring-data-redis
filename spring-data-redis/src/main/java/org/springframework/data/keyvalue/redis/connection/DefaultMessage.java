@@ -23,12 +23,12 @@ package org.springframework.data.keyvalue.redis.connection;
  */
 public class DefaultMessage implements Message {
 
-	private final byte[] payload;
 	private final byte[] channel;
+	private final byte[] body;
 	private String toString;
 
-	public DefaultMessage(byte[] payload, byte[] channel) {
-		this.payload = payload;
+	public DefaultMessage(byte[] channel, byte[] body) {
+		this.body = body;
 		this.channel = channel;
 	}
 
@@ -39,13 +39,13 @@ public class DefaultMessage implements Message {
 
 	@Override
 	public byte[] getBody() {
-		return (payload != null ? payload.clone() : null);
+		return (body != null ? body.clone() : null);
 	}
 
 	@Override
 	public String toString() {
 		if (toString == null){
-			toString = new String(payload);
+			toString = new String(body);
 		}
 		return toString;
 	}
