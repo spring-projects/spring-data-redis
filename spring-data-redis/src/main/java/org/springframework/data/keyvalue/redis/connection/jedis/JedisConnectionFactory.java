@@ -115,7 +115,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	public JedisConnection getConnection() {
-		return new JedisConnection(fetchJedisConnector());
+		Jedis jedis = fetchJedisConnector();
+		return (usePool ? new JedisConnection(jedis, pool) : new JedisConnection(jedis));
 	}
 
 	@Override

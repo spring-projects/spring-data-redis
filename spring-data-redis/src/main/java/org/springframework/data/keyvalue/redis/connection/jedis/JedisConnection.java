@@ -44,6 +44,7 @@ import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
+import redis.clients.util.Pool;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="http://github.com/xetorthio/jedis">Jedis</a> library.
@@ -62,6 +63,8 @@ public class JedisConnection implements RedisConnection {
 	private final Jedis jedis;
 	private final Client client;
 	private final BinaryTransaction transaction;
+	private final Pool<Jedis> pool;
+
 
 	private volatile JedisSubscription subscription;
 
@@ -71,10 +74,23 @@ public class JedisConnection implements RedisConnection {
 	 * @param jedis Jedis entity
 	 */
 	public JedisConnection(Jedis jedis) {
+		this(jedis, null);
+	}
+
+	/**
+	 * 
+	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
+	 *
+	 * @param jedis
+	 * @param pool can be null, if no pool is used
+	 */
+	public JedisConnection(Jedis jedis, Pool<Jedis> pool) {
 		this.jedis = jedis;
 		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
 		transaction = new Transaction(client);
+
+		this.pool = pool;
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -90,6 +106,20 @@ public class JedisConnection implements RedisConnection {
 
 	@Override
 	public void close() throws UncategorizedRedisException {
+		// return the connection to the pool
+		try {
+			if (pool != null) {
+				pool.returnResource(jedis);
+			}
+		} catch (Exception ex) {
+			pool.returnBrokenResource(jedis);
+		}
+
+		if (pool != null) {
+			return;
+		}
+
+		// else close the connection normally
 		try {
 			if (isQueueing()) {
 				client.quit();
