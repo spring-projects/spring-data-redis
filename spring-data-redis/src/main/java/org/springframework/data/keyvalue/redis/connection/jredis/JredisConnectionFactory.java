@@ -97,7 +97,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	@Override
 	public void destroy() {
 		if (usePool && pool != null) {
-			//pool.quit();
+			pool.quit();
 			pool = null;
 		}
 	}

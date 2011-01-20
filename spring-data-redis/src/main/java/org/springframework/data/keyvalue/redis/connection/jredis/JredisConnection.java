@@ -27,6 +27,7 @@ import org.jredis.JRedis;
 import org.jredis.RedisException;
 import org.jredis.Sort;
 import org.jredis.Query.Support;
+import org.jredis.ri.alphazero.JRedisService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
@@ -35,6 +36,7 @@ import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.Subscription;
+import org.springframework.util.Assert;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="http://github.com/alphazero/jredis">JRedis</a> library.
@@ -44,6 +46,7 @@ import org.springframework.data.keyvalue.redis.connection.Subscription;
 public class JredisConnection implements RedisConnection {
 
 	private final JRedis jredis;
+	private final boolean isPool;
 
 	/**
 	 * Constructs a new <code>JredisConnection</code> instance.
@@ -51,7 +54,10 @@ public class JredisConnection implements RedisConnection {
 	 * @param jredis JRedis connection
 	 */
 	public JredisConnection(JRedis jredis) {
+		Assert.notNull(jredis, "a not-null instance required");
 		this.jredis = jredis;
+		// required since Jredis combines the pool and the connection under the same interface/class
+		this.isPool = (jredis instanceof JRedisService);
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -63,8 +69,11 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public void close() throws UncategorizedRedisException {
-		jredis.quit();
-
+		// don't actually close the connection
+		// if a pool is used
+		if (!isPool) {
+			jredis.quit();
+		}
 	}
 
 	@Override
@@ -193,7 +202,8 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public void setConfig(String param, String value) {
-		throw new UnsupportedOperationException();	}
+		throw new UnsupportedOperationException();
+	}
 
 	@Override
 	public void shutdown() {

@@ -60,7 +60,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setUsePool(false);
+		jredisConnFactory.setUsePool(true);
 
 		jredisConnFactory.setPort(SettingsUtils.getPort());
 		jredisConnFactory.setHostName(SettingsUtils.getHost());

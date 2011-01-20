@@ -31,7 +31,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		factory.setPort(SettingsUtils.getPort());
 		factory.setHostName(SettingsUtils.getHost());
 
-		factory.setUsePool(false);
+		factory.setUsePool(true);
 		factory.afterPropertiesSet();
 	}
 

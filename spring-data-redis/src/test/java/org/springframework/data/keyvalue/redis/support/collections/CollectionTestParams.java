@@ -46,7 +46,7 @@ public abstract class CollectionTestParams {
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setUsePool(false);
+		jredisConnFactory.setUsePool(true);
 
 		jredisConnFactory.setPort(SettingsUtils.getPort());
 		jredisConnFactory.setHostName(SettingsUtils.getHost());
