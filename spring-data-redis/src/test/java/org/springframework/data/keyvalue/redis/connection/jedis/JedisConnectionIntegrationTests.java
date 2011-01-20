@@ -54,8 +54,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 			@Override
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedChannel, message.getChannel());
-				assertArrayEquals(expectedMessage, message.getPayload());
-				System.out.println("Received message '" + new String(message.getPayload()) + "'");
+				assertArrayEquals(expectedMessage, message.getBody());
+				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 
@@ -92,8 +92,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 			@Override
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedPattern, pattern);
-				assertArrayEquals(expectedMessage, message.getPayload());
-				System.out.println("Received message '" + new String(message.getPayload()) + "'");
+				assertArrayEquals(expectedMessage, message.getBody());
+				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 

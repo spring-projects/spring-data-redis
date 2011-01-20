@@ -38,7 +38,7 @@ public class DefaultMessage implements Message {
 	}
 
 	@Override
-	public byte[] getPayload() {
+	public byte[] getBody() {
 		return (payload != null ? payload.clone() : null);
 	}
 

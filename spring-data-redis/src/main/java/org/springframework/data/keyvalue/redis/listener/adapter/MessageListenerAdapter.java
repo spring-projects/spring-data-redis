@@ -220,7 +220,7 @@ public class MessageListenerAdapter implements MessageListener {
 	 */
 	protected Object extractMessage(Message message) {
 		if (serializer != null) {
-			return serializer.deserialize(message.getPayload());
+			return serializer.deserialize(message.getBody());
 		}
 		return message;
 	}

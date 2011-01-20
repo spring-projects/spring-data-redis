@@ -24,7 +24,7 @@ import java.io.Serializable;
  */
 public interface Message extends Serializable {
 
-	byte[] getPayload();
+	byte[] getBody();
 	
 	byte[] getChannel();
 }
