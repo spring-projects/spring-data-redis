@@ -1058,7 +1058,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Long publish(byte[] message, byte[] channel) {
+	public Long publish(byte[] channel, byte[] message) {
 		throw new UnsupportedOperationException();
 	}
 

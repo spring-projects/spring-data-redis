@@ -43,11 +43,11 @@ public interface RedisPubSubCommands {
 	/**
 	 * Publishes the given message to the given channel.
 	 * 
-	 * @param message message to publish
 	 * @param channel the channel to publish to
+	 * @param message message to publish
 	 * @return the number of clients that received the message
 	 */
-	Long publish(byte[] message, byte[] channel);
+	Long publish(byte[] channel, byte[] message);
 
 	/**
 	 * Subscribes the connection to the given channels.

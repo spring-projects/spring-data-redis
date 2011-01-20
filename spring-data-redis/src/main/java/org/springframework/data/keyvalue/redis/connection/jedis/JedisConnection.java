@@ -1609,7 +1609,7 @@ public class JedisConnection implements RedisConnection {
 	// Pub/Sub functionality
 	//
 	@Override
-	public Long publish(byte[] message, byte[] channel) {
+	public Long publish(byte[] channel, byte[] message) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
