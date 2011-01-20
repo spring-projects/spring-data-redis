@@ -178,6 +178,15 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
+	public void save() {
+		try {
+			jredis.save();
+		} catch (RedisException ex) {
+			throw JredisUtils.convertJredisAccessException(ex);
+		}
+	}
+
+	@Override
 	public List<String> getConfig(String pattern) {
 		throw new UnsupportedOperationException();
 	}
@@ -202,6 +211,11 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public void setConfig(String param, String value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void resetConfigStats() {
 		throw new UnsupportedOperationException();
 	}
 

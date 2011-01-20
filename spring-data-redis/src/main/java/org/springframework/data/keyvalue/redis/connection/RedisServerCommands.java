@@ -31,6 +31,8 @@ public interface RedisServerCommands {
 
 	Long lastSave();
 
+	void save();
+
 	Long dbSize();
 
 	void flushDb();
@@ -44,4 +46,6 @@ public interface RedisServerCommands {
 	List<String> getConfig(String pattern);
 
 	void setConfig(String param, String value);
+
+	void resetConfigStats();
 }

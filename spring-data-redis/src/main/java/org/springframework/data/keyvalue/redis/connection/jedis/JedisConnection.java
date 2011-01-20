@@ -251,6 +251,18 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
+	public void save() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.save();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public List<String> getConfig(String param) {
 		try {
 			if (isQueueing()) {
@@ -293,6 +305,19 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 			jedis.configSet(param, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+
+	@Override
+	public void resetConfigStats() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.configResetStat();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
