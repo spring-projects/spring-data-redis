@@ -43,7 +43,7 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 
 	@Override
 	public String deserialize(byte[] bytes) {
-		return new String(bytes, charset);
+		return (SerializerUtils.isEmpty(bytes) ? null : new String(bytes, charset));
 	}
 
 	@Override

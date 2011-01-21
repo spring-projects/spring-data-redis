@@ -18,6 +18,8 @@ package org.springframework.data.keyvalue.redis.serializer;
 /**
  * Basic interface serialization and deserialization of Objects to byte arrays (binary data). 
  * 
+ * It is recommended that implementations are designed to handle null objects/empty arrays on serialization and deserialization side.
+ * 
  * @author Mark Pollack
  * @author Costin Leau
  */
