@@ -66,7 +66,7 @@ public class PubSubTests<T> {
 
 	@Before
 	public void setUp() throws Exception {
-		adapter.setSerializer(template.getValueSerializer());
+		//adapter.setSerializer(template.getValueSerializer());
 
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
@@ -74,6 +74,7 @@ public class PubSubTests<T> {
 		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 		container.afterPropertiesSet();
 
+		Thread.sleep(500);
 	}
 
 	@After
@@ -118,13 +119,13 @@ public class PubSubTests<T> {
 	public void testContainerSubscribe() throws Exception {
 		String payload1 = "do";
 		String payload2 = "re mi";
+
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
 		Set<String> set = new LinkedHashSet<String>();
 		set.add(bag.poll(1, TimeUnit.SECONDS));
 		set.add(bag.poll(1, TimeUnit.SECONDS));
-
 
 		assertTrue(set.contains(payload1));
 		assertTrue(set.contains(payload2));
