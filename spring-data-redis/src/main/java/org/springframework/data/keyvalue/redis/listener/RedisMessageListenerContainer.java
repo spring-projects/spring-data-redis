@@ -52,7 +52,7 @@ import org.springframework.util.CollectionUtils;
  * the message dispatch being done through the task executor.
  * 
  * <p/>
- * Note the container uses the connection in a lazy fashion (only if at least one listener is configured). 
+ * Note the container uses the connection in a lazy fashion (the connection is used only if at least one listener is configured). 
  * 
  * @author Costin Leau
  */
@@ -63,7 +63,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * Default thread name prefix: "RedisListeningContainer-".
 	 */
-	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class) + "-";
+	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class)
+			+ "-";
 
 
 	private Executor subscriptionExecutor;
@@ -299,26 +300,28 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		boolean debug = log.isDebugEnabled();
 		boolean started = false;
 
-		if (!listening) {
-			synchronized (monitor) {
-				if (!listening) {
-					if (channelMapping.size() > 0 || patternMapping.size() > 0) {
-						subscriptionExecutor.execute(subscriptionTask);
-						listening = true;
-						started = true;
+		if (isRunning()) {
+			if (!listening) {
+				synchronized (monitor) {
+					if (!listening) {
+						if (channelMapping.size() > 0 || patternMapping.size() > 0) {
+							subscriptionExecutor.execute(subscriptionTask);
+							listening = true;
+							started = true;
+						}
 					}
-				}
-				else {
-					listening = false;
-				}
+					else {
+						listening = false;
+					}
 
-			}
-			if (debug) {
-				if (started) {
-					log.debug("Started listening for Redis messages");
 				}
-				else {
-					log.debug("Postpone listening for Redis messages until actual listeners are added");
+				if (debug) {
+					if (started) {
+						log.debug("Started listening for Redis messages");
+					}
+					else {
+						log.debug("Postpone listening for Redis messages until actual listeners are added");
+					}
 				}
 			}
 		}

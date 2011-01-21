@@ -71,6 +71,7 @@ public class PubSubTests<T> {
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
+		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 		container.afterPropertiesSet();
 
 	}
@@ -116,7 +117,6 @@ public class PubSubTests<T> {
 	@Test
 	public void testContainerSubscribe() throws Exception {
 
-		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 
 		// wait for the container to start the registration
 
