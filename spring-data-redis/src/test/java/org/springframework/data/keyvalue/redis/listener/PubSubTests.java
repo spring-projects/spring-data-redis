@@ -116,11 +116,6 @@ public class PubSubTests<T> {
 
 	@Test
 	public void testContainerSubscribe() throws Exception {
-
-
-		// wait for the container to start the registration
-
-		Thread.sleep(500);
 		String payload1 = "do";
 		String payload2 = "re mi";
 		template.convertAndSend(CHANNEL, payload1);
@@ -137,13 +132,7 @@ public class PubSubTests<T> {
 
 	@Test
 	public void testMessageBatch() throws Exception {
-
-		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
-
-		// wait for the container to start the registration
-
 		int COUNT = 10;
-		Thread.sleep(500);
 		for (int i = 0; i < COUNT; i++) {
 			template.convertAndSend(CHANNEL, "message=" + i);
 		}

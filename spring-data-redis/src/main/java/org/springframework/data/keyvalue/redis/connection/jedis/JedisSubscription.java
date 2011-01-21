@@ -119,7 +119,7 @@ class JedisSubscription implements Subscription {
 
 	@Override
 	public void subscribe(byte[]... channels) {
-		Assert.notEmpty(patterns, "at least one pattern required");
+		Assert.notEmpty(channels, "at least one channel required");
 
 		synchronized (this.channels) {
 			for (byte[] bs : channels) {
