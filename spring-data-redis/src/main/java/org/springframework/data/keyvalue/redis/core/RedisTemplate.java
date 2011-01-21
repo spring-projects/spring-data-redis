@@ -69,6 +69,8 @@ import org.springframework.util.ClassUtils;
  */
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
+	private static final byte[] EMPTY_ARRAY = new byte[0];
+
 	private boolean exposeConnection = false;
 	private RedisSerializer keySerializer = new JdkSerializationRedisSerializer();
 	private RedisSerializer valueSerializer = new JdkSerializationRedisSerializer();
@@ -279,16 +281,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private byte[] rawKey(Object key) {
-		return (key != null ? keySerializer.serialize(key) : null);
+		return (key != null ? keySerializer.serialize(key) : EMPTY_ARRAY);
 	}
 
 	private byte[] rawString(String key) {
-		return (key != null ? stringSerializer.serialize(key) : null);
+		return (key != null ? stringSerializer.serialize(key) : EMPTY_ARRAY);
 	}
 
 	@SuppressWarnings("unchecked")
 	private byte[] rawValue(Object value) {
-		return (value != null ? valueSerializer.serialize(value) : null);
+		return (value != null ? valueSerializer.serialize(value) : EMPTY_ARRAY);
 	}
 
 	private byte[][] rawKeys(Collection<K> keys) {
@@ -317,12 +319,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private <HK> byte[] rawHashKey(HK value) {
-		return (value != null ? hashKeySerializer.serialize(value) : null);
+		return (value != null ? hashKeySerializer.serialize(value) : EMPTY_ARRAY);
 	}
 
 	@SuppressWarnings("unchecked")
 	private <HV> byte[] rawHashValue(HV value) {
-		return (value != null ? hashValueSerializer.serialize(value) : null);
+		return (value != null ? hashValueSerializer.serialize(value) : EMPTY_ARRAY);
 	}
 
 
@@ -390,7 +392,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private String deserializeString(byte[] value) {
-		return (String) deserialize(value, stringSerializer);
+		return deserialize(value, stringSerializer);
 	}
 
 	@SuppressWarnings( { "unchecked" })
@@ -537,7 +539,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		execute(new RedisCallback<Object>() {
 			@Override
 			public Object doInRedis(RedisConnection connection) {
-				connection.publish(rawMessage, rawChannel);
+				connection.publish(rawChannel, rawMessage);
 				return null;
 			}
 		}, true);
