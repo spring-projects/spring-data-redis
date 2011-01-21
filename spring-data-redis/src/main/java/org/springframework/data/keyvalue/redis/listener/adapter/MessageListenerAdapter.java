@@ -26,6 +26,7 @@ import org.springframework.data.keyvalue.redis.connection.Message;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
 import org.springframework.util.ObjectUtils;
@@ -62,6 +63,10 @@ import org.springframework.util.ObjectUtils;
  * For further examples and discussion please do refer to the Spring Data
  * reference documentation which describes this class (and its attendant
  * configuration) in detail.
+ * 
+ * <b>Important:</b> Due to the nature of messages, the default serializer used by
+ * the adapter is {@link StringRedisSerializer}. If the messages are of a different type,
+ * change them accordingly through {@link #setSerializer(RedisSerializer)}.
  *
  * @author Juergen Hoeller
  * @author Costin Leau
@@ -200,7 +205,7 @@ public class MessageListenerAdapter implements MessageListener {
 	 * @see JdkSerializationRedisSerializer
 	 */
 	protected void initDefaultStrategies() {
-		setSerializer(new JdkSerializationRedisSerializer());
+		setSerializer(new StringRedisSerializer());
 	}
 
 	/**

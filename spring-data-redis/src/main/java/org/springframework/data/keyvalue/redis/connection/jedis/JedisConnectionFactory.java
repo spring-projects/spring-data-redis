@@ -78,7 +78,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			if (usePool) {
 				return pool.getResource();
 			}
-			return new Jedis(getShardInfo());
+			Jedis jedis = new Jedis(getShardInfo());
+			// force initialization (see Jedis issue #82)
+			jedis.connect();
+			return jedis;
 		} catch (Exception ex) {
 			throw new DataAccessResourceFailureException("Cannot get Jedis connection", ex);
 		}

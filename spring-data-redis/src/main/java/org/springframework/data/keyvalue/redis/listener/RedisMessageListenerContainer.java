@@ -241,7 +241,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * 
 	 * @param serializer The serializer to set.
 	 */
-	public void setSerializer(RedisSerializer<String> serializer) {
+	public void setTopicSerializer(RedisSerializer<String> serializer) {
 		this.serializer = serializer;
 	}
 
