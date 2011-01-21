@@ -37,7 +37,7 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	 */
 	DefaultBoundSetOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = operations.getSetOps();
+		this.ops = operations.opsForSet();
 	}
 
 	@Override

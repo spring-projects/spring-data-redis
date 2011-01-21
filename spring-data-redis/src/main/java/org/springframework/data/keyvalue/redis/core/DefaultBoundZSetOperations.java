@@ -36,7 +36,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	 */
 	public DefaultBoundZSetOperations(K key, RedisOperations<K, V> oeprations) {
 		super(key);
-		this.ops = oeprations.getZSetOps();
+		this.ops = oeprations.opsForZSet();
 	}
 
 	@Override

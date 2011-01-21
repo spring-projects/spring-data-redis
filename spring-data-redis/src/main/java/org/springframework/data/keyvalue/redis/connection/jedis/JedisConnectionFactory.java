@@ -18,7 +18,6 @@ package org.springframework.data.keyvalue.redis.connection.jedis;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
@@ -29,6 +28,7 @@ import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.Protocol;
 
@@ -48,11 +48,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private String password;
 
 	private boolean usePool = true;
-
 	private JedisPool pool = null;
+	private JedisPoolConfig poolConfig = new JedisPoolConfig();
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance.
+	 * Constructs a new <code>JedisConnectionFactory</code> instance
+	 * with default settings (default connection pooling, no shard information).
 	 */
 	public JedisConnectionFactory() {
 	}
@@ -61,11 +62,22 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * Constructs a new <code>JedisConnectionFactory</code> instance.
 	 * Will override the other connection parameters passed to the factory. 
 	 *
-	 * @param shardInfo
+	 * @param shardInfo shard information
 	 */
 	public JedisConnectionFactory(JedisShardInfo shardInfo) {
 		this.shardInfo = shardInfo;
 	}
+
+	/**
+	 * Constructs a new <code>JedisConnectionFactory</code> instance using
+	 * the given pool configuration.
+	 *
+	 * @param poolConfig pool configuration
+	 */
+	public JedisConnectionFactory(JedisPoolConfig poolConfig) {
+		this.poolConfig = poolConfig;
+	}
+
 
 	/**
 	 * Returns a Jedis instance to be used as a Redis connection.
@@ -101,7 +113,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		if (usePool) {
-			pool = new JedisPool(new GenericObjectPool.Config(), shardInfo.getHost(), shardInfo.getPort(),
+			pool = new JedisPool(poolConfig, shardInfo.getHost(), shardInfo.getPort(),
 					shardInfo.getTimeout(), shardInfo.getPassword());
 		}
 	}
@@ -232,5 +244,23 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public void setUsePool(boolean usePool) {
 		this.usePool = usePool;
+	}
+
+	/**
+	 * Returns the poolConfig.
+	 *
+	 * @return Returns the poolConfig
+	 */
+	public JedisPoolConfig getPoolConfig() {
+		return poolConfig;
+	}
+
+	/**
+	 * Sets the pool configuration for this factory.
+	 * 
+	 * @param poolConfig The poolConfig to set.
+	 */
+	public void setPoolConfig(JedisPoolConfig poolConfig) {
+		this.poolConfig = poolConfig;
 	}
 }

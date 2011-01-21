@@ -32,7 +32,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	 */
 	public DefaultBoundValueOperations(K key, RedisOperations<K, V> operations) {
 		super(key);
-		this.ops = operations.getValueOps();
+		this.ops = operations.opsForValue();
 	}
 
 	@Override

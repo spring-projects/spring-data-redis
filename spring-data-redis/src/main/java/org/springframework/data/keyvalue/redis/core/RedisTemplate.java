@@ -697,7 +697,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public ValueOperations<K, V> getValueOps() {
+	public ValueOperations<K, V> opsForValue() {
 		return valueOps;
 	}
 
@@ -914,7 +914,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public ListOperations<K, V> getListOps() {
+	public ListOperations<K, V> opsForList() {
 		return listOps;
 	}
 
@@ -1158,7 +1158,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public SetOperations<K, V> getSetOps() {
+	public SetOperations<K, V> opsForSet() {
 		return setOps;
 	}
 
@@ -1353,7 +1353,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public ZSetOperations<K, V> getZSetOps() {
+	public ZSetOperations<K, V> opsForZSet() {
 		return zSetOps;
 	}
 
@@ -1572,7 +1572,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public <HK, HV> HashOperations<K, HK, HV> getHashOps() {
+	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
 		return new DefaultHashOperations<HK, HV>();
 	}
 

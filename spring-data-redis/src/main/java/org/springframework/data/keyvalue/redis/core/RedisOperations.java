@@ -96,7 +96,7 @@ public interface RedisOperations<K, V> {
 	 * 
 	 * @return value operations
 	 */
-	ValueOperations<K, V> getValueOps();
+	ValueOperations<K, V> opsForValue();
 
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology) 
@@ -112,7 +112,7 @@ public interface RedisOperations<K, V> {
 	 *
 	 * @return list operations
 	 */
-	ListOperations<K, V> getListOps();
+	ListOperations<K, V> opsForList();
 
 	/**
 	 * Returns the operations performed on list values bound to the given key.
@@ -127,7 +127,7 @@ public interface RedisOperations<K, V> {
 	 * 
 	 * @return set operations
 	 */
-	SetOperations<K, V> getSetOps();
+	SetOperations<K, V> opsForSet();
 
 	/**
 	 * Returns the operations performed on set values bound to the given key.
@@ -142,7 +142,7 @@ public interface RedisOperations<K, V> {
 	 * 
 	 * @return zset operations
 	 */
-	ZSetOperations<K, V> getZSetOps();
+	ZSetOperations<K, V> opsForZSet();
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets)
@@ -160,7 +160,7 @@ public interface RedisOperations<K, V> {
 	 * @param <HV> hash value type
 	 * @return hash operations
 	 */
-	<HK, HV> HashOperations<K, HK, HV> getHashOps();
+	<HK, HV> HashOperations<K, HK, HV> opsForHash();
 
 	/**
 	 * Returns the operations performed on hash values bound to the given key.

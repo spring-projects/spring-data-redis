@@ -181,7 +181,14 @@ public class JedisConnection implements RedisConnection {
 
 		try {
 			if (isQueueing()) {
-				throw new UnsupportedOperationException("Jedis does not support sort&store in MULTI/EXEC mode.");
+				if (sortParams != null) {
+					transaction.sort(key, sortParams, sortKey);
+				}
+				else {
+					transaction.sort(key, sortKey);
+				}
+
+				return null;
 			}
 			return (sortParams != null ? jedis.sort(key, sortParams, sortKey) : jedis.sort(key, sortKey));
 		} catch (Exception ex) {
@@ -767,7 +774,7 @@ public class JedisConnection implements RedisConnection {
 				//				return null;
 				throw new UnsupportedOperationException();
 			}
-			return (jedis.getbit(key, (int) offset) == 0 ? Boolean.FALSE : Boolean.TRUE);
+			return (jedis.getbit(key, offset) == 0 ? Boolean.FALSE : Boolean.TRUE);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -781,7 +788,7 @@ public class JedisConnection implements RedisConnection {
 				//				return;
 				throw new UnsupportedOperationException();
 			}
-			jedis.setbit(key, (int) offset, JedisUtils.asBit(value));
+			jedis.setbit(key, offset, JedisUtils.asBit(value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -995,7 +1002,7 @@ public class JedisConnection implements RedisConnection {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
 			}
-			return jedis.brpoplpush(srcKey, dstKey, timeout).getBytes();
+			return jedis.brpoplpush(srcKey, dstKey, timeout);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1667,8 +1674,8 @@ public class JedisConnection implements RedisConnection {
 			}
 
 			// FIXME: DATAKV-24 once Jedis adds support for binary messages
-			String msg = new String(message);
 			String chn = new String(channel);
+			String msg = new String(message);
 
 			return jedis.publish(chn, msg);
 		} catch (Exception ex) {
