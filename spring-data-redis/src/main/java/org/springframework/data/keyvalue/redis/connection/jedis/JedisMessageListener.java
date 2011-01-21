@@ -37,12 +37,12 @@ class JedisMessageListener extends JedisPubSub {
 
 	@Override
 	public void onMessage(String channel, String message) {
-		listener.onMessage(new DefaultMessage(message.getBytes(), channel.getBytes()), null);
+		listener.onMessage(new DefaultMessage(channel.getBytes(), message.getBytes()), null);
 	}
 
 	@Override
 	public void onPMessage(String pattern, String channel, String message) {
-		listener.onMessage(new DefaultMessage(message.getBytes(), channel.getBytes()), pattern.getBytes());
+		listener.onMessage(new DefaultMessage(channel.getBytes(), message.getBytes()), pattern.getBytes());
 	}
 
 	@Override

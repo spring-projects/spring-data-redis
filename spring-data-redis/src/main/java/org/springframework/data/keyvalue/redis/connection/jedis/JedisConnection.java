@@ -763,8 +763,9 @@ public class JedisConnection implements RedisConnection {
 	public Boolean getBit(byte[] key, long offset) {
 		try {
 			if (isQueueing()) {
-				transaction.getbit(key, (int) offset);
-				return null;
+				//				transaction.getbit(key, (int) offset);
+				//				return null;
+				throw new UnsupportedOperationException();
 			}
 			return (jedis.getbit(key, (int) offset) == 0 ? Boolean.FALSE : Boolean.TRUE);
 		} catch (Exception ex) {
@@ -776,8 +777,9 @@ public class JedisConnection implements RedisConnection {
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isQueueing()) {
-				transaction.setbit(key, (int) offset, JedisUtils.asBit(value));
-				return;
+				//				transaction.setbit(key, (int) offset, JedisUtils.asBit(value));
+				//				return;
+				throw new UnsupportedOperationException();
 			}
 			jedis.setbit(key, (int) offset, JedisUtils.asBit(value));
 		} catch (Exception ex) {
@@ -873,8 +875,9 @@ public class JedisConnection implements RedisConnection {
 	public Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value) {
 		try {
 			if (isQueueing()) {
-				transaction.linsert(key, JedisUtils.convertPosition(where), pivot, value);
-				return null;
+				//				transaction.linsert(key, JedisUtils.convertPosition(where), pivot, value);
+				//				return null;
+				throw new UnsupportedOperationException();
 			}
 			return jedis.linsert(key, JedisUtils.convertPosition(where), pivot, value);
 		} catch (Exception ex) {
@@ -992,7 +995,7 @@ public class JedisConnection implements RedisConnection {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
 			}
-			return jedis.brpoplpush(srcKey, dstKey, timeout);
+			return jedis.brpoplpush(srcKey, dstKey, timeout).getBytes();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -53,7 +53,7 @@ public class PubSubTests<T> {
 	protected RedisTemplate template;
 	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
 
-	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(4);
+	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
 
 	private final Object handler = new Object() {
 		void handleMessage(String message) {
@@ -130,7 +130,25 @@ public class PubSubTests<T> {
 		set.add(bag.poll(1, TimeUnit.SECONDS));
 		set.add(bag.poll(1, TimeUnit.SECONDS));
 
+
 		assertTrue(set.contains(payload1));
 		assertTrue(set.contains(payload2));
+	}
+
+	@Test
+	public void testMessageBatch() throws Exception {
+
+		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
+
+		// wait for the container to start the registration
+
+		int COUNT = 10;
+		Thread.sleep(500);
+		for (int i = 0; i < COUNT; i++) {
+			template.convertAndSend(CHANNEL, "message=" + i);
+		}
+
+		Thread.sleep(1000);
+		assertEquals(COUNT, bag.size());
 	}
 }
