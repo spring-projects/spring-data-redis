@@ -18,6 +18,7 @@ package org.springframework.data.keyvalue.redis.listener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -289,6 +290,17 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public void addMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
 		addListener(listener, topics);
 		lazyListen();
+	}
+
+	/**
+	 * Adds a message listener to the (potentially running) container. If the container is running,
+	 * the listener starts receiving (matching) messages as soon as possible.
+	 * 
+	 * @param listener
+	 * @param topics
+	 */
+	public void addMessageListener(MessageListener listener, Topic topic) {
+		addMessageListener(listener, Collections.singleton(topic));
 	}
 
 	private void initMapping(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
