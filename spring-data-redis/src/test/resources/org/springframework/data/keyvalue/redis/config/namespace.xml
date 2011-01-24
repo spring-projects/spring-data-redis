@@ -12,7 +12,7 @@
 
 	<task:executor id="testTaskExecutor" />
 	 			
-	<redis:listener-container task-executor="testTaskExecutor">
+	<redis:listener-container>
 		<!-- default handle method -->
 		<redis:listener ref="testBean1" channel="z1 z2" pattern="x*"/>
 		<!-- channel subscription only -->
@@ -22,5 +22,9 @@
 	<bean id="testBean1" class="org.springframework.data.keyvalue.redis.listener.adapter.RedisMDP"/>
 	
 	<bean id="serializer" class="org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer"/>
+	
+	<bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.StringRedisTemplate">
+		<property name="connectionFactory" ref="redisConnectionFactory"/>
+	</bean>
 	
 </beans>

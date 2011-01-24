@@ -17,12 +17,11 @@ package org.springframework.data.keyvalue.redis.config;
 
 import static org.junit.Assert.*;
 
-import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.data.keyvalue.redis.core.StringRedisTemplate;
 import org.springframework.data.keyvalue.redis.listener.RedisMessageListenerContainer;
 
 /**
@@ -47,6 +46,14 @@ public class NamespaceTest {
 	public void testSanityTest() throws Exception {
 		RedisMessageListenerContainer container = ctx.getBean(RedisMessageListenerContainer.class);
 		assertTrue(container.isRunning());
-		Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+		//Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+	}
+
+	@Test
+	public void testWithMessages() throws Exception {
+		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
+		template.convertAndSend("x1", "[X]test");
+		template.convertAndSend("z1", "[Z]test");
+		//Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 	}
 }
