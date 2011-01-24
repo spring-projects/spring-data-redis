@@ -32,6 +32,8 @@ import org.springframework.util.Assert;
  *
  * <b>Note:</b> The conversion service initialization happens automatically if the class is defined
  * as a Spring bean.
+ * 
+ * <b>Note:</b> Does not handle nulls in any special way delegating everything to the container.
  *
  * @author Costin Leau
  */

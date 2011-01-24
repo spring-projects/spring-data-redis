@@ -69,8 +69,6 @@ import org.springframework.util.ClassUtils;
  */
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
-	private static final byte[] EMPTY_ARRAY = new byte[0];
-
 	private boolean exposeConnection = false;
 	private RedisSerializer keySerializer = new JdkSerializationRedisSerializer();
 	private RedisSerializer valueSerializer = new JdkSerializationRedisSerializer();
@@ -281,16 +279,28 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private byte[] rawKey(Object key) {
-		return (key != null ? keySerializer.serialize(key) : EMPTY_ARRAY);
+		Assert.notNull(key, "non null key required");
+		return keySerializer.serialize(key);
 	}
 
 	private byte[] rawString(String key) {
-		return (key != null ? stringSerializer.serialize(key) : EMPTY_ARRAY);
+		return stringSerializer.serialize(key);
 	}
 
 	@SuppressWarnings("unchecked")
 	private byte[] rawValue(Object value) {
-		return (value != null ? valueSerializer.serialize(value) : EMPTY_ARRAY);
+		return valueSerializer.serialize(value);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <HK> byte[] rawHashKey(HK hashKey) {
+		Assert.notNull(hashKey, "non null hash key required");
+		return hashKeySerializer.serialize(hashKey);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <HV> byte[] rawHashValue(HV value) {
+		return hashValueSerializer.serialize(value);
 	}
 
 	private byte[][] rawKeys(Collection<K> keys) {
@@ -316,17 +326,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		return rawKeys;
 	}
-
-	@SuppressWarnings("unchecked")
-	private <HK> byte[] rawHashKey(HK value) {
-		return (value != null ? hashKeySerializer.serialize(value) : EMPTY_ARRAY);
-	}
-
-	@SuppressWarnings("unchecked")
-	private <HV> byte[] rawHashValue(HV value) {
-		return (value != null ? hashValueSerializer.serialize(value) : EMPTY_ARRAY);
-	}
-
 
 	@SuppressWarnings("unchecked")
 	private <T extends Collection<V>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {

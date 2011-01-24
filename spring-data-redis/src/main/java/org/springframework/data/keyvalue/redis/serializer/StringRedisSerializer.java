@@ -25,11 +25,14 @@ import org.springframework.util.Assert;
  * <p/> 
  * Useful when the interaction with the Redis happens mainly through Strings.
  * 
+ * <p/> Converts null into empty arrays (which get translated into empty strings on deserialization).
+ * 
  * @author Costin Leau
  */
 public class StringRedisSerializer implements RedisSerializer<String> {
 
 	private final static byte[] EMPTY_ARRAY = new byte[0];
+	private final String EMPTY_STRING = "";
 	private final Charset charset;
 
 	public StringRedisSerializer() {
@@ -43,7 +46,7 @@ public class StringRedisSerializer implements RedisSerializer<String> {
 
 	@Override
 	public String deserialize(byte[] bytes) {
-		return (SerializerUtils.isEmpty(bytes) ? null : new String(bytes, charset));
+		return (SerializerUtils.isEmpty(bytes) ? EMPTY_STRING : new String(bytes, charset));
 	}
 
 	@Override
