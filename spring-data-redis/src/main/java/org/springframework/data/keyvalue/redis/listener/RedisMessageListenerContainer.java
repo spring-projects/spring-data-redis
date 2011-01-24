@@ -193,13 +193,17 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	@Override
 	public void stop() {
-		running = false;
-		synchronized (monitor) {
-			subscriptionTask.cancel();
-			try {
-				monitor.wait(initWait);
-			} catch (InterruptedException ex) {
-				// stop waiting
+		if (isRunning()) {
+			running = false;
+			synchronized (monitor) {
+				subscriptionTask.cancel();
+				if (listening) {
+					try {
+						monitor.wait(initWait);
+					} catch (InterruptedException ex) {
+						// stop waiting
+					}
+				}
 			}
 		}
 
@@ -341,10 +345,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 							started = true;
 						}
 					}
-					else {
-						listening = false;
-					}
-
 				}
 				if (debug) {
 					if (started) {
