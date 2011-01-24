@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.listener.adapter;
+package org.springframework.data.keyvalue.redis.config;
+
+import org.springframework.beans.factory.xml.NamespaceHandler;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
+ * {@link NamespaceHandler} for Spring Data Redis namespace.
+ * 
  * @author Costin Leau
  */
-public class RedisMDP {
+class RedisNamespaceHandler extends NamespaceHandlerSupport {
 
-	public void handleMessage(String message) {
-		System.out.println("Received message " + message);
-	}
-
-	public void anotherHandle(String message) {
-		System.out.println("[*] Received message " + message);
+	@Override
+	public void init() {
+		registerBeanDefinitionParser("listener-container", new RedisListenerContainerParser());
 	}
 }

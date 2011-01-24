@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:redis="http://www.springframework.org/schema/redis"
+		xmlns:task="http://www.springframework.org/schema/task"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+				http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+				http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
+
+	<!-- the default ConnectionFactory -->
+	<bean id="redisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
+
+	<task:executor id="testTaskExecutor" />
+	 			
+	<redis:listener-container task-executor="testTaskExecutor">
+		<!-- default handle method -->
+		<redis:listener ref="testBean1" channel="z1 z2" pattern="x*"/>
+		<!-- channel subscription only -->
+		<redis:listener ref="testBean1" method="anotherHandle" channel="x1" serializer="serializer"/>
+	</redis:listener-container>
+	
+	<bean id="testBean1" class="org.springframework.data.keyvalue.redis.listener.adapter.RedisMDP"/>
+	
+	<bean id="serializer" class="org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer"/>
+	
+</beans>
