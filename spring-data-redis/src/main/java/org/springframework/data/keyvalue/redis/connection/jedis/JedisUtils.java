@@ -39,8 +39,8 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
 
+import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.JedisException;
-import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 
@@ -192,7 +192,7 @@ public abstract class JedisUtils {
 		return info;
 	}
 
-	static JedisPubSub adaptPubSub(MessageListener listener) {
+	static BinaryJedisPubSub adaptPubSub(MessageListener listener) {
 		return new JedisMessageListener(listener);
 	}
 

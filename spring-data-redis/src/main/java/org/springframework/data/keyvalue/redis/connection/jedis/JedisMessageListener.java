@@ -19,14 +19,14 @@ import org.springframework.data.keyvalue.redis.connection.DefaultMessage;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.util.Assert;
 
-import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.BinaryJedisPubSub;
 
 /**
  * MessageListener adapter on top of Jedis.
  * 
  * @author Costin Leau
  */
-class JedisMessageListener extends JedisPubSub {
+class JedisMessageListener extends BinaryJedisPubSub {
 
 	private final MessageListener listener;
 
@@ -36,32 +36,32 @@ class JedisMessageListener extends JedisPubSub {
 	}
 
 	@Override
-	public void onMessage(String channel, String message) {
-		listener.onMessage(new DefaultMessage(channel.getBytes(), message.getBytes()), null);
+	public void onMessage(byte[] channel, byte[] message) {
+		listener.onMessage(new DefaultMessage(channel, message), null);
 	}
 
 	@Override
-	public void onPMessage(String pattern, String channel, String message) {
-		listener.onMessage(new DefaultMessage(channel.getBytes(), message.getBytes()), pattern.getBytes());
+	public void onPMessage(byte[] pattern, byte[] channel, byte[] message) {
+		listener.onMessage(new DefaultMessage(channel, message), pattern);
 	}
 
 	@Override
-	public void onPSubscribe(String pattern, int subscribedChannels) {
+	public void onPSubscribe(byte[] pattern, int subscribedChannels) {
 		// no-op
 	}
 
 	@Override
-	public void onPUnsubscribe(String pattern, int subscribedChannels) {
+	public void onPUnsubscribe(byte[] pattern, int subscribedChannels) {
 		// no-op	
 	}
 
 	@Override
-	public void onSubscribe(String channel, int subscribedChannels) {
+	public void onSubscribe(byte[] channel, int subscribedChannels) {
 		// no-op
 	}
 
 	@Override
-	public void onUnsubscribe(String channel, int subscribedChannels) {
-		// no-op	
+	public void onUnsubscribe(byte[] channel, int subscribedChannels) {
+		// no-op
 	}
 }

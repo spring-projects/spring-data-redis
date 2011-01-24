@@ -36,11 +36,11 @@ import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
-import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
@@ -1673,11 +1673,7 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			// FIXME: DATAKV-24 once Jedis adds support for binary messages
-			String chn = new String(channel);
-			String msg = new String(message);
-
-			return jedis.publish(chn, msg);
+			return jedis.publish(channel, message);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1705,11 +1701,10 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			String[] pats = JedisUtils.convert(patterns);
-			JedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
+			BinaryJedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
 
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
-			jedis.psubscribe(jedisPubSub, pats);
+			jedis.psubscribe(jedisPubSub, patterns);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1727,11 +1722,10 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			String[] chs = JedisUtils.convert(channels);
-			JedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
+			BinaryJedisPubSub jedisPubSub = JedisUtils.adaptPubSub(listener);
 
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
-			jedis.subscribe(jedisPubSub, chs);
+			jedis.subscribe(jedisPubSub, channels);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

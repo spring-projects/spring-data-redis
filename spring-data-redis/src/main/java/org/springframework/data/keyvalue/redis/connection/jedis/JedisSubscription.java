@@ -23,7 +23,7 @@ import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.BinaryJedisPubSub;
 
 /**
  * Jedis specific subscription.
@@ -33,12 +33,12 @@ import redis.clients.jedis.JedisPubSub;
 class JedisSubscription implements Subscription {
 
 	private final MessageListener listener;
-	private final JedisPubSub jedisPubSub;
+	private final BinaryJedisPubSub jedisPubSub;
 
 	private final Collection<byte[]> channels = new ArrayList<byte[]>(2);
 	private final Collection<byte[]> patterns = new ArrayList<byte[]>(2);
 
-	JedisSubscription(MessageListener listener, JedisPubSub jedisPubSub, byte[][] channels, byte[][] patterns) {
+	JedisSubscription(MessageListener listener, BinaryJedisPubSub jedisPubSub, byte[][] channels, byte[][] patterns) {
 		Assert.notNull(listener);
 		this.listener = listener;
 		this.jedisPubSub = jedisPubSub;
@@ -89,7 +89,7 @@ class JedisSubscription implements Subscription {
 			}
 		}
 
-		jedisPubSub.psubscribe(JedisUtils.convert(patterns));
+		jedisPubSub.psubscribe(patterns);
 	}
 
 	@Override
@@ -113,7 +113,7 @@ class JedisSubscription implements Subscription {
 				}
 			}
 
-			jedisPubSub.punsubscribe(JedisUtils.convert(patterns));
+			jedisPubSub.punsubscribe(patterns);
 		}
 	}
 
@@ -127,7 +127,7 @@ class JedisSubscription implements Subscription {
 			}
 		}
 
-		jedisPubSub.subscribe(JedisUtils.convert(channels));
+		jedisPubSub.subscribe(channels);
 	}
 
 	@Override
@@ -150,7 +150,7 @@ class JedisSubscription implements Subscription {
 				}
 			}
 
-			jedisPubSub.unsubscribe(JedisUtils.convert(channels));
+			jedisPubSub.unsubscribe(channels);
 		}
 	}
 
