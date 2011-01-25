@@ -17,6 +17,8 @@ package org.springframework.data.keyvalue.redis.config;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,5 +57,16 @@ public class NamespaceTest {
 		template.convertAndSend("x1", "[X]test");
 		template.convertAndSend("z1", "[Z]test");
 		//Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+	}
+
+	@Test
+	public void testErrorHandler() throws Exception {
+		StubErrorHandler handler = ctx.getBean(StubErrorHandler.class);
+		
+		int index = handler.throwables.size();
+		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
+		template.convertAndSend("exception", "test1");
+		handler.throwables.pollLast(3, TimeUnit.SECONDS);
+		assertEquals(index + 1, handler.throwables.size());
 	}
 }

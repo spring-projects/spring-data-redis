@@ -63,6 +63,12 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 				builder.addPropertyReference(propertyName, attribute.getValue());
 			}
 		}
+
+		String phase = element.getAttribute("phase");
+		if (StringUtils.hasText(phase)) {
+			builder.addPropertyValue("phase", phase);
+		}
+
 		postProcess(builder, element);
 
 		// parse nested listeners
@@ -79,6 +85,11 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 
 			builder.addPropertyValue("messageListeners", listeners);
 		}
+	}
+
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return (!"phase".equals(attributeName));
 	}
 
 	/**

@@ -50,6 +50,13 @@
       <xi:include href="reference/riak.xml"/>
     </part>
 
+    <part id="appendixes">
+      <title>Appendixes</title>
+      
+      <xi:include href="appendix/introduction.xml"/>
+      <xi:include href="appendix/appendix-schema.xml"/>
+    </part>
+
     <!--
     <part id="resources">
       <title>Other Documentation</title>

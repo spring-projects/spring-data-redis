@@ -40,7 +40,7 @@ con.publish(msg, channel);
 
 // send message through RedisTemplate
 RedisTemplate template = ...
-template.publish("hello!", "world");]]></programlisting>	
+template.convertAndSend("hello!", "world");]]></programlisting>	
   </section>
   	
   <section id="redis:pubsub:subscribe">
@@ -147,6 +147,27 @@ template.publish("hello!", "world");]]></programlisting>
       <emphasis>no</emphasis> Redis dependencies at all. It truly is a POJO that
       we will make into an MDP via the following configuration.</para>
 
+      <programlisting language="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    <lineannotation>xmlns:redis="http://www.springframework.org/schema/redis"</lineannotation>
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        <lineannotation>http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd"</lineannotation>&gt;
+
+  &lt;!-- the default ConnectionFactory --&gt;
+  &lt;redis:listener-container&gt;
+    &lt;!-- the method attribute can be skipped as the default method name is "handleMessage" --&gt;
+    &lt;redis:listener ref="listener" method="handleMessage" channel="chatroom" /&gt;
+  &lt;/redis:listener-container&gt;
+  
+  &lt;bean class="redisexample.DefaultMessageDelegate"/&gt;
+  ...
+&lt;beans&gt;
+</programlisting>
+	
+      <para>The example above uses the Redis namespace to declare the message listener container and automatically register the POJOs as listeners. The full blown, <emphasis>beans</emphasis> definition
+      is displayed below:</para>
+      
       <programlisting language="xml"><lineannotation>&lt;!-- this is the Message Driven POJO (MDP) --&gt;</lineannotation>
 <emphasis role="bold">&lt;bean id="messageListener" class="org.springframework.data.keyvalue.redis.listener.adapter.MessageListenerAdapter"&gt;</emphasis>
     &lt;constructor-arg&gt;

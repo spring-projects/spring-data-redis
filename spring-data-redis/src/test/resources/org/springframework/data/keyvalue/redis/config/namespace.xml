@@ -12,16 +12,20 @@
 
 	<task:executor id="testTaskExecutor" />
 	 			
-	<redis:listener-container>
+	<redis:listener-container topic-serializer="serializer">
 		<!-- default handle method -->
 		<redis:listener ref="testBean1" channel="z1 z2" pattern="x*"/>
 		<!-- channel subscription only -->
 		<redis:listener ref="testBean1" method="anotherHandle" channel="x1" serializer="serializer"/>
+		<redis:listener ref="testBean2" channel="exception"/>
 	</redis:listener-container>
 	
 	<bean id="testBean1" class="org.springframework.data.keyvalue.redis.listener.adapter.RedisMDP"/>
+	<bean id="testBean2" class="org.springframework.data.keyvalue.redis.listener.adapter.ThrowableMessageListener"/>
 	
 	<bean id="serializer" class="org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer"/>
+	
+	<bean id="handler" class="org.springframework.data.keyvalue.redis.config.StubErrorHandler"/>
 	
 	<bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.StringRedisTemplate">
 		<property name="connectionFactory" ref="redisConnectionFactory"/>

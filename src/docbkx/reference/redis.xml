@@ -259,7 +259,7 @@
   private StringRedisTemplate redisTemplate;
 
   public void addLink(String userId, URL url) {
-    redisTemplate.getListOps().leftPush(userId, url.toExternalForm());
+    redisTemplate.opsForList().leftPush(userId, url.toExternalForm());
   }
 }]]></programlisting>
       <para>As with the other Spring templates, <classname>RedisTemplate</classname> and <classname>StringRedisTemplate</classname> allow the developer to talk directly to Redis through
@@ -276,6 +276,8 @@
   });
 }]]></programlisting>
     </section>
+
+    <xi:include href="redis-messaging.xml"/>
     
     <section id="redis:support">
       <title>Support Classes</title>
@@ -317,8 +319,6 @@
 	<para>As shown in the example above, the consuming code is decoupled from the actual storage implementation - in fact there is no indication that Redis is used underneath. This makes moving from
 	development to production environments transparent and highly increases testability (the Redis implementation can just as well be replaced with an in-memory one).</para>
     </section>
-    
-    <xi:include href="redis-messaging.xml"/>
     
     <section id="redis:future">
     	<title>Roadmap ahead</title>

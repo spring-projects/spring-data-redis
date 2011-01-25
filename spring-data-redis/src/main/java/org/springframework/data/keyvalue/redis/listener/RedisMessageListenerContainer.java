@@ -44,6 +44,7 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ErrorHandler;
 
 /**
  * Container providing asynchronous behaviour for Redis message listeners.
@@ -60,7 +61,10 @@ import org.springframework.util.CollectionUtils;
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
-	private static final Log log = LogFactory.getLog(RedisMessageListenerContainer.class);
+	/** Logger available to subclasses */
+	protected final Log logger = LogFactory.getLog(getClass());
+
+
 
 	/**
 	 * Default thread name prefix: "RedisListeningContainer-".
@@ -77,6 +81,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private RedisConnectionFactory connectionFactory;
 
 	private String beanName;
+
+	private ErrorHandler errorHandler;
 
 
 	private final Object monitor = new Object();
@@ -115,8 +121,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			subscriptionExecutor = taskExecutor;
 		}
 
-		start();
 		initialized = true;
+
+		start();
 	}
 
 	/**
@@ -140,8 +147,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (taskExecutor instanceof DisposableBean) {
 				((DisposableBean) taskExecutor).destroy();
 
-				if (log.isDebugEnabled()) {
-					log.debug("Stopped internally-managed task executor");
+				if (logger.isDebugEnabled()) {
+					logger.debug("Stopped internally-managed task executor");
 				}
 			}
 		}
@@ -185,8 +192,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 			}
 
-			if (log.isDebugEnabled()) {
-				log.debug("Started RedisMessageListenerContainer");
+			if (logger.isDebugEnabled()) {
+				logger.debug("Started RedisMessageListenerContainer");
 			}
 		}
 	}
@@ -207,8 +214,74 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		}
 
-		if (log.isDebugEnabled()) {
-			log.debug("Stopped RedisMessageListenerContainer");
+		if (logger.isDebugEnabled()) {
+			logger.debug("Stopped RedisMessageListenerContainer");
+		}
+	}
+
+
+	/**
+	 * Process a message received from the provider.
+	 * 
+	 * @param message
+	 * @param pattern
+	 */
+	protected void processMessage(MessageListener listener, Message message, byte[] pattern) {
+		executeListener(listener, message, pattern);
+	}
+
+
+	/**
+	 * Execute the specified listener.
+	 * 
+	 * @see #handleListenerException
+	 */
+	protected void executeListener(MessageListener listener, Message message, byte[] pattern) {
+		try {
+			listener.onMessage(message, pattern);
+		} catch (Throwable ex) {
+			handleListenerException(ex);
+		}
+	}
+
+	/**
+	 * Return whether this container is currently active,
+	 * that is, whether it has been set up but not shut down yet.
+	 */
+	public final boolean isActive() {
+		return initialized;
+	}
+
+	/**
+	 * Handle the given exception that arose during listener execution.
+	 * <p>The default implementation logs the exception at error level.
+	 * This can be overridden in subclasses.
+	 * @param ex the exception to handle
+	 */
+	protected void handleListenerException(Throwable ex) {
+		if (isActive()) {
+			// Regular case: failed while active.
+			// Invoke ErrorHandler if available.
+			invokeErrorHandler(ex);
+		}
+		else {
+			// Rare case: listener thread failed after container shutdown.
+			// Log at debug level, to avoid spamming the shutdown logger.
+			logger.debug("Listener exception after container shutdown", ex);
+		}
+	}
+
+	/**
+	 * Invoke the registered ErrorHandler, if any. Log at error level otherwise.
+	 * @param ex the uncaught error that arose during message processing.
+	 * @see #setErrorHandler
+	 */
+	protected void invokeErrorHandler(Throwable ex) {
+		if (this.errorHandler != null) {
+			this.errorHandler.handleError(ex);
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("Execution of JMS message listener failed, and no ErrorHandler has been set.", ex);
 		}
 	}
 
@@ -268,6 +341,15 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	public void setTopicSerializer(RedisSerializer<String> serializer) {
 		this.serializer = serializer;
+	}
+
+	/**
+	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown
+	 * while processing a Message. By default there will be <b>no</b> ErrorHandler
+	 * so that error-level logging is the only result.
+	 */
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
 	}
 
 	/**
@@ -332,7 +414,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Method inspecting whether listening for messages (and thus using a thread) is actually needed and triggering it.
 	 */
 	private void lazyListen() {
-		boolean debug = log.isDebugEnabled();
+		boolean debug = logger.isDebugEnabled();
 		boolean started = false;
 
 		if (isRunning()) {
@@ -348,10 +430,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 				if (debug) {
 					if (started) {
-						log.debug("Started listening for Redis messages");
+						logger.debug("Started listening for Redis messages");
 					}
 					else {
-						log.debug("Postpone listening for Redis messages until actual listeners are added");
+						logger.debug("Postpone listening for Redis messages until actual listeners are added");
 					}
 				}
 			}
@@ -362,7 +444,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		List<byte[]> channels = new ArrayList<byte[]>(topics.size());
 		List<byte[]> patterns = new ArrayList<byte[]>(topics.size());
 
-		boolean trace = log.isTraceEnabled();
+		boolean trace = logger.isTraceEnabled();
 
 		for (Topic topic : topics) {
 
@@ -378,7 +460,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				channels.add(holder.array);
 
 				if (trace)
-					log.trace("Adding listener '" + listener + "' on channel '" + topic.getTopic() + "'");
+					logger.trace("Adding listener '" + listener + "' on channel '" + topic.getTopic() + "'");
 			}
 
 			else if (topic instanceof PatternTopic) {
@@ -391,7 +473,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				patterns.add(holder.array);
 
 				if (trace)
-					log.trace("Adding listener '" + listener + "' for pattern '" + topic.getTopic() + "'");
+					logger.trace("Adding listener '" + listener + "' for pattern '" + topic.getTopic() + "'");
 			}
 
 			else {
@@ -405,6 +487,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			subscriptionTask.subscribePattern(patterns.toArray(new byte[patterns.size()][]));
 		}
 	}
+
 
 	/**
 	 * Runnable used for Redis subscription. Implemented as a dedicated class to provide as many hints
@@ -639,7 +722,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				taskExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
-						messageListener.onMessage(message, null);
+						processMessage(messageListener, message, null);
 					}
 				});
 			}
@@ -650,7 +733,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				taskExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
-						messageListener.onMessage(message, pattern.clone());
+						processMessage(messageListener, message, pattern.clone());
 					}
 				});
 			}
