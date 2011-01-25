@@ -262,6 +262,21 @@
     redisTemplate.opsForList().leftPush(userId, url.toExternalForm());
   }
 }]]></programlisting>
+
+      <para>For cases where a certain template <emphasis>view</emphasis> is needed, one the view as a dependency and inject the template: the container will automatically perform the conversion
+      eliminating the <literal>opsFor[X]</literal> calls:</para>
+
+      <programlisting language="java"><![CDATA[public class Example {
+
+  // inject the template as ListOperations
+  @Autowired
+  private ListOperations<String, String> listOps;
+
+  public void addLink(String userId, URL url) {
+    listOps.leftPush(userId, url.toExternalForm());
+  }
+}]]></programlisting>      
+      
       <para>As with the other Spring templates, <classname>RedisTemplate</classname> and <classname>StringRedisTemplate</classname> allow the developer to talk directly to Redis through
       the <interfacename>RedisCallback</interfacename> interface: this gives complete control to the developer as it talks directly to the <interfacename>RedisConnection</interfacename>.
       </para>
