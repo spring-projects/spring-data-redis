@@ -229,7 +229,8 @@
       
       <para>Out of the box, <classname>RedisTemplate</classname> uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be
       serializer/deserialized through Java. The serialization mechanism can be easily changed on the template and the Redis module offers several implementations available in the 
-      <literal>org.springframework.data.keyvalue.redis.serializer</literal> package.</para>
+      <literal>org.springframework.data.keyvalue.redis.serializer</literal> package. Note that the template requires all keys to be non-null - values can be null as long as the underlying
+      serializer accepts them; read the javadoc of each serializer for more information.</para>
       
       <para>Since it's quite the keys and values stored in Redis can be <classname>java.lang.String</classname>, the Redis modules provides <classname>StringRedisTemplate</classname>,
       a convenient provides a one-stop solution for intensive operations operations. In addition to be bound to <literal>String</literal> keys, the template uses the 
