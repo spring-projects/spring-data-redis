@@ -17,6 +17,7 @@ package org.springframework.data.keyvalue.redis.connection.jredis;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ public class JredisConnection implements RedisConnection {
 
 	private final JRedis jredis;
 	private final boolean isPool;
+	private boolean isClosed = false;
 
 	/**
 	 * Constructs a new <code>JredisConnection</code> instance.
@@ -69,6 +71,8 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public void close() throws UncategorizedRedisException {
+		isClosed = true;
+
 		// don't actually close the connection
 		// if a pool is used
 		if (!isPool) {
@@ -83,12 +87,27 @@ public class JredisConnection implements RedisConnection {
 
 	@Override
 	public boolean isClosed() {
-		throw new UnsupportedOperationException();
+		return isClosed;
 	}
 
 	@Override
 	public boolean isQueueing() {
 		return false;
+	}
+
+	@Override
+	public boolean isPipelined() {
+		return false;
+	}
+
+	@Override
+	public void openPipeline() {
+		throw new UnsupportedOperationException("Pipelining not supported by JRedis");
+	}
+
+	@Override
+	public List<Object> closePipeline() {
+		return Collections.emptyList();
 	}
 
 	@Override

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -41,6 +42,7 @@ import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisException;
+import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
@@ -67,6 +69,7 @@ public class JedisConnection implements RedisConnection {
 
 
 	private volatile JedisSubscription subscription;
+	private volatile Pipeline pipeline;
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance.
@@ -150,6 +153,26 @@ public class JedisConnection implements RedisConnection {
 	@Override
 	public boolean isQueueing() {
 		return client.isInMulti();
+	}
+
+	@Override
+	public boolean isPipelined() {
+		return (pipeline != null);
+	}
+
+	@Override
+	public void openPipeline() {
+		if (pipeline == null) {
+			pipeline = jedis.pipelined();
+		}
+	}
+
+	@Override
+	public List<Object> closePipeline() {
+		if (pipeline != null) {
+			return pipeline.execute();
+		}
+		return Collections.emptyList();
 	}
 
 	@Override
