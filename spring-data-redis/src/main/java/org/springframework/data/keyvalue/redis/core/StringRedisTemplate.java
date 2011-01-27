@@ -15,7 +15,10 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import org.springframework.data.keyvalue.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.StringRedisConnection;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
@@ -23,6 +26,9 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
  * String-focused extension of RedisTemplate. Since most operations against Redis are String based,
  * this class provides a dedicated class that minimizes configuration of its more generic 
  * {@link RedisTemplate template} especially in terms of serializers.
+ * 
+ * <p/> Note that this template exposes the {@link RedisConnection} used by the {@link RedisCallback}
+ * as a {@link StringRedisConnection}.
  * 
  * @author Costin Leau
  */
@@ -51,5 +57,10 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 		setValueSerializer(stringSerializer);
 		setHashKeySerializer(stringSerializer);
 		setHashValueSerializer(stringSerializer);
+	}
+
+	@Override
+	protected RedisConnection preProcessConnection(RedisConnection connection, boolean existingConnection) {
+		return new DefaultStringRedisConnection(connection);
 	}
 }

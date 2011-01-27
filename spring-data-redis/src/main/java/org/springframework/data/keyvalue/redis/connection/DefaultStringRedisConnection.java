@@ -45,7 +45,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	 */
 	public DefaultStringRedisConnection(RedisConnection connection) {
 		Assert.notNull(connection, "connection is required");
-		Assert.notNull(connection, "serializer is required");
 		this.delegate = connection;
 		this.serializer = new StringRedisSerializer();
 	}

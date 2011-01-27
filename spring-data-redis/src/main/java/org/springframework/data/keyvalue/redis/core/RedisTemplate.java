@@ -160,12 +160,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		RedisConnectionFactory factory = getConnectionFactory();
 		RedisConnection conn = RedisConnectionUtils.getConnection(factory);
 
+		boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
+		preProcessConnection(conn, existingConnection);
+
 		boolean pipelineStatus = conn.isPipelined();
 		if (pipeline && !pipelineStatus) {
 			conn.openPipeline();
 		}
-
-		boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
 
 		try {
 			RedisConnection connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
@@ -187,6 +188,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(pm.getClass(), getClass().getClassLoader());
 		return (RedisConnection) Proxy.newProxyInstance(pm.getClass().getClassLoader(), ifcs,
 				new CloseSuppressingInvocationHandler(pm));
+	}
+
+	/**
+	 * Processes the connection (before any settings are executed on it). Default implementation returns the connection as is.
+	 * 
+	 * @param connection redis connection
+	 */
+	protected RedisConnection preProcessConnection(RedisConnection connection, boolean existingConnection) {
+		return connection;
 	}
 
 	protected <T> T postProcessResult(T result, RedisConnection conn, boolean existingConnection) {
