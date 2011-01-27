@@ -27,7 +27,7 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory
  * 
  * @author Costin Leau
  */
-public abstract class ConnFactoryTracker {
+public abstract class ConnectionFactoryTracker {
 
 	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
 

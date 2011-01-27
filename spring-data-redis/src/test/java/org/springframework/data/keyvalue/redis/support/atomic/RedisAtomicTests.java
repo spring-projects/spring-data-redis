@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.data.keyvalue.redis.ConnFactoryTracker;
+import org.springframework.data.keyvalue.redis.ConnectionFactoryTracker;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
@@ -55,7 +55,7 @@ public class RedisAtomicTests {
 
 	@AfterClass
 	public static void cleanUp() {
-		ConnFactoryTracker.cleanUp();
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters

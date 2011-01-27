@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.data.keyvalue.redis.ConnFactoryTracker;
+import org.springframework.data.keyvalue.redis.ConnectionFactoryTracker;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.core.RedisCallback;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
@@ -64,12 +64,12 @@ public abstract class AbstractRedisCollectionTests<T> {
 	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {
 		this.factory = factory;
 		this.template = template;
-		ConnFactoryTracker.add(template.getConnectionFactory());
+		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@AfterClass
 	public static void cleanUp() {
-		ConnFactoryTracker.cleanUp();
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters
