@@ -17,9 +17,13 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
+import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.KeyBound;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.core.SessionCallback;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
 
 /**
@@ -34,6 +38,41 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	private final String key;
 	private ValueOperations<String, Long> operations;
 	private RedisOperations<String, Long> generalOps;
+
+
+	/**
+	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 *
+	 * @param redisCounter redis counter
+	 * @param factory connection factory
+	 */
+	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory) {
+		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>(factory);
+		redisTemplate.setExposeConnection(true);
+		this.key = redisCounter;
+		this.generalOps = redisTemplate;
+		this.operations = generalOps.opsForValue();
+		if (this.operations.get(redisCounter) == null) {
+			set(0);
+		}
+	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 *
+	 * @param redisCounter
+	 * @param factory
+	 * @param initialValue
+	 */
+	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, long initialValue) {
+		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>(factory);
+		redisTemplate.setExposeConnection(true);
+		this.key = redisCounter;
+		this.generalOps = redisTemplate;
+		this.operations = generalOps.opsForValue();
+		this.operations.set(redisCounter, initialValue);
+	}
+
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses as initial value
@@ -109,20 +148,26 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return true if successful. False return indicates that
 	 * the actual value was not equal to the expected value.
 	 */
-	public boolean compareAndSet(long expect, long update) {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			if (expect == get()) {
-				generalOps.multi();
-				set(update);
-				if (generalOps.exec() != null) {
-					return true;
+	public boolean compareAndSet(final long expect, final long update) {
+		return generalOps.execute(new SessionCallback<Boolean>() {
+
+			@Override
+			public Boolean execute(RedisOperations operations) {
+				for (;;) {
+					operations.watch(Collections.singleton(key));
+					if (expect == get()) {
+						generalOps.multi();
+						set(update);
+						if (operations.exec() != null) {
+							return true;
+						}
+					}
+					{
+						return false;
+					}
 				}
 			}
-			else {
-				return false;
-			}
-		}
+		});
 	}
 
 	/**
@@ -131,15 +176,15 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndIncrement() {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			long value = get();
-			generalOps.multi();
-			operations.increment(key, 1);
-			if (generalOps.exec() != null) {
+		return CASUtils.execute(generalOps, key, new Callable<Long>() {
+			@Override
+			public Long call() throws Exception {
+				long value = get();
+				generalOps.multi();
+				operations.increment(key, 1);
 				return value;
 			}
-		}
+		});
 	}
 
 	/**
@@ -148,15 +193,15 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndDecrement() {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			long value = get();
-			generalOps.multi();
-			operations.increment(key, -1);
-			if (generalOps.exec() != null) {
+		return CASUtils.execute(generalOps, key, new Callable<Long>() {
+			@Override
+			public Long call() throws Exception {
+				long value = get();
+				generalOps.multi();
+				operations.increment(key, -11);
 				return value;
 			}
-		}
+		});
 	}
 
 	/**
@@ -165,16 +210,16 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
-	public long getAndAdd(long delta) {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			long value = get();
-			generalOps.multi();
-			set(value + delta);
-			if (generalOps.exec() != null) {
+	public long getAndAdd(final long delta) {
+		return CASUtils.execute(generalOps, key, new Callable<Long>() {
+			@Override
+			public Long call() throws Exception {
+				long value = get();
+				generalOps.multi();
+				set(value + delta);
 				return value;
 			}
-		}
+		});
 	}
 
 	/**
@@ -202,8 +247,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the updated value
 	 */
 	public long addAndGet(long delta) {
-		// TODO: is this really safe
-		return operations.increment(key, (int) delta);
+		return operations.increment(key, delta);
 	}
 
 	/**

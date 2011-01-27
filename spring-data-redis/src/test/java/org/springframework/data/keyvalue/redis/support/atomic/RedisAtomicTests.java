@@ -33,14 +33,16 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory
  * @author Costin Leau
  */
 @RunWith(Parameterized.class)
-public class RedisAtomicIntegerTest {
+public class RedisAtomicTests {
 
-	private RedisAtomicInteger counter;
+	private RedisAtomicInteger intCounter;
+	private RedisAtomicLong longCounter;
 	private RedisConnectionFactory factory;
 
 
-	public RedisAtomicIntegerTest(RedisConnectionFactory factory) {
-		counter = new RedisAtomicInteger(getClass().getSimpleName(), factory);
+	public RedisAtomicTests(RedisConnectionFactory factory) {
+		intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
+		longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 		this.factory = factory;
 	}
 
@@ -62,10 +64,18 @@ public class RedisAtomicIntegerTest {
 	}
 
 	@Test
-	public void testCheckAndSet() throws Exception {
-		counter.set(0);
-		assertFalse(counter.compareAndSet(1, 10));
-		assertTrue(counter.compareAndSet(0, 10));
-		assertTrue(counter.compareAndSet(10, 0));
+	public void testIntCheckAndSet() throws Exception {
+		intCounter.set(0);
+		assertFalse(intCounter.compareAndSet(1, 10));
+		assertTrue(intCounter.compareAndSet(0, 10));
+		assertTrue(intCounter.compareAndSet(10, 0));
+	}
+
+	@Test
+	public void testLongCheckAndSet() throws Exception {
+		longCounter.set(0);
+		assertFalse(longCounter.compareAndSet(1, 10));
+		assertTrue(longCounter.compareAndSet(0, 10));
+		assertTrue(longCounter.compareAndSet(10, 0));
 	}
 }
