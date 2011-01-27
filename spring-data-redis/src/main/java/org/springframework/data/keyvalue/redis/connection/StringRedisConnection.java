@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.core;
+package org.springframework.data.keyvalue.redis.connection;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.data.keyvalue.redis.connection.DataType;
-import org.springframework.data.keyvalue.redis.connection.MessageListener;
-import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.core.RedisCallback;
+import org.springframework.data.keyvalue.redis.core.StringRedisTemplate;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 
 /**
@@ -36,6 +34,10 @@ import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
  * @see StringRedisTemplate 
  */
 public interface StringRedisConnection extends RedisConnection {
+
+	public interface StringTuple extends Tuple {
+		String getValueAsString();
+	}
 
 	Boolean exists(String key);
 
@@ -174,19 +176,19 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Set<String> zRange(String key, long start, long end);
 
-	Set<Tuple> zRangeWithScore(String key, long start, long end);
+	Set<StringTuple> zRangeWithScore(String key, long start, long end);
 
 	Set<String> zRevRange(String key, long start, long end);
 
-	Set<Tuple> zRevRangeWithScore(String key, long start, long end);
+	Set<StringTuple> zRevRangeWithScore(String key, long start, long end);
 
 	Set<String> zRangeByScore(String key, double min, double max);
 
-	Set<Tuple> zRangeByScoreWithScore(String key, double min, double max);
+	Set<StringTuple> zRangeByScoreWithScore(String key, double min, double max);
 
 	Set<String> zRangeByScore(String key, double min, double max, long offset, long count);
 
-	Set<Tuple> zRangeByScoreWithScore(String key, double min, double max, long offset, long count);
+	Set<StringTuple> zRangeByScoreWithScore(String key, double min, double max, long offset, long count);
 
 	Long zCount(String key, double min, double max);
 
