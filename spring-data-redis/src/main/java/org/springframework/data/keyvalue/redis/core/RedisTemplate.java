@@ -99,6 +99,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		afterPropertiesSet();
 	}
 
+	@Override
 	public <T> T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
@@ -116,6 +117,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
+	 * Executes the given action object within a connection, that can be pipelined or not and which can be exposed or not.
+	 * 
+	 * @param <T> return type
+	 * @param action callback object to execute
+	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
+	 * @param pipeline whether to pipeline or not the connection for the execution duration 
+	 * @return object returned by the action
+	 */
+	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
+		return execute(action, exposeConnection, pipeline, valueSerializer);
+	}
+
+	/**
 	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
 	 * to be specified for the returned object.
 	 * 
@@ -126,10 +140,30 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @return returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer<?> returnSerializer) {
+		return execute(action, exposeConnection, false, returnSerializer);
+	}
+
+	/**
+	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
+	 * to be specified for the returned object.
+	 * 
+	 * @param <T> return type
+	 * @param action action callback object that specifies the Redis action
+	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
+	 * @param pipeline whether to pipeline or not the connection for the execution duration
+	 * @param returnSerializer serializer used for converting the binary data to the custom return type
+	 * @return returned by the action
+	 */
+	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline, RedisSerializer<?> returnSerializer) {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
-		RedisConnection conn = RedisConnectionUtils.getRedisConnection(factory);
+		RedisConnection conn = RedisConnectionUtils.getConnection(factory);
+
+		boolean pipelineStatus = conn.isPipelined();
+		if (pipeline && !pipelineStatus) {
+			conn.openPipeline();
+		}
 
 		boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
 
@@ -139,7 +173,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			// TODO: should do flush?
 			return postProcessResult(result, conn, existingConnection);
 		} finally {
-			RedisConnectionUtils.releaseConnection(conn, factory);
+			try {
+				if (pipeline && !pipelineStatus) {
+					conn.closePipeline();
+				}
+			} finally {
+				RedisConnectionUtils.releaseConnection(conn, factory);
+			}
 		}
 	}
 
@@ -151,6 +191,18 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	protected <T> T postProcessResult(T result, RedisConnection conn, boolean existingConnection) {
 		return result;
+	}
+
+	@Override
+	public <T> T execute(SessionCallback<T> session) {
+		RedisConnectionFactory factory = getConnectionFactory();
+		// bind connection
+		RedisConnectionUtils.bindConnection(factory);
+		try {
+			return session.execute(this);
+		} finally {
+			RedisConnectionUtils.unbindConnection(factory);
+		}
 	}
 
 	/**

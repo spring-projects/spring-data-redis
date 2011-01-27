@@ -50,6 +50,19 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(RedisCallback<T> action);
 
+
+	/**
+	 * Executes a Redis session.
+	 * 
+	 * Allows multiple operations to be executed in the same session enabling 'transactional' capabilities through {@link #multi()} 
+	 * and {@link #watch(Collection)} operations.
+	 *  
+	 * @param <T> return type
+	 * @param session session callback
+	 * @return result object returned by the action or <tt>null</tt>
+	 */
+	<T> T execute(SessionCallback<T> session);
+
 	Boolean hasKey(K key);
 
 	void delete(Collection<K> key);
@@ -76,12 +89,15 @@ public interface RedisOperations<K, V> {
 
 	void unwatch();
 
+	/**'
+	 * 
+	 */
 	void multi();
 
 	void discard();
 
 	Object exec();
-	
+
 	List<V> sort(K key, SortParameters params);
 
 	Long sort(K key, SortParameters params, K destination);

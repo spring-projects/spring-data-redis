@@ -34,14 +34,24 @@ public abstract class RedisConnectionUtils {
 	private static final Log log = LogFactory.getLog(RedisConnectionUtils.class);
 
 	/**
+	 * Binds a new Redis connection (from the given factory) to the current thread, if none is already bound. 
+	 * 
+	 * @param factory connection factory
+	 * @return a new Redis connection
+	 */
+	public static RedisConnection bindConnection(RedisConnectionFactory factory) {
+		return doGetConnection(factory, true, true);
+	}
+
+	/**
 	 * Gets a Redis connection from the given factory. Is aware of and will return any existing corresponding connections bound to the current thread, 
 	 * for example when using a transaction manager. Will always create a new connection otherwise.
 	 * 
 	 * @param factory connection factory for creating the connection
 	 * @return an active Redis connection
 	 */
-	public static RedisConnection getRedisConnection(RedisConnectionFactory factory) {
-		return doGetRedisConnection(factory, true);
+	public static RedisConnection getConnection(RedisConnectionFactory factory) {
+		return doGetConnection(factory, true, false);
 	}
 
 	/**
@@ -49,10 +59,11 @@ public abstract class RedisConnectionUtils {
 	 * for example when using a transaction manager. Will create a new Connection otherwise, if {@code allowCreate} is <tt>true</tt>.
 	 * 
 	 * @param factory connection factory for creating the connection
-	 * @param allowCreate whether a new (unbound) connection should be created when no connection can be found for the current thread 
+	 * @param allowCreate whether a new (unbound) connection should be created when no connection can be found for the current thread
+	 * @param bind binds the connection to the thread, in case one was created
 	 * @return an active Redis connection
 	 */
-	public static RedisConnection doGetRedisConnection(RedisConnectionFactory factory, boolean allowCreate) {
+	public static RedisConnection doGetConnection(RedisConnectionFactory factory, boolean allowCreate, boolean bind) {
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
 
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
@@ -70,10 +81,14 @@ public abstract class RedisConnectionUtils {
 
 		RedisConnection conn = factory.getConnection();
 
-		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+		boolean synchronizationActive = TransactionSynchronizationManager.isSynchronizationActive();
+
+		if (bind || synchronizationActive) {
 			connHolder = new RedisConnectionHolder(conn);
-			TransactionSynchronizationManager.registerSynchronization(new RedisConnectionSynchronization(connHolder,
-					factory, true));
+			if (synchronizationActive) {
+				TransactionSynchronizationManager.registerSynchronization(new RedisConnectionSynchronization(
+						connHolder, factory, true));
+			}
 			TransactionSynchronizationManager.bindResource(factory, connHolder);
 			return connHolder.getConnection();
 		}
@@ -92,8 +107,23 @@ public abstract class RedisConnectionUtils {
 		}
 		// Only release non-transactional/non-bound connections.
 		if (!isConnectionTransactional(conn, factory)) {
-			log.debug("Closing Redis Connection");
+			if (log.isDebugEnabled()) {
+				log.debug("Closing Redis Connection");
+			}
 			conn.close();
+		}
+	}
+
+	/**
+	 * Unbinds and closes the connection (if any) associated with the given factory.
+	 * 
+	 * @param factory Redis factory
+	 */
+	public static void unbindConnection(RedisConnectionFactory factory) {
+		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.unbindResourceIfPossible(factory);
+		if (connHolder != null) {
+			RedisConnection connection = connHolder.getConnection();
+			connection.close();
 		}
 	}
 

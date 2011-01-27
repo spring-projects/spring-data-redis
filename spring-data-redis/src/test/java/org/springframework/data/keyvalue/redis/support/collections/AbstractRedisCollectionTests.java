@@ -24,9 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -35,9 +33,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.beans.factory.DisposableBean;
+import org.springframework.data.keyvalue.redis.ConnFactoryTracker;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisCallback;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
@@ -54,8 +51,6 @@ public abstract class AbstractRedisCollectionTests<T> {
 	protected ObjectFactory<T> factory;
 	protected RedisTemplate template;
 
-	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
-
 	@Before
 	public void setUp() throws Exception {
 		collection = createCollection();
@@ -69,21 +64,12 @@ public abstract class AbstractRedisCollectionTests<T> {
 	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {
 		this.factory = factory;
 		this.template = template;
-		connFactories.add(template.getConnectionFactory());
+		ConnFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@AfterClass
 	public static void cleanUp() {
-		if (connFactories != null) {
-			for (RedisConnectionFactory connectionFactory : connFactories) {
-				try {
-					((DisposableBean) connectionFactory).destroy();
-					System.out.println("Succesfully cleaned up factory " + connectionFactory);
-				} catch (Exception ex) {
-					System.err.println("Cannot clean factory " + connectionFactory + ex);
-				}
-			}
-		}
+		ConnFactoryTracker.cleanUp();
 	}
 
 	@Parameters

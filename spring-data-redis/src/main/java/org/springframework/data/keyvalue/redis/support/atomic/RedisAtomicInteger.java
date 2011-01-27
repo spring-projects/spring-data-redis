@@ -17,9 +17,13 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
+import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.KeyBound;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.core.SessionCallback;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
 
 /**
@@ -34,6 +38,40 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	private final String key;
 	private ValueOperations<String, Integer> operations;
 	private RedisOperations<String, Integer> generalOps;
+
+
+	/**
+	 * Constructs a new <code>RedisAtomicInteger</code> instance.
+	 *
+	 * @param redisCounter redis counter
+	 * @param factory connection factory
+	 */
+	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory) {
+		RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<String, Integer>(factory);
+		redisTemplate.setExposeConnection(true);
+		this.key = redisCounter;
+		this.generalOps = redisTemplate;
+		this.operations = generalOps.opsForValue();
+		if (this.operations.get(redisCounter) == null) {
+			set(0);
+		}
+	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicInteger</code> instance.
+	 *
+	 * @param redisCounter
+	 * @param factory
+	 * @param initialValue
+	 */
+	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, int initialValue) {
+		RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<String, Integer>(factory);
+		redisTemplate.setExposeConnection(true);
+		this.key = redisCounter;
+		this.generalOps = redisTemplate;
+		this.operations = generalOps.opsForValue();
+		this.operations.set(redisCounter, initialValue);
+	}
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses as initial value
@@ -109,20 +147,26 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 * @return true if successful. False return indicates that
 	 * the actual value was not equal to the expected value.
 	 */
-	public boolean compareAndSet(int expect, int update) {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			if (expect == get()) {
-				generalOps.multi();
-				set(update);
-				if (generalOps.exec() != null) {
-					return true;
+	public boolean compareAndSet(final int expect, final int update) {
+		return generalOps.execute(new SessionCallback<Boolean>() {
+
+			@Override
+			public Boolean execute(RedisOperations operations) {
+				for (;;) {
+					operations.watch(Collections.singleton(key));
+					if (expect == get()) {
+						generalOps.multi();
+						set(update);
+						if (operations.exec() != null) {
+							return true;
+						}
+					}
+					{
+						return false;
+					}
 				}
 			}
-			else {
-				return false;
-			}
-		}
+		});
 	}
 
 	/**
@@ -130,15 +174,15 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 * @return the previous value
 	 */
 	public int getAndIncrement() {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			int value = get();
-			generalOps.multi();
-			operations.increment(key, 1);
-			if (generalOps.exec() != null) {
+		return CASUtils.execute(generalOps, key, new Callable<Integer>() {
+			@Override
+			public Integer call() throws Exception {
+				int value = get();
+				generalOps.multi();
+				operations.increment(key, 1);
 				return value;
 			}
-		}
+		});
 	}
 
 
@@ -147,15 +191,15 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 * @return the previous value
 	 */
 	public int getAndDecrement() {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			int value = get();
-			generalOps.multi();
-			operations.increment(key, -1);
-			if (generalOps.exec() != null) {
+		return CASUtils.execute(generalOps, key, new Callable<Integer>() {
+			@Override
+			public Integer call() throws Exception {
+				int value = get();
+				generalOps.multi();
+				operations.increment(key, -1);
 				return value;
 			}
-		}
+		});
 	}
 
 
@@ -164,16 +208,16 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
-	public int getAndAdd(int delta) {
-		for (;;) {
-			generalOps.watch(Collections.singleton(key));
-			int value = get();
-			generalOps.multi();
-			set(value + delta);
-			if (generalOps.exec() != null) {
+	public int getAndAdd(final int delta) {
+		return CASUtils.execute(generalOps, key, new Callable<Integer>() {
+			@Override
+			public Integer call() throws Exception {
+				int value = get();
+				generalOps.multi();
+				set(value + delta);
 				return value;
 			}
-		}
+		});
 	}
 
 	/**

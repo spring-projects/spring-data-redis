@@ -36,10 +36,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.keyvalue.redis.ConnFactoryTracker;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisCallback;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
@@ -57,8 +56,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 	protected ObjectFactory<V> valueFactory;
 	protected RedisTemplate template;
 
-	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
-
 	abstract RedisMap<K, V> createMap();
 
 	@Before
@@ -70,21 +67,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
 		this.template = template;
-		connFactories.add(template.getConnectionFactory());
+		ConnFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@AfterClass
 	public static void cleanUp() {
-		if (connFactories != null) {
-			for (RedisConnectionFactory connectionFactory : connFactories) {
-				try {
-					((DisposableBean) connectionFactory).destroy();
-					System.out.println("Succesfully cleaned up factory " + connectionFactory);
-				} catch (Exception ex) {
-					System.err.println("Cannot clean factory " + connectionFactory + ex);
-				}
-			}
-		}
+		ConnFactoryTracker.cleanUp();
 	}
 
 	protected K getKey() {

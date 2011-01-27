@@ -25,6 +25,9 @@ import org.springframework.data.keyvalue.redis.connection.Message;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Transaction;
+
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	JedisConnectionFactory factory;
@@ -119,6 +122,22 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		th.start();
 		connection.pSubscribe(listener, expectedPattern);
+	}
+
+	@Test
+	public void testMulti() throws Exception {
+		byte[] key = "key".getBytes();
+		byte[] value = "value".getBytes();
+
+		BinaryJedis jedis = (BinaryJedis) connection.getNativeConnection();
+		Transaction multi = jedis.multi();
+		//connection.set(key, value);
+		multi.set(value, key);
+		System.out.println(multi.exec());
+
+		connection.multi();
+		connection.set(value, key);
+		System.out.println(connection.exec());
 	}
 
 //	@Test

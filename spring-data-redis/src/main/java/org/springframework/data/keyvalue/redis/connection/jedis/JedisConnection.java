@@ -478,8 +478,12 @@ public class JedisConnection implements RedisConnection {
 
 	@Override
 	public void multi() {
+		if (isQueueing()) {
+			return;
+		}
+
 		try {
-			client.multi();
+			jedis.multi();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
