@@ -66,7 +66,7 @@ public class PubSubTests<T> {
 
 	@Before
 	public void setUp() throws Exception {
-		//adapter.setSerializer(template.getValueSerializer());
+		adapter.setSerializer(template.getValueSerializer());
 
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
