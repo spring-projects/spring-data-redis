@@ -91,6 +91,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		StreamResult result = new StreamResult(stream);
+
 		try {
 			marshaller.marshal(t, result);
 		} catch (Exception ex) {

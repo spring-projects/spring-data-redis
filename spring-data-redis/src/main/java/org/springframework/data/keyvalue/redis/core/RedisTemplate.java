@@ -70,10 +70,12 @@ import org.springframework.util.ClassUtils;
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
 	private boolean exposeConnection = false;
-	private RedisSerializer keySerializer = new JdkSerializationRedisSerializer();
-	private RedisSerializer valueSerializer = new JdkSerializationRedisSerializer();
-	private RedisSerializer hashKeySerializer = new JdkSerializationRedisSerializer();
-	private RedisSerializer hashValueSerializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer<?> defaultSerializer = new JdkSerializationRedisSerializer();
+
+	private RedisSerializer keySerializer = null;
+	private RedisSerializer valueSerializer = null;
+	private RedisSerializer hashKeySerializer = null;
+	private RedisSerializer hashValueSerializer = null;
 	private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
 	// cache singleton objects (where possible)
@@ -97,6 +99,36 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public RedisTemplate(RedisConnectionFactory connectionFactory) {
 		this.setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
+	}
+
+
+	@Override
+	public void afterPropertiesSet() {
+		super.afterPropertiesSet();
+		boolean defaultUsed = false;
+
+		if (keySerializer == null) {
+			keySerializer = defaultSerializer;
+			defaultUsed = true;
+		}
+		if (valueSerializer == null) {
+			valueSerializer = defaultSerializer;
+			defaultUsed = true;
+		}
+
+		if (hashKeySerializer == null) {
+			hashKeySerializer = defaultSerializer;
+			defaultUsed = true;
+		}
+
+		if (hashValueSerializer == null) {
+			hashValueSerializer = defaultSerializer;
+			defaultUsed = true;
+		}
+
+		if (defaultUsed) {
+			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
+		}
 	}
 
 	@Override
@@ -236,7 +268,26 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the key serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}.
+	 * Returns the default serializer used by this template.
+	 * 
+	 * @return template default serializer
+	 */
+	public RedisSerializer<?> getDefaultSerializer() {
+		return defaultSerializer;
+	}
+
+	/**
+	 * Sets the default serializer to use for this template. All serializers (expect the {@link #setStringSerializer(RedisSerializer)}) are
+	 * initialized to this value unless explicitly set. Defaults to {@link JdkSerializationRedisSerializer}.
+	 * 
+	 * @param serializer default serializer to use
+	 */
+	public void setDefaultSerializer(RedisSerializer<?> serializer) {
+		this.defaultSerializer = serializer;
+	}
+
+	/**
+	 * Sets the key serializer to be used by this template. Defaults to {@link getDefaultSerializer}.
 	 * 
 	 * @param serializer
 	 */
@@ -254,7 +305,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the value serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}.
+	 * Sets the value serializer to be used by this template. Defaults to {@link getDefaultSerializer}.
 	 * 
 	 * @param serializer
 	 */
@@ -272,7 +323,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}. 
+	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link getDefaultSerializer}. 
 	 * 
 	 * @param hashKeySerializer The hashKeySerializer to set.
 	 */
@@ -281,7 +332,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the hash value serializer to be used by this template. Defaults to {@link JdkSerializationRedisSerializer}. 
+	 * Sets the hash value serializer to be used by this template. Defaults to {@link getDefaultSerializer}. 
 	 * 
 	 * @param hashValueSerializer The hashValueSerializer to set.
 	 */

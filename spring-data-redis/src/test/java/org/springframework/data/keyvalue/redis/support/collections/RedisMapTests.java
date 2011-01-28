@@ -24,6 +24,8 @@ import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.serializer.OxmSerializer;
+import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Integration test for RedisMap.
@@ -44,6 +46,16 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
+		// XStream serializer
+		XStreamMarshaller xstream = new XStreamMarshaller();
+		try {
+			xstream.afterPropertiesSet();
+		} catch (Exception ex) {
+			throw new RuntimeException("Cannot init XStream", ex);
+		}
+		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
+
+
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
@@ -58,6 +70,11 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
 
+		RedisTemplate<String, String> xstreamGenericTemplate = new RedisTemplate<String, String>();
+		xstreamGenericTemplate.setConnectionFactory(jedisConnFactory);
+		xstreamGenericTemplate.setDefaultSerializer(serializer);
+		xstreamGenericTemplate.afterPropertiesSet();
+
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		jredisConnFactory.setUsePool(true);
@@ -70,11 +87,23 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
 
+		RedisTemplate<String, Person> xGenericTemplateJR = new RedisTemplate<String, Person>();
+		xGenericTemplateJR.setConnectionFactory(jredisConnFactory);
+		xGenericTemplateJR.setDefaultSerializer(serializer);
+		xGenericTemplateJR.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xstreamPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		xstreamPersonTemplateJR.setValueSerializer(serializer);
+
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
 				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
-				{ personFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, genericTemplateJR },
+				{ personFactory, stringFactory, genericTemplate },
+				{ personFactory, stringFactory, xstreamGenericTemplate },
+				{ stringFactory, stringFactory, genericTemplateJR },
 				{ personFactory, personFactory, genericTemplateJR },
 				{ stringFactory, personFactory, genericTemplateJR },
-				{ personFactory, stringFactory, genericTemplateJR } });
+				{ personFactory, stringFactory, genericTemplateJR },
+				{ personFactory, stringFactory, xGenericTemplateJR } });
 	}
 }
