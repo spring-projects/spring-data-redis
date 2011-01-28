@@ -15,15 +15,31 @@
  */
 package org.springframework.data.keyvalue.redis.serializer;
 
+import org.springframework.core.NestedRuntimeException;
+
 /**
- * Minimal class used for sharing pieces of code between the serializers
+ * Generic exception indicating a serialization/deserialization error.
  * 
  * @author Costin Leau
  */
-abstract class SerializerUtils {
-	static final byte[] EMPTY_ARRAY = new byte[0];
+public class SerializationException extends NestedRuntimeException {
 
-	static boolean isEmpty(byte[] data) {
-		return (data == null || data.length == 0);
+	/**
+	 * Constructs a new <code>SerializationException</code> instance.
+	 *
+	 * @param msg
+	 * @param cause
+	 */
+	public SerializationException(String msg, Throwable cause) {
+		super(msg, cause);
+	}
+
+	/**
+	 * Constructs a new <code>SerializationException</code> instance.
+	 *
+	 * @param msg
+	 */
+	public SerializationException(String msg) {
+		super(msg);
 	}
 }

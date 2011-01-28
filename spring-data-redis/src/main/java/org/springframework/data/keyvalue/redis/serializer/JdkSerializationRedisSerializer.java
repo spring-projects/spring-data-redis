@@ -18,7 +18,6 @@ package org.springframework.data.keyvalue.redis.serializer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 
 /**
  * Java Serialization Redis serializer.
@@ -38,7 +37,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		try {
 			return deserializer.convert(bytes);
 		} catch (Exception ex) {
-			throw new UncategorizedRedisException("Cannot deserialize", ex);
+			throw new SerializationException("Cannot deserialize", ex);
 		}
 	}
 
@@ -47,7 +46,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		try {
 			return serializer.convert(object);
 		} catch (Exception ex) {
-			throw new UncategorizedRedisException("Cannot serialize", ex);
+			throw new SerializationException("Cannot serialize", ex);
 		}
 	}
 }

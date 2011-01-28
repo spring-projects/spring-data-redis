@@ -31,7 +31,7 @@ public interface RedisSerializer<T> {
 	 * @param t object to serialize
 	 * @return the equivalent binary data
 	 */
-	byte[] serialize(T t);
+	byte[] serialize(T t) throws SerializationException;
 
 	/**
 	 * Deserialize an object from the given binary data.
@@ -39,5 +39,5 @@ public interface RedisSerializer<T> {
 	 * @param bytes object binary representation
 	 * @return the equivalent object instance
 	 */
-	T deserialize(byte[] bytes);
+	T deserialize(byte[] bytes) throws SerializationException;
 }
