@@ -454,6 +454,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
+	private <H> Collection<H> deserializeHashKeys(Collection<byte[]> rawKeys, Class<? extends Collection> type) {
+		Collection<H> values = (List.class.isAssignableFrom(type) ? new ArrayList<H>(rawKeys.size())
+				: new LinkedHashSet<H>(rawKeys.size()));
+		for (byte[] bs : rawKeys) {
+			if (bs != null) {
+				values.add((H) hashKeySerializer.deserialize(bs));
+			}
+		}
+
+		return values;
+	}
+
+	@SuppressWarnings("unchecked")
 	private <H> Collection<H> deserializeHashValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
 		Collection<H> values = (List.class.isAssignableFrom(type) ? new ArrayList<H>(rawValues.size())
 				: new LinkedHashSet<H>(rawValues.size()));
@@ -1749,7 +1762,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}, true);
 
-			return (Set<HK>) deserializeHashValues(rawValues, Set.class);
+			return (Set<HK>) deserializeHashKeys(rawValues, Set.class);
 		}
 
 		@Override

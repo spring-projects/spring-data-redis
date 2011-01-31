@@ -41,7 +41,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 	@Override
 	RedisMap<Object, Object> createMap() {
-		String redisName = getClass().getName();
+		String redisName = getClass().getSimpleName();
 		return new DefaultRedisMap<Object, Object>(redisName, template);
 	}
 
@@ -56,6 +56,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
 		JacksonJsonRedisSerializer<Person> jsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
+		JacksonJsonRedisSerializer<String> jsonStringSerializer = new JacksonJsonRedisSerializer<String>(String.class);
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -77,8 +78,12 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		xstreamGenericTemplate.afterPropertiesSet();
 
 		// json
-		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
-		jsonPersonTemplate.setValueSerializer(jsonSerializer);
+		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>();
+		jsonPersonTemplate.setConnectionFactory(jedisConnFactory);
+		jsonPersonTemplate.setDefaultSerializer(jsonSerializer);
+		jsonPersonTemplate.setHashKeySerializer(jsonSerializer);
+		jsonPersonTemplate.setHashValueSerializer(jsonStringSerializer);
+		jsonPersonTemplate.afterPropertiesSet();
 
 
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
@@ -101,10 +106,13 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		xstreamPersonTemplateJR.setValueSerializer(serializer);
 
 		// json JR
-		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
-		jsonPersonTemplate.setValueSerializer(jsonSerializer);
-
-
+		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>();
+		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
+		jsonPersonTemplateJR.setDefaultSerializer(jsonSerializer);
+		jsonPersonTemplateJR.setHashKeySerializer(jsonSerializer);
+		jsonPersonTemplateJR.setHashValueSerializer(jsonStringSerializer);
+		jsonPersonTemplateJR.afterPropertiesSet();
+		
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
 				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
 				{ personFactory, stringFactory, genericTemplate },
@@ -114,9 +122,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 				{ stringFactory, personFactory, genericTemplateJR },
 				{ personFactory, stringFactory, genericTemplateJR },
 				{ personFactory, stringFactory, xGenericTemplateJR },
-				{ personFactory, personFactory, jsonPersonTemplate },
 				{ personFactory, stringFactory, jsonPersonTemplate },
-				{ personFactory, personFactory, jsonPersonTemplateJR },
 				{ personFactory, stringFactory, jsonPersonTemplateJR } });
 	}
 }
