@@ -151,6 +151,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	public boolean compareAndSet(final long expect, final long update) {
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {

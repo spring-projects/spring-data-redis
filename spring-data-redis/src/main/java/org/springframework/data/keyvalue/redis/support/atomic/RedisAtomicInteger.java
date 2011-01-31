@@ -150,6 +150,7 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	public boolean compareAndSet(final int expect, final int update) {
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {

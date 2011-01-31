@@ -49,6 +49,7 @@ abstract class CASUtils {
 
 	public static <T, K, V> T execute(final RedisOperations<K, V> ops, final K key, final Callable<T> callback) {
 		return ops.execute(new SessionCallback<T>() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public T execute(RedisOperations operations) {
 				try {
