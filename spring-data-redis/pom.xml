@@ -17,6 +17,7 @@
     <jredis.ver>03122010</jredis.ver>
     <jedis.ver>1.5.2-SNAPSHOT</jedis.ver>
     <jedis.range>"[1.0.0,2.0.0)"</jedis.range>
+    <jackson.range>"[1.6, 2.0.0)"</jackson.range>
 	</properties>
 
 	<dependencies>
