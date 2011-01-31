@@ -85,7 +85,16 @@
       <artifactId>spring-oxm</artifactId>
       <version>${org.springframework.version}</version>
     </dependency>
-		
+
+    <!-- Jackson JSON -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
 		
 		<dependency>
 			<groupId>javax.annotation</groupId>

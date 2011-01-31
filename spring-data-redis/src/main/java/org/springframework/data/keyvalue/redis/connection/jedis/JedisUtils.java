@@ -40,9 +40,11 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
 
 import redis.clients.jedis.BinaryJedisPubSub;
-import redis.clients.jedis.JedisException;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.exceptions.JedisException;
 
 /**
  * Helper class featuring methods for Jedis connection handling, providing support for exception translation. 
@@ -63,6 +65,14 @@ public abstract class JedisUtils {
 	 * @return converted exception
 	 */
 	public static DataAccessException convertJedisAccessException(JedisException ex) {
+		if (ex instanceof JedisDataException) {
+			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+		}
+		if (ex instanceof JedisConnectionException) {
+			return new RedisConnectionFailureException(ex.getMessage(), ex);
+		}
+
+		// fallback to invalid data exception
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
 	}
 

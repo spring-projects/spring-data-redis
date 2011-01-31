@@ -41,11 +41,11 @@ import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.BinaryTransaction;
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisException;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
+import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.Pool;
 
 /**
