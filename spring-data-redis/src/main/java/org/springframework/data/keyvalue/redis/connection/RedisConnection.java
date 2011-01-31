@@ -18,7 +18,7 @@ package org.springframework.data.keyvalue.redis.connection;
 
 import java.util.List;
 
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.dao.DataAccessException;
 
 /**
  * A connection to a Redis server. Acts as an common abstraction across various
@@ -33,10 +33,10 @@ public interface RedisConnection extends RedisCommands {
 
 	/**
 	 * Closes (or quits) the connection.
-	 * 
-	 * @throws UncategorizedRedisException in case of exceptions
+	 *
+	 * @throws DataAccessException
 	 */
-	void close() throws UncategorizedRedisException;
+	void close() throws DataAccessException;
 
 	/**
 	 * Indicates whether the underlying connection is closed or not.

@@ -28,7 +28,6 @@ import java.util.Set;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.SubscribedRedisConnectionException;
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
@@ -45,6 +44,7 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.Pool;
 
@@ -66,7 +66,8 @@ public class JedisConnection implements RedisConnection {
 	private final Client client;
 	private final BinaryTransaction transaction;
 	private final Pool<Jedis> pool;
-
+	/** flag indicating whether the connection needs to be dropped or not */
+	private boolean broken = false;
 
 	private volatile JedisSubscription subscription;
 	private volatile Pipeline pipeline;
@@ -98,6 +99,10 @@ public class JedisConnection implements RedisConnection {
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
 		if (ex instanceof JedisException) {
+			// check connection flag
+			if (ex instanceof JedisConnectionException) {
+				broken = true;
+			}
 			return JedisUtils.convertJedisAccessException((JedisException) ex);
 		}
 		if (ex instanceof IOException) {
@@ -108,11 +113,16 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void close() throws UncategorizedRedisException {
+	public void close() throws DataAccessException {
 		// return the connection to the pool
 		try {
 			if (pool != null) {
-				pool.returnResource(jedis);
+				if (broken) {
+					pool.returnBrokenResource(jedis);
+				}
+				else {
+					pool.returnResource(jedis);
+				}
 			}
 		} catch (Exception ex) {
 			pool.returnBrokenResource(jedis);
