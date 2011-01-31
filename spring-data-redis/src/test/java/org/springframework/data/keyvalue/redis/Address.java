@@ -30,6 +30,9 @@ public class Address implements Serializable {
 
 	private Integer number;
 
+	public Address() {
+	}
+
 	/**
 	 * Constructs a new <code>Address</code> instance.
 	 *
@@ -39,6 +42,39 @@ public class Address implements Serializable {
 	public Address(String street, int number) {
 		super();
 		this.street = street;
+		this.number = number;
+	}
+
+
+	/**
+	 * Returns the street.
+	 *
+	 * @return Returns the street
+	 */
+	public String getStreet() {
+		return street;
+	}
+
+	/**
+	 * @param street The street to set.
+	 */
+	public void setStreet(String street) {
+		this.street = street;
+	}
+
+	/**
+	 * Returns the number.
+	 *
+	 * @return Returns the number
+	 */
+	public Integer getNumber() {
+		return number;
+	}
+
+	/**
+	 * @param number The number to set.
+	 */
+	public void setNumber(Integer number) {
 		this.number = number;
 	}
 

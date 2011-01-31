@@ -23,6 +23,7 @@ import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.OxmSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
@@ -40,6 +41,7 @@ public abstract class CollectionTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
+		JacksonJsonRedisSerializer<Person> jsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -64,6 +66,10 @@ public abstract class CollectionTestParams {
 		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
 		xstreamPersonTemplate.setValueSerializer(serializer);
 
+		// json
+		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		jsonPersonTemplate.setValueSerializer(jsonSerializer);
+
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		jredisConnFactory.setUsePool(true);
 
@@ -83,9 +89,14 @@ public abstract class CollectionTestParams {
 		RedisTemplate<String, Person> xstreamPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
 		xstreamPersonTemplateJR.setValueSerializer(serializer);
 
+		// json JR
+		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		jsonPersonTemplate.setValueSerializer(jsonSerializer);
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplateJR }, { personFactory, personTemplateJR },
 				{ stringFactory, stringTemplate }, { personFactory, personTemplate },
 				{ stringFactory, xstreamStringTemplate }, { personFactory, xstreamPersonTemplate },
-				{ stringFactory, xstreamStringTemplateJR }, { personFactory, xstreamPersonTemplateJR } });
+				{ stringFactory, xstreamStringTemplateJR }, { personFactory, xstreamPersonTemplateJR },
+				{ personFactory, jsonPersonTemplate }, { personFactory, jsonPersonTemplateJR } });
 	}
 }
