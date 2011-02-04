@@ -1664,6 +1664,7 @@ public class JedisConnection implements RedisConnection {
 					redis.clients.jedis.ZParams.Aggregate.valueOf(aggregate.name()));
 			if (isPipelined()) {
 				pipeline.zinterstore(destKey, zparams, sets);
+				return null;
 			}
 			return jedis.zinterstore(destKey, zparams, sets);
 		} catch (Exception ex) {
