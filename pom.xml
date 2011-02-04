@@ -52,9 +52,9 @@
     <developer>
       <id>jbrisbin</id>
       <name>Jon Brisbin</name>
-      <email>jon at jbrisbin.com</email>
-      <organization>NPC International</organization>
-      <organizationUrl>http://www.npcinternational.com</organizationUrl>
+      <email>jbrisbin at vmware.com</email>
+      <organization>SpringSource</organization>
+      <organizationUrl>http://www.SpringSource.com</organizationUrl>
       <roles>
         <role>Developer</role>
       </roles>

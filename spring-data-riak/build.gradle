@@ -1,0 +1,9 @@
+dependencies {
+	compile project(":spring-data-keyvalue-core")
+	compile "org.codehaus.groovy:groovy-all:1.7.6"
+	compile "javax.mail:mail:1.4.1"
+	compile "javax.activation:activation:1.1.1"
+	compile "commons-cli:commons-cli:1.2"
+	
+	compile "org.springframework:spring-web:$springVersion"
+}

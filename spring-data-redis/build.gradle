@@ -1,0 +1,12 @@
+repositories {
+	mavenRepo name: "ext-snapshots", urls: "http://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo-ext/"
+}
+
+dependencies {
+	compile project(":spring-data-keyvalue-core")
+	compile "javax.annotation:jsr250-api:1.0"
+	compile "com.thoughtworks.xstream:xstream:1.3"
+	compile "redis.clients:jedis:$jedisVersion"
+	compile "org.jredis:jredis-anthonylauzon:$jredisVersion"
+	compile "org.springframework:spring-oxm:$springVersion"
+}

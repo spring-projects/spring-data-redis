@@ -25,44 +25,58 @@ package org.springframework.data.keyvalue.riak.mapreduce;
  */
 public interface MapReducePhase {
 
-  public static enum Phase {
-    MAP, REDUCE
-  }
+	public static enum Phase {
+		MAP, REDUCE, LINK
+	}
 
-  Phase getPhase();
+	/**
+	 * The bucket pattern to match on link phases.
+	 *
+	 * @return
+	 */
+	String getBucket();
 
-  /**
-   * The language this phase is described in.
-   *
-   * @return
-   */
-  String getLanguage();
+	/**
+	 * Set the bucket pattern to match on link phases.
+	 *
+	 * @param bucket
+	 */
+	void setBucket(String bucket);
 
-  /**
-   * Whether or not to keep the result of this phase.
-   *
-   * @return
-   */
-  boolean getKeepResults();
+	Phase getPhase();
 
-  /**
-   * Get the operation this phase will execute.
-   *
-   * @return
-   */
-  MapReduceOperation getOperation();
+	/**
+	 * The language this phase is described in.
+	 *
+	 * @return
+	 */
+	String getLanguage();
 
-  /**
-   * Set the static argument for this job.
-   *
-   * @param arg
-   */
-  void setArg(Object arg);
+	/**
+	 * Whether or not to keep the result of this phase.
+	 *
+	 * @return
+	 */
+	boolean getKeepResults();
 
-  /**
-   * Get the static argument for this phase.
-   *
-   * @return
-   */
-  Object getArg();
+	/**
+	 * Get the operation this phase will execute.
+	 *
+	 * @return
+	 */
+	MapReduceOperation getOperation();
+
+	/**
+	 * Set the static argument for this job.
+	 *
+	 * @param arg
+	 */
+	void setArg(Object arg);
+
+	/**
+	 * Get the static argument for this phase.
+	 *
+	 * @return
+	 */
+	Object getArg();
 }

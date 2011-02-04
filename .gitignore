@@ -1,4 +1,5 @@
 target
+build
 .springBeans
 .ant-targets-build.xml
 src/ant/.ant-targets-upload-dist.xml

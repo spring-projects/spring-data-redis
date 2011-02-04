@@ -26,54 +26,63 @@ package org.springframework.data.keyvalue.riak.mapreduce;
  */
 public class RiakMapReducePhase implements MapReducePhase {
 
-  protected Phase phase;
-  protected String language;
-  protected MapReduceOperation operation;
-  protected boolean keepResults = false;
-  protected Object arg;
+	protected Phase phase;
+	protected String bucket;
+	protected String language;
+	protected MapReduceOperation operation;
+	protected boolean keepResults = false;
+	protected Object arg;
 
-  public RiakMapReducePhase(String phase, String language, MapReduceOperation oper) {
-    this.phase = Phase.valueOf(phase.toUpperCase());
-    this.language = language;
-    this.operation = oper;
-  }
+	public RiakMapReducePhase(String phase, String language, MapReduceOperation oper) {
+		this.phase = Phase.valueOf(phase.toUpperCase());
+		this.language = language;
+		this.operation = oper;
+	}
 
-  public RiakMapReducePhase(Phase phase, String language, MapReduceOperation oper) {
-    this.phase = phase;
-    this.language = language;
-    this.operation = oper;
-  }
+	public RiakMapReducePhase(Phase phase, String language, MapReduceOperation oper) {
+		this.phase = phase;
+		this.language = language;
+		this.operation = oper;
+	}
 
-  public Phase getPhase() {
-    return phase;
-  }
+	public String getBucket() {
+		return this.bucket;
+	}
 
-  public String getLanguage() {
-    return language;
-  }
+	public void setBucket(String bucket) {
+		this.bucket = bucket;
+	}
 
-  public MapReduceOperation getOperation() {
-    return this.operation;
-  }
+	public Phase getPhase() {
+		return phase;
+	}
 
-  public boolean getKeepResults() {
-    return this.keepResults;
-  }
+	public String getLanguage() {
+		return language;
+	}
 
-  public void setKeepResults(boolean keepResults) {
-    this.keepResults = keepResults;
-  }
+	public MapReduceOperation getOperation() {
+		return this.operation;
+	}
 
-  public void setOperation(MapReduceOperation oper) {
+	public boolean getKeepResults() {
+		return this.keepResults;
+	}
 
-    this.operation = oper;
-  }
+	public void setKeepResults(boolean keepResults) {
+		this.keepResults = keepResults;
+	}
 
-  public Object getArg() {
-    return arg;
-  }
+	public void setOperation(MapReduceOperation oper) {
 
-  public void setArg(Object arg) {
-    this.arg = arg;
-  }
+		this.operation = oper;
+	}
+
+	public Object getArg() {
+		return arg;
+	}
+
+	public void setArg(Object arg) {
+		this.arg = arg;
+	}
 }

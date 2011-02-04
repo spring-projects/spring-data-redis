@@ -1,0 +1,3 @@
+include "spring-data-keyvalue-core",
+        "spring-data-redis",
+        "spring-data-riak"

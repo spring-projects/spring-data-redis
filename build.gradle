@@ -1,0 +1,62 @@
+apply plugin: "eclipse"
+apply plugin: "idea"
+
+subprojects {
+	apply plugin: "java"
+	apply plugin: "maven"
+
+	releaseType = "M2"
+	version = "1.0.0.$releaseType"
+
+	compileJava.options.compilerArgs = ["-Xlint:unchecked"]
+
+	repositories {
+		// Read user's local Maven repo first
+	  mavenRepo name: "mavenLocal", urls: new File(System.getProperty("user.home" ), ".m2/repository").toURL().toString()
+		// Public Spring artefacts
+		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
+		mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
+		mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
+		// Additional community artefacts
+		mavenCentral()
+		mavenRepo name: "sonatype-snapshot", urls: "http://oss.sonatype.org/content/repositories/snapshots"
+		mavenRepo name: "jboss", urls: "http://repository.jboss.org/maven2/"
+		mavenRepo name: "java.net", urls: "http://download.java.net/maven/2/"
+	}
+
+	// Common dependencies
+	dependencies {
+		// Logging
+		compile "org.slf4j:slf4j-api:$slf4jVersion"
+		compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+		runtime "log4j:log4j:$log4jVersion"
+		runtime "org.slf4j:slf4j-log4j12:$slf4jVersion"
+		// Spring Framework
+		compile("org.springframework:spring-core:$springVersion") {
+			exclude module: "commons-logging"
+		}
+		compile "org.springframework:spring-beans:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		// Jackson JSON Mapper
+		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		// Testing
+		testCompile "junit:junit:$junitVersion"
+		testCompile "org.springframework:spring-test:$springVersion"  
+		testCompile "org.mockito:mockito-all:$mockitoVersion"
+	}
+	
+}
+
+configurations {
+	build
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+}
+
