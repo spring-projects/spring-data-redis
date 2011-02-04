@@ -1,0 +1,133 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// -----------------------------------------------------------------------------
+// Task definitions related to releasing the project
+//
+// @author cbeams
+// -----------------------------------------------------------------------------
+
+// ensure that every project has been evaluated before this script
+// this allows us to look up tasks below and dereference dynamically
+// assigned properties like 'docsSpec' below
+project.subprojects.each { project ->
+    evaluationDependsOn project.path
+}
+
+task check {
+    group = 'Verification'
+}
+
+task build(dependsOn: [check, assemble]) {
+    group = 'Build'
+}
+
+/**
+ * Build the distribution zip file.
+ *
+ * @author cbeams
+ */
+task distArchive(type: Zip) {
+    group = 'Build'
+
+    destinationDir = buildDir
+    archiveName = "${project.name}-${project.version}.zip"
+    checksumPath = "${destinationDir}/${archiveName}.sha1"
+    def zipRootDir = "${project.name}-${project.version}"
+
+    description = "Builds the distribution zip file at ${project.relativePath(destinationDir)}/${archiveName}"
+
+    // depend on all projects with an assemble task
+    dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
+
+    // we need the docsSpec to be defined before evaluating this task
+    project.evaluationDependsOn(':docs')
+
+    // set up outputs for use by incremental build and by tasks like 'cleanDist'
+    // the archive zip file will be added automatically to outputs.files
+    // but we must add the sha1 checksum ourselves
+    outputs.files file(checksumPath)
+
+    // configure the contents of the zip file. remember that this is a
+    // configuration phase event. no zip is being created yet. the Zip
+    // task we extend will do that for us during the execution phase.
+    into(zipRootDir) {
+        with(project(':docs').docsSpec)
+
+        // add each subproject, but only add the 'src' dir and 'pom.xml'
+        project('spring-amqp-samples').subprojects.each { sample ->
+            into("${zipRootDir}/samples/${sample.name}") {
+                from(sample.projectDir) {
+                    include 'src/**/*'
+                    include 'pom.xml'
+                }
+            }
+        }
+        // add all jars and source jars from all core java projects
+        // (i.e.: don't include sample project jars!)
+        into('dist') {
+            from coreprojects.collect { project -> project.libsDir }
+        }
+    }
+
+    // once the zip has been written, create a sha1 hash for it
+    // this will write out the file at ${checksumPath}
+    doLast {
+        ant.checksum(file: archivePath, algorithm: 'SHA1', fileext: '.sha1')
+        assert file(checksumPath).isFile(): "${checksumPath} was not created"
+    }
+}
+
+/**
+ * Upload the distribution zip file.
+ *
+ * @author ltaylor
+ * @author cbeams
+ */
+task uploadArchives(overwrite: true, dependsOn: distArchive) { // base plugin adds one we need to overwrite
+    group = 'Buildmaster'
+    description = 'Uploads the distribution zip file.'
+
+    configurations { antlibs }
+    dependencies {
+        antlibs "org.springframework.build:org.springframework.build.aws.ant:3.0.3.RELEASE",
+                "net.java.dev.jets3t:jets3t:0.6.1"
+    }
+
+    def releaseType = version.releaseType.toString().toLowerCase()
+
+    doLast() {
+        println "Uploading: ${distArchive.archivePath} to s3"
+        project.ant {
+            taskdef(resource: 'org/springframework/build/aws/ant/antlib.xml',
+                    classpath: configurations.antlibs.asPath)
+            s3(accessKey: s3AccessKey, secretKey: s3SecretAccessKey) {
+                upload(bucketName: 'dist.springframework.org', file: distArchive.archivePath,
+                        toFile: releaseType + "/AMQP/${distArchive.archiveName}", publicRead: 'true') {
+                    metadata(name: 'project.name', value: 'Spring AMQP')
+                    metadata(name: 'release.type', value: releaseType)
+                    metadata(name: 'bundle.version', value: version)
+                    metadata(name: 'package.file.name', value: distArchive.archiveName)
+                }
+                upload(bucketName: 'dist.springframework.org', file: "${distArchive.archivePath}.sha1",
+                        toFile: releaseType + "/AMQP/${distArchive.archiveName}.sha1", publicRead: 'true')
+            }
+        }
+    }
+}
+
+
+

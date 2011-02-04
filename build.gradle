@@ -1,5 +1,6 @@
 apply plugin: "eclipse"
 apply plugin: "idea"
+apply from: "$rootDir/gradle/docbook.gradle"
 
 subprojects {
 	apply plugin: "java"
@@ -8,11 +9,21 @@ subprojects {
 	releaseType = "M2"
 	version = "1.0.0.$releaseType"
 
-	compileJava.options.compilerArgs = ["-Xlint:unchecked"]
+	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
+
+	// all core projects should be OSGi-compliant bundles
+	// add the bundlor task to ensure proper manifests
+	apply from: "$rootDir/gradle/bundlor.gradle"
+	project.checkForProps = { Map args ->
+		requiredPropSets.add args
+	}
+	// TODO: Finish integrating this stuff with our build
+	//apply from: "$rootDir/gradle/maven-deployment.gradle"
+	//apply from: "$rootDir/gradle/dist.gradle"
 
 	repositories {
 		// Read user's local Maven repo first
-	  mavenRepo name: "mavenLocal", urls: new File(System.getProperty("user.home" ), ".m2/repository").toURL().toString()
+		mavenRepo name: "mavenLocal", urls: new File(System.getProperty("user.home"), ".m2/repository").toURL().toString()
 		// Public Spring artefacts
 		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
 		mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
@@ -43,10 +54,10 @@ subprojects {
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		// Testing
 		testCompile "junit:junit:$junitVersion"
-		testCompile "org.springframework:spring-test:$springVersion"  
+		testCompile "org.springframework:spring-test:$springVersion"
 		testCompile "org.mockito:mockito-all:$mockitoVersion"
 	}
-	
+
 }
 
 configurations {
@@ -58,5 +69,11 @@ repositories {
 }
 
 dependencies {
+}
+
+ideaProject {
+	withXml { provider ->
+		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+	}
 }
 

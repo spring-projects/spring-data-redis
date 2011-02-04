@@ -1,0 +1,317 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import ch.qos.logback.classic.Level
+import com.icl.saxon.TransformerFactoryImpl
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import javax.xml.parsers.SAXParserFactory
+import javax.xml.transform.Result
+import javax.xml.transform.Source
+import javax.xml.transform.Transformer
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.sax.SAXResult
+import javax.xml.transform.sax.SAXSource
+import javax.xml.transform.stream.StreamResult
+import javax.xml.transform.stream.StreamSource
+import org.apache.fop.apps.Fop
+import org.apache.fop.apps.FopFactory
+import org.apache.fop.apps.MimeConstants
+import org.apache.xml.resolver.CatalogManager
+import org.apache.xml.resolver.tools.CatalogResolver
+import org.slf4j.LoggerFactory
+import org.xml.sax.InputSource
+import org.xml.sax.XMLReader
+
+buildscript {
+	repositories {
+		mavenCentral()
+		mavenRepo name: 'Shibboleth Repo', urls: 'http://shibboleth.internet2.edu/downloads/maven2'
+	}
+	dependencies {
+		def fopDeps = ['org.apache.xmlgraphics:fop:0.95-1@jar',
+				'org.apache.xmlgraphics:xmlgraphics-commons:1.3',
+				'org.apache.xmlgraphics:batik-bridge:1.7@jar',
+				'org.apache.xmlgraphics:batik-util:1.7@jar',
+				'org.apache.xmlgraphics:batik-css:1.7@jar',
+				'org.apache.xmlgraphics:batik-dom:1.7',
+				'org.apache.xmlgraphics:batik-svg-dom:1.7@jar',
+				'org.apache.avalon.framework:avalon-framework-api:4.3.1']
+
+		classpath 'org.apache.xerces:resolver:2.9.1',
+				'saxon:saxon:6.5.3',
+				'org.apache.xerces:xercesImpl:2.9.1',
+				fopDeps,
+				'net.sf.xslthl:xslthl:2.0.1',
+				'net.sf.docbook:docbook-xsl:1.75.2:resources@zip'
+	}
+
+}
+
+/**
+ * Gradle Docbook plugin implementation.
+ * <p>
+ * Creates three tasks: docbookHtml, docbookHtmlSingle and docbookPdf.
+ * Each task takes a single File on which it operates.
+ *
+ * @author ltaylor
+ */
+// Add the plugin tasks to the project
+task docbookHtml(type: DocbookHtml) {
+	setDescription('Generates chunked docbook html output.')
+	xdir = 'html'
+	classpath = buildscript.configurations.classpath
+}
+
+task docbookHtmlSingle(type: Docbook) {
+	setDescription('Generates single page docbook html output.')
+	xdir = 'htmlsingle'
+	classpath = buildscript.configurations.classpath
+}
+
+task docbookPdf(type: DocbookFoPdf) {
+	setDescription('Generates PDF docbook output.')
+	extension = 'fo'
+	xdir = 'pdf'
+	classpath = buildscript.configurations.classpath
+}
+
+/**
+ */
+public class Docbook extends DefaultTask {
+	@Input
+	String extension = 'html';
+
+	@Input
+	boolean XIncludeAware = true;
+
+	@Input
+	boolean highlightingEnabled = true;
+
+	String admonGraphicsPath;
+
+	@InputDirectory
+	File sourceDirectory = new File(project.getProjectDir(), "build/reference-work");
+
+	@Input
+	String sourceFileName;
+
+	@InputFile
+	File stylesheet;
+
+	@OutputDirectory
+	File docsDir = new File(project.getBuildDir(), "reference");
+
+	@InputFiles
+	Configuration classpath
+
+	@TaskAction
+	public final void transform() {
+		// the docbook tasks issue spurious content to the console. redirect to INFO level
+		// so it doesn't show up in the default log level of LIFECYCLE unless the user has
+		// run gradle with '-d' or '-i' switches -- in that case show them everything
+		switch (project.gradle.startParameter.logLevel) {
+			case LogLevel.DEBUG:
+			case LogLevel.INFO:
+				break;
+			default:
+				logging.captureStandardOutput(LogLevel.INFO)
+				logging.captureStandardError(LogLevel.INFO)
+		}
+
+		SAXParserFactory factory = new org.apache.xerces.jaxp.SAXParserFactoryImpl();
+		factory.setXIncludeAware(XIncludeAware);
+		docsDir.mkdirs();
+
+		File srcFile = new File(sourceDirectory, sourceFileName);
+		String outputFilename = srcFile.getName().substring(0, srcFile.getName().length() - 4) + '.' + extension;
+
+		File oDir = new File(getDocsDir(), xdir)
+		File outputFile = new File(oDir, outputFilename);
+
+		Result result = new StreamResult(outputFile.getAbsolutePath());
+		CatalogResolver resolver = new CatalogResolver(createCatalogManager());
+		InputSource inputSource = new InputSource(srcFile.getAbsolutePath());
+
+		XMLReader reader = factory.newSAXParser().getXMLReader();
+		reader.setEntityResolver(resolver);
+		TransformerFactory transformerFactory = new TransformerFactoryImpl();
+		transformerFactory.setURIResolver(resolver);
+		URL url = stylesheet.toURL();
+		Source source = new StreamSource(url.openStream(), url.toExternalForm());
+		Transformer transformer = transformerFactory.newTransformer(source);
+
+		if (highlightingEnabled) {
+			File highlightingDir = new File(getProject().getBuildDir(), "highlighting");
+			if (!highlightingDir.exists()) {
+				highlightingDir.mkdirs();
+				extractHighlightFiles(highlightingDir);
+			}
+
+			transformer.setParameter("highlight.xslthl.config", new File(highlightingDir, "xslthl-config.xml").toURI().toURL());
+
+			if (admonGraphicsPath != null) {
+				transformer.setParameter("admon.graphics", "1");
+				transformer.setParameter("admon.graphics.path", admonGraphicsPath);
+			}
+		}
+
+		preTransform(transformer, srcFile, outputFile);
+
+		transformer.transform(new SAXSource(reader, inputSource), result);
+
+		postTransform(outputFile);
+	}
+
+	private void extractHighlightFiles(File toDir) {
+		File docbookZip = classpath.files.find { file -> file.name.contains('docbook-xsl-')};
+
+		if (docbookZip == null) {
+			throw new GradleException("Docbook zip file not found");
+		}
+
+		ZipFile zipFile = new ZipFile(docbookZip);
+
+		Enumeration e = zipFile.entries();
+		while (e.hasMoreElements()) {
+			ZipEntry ze = (ZipEntry) e.nextElement();
+			if (ze.getName().matches(".*/highlighting/.*\\.xml")) {
+				String filename = ze.getName().substring(ze.getName().lastIndexOf("/highlighting/") + 14);
+				copyFile(zipFile.getInputStream(ze), new File(toDir, filename));
+			}
+		}
+	}
+
+	private void copyFile(InputStream source, File destFile) {
+		destFile.createNewFile();
+		FileOutputStream to = null;
+		try {
+			to = new FileOutputStream(destFile);
+			byte[] buffer = new byte[4096];
+			int bytesRead;
+
+			while ((bytesRead = source.read(buffer)) > 0) {
+				to.write(buffer, 0, bytesRead);
+			}
+		} finally {
+			if (source != null) {
+				source.close();
+			}
+			if (to != null) {
+				to.close();
+			}
+		}
+	}
+
+	protected void preTransform(Transformer transformer, File sourceFile, File outputFile) {
+	}
+
+	protected void postTransform(File outputFile) {
+	}
+
+	private CatalogManager createCatalogManager() {
+		CatalogManager manager = new CatalogManager();
+		manager.setIgnoreMissingProperties(true);
+		ClassLoader classLoader = this.getClass().getClassLoader();
+		StringBuilder builder = new StringBuilder();
+		String docbookCatalogName = "docbook/catalog.xml";
+		URL docbookCatalog = classLoader.getResource(docbookCatalogName);
+
+		if (docbookCatalog == null) {
+			throw new IllegalStateException("Docbook catalog " + docbookCatalogName + " could not be found in " + classLoader);
+		}
+
+		builder.append(docbookCatalog.toExternalForm());
+
+		Enumeration enumeration = classLoader.getResources("/catalog.xml");
+		while (enumeration.hasMoreElements()) {
+			builder.append(';');
+			URL resource = (URL) enumeration.nextElement();
+			builder.append(resource.toExternalForm());
+		}
+		String catalogFiles = builder.toString();
+		manager.setCatalogFiles(catalogFiles);
+		return manager;
+	}
+}
+
+/**
+ */
+class DocbookHtml extends Docbook {
+
+	@Override
+	protected void preTransform(Transformer transformer, File sourceFile, File outputFile) {
+		String rootFilename = outputFile.getName();
+		rootFilename = rootFilename.substring(0, rootFilename.lastIndexOf('.'));
+		transformer.setParameter("root.filename", rootFilename);
+		transformer.setParameter("base.dir", outputFile.getParent() + File.separator);
+	}
+}
+
+/**
+ */
+class DocbookFoPdf extends Docbook {
+
+	/**
+	 * <a href="http://xmlgraphics.apache.org/fop/0.95/embedding.html#render">From the FOP usage guide</a>
+	 */
+	@Override
+	protected void postTransform(File foFile) {
+		FopFactory fopFactory = FopFactory.newInstance();
+
+		OutputStream out = null;
+		final File pdfFile = getPdfOutputFile(foFile);
+		logger.debug("Transforming 'fo' file " + foFile + " to PDF: " + pdfFile);
+
+		try {
+			out = new BufferedOutputStream(new FileOutputStream(pdfFile));
+
+			Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, out);
+
+			TransformerFactory factory = TransformerFactory.newInstance();
+			Transformer transformer = factory.newTransformer();
+
+			Source src = new StreamSource(foFile);
+
+			Result res = new SAXResult(fop.getDefaultHandler());
+
+			switch (project.gradle.startParameter.logLevel) {
+				case LogLevel.DEBUG:
+				case LogLevel.INFO:
+					break;
+				default:
+					// only show verbose fop output if the user has specified 'gradle -d' or 'gradle -i'
+					LoggerFactory.getILoggerFactory().getLogger('org.apache.fop').level = Level.ERROR
+			}
+
+			transformer.transform(src, res);
+
+		} finally {
+			if (out != null) {
+				out.close();
+			}
+		}
+
+		if (!foFile.delete()) {
+			logger.warn("Failed to delete 'fo' file " + foFile);
+		}
+	}
+
+	private File getPdfOutputFile(File foFile) {
+		String name = foFile.getAbsolutePath();
+		return new File(name.substring(0, name.length() - 2) + "pdf");
+	}
+}

@@ -1,0 +1,113 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// -----------------------------------------------------------------------------
+// Tasks related to deploying Maven artifacts.
+//
+// @author cbeams
+// -----------------------------------------------------------------------------
+
+// check that upload-related properties are defined and fail early if not
+// these properties ("s3AccessKey", etc) should be defined in
+// "gradle.properties" in $HOME/.gradle/gradle.properties
+def requiredProps = version =~ "([0-9\\.]+)\\.M(.+)" ? ["mavenSyncRepoDir"] : ["s3AccessKey",
+										"s3SecretAccessKey"]
+checkForProps(taskPath: project.path + ":uploadArchives", requiredProps: requiredProps)
+
+/**
+ * Builds a source jar artifact for all main java sources.
+ *
+ * @author ltaylor
+ */
+task sourceJar(type: Jar) {
+	description = "Builds a source jar artifact suitable for maven deployment."
+	classifier = "sources"
+	from sourceSets.main.java
+}
+build.dependsOn sourceJar
+
+// Add the source jar archive to the set of artifacts for this project.
+// Note that the regular "jar" archive is already added by default.
+artifacts {
+	archives sourceJar
+}
+
+/**
+ * Deploy gradle-built artifacts to a remote maven repository. Overrides and
+ * further customizes the "uploadArchives" task contributed by the "maven"
+ * plugin.
+ *
+ * The repository that artifacts are deployed to is determined conditionally
+ * based on the release type of the project version. Snapshot builds will
+ * be deployed via s3 to the springframework maven snapshot repository;
+ * milestone builds will happen via s3 as well; release builds will be deployed
+ * to the local filesystem to be sync"d via sourceforge CVS and ultimately
+ * deployed to maven central.
+ *
+ * Gradle will generate Maven poms on-the-fly during the deployment process.
+ * This process is customized to add ASL license information, and for projects
+ * that have the erlangLicense property set to true, the Erlang License will be
+ * added to the pom as well.
+ *
+ * @author cbeams
+ * @see "mavenSyncRepoDir" in gradle.properties
+ * @see `gradle install` for deploying artifacts to the local .m2 cache
+ * @see <http://maven.apache.org/guides/mini/guide-central-repository-upload.html>
+ */
+uploadArchives {
+	group = "Buildmaster"
+	description = "Does a maven deploy of archives artifacts to " // url appended below
+
+	def releaseRepositoryUrl = "file://${project.properties.mavenSyncRepoDir}"
+	def milestoneRepositoryUrl = "s3://maven.springframework.org/milestone"
+	def snapshotRepositoryUrl = "s3://maven.springframework.org/snapshot"
+
+	// add a configuration with a classpath that includes our s3 maven deployer
+	configurations { deployerJars }
+	dependencies {
+		deployerJars "org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE"
+	}
+
+	repositories.mavenDeployer {
+		s3credentials = [userName: project.properties.s3AccessKey, passphrase: project.properties.s3SecretAccessKey]
+		if (version.endsWith("GA")) {
+			repository url: releaseRepositoryUrl
+			description += releaseRepositoryUrl
+		} else if (version.endsWith("M[0-9]")) {
+			description += milestoneRepositoryUrl
+			configuration = configurations.deployerJars
+			repository(url: milestoneRepositoryUrl) {
+				authentication(s3credentials)
+			}
+		} else if (version.endsWith("SNAPSHOT")) {
+			description += snapshotRepositoryUrl
+			configuration = configurations.deployerJars
+			snapshotRepository(url: snapshotRepositoryUrl) {
+				authentication(s3credentials)
+			}
+		}
+	}
+
+	pom.project {
+		licenses {
+			license {
+				name "The Apache Software License, Version 2.0"
+				url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+				distribution "repo"
+			}
+		}
+	}
+}
