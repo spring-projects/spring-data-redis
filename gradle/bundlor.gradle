@@ -81,7 +81,9 @@ task bundlor(dependsOn: compileJava) {
         ant.bundlor(inputPath: sourceSets.main.classesDir,
                     outputPath: bundlorDir, manifestTemplatePath: template) {
             property(name: 'version', value: project.version)
-            property(name: 'spring.version', value: project.springVersion)
+            //property(name: 'spring.range', value: project.springRange)
+            //property(name: 'jedis.range', value: project.jedisRange)
+            //property(name: 'jackson.range', value: project.jacksonRange)
         }
     }
 }

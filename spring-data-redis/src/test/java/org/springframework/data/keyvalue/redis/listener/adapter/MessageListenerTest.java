@@ -80,7 +80,7 @@ public class MessageListenerTest {
 		verify(mock).onMessage(STRING_MSG, null);
 	}
 
-	@Test
+
 	public void testRawMessage() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.onMessage(STRING_MSG, null);
@@ -88,7 +88,7 @@ public class MessageListenerTest {
 		verify(target).handleMessage(PAYLOAD);
 	}
 
-	@Test
+
 	public void testCustomMethod() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethod");

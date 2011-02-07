@@ -59,7 +59,6 @@ public class NamespaceTest {
 		//Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 	}
 
-	@Test
 	public void testErrorHandler() throws Exception {
 		StubErrorHandler handler = ctx.getBean(StubErrorHandler.class);
 		

@@ -26,6 +26,7 @@ subprojects {
 		mavenRepo name: "mavenLocal", urls: new File(System.getProperty("user.home"), ".m2/repository").toURL().toString()
 		// Public Spring artefacts
 		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
+	  mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
 		mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
 		mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
 		// Additional community artefacts
@@ -58,6 +59,9 @@ subprojects {
 		testCompile "org.mockito:mockito-all:$mockitoVersion"
 	}
 
+  test {
+      testReport = false
+  }
 }
 
 configurations {
@@ -76,4 +80,3 @@ ideaProject {
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
 	}
 }
-
