@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<preface id="preface">
+<preface xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="preface">
   <title>Preface</title>
 
   <para>The Spring Data Key-Value project applies core Spring concepts to the development of solutions using a key-value style data store. 

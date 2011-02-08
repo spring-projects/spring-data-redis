@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 
-<partintro>
+<partintro xmlns="http://docbook.org/ns/docbook" version="5.0">
           <para>
             <para>This document is the reference guide for Spring Data - Key Value Support. 
             It explains Key Value module concepts and semantics and the syntax for various

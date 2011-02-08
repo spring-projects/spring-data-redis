@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="why-Spring Data-Key Value">
+<chapter xml:id="why-Spring Data-Key Value" xmlns="http://docbook.org/ns/docbook" version="5.0">
     <title>Why Spring Data - Key Value?</title>
 
     <para>The Spring Framework is the leading full-stack Java/JEE

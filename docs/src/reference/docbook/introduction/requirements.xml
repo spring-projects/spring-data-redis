@@ -1,4 +1,4 @@
-  <chapter id="requirements">
+  <chapter xml:id="requirements" xmlns="http://docbook.org/ns/docbook" version="5.0">
       <title>Requirements</title>
 
       <para>Spring Data Key Value 1.x binaries requires JDK level 6.0 and above, 

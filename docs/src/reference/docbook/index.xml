@@ -1,11 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-        "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<book xmlns:xi="http://www.w3.org/2001/XInclude">
+<?xml version="1.0" encoding="UTF-8"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0"
+    xml:id="spring-data-keyvalue-reference"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
 
     <bookinfo>
         <title>Spring Data Key-Value - Reference Documentation</title>
         <titleabbrev>Spring Data Key-Value ${version}</titleabbrev>
-        <releaseinfo>&version;</releaseinfo>
+        <releaseinfo>${version}</releaseinfo>
         <productname>Spring Data Key-Value</productname>
 
         <authorgroup>

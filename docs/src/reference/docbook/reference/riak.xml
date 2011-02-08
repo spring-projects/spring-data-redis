@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-                 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="riak">
+<chapter xml:id="riak" xmlns="http://docbook.org/ns/docbook" version="5.0">
   <title>Riak Support</title>
   
   <para><ulink url="https://wiki.basho.com/display/RIAK/Riak">Riak</ulink> is a Key/Value datastore that supports <ulink url="https://wiki.basho.com/pages/viewpage.action?pageId=1245320">Internet-scale data replication</ulink> for high performance and high availability. Spring Data Key/Value (SDKV) provides access to the Riak datastore over the <ulink url="https://wiki.basho.com/display/RIAK/REST+API">HTTP REST API</ulink> using a built-in driver based on Spring 3.0's <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/remoting.html#rest-resttemplate"><classname>RestTemplate</classname></ulink>. In addition to making Key/Value datastore access easier from Java, the <classname>RiakTemplate</classname> has been designed, from the ground up, to be used from alternative JVM languages like <ulink url="http://groovy.codehaus.org/">Groovy</ulink> or <ulink url="http://jruby.org/">JRuby</ulink>.</para> 
