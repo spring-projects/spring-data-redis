@@ -12,7 +12,6 @@ def buildSrcDir = "$rootDir/buildSrc"
 apply from: "$buildSrcDir/wrapper.gradle"
 apply from: "$buildSrcDir/maven-root-pom.gradle"
 
-
 assemble.dependsOn generatePom
 
 allprojects {
@@ -27,26 +26,25 @@ allprojects {
     version = new Version(springDataKeyValueVersion)
 }
 
-subprojects {
+javaprojects = subprojects.findAll { project ->
+    project.path.startsWith(':spring-data-')
+}
+
+configure(javaprojects) {
 	apply plugin: "java"
 	apply plugin: "maven"
   apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
   apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
   apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
 	
+  // set up dedicated directories for jars and source jars.
+  // this makes it easier when putting together the distribution
+  libsBinDir = new File(libsDir, 'bin')
+  libsSrcDir = new File(libsDir, 'src')
 
-	releaseType = "M2"
-	version = "1.0.0.$releaseType"
 
 	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
-
-	// all core projects should be OSGi-compliant bundles
-	// add the bundlor task to ensure proper manifests
-	apply from: "$rootDir/gradle/bundlor.gradle"
-	
-	project.checkForProps = { Map args ->
-		requiredPropSets.add args
-	}
+	assemble.dependsOn generatePom
 
   // add tasks for creating source jars and generating poms etc
   apply from: "$buildSrcDir/maven-deployment.gradle"
@@ -55,8 +53,6 @@ subprojects {
   apply from: "$buildSrcDir/schema-publication.gradle"
   
 	repositories {
-		// Read user's local Maven repo first
-		mavenRepo name: "mavenLocal", urls: new File(System.getProperty("user.home"), ".m2/repository").toURL().toString()
 		// Public Spring artefacts
     mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
 		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"

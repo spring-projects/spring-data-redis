@@ -4,7 +4,9 @@
 
     <bookinfo>
         <title>Spring Data Key-Value - Reference Documentation</title>
+        <titleabbrev>Spring Data Key-Value ${version}</titleabbrev>
         <releaseinfo>&version;</releaseinfo>
+        <productname>Spring Data Key-Value</productname>
 
         <authorgroup>
             <author>
