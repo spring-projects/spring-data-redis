@@ -43,7 +43,7 @@ configure(javaprojects) {
   libsSrcDir = new File(libsDir, 'src')
 
 
-	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
+	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 	assemble.dependsOn generatePom
 	
 	// add tasks for creating source jars and generating poms etc
