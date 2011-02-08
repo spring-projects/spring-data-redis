@@ -45,16 +45,16 @@ configure(javaprojects) {
 
 	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
 	assemble.dependsOn generatePom
-
-  // add tasks for creating source jars and generating poms etc
-  apply from: "$buildSrcDir/maven-deployment.gradle"
-
-  // add tasks for finding and publishing .xsd files
-  apply from: "$buildSrcDir/schema-publication.gradle"
+	
+	// add tasks for creating source jars and generating poms etc
+	apply from: "$buildSrcDir/maven-deployment.gradle"
+	
+	// add tasks for finding and publishing .xsd files
+	apply from: "$buildSrcDir/schema-publication.gradle"
   
 	repositories {
 		// Public Spring artefacts
-    mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
+		mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
 		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
 		mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
 		mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
@@ -111,6 +111,17 @@ ideaProject {
 // -----------------------------------------------------------------------------
 project('docs') {
     apply from: "$buildSrcDir/docs.gradle"
+    // javadoc settings
+    api.options.breakIterator = true
+    api.options.showFromProtected()
+    api.options.groups = [
+      'Spring Data Key Value Core': ['org.springframework.data.keyvalue*'], 
+      'Spring Data Redis Support' : ['org.springframework.data.keyvalue.redis*'],
+      'Spring Data Riak Support'  : ['org.springframework.data.keyvalue.riak*']]
+      
+    api.options.links = [
+        "http://static.springframework.org/spring/docs/3.0.x/javadoc-api",
+        "http://download.oracle.com/javase/6/docs/api/"]
 }
 
 apply from: "$buildSrcDir/dist.gradle"
