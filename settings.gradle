@@ -1,3 +1,5 @@
+rootProject.name = 'spring-data-key-value'
+
 include "spring-data-keyvalue-core",
         "spring-data-redis",
         "spring-data-riak"

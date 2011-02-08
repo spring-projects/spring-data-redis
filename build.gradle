@@ -1,6 +1,12 @@
+// used for artifact names, building doc upload urls, etc.
+description = 'Spring Data Key Value'
+abbreviation = 'DATAKV'
+
 apply plugin: "eclipse"
 apply plugin: "idea"
 apply from: "$rootDir/gradle/docbook.gradle"
+
+assemble.dependsOn generatePom
 
 subprojects {
 	apply plugin: "java"

@@ -1,6 +1,5 @@
 build
 target
-build
 .gradle
 .springBeans
 .ant-targets-build.xml
