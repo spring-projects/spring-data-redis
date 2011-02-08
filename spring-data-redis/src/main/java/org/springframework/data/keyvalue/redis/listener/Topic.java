@@ -23,5 +23,10 @@ package org.springframework.data.keyvalue.redis.listener;
  */
 public interface Topic {
 
+	/**
+	 * Returns the topic (as a String).
+	 * 
+	 * @return the topic
+	 */
 	String getTopic();
 }

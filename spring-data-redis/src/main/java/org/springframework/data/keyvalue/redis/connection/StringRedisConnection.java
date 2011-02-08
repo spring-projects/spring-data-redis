@@ -35,6 +35,9 @@ import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
  */
 public interface StringRedisConnection extends RedisConnection {
 
+	/**
+	 * String-friendly ZSet tuple.
+	 */
 	public interface StringTuple extends Tuple {
 		String getValueAsString();
 	}
@@ -118,7 +121,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	String lIndex(String key, long index);
 
-	Long lInsert(String key, POSITION where, String pivot, String value);
+	Long lInsert(String key, Position where, String pivot, String value);
 
 	void lSet(String key, long index, String value);
 
