@@ -382,8 +382,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Adds a message listener to the (potentially running) container. If the container is running,
 	 * the listener starts receiving (matching) messages as soon as possible.
 	 * 
-	 * @param listener
-	 * @param topics
+	 * @param listener message listener
+	 * @param topic message topic
 	 */
 	public void addMessageListener(MessageListener listener, Topic topic) {
 		addMessageListener(listener, Collections.singleton(topic));
