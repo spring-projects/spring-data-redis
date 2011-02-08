@@ -35,7 +35,7 @@ import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
-import org.springframework.data.keyvalue.redis.connection.RedisListCommands.POSITION;
+import org.springframework.data.keyvalue.redis.connection.RedisListCommands.Position;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -287,7 +287,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the key serializer to be used by this template. Defaults to {@link getDefaultSerializer}.
+	 * Sets the key serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
 	 * 
 	 * @param serializer the key serializer to be used by this template.
 	 */
@@ -305,7 +305,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the value serializer to be used by this template. Defaults to {@link getDefaultSerializer}.
+	 * Sets the value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
 	 * 
 	 * @param serializer the value serializer to be used by this template.
 	 */
@@ -323,7 +323,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link getDefaultSerializer}. 
+	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}. 
 	 * 
 	 * @param hashKeySerializer The hashKeySerializer to set.
 	 */
@@ -332,7 +332,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Sets the hash value serializer to be used by this template. Defaults to {@link getDefaultSerializer}. 
+	 * Sets the hash value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}. 
 	 * 
 	 * @param hashValueSerializer The hashValueSerializer to set.
 	 */
@@ -352,8 +352,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Invocation handler that suppresses close calls on JDO PersistenceManagers.
-	 * Also prepares returned Query objects.
+	 * Invocation handler that suppresses close calls on {@link RedisConnection}.
 	 * @see RedisConnection#close()
 	 */
 	private class CloseSuppressingInvocationHandler implements InvocationHandler {
@@ -1120,7 +1119,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<Long>() {
 				@Override
 				public Long doInRedis(RedisConnection connection) {
-					return connection.lInsert(rawKey, POSITION.BEFORE, rawPivot, rawValue);
+					return connection.lInsert(rawKey, Position.BEFORE, rawPivot, rawValue);
 				}
 			}, true);
 		}
@@ -1214,7 +1213,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return execute(new RedisCallback<Long>() {
 				@Override
 				public Long doInRedis(RedisConnection connection) {
-					return connection.lInsert(rawKey, POSITION.AFTER, rawPivot, rawValue);
+					return connection.lInsert(rawKey, Position.AFTER, rawPivot, rawValue);
 				}
 			}, true);
 		}

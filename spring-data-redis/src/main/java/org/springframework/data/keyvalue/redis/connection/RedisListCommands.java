@@ -25,7 +25,10 @@ import java.util.List;
  */
 public interface RedisListCommands {
 
-	public enum POSITION {
+	/**
+	 * List insertion position. 
+	 */
+	public enum Position {
 		BEFORE, AFTER
 	}
 
@@ -45,7 +48,7 @@ public interface RedisListCommands {
 
 	byte[] lIndex(byte[] key, long index);
 
-	Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value);
+	Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value);
 
 	void lSet(byte[] key, long index, byte[] value);
 

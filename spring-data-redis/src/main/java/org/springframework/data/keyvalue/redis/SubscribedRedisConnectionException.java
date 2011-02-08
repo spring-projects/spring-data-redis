@@ -22,7 +22,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
  * for events.
  * 
  * @author Costin Leau
- * @see RedisConnection#subscribe(org.springframework.data.keyvalue.redis.connection.MessageListener, byte[]...)
+ * @see org.springframework.data.keyvalue.redis.connection.RedisPubSubCommands
  */
 public class SubscribedRedisConnectionException extends InvalidDataAccessApiUsageException {
 

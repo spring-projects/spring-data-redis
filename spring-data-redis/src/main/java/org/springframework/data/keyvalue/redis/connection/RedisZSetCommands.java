@@ -26,10 +26,16 @@ import java.util.Set;
  */
 public interface RedisZSetCommands {
 
+	/**
+	 * Sort aggregation operations. 
+	 */
 	public enum Aggregate {
 		SUM, MIN, MAX;
 	}
 
+	/**
+	 * ZSet tuple. 
+	 */
 	public interface Tuple {
 		byte[] getValue();
 

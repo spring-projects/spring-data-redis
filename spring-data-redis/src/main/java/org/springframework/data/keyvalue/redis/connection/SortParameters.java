@@ -22,6 +22,9 @@ package org.springframework.data.keyvalue.redis.connection;
  */
 public interface SortParameters {
 
+	/**
+	 * Sorting order.
+	 */
 	public enum Order {
 		ASC, DESC
 	}
@@ -29,7 +32,6 @@ public interface SortParameters {
 	/**
 	 * Utility class wrapping the 'LIMIT' setting.
 	 * 
-	 * @author Costin Leau
 	 */
 	static class Range {
 		private final long start;

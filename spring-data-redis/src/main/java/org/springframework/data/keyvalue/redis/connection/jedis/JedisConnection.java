@@ -916,7 +916,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value) {
+	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		try {
 			if (isQueueing()) {
 				//				transaction.linsert(key, JedisUtils.convertPosition(where), pivot, value);

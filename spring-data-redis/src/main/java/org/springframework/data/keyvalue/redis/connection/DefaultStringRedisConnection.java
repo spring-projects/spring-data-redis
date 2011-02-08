@@ -30,6 +30,8 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
 /**
+ * Default implementation of {@link StringRedisConnection}.
+ * 
  * @author Costin Leau
  */
 public class DefaultStringRedisConnection implements StringRedisConnection {
@@ -250,7 +252,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.lIndex(key, index);
 	}
 
-	public Long lInsert(byte[] key, POSITION where, byte[] pivot, byte[] value) {
+	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		return delegate.lInsert(key, where, pivot, value);
 	}
 
@@ -777,7 +779,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public Long lInsert(String key, POSITION where, String pivot, String value) {
+	public Long lInsert(String key, Position where, String pivot, String value) {
 		return delegate.lInsert(serialize(key), where, serialize(pivot), serialize(value));
 	}
 

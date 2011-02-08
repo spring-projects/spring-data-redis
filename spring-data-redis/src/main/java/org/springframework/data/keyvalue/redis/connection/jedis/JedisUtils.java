@@ -33,7 +33,7 @@ import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
-import org.springframework.data.keyvalue.redis.connection.RedisListCommands.POSITION;
+import org.springframework.data.keyvalue.redis.connection.RedisListCommands.Position;
 import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
@@ -187,9 +187,9 @@ public abstract class JedisUtils {
 		return (value ? ONE : ZERO);
 	}
 
-	static LIST_POSITION convertPosition(POSITION where) {
+	static LIST_POSITION convertPosition(Position where) {
 		Assert.notNull("list positions are mandatory");
-		return (POSITION.AFTER.equals(where) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
+		return (Position.AFTER.equals(where) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
 	}
 
 	static Properties info(String string) {
