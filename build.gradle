@@ -1,16 +1,39 @@
+import org.springframework.build.Version
+
 // used for artifact names, building doc upload urls, etc.
 description = 'Spring Data Key Value'
 abbreviation = 'DATAKV'
 
-apply plugin: "eclipse"
-apply plugin: "idea"
-apply from: "$rootDir/gradle/docbook.gradle"
+apply plugin: 'base'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+def buildSrcDir = "$rootDir/buildSrc"
+apply from: "$buildSrcDir/wrapper.gradle"
+apply from: "$buildSrcDir/maven-root-pom.gradle"
+
 
 assemble.dependsOn generatePom
+
+allprojects {
+    // group will translate to groupId during pom generation and deployment
+    group = 'org.springframework.data.keyvalue'
+
+    // version will be used in maven pom generation as well as determining
+    // where artifacts should be deployed, based on release type of snapshot,
+    // milestone or release.
+    // @see org.springframework.build.Version under buildSrc/ for more info
+    // @see gradle.properties for the declaration of this property.
+    version = new Version(springDataKeyValueVersion)
+}
 
 subprojects {
 	apply plugin: "java"
 	apply plugin: "maven"
+  apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
+  apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
+  apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
+	
 
 	releaseType = "M2"
 	version = "1.0.0.$releaseType"
@@ -24,16 +47,19 @@ subprojects {
 	project.checkForProps = { Map args ->
 		requiredPropSets.add args
 	}
-	// TODO: Finish integrating this stuff with our build
-	//apply from: "$rootDir/gradle/maven-deployment.gradle"
-	//apply from: "$rootDir/gradle/dist.gradle"
 
+  // add tasks for creating source jars and generating poms etc
+  apply from: "$buildSrcDir/maven-deployment.gradle"
+
+  // add tasks for finding and publishing .xsd files
+  apply from: "$buildSrcDir/schema-publication.gradle"
+  
 	repositories {
 		// Read user's local Maven repo first
 		mavenRepo name: "mavenLocal", urls: new File(System.getProperty("user.home"), ".m2/repository").toURL().toString()
 		// Public Spring artefacts
+    mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
 		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
-	  mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
 		mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
 		mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
 		// Additional community artefacts
@@ -83,3 +109,13 @@ ideaProject {
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
 	}
 }
+
+// -----------------------------------------------------------------------------
+// Configuration for the docs subproject
+// -----------------------------------------------------------------------------
+project('docs') {
+    apply from: "$buildSrcDir/docs.gradle"
+}
+
+apply from: "$buildSrcDir/dist.gradle"
+apply from: "$buildSrcDir/checks.gradle"
