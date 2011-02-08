@@ -36,7 +36,7 @@ public class ChannelTopic implements Topic {
 	/**
 	 * Returns the channel name.
 	 *  
-	 * @return
+	 * @return channel name
 	 */
 	public String getTopic() {
 		return channelName;

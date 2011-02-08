@@ -26,7 +26,6 @@ public interface SessionCallback<T> {
 	/**
 	 * Executes all the given operations inside the same session.
 	 * 
-	 * @param <T> return type
 	 * @param operations Redis operations
 	 * @return return value
 	 */

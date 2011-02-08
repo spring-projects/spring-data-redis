@@ -289,7 +289,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Sets the key serializer to be used by this template. Defaults to {@link getDefaultSerializer}.
 	 * 
-	 * @param serializer
+	 * @param serializer the key serializer to be used by this template.
 	 */
 	public void setKeySerializer(RedisSerializer<?> serializer) {
 		this.keySerializer = serializer;
@@ -298,7 +298,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Returns the key serializer used by this template.
 	 * 
-	 * @return
+	 * @return the key serializer used by this template.
 	 */
 	public RedisSerializer<?> getKeySerializer() {
 		return keySerializer;
@@ -307,7 +307,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Sets the value serializer to be used by this template. Defaults to {@link getDefaultSerializer}.
 	 * 
-	 * @param serializer
+	 * @param serializer the value serializer to be used by this template.
 	 */
 	public void setValueSerializer(RedisSerializer<?> serializer) {
 		this.valueSerializer = serializer;
@@ -316,7 +316,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Returns the value serializer used by this template.
 	 * 
-	 * @return
+	 * @return the value serializer used by this template.
 	 */
 	public RedisSerializer<?> getValueSerializer() {
 		return valueSerializer;

@@ -27,7 +27,8 @@ public interface RedisPubSubCommands {
 	 * or not.
 	 * 
 	 * @return true if the connection is subscribed, false otherwise
-	 * @see #subscribe(Subscription, byte[]...)
+	 * @see #subscribe(listener, channels)
+	 * @see #pSubscribe(listener, channels)
 	 */
 	boolean isSubscribed();
 
@@ -36,7 +37,8 @@ public interface RedisPubSubCommands {
 	 * not subscribed.
 	 * 
 	 * @return the current subscription, null if none is available
-	 * @see #subscribe(Subscription, byte[]...)
+	 * @see #subscribe(listener, channels)
+	 * @see #pSubscribe(listener, channels)
 	 */
 	Subscription getSubscription();
 
@@ -58,7 +60,7 @@ public interface RedisPubSubCommands {
 	 * Note that this operation is blocking and the current thread starts waiting
 	 * for new messages immediately.
 	 * 
-	 * @param subscription message subscription
+	 * @param listener message listener
 	 * @param channels channel names
 	 */
 	void subscribe(MessageListener listener, byte[]... channels);
@@ -72,7 +74,7 @@ public interface RedisPubSubCommands {
 	 * Note that this operation is blocking and the current thread starts waiting
 	 * for new messages immediately.
 	 * 
-	 * @param subscription message subscription
+	 * @param listener message listener
 	 * @param patterns channel name patterns
 	 */
 	void pSubscribe(MessageListener listener, byte[]... patterns);
