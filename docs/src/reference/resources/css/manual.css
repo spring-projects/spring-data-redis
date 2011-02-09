@@ -67,3 +67,33 @@ div.table td {
     background-color: #F4F4F4;
     font-size: 14px;
 }
+
+.mediaobject {
+    padding-top: 30px; 
+    padding-bottom: 30px; 
+}
+
+.legalnotice {
+    font-family: Verdana, Arial, helvetica, sans-serif;
+    font-size: 12px;
+    font-style: italic;
+}
+
+p.releaseinfo {
+    font-size: 100%;
+    font-weight: bold;
+    font-family: Verdana, Arial, helvetica, sans-serif;
+    padding-top: 10px;
+}
+
+p.pubdate {
+    font-size: 120%;
+    font-weight: bold; 
+    font-family: Verdana, Arial, helvetica, sans-serif;
+}
+
+span.productname {
+    font-size: 200%;
+    font-weight: bold; 
+    font-family: Verdana, Arial, helvetica, sans-serif;
+}
