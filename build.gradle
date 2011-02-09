@@ -53,6 +53,7 @@ configure(javaprojects) {
 	apply from: "$buildSrcDir/schema-publication.gradle"
   
 	repositories {
+        mavenLocal()
 		// Public Spring artefacts
 		mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
 		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
@@ -94,6 +95,7 @@ configurations {
 }
 
 repositories {
+    mavenLocal()
 	mavenCentral()
 }
 
