@@ -1,4 +1,4 @@
-SPRING DATA REDIS INTEGRATION CHANGELOG
+SPRING DATA KEY/VALUE INTEGRATION CHANGELOG
 =======================================
 http://www.springsource.org/spring-data
 
@@ -17,6 +17,13 @@ Package o.s.d.k.redis.connection
 Package o.s.d.k.redis.support
 * Refined AtomicInteger and AtomicLong constructors to use the backing store value as initial counter
 
+
+Changes in version Riak 1.0.0.M2 (2011-xx-xx)
+---------------------------------------------
+General
+* Important bug fixes
+* Fully asynchronous AsyncRiakTemplate object
+* Groovy DSL for Riak access using async template underneath
 
 Changes in version Riak 1.0.0.M1 (2010-12-15)
 ---------------------------------------------
