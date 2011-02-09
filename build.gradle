@@ -24,6 +24,19 @@ allprojects {
     // @see org.springframework.build.Version under buildSrc/ for more info
     // @see gradle.properties for the declaration of this property.
     version = new Version(springDataKeyValueVersion)
+    
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        // Public Spring artefacts
+        mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
+        mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
+        mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
+        mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
+        mavenRepo name: "sonatype-snapshot", urls: "http://oss.sonatype.org/content/repositories/snapshots"
+        mavenRepo name: "jboss", urls: "http://repository.jboss.org/maven2/"
+        mavenRepo name: "java.net", urls: "http://download.java.net/maven/2/"
+	}
 }
 
 javaprojects = subprojects.findAll { project ->
@@ -52,20 +65,6 @@ configure(javaprojects) {
 	// add tasks for finding and publishing .xsd files
 	apply from: "$buildSrcDir/schema-publication.gradle"
   
-	repositories {
-        mavenLocal()
-		// Public Spring artefacts
-		mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
-		mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
-		mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
-		mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
-		// Additional community artefacts
-		mavenCentral()
-		mavenRepo name: "sonatype-snapshot", urls: "http://oss.sonatype.org/content/repositories/snapshots"
-		mavenRepo name: "jboss", urls: "http://repository.jboss.org/maven2/"
-		mavenRepo name: "java.net", urls: "http://download.java.net/maven/2/"
-	}
-
 	// Common dependencies
 	dependencies {
 		// Logging
@@ -92,11 +91,6 @@ configure(javaprojects) {
 
 configurations {
 	build
-}
-
-repositories {
-    mavenLocal()
-	mavenCentral()
 }
 
 dependencies {
