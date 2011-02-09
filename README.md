@@ -16,13 +16,12 @@ Read the main project [website](http://www.springsource.org/spring-data) and the
 
 For those in a hurry:
 
-
-* Download the jar through Maven:
+* Download the (SNAPSHOT) jar through Maven:
 
       <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-redis</artifactId>
-        <version>1.0.0-BUILD-SNAPSHOT</version>
+        <version>1.0.0.BUILD-SNAPSHOT</version>
       </dependency> 
 
       <repository>
@@ -65,7 +64,7 @@ For those in a hurry:
       <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-riak</artifactId>
-        <version>1.0.0-BUILD-SNAPSHOT</version>
+        <version>1.0.0.BUILD-SNAPSHOT</version>
       </dependency> 
 
       <repository>

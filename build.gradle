@@ -16,7 +16,7 @@ assemble.dependsOn generatePom
 
 allprojects {
     // group will translate to groupId during pom generation and deployment
-    group = 'org.springframework.data.keyvalue'
+    group = 'org.springframework.data'
 
     // version will be used in maven pom generation as well as determining
     // where artifacts should be deployed, based on release type of snapshot,
