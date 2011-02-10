@@ -5,7 +5,7 @@
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-keyvalue-dist</artifactId>
   <name>Spring Data Key-Value Distribution</name>
-  <version>1.0.0.M2</version>
+  <version>1.0.0.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <properties>
