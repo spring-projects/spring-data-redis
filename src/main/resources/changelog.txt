@@ -1,5 +1,5 @@
 SPRING DATA KEY/VALUE INTEGRATION CHANGELOG
-=======================================
+===========================================
 http://www.springsource.org/spring-data
 
 
