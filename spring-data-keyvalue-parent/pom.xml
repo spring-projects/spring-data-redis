@@ -7,7 +7,7 @@
   <artifactId>spring-data-keyvalue-parent</artifactId>
   <name>Spring Data Key-Value Parent</name>
   <url>http://www.springsource.org/spring-data/data-keyvalue</url>
-  <version>1.0.0.M2-SNAPSHOT</version>
+  <version>1.0.0.M2</version>
   <packaging>pom</packaging>
 
   <properties>
