@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
@@ -32,15 +33,16 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 public abstract class AbstractConnectionIntegrationTests {
 
-	protected RedisConnection connection;
+	protected StringRedisConnection connection;
 	protected RedisSerializer serializer = new JdkSerializationRedisSerializer();
 	protected RedisSerializer stringSerializer = new StringRedisSerializer();
 
 	private static final String listName = "test-list";
+	private static final byte[] EMPTY_ARRAY = new byte[0];
 
 	@Before
 	public void setUp() {
-		connection = getConnectionFactory().getConnection();
+		connection = new DefaultStringRedisConnection(getConnectionFactory().getConnection());
 	}
 
 	protected abstract RedisConnectionFactory getConnectionFactory();
@@ -96,5 +98,46 @@ public abstract class AbstractConnectionIntegrationTests {
 		String version = info.getProperty("redis_version");
 		assertNotNull(version);
 		System.out.println(info);
+	}
+
+	@Test
+	public void testNullKey() throws Exception {
+		connection.decr((String) null);
+		connection.decr(EMPTY_ARRAY);
+	}
+
+	@Test
+	public void testNullValue() throws Exception {
+		byte[] key = UUID.randomUUID().toString().getBytes();
+		connection.append(key, EMPTY_ARRAY);
+		try {
+			connection.append(key, null);
+		} catch (DataAccessException ex) {
+			// expected
+		}
+	}
+
+	@Test
+	public void testHashNullKey() throws Exception {
+		byte[] key = UUID.randomUUID().toString().getBytes();
+		connection.hExists(key, EMPTY_ARRAY);
+		try {
+			connection.hExists(key, null);
+		} catch (DataAccessException ex) {
+			// expected
+		}
+	}
+
+	@Test
+	public void testHashNullValue() throws Exception {
+		byte[] key = UUID.randomUUID().toString().getBytes();
+		byte[] field = "random".getBytes();
+
+		connection.hSet(key, field, EMPTY_ARRAY);
+		try {
+			connection.hSet(key, field, null);
+		} catch (DataAccessException ex) {
+			// expected
+		}
 	}
 }
