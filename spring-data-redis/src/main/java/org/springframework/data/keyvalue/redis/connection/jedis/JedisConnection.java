@@ -110,7 +110,7 @@ public class JedisConnection implements RedisConnection {
 			return JedisUtils.convertJedisAccessException((IOException) ex);
 		}
 
-		throw new UncategorizedKeyvalueStoreException("Unknown jedis exception", ex);
+		return new UncategorizedKeyvalueStoreException("Unknown jedis exception", ex);
 	}
 
 	@Override
