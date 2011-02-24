@@ -365,5 +365,4 @@
       <url>s3://maven.springframework.org/snapshot</url>
     </snapshotRepository>
   </distributionManagement>
-
 </project>
