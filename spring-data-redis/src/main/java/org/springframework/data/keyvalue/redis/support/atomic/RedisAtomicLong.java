@@ -17,7 +17,6 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.KeyBound;
@@ -177,15 +176,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndIncrement() {
-		return CASUtils.execute(generalOps, key, new Callable<Long>() {
-			@Override
-			public Long call() throws Exception {
-				long value = get();
-				generalOps.multi();
-				operations.increment(key, 1);
-				return value;
-			}
-		});
+		return incrementAndGet() - 1;
 	}
 
 	/**
@@ -194,15 +185,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndDecrement() {
-		return CASUtils.execute(generalOps, key, new Callable<Long>() {
-			@Override
-			public Long call() throws Exception {
-				long value = get();
-				generalOps.multi();
-				operations.increment(key, -11);
-				return value;
-			}
-		});
+		return decrementAndGet() + 1;
 	}
 
 	/**
@@ -212,15 +195,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndAdd(final long delta) {
-		return CASUtils.execute(generalOps, key, new Callable<Long>() {
-			@Override
-			public Long call() throws Exception {
-				long value = get();
-				generalOps.multi();
-				set(value + delta);
-				return value;
-			}
-		});
+		return addAndGet(delta) - delta;
 	}
 
 	/**
