@@ -576,6 +576,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public void delete(K key) {
+		final byte[] rawKey = rawKey(key);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.del(rawKey);
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
 	public void delete(Collection<K> keys) {
 		final byte[][] rawKeys = rawKeys(keys);
 
@@ -782,6 +795,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.discard();
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
+	public void watch(K key) {
+		final byte[] rawKey = rawKey(key);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.watch(rawKey);
 				return null;
 			}
 		}, true);

@@ -65,6 +65,8 @@ public interface RedisOperations<K, V> {
 
 	Boolean hasKey(K key);
 
+	void delete(K key);
+
 	void delete(Collection<K> key);
 
 	DataType type(K key);
@@ -84,6 +86,8 @@ public interface RedisOperations<K, V> {
 	void persist(K key);
 
 	Long getExpire(K key);
+
+	void watch(K keys);
 
 	void watch(Collection<K> keys);
 
