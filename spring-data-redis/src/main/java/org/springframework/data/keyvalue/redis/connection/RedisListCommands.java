@@ -42,9 +42,9 @@ public interface RedisListCommands {
 
 	Long lLen(byte[] key);
 
-	List<byte[]> lRange(byte[] key, long start, long end);
+	List<byte[]> lRange(byte[] key, long begin, long end);
 
-	void lTrim(byte[] key, long start, long end);
+	void lTrim(byte[] key, long begin, long end);
 
 	byte[] lIndex(byte[] key, long index);
 

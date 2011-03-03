@@ -29,7 +29,9 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	RedisOperations<K, V> getOperations();
 
-	void intersectAndStore(K destKey, Collection<K> keys);
+	void intersectAndStore(K otherKey, K destKey);
+
+	void intersectAndStore(Collection<K> otherKeys, K destKey);
 
 	Set<V> range(long start, long end);
 
@@ -41,7 +43,9 @@ public interface BoundZSetOperations<K, V> extends KeyBound<K> {
 
 	void removeRangeByScore(double min, double max);
 
-	void unionAndStore(K destKey, Collection<K> keys);
+	void unionAndStore(K otherKey, K destKey);
+
+	void unionAndStore(Collection<K> otherKeys, K destKey);
 
 	Boolean add(V value, double score);
 

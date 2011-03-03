@@ -30,9 +30,13 @@ import java.util.SortedSet;
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
-	RedisZSet<E> intersectAndStore(String destKey, Collection<? extends RedisZSet<?>> sets);
+	RedisZSet<E> intersectAndStore(RedisZSet<?> set, String destKey);
 
-	RedisZSet<E> unionAndStore(String destKey, Collection<? extends RedisZSet<?>> sets);
+	RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
+
+	RedisZSet<E> unionAndStore(RedisZSet<?> set, String destKey);
+
+	RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey);
 
 	Set<E> range(long start, long end);
 

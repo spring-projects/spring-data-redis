@@ -28,7 +28,7 @@ import java.util.concurrent.BlockingDeque;
  */
 public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque<E> {
 
-	List<E> range(long start, long end);
+	List<E> range(long begin, long end);
 
-	RedisList<E> trim(int start, int end);
+	RedisList<E> trim(int begin, int end);
 }

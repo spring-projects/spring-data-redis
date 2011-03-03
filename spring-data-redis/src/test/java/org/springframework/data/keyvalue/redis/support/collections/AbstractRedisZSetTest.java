@@ -207,7 +207,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		interSet2.add(t3, 3);
 
 		String resultName = "test:zset:inter:result:1";
-		RedisZSet<T> inter = zSet.intersectAndStore(resultName, Arrays.asList(interSet1, interSet2));
+		RedisZSet<T> inter = zSet.intersectAndStore(Arrays.asList(interSet1, interSet2), resultName);
 
 		assertEquals(1, inter.size());
 		assertThat(inter, hasItem(t2));
@@ -327,7 +327,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		unionSet2.add(t3, 6);
 
 		String resultName = "test:zset:union:result:1";
-		RedisZSet<T> union = zSet.unionAndStore(resultName, Arrays.asList(unionSet1, unionSet2));
+		RedisZSet<T> union = zSet.unionAndStore(Arrays.asList(unionSet1, unionSet2), resultName);
 		assertEquals(4, union.size());
 		assertThat(union, hasItems(t1, t2, t3, t4));
 		assertEquals(resultName, union.getKey());

@@ -24,6 +24,8 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.core.SessionCallback;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
+import org.springframework.data.keyvalue.redis.serializer.BasicNumberToStringSerializer;
+import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 /**
  * Atomic integer backed by Redis.
@@ -47,6 +49,8 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory) {
 		RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<String, Integer>(factory);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new BasicNumberToStringSerializer<Integer>(Integer.class));
 		redisTemplate.setExposeConnection(true);
 		this.key = redisCounter;
 		this.generalOps = redisTemplate;

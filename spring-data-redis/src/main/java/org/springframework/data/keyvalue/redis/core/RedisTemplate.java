@@ -426,6 +426,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return rawKeys;
 	}
 
+	private byte[][] rawKeys(K key, K otherKey) {
+		final byte[][] rawKeys = new byte[2][];
+
+
+		rawKeys[0] = rawKey(key);
+		rawKeys[1] = rawKey(key);
+		return rawKeys;
+	}
+
 	private byte[][] rawKeys(K key, Collection<K> keys) {
 		final byte[][] rawKeys = new byte[keys.size() + 1][];
 
@@ -1327,8 +1336,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> difference(final K key, final Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public Set<V> difference(K key, K otherKey) {
+			return difference(key, Collections.singleton(otherKey));
+		}
+
+		@Override
+		public Set<V> difference(final K key, final Collection<K> otherKeys) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1340,8 +1354,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void differenceAndStore(final K key, K destKey, final Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void differenceAndStore(K key, K otherKey, K destKey) {
+			differenceAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void differenceAndStore(final K key, final Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1358,8 +1377,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> intersect(K key, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public Set<V> intersect(K key, K otherKey) {
+			return intersect(key, Collections.singleton(otherKey));
+		}
+
+		@Override
+		public Set<V> intersect(K key, Collection<K> otherKeys) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1371,8 +1395,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void intersectAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void intersectAndStore(K key, K otherKey, K destKey) {
+			intersectAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1409,7 +1438,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Boolean move(K key, K destKey, V value) {
+		public Boolean move(K key, V value, K destKey) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawDestKey = rawKey(destKey);
 			final byte[] rawValue = rawValue(value);
@@ -1467,8 +1496,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> union(K key, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public Set<V> union(K key, K otherKey) {
+			return union(key, Collections.singleton(otherKey));
+		}
+
+		@Override
+		public Set<V> union(K key, Collection<K> otherKeys) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1480,8 +1514,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void unionAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void unionAndStore(K key, K otherKey, K destKey) {
+			unionAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1540,9 +1579,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return RedisTemplate.this;
 		}
 
+
 		@Override
-		public void intersectAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void intersectAndStore(K key, K otherKey, K destKey) {
+			intersectAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1698,8 +1743,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void unionAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void unionAndStore(K key, K otherKey, K destKey) {
+			unionAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override

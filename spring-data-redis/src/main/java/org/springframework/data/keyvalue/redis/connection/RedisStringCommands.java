@@ -52,9 +52,9 @@ public interface RedisStringCommands {
 
 	Long append(byte[] key, byte[] value);
 
-	byte[] getRange(byte[] key, int start, int end);
+	byte[] getRange(byte[] key, int begin, int end);
 
-	void setRange(byte[] key, int start, int end);
+	void setRange(byte[] key, int begin, int end);
 
 	Boolean getBit(byte[] key, long offset);
 

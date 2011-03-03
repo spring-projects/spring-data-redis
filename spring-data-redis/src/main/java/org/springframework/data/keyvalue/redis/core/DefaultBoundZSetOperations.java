@@ -55,8 +55,13 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public void intersectAndStore(K destKey, Collection<K> keys) {
-		ops.intersectAndStore(getKey(), destKey, keys);
+	public void intersectAndStore(K destKey, K otherKey) {
+		ops.intersectAndStore(getKey(), otherKey, destKey);
+	}
+
+	@Override
+	public void intersectAndStore(Collection<K> otherKeys, K destKey) {
+		ops.intersectAndStore(getKey(), otherKeys, destKey);
 	}
 
 	@Override
@@ -115,7 +120,12 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	}
 
 	@Override
-	public void unionAndStore(K destKey, Collection<K> keys) {
-		ops.unionAndStore(getKey(), destKey, keys);
+	public void unionAndStore(K otherKey, K destKey) {
+		ops.unionAndStore(getKey(), otherKey, destKey);
+	}
+
+	@Override
+	public void unionAndStore(Collection<K> otherKeys, K destKey) {
+		ops.unionAndStore(getKey(), otherKeys, destKey);
 	}
 }

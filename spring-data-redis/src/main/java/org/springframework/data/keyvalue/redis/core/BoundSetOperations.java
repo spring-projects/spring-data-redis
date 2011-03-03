@@ -28,17 +28,29 @@ public interface BoundSetOperations<K, V> extends KeyBound<K> {
 
 	RedisOperations<K, V> getOperations();
 
+	Set<V> diff(K key);
+
 	Set<V> diff(Collection<K> keys);
 
-	void diffAndStore(K destKey, Collection<K> keys);
+	void diffAndStore(K key, K destKey);
+
+	void diffAndStore(Collection<K> keys, K destKey);
+
+	Set<V> intersect(K key);
 
 	Set<V> intersect(Collection<K> keys);
 
-	void intersectAndStore(K destKey, Collection<K> keys);
+	void intersectAndStore(K key, K destKey);
+
+	void intersectAndStore(Collection<K> keys, K destKey);
+
+	Set<V> union(K key);
 
 	Set<V> union(Collection<K> keys);
 
-	void unionAndStore(K destKey, Collection<K> keys);
+	void unionAndStore(K key, K destKey);
+
+	void unionAndStore(Collection<K> keys, K destKey);
 
 	Boolean add(V value);
 
