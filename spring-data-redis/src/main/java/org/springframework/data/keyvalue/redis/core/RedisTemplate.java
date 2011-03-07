@@ -32,10 +32,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.connection.DefaultSortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisListCommands.Position;
+import org.springframework.data.keyvalue.redis.core.query.SortQuery;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -145,7 +147,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @return object returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
-		return execute(action, exposeConnection, valueSerializer);
+		return execute(action, exposeConnection, false);
 	}
 
 	/**
@@ -158,35 +160,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @return object returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
-		return execute(action, exposeConnection, pipeline, valueSerializer);
-	}
-
-	/**
-	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
-	 * to be specified for the returned object.
-	 * 
-	 * @param <T> return type
-	 * @param action action callback object that specifies the Redis action
-	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
-	 * @param returnSerializer serializer used for converting the binary data to the custom return type
-	 * @return returned by the action
-	 */
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer<?> returnSerializer) {
-		return execute(action, exposeConnection, false, returnSerializer);
-	}
-
-	/**
-	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
-	 * to be specified for the returned object.
-	 * 
-	 * @param <T> return type
-	 * @param action action callback object that specifies the Redis action
-	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
-	 * @param pipeline whether to pipeline or not the connection for the execution duration
-	 * @param returnSerializer serializer used for converting the binary data to the custom return type
-	 * @return returned by the action
-	 */
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline, RedisSerializer<?> returnSerializer) {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
@@ -203,7 +176,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		try {
 			RedisConnection connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
 			T result = action.doInRedis(connToExpose);
-			// TODO: should do flush?
+			// TODO: any other connection processing?
 			return postProcessResult(result, conn, existingConnection);
 		} finally {
 			try {
@@ -450,11 +423,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private <T extends Collection<V>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
-		Collection<V> values = (List.class.isAssignableFrom(type) ? new ArrayList<V>(rawValues.size())
-				: new LinkedHashSet<V>(rawValues.size()));
+		return deserializeValues(rawValues, type, valueSerializer);
+	}
+
+	private <X, T extends Collection<X>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type, RedisSerializer<?> redisSerializer) {
+		Collection<X> values = (List.class.isAssignableFrom(type) ? new ArrayList<X>(rawValues.size())
+				: new LinkedHashSet<X>(rawValues.size()));
 		for (byte[] bs : rawValues) {
 			if (bs != null) {
-				values.add((V) valueSerializer.deserialize(bs));
+				values.add((X) redisSerializer.deserialize(bs));
 			}
 		}
 
@@ -1974,5 +1951,97 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return deserializeHashMap(entries);
 		}
+	}
+
+	// Sort operations
+	public List<V> sort(SortQuery<K> query) {
+		return sort(query, null);
+	}
+
+	public List<V> sort(SortQuery<K> query, String getKeyPattern) {
+		return sort(query, getKeyPattern, valueSerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> List<T> sort(SortQuery<K> query, String getKeyPattern, RedisSerializer<T> resultSerializer) {
+		final byte[] rawKey = rawKey(query.getKey());
+		final SortParameters params = convertQuery(query,
+				(getKeyPattern != null ? Collections.singletonList(getKeyPattern) : null), stringSerializer);
+
+		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
+			@Override
+			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sort(rawKey, params);
+			}
+		}, true);
+
+		return (List<T>) deserializeValues(vals, List.class, resultSerializer);
+	}
+
+	public <T> List<T> sort(SortQuery<K> query, List<String> getKeyPattern, BulkMapper<T> bulkMapper) {
+		final byte[] rawKey = rawKey(query.getKey());
+		final SortParameters params = convertQuery(query, getKeyPattern, stringSerializer);
+
+		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
+			@Override
+			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sort(rawKey, params);
+			}
+		}, true);
+
+		int bulkSize = getKeyPattern.size();
+		List<T> result = new ArrayList<T>(vals.size() / bulkSize + 1);
+
+		final List<byte[]> bulk = new ArrayList<byte[]>(bulkSize);
+		final List<byte[]> listView = Collections.unmodifiableList(bulk);
+
+		for (byte[] bs : vals) {
+			bulk.add(bs);
+			if (bulk.size() == bulkSize) {
+				bulkMapper.mapBulk(listView.iterator());
+				bulk.clear();
+			}
+		}
+
+		return result;
+	}
+
+	public void sortAndStore(SortQuery<K> query, K storeKey) {
+		sortAndStore(query, null, storeKey);
+	}
+
+	public void sortAndStore(SortQuery<K> query, List<String> getKeyPattern, K storeKey) {
+		final byte[] rawStoreKey = rawKey(storeKey);
+		final byte[] rawKey = rawKey(query.getKey());
+		final SortParameters params = convertQuery(query, getKeyPattern, stringSerializer);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.sort(rawKey, params, rawStoreKey);
+				return null;
+			}
+		}, true);
+	}
+
+	private static <K> SortParameters convertQuery(SortQuery<K> query, List<String> getKeyPattern, RedisSerializer<String> stringSerializer) {
+
+		return new DefaultSortParameters(stringSerializer.serialize(query.getBy()), query.getLimit(), serialize(
+				getKeyPattern, stringSerializer), query.getOrder(), query.isAlphabetic());
+	}
+
+	private static byte[][] serialize(List<String> strings, RedisSerializer<String> stringSerializer) {
+		List<byte[]> raw = null;
+
+		if (strings == null) {
+			raw = Collections.emptyList();
+		}
+		else {
+			raw = new ArrayList<byte[]>(strings.size());
+			for (String key : strings) {
+				raw.add(stringSerializer.serialize(key));
+			}
+		}
+		return raw.toArray(new byte[raw.size()][]);
 	}
 }
