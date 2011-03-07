@@ -161,7 +161,7 @@ public abstract class JedisUtils {
 				jedisParams.by(params.getByPattern());
 			}
 
-			byte[] getPattern = params.getGetPattern();
+			byte[][] getPattern = params.getGetPattern();
 			if (getPattern != null) {
 				jedisParams.get(getPattern);
 			}

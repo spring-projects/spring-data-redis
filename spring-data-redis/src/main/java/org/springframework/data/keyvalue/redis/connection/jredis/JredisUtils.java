@@ -129,9 +129,12 @@ public abstract class JredisUtils {
 			if (byPattern != null) {
 				jredisSort.BY(decode(byPattern));
 			}
-			byte[] getPattern = params.getGetPattern();
-			if (getPattern != null) {
-				jredisSort.GET(decode(getPattern));
+			byte[][] getPattern = params.getGetPattern();
+
+			if (getPattern != null && getPattern.length > 0) {
+				for (byte[] bs : getPattern) {
+					jredisSort.GET(decode(bs));
+				}
 			}
 			Range limit = params.getLimit();
 			if (limit != null) {
