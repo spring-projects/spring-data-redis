@@ -15,6 +15,8 @@
  */
 package org.springframework.data.keyvalue.redis.core.query;
 
+import java.util.List;
+
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 
@@ -48,16 +50,23 @@ public interface SortQuery<K> {
 	Range getLimit();
 
 	/**
-	 * Target key for sorting.
+	 * Return the target key for sorting.
 	 * 
 	 * @return
 	 */
 	K getKey();
 
 	/**
-	 * Pattern of external key used for sorting.
+	 * Returns the pattern of the external key used for sorting.
 	 * 
 	 * @return 
 	 */
 	String getBy();
+
+	/**
+	 * Returns the external key(s) whose values are returned by the sort.
+	 *  
+	 * @return
+	 */
+	List<String> getGetPattern();
 }

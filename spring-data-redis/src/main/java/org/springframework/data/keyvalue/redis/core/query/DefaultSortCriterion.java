@@ -15,6 +15,9 @@
  */
 package org.springframework.data.keyvalue.redis.core.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 
@@ -25,6 +28,7 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 
 	private final K key;
 	private String by;
+	private final List<String> getKeys = new ArrayList<String>(4);
 
 	private Range limit;
 	private Order order;
@@ -42,7 +46,7 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 
 	@Override
 	public SortQuery<K> build() {
-		return new DefaultSortQuery<K>(key, by, limit, order, alpha);
+		return new DefaultSortQuery<K>(key, by, limit, order, alpha, getKeys);
 	}
 
 	@Override
@@ -60,6 +64,12 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 	@Override
 	public SortCriterion<K> order(Order order) {
 		this.order = order;
+		return this;
+	}
+
+	@Override
+	public SortCriterion<K> get(String getPattern) {
+		this.getKeys.add(getPattern);
 		return this;
 	}
 

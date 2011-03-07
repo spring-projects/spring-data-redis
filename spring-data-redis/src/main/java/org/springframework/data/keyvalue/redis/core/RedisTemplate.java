@@ -1954,19 +1954,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	// Sort operations
+	@SuppressWarnings("unchecked")
 	public List<V> sort(SortQuery<K> query) {
-		return sort(query, null);
-	}
-
-	public List<V> sort(SortQuery<K> query, String getKeyPattern) {
-		return sort(query, getKeyPattern, valueSerializer);
+		return sort(query, valueSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> List<T> sort(SortQuery<K> query, String getKeyPattern, RedisSerializer<T> resultSerializer) {
+	public <T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer) {
 		final byte[] rawKey = rawKey(query.getKey());
-		final SortParameters params = convertQuery(query,
-				(getKeyPattern != null ? Collections.singletonList(getKeyPattern) : null), stringSerializer);
+		final SortParameters params = convertQuery(query, stringSerializer);
 
 		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
 			@Override
@@ -1978,9 +1974,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (List<T>) deserializeValues(vals, List.class, resultSerializer);
 	}
 
-	public <T> List<T> sort(SortQuery<K> query, List<String> getKeyPattern, BulkMapper<T> bulkMapper) {
+	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T> bulkMapper) {
 		final byte[] rawKey = rawKey(query.getKey());
-		final SortParameters params = convertQuery(query, getKeyPattern, stringSerializer);
+		final SortParameters params = convertQuery(query, stringSerializer);
 
 		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
 			@Override
@@ -1989,7 +1985,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		}, true);
 
-		int bulkSize = getKeyPattern.size();
+		int bulkSize = query.getGetPattern().size();
 		List<T> result = new ArrayList<T>(vals.size() / bulkSize + 1);
 
 		final List<byte[]> bulk = new ArrayList<byte[]>(bulkSize);
@@ -2006,14 +2002,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result;
 	}
 
-	public void sortAndStore(SortQuery<K> query, K storeKey) {
-		sortAndStore(query, null, storeKey);
-	}
-
-	public void sortAndStore(SortQuery<K> query, List<String> getKeyPattern, K storeKey) {
+	public void sort(SortQuery<K> query, K storeKey) {
 		final byte[] rawStoreKey = rawKey(storeKey);
 		final byte[] rawKey = rawKey(query.getKey());
-		final SortParameters params = convertQuery(query, getKeyPattern, stringSerializer);
+		final SortParameters params = convertQuery(query, stringSerializer);
 
 		execute(new RedisCallback<Object>() {
 			@Override
@@ -2024,10 +2016,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	private static <K> SortParameters convertQuery(SortQuery<K> query, List<String> getKeyPattern, RedisSerializer<String> stringSerializer) {
+	private static <K> SortParameters convertQuery(SortQuery<K> query, RedisSerializer<String> stringSerializer) {
 
 		return new DefaultSortParameters(stringSerializer.serialize(query.getBy()), query.getLimit(), serialize(
-				getKeyPattern, stringSerializer), query.getOrder(), query.isAlphabetic());
+				query.getGetPattern(), stringSerializer), query.getOrder(), query.isAlphabetic());
 	}
 
 	private static byte[][] serialize(List<String> strings, RedisSerializer<String> stringSerializer) {

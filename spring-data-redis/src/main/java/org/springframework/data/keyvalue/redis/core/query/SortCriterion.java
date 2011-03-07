@@ -31,5 +31,7 @@ public interface SortCriterion<K> {
 
 	SortCriterion<K> alphabetical(boolean alpha);
 
+	SortCriterion<K> get(String pattern);
+
 	SortQuery<K> build();
 }
