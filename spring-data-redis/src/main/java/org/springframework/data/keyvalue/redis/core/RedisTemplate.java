@@ -1950,28 +1950,26 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (List<T>) deserializeValues(vals, List.class, resultSerializer);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T> bulkMapper) {
-		final byte[] rawKey = rawKey(query.getKey());
-		final SortParameters params = convertQuery(query, stringSerializer);
+	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper) {
+		return sort(query, bulkMapper, valueSerializer);
+	}
 
-		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
-			@Override
-			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.sort(rawKey, params);
-			}
-		}, true);
+	@Override
+	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer) {
+		List<S> values = sort(query, resultSerializer);
 
 		int bulkSize = query.getGetPattern().size();
-		List<T> result = new ArrayList<T>(vals.size() / bulkSize + 1);
+		List<T> result = new ArrayList<T>(values.size() / bulkSize + 1);
 
-		final List<byte[]> bulk = new ArrayList<byte[]>(bulkSize);
-		final List<byte[]> listView = Collections.unmodifiableList(bulk);
+		final List<S> bulk = new ArrayList<S>(bulkSize);
+		final List<S> listView = Collections.unmodifiableList(bulk);
 
-		for (byte[] bs : vals) {
-			bulk.add(bs);
+		for (S s : values) {
+			bulk.add(s);
 			if (bulk.size() == bulkSize) {
-				bulkMapper.mapBulk(listView.iterator());
+				result.add(bulkMapper.mapBulk(listView.iterator()));
 				bulk.clear();
 			}
 		}

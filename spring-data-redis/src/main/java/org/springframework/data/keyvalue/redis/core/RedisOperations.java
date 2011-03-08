@@ -196,8 +196,9 @@ public interface RedisOperations<K, V> {
 	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
 
 
-	<T> List<T> sort(SortQuery<K> query, BulkMapper<T> bulkMapper);
+	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
 
+	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
 
 	Long sort(SortQuery<K> query, K storeKey);
 }

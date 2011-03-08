@@ -72,4 +72,12 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 	public List<String> getGetPattern() {
 		return gets;
 	}
+
+	@Override
+	public String toString() {
+		return "DefaultSortQuery [alpha=" + alpha + ", by=" + by + ", gets=" + gets + ", key=" + key + ", limit="
+				+ limit + ", order=" + order + "]";
+	}
+
+
 }
