@@ -17,14 +17,14 @@ package org.springframework.data.keyvalue.redis.core.query;
 
 
 /**
- * Builder class for constructing {@link SortQuery}.
+ * Simple builder class for constructing {@link SortQuery}.
  *
  * @author Costin Leau
  */
 public class SortQueryBuilder<K> extends DefaultSortCriterion<K> {
 
 	private static final String NO_SORT_KEY = "~";
-	
+
 	private SortQueryBuilder(K key) {
 		super(key);
 	}

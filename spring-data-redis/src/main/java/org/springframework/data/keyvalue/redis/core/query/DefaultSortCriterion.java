@@ -22,6 +22,8 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 
 /**
+ * Default implementation for {@link SortCriterion}.
+ * 
  * @author Costin Leau
  */
 class DefaultSortCriterion<K> implements SortCriterion<K> {

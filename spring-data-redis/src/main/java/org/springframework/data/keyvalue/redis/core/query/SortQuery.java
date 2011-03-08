@@ -17,10 +17,16 @@ package org.springframework.data.keyvalue.redis.core.query;
 
 import java.util.List;
 
+import org.springframework.data.keyvalue.redis.connection.RedisConnection;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
+import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 
 /**
+ * High-level abstraction over a Redis SORT (generified equivalent of {@link SortParameters}). To be used with {@link RedisTemplate}
+ * (just as {@link SortParameters} is used by {@link RedisConnection}).
+ * 
  * @author Costin Leau
  */
 public interface SortQuery<K> {

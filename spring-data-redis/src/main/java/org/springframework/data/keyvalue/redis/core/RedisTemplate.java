@@ -423,15 +423,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private <T extends Collection<V>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
-		return deserializeValues(rawValues, type, valueSerializer);
+		return (T) deserializeValues(rawValues, type, valueSerializer);
 	}
 
-	private <X, T extends Collection<X>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type, RedisSerializer<?> redisSerializer) {
-		Collection<X> values = (List.class.isAssignableFrom(type) ? new ArrayList<X>(rawValues.size())
-				: new LinkedHashSet<X>(rawValues.size()));
+	@SuppressWarnings("unchecked")
+	private <T extends Collection<?>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type, RedisSerializer<?> redisSerializer) {
+		Collection<Object> values = (List.class.isAssignableFrom(type) ? new ArrayList<Object>(rawValues.size())
+				: new LinkedHashSet<Object>(rawValues.size()));
 		for (byte[] bs : rawValues) {
 			if (bs != null) {
-				values.add((X) redisSerializer.deserialize(bs));
+				values.add(redisSerializer.deserialize(bs));
 			}
 		}
 
@@ -621,33 +622,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.expireAt(rawKey, rawTimeout);
-			}
-		}, true);
-	}
-
-	@Override
-	public List<V> sort(K key, final SortParameters params) {
-		final byte[] rawKey = rawKey(key);
-
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-			@Override
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				return connection.sort(rawKey, params);
-			}
-		}, true);
-
-		return deserializeValues(rawValues, List.class);
-	}
-
-	@Override
-	public Long sort(K key, final SortParameters params, K destination) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawDestKey = rawKey(destination);
-
-		return execute(new RedisCallback<Long>() {
-			@Override
-			public Long doInRedis(RedisConnection connection) {
-				return connection.sort(rawKey, params, rawDestKey);
 			}
 		}, true);
 	}
@@ -1955,11 +1929,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	// Sort operations
 	@SuppressWarnings("unchecked")
+	@Override
 	public List<V> sort(SortQuery<K> query) {
 		return sort(query, valueSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer) {
 		final byte[] rawKey = rawKey(query.getKey());
 		final SortParameters params = convertQuery(query, stringSerializer);
@@ -1974,6 +1950,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (List<T>) deserializeValues(vals, List.class, resultSerializer);
 	}
 
+	@Override
 	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T> bulkMapper) {
 		final byte[] rawKey = rawKey(query.getKey());
 		final SortParameters params = convertQuery(query, stringSerializer);
@@ -2002,16 +1979,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result;
 	}
 
-	public void sort(SortQuery<K> query, K storeKey) {
+	@Override
+	public Long sort(SortQuery<K> query, K storeKey) {
 		final byte[] rawStoreKey = rawKey(storeKey);
 		final byte[] rawKey = rawKey(query.getKey());
 		final SortParameters params = convertQuery(query, stringSerializer);
 
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			@Override
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.sort(rawKey, params, rawStoreKey);
-				return null;
+			public Long doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sort(rawKey, params, rawStoreKey);
 			}
 		}, true);
 	}

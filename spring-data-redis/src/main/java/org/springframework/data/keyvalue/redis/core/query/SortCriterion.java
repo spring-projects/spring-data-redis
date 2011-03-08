@@ -19,6 +19,8 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 
 /**
+ * Internal interface part of the Sort DSL. Exposes generic operations.
+ * 
  * @author Costin Leau
  */
 public interface SortCriterion<K> {

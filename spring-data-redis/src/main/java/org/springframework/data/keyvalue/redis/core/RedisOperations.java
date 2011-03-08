@@ -22,7 +22,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.redis.connection.DataType;
-import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.core.query.SortQuery;
+import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 
 
 /**
@@ -101,10 +102,6 @@ public interface RedisOperations<K, V> {
 	void discard();
 
 	Object exec();
-
-	List<V> sort(K key, SortParameters params);
-
-	Long sort(K key, SortParameters params, K destination);
 
 	// pubsub functionality on the template
 	void convertAndSend(String destination, Object message);
@@ -191,4 +188,16 @@ public interface RedisOperations<K, V> {
 	 * @return hash operations bound to the given key.
 	 */
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
+
+
+	List<V> sort(SortQuery<K> query);
+
+
+	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
+
+
+	<T> List<T> sort(SortQuery<K> query, BulkMapper<T> bulkMapper);
+
+
+	Long sort(SortQuery<K> query, K storeKey);
 }
