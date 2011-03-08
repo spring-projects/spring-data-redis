@@ -15,8 +15,8 @@
  */
 package org.springframework.data.keyvalue.redis.mapping;
 
-import org.springframework.data.keyvalue.redis.mapper.HashMapper;
-import org.springframework.data.keyvalue.redis.mapper.JacksonHashMapper;
+import org.springframework.data.keyvalue.redis.hash.HashMapper;
+import org.springframework.data.keyvalue.redis.hash.JacksonHashMapper;
 
 public class JacksonHashMapperTest extends AbstractHashMapperTest {
 

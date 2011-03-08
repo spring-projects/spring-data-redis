@@ -22,7 +22,7 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
-import org.springframework.data.keyvalue.redis.mapper.HashMapper;
+import org.springframework.data.keyvalue.redis.hash.HashMapper;
 
 /**
  * @author Costin Leau
