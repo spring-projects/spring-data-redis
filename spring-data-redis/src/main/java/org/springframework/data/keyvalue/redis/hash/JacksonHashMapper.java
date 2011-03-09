@@ -18,33 +18,38 @@ package org.springframework.data.keyvalue.redis.hash;
 import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
- * Mapper based on Jackson library.
+ * Mapper based on Jackson library. Supports nested properties (rich objects).
  * 
  * @author Costin Leau
  */
-public class JacksonHashMapper<T> implements HashMapper<T> {
+public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 
-	private final Class<T> type;
 	private final ObjectMapper mapper;
+	private final JavaType userType;
+	private final JavaType mapType = TypeFactory.type(Map.class);
 
 	public JacksonHashMapper(Class<T> type) {
 		this(type, new ObjectMapper());
 	}
 
 	public JacksonHashMapper(Class<T> type, ObjectMapper mapper) {
-		this.type = type;
 		this.mapper = mapper;
+		this.userType = TypeFactory.type(type);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public T fromHash(Map<?, ?> hash) {
-		return mapper.convertValue(hash, type);
+	public T fromHash(Map<String, Object> hash) {
+		return (T) mapper.convertValue(hash, userType);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Map<?, ?> toHash(T object) {
-		return mapper.convertValue(object, Map.class);
+	public Map<String, Object> toHash(T object) {
+		return mapper.convertValue(object, mapType);
 	}
 }

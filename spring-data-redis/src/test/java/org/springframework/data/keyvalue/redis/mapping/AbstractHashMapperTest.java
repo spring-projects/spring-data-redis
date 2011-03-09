@@ -31,22 +31,10 @@ public abstract class AbstractHashMapperTest {
 	protected abstract HashMapper mapperFor(Class t);
 
 	private void test(Object o) {
-		HashMapper<Object> mapper = mapperFor(o.getClass());
+		HashMapper<Object, Object, Object> mapper = mapperFor(o.getClass());
 		Map hash = mapper.toHash(o);
 		System.out.println("object hash " + hash.size() + " is " + hash);
 		assertEquals(o, mapper.fromHash(hash));
-	}
-
-	@Test(expected = Exception.class)
-	public void testBasicValues() throws Exception {
-		test("SomeStrangeString*&#@");
-		test(123);
-		test(Integer.MAX_VALUE);
-		test(Long.MAX_VALUE);
-		test(Double.MIN_VALUE);
-		test(Float.MIN_VALUE);
-		test(Boolean.FALSE);
-		test(Thread.State.BLOCKED);
 	}
 
 	@Test
