@@ -1963,14 +1963,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		int bulkSize = query.getGetPattern().size();
 		List<T> result = new ArrayList<T>(values.size() / bulkSize + 1);
 
-		final List<S> bulk = new ArrayList<S>(bulkSize);
-		final List<S> listView = Collections.unmodifiableList(bulk);
-
+		List<S> bulk = new ArrayList<S>(bulkSize);
 		for (S s : values) {
+
 			bulk.add(s);
 			if (bulk.size() == bulkSize) {
-				result.add(bulkMapper.mapBulk(listView.iterator()));
-				bulk.clear();
+				result.add(bulkMapper.mapBulk(Collections.unmodifiableList(bulk)));
+				// create a new list (we could reuse the old one but the client might hang on to it for some reason)
+				bulk = new ArrayList<S>(bulkSize);
 			}
 		}
 

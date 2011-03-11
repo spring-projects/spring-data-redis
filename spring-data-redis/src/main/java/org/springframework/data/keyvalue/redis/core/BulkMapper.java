@@ -15,7 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
-import java.util.Iterator;
+import java.util.List;
 
 /**
  * Mapper translating Redis bulk value responses (typically returned by a sort query) to actual objects. Implementations of this interface do not have to worry
@@ -27,5 +27,5 @@ import java.util.Iterator;
  */
 public interface BulkMapper<T, V> {
 
-	T mapBulk(Iterator<V> valueStream);
+	T mapBulk(List<V> tuple);
 }
