@@ -87,7 +87,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	protected Jedis fetchJedisConnector() {
 		try {
-			if (usePool) {
+			if (usePool && pool != null) {
 				return pool.getResource();
 			}
 			Jedis jedis = new Jedis(getShardInfo());
