@@ -78,4 +78,30 @@ public class RedisAtomicTests {
 		assertTrue(longCounter.compareAndSet(0, 10));
 		assertTrue(longCounter.compareAndSet(10, 0));
 	}
+
+	@Test
+	public void testLongIncrement() throws Exception {
+		longCounter.set(0);
+		assertEquals(1, longCounter.incrementAndGet());
+	}
+
+	@Test
+	public void testIntIncrement() throws Exception {
+		intCounter.set(0);
+		assertEquals(1, intCounter.incrementAndGet());
+	}
+
+	@Test
+	public void testLongCustomIncrement() throws Exception {
+		longCounter.set(0);
+		long delta = 5;
+		assertEquals(delta, longCounter.addAndGet(delta));
+	}
+
+	@Test
+	public void testIntCustomIncrement() throws Exception {
+		intCounter.set(0);
+		int delta = 5;
+		assertEquals(delta, intCounter.addAndGet(delta));
+	}
 }
