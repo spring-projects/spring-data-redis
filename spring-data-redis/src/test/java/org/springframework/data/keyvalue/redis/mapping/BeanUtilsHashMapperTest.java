@@ -29,7 +29,7 @@ public class BeanUtilsHashMapperTest extends AbstractHashMapperTest {
 		return new BeanUtilsHashMapper(t);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = Exception.class)
 	public void testNestedBean() throws Exception {
 		super.testNestedBean();
 	}
