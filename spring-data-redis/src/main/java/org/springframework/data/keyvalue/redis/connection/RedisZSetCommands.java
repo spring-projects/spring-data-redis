@@ -52,13 +52,13 @@ public interface RedisZSetCommands {
 
 	Long zRevRank(byte[] key, byte[] value);
 
-	Set<byte[]> zRange(byte[] key, long start, long end);
+	Set<byte[]> zRange(byte[] key, long begin, long end);
 
-	Set<Tuple> zRangeWithScore(byte[] key, long start, long end);
+	Set<Tuple> zRangeWithScore(byte[] key, long begin, long end);
 
-	Set<byte[]> zRevRange(byte[] key, long start, long end);
+	Set<byte[]> zRevRange(byte[] key, long begin, long end);
 
-	Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end);
+	Set<Tuple> zRevRangeWithScore(byte[] key, long begin, long end);
 
 	Set<byte[]> zRangeByScore(byte[] key, double min, double max);
 
@@ -74,7 +74,7 @@ public interface RedisZSetCommands {
 
 	Double zScore(byte[] key, byte[] value);
 
-	Long zRemRange(byte[] key, long start, long end);
+	Long zRemRange(byte[] key, long begin, long end);
 
 	Long zRemRangeByScore(byte[] key, double min, double max);
 

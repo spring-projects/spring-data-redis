@@ -17,7 +17,6 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.KeyBound;
@@ -25,6 +24,8 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.core.SessionCallback;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
+import org.springframework.data.keyvalue.redis.serializer.BasicNumberToStringSerializer;
+import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 /**
  * Atomic long backed by Redis.
@@ -48,6 +49,8 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 */
 	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory) {
 		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>(factory);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new BasicNumberToStringSerializer<Long>(Long.class));
 		redisTemplate.setExposeConnection(true);
 		this.key = redisCounter;
 		this.generalOps = redisTemplate;
@@ -177,15 +180,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndIncrement() {
-		return CASUtils.execute(generalOps, key, new Callable<Long>() {
-			@Override
-			public Long call() throws Exception {
-				long value = get();
-				generalOps.multi();
-				operations.increment(key, 1);
-				return value;
-			}
-		});
+		return incrementAndGet() - 1;
 	}
 
 	/**
@@ -194,15 +189,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndDecrement() {
-		return CASUtils.execute(generalOps, key, new Callable<Long>() {
-			@Override
-			public Long call() throws Exception {
-				long value = get();
-				generalOps.multi();
-				operations.increment(key, -11);
-				return value;
-			}
-		});
+		return decrementAndGet() + 1;
 	}
 
 	/**
@@ -212,15 +199,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @return the previous value
 	 */
 	public long getAndAdd(final long delta) {
-		return CASUtils.execute(generalOps, key, new Callable<Long>() {
-			@Override
-			public Long call() throws Exception {
-				long value = get();
-				generalOps.multi();
-				set(value + delta);
-				return value;
-			}
-		});
+		return addAndGet(delta) - delta;
 	}
 
 	/**

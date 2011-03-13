@@ -15,6 +15,10 @@
  */
 package org.springframework.data.keyvalue.redis.connection;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 
 /**
  * Default implementation for {@link SortParameters}.
@@ -25,7 +29,7 @@ public class DefaultSortParameters implements SortParameters {
 
 	private byte[] byPattern;
 	private Range limit;
-	private byte[] getPattern;
+	private final List<byte[]> getPattern = new ArrayList<byte[]>(4);
 	private Order order;
 	private Boolean alphabetic;
 
@@ -56,13 +60,13 @@ public class DefaultSortParameters implements SortParameters {
 	 * @param order
 	 * @param alphabetic
 	 */
-	public DefaultSortParameters(byte[] byPattern, Range limit, byte[] getPattern, Order order, Boolean alphabetic) {
+	public DefaultSortParameters(byte[] byPattern, Range limit, byte[][] getPattern, Order order, Boolean alphabetic) {
 		super();
 		this.byPattern = byPattern;
 		this.limit = limit;
-		this.getPattern = getPattern;
 		this.order = order;
 		this.alphabetic = alphabetic;
+		setGetPattern(getPattern);
 	}
 
 	@Override
@@ -84,12 +88,20 @@ public class DefaultSortParameters implements SortParameters {
 	}
 
 	@Override
-	public byte[] getGetPattern() {
-		return getPattern;
+	public byte[][] getGetPattern() {
+		return getPattern.toArray(new byte[getPattern.size()][]);
 	}
 
-	public void setGetPattern(byte[] getPattern) {
-		this.getPattern = getPattern;
+	public void addGetPattern(byte[] gPattern) {
+		getPattern.add(gPattern);
+	}
+
+	public void setGetPattern(byte[][] gPattern) {
+		getPattern.clear();
+
+		for (byte[] bs : gPattern) {
+			getPattern.add(bs);
+		}
 	}
 
 	@Override
@@ -130,7 +142,7 @@ public class DefaultSortParameters implements SortParameters {
 	}
 
 	public SortParameters get(byte[] pattern) {
-		setGetPattern(pattern);
+		addGetPattern(pattern);
 		return this;
 	}
 

@@ -22,11 +22,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.jredis.ClientRuntimeException;
 import org.jredis.RedisException;
 import org.jredis.RedisType;
 import org.jredis.Sort;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
@@ -47,6 +49,16 @@ public abstract class JredisUtils {
 	 */
 	public static DataAccessException convertJredisAccessException(RedisException ex) {
 		return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
+	}
+
+	/**
+	 * Converts the given, native JRedis exception to Spring's DAO hierarchy.
+	 * 
+	 * @param ex JRedis exception
+	 * @return converted exception
+	 */
+	public static DataAccessException convertJredisAccessException(ClientRuntimeException ex) {
+		return new InvalidDataAccessResourceUsageException(ex.getMessage(), ex);
 	}
 
 	static DataType convertDataType(RedisType type) {
@@ -117,9 +129,12 @@ public abstract class JredisUtils {
 			if (byPattern != null) {
 				jredisSort.BY(decode(byPattern));
 			}
-			byte[] getPattern = params.getGetPattern();
-			if (getPattern != null) {
-				jredisSort.GET(decode(getPattern));
+			byte[][] getPattern = params.getGetPattern();
+
+			if (getPattern != null && getPattern.length > 0) {
+				for (byte[] bs : getPattern) {
+					jredisSort.GET(decode(bs));
+				}
 			}
 			Range limit = params.getLimit();
 			if (limit != null) {

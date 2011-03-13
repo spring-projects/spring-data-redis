@@ -102,7 +102,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		diffSet2.add(t4);
 
 		String resultName = "test:set:diff:result:1";
-		RedisSet<T> diff = set.diffAndStore(resultName, Arrays.asList(diffSet1, diffSet2));
+		RedisSet<T> diff = set.diffAndStore(Arrays.asList(diffSet1, diffSet2), resultName);
 
 		assertEquals(1, diff.size());
 		assertThat(diff, hasItem(t1));
@@ -153,7 +153,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		intSet2.add(t3);
 
 		String resultName = "test:set:intersect:result:1";
-		RedisSet<T> inter = set.intersectAndStore(resultName, Arrays.asList(intSet1, intSet2));
+		RedisSet<T> inter = set.intersectAndStore(Arrays.asList(intSet1, intSet2), resultName);
 		assertEquals(1, inter.size());
 		assertThat(inter, hasItem(t2));
 		assertEquals(resultName, inter.getKey());
@@ -199,7 +199,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		unionSet2.add(t3);
 
 		String resultName = "test:set:union:result:1";
-		RedisSet<T> union = set.unionAndStore(resultName, Arrays.asList(unionSet1, unionSet2));
+		RedisSet<T> union = set.unionAndStore(Arrays.asList(unionSet1, unionSet2), resultName);
 		assertEquals(4, union.size());
 		assertThat(union, hasItems(t1, t2, t3, t4));
 		assertEquals(resultName, union.getKey());

@@ -23,4 +23,6 @@ Import-Template:
  redis.clients.jedis.*;version="[1.5.2, 2.0.0)",
  redis.clients.util.*;version="[1.5.2, 2.0.0)",
  org.apache.commons.pool.impl.*;version="[1.0.0, 3.0.0)",
- org.codehaus.jackson.*;version="[1.6, 2.0.0)"
+ org.codehaus.jackson.*;version="[1.6, 2.0.0)",
+ org.apache.commons.beanutils.*;version="[1.8.0, 2.0.0)"
+

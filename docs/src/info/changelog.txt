@@ -1,21 +1,48 @@
-SPRING DATA REDIS INTEGRATION CHANGELOG
-=======================================
+SPRING DATA KEY/VALUE INTEGRATION CHANGELOG
+===========================================
 http://www.springsource.org/spring-data
 
 
-Changes in version 1.0.0.M2 (2011-xx-yy)
+Changes in version 1.0.0.M2 (2011-02-10)
 ----------------------------------------
+
+Redis
+-----
+
 General
+* Added PubSub support (message listener container and namespace)
+* Added JSON and Object/XML Mapping serializers
+* Completed support for Redis (2.2) commands
 * Improved documentation
 * Upgraded to Redis 2.2
-* Updraded to Jedis 1.5.1
+* Updraded to Jedis 1.5.2
 
 Package o.s.d.k.redis.connection
+* Added sort support
+* Added pipelining support
+* Added StringRedisConnection for String-focused operations
 * Renamed JedisConnectionFactory pooling to usePool
 * Renamed JredisConnectionFactory pooling to usePool
 
+Package o.s.d.k.redis.connection.jedis
+* Added support for Jedis rich exceptions
+* Added support for broken pooled connection
+
+Package o.s.d.k.redis.core
+* Fix serializationg bug for hash value inside RedisTemplate
+* Added injection for Redis operations ("views")
+
 Package o.s.d.k.redis.support
 * Refined AtomicInteger and AtomicLong constructors to use the backing store value as initial counter
+
+
+Riak
+----
+
+General
+* Important bug fixes
+* Fully asynchronous AsyncRiakTemplate object
+* Groovy DSL for Riak access using async template underneath
 
 
 Changes in version Riak 1.0.0.M1 (2010-12-15)

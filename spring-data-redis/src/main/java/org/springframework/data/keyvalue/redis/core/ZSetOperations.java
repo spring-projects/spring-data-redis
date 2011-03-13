@@ -26,9 +26,13 @@ import java.util.Set;
  */
 public interface ZSetOperations<K, V> {
 
-	void intersectAndStore(K key, K destKey, Collection<K> keys);
+	void intersectAndStore(K key, K otherKey, K destKey);
 
-	void unionAndStore(K key, K destKey, Collection<K> keys);
+	void intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	void unionAndStore(K key, K otherKey, K destKey);
+
+	void unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	Set<V> range(K key, long start, long end);
 

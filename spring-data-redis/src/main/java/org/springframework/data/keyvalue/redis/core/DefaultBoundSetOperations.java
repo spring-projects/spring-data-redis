@@ -46,13 +46,24 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
+	public Set<V> diff(K key) {
+		return ops.difference(getKey(), key);
+	}
+
+	@Override
 	public Set<V> diff(Collection<K> keys) {
 		return ops.difference(getKey(), keys);
 	}
 
+
 	@Override
-	public void diffAndStore(K destKey, Collection<K> keys) {
-		ops.differenceAndStore(getKey(), destKey, keys);
+	public void diffAndStore(K key, K destKey) {
+		ops.differenceAndStore(getKey(), key, destKey);
+	}
+
+	@Override
+	public void diffAndStore(Collection<K> keys, K destKey) {
+		ops.differenceAndStore(getKey(), keys, destKey);
 	}
 
 	@Override
@@ -61,13 +72,23 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 	}
 
 	@Override
+	public Set<V> intersect(K key) {
+		return ops.intersect(getKey(), key);
+	}
+
+	@Override
 	public Set<V> intersect(Collection<K> keys) {
 		return ops.intersect(getKey(), keys);
 	}
 
 	@Override
-	public void intersectAndStore(K destKey, Collection<K> keys) {
-		ops.intersectAndStore(getKey(), destKey, keys);
+	public void intersectAndStore(K key, K destKey) {
+		ops.intersectAndStore(getKey(), key, destKey);
+	}
+
+	@Override
+	public void intersectAndStore(Collection<K> keys, K destKey) {
+		ops.intersectAndStore(getKey(), keys, destKey);
 	}
 
 	@Override
@@ -82,7 +103,7 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 
 	@Override
 	public Boolean move(K destKey, V value) {
-		return ops.move(getKey(), destKey, value);
+		return ops.move(getKey(), value, destKey);
 	}
 
 	@Override
@@ -105,13 +126,24 @@ class DefaultBoundSetOperations<K, V> extends DefaultKeyBound<K> implements Boun
 		return ops.size(getKey());
 	}
 
+
+	@Override
+	public Set<V> union(K key) {
+		return ops.union(getKey(), key);
+	}
+
 	@Override
 	public Set<V> union(Collection<K> keys) {
 		return ops.union(getKey(), keys);
 	}
 
 	@Override
-	public void unionAndStore(K destKey, Collection<K> keys) {
-		ops.unionAndStore(getKey(), destKey, keys);
+	public void unionAndStore(K key, K destKey) {
+		ops.unionAndStore(getKey(), key, destKey);
+	}
+
+	@Override
+	public void unionAndStore(Collection<K> keys, K destKey) {
+		ops.unionAndStore(getKey(), keys, destKey);
 	}
 }

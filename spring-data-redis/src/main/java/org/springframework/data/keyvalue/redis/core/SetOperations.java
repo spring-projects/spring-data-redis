@@ -26,17 +26,29 @@ import java.util.Set;
  */
 public interface SetOperations<K, V> {
 
-	Set<V> difference(K key, Collection<K> keys);
+	Set<V> difference(K key, K otherKey);
 
-	void differenceAndStore(K key, K destKey, Collection<K> keys);
+	Set<V> difference(K key, Collection<K> otherKeys);
 
-	Set<V> intersect(K key, Collection<K> keys);
+	void differenceAndStore(K key, K otherKey, K destKey);
 
-	void intersectAndStore(K key, K destKey, Collection<K> keys);
+	void differenceAndStore(K key, Collection<K> otherKeys, K destKey);
 
-	Set<V> union(K key, Collection<K> keys);
+	Set<V> intersect(K key, K otherKey);
 
-	void unionAndStore(K key, K destKey, Collection<K> keys);
+	Set<V> intersect(K key, Collection<K> otherKeys);
+
+	void intersectAndStore(K key, K otherKey, K destKey);
+
+	void intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	Set<V> union(K key, K otherKey);
+
+	Set<V> union(K key, Collection<K> otherKeys);
+
+	void unionAndStore(K key, K otherKey, K destKey);
+
+	void unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	Boolean add(K key, V value);
 
@@ -44,7 +56,7 @@ public interface SetOperations<K, V> {
 
 	Set<V> members(K key);
 
-	Boolean move(K key, K destKey, V value);
+	Boolean move(K key, V value, K destKey);
 
 	V randomMember(K key);
 

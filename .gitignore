@@ -1,5 +1,6 @@
-build
+.DS_Store
 target
+build
 .gradle
 .springBeans
 .ant-targets-build.xml

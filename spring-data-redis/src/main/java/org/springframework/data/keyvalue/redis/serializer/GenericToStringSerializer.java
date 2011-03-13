@@ -77,7 +77,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (converter != null && beanFactory instanceof ConfigurableBeanFactory) {
+		if (converter == null && beanFactory instanceof ConfigurableBeanFactory) {
 			ConfigurableBeanFactory cFB = (ConfigurableBeanFactory) beanFactory;
 			ConversionService conversionService = cFB.getConversionService();
 

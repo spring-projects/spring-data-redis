@@ -80,7 +80,7 @@ public interface SortParameters {
 	 * 
 	 * @return <tt>GET</tt> pattern.
 	 */
-	byte[] getGetPattern();
+	byte[][] getGetPattern();
 
 	/**
 	 * Returns the sorting limit (range or pagination).

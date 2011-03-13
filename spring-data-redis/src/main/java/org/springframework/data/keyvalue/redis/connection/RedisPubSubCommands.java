@@ -27,8 +27,6 @@ public interface RedisPubSubCommands {
 	 * or not.
 	 * 
 	 * @return true if the connection is subscribed, false otherwise
-	 * @see #subscribe(MessageListener, byte[]...)
-	 * @see #pSubscribe(MessageListener, byte[]...)
 	 */
 	boolean isSubscribed();
 
@@ -37,8 +35,6 @@ public interface RedisPubSubCommands {
 	 * not subscribed.
 	 * 
 	 * @return the current subscription, null if none is available
-	 * @see #subscribe(listener, channels)
-	 * @see #pSubscribe(listener, channels)
 	 */
 	Subscription getSubscription();
 

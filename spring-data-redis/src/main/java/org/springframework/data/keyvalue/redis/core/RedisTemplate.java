@@ -32,10 +32,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.connection.DefaultSortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisListCommands.Position;
+import org.springframework.data.keyvalue.redis.core.query.SortQuery;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -145,7 +147,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @return object returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection) {
-		return execute(action, exposeConnection, valueSerializer);
+		return execute(action, exposeConnection, false);
 	}
 
 	/**
@@ -158,35 +160,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @return object returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
-		return execute(action, exposeConnection, pipeline, valueSerializer);
-	}
-
-	/**
-	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
-	 * to be specified for the returned object.
-	 * 
-	 * @param <T> return type
-	 * @param action action callback object that specifies the Redis action
-	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
-	 * @param returnSerializer serializer used for converting the binary data to the custom return type
-	 * @return returned by the action
-	 */
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, RedisSerializer<?> returnSerializer) {
-		return execute(action, exposeConnection, false, returnSerializer);
-	}
-
-	/**
-	 * Executes the given action object within a connection, which can be exposed or not. Allows a custom serializer
-	 * to be specified for the returned object.
-	 * 
-	 * @param <T> return type
-	 * @param action action callback object that specifies the Redis action
-	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
-	 * @param pipeline whether to pipeline or not the connection for the execution duration
-	 * @param returnSerializer serializer used for converting the binary data to the custom return type
-	 * @return returned by the action
-	 */
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline, RedisSerializer<?> returnSerializer) {
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
@@ -203,7 +176,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		try {
 			RedisConnection connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
 			T result = action.doInRedis(connToExpose);
-			// TODO: should do flush?
+			// TODO: any other connection processing?
 			return postProcessResult(result, conn, existingConnection);
 		} finally {
 			try {
@@ -426,6 +399,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return rawKeys;
 	}
 
+	private byte[][] rawKeys(K key, K otherKey) {
+		final byte[][] rawKeys = new byte[2][];
+
+
+		rawKeys[0] = rawKey(key);
+		rawKeys[1] = rawKey(key);
+		return rawKeys;
+	}
+
 	private byte[][] rawKeys(K key, Collection<K> keys) {
 		final byte[][] rawKeys = new byte[keys.size() + 1][];
 
@@ -441,11 +423,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private <T extends Collection<V>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type) {
-		Collection<V> values = (List.class.isAssignableFrom(type) ? new ArrayList<V>(rawValues.size())
-				: new LinkedHashSet<V>(rawValues.size()));
+		return (T) deserializeValues(rawValues, type, valueSerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends Collection<?>> T deserializeValues(Collection<byte[]> rawValues, Class<? extends Collection> type, RedisSerializer<?> redisSerializer) {
+		Collection<Object> values = (List.class.isAssignableFrom(type) ? new ArrayList<Object>(rawValues.size())
+				: new LinkedHashSet<Object>(rawValues.size()));
 		for (byte[] bs : rawValues) {
 			if (bs != null) {
-				values.add((V) valueSerializer.deserialize(bs));
+				values.add(redisSerializer.deserialize(bs));
 			}
 		}
 
@@ -576,6 +563,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
+	public void delete(K key) {
+		final byte[] rawKey = rawKey(key);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.del(rawKey);
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
 	public void delete(Collection<K> keys) {
 		final byte[][] rawKeys = rawKeys(keys);
 
@@ -622,33 +622,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.expireAt(rawKey, rawTimeout);
-			}
-		}, true);
-	}
-
-	@Override
-	public List<V> sort(K key, final SortParameters params) {
-		final byte[] rawKey = rawKey(key);
-
-		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-			@Override
-			public List<byte[]> doInRedis(RedisConnection connection) {
-				return connection.sort(rawKey, params);
-			}
-		}, true);
-
-		return deserializeValues(rawValues, List.class);
-	}
-
-	@Override
-	public Long sort(K key, final SortParameters params, K destination) {
-		final byte[] rawKey = rawKey(key);
-		final byte[] rawDestKey = rawKey(destination);
-
-		return execute(new RedisCallback<Long>() {
-			@Override
-			public Long doInRedis(RedisConnection connection) {
-				return connection.sort(rawKey, params, rawDestKey);
 			}
 		}, true);
 	}
@@ -782,6 +755,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.discard();
+				return null;
+			}
+		}, true);
+	}
+
+	@Override
+	public void watch(K key) {
+		final byte[] rawKey = rawKey(key);
+
+		execute(new RedisCallback<Object>() {
+			@Override
+			public Object doInRedis(RedisConnection connection) {
+				connection.watch(rawKey);
 				return null;
 			}
 		}, true);
@@ -1301,8 +1287,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> difference(final K key, final Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public Set<V> difference(K key, K otherKey) {
+			return difference(key, Collections.singleton(otherKey));
+		}
+
+		@Override
+		public Set<V> difference(final K key, final Collection<K> otherKeys) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1314,8 +1305,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void differenceAndStore(final K key, K destKey, final Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void differenceAndStore(K key, K otherKey, K destKey) {
+			differenceAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void differenceAndStore(final K key, final Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1332,8 +1328,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> intersect(K key, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public Set<V> intersect(K key, K otherKey) {
+			return intersect(key, Collections.singleton(otherKey));
+		}
+
+		@Override
+		public Set<V> intersect(K key, Collection<K> otherKeys) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1345,8 +1346,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void intersectAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void intersectAndStore(K key, K otherKey, K destKey) {
+			intersectAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1383,7 +1389,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Boolean move(K key, K destKey, V value) {
+		public Boolean move(K key, V value, K destKey) {
 			final byte[] rawKey = rawKey(key);
 			final byte[] rawDestKey = rawKey(destKey);
 			final byte[] rawValue = rawValue(value);
@@ -1441,8 +1447,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public Set<V> union(K key, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public Set<V> union(K key, K otherKey) {
+			return union(key, Collections.singleton(otherKey));
+		}
+
+		@Override
+		public Set<V> union(K key, Collection<K> otherKeys) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 				@Override
 				public Set<byte[]> doInRedis(RedisConnection connection) {
@@ -1454,8 +1465,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void unionAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void unionAndStore(K key, K otherKey, K destKey) {
+			unionAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1514,9 +1530,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return RedisTemplate.this;
 		}
 
+
 		@Override
-		public void intersectAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void intersectAndStore(K key, K otherKey, K destKey) {
+			intersectAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1672,8 +1694,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 
 		@Override
-		public void unionAndStore(K key, K destKey, Collection<K> keys) {
-			final byte[][] rawKeys = rawKeys(key, keys);
+		public void unionAndStore(K key, K otherKey, K destKey) {
+			unionAndStore(key, Collections.singleton(otherKey), destKey);
+		}
+
+		@Override
+		public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
+			final byte[][] rawKeys = rawKeys(key, otherKeys);
 			final byte[] rawDestKey = rawKey(destKey);
 			execute(new RedisCallback<Object>() {
 				@Override
@@ -1898,5 +1925,90 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			return deserializeHashMap(entries);
 		}
+	}
+
+	// Sort operations
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<V> sort(SortQuery<K> query) {
+		return sort(query, valueSerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer) {
+		final byte[] rawKey = rawKey(query.getKey());
+		final SortParameters params = convertQuery(query, stringSerializer);
+
+		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
+			@Override
+			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sort(rawKey, params);
+			}
+		}, true);
+
+		return (List<T>) deserializeValues(vals, List.class, resultSerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper) {
+		return sort(query, bulkMapper, valueSerializer);
+	}
+
+	@Override
+	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer) {
+		List<S> values = sort(query, resultSerializer);
+
+		int bulkSize = query.getGetPattern().size();
+		List<T> result = new ArrayList<T>(values.size() / bulkSize + 1);
+
+		List<S> bulk = new ArrayList<S>(bulkSize);
+		for (S s : values) {
+
+			bulk.add(s);
+			if (bulk.size() == bulkSize) {
+				result.add(bulkMapper.mapBulk(Collections.unmodifiableList(bulk)));
+				// create a new list (we could reuse the old one but the client might hang on to it for some reason)
+				bulk = new ArrayList<S>(bulkSize);
+			}
+		}
+
+		return result;
+	}
+
+	@Override
+	public Long sort(SortQuery<K> query, K storeKey) {
+		final byte[] rawStoreKey = rawKey(storeKey);
+		final byte[] rawKey = rawKey(query.getKey());
+		final SortParameters params = convertQuery(query, stringSerializer);
+
+		return execute(new RedisCallback<Long>() {
+			@Override
+			public Long doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sort(rawKey, params, rawStoreKey);
+			}
+		}, true);
+	}
+
+	private static <K> SortParameters convertQuery(SortQuery<K> query, RedisSerializer<String> stringSerializer) {
+
+		return new DefaultSortParameters(stringSerializer.serialize(query.getBy()), query.getLimit(), serialize(
+				query.getGetPattern(), stringSerializer), query.getOrder(), query.isAlphabetic());
+	}
+
+	private static byte[][] serialize(List<String> strings, RedisSerializer<String> stringSerializer) {
+		List<byte[]> raw = null;
+
+		if (strings == null) {
+			raw = Collections.emptyList();
+		}
+		else {
+			raw = new ArrayList<byte[]>(strings.size());
+			for (String key : strings) {
+				raw.add(stringSerializer.serialize(key));
+			}
+		}
+		return raw.toArray(new byte[raw.size()][]);
 	}
 }

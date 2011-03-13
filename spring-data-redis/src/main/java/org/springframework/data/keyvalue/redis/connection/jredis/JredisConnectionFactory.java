@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
+import org.jredis.ClientRuntimeException;
 import org.jredis.connector.Connection;
 import org.jredis.connector.ConnectionSpec;
 import org.jredis.connector.Connection.Socket.Property;
@@ -74,8 +75,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	public void afterPropertiesSet() {
 		if (connectionSpec == null) {
 			Assert.hasText(hostName);
-			connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, DEFAULT_REDIS_DB,
-					DEFAULT_REDIS_PASSWORD);
+			connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, DEFAULT_REDIS_DB, DEFAULT_REDIS_PASSWORD);
 			connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
 
 			if (StringUtils.hasLength(password)) {
@@ -111,6 +111,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
+		if (ex instanceof ClientRuntimeException) {
+			return JredisUtils.convertJredisAccessException((ClientRuntimeException) ex);
+		}
 		return null;
 	}
 

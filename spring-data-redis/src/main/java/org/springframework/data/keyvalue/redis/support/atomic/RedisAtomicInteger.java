@@ -17,7 +17,6 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.KeyBound;
@@ -25,6 +24,8 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.core.SessionCallback;
 import org.springframework.data.keyvalue.redis.core.ValueOperations;
+import org.springframework.data.keyvalue.redis.serializer.BasicNumberToStringSerializer;
+import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 /**
  * Atomic integer backed by Redis.
@@ -48,6 +49,8 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory) {
 		RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<String, Integer>(factory);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new BasicNumberToStringSerializer<Integer>(Integer.class));
 		redisTemplate.setExposeConnection(true);
 		this.key = redisCounter;
 		this.generalOps = redisTemplate;
@@ -172,18 +175,11 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 
 	/**
 	 * Atomically increment by one the current value.
+	 * 
 	 * @return the previous value
 	 */
 	public int getAndIncrement() {
-		return CASUtils.execute(generalOps, key, new Callable<Integer>() {
-			@Override
-			public Integer call() throws Exception {
-				int value = get();
-				generalOps.multi();
-				operations.increment(key, 1);
-				return value;
-			}
-		});
+		return incrementAndGet() - 1;
 	}
 
 
@@ -192,15 +188,7 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 * @return the previous value
 	 */
 	public int getAndDecrement() {
-		return CASUtils.execute(generalOps, key, new Callable<Integer>() {
-			@Override
-			public Integer call() throws Exception {
-				int value = get();
-				generalOps.multi();
-				operations.increment(key, -1);
-				return value;
-			}
-		});
+		return decrementAndGet() + 1;
 	}
 
 
@@ -210,15 +198,7 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 	 * @return the previous value
 	 */
 	public int getAndAdd(final int delta) {
-		return CASUtils.execute(generalOps, key, new Callable<Integer>() {
-			@Override
-			public Integer call() throws Exception {
-				int value = get();
-				generalOps.multi();
-				set(value + delta);
-				return value;
-			}
-		});
+		return addAndGet(delta) - delta;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.support.collections;
+package org.springframework.data.keyvalue.redis.core;
 
-import java.util.Deque;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.BlockingDeque;
 
 /**
- * Redis extension for the {@link List} contract. Supports {@link List}, {@link Queue} and {@link Deque} contracts
- * as well as their equivalent blocking siblings {@link BlockingDeque} and {@link BlockingDeque}.
+ * Mapper translating Redis bulk value responses (typically returned by a sort query) to actual objects. Implementations of this interface do not have to worry
+ * about exception or connection handling.
+ * <p/>
+ * Typically used by {@link RedisTemplate} <tt>sort</tt> methods.
  * 
  * @author Costin Leau
  */
-public interface RedisList<E> extends RedisCollection<E>, List<E>, BlockingDeque<E> {
+public interface BulkMapper<T, V> {
 
-	List<E> range(long begin, long end);
-
-	RedisList<E> trim(int begin, int end);
+	T mapBulk(List<V> tuple);
 }

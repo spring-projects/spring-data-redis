@@ -91,8 +91,14 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public RedisZSet<E> intersectAndStore(String destKey, Collection<? extends RedisZSet<?>> sets) {
-		boundZSetOps.intersectAndStore(destKey, CollectionUtils.extractKeys(sets));
+	public RedisZSet<E> intersectAndStore(RedisZSet<?> set, String destKey) {
+		boundZSetOps.intersectAndStore(set.getKey(), destKey);
+		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
+	}
+
+	@Override
+	public RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
+		boundZSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
@@ -124,8 +130,14 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	}
 
 	@Override
-	public RedisZSet<E> unionAndStore(String destKey, Collection<? extends RedisZSet<?>> sets) {
-		boundZSetOps.unionAndStore(destKey, CollectionUtils.extractKeys(sets));
+	public RedisZSet<E> unionAndStore(RedisZSet<?> set, String destKey) {
+		boundZSetOps.unionAndStore(set.getKey(), destKey);
+		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
+	}
+
+	@Override
+	public RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
+		boundZSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
