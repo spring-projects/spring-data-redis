@@ -186,68 +186,7 @@
           </postProcess>
         </configuration>
       </plugin>
-      <!--
 
-        <plugin>
-          run `mvn package assembly:assembly` to trigger assembly creation.
-          see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2-beta-5</version>
-          <inherited>false</inherited>
-          <executions>
-            <execution>
-              <id>distribution</id>
-              <goals>
-                <goal>single</goal>
-              </goals>
-              <phase>package</phase>
-              <configuration>
-                <descriptors>
-                  <descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
-                </descriptors>
-                <appendAssemblyId>false</appendAssemblyId>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.4</version>
-          <executions>
-            <execution>
-              <id>upload-dist</id>
-              <phase>deploy</phase>
-              <configuration>
-                <tasks>
-                  <ant antfile="${basedir}/src/ant/upload-dist.xml">
-                    <target name="upload-dist"/>
-                  </ant>
-                </tasks>
-              </configuration>
-              <goals>
-                <goal>run</goal>
-              </goals>
-            </execution>
-          </executions>
-          <dependencies>
-            <dependency>
-              <groupId>org.springframework.build</groupId>
-              <artifactId>org.springframework.build.aws.ant</artifactId>
-              <version>3.0.5.RELEASE</version>
-            </dependency>
-            <dependency>
-              <groupId>net.java.dev.jets3t</groupId>
-              <artifactId>jets3t</artifactId>
-              <version>0.7.2</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-      </plugins>
-
-      <finalName>${dist.finalName}</finalName>
-      
-      -->
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.7</version>
