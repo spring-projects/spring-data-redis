@@ -95,5 +95,5 @@ public interface RedisConnection extends RedisCommands {
 	 * 
 	 * @return the result of the executed commands.
 	 */
-	List<Object> closePipeline();
+	List<byte[]> closePipeline();
 }

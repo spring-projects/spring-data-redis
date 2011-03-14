@@ -186,10 +186,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<Object> closePipeline() {
+	public List<byte[]> closePipeline() {
 		if (pipeline != null) {
-			return pipeline.execute();
+			List execute = pipeline.execute();
+			if (execute != null && !execute.isEmpty()) {
+				return (List<byte[]>) execute;
+			}
 		}
 		return Collections.emptyList();
 	}
@@ -217,7 +221,7 @@ public class JedisConnection implements RedisConnection {
 				else {
 					pipeline.sort(key);
 				}
-				
+
 				return null;
 			}
 			return (sortParams != null ? jedis.sort(key, sortParams) : jedis.sort(key));
@@ -741,7 +745,8 @@ public class JedisConnection implements RedisConnection {
 			for (byte[] key : keys) {
 				if (isPipelined()) {
 					pipeline.watch(key);
-				} else {
+				}
+				else {
 					jedis.watch(key);
 				}
 			}
@@ -1096,11 +1101,11 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				final List<byte[]> args = new ArrayList<byte[]>();
 				for (final byte[] arg : keys) {
-		            args.add(arg);
-		        }
-		        args.add(Protocol.toByteArray(timeout));
-		        pipeline.blpop(args.toArray(new byte[args.size()][]));
-		        return null;
+					args.add(arg);
+				}
+				args.add(Protocol.toByteArray(timeout));
+				pipeline.blpop(args.toArray(new byte[args.size()][]));
+				return null;
 			}
 			return jedis.blpop(timeout, keys);
 		} catch (Exception ex) {
@@ -1117,11 +1122,11 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				final List<byte[]> args = new ArrayList<byte[]>();
 				for (final byte[] arg : keys) {
-		            args.add(arg);
-		        }
-		        args.add(Protocol.toByteArray(timeout));
-		        pipeline.brpop(args.toArray(new byte[args.size()][]));
-		        return null;
+					args.add(arg);
+				}
+				args.add(Protocol.toByteArray(timeout));
+				pipeline.brpop(args.toArray(new byte[args.size()][]));
+				return null;
 			}
 			return jedis.brpop(timeout, keys);
 		} catch (Exception ex) {
