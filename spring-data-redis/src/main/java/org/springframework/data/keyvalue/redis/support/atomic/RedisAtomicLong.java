@@ -48,16 +48,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @param factory connection factory
 	 */
 	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory) {
-		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>(factory);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		redisTemplate.setExposeConnection(true);
-		this.key = redisCounter;
-		this.generalOps = redisTemplate;
-		this.operations = generalOps.opsForValue();
-		if (this.operations.get(redisCounter) == null) {
-			set(0);
-		}
+		this(redisCounter, factory, null);
 	}
 
 	/**
@@ -68,21 +59,37 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	 * @param initialValue
 	 */
 	public RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, long initialValue) {
-		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>(factory);
+		this(redisCounter, factory, Long.valueOf(initialValue));
+	}
+
+	private RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, Long initialValue) {
+		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
 		redisTemplate.setExposeConnection(true);
+		redisTemplate.setConnectionFactory(factory);
+		redisTemplate.afterPropertiesSet();
+
 		this.key = redisCounter;
 		this.generalOps = redisTemplate;
 		this.operations = generalOps.opsForValue();
-		this.operations.set(redisCounter, initialValue);
-	}
 
+		if (initialValue == null && this.operations.get(redisCounter) == null) {
+			set(0);
+		}
+		else {
+			set(initialValue);
+		}
+	}
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses as initial value
 	 * the data from the backing store (sets the counter to 0 if no value is found).
 	 *
 	 * Use {@link #RedisAtomicLong(String, RedisOperations, long)} to set the counter to a certain value
-	 * as an alternative constructor or {@link #set(long)}.
+	 * as an alternative constructor or {@link #set(long)}. 
+	 * 
+	 * Note that longs need to be properly serialized so that Redis can recognized the values as numeric and thus modify their value.
 	 * 
 	 * @param redisCounter
 	 * @param operations
@@ -99,6 +106,8 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance with the given initial value.
 	 *
+	 * Note that longs need to be properly serialized so that Redis can recognized the values as numeric and thus modify their value.
+	 * 
 	 * @param redisCounter
 	 * @param operations
 	 * @param initialValue
