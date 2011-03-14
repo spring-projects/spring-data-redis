@@ -74,7 +74,7 @@ public class RedisAtomicLong extends Number implements Serializable, KeyBound<St
 		this.generalOps = redisTemplate;
 		this.operations = generalOps.opsForValue();
 
-		if (initialValue == null && this.operations.get(redisCounter) == null) {
+		if (initialValue == null || this.operations.get(redisCounter) == null) {
 			set(0);
 		}
 		else {
