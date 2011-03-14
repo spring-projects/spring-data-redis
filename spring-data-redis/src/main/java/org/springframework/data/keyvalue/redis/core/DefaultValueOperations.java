@@ -111,7 +111,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Collection<V> multiGet(Collection<K> keys) {
+	public List<V> multiGet(Collection<K> keys) {
 		if (keys.isEmpty()) {
 			return Collections.emptyList();
 		}
