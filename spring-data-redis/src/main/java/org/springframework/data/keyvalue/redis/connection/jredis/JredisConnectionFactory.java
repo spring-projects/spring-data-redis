@@ -45,6 +45,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	private int timeout;
 
 	private boolean usePool = true;
+	private int dbIndex = DEFAULT_REDIS_DB;
 
 	private JRedisService pool = null;
 	// taken from JRedis code
@@ -75,7 +76,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	public void afterPropertiesSet() {
 		if (connectionSpec == null) {
 			Assert.hasText(hostName);
-			connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, DEFAULT_REDIS_DB, DEFAULT_REDIS_PASSWORD);
+			connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, dbIndex, DEFAULT_REDIS_PASSWORD);
 			connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
 
 			if (StringUtils.hasLength(password)) {
@@ -105,9 +106,21 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	@Override
 	public RedisConnection getConnection() {
-		return new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec)));
+		return postProcessConnection(new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec))));
 	}
 
+
+	/**
+	 * Post process a newly retrieved connection. Useful for decorating or executing
+	 * initialization commands on a new connection.
+	 * This implementation simply returns the connection.
+	 * 
+	 * @param connection
+	 * @return processed connection
+	 */
+	protected RedisConnection postProcessConnection(JredisConnection connection) {
+		return connection;
+	}
 
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
@@ -209,5 +222,16 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		Assert.isTrue(poolSize > 0, "pool size needs to be bigger then zero");
 		this.poolSize = poolSize;
 		usePool = true;
+	}
+
+	/**
+	 * Sets the index of the database used by this connection factory.
+	 * Can be between 0 (default) and 15.
+	 * 
+	 * @param index database index
+	 */
+	public void setDatabase(int index) {
+		Assert.isTrue(index >= 0 && index < 16, "invalid DB index (needs to be between 0 and 15)");
+		this.dbIndex = index;
 	}
 }

@@ -57,7 +57,6 @@ public class PubSubTests<T> {
 
 	private final Object handler = new Object() {
 		void handleMessage(String message) {
-			System.out.println("Received message " + message);
 			bag.add(message);
 		}
 	};

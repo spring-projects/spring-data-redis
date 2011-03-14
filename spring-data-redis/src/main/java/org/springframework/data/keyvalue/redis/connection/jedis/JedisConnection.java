@@ -72,6 +72,7 @@ public class JedisConnection implements RedisConnection {
 
 	private volatile JedisSubscription subscription;
 	private volatile Pipeline pipeline;
+	private final int dbIndex;
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance.
@@ -79,7 +80,7 @@ public class JedisConnection implements RedisConnection {
 	 * @param jedis Jedis entity
 	 */
 	public JedisConnection(Jedis jedis) {
-		this(jedis, null);
+		this(jedis, null, 0);
 	}
 
 	/**
@@ -89,13 +90,20 @@ public class JedisConnection implements RedisConnection {
 	 * @param jedis
 	 * @param pool can be null, if no pool is used
 	 */
-	public JedisConnection(Jedis jedis, Pool<Jedis> pool) {
+	public JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex) {
 		this.jedis = jedis;
 		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
 		transaction = new Transaction(client);
 
 		this.pool = pool;
+
+		this.dbIndex = dbIndex;
+
+		// select the db
+		if (dbIndex > 0) {
+			select(dbIndex);
+		}
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
