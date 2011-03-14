@@ -231,7 +231,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 * @param index database index
 	 */
 	public void setDatabase(int index) {
-		Assert.isTrue(index >= 0 && index < 16, "invalid DB index (needs to be between 0 and 15)");
+		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 		this.dbIndex = index;
 	}
 }
