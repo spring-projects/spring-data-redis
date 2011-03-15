@@ -267,7 +267,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<byte[]> exec() {
+	public List<Object> exec() {
 		throw new UnsupportedOperationException();
 	}
 

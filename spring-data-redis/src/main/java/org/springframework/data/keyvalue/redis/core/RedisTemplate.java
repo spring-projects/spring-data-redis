@@ -419,11 +419,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// RedisOperations
 	//
 	@Override
-	public Object exec() {
-		return execute(new RedisCallback<Object>() {
+	public List<Object> exec() {
+		return execute(new RedisCallback<List<Object>>() {
 
 			@Override
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+			public List<Object> doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.exec();
 			}
 		});

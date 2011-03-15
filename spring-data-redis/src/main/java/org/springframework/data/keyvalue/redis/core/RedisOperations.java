@@ -112,7 +112,7 @@ public interface RedisOperations<K, V> {
 
 	void discard();
 
-	Object exec();
+	List<Object> exec();
 
 	// pubsub functionality on the template
 	void convertAndSend(String destination, Object message);

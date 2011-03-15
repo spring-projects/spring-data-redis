@@ -27,7 +27,7 @@ public interface RedisTxCommands {
 
 	void multi();
 
-	List<byte[]> exec();
+	List<Object> exec();
 
 	void discard();
 
