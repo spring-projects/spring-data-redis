@@ -24,7 +24,7 @@ import java.util.Set;
  * 
  * @author Costin Leau
  */
-public interface BoundHashOperations<H, HK, HV> extends KeyBound<H> {
+public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	RedisOperations<H, ?> getOperations();
 

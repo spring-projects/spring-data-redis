@@ -15,7 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
-import org.springframework.data.keyvalue.redis.core.KeyBound;
+import org.springframework.data.keyvalue.redis.core.BoundKeyOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
 /**
@@ -26,7 +26,7 @@ import org.springframework.data.keyvalue.redis.core.RedisOperations;
  * 
  * @author Costin Leau
  */
-public interface RedisStore extends KeyBound<String> {
+public interface RedisStore extends BoundKeyOperations<String> {
 
 	/**
 	 * Returns the underlying Redis operations used by the backing implementation.

@@ -17,11 +17,14 @@ package org.springframework.data.keyvalue.redis.support.collections;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.core.BoundHashOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
@@ -82,11 +85,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	@Override
 	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
-	}
-
-	@Override
-	public String getKey() {
-		return hashOps.getKey();
 	}
 
 	@Override
@@ -294,5 +292,46 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		//				return null;
 		//			}
 		//		}
+	}
+
+	@Override
+	public Boolean expire(long timeout, TimeUnit unit) {
+		return hashOps.expire(timeout, unit);
+	}
+
+	@Override
+	public Boolean expireAt(Date date) {
+		return hashOps.expireAt(date);
+	}
+
+	@Override
+	public Long getExpire() {
+		return hashOps.getExpire();
+	}
+
+	@Override
+	public void persist() {
+		hashOps.persist();
+	}
+
+
+	@Override
+	public String getKey() {
+		return hashOps.getKey();
+	}
+
+	@Override
+	public void rename(String newKey) {
+		hashOps.rename(newKey);
+	}
+
+	@Override
+	public Boolean renameIfAbsent(String newKey) {
+		return hashOps.renameIfAbsent(newKey);
+	}
+
+	@Override
+	public DataType getType() {
+		return hashOps.getType();
 	}
 }

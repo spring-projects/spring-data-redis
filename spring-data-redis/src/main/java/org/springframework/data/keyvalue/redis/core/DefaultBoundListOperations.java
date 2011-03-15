@@ -18,13 +18,15 @@ package org.springframework.data.keyvalue.redis.core;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
+
 
 /**
  * Default implementation for {@link BoundListOperations}.
  * 
  * @author Costin Leau
  */
-class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements BoundListOperations<K, V> {
+class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundListOperations<K, V> {
 
 	private final ListOperations<K, V> ops;
 
@@ -35,7 +37,7 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	 * @param operations
 	 */
 	public DefaultBoundListOperations(K key, RedisOperations<K, V> operations) {
-		super(key);
+		super(key, operations);
 		this.ops = operations.opsForList();
 	}
 
@@ -123,5 +125,10 @@ class DefaultBoundListOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	@Override
 	public void set(long index, V value) {
 		ops.set(getKey(), index, value);
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.LIST;
 	}
 }

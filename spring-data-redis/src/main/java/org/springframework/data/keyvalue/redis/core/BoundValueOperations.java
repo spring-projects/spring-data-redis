@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author Costin Leau
  */
-public interface BoundValueOperations<K, V> extends KeyBound<K> {
+public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 	RedisOperations<K, V> getOperations();
 

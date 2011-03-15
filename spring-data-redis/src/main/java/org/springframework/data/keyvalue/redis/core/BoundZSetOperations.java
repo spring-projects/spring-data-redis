@@ -25,7 +25,7 @@ import java.util.Set;
  * 
  * @author Costin Leau
  */
-public interface BoundZSetOperations<K, V> extends KeyBound<K> {
+public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	RedisOperations<K, V> getOperations();
 

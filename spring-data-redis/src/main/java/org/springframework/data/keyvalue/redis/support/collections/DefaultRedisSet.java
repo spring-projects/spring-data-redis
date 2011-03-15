@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.core.BoundSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
@@ -165,5 +166,10 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	@Override
 	public int size() {
 		return boundSetOps.size().intValue();
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.SET;
 	}
 }

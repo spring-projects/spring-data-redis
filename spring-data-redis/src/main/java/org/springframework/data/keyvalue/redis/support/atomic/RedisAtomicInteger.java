@@ -17,9 +17,12 @@ package org.springframework.data.keyvalue.redis.support.atomic;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
-import org.springframework.data.keyvalue.redis.core.KeyBound;
+import org.springframework.data.keyvalue.redis.core.BoundKeyOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.core.SessionCallback;
@@ -34,9 +37,9 @@ import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
  */
-public class RedisAtomicInteger extends Number implements Serializable, KeyBound<String> {
+public class RedisAtomicInteger extends Number implements Serializable, BoundKeyOperations<String> {
 
-	private final String key;
+	private volatile String key;
 	private ValueOperations<String, Integer> operations;
 	private RedisOperations<String, Integer> generalOps;
 
@@ -117,11 +120,6 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 		this.operations = operations.opsForValue();
 		this.generalOps = operations;
 		this.operations.set(redisCounter, initialValue);
-	}
-
-	@Override
-	public String getKey() {
-		return key;
 	}
 
 	/**
@@ -260,5 +258,51 @@ public class RedisAtomicInteger extends Number implements Serializable, KeyBound
 
 	public double doubleValue() {
 		return (double) get();
+	}
+
+	@Override
+	public String getKey() {
+		return key;
+	}
+
+	@Override
+	public Boolean expire(long timeout, TimeUnit unit) {
+		return generalOps.expire(key, timeout, unit);
+	}
+
+	@Override
+	public Boolean expireAt(Date date) {
+		return generalOps.expireAt(key, date);
+	}
+
+	@Override
+	public Long getExpire() {
+		return generalOps.getExpire(key);
+	}
+
+	@Override
+	public void persist() {
+		generalOps.persist(key);
+	}
+
+	@Override
+	public void rename(String newKey) {
+		generalOps.rename(key, newKey);
+		key = newKey;
+	}
+
+	@Override
+	public Boolean renameIfAbsent(String newKey) {
+		Boolean result = generalOps.renameIfAbsent(key, newKey);
+
+		if (Boolean.TRUE.equals(result)) {
+			key = newKey;
+		}
+		return result;
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.STRING;
 	}
 }
