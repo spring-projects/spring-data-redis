@@ -594,6 +594,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 
 	private List<String> deserialize(Collection<byte[]> data) {
+		if (data == null) {
+			return null;
+		}
+
 		List<String> result = new ArrayList<String>(data.size());
 		for (byte[] raw : data) {
 			result.add(serializer.deserialize(raw));
@@ -602,6 +606,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private Set<String> deserialize(Set<byte[]> data) {
+		if (data == null) {
+			return null;
+		}
+
 		Set<String> result = new LinkedHashSet<String>(data.size());
 		for (byte[] raw : data) {
 			result.add(serializer.deserialize(raw));
@@ -614,6 +622,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private Set<StringTuple> deserializeTuple(Set<Tuple> data) {
+		if (data == null) {
+			return null;
+		}
 		Set<StringTuple> result = new LinkedHashSet<StringTuple>(data.size());
 		for (Tuple raw : data) {
 			result.add(new DefaultStringTuple(raw, serializer.deserialize(raw.getValue())));

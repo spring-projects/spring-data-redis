@@ -162,4 +162,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertNull(multiGet.get(0));
 		assertNull(multiGet.get(1));
 	}
+
+	@Test
+	public void testNullCollections() throws Exception {
+		connection.openPipeline();
+		assertNull(connection.keys("~*"));
+		assertNull(connection.hKeys("~"));
+		connection.closePipeline();
+	}
 }

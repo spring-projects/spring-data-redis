@@ -70,4 +70,8 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Ignore("JRedis has connecting issues with null")
 	public void testNullKey() {
 	}
+
+	@Ignore("JRedis does not support pipelining")
+	public void testNullCollections() {
+	}
 }

@@ -39,6 +39,11 @@ public abstract class SerializationUtils {
 
 	@SuppressWarnings("unchecked")
 	static <T extends Collection<?>> T deserializeValues(Collection<byte[]> rawValues, Class<T> type, RedisSerializer<?> redisSerializer) {
+		// connection in pipeline/multi mode
+		if (rawValues == null) {
+			return null;
+		}
+
 		Collection<Object> values = (List.class.isAssignableFrom(type) ? new ArrayList<Object>(rawValues.size())
 				: new LinkedHashSet<Object>(rawValues.size()));
 		for (byte[] bs : rawValues) {

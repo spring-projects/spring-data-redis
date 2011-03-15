@@ -146,6 +146,11 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	<HK, HV> Map<HK, HV> deserializeHashMap(Map<byte[], byte[]> entries) {
+		// connection in pipeline/multi mode
+		if (entries == null) {
+			return null;
+		}
+
 		Map<HK, HV> map = new LinkedHashMap<HK, HV>(entries.size());
 
 		for (Map.Entry<byte[], byte[]> entry : entries.entrySet()) {
