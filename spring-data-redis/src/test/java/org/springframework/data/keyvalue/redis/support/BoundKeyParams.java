@@ -55,18 +55,14 @@ public class BoundKeyParams {
 		StringObjectFactory sof = new StringObjectFactory();
 
 		DefaultRedisMap mapJS = new DefaultRedisMap("bound:key:map", templateJS);
-		mapJS.put("foo", "bar");
 
 		DefaultRedisSet setJS = new DefaultRedisSet("bound:key:set", templateJS);
-		setJS.add("foo");
-		
+
 		RedisList list = new DefaultRedisList("bound:key:list", templateJS);
-		list.add("foo");
 
 		return Arrays.asList(new Object[][] {
-				{ new RedisAtomicInteger("bound:key:int", jedisConnFactory), sof, jedisConnFactory },
-				{ new RedisAtomicLong("bound:key:long", jedisConnFactory), sof, jedisConnFactory },
-				{ list, sof, jedisConnFactory },
-				{ setJS, sof, jedisConnFactory }, { mapJS, sof, jedisConnFactory } });
+				{ new RedisAtomicInteger("bound:key:int", jedisConnFactory), sof, templateJS },
+				{ new RedisAtomicLong("bound:key:long", jedisConnFactory), sof, templateJS },
+				{ list, sof, templateJS }, { setJS, sof, templateJS }, { mapJS, sof, templateJS } });
 	}
 }

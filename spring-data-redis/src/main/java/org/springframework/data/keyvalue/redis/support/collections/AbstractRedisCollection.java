@@ -18,9 +18,12 @@ package org.springframework.data.keyvalue.redis.support.collections;
 import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import org.springframework.data.keyvalue.redis.core.SessionCallback;
 
 /**
  * Base implementation for {@link RedisCollection}.
@@ -140,14 +143,57 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	}
 
 	@Override
-	public void rename(String newKey) {
-		operations.rename(key, newKey);
+	public void rename(final String newKey) {
+		operations.execute(new SessionCallback<Object>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public Object execute(RedisOperations operations) throws DataAccessException {
+				do {
+					operations.watch(key);
+
+					if (operations.hasKey(key)) {
+						operations.multi();
+						operations.rename(key, newKey);
+					}
+					else {
+						operations.multi();
+					}
+				} while (operations.exec() == null);
+				return null;
+			}
+		});
 		key = newKey;
 	}
 
 	@Override
-	public Boolean renameIfAbsent(String newKey) {
-		Boolean result = operations.renameIfAbsent(key, newKey);
+	public Boolean renameIfAbsent(final String newKey) {
+		Boolean result = operations.execute(new SessionCallback<Boolean>() {
+			@Override
+			public Boolean execute(RedisOperations operations) throws DataAccessException {
+				List<Object> exec = null;
+				do {
+					operations.watch(key);
+
+					if (operations.hasKey(key)) {
+						operations.multi();
+						operations.renameIfAbsent(key, newKey);
+					}
+					else {
+						operations.watch(newKey);
+						operations.multi();
+						operations.hasKey(newKey);
+						operations.hasKey(newKey);
+					}
+					exec = operations.exec();
+				} while (exec == null);
+
+				boolean result = ((Long) exec.get(0) == 1);
+				if (exec.size()>1) {
+					result = !result;
+				}
+				return result;
+			}
+		});
 
 		if (Boolean.TRUE.equals(result)) {
 			key = newKey;

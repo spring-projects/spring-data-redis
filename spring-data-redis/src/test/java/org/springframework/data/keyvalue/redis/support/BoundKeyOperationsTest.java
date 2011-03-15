@@ -27,9 +27,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.keyvalue.redis.ConnectionFactoryTracker;
-import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.BoundKeyOperations;
+import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.support.collections.ObjectFactory;
 
 /**
@@ -37,22 +36,20 @@ import org.springframework.data.keyvalue.redis.support.collections.ObjectFactory
  */
 @RunWith(Parameterized.class)
 public class BoundKeyOperationsTest {
-	private RedisConnectionFactory factory;
 	private BoundKeyOperations<Object> keyOps;
 	private ObjectFactory<Object> objFactory;
+	private RedisTemplate template;
 
 	public BoundKeyOperationsTest(BoundKeyOperations<Object> keyOps, ObjectFactory<Object> objFactory,
-			RedisConnectionFactory factory) {
-		this.factory = factory;
+			RedisTemplate template) {
 		this.objFactory = objFactory;
 		this.keyOps = keyOps;
-		ConnectionFactoryTracker.add(factory);
+		this.template = template;
+		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@After
 	public void stop() {
-		RedisConnection connection = factory.getConnection();
-		connection.close();
 	}
 
 	@AfterClass
@@ -81,7 +78,8 @@ public class BoundKeyOperationsTest {
 		Object key = keyOps.getKey();
 		assertNotNull(key);
 		Object newName = objFactory.instance();
-		keyOps.renameIfAbsent(newName);
+		assertFalse(template.hasKey(newName));
+		assertTrue("cannot rename to key " + newName, keyOps.renameIfAbsent(newName));
 		assertEquals(newName, keyOps.getKey());
 		keyOps.rename(key);
 	}
@@ -89,17 +87,20 @@ public class BoundKeyOperationsTest {
 	@Test
 	public void testExpire() throws Exception {
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
-		assertTrue(keyOps.expire(10, TimeUnit.SECONDS));
-		long expire = keyOps.getExpire().longValue();
-		assertTrue(expire <= 10 && expire > 5);
+		if (keyOps.expire(10, TimeUnit.SECONDS)) {
+			long expire = keyOps.getExpire().longValue();
+			assertTrue(expire <= 10 && expire > 5);
+		}
 	}
 
 	@Test
 	public void testPersist() throws Exception {
-		assertEquals(Long.valueOf(-1), keyOps.getExpire());
-		assertTrue(keyOps.expire(10, TimeUnit.SECONDS));
-		assertTrue(keyOps.getExpire().longValue() > 0);
 		keyOps.persist();
-		assertTrue(keyOps.getExpire().longValue() > 0);
+		assertEquals(Long.valueOf(-1), keyOps.getExpire());
+		if (keyOps.expire(10, TimeUnit.SECONDS)) {
+			assertTrue(keyOps.getExpire().longValue() > 0);
+		}
+		keyOps.persist();
+		assertEquals(-1, keyOps.getExpire().longValue());
 	}
 }
