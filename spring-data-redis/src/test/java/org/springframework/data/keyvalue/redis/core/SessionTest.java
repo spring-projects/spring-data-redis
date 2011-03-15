@@ -36,7 +36,7 @@ public class SessionTest {
 		when(factory.getConnection()).thenReturn(conn);
 		final StringRedisTemplate template = new StringRedisTemplate(factory);
 
-		template.execute(new SessionCallback() {
+		template.execute(new SessionCallback<Object>() {
 			@Override
 			public Object execute(RedisOperations operations) {
 				checkConnection(template, conn);
@@ -48,7 +48,7 @@ public class SessionTest {
 		});
 	}
 
-	private void checkConnection(RedisTemplate template, final RedisConnection expectedConnection) {
+	private void checkConnection(RedisTemplate<?, ?> template, final RedisConnection expectedConnection) {
 		template.execute(new RedisCallback<Object>() {
 
 			@Override

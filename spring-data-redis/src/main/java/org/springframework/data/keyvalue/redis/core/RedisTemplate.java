@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
@@ -151,12 +152,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
-	 * Executes the given action object within a connection, that can be pipelined or not and which can be exposed or not.
+	 * Executes the given action object within a connection that can be exposed or not. Additionally, the connection
+	 * can be pipelined. Note the results of the pipeline are discarded (making it suitable for write-only scenarios).
+	 * Use {@link #executePipelined(RedisCallback)} as an alternative.
 	 * 
 	 * @param <T> return type
 	 * @param action callback object to execute
 	 * @param exposeConnection whether to enforce exposure of the native Redis Connection to callback code
-	 * @param pipeline whether to pipeline or not the connection for the execution duration 
+	 * @param pipeline whether to pipeline or not the connection for the execution 
 	 * @return object returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
@@ -189,6 +192,48 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
+
+	@Override
+	public <T> T execute(SessionCallback<T> session) {
+		RedisConnectionFactory factory = getConnectionFactory();
+		// bind connection
+		RedisConnectionUtils.bindConnection(factory);
+		try {
+			return session.execute(this);
+		} finally {
+			RedisConnectionUtils.unbindConnection(factory);
+		}
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<V> executePipelined(final RedisCallback<?> action) {
+		return executePipelined(action, valueSerializer);
+	}
+
+	/**
+	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
+	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 * 
+	 * @param action callback object to execute
+	 * @param resultSerializer
+	 * @return list of objects returned by the pipeline
+	 */
+	public <T> List<T> executePipelined(final RedisCallback<?> action, final RedisSerializer<T> resultSerializer) {
+		return execute(new RedisCallback<List<T>>() {
+			public List<T> doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.openPipeline();
+				Object result = action.doInRedis(connection);
+				if (result != null) {
+					throw new InvalidDataAccessApiUsageException(
+							"Callback cannot returned a non-null value as it gets overwritten by the pipeline");
+				}
+				List<byte[]> pipeline = connection.closePipeline();
+				return SerializationUtils.deserialize(pipeline, resultSerializer);
+			}
+		});
+	}
+
 	protected RedisConnection createRedisConnectionProxy(RedisConnection pm) {
 		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(pm.getClass(), getClass().getClassLoader());
 		return (RedisConnection) Proxy.newProxyInstance(pm.getClass().getClassLoader(), ifcs,
@@ -206,18 +251,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	protected <T> T postProcessResult(T result, RedisConnection conn, boolean existingConnection) {
 		return result;
-	}
-
-	@Override
-	public <T> T execute(SessionCallback<T> session) {
-		RedisConnectionFactory factory = getConnectionFactory();
-		// bind connection
-		RedisConnectionUtils.bindConnection(factory);
-		try {
-			return session.execute(this);
-		} finally {
-			RedisConnectionUtils.unbindConnection(factory);
-		}
 	}
 
 	/**
