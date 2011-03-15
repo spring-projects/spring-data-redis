@@ -576,7 +576,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		byte[][] ret = new byte[keys.length][];
 
 		for (int i = 0; i < ret.length; i++) {
-			byte[] bs = serializer.serialize(keys[i]);
+			ret[i] = serializer.serialize(keys[i]);
 		}
 
 		return ret;

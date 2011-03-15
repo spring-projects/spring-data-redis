@@ -66,12 +66,19 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 
 	@Override
 	public T deserialize(byte[] bytes) {
+		if (bytes == null) {
+			return null;
+		}
+
 		String string = new String(bytes, charset);
 		return converter.convert(string, type);
 	}
 
 	@Override
 	public byte[] serialize(T object) {
+		if (object == null) {
+			return null;
+		}
 		String string = converter.convert(object, String.class);
 		return string.getBytes(charset);
 	}

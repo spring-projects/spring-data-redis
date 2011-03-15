@@ -58,7 +58,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedChannel, message.getChannel());
 				assertArrayEquals(expectedMessage, message.getBody());
-				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 

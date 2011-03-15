@@ -18,6 +18,8 @@ package org.springframework.data.keyvalue.redis.connection;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ import org.junit.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
+import org.springframework.data.keyvalue.redis.core.StringRedisTemplate;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -102,8 +105,12 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testNullKey() throws Exception {
-		connection.decr((String) null);
 		connection.decr(EMPTY_ARRAY);
+		try {
+			connection.decr((String) null);
+		} catch (Exception ex) {
+			// excepted
+		}
 	}
 
 	@Test
@@ -139,5 +146,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		} catch (DataAccessException ex) {
 			// expected
 		}
+	}
+
+	@Test
+	public void testNullSerialization() throws Exception {
+		String[] keys = new String[] { "~", "[" };
+		List<String> mGet = connection.mGet(keys);
+		assertEquals(2, mGet.size());
+		assertNull(mGet.get(0));
+		assertNull(mGet.get(1));
+
+		StringRedisTemplate stringTemplate = new StringRedisTemplate(getConnectionFactory());
+		List<String> multiGet = stringTemplate.opsForValue().multiGet(Arrays.asList(keys));
+		assertEquals(2, multiGet.size());
+		assertNull(multiGet.get(0));
+		assertNull(multiGet.get(1));
 	}
 }

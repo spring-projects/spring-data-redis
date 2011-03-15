@@ -34,9 +34,6 @@ import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 public abstract class SerializationUtils {
 
 	public static <T> T deserialize(byte[] value, RedisSerializer<T> serializer) {
-		if (isEmpty(value)) {
-			return null;
-		}
 		return serializer.deserialize(value);
 	}
 
@@ -45,16 +42,10 @@ public abstract class SerializationUtils {
 		Collection<Object> values = (List.class.isAssignableFrom(type) ? new ArrayList<Object>(rawValues.size())
 				: new LinkedHashSet<Object>(rawValues.size()));
 		for (byte[] bs : rawValues) {
-			if (bs != null) {
-				values.add(redisSerializer.deserialize(bs));
-			}
+			values.add(redisSerializer.deserialize(bs));
 		}
 
 		return (T) values;
-	}
-
-	public static boolean isEmpty(byte[] data) {
-		return (data == null || data.length == 0);
 	}
 
 	public static <K> SortParameters convertQuery(SortQuery<K> query, RedisSerializer<String> stringSerializer) {

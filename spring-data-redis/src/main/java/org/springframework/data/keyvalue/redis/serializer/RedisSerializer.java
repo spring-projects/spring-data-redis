@@ -19,6 +19,7 @@ package org.springframework.data.keyvalue.redis.serializer;
  * Basic interface serialization and deserialization of Objects to byte arrays (binary data). 
  * 
  * It is recommended that implementations are designed to handle null objects/empty arrays on serialization and deserialization side.
+ * Note that Redis does not accept null keys or values but can return null replies (for non existing keys).
  * 
  * @author Mark Pollack
  * @author Costin Leau

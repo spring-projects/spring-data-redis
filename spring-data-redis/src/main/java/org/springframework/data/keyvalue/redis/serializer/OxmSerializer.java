@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * Delegates serialization/deserialization to OXM {@link Marshaller} and
  * {@link Unmarshaller}.
  * 
- * <b>Note:</b>Null objects are serialized as empty arrays.
+ * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  * 
  * @author Costin Leau
  */

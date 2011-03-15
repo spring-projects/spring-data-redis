@@ -51,12 +51,9 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 	 * @param connectionFactory connection factory for creating new connections
 	 */
 	public StringRedisTemplate(RedisConnectionFactory connectionFactory) {
-		super(connectionFactory);
-		RedisSerializer<String> stringSerializer = new StringRedisSerializer();
-		setKeySerializer(stringSerializer);
-		setValueSerializer(stringSerializer);
-		setHashKeySerializer(stringSerializer);
-		setHashValueSerializer(stringSerializer);
+		this();
+		setConnectionFactory(connectionFactory);
+		afterPropertiesSet();
 	}
 
 	@Override
