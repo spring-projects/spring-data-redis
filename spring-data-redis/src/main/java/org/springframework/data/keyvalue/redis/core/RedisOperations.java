@@ -95,7 +95,7 @@ public interface RedisOperations<K, V> {
 
 	Boolean expireAt(K key, Date date);
 
-	void persist(K key);
+	Boolean persist(K key);
 
 	Long getExpire(K key);
 

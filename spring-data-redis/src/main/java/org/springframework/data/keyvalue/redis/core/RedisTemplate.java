@@ -542,14 +542,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@Override
-	public void persist(K key) {
+	public Boolean persist(K key) {
 		final byte[] rawKey = rawKey(key);
 
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Boolean>() {
 			@Override
-			public Object doInRedis(RedisConnection connection) {
-				connection.persist(rawKey);
-				return null;
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.persist(rawKey);
 			}
 		}, true);
 	}
