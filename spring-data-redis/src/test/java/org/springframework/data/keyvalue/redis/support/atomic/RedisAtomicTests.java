@@ -44,6 +44,7 @@ public class RedisAtomicTests {
 		intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
 		longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 		this.factory = factory;
+		ConnectionFactoryTracker.add(factory);
 	}
 
 	@After
