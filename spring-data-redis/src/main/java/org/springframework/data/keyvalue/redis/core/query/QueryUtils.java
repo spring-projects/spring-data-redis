@@ -13,45 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.core;
+package org.springframework.data.keyvalue.redis.core.query;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.springframework.data.keyvalue.redis.connection.DefaultSortParameters;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
-import org.springframework.data.keyvalue.redis.core.query.SortQuery;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 
 /**
- * Utility class with various serialization-related methods. 
+ * Utilities for {@link SortQuery} implementations.
  * 
  * @author Costin Leau
  */
-public abstract class SerializationUtils {
-
-	public static <T> T deserialize(byte[] value, RedisSerializer<T> serializer) {
-		return serializer.deserialize(value);
-	}
-
-	@SuppressWarnings("unchecked")
-	static <T extends Collection<?>> T deserializeValues(Collection<byte[]> rawValues, Class<T> type, RedisSerializer<?> redisSerializer) {
-		// connection in pipeline/multi mode
-		if (rawValues == null) {
-			return null;
-		}
-
-		Collection<Object> values = (List.class.isAssignableFrom(type) ? new ArrayList<Object>(rawValues.size())
-				: new LinkedHashSet<Object>(rawValues.size()));
-		for (byte[] bs : rawValues) {
-			values.add(redisSerializer.deserialize(bs));
-		}
-
-		return (T) values;
-	}
+public abstract class QueryUtils {
 
 	public static <K> SortParameters convertQuery(SortQuery<K> query, RedisSerializer<String> stringSerializer) {
 
@@ -59,7 +36,7 @@ public abstract class SerializationUtils {
 				query.getGetPattern(), stringSerializer), query.getOrder(), query.isAlphabetic());
 	}
 
-	public static byte[][] serialize(List<String> strings, RedisSerializer<String> stringSerializer) {
+	private static byte[][] serialize(List<String> strings, RedisSerializer<String> stringSerializer) {
 		List<byte[]> raw = null;
 
 		if (strings == null) {

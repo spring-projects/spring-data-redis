@@ -130,7 +130,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			}
 		}, true);
 
-		return deserializeValues(rawValues, List.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override

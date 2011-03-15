@@ -16,7 +16,6 @@
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -300,7 +299,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Collection<byte[]> keys(byte[] pattern) {
+	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			return JredisUtils.convertCollection(jredis.keys(JredisUtils.decode(pattern)));
 		} catch (Exception ex) {

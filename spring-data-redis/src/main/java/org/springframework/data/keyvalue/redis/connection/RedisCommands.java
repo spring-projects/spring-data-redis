@@ -16,8 +16,8 @@
 
 package org.springframework.data.keyvalue.redis.connection;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface for the commands supported by Redis.
@@ -33,7 +33,7 @@ public interface RedisCommands extends RedisTxCommands, RedisStringCommands, Red
 
 	DataType type(byte[] key);
 
-	Collection<byte[]> keys(byte[] pattern);
+	Set<byte[]> keys(byte[] pattern);
 
 	byte[] randomKey();
 

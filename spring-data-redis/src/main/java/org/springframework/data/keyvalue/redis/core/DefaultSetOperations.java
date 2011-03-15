@@ -60,7 +60,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override
@@ -141,7 +141,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override
@@ -218,7 +218,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override

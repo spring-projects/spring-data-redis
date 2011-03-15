@@ -15,7 +15,6 @@
  */
 package org.springframework.data.keyvalue.redis.connection;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -26,6 +25,7 @@ import java.util.Set;
 
 import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.SerializationUtils;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
@@ -240,7 +240,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.isSubscribed();
 	}
 
-	public Collection<byte[]> keys(byte[] pattern) {
+	public Set<byte[]> keys(byte[] pattern) {
 		return delegate.keys(pattern);
 	}
 
@@ -593,28 +593,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 
-	private List<String> deserialize(Collection<byte[]> data) {
-		if (data == null) {
-			return null;
-		}
-
-		List<String> result = new ArrayList<String>(data.size());
-		for (byte[] raw : data) {
-			result.add(serializer.deserialize(raw));
-		}
-		return result;
+	private List<String> deserialize(List<byte[]> data) {
+		return SerializationUtils.deserialize(data, serializer);
 	}
 
 	private Set<String> deserialize(Set<byte[]> data) {
-		if (data == null) {
-			return null;
-		}
-
-		Set<String> result = new LinkedHashSet<String>(data.size());
-		for (byte[] raw : data) {
-			result.add(serializer.deserialize(raw));
-		}
-		return result;
+		return SerializationUtils.deserialize(data, serializer);
 	}
 
 	private String deserialize(byte[] data) {

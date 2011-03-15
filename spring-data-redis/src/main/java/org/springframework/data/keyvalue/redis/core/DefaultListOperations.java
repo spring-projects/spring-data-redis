@@ -119,7 +119,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			@SuppressWarnings("unchecked")
 			@Override
 			public List<V> doInRedis(RedisConnection connection) {
-				return deserializeValues(connection.lRange(rawKey, start, end), List.class);
+				return deserializeValues(connection.lRange(rawKey, start, end));
 			}
 		}, true);
 	}

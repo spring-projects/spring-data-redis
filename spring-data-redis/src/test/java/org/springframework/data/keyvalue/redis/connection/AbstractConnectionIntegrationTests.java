@@ -19,13 +19,17 @@ package org.springframework.data.keyvalue.redis.connection;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.redis.Address;
 import org.springframework.data.keyvalue.redis.Person;
@@ -43,12 +47,30 @@ public abstract class AbstractConnectionIntegrationTests {
 	private static final String listName = "test-list";
 	private static final byte[] EMPTY_ARRAY = new byte[0];
 
+	protected abstract RedisConnectionFactory getConnectionFactory();
+
+	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
+
 	@Before
 	public void setUp() {
 		connection = new DefaultStringRedisConnection(getConnectionFactory().getConnection());
+		connFactories.add(getConnectionFactory());
+
 	}
 
-	protected abstract RedisConnectionFactory getConnectionFactory();
+	@AfterClass
+	public static void cleanUp() {
+		if (connFactories != null) {
+			for (RedisConnectionFactory connectionFactory : connFactories) {
+				try {
+					((DisposableBean) connectionFactory).destroy();
+				} catch (Exception ex) {
+					System.err.println("Cannot clean factory " + connectionFactory + ex);
+				}
+			}
+		}
+	}
+
 
 	@After
 	public void tearDown() {

@@ -18,7 +18,6 @@ package org.springframework.data.keyvalue.redis.connection.jedis;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -577,7 +576,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Collection<byte[]> keys(byte[] pattern) {
+	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {
 				transaction.keys(pattern);

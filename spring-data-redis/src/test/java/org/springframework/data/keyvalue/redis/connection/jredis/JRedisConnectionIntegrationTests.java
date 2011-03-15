@@ -51,26 +51,6 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		System.out.println(jr.get("foobar"));
 	}
 
-	@Ignore("JRedis has connecting issues with null")
-	public void testNullSerialization() {
-	}
-
-	@Ignore("JRedis has connecting issues with null")
-	public void testHashNullValue() {
-	}
-
-	@Ignore("JRedis has connecting issues with null")
-	public void testHashNullKey() {
-	}
-
-	@Ignore("JRedis has connecting issues with null")
-	public void testNullValue() {
-	}
-
-	@Ignore("JRedis has connecting issues with null")
-	public void testNullKey() {
-	}
-
 	@Ignore("JRedis does not support pipelining")
 	public void testNullCollections() {
 	}

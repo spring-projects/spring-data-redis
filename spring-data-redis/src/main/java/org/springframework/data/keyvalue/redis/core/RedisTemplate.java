@@ -29,9 +29,11 @@ import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.core.query.QueryUtils;
 import org.springframework.data.keyvalue.redis.core.query.SortQuery;
 import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.SerializationUtils;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -377,7 +379,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private K deserializeKey(byte[] value) {
-		return (K) SerializationUtils.deserialize(value, keySerializer);
+		return (K) keySerializer.deserialize(value);
 	}
 
 	//
@@ -503,7 +505,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		}, true);
 
-		return (Set<K>) SerializationUtils.deserializeValues(rawKeys, Set.class, keySerializer);
+		return (Set<K>) SerializationUtils.deserialize(rawKeys, keySerializer);
 	}
 
 	@Override
@@ -638,11 +640,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return sort(query, valueSerializer);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer) {
 		final byte[] rawKey = rawKey(query.getKey());
-		final SortParameters params = SerializationUtils.convertQuery(query, stringSerializer);
+		final SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
 
 		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
 			@Override
@@ -651,7 +652,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		}, true);
 
-		return (List<T>) SerializationUtils.deserializeValues(vals, List.class, resultSerializer);
+		return SerializationUtils.deserialize(vals, resultSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -685,7 +686,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Long sort(SortQuery<K> query, K storeKey) {
 		final byte[] rawStoreKey = rawKey(storeKey);
 		final byte[] rawKey = rawKey(query.getKey());
-		final SortParameters params = SerializationUtils.convertQuery(query, stringSerializer);
+		final SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
 
 		return execute(new RedisCallback<Long>() {
 			@Override

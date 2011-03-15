@@ -88,7 +88,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -103,7 +103,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override
@@ -183,7 +183,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 			}
 		}, true);
 
-		return deserializeValues(rawValues, Set.class);
+		return deserializeValues(rawValues);
 	}
 
 	@Override

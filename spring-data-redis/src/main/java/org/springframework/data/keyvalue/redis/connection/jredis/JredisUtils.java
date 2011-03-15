@@ -16,11 +16,12 @@
 
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.jredis.ClientRuntimeException;
 import org.jredis.RedisException;
@@ -104,15 +105,14 @@ public abstract class JredisUtils {
 		return result;
 	}
 
-	static Collection<byte[]> convertCollection(Collection<String> keys) {
-		Collection<byte[]> list = new ArrayList<byte[]>(keys.size());
+	static Set<byte[]> convertCollection(Collection<String> keys) {
+		Set<byte[]> set = new LinkedHashSet<byte[]>(keys.size());
 
 		for (String string : keys) {
-			list.add(Base64.decode(string));
+			set.add(Base64.decode(string));
 		}
-		return list;
+		return set;
 	}
-
 
 	static Map<String, byte[]> decodeMap(Map<byte[], byte[]> tuple) {
 		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(tuple.size());

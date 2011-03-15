@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.SerializationUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -130,18 +131,24 @@ abstract class AbstractOperations<K, V> {
 		return rawKeys;
 	}
 
-	<T extends Collection<V>> T deserializeValues(Collection<byte[]> rawValues, Class<T> type) {
-		return SerializationUtils.deserializeValues(rawValues, type, valueSerializer);
+	@SuppressWarnings("unchecked")
+	Set<V> deserializeValues(Set<byte[]> rawValues) {
+		return SerializationUtils.deserialize(rawValues, valueSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> Set<T> deserializeHashKeys(Collection<byte[]> rawKeys) {
-		return SerializationUtils.deserializeValues(rawKeys, Set.class, hashKeySerializer);
+	List<V> deserializeValues(List<byte[]> rawValues) {
+		return SerializationUtils.deserialize(rawValues, valueSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
-	<T> List<T> deserializeHashValues(Collection<byte[]> rawValues) {
-		return SerializationUtils.deserializeValues(rawValues, List.class, hashValueSerializer);
+	<T> Set<T> deserializeHashKeys(Set<byte[]> rawKeys) {
+		return SerializationUtils.deserialize(rawKeys, hashKeySerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> List<T> deserializeHashValues(List<byte[]> rawValues) {
+		return SerializationUtils.deserialize(rawValues, hashValueSerializer);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -162,26 +169,25 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	K deserializeKey(byte[] value) {
-		return (K) SerializationUtils.deserialize(value, keySerializer);
+		return (K) keySerializer.deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	V deserializeValue(byte[] value) {
-		return (V) SerializationUtils.deserialize(value, valueSerializer);
+		return (V) valueSerializer.deserialize(value);
 	}
 
-	@SuppressWarnings("unchecked")
 	String deserializeString(byte[] value) {
-		return (String) SerializationUtils.deserialize(value, stringSerializer);
+		return (String) stringSerializer.deserialize(value);
 	}
 
 	@SuppressWarnings( { "unchecked" })
 	<HK> HK deserializeHashKey(byte[] value) {
-		return (HK) SerializationUtils.deserialize(value, hashKeySerializer);
+		return (HK) hashKeySerializer.deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HV> HV deserializeHashValue(byte[] value) {
-		return (HV) SerializationUtils.deserialize(value, hashValueSerializer);
+		return (HV) hashValueSerializer.deserialize(value);
 	}
 }
