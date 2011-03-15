@@ -116,7 +116,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.echo(message);
 	}
 
-	public List<Object> exec() {
+	public List<byte[]> exec() {
 		return delegate.exec();
 	}
 

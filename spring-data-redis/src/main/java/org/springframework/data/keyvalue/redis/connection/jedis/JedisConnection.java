@@ -511,14 +511,19 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<Object> exec() {
+	public List<byte[]> exec() {
 		try {
 			if (isPipelined()) {
 				pipeline.exec();
 				return null;
 			}
-			return transaction.exec();
+			List execute = transaction.exec();
+			if (execute != null && !execute.isEmpty()) {
+				return (List<byte[]>) execute;
+			}
+			return Collections.emptyList();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
