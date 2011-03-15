@@ -69,8 +69,9 @@ public interface BoundKeyOperations<K> {
 
 	/**
 	 * Removes the expiration (if any) of the key.
+	 * @return true if expiration was removed, false otherwise
 	 */
-	void persist();
+	Boolean persist();
 
 	/**
 	 * Renames the key.

@@ -284,8 +284,8 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	@Override
-	public void persist() {
-		generalOps.persist(key);
+	public Boolean persist() {
+		return generalOps.persist(key);
 	}
 
 	@Override

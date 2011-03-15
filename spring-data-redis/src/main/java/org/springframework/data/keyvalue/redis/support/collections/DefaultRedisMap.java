@@ -310,8 +310,8 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public void persist() {
-		hashOps.persist();
+	public Boolean persist() {
+		return hashOps.persist();
 	}
 
 

@@ -135,8 +135,8 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	}
 
 	@Override
-	public void persist() {
-		operations.persist(key);
+	public Boolean persist() {
+		return operations.persist(key);
 	}
 
 	@Override

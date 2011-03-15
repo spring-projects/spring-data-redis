@@ -60,8 +60,8 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 	}
 
 	@Override
-	public void persist() {
-		ops.persist(key);
+	public Boolean persist() {
+		return ops.persist(key);
 	}
 
 	@Override

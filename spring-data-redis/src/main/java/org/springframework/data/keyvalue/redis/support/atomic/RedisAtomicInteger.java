@@ -281,8 +281,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	@Override
-	public void persist() {
-		generalOps.persist(key);
+	public Boolean persist() {
+		return generalOps.persist(key);
 	}
 
 	@Override
