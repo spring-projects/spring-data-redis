@@ -919,7 +919,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public void setRange(String key, long start, String value) {
+	public void setRange(String key, String value, long start) {
 		delegate.setRange(serialize(key), serialize(value), start);
 	}
 
