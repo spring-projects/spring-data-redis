@@ -87,7 +87,7 @@ public class RjcConnectionFactory implements InitializingBean, DisposableBean, R
 
 	@Override
 	public RedisConnection getConnection() {
-		return postProcessConnection(new RjcConnection(dataSource.getConnection(), usePool, dbIndex));
+		return postProcessConnection(new RjcConnection(dataSource.getConnection(), dbIndex));
 	}
 
 	/**

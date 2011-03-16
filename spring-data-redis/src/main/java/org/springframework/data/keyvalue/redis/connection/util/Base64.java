@@ -1,4 +1,4 @@
-package org.springframework.data.keyvalue.redis.connection.jredis;
+package org.springframework.data.keyvalue.redis.connection.util;
 
 import java.util.Arrays;
 

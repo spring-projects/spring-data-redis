@@ -17,8 +17,6 @@
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -34,6 +32,7 @@ import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
+import org.springframework.data.keyvalue.redis.connection.util.DecodeUtils;
 
 /**
  * Helper class featuring methods for JRedis connection handling, providing support for exception translation. 
@@ -82,46 +81,28 @@ public abstract class JredisUtils {
 	}
 
 	static String decode(byte[] bytes) {
-		return Base64.encodeToString(bytes, false);
-	}
-
-	static String[] decodeMultiple(byte[]... bytes) {
-		String[] result = new String[bytes.length];
-		for (int i = 0; i < bytes.length; i++) {
-			result[i] = decode(bytes[i]);
-		}
-		return result;
+		return DecodeUtils.decode(bytes);
 	}
 
 	static byte[] encode(String string) {
-		return Base64.decode(string);
+		return DecodeUtils.encode(string);
+	}
+
+	static String[] decodeMultiple(byte[]... bytes) {
+		return DecodeUtils.decodeMultiple(bytes);
 	}
 
 	static Map<byte[], byte[]> encodeMap(Map<String, byte[]> map) {
-		Map<byte[], byte[]> result = new LinkedHashMap<byte[], byte[]>(map.size());
-		for (Map.Entry<String, byte[]> entry : map.entrySet()) {
-			result.put(encode(entry.getKey()), entry.getValue());
-		}
-		return result;
-	}
-
-	static Set<byte[]> convertCollection(Collection<String> keys) {
-		Set<byte[]> set = new LinkedHashSet<byte[]>(keys.size());
-
-		for (String string : keys) {
-			set.add(Base64.decode(string));
-		}
-		return set;
+		return DecodeUtils.encodeMap(map);
 	}
 
 	static Map<String, byte[]> decodeMap(Map<byte[], byte[]> tuple) {
-		Map<String, byte[]> result = new LinkedHashMap<String, byte[]>(tuple.size());
-		for (Map.Entry<byte[], byte[]> entry : tuple.entrySet()) {
-			result.put(decode(entry.getKey()), entry.getValue());
-		}
-		return result;
+		return DecodeUtils.decodeMap(tuple);
 	}
 
+	static Set<byte[]> convertToSet(Collection<String> keys) {
+		return DecodeUtils.convertToSet(keys);
+	}
 
 	static Sort applySortingParams(Sort jredisSort, SortParameters params, byte[] storeKey) {
 		if (params != null) {
