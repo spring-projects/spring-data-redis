@@ -22,6 +22,7 @@ import org.springframework.data.keyvalue.redis.Person;
 import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.OxmSerializer;
@@ -70,6 +71,7 @@ public abstract class CollectionTestParams {
 		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
 
+		// jredis
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
 		jredisConnFactory.setUsePool(true);
 
@@ -88,15 +90,42 @@ public abstract class CollectionTestParams {
 
 		RedisTemplate<String, Person> xstreamPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
 		xstreamPersonTemplateJR.setValueSerializer(serializer);
-
-		// json JR
 		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplateJR }, { personFactory, personTemplateJR },
-				{ stringFactory, stringTemplate }, { personFactory, personTemplate },
-				{ stringFactory, xstreamStringTemplate }, { personFactory, xstreamPersonTemplate },
-				{ stringFactory, xstreamStringTemplateJR }, { personFactory, xstreamPersonTemplateJR },
-				{ personFactory, jsonPersonTemplate }, { personFactory, jsonPersonTemplateJR } });
+
+		// rjc
+		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
+		rjcConnFactory.setUsePool(true);
+		rjcConnFactory.setPort(SettingsUtils.getPort());
+		rjcConnFactory.setHostName(SettingsUtils.getHost());
+		rjcConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> stringTemplateRJC = new RedisTemplate<String, String>(rjcConnFactory);
+		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>(rjcConnFactory);
+
+		RedisTemplate<String, Person> xstreamStringTemplateRJC = new RedisTemplate<String, Person>();
+		xstreamStringTemplateRJC.setConnectionFactory(rjcConnFactory);
+		xstreamStringTemplateRJC.setDefaultSerializer(serializer);
+		xstreamStringTemplateRJC.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xstreamPersonTemplateRJC = new RedisTemplate<String, Person>();
+		xstreamPersonTemplateRJC.setValueSerializer(serializer);
+		xstreamPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
+		xstreamPersonTemplateRJC.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateRJC = new RedisTemplate<String, Person>();
+		jsonPersonTemplateRJC.setValueSerializer(jsonSerializer);
+		jsonPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
+		jsonPersonTemplateRJC.afterPropertiesSet();
+
+		return Arrays.asList(new Object[][] { { stringFactory, stringTemplateRJC },
+				{ personFactory, personTemplateRJC }, { stringFactory, stringTemplateJR },
+				{ personFactory, personTemplateJR }, { stringFactory, stringTemplate },
+				{ personFactory, personTemplate }, { stringFactory, xstreamStringTemplate },
+				{ personFactory, xstreamPersonTemplate }, { stringFactory, xstreamStringTemplateJR },
+				{ personFactory, xstreamPersonTemplateJR }, { personFactory, jsonPersonTemplate },
+				{ personFactory, jsonPersonTemplateJR }, { stringFactory, xstreamStringTemplateRJC },
+				{ personFactory, xstreamPersonTemplateRJC }, { personFactory, jsonPersonTemplateRJC } });
 	}
 }
