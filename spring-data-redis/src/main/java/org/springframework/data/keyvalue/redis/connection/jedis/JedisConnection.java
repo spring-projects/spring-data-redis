@@ -914,7 +914,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public byte[] getRange(byte[] key, int start, int end) {
+	public byte[] getRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
 				transaction.substr(key, (int) start, (int) end);
@@ -1033,7 +1033,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void setRange(byte[] key, int start, int end) {
+	public void setRange(byte[] key, long start, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -1770,11 +1770,10 @@ public class JedisConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
-				transaction.zrangeWithScores(key, (int) start, (int) end);
-				return null;
+				throw new UnsupportedOperationException();
 			}
 			if (isPipelined()) {
-				pipeline.zrangeWithScores(key, (int) start, (int) end);
+				pipeline.zrangeByScoreWithScores(key, (int) start, (int) end);
 				return null;
 			}
 			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, (int) start, (int) end));
