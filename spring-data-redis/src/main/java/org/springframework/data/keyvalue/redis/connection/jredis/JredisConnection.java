@@ -81,7 +81,11 @@ public class JredisConnection implements RedisConnection {
 		// don't actually close the connection
 		// if a pool is used
 		if (!isPool) {
-			jredis.quit();
+			try {
+				jredis.quit();
+			} catch (Exception ex) {
+				throw convertJredisAccessException(ex);
+			}
 		}
 	}
 

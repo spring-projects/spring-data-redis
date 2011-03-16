@@ -1,105 +1,93 @@
 /*
- * Copyright 2010-2011 the original author or authors.
- *
+ * Copyright 2011 the original author or authors.
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.data.keyvalue.redis.connection.jedis;
+package org.springframework.data.keyvalue.redis.connection.rjc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.idevlab.rjc.ds.DataSource;
+import org.idevlab.rjc.ds.PoolableDataSource;
+import org.idevlab.rjc.ds.SimpleDataSource;
+import org.idevlab.rjc.protocol.Protocol;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.Protocol;
 
 /**
- * Connection factory creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
+ * Connection factory creating <a href="http://github.com/e-mzungu/rjc/">rjc</a> based connections.
  * 
  * @author Costin Leau
  */
-public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
+public class RjcConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 
-	private JedisShardInfo shardInfo;
 	private String hostName = "localhost";
 	private int port = Protocol.DEFAULT_PORT;
 	private int timeout = Protocol.DEFAULT_TIMEOUT;
 	private String password;
 
 	private boolean usePool = true;
-	private JedisPool pool = null;
-	private JedisPoolConfig poolConfig = new JedisPoolConfig();
-
 	private int dbIndex = 0;
+	private DataSource dataSource;
+
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance
+	 * Constructs a new <code>RjcConnectionFactory</code> instance
 	 * with default settings (default connection pooling, no shard information).
 	 */
-	public JedisConnectionFactory() {
-	}
-
-	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance.
-	 * Will override the other connection parameters passed to the factory. 
-	 *
-	 * @param shardInfo shard information
-	 */
-	public JedisConnectionFactory(JedisShardInfo shardInfo) {
-		this.shardInfo = shardInfo;
-	}
-
-	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance using
-	 * the given pool configuration.
-	 *
-	 * @param poolConfig pool configuration
-	 */
-	public JedisConnectionFactory(JedisPoolConfig poolConfig) {
-		this.poolConfig = poolConfig;
+	public RjcConnectionFactory() {
 	}
 
 
-	/**
-	 * Returns a Jedis instance to be used as a Redis connection.
-	 * The instance can be newly created or retrieved from a pool.
-	 * 
-	 * @return Jedis instance ready for wrapping into a {@link RedisConnection}.
-	 */
-	protected Jedis fetchJedisConnector() {
-		try {
-			if (usePool && pool != null) {
-				return pool.getResource();
-			}
-			Jedis jedis = new Jedis(getShardInfo());
-			// force initialization (see Jedis issue #82)
-			jedis.connect();
-			return jedis;
-		} catch (Exception ex) {
-			throw new DataAccessResourceFailureException("Cannot get Jedis connection", ex);
+	public void afterPropertiesSet() {
+		if (usePool) {
+			PoolableDataSource pool = new PoolableDataSource();
+			pool.setHost(hostName);
+			pool.setPort(port);
+			pool.setPassword(password);
+			pool.setTimeout(timeout);
+
+			pool.init();
+
+			dataSource = pool;
+
 		}
+		else {
+			dataSource = new SimpleDataSource(hostName, port, timeout, password);
+		}
+	}
+
+	public void destroy() {
+		if (usePool && dataSource != null) {
+			try {
+				((PoolableDataSource) dataSource).close();
+			} catch (Exception ex) {
+				log.warn("Cannot properly close Rjc pool", ex);
+			}
+			dataSource = null;
+		}
+	}
+
+	@Override
+	public RedisConnection getConnection() {
+		return postProcessConnection(new RjcConnection(dataSource.getConnection(), usePool, dbIndex));
 	}
 
 	/**
@@ -110,50 +98,15 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @param connection
 	 * @return processed connection
 	 */
-	protected JedisConnection postProcessConnection(JedisConnection connection) {
+	protected RjcConnection postProcessConnection(RjcConnection connection) {
 		return connection;
-	}
-
-	public void afterPropertiesSet() {
-		if (shardInfo == null) {
-			shardInfo = new JedisShardInfo(hostName, port);
-
-			if (StringUtils.hasLength(password)) {
-				shardInfo.setPassword(password);
-			}
-
-			if (timeout > 0) {
-				shardInfo.setTimeout(timeout);
-			}
-		}
-
-		if (usePool) {
-			pool = new JedisPool(poolConfig, shardInfo.getHost(), shardInfo.getPort(), shardInfo.getTimeout(),
-					shardInfo.getPassword());
-		}
-	}
-
-	public void destroy() {
-		if (usePool && pool != null) {
-			try {
-				pool.destroy();
-			} catch (Exception ex) {
-				log.warn("Cannot properly close Jedis pool", ex);
-			}
-			pool = null;
-		}
-	}
-
-	public JedisConnection getConnection() {
-		Jedis jedis = fetchJedisConnector();
-		return postProcessConnection((usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis,
-				null, dbIndex)));
 	}
 
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return JedisUtils.convertJedisAccessException(ex);
+		return RjcUtils.convertRjcAccessException(ex);
 	}
+
 
 	/**
 	 * Returns the Redis hostName.
@@ -209,25 +162,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setPort(int port) {
 		this.port = port;
 	}
-
-	/**
-	 * Returns the shardInfo.
-	 *
-	 * @return Returns the shardInfo
-	 */
-	public JedisShardInfo getShardInfo() {
-		return shardInfo;
-	}
-
-	/**
-	 * Sets the shard info for this factory.
-	 * 
-	 * @param shardInfo The shardInfo to set.
-	 */
-	public void setShardInfo(JedisShardInfo shardInfo) {
-		this.shardInfo = shardInfo;
-	}
-
 	/**
 	 * Returns the timeout.
 	 *
@@ -260,24 +194,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public void setUsePool(boolean usePool) {
 		this.usePool = usePool;
-	}
-
-	/**
-	 * Returns the poolConfig.
-	 *
-	 * @return Returns the poolConfig
-	 */
-	public JedisPoolConfig getPoolConfig() {
-		return poolConfig;
-	}
-
-	/**
-	 * Sets the pool configuration for this factory.
-	 * 
-	 * @param poolConfig The poolConfig to set.
-	 */
-	public void setPoolConfig(JedisPoolConfig poolConfig) {
-		this.poolConfig = poolConfig;
 	}
 
 	/**
