@@ -223,13 +223,22 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(new RedisCallback<List<T>>() {
 			public List<T> doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.openPipeline();
-				Object result = action.doInRedis(connection);
-				if (result != null) {
-					throw new InvalidDataAccessApiUsageException(
-							"Callback cannot returned a non-null value as it gets overwritten by the pipeline");
+				boolean pipelinedClosed = false;
+				try {
+					Object result = action.doInRedis(connection);
+					if (result != null) {
+						throw new InvalidDataAccessApiUsageException(
+								"Callback cannot returned a non-null value as it gets overwritten by the pipeline");
+					}
+					List<byte[]> pipeline = connection.closePipeline();
+					pipelinedClosed = true;
+					return SerializationUtils.deserialize(pipeline, resultSerializer);
+
+				} finally {
+					if (!pipelinedClosed) {
+						connection.closePipeline();
+					}
 				}
-				List<byte[]> pipeline = connection.closePipeline();
-				return SerializationUtils.deserialize(pipeline, resultSerializer);
 			}
 		});
 	}
