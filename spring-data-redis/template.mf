@@ -22,7 +22,7 @@ Import-Template:
  org.jredis.ri.alphazero.*;version="[1.0.0, 2.0.0)",
  redis.clients.jedis.*;version=${jedis.range},
  redis.clients.util.*;version=${jedis.range},
+ org.idevlab.rjc.*;version=${rjc.range},
  org.apache.commons.pool.impl.*;version="[1.0.0, 3.0.0)",
  org.codehaus.jackson.*;version=${jackson.range},
- org.apache.commons.beanutils.*;version="[1.8.0, 2.0.0)"
-
+ org.apache.commons.beanutils.*;version=1.8.5

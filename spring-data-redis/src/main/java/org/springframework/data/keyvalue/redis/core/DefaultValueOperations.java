@@ -96,7 +96,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@Override
-	public String get(K key, final int start, final int end) {
+	public String get(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
 		byte[] rawReturn = execute(new RedisCallback<byte[]>() {
@@ -217,13 +217,14 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 
 
 	@Override
-	public void set(K key, final int start, final int end) {
+	public void set(K key, final V value, final long offset) {
 		final byte[] rawKey = rawKey(key);
+		final byte[] rawValue = rawValue(value);
 
 		execute(new RedisCallback<Object>() {
 			@Override
 			public Object doInRedis(RedisConnection connection) {
-				connection.setRange(rawKey, start, end);
+				connection.setRange(rawKey, rawValue, offset);
 				return null;
 			}
 		}, true);

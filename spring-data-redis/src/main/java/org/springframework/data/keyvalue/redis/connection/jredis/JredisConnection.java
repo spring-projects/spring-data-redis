@@ -518,7 +518,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void setRange(byte[] key, long start, byte[] value) {
+	public void setRange(byte[] key, byte[] value, long start) {
 		throw new UnsupportedOperationException();
 	}
 

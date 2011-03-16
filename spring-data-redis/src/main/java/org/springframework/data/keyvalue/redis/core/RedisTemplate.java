@@ -377,7 +377,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * Sets the string value serializer to be used by this template (when the arguments or return types
 	 * are always strings). Defaults to {@link StringRedisSerializer}.
 	 * 
-	 * @see ValueOperations#get(Object, int, int)
+	 * @see ValueOperations#get(Object, long, long)
 	 * @param stringSerializer The stringValueSerializer to set.
 	 */
 	public void setStringSerializer(RedisSerializer<String> stringSerializer) {

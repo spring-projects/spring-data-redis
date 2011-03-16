@@ -54,7 +54,7 @@ public interface RedisStringCommands {
 
 	byte[] getRange(byte[] key, long begin, long end);
 
-	void setRange(byte[] key, long offset, byte[] value);
+	void setRange(byte[] key, byte[] value, long offset);
 
 	Boolean getBit(byte[] key, long offset);
 

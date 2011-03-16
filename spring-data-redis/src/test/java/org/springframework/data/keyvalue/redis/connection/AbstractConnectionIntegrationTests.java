@@ -69,16 +69,19 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testLPush() throws Exception {
-		Long index = connection.lPush(listName.getBytes(), "bar".getBytes());
+		byte[] val = "bar".getBytes();
+		Long index = connection.lPush(listName.getBytes(), val);
 		if (index != null) {
-			assertEquals((Long) (index + 1), connection.lPush(listName.getBytes(), "bar".getBytes()));
+			assertEquals((Long) (index + 1), connection.lPush(listName.getBytes(), val));
 		}
 	}
 
 	@Test
 	public void testSetAndGet() {
-		connection.set("foo".getBytes(), "blahblah".getBytes());
-		assertEquals("blahblah", new String(connection.get("foo".getBytes())));
+		String key = "foo";
+		String value = "blabla";
+		connection.set(key.getBytes(), value.getBytes());
+		assertEquals(value, new String(connection.get(key.getBytes())));
 	}
 
 	private boolean isJredis() {

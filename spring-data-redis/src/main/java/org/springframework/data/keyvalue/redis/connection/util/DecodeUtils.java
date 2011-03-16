@@ -43,7 +43,7 @@ public abstract class DecodeUtils {
 	}
 
 	public static byte[] encode(String string) {
-		return Base64.decode(string);
+		return (string == null ? null : Base64.decode(string));
 	}
 
 	public static Map<byte[], byte[]> encodeMap(Map<String, byte[]> map) {
@@ -66,7 +66,7 @@ public abstract class DecodeUtils {
 		Set<byte[]> set = new LinkedHashSet<byte[]>(keys.size());
 
 		for (String string : keys) {
-			set.add(Base64.decode(string));
+			set.add(encode(string));
 		}
 		return set;
 	}
@@ -75,7 +75,7 @@ public abstract class DecodeUtils {
 		List<byte[]> set = new ArrayList<byte[]>(keys.size());
 
 		for (String string : keys) {
-			set.add(Base64.decode(string));
+			set.add(encode(string));
 		}
 		return set;
 	}

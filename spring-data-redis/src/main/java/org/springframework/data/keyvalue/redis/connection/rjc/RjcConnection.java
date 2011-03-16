@@ -56,7 +56,7 @@ public class RjcConnection implements RedisConnection {
 
 	public RjcConnection(org.idevlab.rjc.ds.RedisConnection connection, int dbIndex) {
 		SingleDataSource connectionDataSource = new SingleDataSource(connection);
-		session = new SessionFactoryImpl().create();
+		session = new SessionFactoryImpl(connectionDataSource).create();
 		client = new Client(connection);
 		subscriber = new RedisNodeSubscriber(connectionDataSource);
 
@@ -638,7 +638,7 @@ public class RjcConnection implements RedisConnection {
 	@Override
 	public void set(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
-		String stringValue = RjcUtils.decode(key);
+		String stringValue = RjcUtils.decode(value);
 
 		try {
 			if (isPipelined()) {
@@ -655,7 +655,7 @@ public class RjcConnection implements RedisConnection {
 	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
-		String stringValue = RjcUtils.decode(key);
+		String stringValue = RjcUtils.decode(value);
 
 		try {
 			if (isPipelined()) {
@@ -671,7 +671,7 @@ public class RjcConnection implements RedisConnection {
 	@Override
 	public Long append(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
-		String stringValue = RjcUtils.decode(key);
+		String stringValue = RjcUtils.decode(value);
 
 		try {
 			if (isPipelined()) {
@@ -870,7 +870,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	@Override
-	public void setRange(byte[] key, long offset, byte[] value) {
+	public void setRange(byte[] key, byte[] value, long offset) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
 

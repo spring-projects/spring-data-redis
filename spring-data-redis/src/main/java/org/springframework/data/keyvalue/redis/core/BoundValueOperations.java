@@ -28,21 +28,21 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 	void set(V value);
 
+	void set(V value, long offset);
+
 	void set(V value, long timeout, TimeUnit unit);
 
 	Boolean setIfAbsent(V value);
 
 	V get();
 
+	String get(long start, long end);
+
 	V getAndSet(V value);
 
 	Long increment(long delta);
 
 	Integer append(String value);
-
-	String get(int start, int end);
-
-	void set(int start, int end);
 
 	Long size();
 }

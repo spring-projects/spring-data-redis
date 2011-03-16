@@ -396,8 +396,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.setNX(key, value);
 	}
 
-	public void setRange(byte[] key, long start, byte[] value) {
-		delegate.setRange(key, start, value);
+	public void setRange(byte[] key, byte[] value, long start) {
+		delegate.setRange(key, value, start);
 	}
 
 	public void shutdown() {
@@ -683,7 +683,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public String getRange(String key, int start, int end) {
+	public String getRange(String key, long start, long end) {
 		return deserialize(delegate.getRange(serialize(key), start, end));
 	}
 
@@ -919,8 +919,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public void setRange(String key, int start, int end) {
-		delegate.setRange(serialize(key), start, end);
+	public void setRange(String key, long start, String value) {
+		delegate.setRange(serialize(key), serialize(value), start);
 	}
 
 	@Override

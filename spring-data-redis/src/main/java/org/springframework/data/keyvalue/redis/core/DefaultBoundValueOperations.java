@@ -58,7 +58,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	}
 
 	@Override
-	public String get(int start, int end) {
+	public String get(long start, long end) {
 		return ops.get(getKey(), start, end);
 	}
 
@@ -78,8 +78,8 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 	}
 
 	@Override
-	public void set(int start, int end) {
-		ops.set(getKey(), start, end);
+	public void set(V value, long offset) {
+		ops.set(getKey(), value, offset);
 	}
 
 	@Override

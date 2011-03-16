@@ -47,9 +47,9 @@ public interface ValueOperations<K, V> {
 
 	Integer append(K key, String value);
 
-	String get(K key, int start, int end);
+	String get(K key, long start, long end);
 
-	void set(K key, int start, int end);
+	void set(K key, V value, long offset);
 
 	Long size(K key);
 
