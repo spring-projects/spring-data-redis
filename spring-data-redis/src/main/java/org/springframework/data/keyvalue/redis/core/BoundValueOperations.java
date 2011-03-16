@@ -40,9 +40,9 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 	Integer append(String value);
 
-	String get(int start, int end);
+	String get(long start, long end);
 
-	void set(int start, int end);
+	void set(long offset, V value);
 
 	Long size();
 }

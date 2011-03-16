@@ -683,7 +683,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public String getRange(String key, int start, int end) {
+	public String getRange(String key, long start, long end) {
 		return deserialize(delegate.getRange(serialize(key), start, end));
 	}
 
@@ -919,8 +919,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public void setRange(String key, int start, int end) {
-		delegate.setRange(serialize(key), start, end);
+	public void setRange(String key, long offset, String value) {
+		delegate.setRange(serialize(key), offset, serialize(value));
 	}
 
 	@Override

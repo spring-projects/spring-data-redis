@@ -95,9 +95,9 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long append(String key, String value);
 
-	String getRange(String key, int start, int end);
+	String getRange(String key, long start, long end);
 
-	void setRange(String key, int start, int end);
+	void setRange(String key, long offset, String value);
 
 	Boolean getBit(String key, long offset);
 
