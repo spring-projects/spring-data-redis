@@ -27,6 +27,7 @@ import org.idevlab.rjc.Session;
 import org.idevlab.rjc.SessionFactoryImpl;
 import org.idevlab.rjc.SortingParams;
 import org.idevlab.rjc.ZParams;
+import org.idevlab.rjc.message.RedisNodeSubscriber;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.SubscribedRedisConnectionException;
@@ -50,9 +51,14 @@ public class RjcConnection implements RedisConnection {
 	private final Session session;
 	private volatile Client pipeline;
 
+	private volatile RjcSubscription subscription;
+	private volatile RedisNodeSubscriber subscriber;
+
 	public RjcConnection(org.idevlab.rjc.ds.RedisConnection connection, int dbIndex) {
-		session = new SessionFactoryImpl(new SingleDataSource(connection)).create();
+		SingleDataSource connectionDataSource = new SingleDataSource(connection);
+		session = new SessionFactoryImpl().create();
 		client = new Client(connection);
+		subscriber = new RedisNodeSubscriber(connectionDataSource);
 
 		this.dbIndex = dbIndex;
 
@@ -73,6 +79,7 @@ public class RjcConnection implements RedisConnection {
 	public void close() throws DataAccessException {
 		isClosed = true;
 		try {
+			subscriber.close();
 			session.close();
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
@@ -1969,7 +1976,7 @@ public class RjcConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			return session.publish(channel, message);
+			return session.publish(RjcUtils.decode(channel), RjcUtils.decode(message));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -1987,8 +1994,6 @@ public class RjcConnection implements RedisConnection {
 
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
-		String[] stringKeys = RjcUtils.decodeMultiple(patterns);
-
 		if (isSubscribed()) {
 			throw new SubscribedRedisConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
@@ -2002,10 +2007,9 @@ public class RjcConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			BinarysessionPubSub sessionPubSub = RjcUtils.adaptPubSub(listener);
+			subscription = new RjcSubscription(listener, subscriber);
+			subscription.pSubscribe(patterns);
 
-			subscription = new sessionSubscription(listener, sessionPubSub, null, patterns);
-			session.psubscribe(sessionPubSub, patterns);
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -2013,8 +2017,6 @@ public class RjcConnection implements RedisConnection {
 
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
-		String[] stringKeys = RjcUtils.decodeMultiple(channels);
-
 		if (isSubscribed()) {
 			throw new SubscribedRedisConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
@@ -2028,10 +2030,9 @@ public class RjcConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			BinarysessionPubSub sessionPubSub = RjcUtils.adaptPubSub(listener);
+			subscription = new RjcSubscription(listener, subscriber);
+			subscription.pSubscribe(channels);
 
-			subscription = new sessionSubscription(listener, sessionPubSub, channels, null);
-			session.subscribe(sessionPubSub, channels);
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
