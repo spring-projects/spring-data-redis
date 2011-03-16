@@ -32,8 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.data.keyvalue.redis.ConnectionFactoryTracker;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
 import org.springframework.data.keyvalue.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.keyvalue.redis.support.collections.ObjectFactory;
@@ -51,7 +50,6 @@ public class PubSubTests<T> {
 	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
 	protected RedisTemplate template;
-	private static Set<RedisConnectionFactory> connFactories = new LinkedHashSet<RedisConnectionFactory>();
 
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
 
@@ -84,21 +82,12 @@ public class PubSubTests<T> {
 	public PubSubTests(ObjectFactory<T> factory, RedisTemplate template) {
 		this.factory = factory;
 		this.template = template;
-		connFactories.add(template.getConnectionFactory());
+		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@AfterClass
 	public static void cleanUp() {
-		if (connFactories != null) {
-			for (RedisConnectionFactory connectionFactory : connFactories) {
-				try {
-					((DisposableBean) connectionFactory).destroy();
-					System.out.println("Succesfully cleaned up factory " + connectionFactory);
-				} catch (Exception ex) {
-					System.err.println("Cannot clean factory " + connectionFactory + ex);
-				}
-			}
-		}
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters
@@ -125,6 +114,8 @@ public class PubSubTests<T> {
 		Set<String> set = new LinkedHashSet<String>();
 		set.add(bag.poll(1, TimeUnit.SECONDS));
 		set.add(bag.poll(1, TimeUnit.SECONDS));
+
+		System.out.println(set);
 
 		assertTrue(set.contains(payload1));
 		assertTrue(set.contains(payload2));

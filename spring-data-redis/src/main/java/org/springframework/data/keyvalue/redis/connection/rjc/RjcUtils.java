@@ -216,4 +216,8 @@ public abstract class RjcUtils {
 		}
 		return result;
 	}
+
+	static Double convert(String zscore) {
+		return (zscore == null ? null : Double.valueOf(zscore));
+	}
 }

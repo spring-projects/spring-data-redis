@@ -57,8 +57,8 @@ public class RjcConnection implements RedisConnection {
 	public RjcConnection(org.idevlab.rjc.ds.RedisConnection connection, int dbIndex) {
 		SingleDataSource connectionDataSource = new SingleDataSource(connection);
 		session = new SessionFactoryImpl(connectionDataSource).create();
-		client = new Client(connection);
 		subscriber = new RedisNodeSubscriber(connectionDataSource);
+		client = new Client(connection);
 
 		this.dbIndex = dbIndex;
 
@@ -1731,7 +1731,7 @@ public class RjcConnection implements RedisConnection {
 				pipeline.zscore(stringKey, stringValue);
 				return null;
 			}
-			return Double.valueOf(session.zscore(stringKey, stringValue));
+			return RjcUtils.convert(session.zscore(stringKey, stringValue));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -2031,7 +2031,7 @@ public class RjcConnection implements RedisConnection {
 			}
 
 			subscription = new RjcSubscription(listener, subscriber);
-			subscription.pSubscribe(channels);
+			subscription.subscribe(channels);
 
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);

@@ -54,4 +54,24 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Ignore("JRedis does not support pipelining")
 	public void testNullCollections() {
 	}
+
+	@Ignore
+	public void testNullKey() throws Exception {
+	}
+
+	@Ignore
+	public void testNullValue() throws Exception {
+	}
+
+	@Ignore
+	public void testHashNullKey() throws Exception {
+	}
+
+	@Ignore
+	public void testHashNullValue() throws Exception {
+	}
+
+	@Ignore
+	public void testNullSerialization() throws Exception {
+	}
 }
