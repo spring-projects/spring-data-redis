@@ -61,8 +61,8 @@ public class PubSubTestParams {
 		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>(rjcConnFactory);
 
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate }
-		//,{ stringFactory, stringTemplateRJC }, { personFactory, personTemplateRJC } 
+		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
+				{ stringFactory, stringTemplateRJC }, { personFactory, personTemplateRJC }
 		});
 	}
 }

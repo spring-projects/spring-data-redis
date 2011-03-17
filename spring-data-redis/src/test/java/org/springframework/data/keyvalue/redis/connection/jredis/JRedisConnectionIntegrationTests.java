@@ -74,4 +74,17 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Ignore
 	public void testNullSerialization() throws Exception {
 	}
+
+	@Ignore
+	public void testPubSub() throws Exception {
+	}
+
+	@Ignore
+	public void testPubSubWithPatterns() {
+	}
+
+	@Ignore
+	public void testPubSubWithNamedChannels() {
+
+	}
 }

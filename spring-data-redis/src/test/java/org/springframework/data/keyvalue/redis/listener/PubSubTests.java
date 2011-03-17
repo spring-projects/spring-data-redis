@@ -71,7 +71,7 @@ public class PubSubTests<T> {
 		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 		container.afterPropertiesSet();
 
-		Thread.sleep(500);
+		Thread.sleep(1000);
 	}
 
 	@After

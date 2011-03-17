@@ -22,6 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -183,5 +186,135 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertNull(connection.keys("~*"));
 		assertNull(connection.hKeys("~"));
 		connection.closePipeline();
+	}
+
+	// pub sub test
+
+	@Test
+	public void testPubSub() throws Exception {
+
+		final BlockingDeque<Message> queue = new LinkedBlockingDeque<Message>();
+
+		final MessageListener ml = new MessageListener() {
+			@Override
+			public void onMessage(Message message, byte[] pattern) {
+				queue.add(message);
+				System.out.println("received message");
+			}
+		};
+
+		final byte[] channel = "foo.tv".getBytes();
+		final RedisConnection subConn = getConnectionFactory().getConnection();
+
+		assertNotSame(connection, subConn);
+
+
+		final AtomicBoolean flag = new AtomicBoolean(true);
+
+		Runnable listener = new Runnable() {
+			@Override
+			public void run() {
+				subConn.subscribe(ml, channel);
+				System.out.println("Subscribed");
+				while (flag.get()) {
+					try {
+						Thread.currentThread().wait(2000);
+					} catch (Exception ex) {
+						return;
+					}
+				}
+			}
+		};
+
+		Thread th = new Thread(listener, "listener");
+		th.start();
+
+		try {
+			Thread.sleep(1500);
+			connection.publish(channel, "one".getBytes());
+			connection.publish(channel, "two".getBytes());
+			connection.publish(channel, "I see you".getBytes());
+			System.out.println("Done publishing...");
+			Thread.sleep(3000);
+		} finally {
+			flag.set(false);
+		}
+		assertEquals(3, queue.size());
+	}
+
+	@Test
+	public void testPubSubWithNamedChannels() {
+		final byte[] expectedChannel = "channel1".getBytes();
+		final byte[] expectedMessage = "msg".getBytes();
+
+		MessageListener listener = new MessageListener() {
+
+			@Override
+			public void onMessage(Message message, byte[] pattern) {
+				assertArrayEquals(expectedChannel, message.getChannel());
+				assertArrayEquals(expectedMessage, message.getBody());
+			}
+		};
+
+		Thread th = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// sleep 1 second to let the registration happen
+				try {
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				// open a new connection
+				RedisConnection connection2 = getConnectionFactory().getConnection();
+				connection2.publish(expectedMessage, expectedChannel);
+				connection2.close();
+				// unsubscribe connection
+				connection.getSubscription().unsubscribe();
+			}
+		});
+
+		th.start();
+		connection.subscribe(listener, expectedChannel);
+	}
+
+	@Test
+	public void testPubSubWithPatterns() {
+		final byte[] expectedPattern = "channel*".getBytes();
+		final byte[] expectedMessage = "msg".getBytes();
+
+		MessageListener listener = new MessageListener() {
+
+			@Override
+			public void onMessage(Message message, byte[] pattern) {
+				assertArrayEquals(expectedPattern, pattern);
+				assertArrayEquals(expectedMessage, message.getBody());
+				System.out.println("Received message '" + new String(message.getBody()) + "'");
+			}
+		};
+
+		Thread th = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// sleep 1 second to let the registration happen
+				try {
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				// open a new connection
+				RedisConnection connection2 = getConnectionFactory().getConnection();
+				connection2.publish(expectedMessage, "channel1".getBytes());
+				connection2.publish(expectedMessage, "channel2".getBytes());
+				connection2.close();
+				// unsubscribe connection
+				connection.getSubscription().pUnsubscribe(expectedPattern);
+			}
+		});
+
+		th.start();
+		connection.pSubscribe(listener, expectedPattern);
 	}
 }
