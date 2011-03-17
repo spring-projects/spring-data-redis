@@ -30,7 +30,7 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 
 	private final ObjectMapper mapper;
 	private final JavaType userType;
-	private final JavaType mapType = TypeFactory.type(Map.class);
+	private final JavaType mapType = TypeFactory.mapType(Map.class, String.class, Object.class);
 
 	public JacksonHashMapper(Class<T> type) {
 		this(type, new ObjectMapper());
@@ -47,7 +47,6 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 		return (T) mapper.convertValue(hash, userType);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, Object> toHash(T object) {
 		return mapper.convertValue(object, mapType);
