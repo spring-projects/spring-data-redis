@@ -40,7 +40,7 @@ public abstract class ConnectionFactoryTracker {
 			for (RedisConnectionFactory connectionFactory : connFactories) {
 				try {
 					((DisposableBean) connectionFactory).destroy();
-					System.out.println("Succesfully cleaned up factory " + connectionFactory);
+					//System.out.println("Succesfully cleaned up factory " + connectionFactory);
 				} catch (Exception ex) {
 					System.err.println("Cannot clean factory " + connectionFactory + ex);
 				}

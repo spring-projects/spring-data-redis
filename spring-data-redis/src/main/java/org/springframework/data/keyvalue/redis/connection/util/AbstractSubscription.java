@@ -56,10 +56,10 @@ public abstract class AbstractSubscription implements Subscription {
 		this.listener = listener;
 
 		synchronized (this.channels) {
-			remove(this.channels, channels);
+			add(this.channels, channels);
 		}
 		synchronized (this.patterns) {
-			remove(this.patterns, patterns);
+			add(this.patterns, patterns);
 		}
 	}
 
@@ -168,6 +168,10 @@ public abstract class AbstractSubscription implements Subscription {
 					this.patterns.clear();
 				}
 			}
+			else {
+				// nothing to unsubscribe from
+				return;
+			}
 		}
 		else {
 			synchronized (this.patterns) {
@@ -193,6 +197,10 @@ public abstract class AbstractSubscription implements Subscription {
 				synchronized (this.channels) {
 					this.channels.clear();
 				}
+			}
+			else {
+				// nothing to unsubscribe from
+				return;
 			}
 		}
 		else {

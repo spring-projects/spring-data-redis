@@ -218,7 +218,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				System.out.println("Subscribed");
 				while (flag.get()) {
 					try {
-						Thread.currentThread().wait(2000);
+						Thread.currentThread().sleep(2000);
 					} catch (Exception ex) {
 						return;
 					}
@@ -239,6 +239,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		} finally {
 			flag.set(false);
 		}
+		System.out.println(queue);
 		assertEquals(3, queue.size());
 	}
 

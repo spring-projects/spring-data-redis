@@ -39,7 +39,13 @@ class RjcSubscription extends AbstractSubscription {
 
 	@Override
 	protected void doClose() {
-		subscriber.close();
+		try {
+			subscriber.close();
+		} finally {
+			synchronized (pubSubMonitor) {
+				pubSubMonitor.notifyAll();
+			}
+		}
 	}
 
 	@Override

@@ -33,7 +33,7 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 		factory.setPort(SettingsUtils.getPort());
 		factory.setHostName(SettingsUtils.getHost());
 
-		factory.setUsePool(true);
+		factory.setUsePool(false);
 		factory.afterPropertiesSet();
 	}
 
