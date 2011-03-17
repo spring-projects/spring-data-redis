@@ -626,6 +626,23 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
+	public Boolean move(byte[] key, int dbIndex) {
+		try {
+			if (isQueueing()) {
+				client.move(key, dbIndex);
+				return null;
+			}
+			if (isPipelined()) {
+				client.move(key, dbIndex);
+				return null;
+			}
+			return (jedis.move(key, dbIndex) == 1);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public byte[] randomKey() {
 		try {
 			if (isQueueing()) {

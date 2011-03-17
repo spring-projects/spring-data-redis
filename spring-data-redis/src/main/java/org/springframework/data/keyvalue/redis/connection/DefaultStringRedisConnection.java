@@ -308,6 +308,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.persist(key);
 	}
 
+	public Boolean move(byte[] key, int dbIndex) {
+		return delegate.move(key, dbIndex);
+	}
+
 	public String ping() {
 		return delegate.ping();
 	}
@@ -836,6 +840,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@Override
 	public Boolean persist(String key) {
 		return delegate.persist(serialize(key));
+	}
+
+	@Override
+	public Boolean move(String key, int dbIndex) {
+		return delegate.move(serialize(key), dbIndex);
 	}
 
 	@Override

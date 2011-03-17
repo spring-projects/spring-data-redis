@@ -321,6 +321,16 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+
+	@Override
+	public Boolean move(byte[] key, int dbIndex) {
+		try {
+			return jredis.move(JredisUtils.decode(key), dbIndex);
+		} catch (Exception ex) {
+			throw convertJredisAccessException(ex);
+		}
+	}
+
 	@Override
 	public byte[] randomKey() {
 		try {

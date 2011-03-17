@@ -33,8 +33,8 @@ import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.Subscription;
 
 /**
@@ -490,6 +490,21 @@ public class RjcConnection implements RedisConnection {
 				return null;
 			}
 			return session.persist(stringKey);
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean move(byte[] key, int dbIndex) {
+		String stringKey = RjcUtils.decode(key);
+
+		try {
+			if (isPipelined()) {
+				pipeline.move(stringKey, dbIndex);
+				return null;
+			}
+			return session.move(stringKey, dbIndex);
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -2037,7 +2052,7 @@ public class RjcConnection implements RedisConnection {
 
 			subscription = new RjcSubscription(listener, subscriber, pubSubMonitor);
 			subscription.subscribe(channels);
-			
+
 			synchronized (pubSubMonitor) {
 				pubSubMonitor.wait();
 			}

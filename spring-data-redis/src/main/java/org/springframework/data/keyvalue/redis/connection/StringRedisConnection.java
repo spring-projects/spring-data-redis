@@ -60,6 +60,8 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Boolean persist(String key);
 
+	Boolean move(String key, int dbIndex);
+
 	Long ttl(String key);
 
 	String echo(String message);
