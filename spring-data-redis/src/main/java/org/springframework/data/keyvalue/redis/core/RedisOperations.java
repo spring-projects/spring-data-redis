@@ -87,6 +87,8 @@ public interface RedisOperations<K, V> {
 
 	K randomKey();
 
+	void select(int dbIndex);
+
 	void rename(K oldKey, K newKey);
 
 	Boolean renameIfAbsent(K oldKey, K newKey);
