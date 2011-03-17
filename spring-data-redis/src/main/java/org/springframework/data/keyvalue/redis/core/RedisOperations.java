@@ -97,6 +97,8 @@ public interface RedisOperations<K, V> {
 
 	Boolean persist(K key);
 
+	Boolean move(K key, int dbIndex);
+
 	Long getExpire(K key);
 
 	void watch(K keys);
