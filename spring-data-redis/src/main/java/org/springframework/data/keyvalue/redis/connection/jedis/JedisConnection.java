@@ -26,11 +26,11 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
-import org.springframework.data.keyvalue.redis.SubscribedRedisConnectionException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
+import org.springframework.data.keyvalue.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.util.ReflectionUtils;
 
@@ -2205,7 +2205,7 @@ public class JedisConnection implements RedisConnection {
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		if (isSubscribed()) {
-			throw new SubscribedRedisConnectionException(
+			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
@@ -2229,7 +2229,7 @@ public class JedisConnection implements RedisConnection {
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		if (isSubscribed()) {
-			throw new SubscribedRedisConnectionException(
+			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
@@ -2252,7 +2252,7 @@ public class JedisConnection implements RedisConnection {
 
 	private void checkSubscription() {
 		if (isSubscribed()) {
-			throw new SubscribedRedisConnectionException("Cannot execute command - connection is subscribed");
+			throw new RedisSubscribedConnectionException("Cannot execute command - connection is subscribed");
 		}
 	}
 }

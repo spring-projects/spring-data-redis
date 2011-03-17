@@ -18,7 +18,10 @@ package org.springframework.data.keyvalue.redis.connection;
 import java.util.Collection;
 
 /**
- * Subscription for Redis channels.
+ * Subscription for Redis channels. Just like the underlying {@link RedisConnection},
+ * it should not be used by multiple threads.
+ *  
+ * Note that once a subscription died, it cannot accept any more subscriptions.
  * 
  * @author Costin Leau
  */
@@ -29,14 +32,14 @@ public interface Subscription {
 	 * 
 	 * @param channels channel names
 	 */
-	void subscribe(byte[]... channels);
+	void subscribe(byte[]... channels) throws RedisInvalidSubscriptionException;
 
 	/**
 	 * Adds the given channel patterns to the current subscription.
 	 * 
 	 * @param patterns channel patterns
 	 */
-	void pSubscribe(byte[]... patterns);
+	void pSubscribe(byte[]... patterns) throws RedisInvalidSubscriptionException;
 
 	/**
 	 * Cancels the current subscription for all channels given by name.

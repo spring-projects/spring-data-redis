@@ -23,9 +23,9 @@ import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
  *  
  * @author Costin Leau
  */
-public class UncategorizedRedisException extends UncategorizedKeyvalueStoreException {
+public class RedisSystemException extends UncategorizedKeyvalueStoreException {
 
-	public UncategorizedRedisException(String msg, Throwable cause) {
+	public RedisSystemException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 }

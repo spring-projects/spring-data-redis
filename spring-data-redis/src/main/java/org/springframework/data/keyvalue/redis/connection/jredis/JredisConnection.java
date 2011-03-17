@@ -31,7 +31,7 @@ import org.jredis.Query.Support;
 import org.jredis.ri.alphazero.JRedisService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.data.keyvalue.redis.RedisSystemException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
@@ -75,7 +75,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void close() throws UncategorizedRedisException {
+	public void close() throws RedisSystemException {
 		isClosed = true;
 
 		// don't actually close the connection

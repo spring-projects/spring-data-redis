@@ -284,11 +284,11 @@ public class MessageListenerAdapter implements MessageListener {
 				throw (DataAccessException) targetEx;
 			}
 			else {
-				throw new ListenerExecutionFailedException("Listener method '" + methodName + "' threw exception",
+				throw new RedisListenerExecutionFailedException("Listener method '" + methodName + "' threw exception",
 						targetEx);
 			}
 		} catch (Throwable ex) {
-			throw new ListenerExecutionFailedException("Failed to invoke target method '" + methodName
+			throw new RedisListenerExecutionFailedException("Failed to invoke target method '" + methodName
 					+ "' with arguments " + ObjectUtils.nullSafeToString(arguments), ex);
 		}
 	}

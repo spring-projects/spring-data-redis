@@ -29,7 +29,7 @@ import java.util.concurrent.TimeoutException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.RedisConnectionFailureException;
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.data.keyvalue.redis.RedisSystemException;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
@@ -87,7 +87,7 @@ public abstract class JedisUtils {
 			return convertJedisAccessException((JedisException) ex);
 		}
 
-		return new UncategorizedRedisException("Unknown exception", ex);
+		return new RedisSystemException("Unknown exception", ex);
 	}
 
 	static DataAccessException convertJedisAccessException(IOException ex) {
@@ -198,7 +198,7 @@ public abstract class JedisUtils {
 		try {
 			info.load(stringReader);
 		} catch (Exception ex) {
-			throw new UncategorizedRedisException("Cannot read Redis info", ex);
+			throw new RedisSystemException("Cannot read Redis info", ex);
 		} finally {
 			stringReader.close();
 		}

@@ -31,7 +31,7 @@ import org.idevlab.rjc.ZParams;
 import org.idevlab.rjc.Client.LIST_POSITION;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.data.keyvalue.redis.RedisSystemException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
@@ -59,7 +59,7 @@ public abstract class RjcUtils {
 			return convertRjcAccessException((RedisException) ex);
 		}
 
-		return new UncategorizedRedisException("Unknown exception", ex);
+		return new RedisSystemException("Unknown exception", ex);
 	}
 
 	public static DataAccessException convertRjcAccessException(RedisException ex) {
@@ -166,7 +166,7 @@ public abstract class RjcUtils {
 		try {
 			info.load(stringReader);
 		} catch (Exception ex) {
-			throw new UncategorizedRedisException("Cannot read Redis info", ex);
+			throw new RedisSystemException("Cannot read Redis info", ex);
 		} finally {
 			stringReader.close();
 		}

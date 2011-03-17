@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.data.keyvalue.redis.RedisSystemException;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.SerializationUtils;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
@@ -88,7 +88,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.bRPopLPush(timeout, srcKey, dstKey);
 	}
 
-	public void close() throws UncategorizedRedisException {
+	public void close() throws RedisSystemException {
 		delegate.close();
 	}
 
