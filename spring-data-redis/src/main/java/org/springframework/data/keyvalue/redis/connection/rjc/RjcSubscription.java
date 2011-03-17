@@ -15,135 +15,58 @@
  */
 package org.springframework.data.keyvalue.redis.connection.rjc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.idevlab.rjc.message.RedisSubscriber;
+import org.idevlab.rjc.message.RedisNodeSubscriber;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
-import org.springframework.data.keyvalue.redis.connection.Subscription;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
+import org.springframework.data.keyvalue.redis.connection.util.AbstractSubscription;
 
 /**
  * Message subscription on top of RJC.
  * 
  * @author Costin Leau
  */
-class RjcSubscription implements Subscription {
+class RjcSubscription extends AbstractSubscription {
 
-	private final MessageListener listener;
-	private final RedisSubscriber subscriber;
+	private final RedisNodeSubscriber subscriber;
 	private final RjcMessageListener listenerAdapter;
+	private final Object pubSubMonitor;
 
-	private final Collection<byte[]> channels = new ArrayList<byte[]>(2);
-	private final Collection<byte[]> patterns = new ArrayList<byte[]>(2);
-
-	RjcSubscription(MessageListener listener, RedisSubscriber subscriber) {
-		Assert.notNull(listener);
-		this.listener = listener;
+	RjcSubscription(MessageListener listener, RedisNodeSubscriber subscriber, Object pubSubMonitor) {
+		super(listener);
 		this.subscriber = subscriber;
 		this.listenerAdapter = new RjcMessageListener(listener);
+		this.pubSubMonitor = pubSubMonitor;
 	}
 
 	@Override
-	public Collection<byte[]> getChannels() {
-		synchronized (channels) {
-			return new ArrayList<byte[]>(channels);
-		}
+	protected void doClose() {
+		subscriber.close();
 	}
 
 	@Override
-	public MessageListener getListener() {
-		return listener;
-	}
-
-	@Override
-	public Collection<byte[]> getPatterns() {
-		synchronized (patterns) {
-			return new ArrayList<byte[]>(patterns);
+	protected void doPsubscribe(byte[]... patterns) {
+		for (String str : RjcUtils.decodeMultiple(patterns)) {
+			subscriber.psubscribe(str, listenerAdapter);
 		}
 	}
 
 	@Override
-	public void pSubscribe(byte[]... patterns) {
-		Assert.notEmpty(patterns, "at least one pattern required");
-
-		synchronized (this.patterns) {
-			for (byte[] bs : patterns) {
-				this.patterns.add(bs);
-			}
-		}
-
-		for (String pattern : RjcUtils.decodeMultiple(patterns)) {
-			subscriber.psubscribe(pattern, listenerAdapter);
+	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
+		for (String str : RjcUtils.decodeMultiple(patterns)) {
+			subscriber.punsubscribe(str);
 		}
 	}
 
 	@Override
-	public void pUnsubscribe() {
-		pUnsubscribe(null);
-
-		synchronized (patterns) {
-			patterns.clear();
+	protected void doSubscribe(byte[]... channels) {
+		for (String str : RjcUtils.decodeMultiple(channels)) {
+			subscriber.subscribe(str, listenerAdapter);
 		}
 	}
 
 	@Override
-	public void pUnsubscribe(byte[]... patterns) {
-		if (ObjectUtils.isEmpty(patterns)) {
-			patterns = this.patterns.toArray(new byte[this.patterns.size()][]);
+	protected void doUnsubscribe(boolean all, byte[]... channels) {
+		for (String str : RjcUtils.decodeMultiple(channels)) {
+			subscriber.unsubscribe(str);
 		}
-
-		synchronized (this.patterns) {
-			for (byte[] bs : patterns) {
-				this.patterns.remove(bs);
-			}
-		}
-
-		subscriber.punsubscribe(RjcUtils.decodeMultiple(patterns));
-	}
-
-	@Override
-	public void subscribe(byte[]... channels) {
-		Assert.notEmpty(channels, "at least one channel required");
-
-		synchronized (this.channels) {
-			for (byte[] bs : channels) {
-				this.channels.add(bs);
-			}
-		}
-
-		for (String channel : RjcUtils.decodeMultiple(channels)) {
-			subscriber.subscribe(channel, listenerAdapter);
-		}
-	}
-
-	@Override
-	public void unsubscribe() {
-		unsubscribe(null);
-
-		synchronized (patterns) {
-			patterns.clear();
-		}
-	}
-
-	@Override
-	public void unsubscribe(byte[]... channels) {
-		if (ObjectUtils.isEmpty(channels)) {
-			channels = this.channels.toArray(new byte[this.channels.size()][]);
-		}
-
-		synchronized (this.channels) {
-			for (byte[] bs : channels) {
-				this.channels.remove(bs);
-			}
-		}
-
-		subscriber.punsubscribe(RjcUtils.decodeMultiple(channels));
-	}
-
-	@Override
-	public boolean isAlive() {
-		return (!channels.isEmpty() || !patterns.isEmpty());
 	}
 }

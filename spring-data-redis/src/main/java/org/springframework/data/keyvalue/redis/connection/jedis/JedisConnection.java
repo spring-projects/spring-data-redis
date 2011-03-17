@@ -29,8 +29,8 @@ import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
-import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.util.ReflectionUtils;
 
@@ -2221,6 +2221,7 @@ public class JedisConnection implements RedisConnection {
 
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
 			jedis.psubscribe(jedisPubSub, patterns);
+
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -2245,6 +2246,7 @@ public class JedisConnection implements RedisConnection {
 
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
 			jedis.subscribe(jedisPubSub, channels);
+
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

@@ -16,7 +16,6 @@
 package org.springframework.data.keyvalue.redis.listener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +38,7 @@ import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.Subscription;
+import org.springframework.data.keyvalue.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -101,9 +101,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	// to avoid creation of hashes for each message, the maps use raw byte arrays (wrapped to respect the equals/hashcode contract)
 
 	// lookup map between patterns and listeners
-	private final Map<ArrayHolder, Collection<MessageListener>> patternMapping = new ConcurrentHashMap<ArrayHolder, Collection<MessageListener>>();
+	private final Map<ByteArrayWrapper, Collection<MessageListener>> patternMapping = new ConcurrentHashMap<ByteArrayWrapper, Collection<MessageListener>>();
 	// lookup map between channels and listeners
-	private final Map<ArrayHolder, Collection<MessageListener>> channelMapping = new ConcurrentHashMap<ArrayHolder, Collection<MessageListener>>();
+	private final Map<ByteArrayWrapper, Collection<MessageListener>> channelMapping = new ConcurrentHashMap<ByteArrayWrapper, Collection<MessageListener>>();
 
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
@@ -448,7 +448,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		for (Topic topic : topics) {
 
-			ArrayHolder holder = new ArrayHolder(serializer.serialize(topic.getTopic()));
+			ByteArrayWrapper holder = new ByteArrayWrapper(serializer.serialize(topic.getTopic()));
 
 			if (topic instanceof ChannelTopic) {
 				Collection<MessageListener> collection = channelMapping.get(holder);
@@ -457,7 +457,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					channelMapping.put(holder, collection);
 				}
 				collection.add(listener);
-				channels.add(holder.array);
+				channels.add(holder.getArray());
 
 				if (trace)
 					logger.trace("Adding listener '" + listener + "' on channel '" + topic.getTopic() + "'");
@@ -470,7 +470,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					patternMapping.put(holder, collection);
 				}
 				collection.add(listener);
-				patterns.add(holder.array);
+				patterns.add(holder.getArray());
 
 				if (trace)
 					logger.trace("Adding listener '" + listener + "' for pattern '" + topic.getTopic() + "'");
@@ -598,7 +598,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		}
 
-		private byte[][] unwrap(Collection<ArrayHolder> holders) {
+		private byte[][] unwrap(Collection<ByteArrayWrapper> holders) {
 			if (CollectionUtils.isEmpty(holders)) {
 				return new byte[0][];
 			}
@@ -606,8 +606,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			byte[][] unwrapped = new byte[holders.size()][];
 
 			int index = 0;
-			for (ArrayHolder arrayHolder : holders) {
-				unwrapped[index++] = arrayHolder.array;
+			for (ByteArrayWrapper arrayHolder : holders) {
+				unwrapped[index++] = arrayHolder.getArray();
 			}
 
 			return unwrapped;
@@ -700,12 +700,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			// do channel matching first
 			byte[] channel = message.getChannel();
 
-			Collection<MessageListener> ch = channelMapping.get(new ArrayHolder(channel));
+			Collection<MessageListener> ch = channelMapping.get(new ByteArrayWrapper(channel));
 			Collection<MessageListener> pt = null;
 
 			// followed by pattern matching
 			if (pattern != null && pattern.length > 0) {
-				pt = patternMapping.get(new ArrayHolder(pattern));
+				pt = patternMapping.get(new ByteArrayWrapper(pattern));
 			}
 
 			if (!CollectionUtils.isEmpty(ch)) {
@@ -737,36 +737,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					}
 				});
 			}
-		}
-	}
-
-	/**
-	 * Simple wrapper class used for wrapping arrays so they can be used as keys inside maps.
-	 * 
-	 * @author Costin Leau
-	 */
-	private class ArrayHolder {
-
-		private final byte[] array;
-		private final int hashCode;
-
-		ArrayHolder(byte[] array) {
-			this.array = array;
-			this.hashCode = Arrays.hashCode(array);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof ArrayHolder) {
-				return Arrays.equals(array, ((ArrayHolder) obj).array);
-			}
-
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			return hashCode;
 		}
 	}
 }
