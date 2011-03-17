@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
 /**
  * Default implementation for {@link SortParameters}.
  * 
@@ -126,32 +125,42 @@ public class DefaultSortParameters implements SortParameters {
 	// builder like methods
 	//
 
-	public SortParameters order(Order order) {
+	public DefaultSortParameters order(Order order) {
 		setOrder(order);
 		return this;
 	}
 
-	public SortParameters alpha() {
+	public DefaultSortParameters alpha() {
 		setAlphabetic(true);
 		return this;
 	}
 
-	public SortParameters numeric() {
+	public DefaultSortParameters asc() {
+		setOrder(Order.ASC);
+		return this;
+	}
+
+	public DefaultSortParameters desc() {
+		setOrder(Order.DESC);
+		return this;
+	}
+
+	public DefaultSortParameters numeric() {
 		setAlphabetic(false);
 		return this;
 	}
 
-	public SortParameters get(byte[] pattern) {
+	public DefaultSortParameters get(byte[] pattern) {
 		addGetPattern(pattern);
 		return this;
 	}
 
-	public SortParameters by(byte[] pattern) {
+	public DefaultSortParameters by(byte[] pattern) {
 		setByPattern(pattern);
 		return this;
 	}
 
-	public SortParameters limit(long start, long count) {
+	public DefaultSortParameters limit(long start, long count) {
 		setLimit(new Range(start, count));
 		return this;
 	}
