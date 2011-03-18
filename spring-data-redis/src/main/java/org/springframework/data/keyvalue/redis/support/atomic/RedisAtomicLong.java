@@ -305,6 +305,16 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	@Override
+	public Boolean move(int dbIndex) {
+		Boolean move = generalOps.move(key, dbIndex);
+
+		if (Boolean.TRUE.equals(move)) {
+			generalOps.select(dbIndex);
+		}
+		return move;
+	}
+
+	@Override
 	public DataType getType() {
 		return DataType.STRING;
 	}

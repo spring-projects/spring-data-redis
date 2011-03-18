@@ -105,4 +105,18 @@ public class RedisAtomicTests {
 		int delta = 5;
 		assertEquals(delta, intCounter.addAndGet(delta));
 	}
+
+	@Test
+	public void testIntMove() throws Exception {
+		intCounter.set(5);
+		intCounter.move(1);
+		assertEquals(5, intCounter.get());
+	}
+
+	@Test
+	public void testLongMove() throws Exception {
+		longCounter.set(5);
+		longCounter.move(2);
+		assertEquals(5, longCounter.get());
+	}
 }

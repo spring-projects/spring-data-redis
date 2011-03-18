@@ -79,4 +79,14 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 		}
 		return result;
 	}
+
+	@Override
+	public Boolean move(int dbIndex) {
+		Boolean move = ops.move(key, dbIndex);
+
+		if (Boolean.TRUE.equals(move)) {
+			ops.select(dbIndex);
+		}
+		return move;
+	}
 }

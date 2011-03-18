@@ -154,4 +154,14 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		}
 		return result;
 	}
+
+	@Override
+	public Boolean move(int dbIndex) {
+		Boolean move = operations.move(key, dbIndex);
+
+		if (Boolean.TRUE.equals(move)) {
+			operations.select(dbIndex);
+		}
+		return move;
+	}
 }
