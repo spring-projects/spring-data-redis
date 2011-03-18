@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.redis.connection.DataType;
-import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 
 /**
  * Operations over a Redis key.  
@@ -27,10 +26,7 @@ import org.springframework.data.keyvalue.redis.connection.RedisConnection;
  * Useful for executing common key-'bound' operations to all implementations.
  * 
  * <p>As the rest of the APIs, if the underlying connection is pipelined or queued/in multi mode,
- * all methods will return null. In such scenarios, to prevent any data inconsistencies, mutative
- * methods that query the store (such as {@link #renameIfAbsent(Object)} or {@link #move(int)}) will throw
- * an exception.
- * 
+ * all methods will return null.
  * </p>
  * @author Costin Leau
  */
@@ -86,28 +82,4 @@ public interface BoundKeyOperations<K> {
 	 * @param newKey new key
 	 */
 	void rename(K newKey);
-
-	/**
-	 * Renames the key (if the new key does not exist). Note that the underlying key
-	 * changes only if the operation returns true (which does not happen if the connection
-	 * is pipelined or in multi mode).
-	 * 
-	 * @param newKey new key
-	 * @return true if rename was successful, false otherwise
-	 */
-	Boolean renameIfAbsent(K newKey);
-
-	/**
-	 * Moves the key (if it exists) to the specified database. If the key already exists in the 
-	 * destination database, or it does not exist in the source database, it does nothing.
-	 * <p/>
-	 * As opposed to the raw move command, the database of the underlying connection is switched as well
-	 * to the new database.
-	 * 
-	 * @see RedisConnection#select(int)
-	 * @see RedisConnection#move(byte[], int)
-	 * @param dbIndex database index
-	 * @return true if the operation succeed, false otherwise
-	 */
-	Boolean move(int dbIndex);
 }

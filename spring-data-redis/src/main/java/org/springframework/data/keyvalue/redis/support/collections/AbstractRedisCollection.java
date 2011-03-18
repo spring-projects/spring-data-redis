@@ -144,24 +144,4 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		CollectionUtils.rename(key, newKey, operations);
 		key = newKey;
 	}
-
-	@Override
-	public Boolean renameIfAbsent(final String newKey) {
-		Boolean result = CollectionUtils.renameIfAbsent(key, newKey, operations);
-
-		if (Boolean.TRUE.equals(result)) {
-			key = newKey;
-		}
-		return result;
-	}
-
-	@Override
-	public Boolean move(int dbIndex) {
-		Boolean move = operations.move(key, dbIndex);
-
-		if (Boolean.TRUE.equals(move)) {
-			operations.select(dbIndex);
-		}
-		return move;
-	}
 }

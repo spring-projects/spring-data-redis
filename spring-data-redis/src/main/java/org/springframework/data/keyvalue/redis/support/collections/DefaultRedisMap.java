@@ -326,17 +326,6 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	}
 
 	@Override
-	public Boolean renameIfAbsent(String newKey) {
-		return hashOps.renameIfAbsent(newKey);
-	}
-
-
-	@Override
-	public Boolean move(int dbIndex) {
-		return hashOps.move(dbIndex);
-	}
-
-	@Override
 	public DataType getType() {
 		return hashOps.getType();
 	}

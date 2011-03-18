@@ -87,8 +87,6 @@ public interface RedisOperations<K, V> {
 
 	K randomKey();
 
-	void select(int dbIndex);
-
 	void rename(K oldKey, K newKey);
 
 	Boolean renameIfAbsent(K oldKey, K newKey);
@@ -207,13 +205,15 @@ public interface RedisOperations<K, V> {
 
 	List<V> sort(SortQuery<K> query);
 
-
 	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
-
 
 	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
 
 	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
 
 	Long sort(SortQuery<K> query, K storeKey);
+
+	RedisSerializer<?> getValueSerializer();
+
+	RedisSerializer<?> getKeySerializer();
 }

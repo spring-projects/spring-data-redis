@@ -295,26 +295,6 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	@Override
-	public Boolean renameIfAbsent(String newKey) {
-		Boolean result = generalOps.renameIfAbsent(key, newKey);
-
-		if (Boolean.TRUE.equals(result)) {
-			key = newKey;
-		}
-		return result;
-	}
-
-	@Override
-	public Boolean move(int dbIndex) {
-		Boolean move = generalOps.move(key, dbIndex);
-
-		if (Boolean.TRUE.equals(move)) {
-			generalOps.select(dbIndex);
-		}
-		return move;
-	}
-
-	@Override
 	public DataType getType() {
 		return DataType.STRING;
 	}

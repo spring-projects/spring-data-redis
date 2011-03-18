@@ -69,24 +69,4 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 		ops.rename(key, newKey);
 		key = newKey;
 	}
-
-	@Override
-	public Boolean renameIfAbsent(K newKey) {
-		Boolean result = ops.renameIfAbsent(key, newKey);
-
-		if (Boolean.TRUE.equals(result)) {
-			key = newKey;
-		}
-		return result;
-	}
-
-	@Override
-	public Boolean move(int dbIndex) {
-		Boolean move = ops.move(key, dbIndex);
-
-		if (Boolean.TRUE.equals(move)) {
-			ops.select(dbIndex);
-		}
-		return move;
-	}
 }

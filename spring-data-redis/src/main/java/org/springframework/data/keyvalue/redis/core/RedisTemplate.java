@@ -574,18 +574,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-
-	@Override
-	public void select(final int dbIndex) {
-		execute(new RedisCallback<Object>() {
-			@Override
-			public Object doInRedis(RedisConnection connection) {
-				connection.select(dbIndex);
-				return null;
-			}
-		}, true);
-	}
-
 	@Override
 	public K randomKey() {
 		byte[] rawKey = execute(new RedisCallback<byte[]>() {

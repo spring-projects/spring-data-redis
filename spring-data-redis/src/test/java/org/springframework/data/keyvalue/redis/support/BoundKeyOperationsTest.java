@@ -72,18 +72,6 @@ public class BoundKeyOperationsTest {
 		keyOps.rename(key);
 		assertEquals(key, keyOps.getKey());
 	}
-
-	@Test
-	public void testRenameIfAbsent() throws Exception {
-		Object key = keyOps.getKey();
-		assertNotNull(key);
-		Object newName = objFactory.instance();
-		assertFalse(template.hasKey(newName));
-		assertTrue("cannot rename to key " + newName, keyOps.renameIfAbsent(newName));
-		assertEquals(newName, keyOps.getKey());
-		keyOps.rename(key);
-	}
-
 	@Test
 	public void testExpire() throws Exception {
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
