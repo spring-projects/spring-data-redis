@@ -235,7 +235,8 @@ public abstract class AbstractConnectionIntegrationTests {
 			connection.publish(channel, "two".getBytes());
 			connection.publish(channel, "I see you".getBytes());
 			System.out.println("Done publishing...");
-			Thread.sleep(3000);
+			Thread.sleep(5000);
+			System.out.println("Done waiting ...");
 		} finally {
 			flag.set(false);
 		}

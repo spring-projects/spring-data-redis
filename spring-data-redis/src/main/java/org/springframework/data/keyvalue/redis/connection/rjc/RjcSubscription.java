@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.connection.rjc;
 
+import org.idevlab.rjc.Client;
 import org.idevlab.rjc.message.RedisNodeSubscriber;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.util.AbstractSubscription;
@@ -27,52 +28,62 @@ import org.springframework.data.keyvalue.redis.connection.util.AbstractSubscript
 class RjcSubscription extends AbstractSubscription {
 
 	private final RedisNodeSubscriber subscriber;
-	private final RjcMessageListener listenerAdapter;
-	private final Object pubSubMonitor;
+	private final Client client;
+	// rjc does not support subscription while listening
+	// so we have to handle this ourselves through the client
+	private volatile boolean subscribed = false;
 
-	RjcSubscription(MessageListener listener, RedisNodeSubscriber subscriber, Object pubSubMonitor) {
+	RjcSubscription(MessageListener listener, RedisNodeSubscriber subscriber, Client client) {
 		super(listener);
 		this.subscriber = subscriber;
-		this.listenerAdapter = new RjcMessageListener(listener);
-		this.pubSubMonitor = pubSubMonitor;
+		subscriber.setMessageListener(new RjcMessageListener(listener));
+		subscriber.setPMessageListener(new RjcMessageListener(listener));
+		this.client = client;
 	}
 
 	@Override
 	protected void doClose() {
-		try {
-			subscriber.close();
-		} finally {
-			synchronized (pubSubMonitor) {
-				pubSubMonitor.notifyAll();
-			}
-		}
+		subscribed = false;
+		client.unsubscribe();
+		client.punsubscribe();
+		client.rollbackTimeout();
 	}
 
 	@Override
 	protected void doPsubscribe(byte[]... patterns) {
-		for (String str : RjcUtils.decodeMultiple(patterns)) {
-			subscriber.psubscribe(str, listenerAdapter);
+		String[] pats = RjcUtils.decodeMultiple(patterns);
+		
+		if (subscribed) {
+			client.psubscribe(pats);
+		}
+		else {
+			subscriber.setPatterns(RjcUtils.addArray(subscriber.getPatterns(), pats));
+			subscribed = true;
+			subscriber.subscribe();
 		}
 	}
 
 	@Override
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
-		for (String str : RjcUtils.decodeMultiple(patterns)) {
-			subscriber.punsubscribe(str);
-		}
+		client.punsubscribe(RjcUtils.decodeMultiple(patterns));
 	}
 
 	@Override
 	protected void doSubscribe(byte[]... channels) {
-		for (String str : RjcUtils.decodeMultiple(channels)) {
-			subscriber.subscribe(str, listenerAdapter);
+		String[] chs = RjcUtils.decodeMultiple(channels);
+
+		if (subscribed) {
+			client.subscribe(chs);
+		}
+		else {
+			subscriber.setPatterns(RjcUtils.addArray(subscriber.getChannels(), chs));
+			subscribed = true;
+			subscriber.subscribe();
 		}
 	}
 
 	@Override
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
-		for (String str : RjcUtils.decodeMultiple(channels)) {
-			subscriber.unsubscribe(str);
-		}
+		client.punsubscribe(RjcUtils.decodeMultiple(channels));
 	}
 }

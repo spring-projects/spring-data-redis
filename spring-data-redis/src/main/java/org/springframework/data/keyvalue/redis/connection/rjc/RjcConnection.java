@@ -54,12 +54,11 @@ public class RjcConnection implements RedisConnection {
 	private volatile RjcSubscription subscription;
 	private volatile RedisNodeSubscriber subscriber;
 
-	private final Object pubSubMonitor = new Object();
-
 	public RjcConnection(org.idevlab.rjc.ds.RedisConnection connection, int dbIndex) {
 		SingleDataSource connectionDataSource = new SingleDataSource(connection);
 		session = new SessionFactoryImpl(connectionDataSource).create();
-		subscriber = new RedisNodeSubscriber(connectionDataSource);
+		subscriber = new RedisNodeSubscriber();
+		subscriber.setDataSource(connectionDataSource);
 		client = new Client(connection);
 
 		this.dbIndex = dbIndex;
@@ -82,6 +81,11 @@ public class RjcConnection implements RedisConnection {
 		isClosed = true;
 		try {
 			subscriber.close();
+		} catch (Exception ex) {
+			// ignore
+		}
+
+		try {
 			session.close();
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
@@ -2024,12 +2028,9 @@ public class RjcConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			subscription = new RjcSubscription(listener, subscriber, pubSubMonitor);
+			subscription = new RjcSubscription(listener, subscriber, client);
 			subscription.pSubscribe(patterns);
 
-			synchronized (pubSubMonitor) {
-				pubSubMonitor.wait();
-			}
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -2050,12 +2051,8 @@ public class RjcConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			subscription = new RjcSubscription(listener, subscriber, pubSubMonitor);
+			subscription = new RjcSubscription(listener, subscriber, client);
 			subscription.subscribe(channels);
-
-			synchronized (pubSubMonitor) {
-				pubSubMonitor.wait();
-			}
 
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);

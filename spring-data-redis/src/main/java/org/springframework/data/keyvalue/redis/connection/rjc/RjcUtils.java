@@ -16,6 +16,7 @@
 package org.springframework.data.keyvalue.redis.connection.rjc;
 
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -41,6 +42,7 @@ import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tupl
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Order;
 import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 import org.springframework.data.keyvalue.redis.connection.util.DecodeUtils;
+import org.springframework.util.ObjectUtils;
 
 
 /**
@@ -219,5 +221,19 @@ public abstract class RjcUtils {
 
 	static Double convert(String zscore) {
 		return (zscore == null ? null : Double.valueOf(zscore));
+	}
+
+
+	static String[] addArray(String[] one, String[] two) {
+		if (ObjectUtils.isEmpty(one)) {
+			return two;
+		}
+		if (ObjectUtils.isEmpty(two)) {
+			return one;
+		}
+
+		String[] result = Arrays.copyOf(one, one.length + two.length);
+		System.arraycopy(two, 0, result, one.length, two.length);
+		return result;
 	}
 }
