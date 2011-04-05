@@ -118,11 +118,11 @@ public class RjcConnection implements RedisConnection {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<byte[]> closePipeline() {
+	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			List execute = client.getAll();
 			if (execute != null && !execute.isEmpty()) {
-				return (List<byte[]>) execute;
+				return execute;
 			}
 		}
 		return Collections.emptyList();

@@ -115,7 +115,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public List<byte[]> closePipeline() {
+	public List<Object> closePipeline() {
 		return Collections.emptyList();
 	}
 

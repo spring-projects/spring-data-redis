@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
@@ -205,43 +204,42 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public List<V> executePipelined(final RedisCallback<?> action) {
-		return executePipelined(action, valueSerializer);
-	}
-
-	/**
-	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
-	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
-	 * 
-	 * @param action callback object to execute
-	 * @param resultSerializer
-	 * @return list of objects returned by the pipeline
-	 */
-	public <T> List<T> executePipelined(final RedisCallback<?> action, final RedisSerializer<T> resultSerializer) {
-		return execute(new RedisCallback<List<T>>() {
-			public List<T> doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.openPipeline();
-				boolean pipelinedClosed = false;
-				try {
-					Object result = action.doInRedis(connection);
-					if (result != null) {
-						throw new InvalidDataAccessApiUsageException(
-								"Callback cannot returned a non-null value as it gets overwritten by the pipeline");
-					}
-					List<byte[]> pipeline = connection.closePipeline();
-					pipelinedClosed = true;
-					return SerializationUtils.deserialize(pipeline, resultSerializer);
-
-				} finally {
-					if (!pipelinedClosed) {
-						connection.closePipeline();
-					}
-				}
-			}
-		});
-	}
+	//	@SuppressWarnings("unchecked")
+	//	public List<V> executePipelined(final RedisCallback<?> action) {
+	//		return executePipelined(action, valueSerializer);
+	//	}
+	//
+	//	/**
+	//	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
+	//	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	//	 * 
+	//	 * @param action callback object to execute
+	//	 * @param resultSerializer
+	//	 * @return list of objects returned by the pipeline
+	//	 */
+	//	public <T> List<T> executePipelined(final RedisCallback<?> action, final RedisSerializer<T> resultSerializer) {
+	//		return execute(new RedisCallback<List<T>>() {
+	//			public List<T> doInRedis(RedisConnection connection) throws DataAccessException {
+	//				connection.openPipeline();
+	//				boolean pipelinedClosed = false;
+	//				try {
+	//					Object result = action.doInRedis(connection);
+	//					if (result != null) {
+	//						throw new InvalidDataAccessApiUsageException(
+	//								"Callback cannot returned a non-null value as it gets overwritten by the pipeline");
+	//					}
+	//					List<Object> closePipeline = connection.closePipeline();
+	//					pipelinedClosed = true;
+	//					//return SerializationUtils.deserialize(pipeline, resultSerializer);
+	//
+	//				} finally {
+	//					if (!pipelinedClosed) {
+	//						connection.closePipeline();
+	//					}
+	//				}
+	//			}
+	//		});
+	//	}
 
 	protected RedisConnection createRedisConnectionProxy(RedisConnection pm) {
 		Class<?>[] ifcs = ClassUtils.getAllInterfacesForClass(pm.getClass(), getClass().getClassLoader());

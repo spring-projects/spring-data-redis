@@ -1123,7 +1123,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public List<byte[]> closePipeline() {
+	public List<Object> closePipeline() {
 		return delegate.closePipeline();
 	}
 

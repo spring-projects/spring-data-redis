@@ -187,11 +187,11 @@ public class JedisConnection implements RedisConnection {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<byte[]> closePipeline() {
+	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			List execute = pipeline.execute();
 			if (execute != null && !execute.isEmpty()) {
-				return (List<byte[]>) execute;
+				return execute;
 			}
 		}
 		return Collections.emptyList();

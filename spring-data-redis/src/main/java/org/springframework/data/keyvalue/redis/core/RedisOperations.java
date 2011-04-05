@@ -64,15 +64,15 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(SessionCallback<T> session);
 
-	/**
-	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback <b>cannot</b>
-	 * return a non-null value as it gets overwritten by the pipeline.
-	 * 
-	 * @param <T> list element return type
-	 * @param action callback object to execute 
-	 * @return list of objects returned by the pipeline
-	 */
-	List<V> executePipelined(RedisCallback<?> action);
+	//	/**
+	//	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback <b>cannot</b>
+	//	 * return a non-null value as it gets overwritten by the pipeline.
+	//	 * 
+	//	 * @param <T> list element return type
+	//	 * @param action callback object to execute 
+	//	 * @return list of objects returned by the pipeline
+	//	 */
+	//	List<V> executePipelined(RedisCallback<?> action);
 
 
 	Boolean hasKey(K key);
