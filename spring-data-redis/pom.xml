@@ -93,10 +93,12 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
+      <optional>true</optional>
     </dependency>
 		
 		<dependency>
@@ -122,11 +124,13 @@
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils-core</artifactId>
       <version>1.8.3</version>
+      <optional>true</optional>
     </dependency>
     
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- Redis -->
@@ -142,12 +146,14 @@
 	      <artifactId>jredis-anthonylauzon</artifactId>
 	      <version>${jredis.ver}</version>
 	      <scope>compile</scope>
+	      <optional>true</optional>
 	    </dependency> 
       <dependency>
           <groupId>org.idevlab</groupId>
           <artifactId>rjc</artifactId>
           <version>${rjc.ver}</version>
           <scope>compile</scope>
+          <optional>true</optional>
       </dependency>
 	</dependencies>
 	<build>
