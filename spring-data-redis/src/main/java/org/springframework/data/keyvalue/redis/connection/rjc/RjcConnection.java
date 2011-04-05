@@ -58,7 +58,7 @@ public class RjcConnection implements RedisConnection {
 		SingleDataSource connectionDataSource = new SingleDataSource(connection);
 		session = new SessionFactoryImpl(connectionDataSource).create();
 		subscriber = new RedisNodeSubscriber();
-		subscriber.setDataSource(new SingleDataSource(new CloseSuppressingRjcConnection(connection)));
+		subscriber.setDataSource(connectionDataSource);
 		client = new Client(connection);
 
 		this.dbIndex = dbIndex;
@@ -79,9 +79,13 @@ public class RjcConnection implements RedisConnection {
 	@Override
 	public void close() throws DataAccessException {
 		isClosed = true;
-
 		try {
 			subscriber.close();
+		} catch (Exception ex) {
+			// ignore
+		}
+
+		try {
 			session.close();
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
@@ -2024,9 +2028,8 @@ public class RjcConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			subscription = new RjcSubscription(listener, subscriber);
+			subscription = new RjcSubscription(listener, subscriber, client);
 			subscription.pSubscribe(patterns);
-			subscriber.runSubscription();
 
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
@@ -2048,9 +2051,8 @@ public class RjcConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 
-			subscription = new RjcSubscription(listener, subscriber);
+			subscription = new RjcSubscription(listener, subscriber, client);
 			subscription.subscribe(channels);
-			subscriber.runSubscription();
 
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
