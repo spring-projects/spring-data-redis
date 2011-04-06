@@ -13,6 +13,7 @@ General
 * Added dedicated SORT and SORT/GET support
 * Introduced HashMapper feature for mapping objects to and from maps
 * Improved exception hierarchy to be more consistent with Spring DAO
+* Made several Redis dependencies optional to eliminate unnecessary jars from the classpath
 
 Package o.s.d.k.redis.connection
 * Added support for indexes to RedisConnectionFactories
