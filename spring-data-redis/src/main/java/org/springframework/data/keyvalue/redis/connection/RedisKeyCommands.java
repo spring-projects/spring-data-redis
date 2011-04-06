@@ -19,7 +19,11 @@ import java.util.List;
 import java.util.Set;
 
 
-
+/**
+ * Key-specific commands supported by Redis.
+ * 
+ * @author Costin Leau
+ */
 public interface RedisKeyCommands {
 
 	public abstract Boolean exists(byte[] key);

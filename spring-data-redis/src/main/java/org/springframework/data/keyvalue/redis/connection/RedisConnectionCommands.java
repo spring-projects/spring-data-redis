@@ -16,7 +16,11 @@
 package org.springframework.data.keyvalue.redis.connection;
 
 
-
+/**
+ * Connection-specific commands supported by Redis.
+ * 
+ * @author Costin Leau
+ */
 public interface RedisConnectionCommands {
 
 	public abstract void select(int dbIndex);
