@@ -5,7 +5,7 @@
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-keyvalue-parent</artifactId>
 		<relativePath>../spring-data-keyvalue-parent/pom.xml</relativePath>
-		<version>1.0.0.M3</version>
+		<version>1.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-data-redis</artifactId>
 	<packaging>jar</packaging>
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-keyvalue-core</artifactId>
-			<version>1.0.0.M3</version>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Logging -->
