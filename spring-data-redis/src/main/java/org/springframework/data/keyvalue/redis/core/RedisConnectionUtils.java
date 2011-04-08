@@ -173,7 +173,6 @@ public abstract class RedisConnectionUtils {
 			this.conn = conn;
 		}
 
-		@Override
 		public boolean isVoid() {
 			return isVoid;
 		}
@@ -182,12 +181,10 @@ public abstract class RedisConnectionUtils {
 			return conn;
 		}
 
-		@Override
 		public void reset() {
 			// no-op
 		}
 
-		@Override
 		public void unbound() {
 			this.isVoid = true;
 		}

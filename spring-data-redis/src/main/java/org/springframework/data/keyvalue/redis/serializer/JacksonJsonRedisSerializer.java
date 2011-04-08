@@ -44,7 +44,6 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public T deserialize(byte[] bytes) throws SerializationException {
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
@@ -56,7 +55,6 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 		}
 	}
 
-	@Override
 	public byte[] serialize(Object t) throws SerializationException {
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;

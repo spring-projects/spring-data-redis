@@ -120,7 +120,6 @@ public class JedisConnection implements RedisConnection {
 		return new UncategorizedKeyvalueStoreException("Unknown jedis exception", ex);
 	}
 
-	@Override
 	public void close() throws DataAccessException {
 		// return the connection to the pool
 		try {
@@ -154,12 +153,10 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Jedis getNativeConnection() {
 		return jedis;
 	}
 
-	@Override
 	public boolean isClosed() {
 		try {
 			return !jedis.isConnected();
@@ -168,17 +165,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public boolean isQueueing() {
 		return client.isInMulti();
 	}
 
-	@Override
 	public boolean isPipelined() {
 		return (pipeline != null);
 	}
 
-	@Override
 	public void openPipeline() {
 		if (pipeline == null) {
 			pipeline = jedis.pipelined();
@@ -186,7 +180,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			List execute = pipeline.execute();
@@ -197,7 +190,6 @@ public class JedisConnection implements RedisConnection {
 		return Collections.emptyList();
 	}
 
-	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
 		SortingParams sortParams = JedisUtils.convertSortParams(params);
@@ -229,7 +221,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 
 		SortingParams sortParams = JedisUtils.convertSortParams(params);
@@ -261,7 +252,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long dbSize() {
 		try {
 			if (isQueueing()) {
@@ -278,7 +268,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	@Override
 	public void flushDb() {
 		try {
 			if (isQueueing()) {
@@ -294,7 +283,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void flushAll() {
 		try {
 			if (isQueueing()) {
@@ -310,7 +298,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void bgSave() {
 		try {
 			if (isQueueing()) {
@@ -326,7 +313,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void bgWriteAof() {
 		try {
 			if (isQueueing()) {
@@ -342,7 +328,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void save() {
 		try {
 			if (isQueueing()) {
@@ -358,7 +343,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<String> getConfig(String param) {
 		try {
 			if (isQueueing()) {
@@ -374,7 +358,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Properties info() {
 		try {
 			if (isQueueing()) {
@@ -389,7 +372,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long lastSave() {
 		try {
 			if (isQueueing()) {
@@ -405,7 +387,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void setConfig(String param, String value) {
 		try {
 			if (isQueueing()) {
@@ -422,7 +403,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	@Override
 	public void resetConfigStats() {
 		try {
 			if (isQueueing()) {
@@ -438,7 +418,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void shutdown() {
 		try {
 			if (isQueueing()) {
@@ -453,7 +432,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] echo(byte[] message) {
 		try {
 			if (isQueueing()) {
@@ -469,7 +447,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public String ping() {
 		try {
 			if (isQueueing()) {
@@ -485,7 +462,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long del(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -502,7 +478,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void discard() {
 		try {
 			client.discard();
@@ -511,7 +486,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<Object> exec() {
 		try {
 			if (isPipelined()) {
@@ -524,7 +498,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean exists(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -541,7 +514,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean expire(byte[] key, long seconds) {
 		try {
 			if (isQueueing()) {
@@ -558,7 +530,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 		try {
 			if (isQueueing()) {
@@ -575,7 +546,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {
@@ -592,7 +562,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void multi() {
 		if (isQueueing()) {
 			return;
@@ -608,7 +577,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean persist(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -625,7 +593,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 		try {
 			if (isQueueing()) {
@@ -642,7 +609,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] randomKey() {
 		try {
 			if (isQueueing()) {
@@ -658,7 +624,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void rename(byte[] oldName, byte[] newName) {
 		try {
 			if (isQueueing()) {
@@ -675,7 +640,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		try {
 			if (isQueueing()) {
@@ -692,7 +656,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void select(int dbIndex) {
 		try {
 			if (isQueueing()) {
@@ -708,7 +671,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long ttl(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -725,7 +687,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public DataType type(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -742,7 +703,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void unwatch() {
 		try {
 			jedis.unwatch();
@@ -751,7 +711,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void watch(byte[]... keys) {
 		if (isQueueing()) {
 			// ignore (as watch not allowed in multi)
@@ -775,7 +734,6 @@ public class JedisConnection implements RedisConnection {
 	// String commands
 	//
 
-	@Override
 	public byte[] get(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -793,7 +751,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void set(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -811,7 +768,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -828,7 +784,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long append(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -845,7 +800,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<byte[]> mGet(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -862,7 +816,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void mSet(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
@@ -879,7 +832,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
@@ -896,7 +848,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void setEx(byte[] key, long time, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -913,7 +864,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -930,7 +880,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] getRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -947,7 +896,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long decr(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -964,7 +912,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long decrBy(byte[] key, long value) {
 		try {
 			if (isQueueing()) {
@@ -981,7 +928,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long incr(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -998,7 +944,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long incrBy(byte[] key, long value) {
 		try {
 			if (isQueueing()) {
@@ -1015,7 +960,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean getBit(byte[] key, long offset) {
 		try {
 			if (isQueueing()) {
@@ -1032,7 +976,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isQueueing()) {
@@ -1049,12 +992,10 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void setRange(byte[] key, byte[] value, long start) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
 	public Long strLen(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1074,7 +1015,6 @@ public class JedisConnection implements RedisConnection {
 	// List commands
 	//
 
-	@Override
 	public Long lPush(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1091,7 +1031,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long rPush(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1108,7 +1047,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1129,7 +1067,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1150,7 +1087,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] lIndex(byte[] key, long index) {
 		try {
 			if (isQueueing()) {
@@ -1167,7 +1103,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1185,7 +1120,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long lLen(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1202,7 +1136,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] lPop(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1219,7 +1152,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1236,7 +1168,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1253,7 +1184,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1270,7 +1200,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void lTrim(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1287,7 +1216,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] rPop(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1304,7 +1232,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		try {
 			if (isQueueing()) {
@@ -1321,7 +1248,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		try {
 			if (isQueueing()) {
@@ -1337,7 +1263,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long lPushX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1353,7 +1278,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long rPushX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1374,7 +1298,6 @@ public class JedisConnection implements RedisConnection {
 	// Set commands
 	//
 
-	@Override
 	public Boolean sAdd(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1391,7 +1314,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long sCard(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1408,7 +1330,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1425,7 +1346,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1442,7 +1362,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1459,7 +1378,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1476,7 +1394,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1493,7 +1410,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1510,7 +1426,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1527,7 +1442,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] sPop(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1544,7 +1458,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] sRandMember(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1561,7 +1474,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean sRem(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1578,7 +1490,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1595,7 +1506,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1616,7 +1526,6 @@ public class JedisConnection implements RedisConnection {
 	// ZSet commands
 	//
 
-	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1633,7 +1542,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zCard(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1650,7 +1558,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zCount(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1666,7 +1573,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1683,7 +1589,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
 			if (isQueueing()) {
@@ -1701,7 +1606,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isQueueing()) {
@@ -1717,7 +1621,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1734,7 +1637,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<Tuple> zRangeWithScore(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1751,7 +1653,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1767,7 +1668,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1783,7 +1683,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1799,7 +1698,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
@@ -1815,7 +1713,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
@@ -1831,7 +1728,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zRank(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1848,7 +1744,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean zRem(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1865,7 +1760,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zRemRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1881,7 +1775,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1897,7 +1790,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1914,7 +1806,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1931,7 +1822,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Double zScore(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1948,7 +1838,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
 			if (isQueueing()) {
@@ -1966,7 +1855,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isQueueing()) {
@@ -1986,7 +1874,6 @@ public class JedisConnection implements RedisConnection {
 	// Hash commands
 	//
 
-	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -2003,7 +1890,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -2020,7 +1906,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean hDel(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
@@ -2037,7 +1922,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
@@ -2054,7 +1938,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
@@ -2071,7 +1954,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2088,7 +1970,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		try {
 			if (isQueueing()) {
@@ -2105,7 +1986,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Set<byte[]> hKeys(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2122,7 +2002,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Long hLen(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2139,7 +2018,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		try {
 			if (isQueueing()) {
@@ -2156,7 +2034,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
 		try {
 			if (isQueueing()) {
@@ -2173,7 +2050,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public List<byte[]> hVals(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2194,7 +2070,6 @@ public class JedisConnection implements RedisConnection {
 	//
 	// Pub/Sub functionality
 	//
-	@Override
 	public Long publish(byte[] channel, byte[] message) {
 		try {
 			if (isQueueing()) {
@@ -2209,17 +2084,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
-	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
-	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
@@ -2244,7 +2116,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(

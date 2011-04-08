@@ -72,7 +72,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		this.connectionSpec = connectionSpec;
 	}
 
-	@Override
 	public void afterPropertiesSet() {
 		if (connectionSpec == null) {
 			Assert.hasText(hostName);
@@ -95,7 +94,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 
-	@Override
 	public void destroy() {
 		if (usePool && pool != null) {
 			pool.quit();
@@ -104,7 +102,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 
-	@Override
 	public RedisConnection getConnection() {
 		return postProcessConnection(new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec))));
 	}
@@ -122,7 +119,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		return connection;
 	}
 
-	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		if (ex instanceof ClientRuntimeException) {
 			return JredisUtils.convertJredisAccessException((ClientRuntimeException) ex);

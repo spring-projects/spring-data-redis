@@ -24,7 +24,6 @@ import org.springframework.data.keyvalue.redis.connection.MessageListener;
  */
 public class ThrowableMessageListener implements MessageListener {
 
-	@Override
 	public void onMessage(Message message, byte[] pattern) {
 		throw new IllegalStateException("throwing exception for message " + message);
 	}

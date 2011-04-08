@@ -92,8 +92,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 		// remove the collection entirely since clear() doesn't always work
 		map.getOperations().delete(Collections.singleton(map.getKey()));
 		template.execute(new RedisCallback<Object>() {
-
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;

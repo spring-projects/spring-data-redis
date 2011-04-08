@@ -68,7 +68,6 @@ public class DefaultSortParameters implements SortParameters {
 		setGetPattern(getPattern);
 	}
 
-	@Override
 	public byte[] getByPattern() {
 		return byPattern;
 	}
@@ -77,7 +76,6 @@ public class DefaultSortParameters implements SortParameters {
 		this.byPattern = byPattern;
 	}
 
-	@Override
 	public Range getLimit() {
 		return limit;
 	}
@@ -86,7 +84,6 @@ public class DefaultSortParameters implements SortParameters {
 		this.limit = limit;
 	}
 
-	@Override
 	public byte[][] getGetPattern() {
 		return getPattern.toArray(new byte[getPattern.size()][]);
 	}
@@ -103,7 +100,6 @@ public class DefaultSortParameters implements SortParameters {
 		}
 	}
 
-	@Override
 	public Order getOrder() {
 		return order;
 	}
@@ -112,7 +108,6 @@ public class DefaultSortParameters implements SortParameters {
 		this.order = order;
 	}
 
-	@Override
 	public Boolean isAlphabetic() {
 		return alphabetic;
 	}

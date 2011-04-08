@@ -39,12 +39,10 @@ public class DefaultTuple implements Tuple {
 		this.value = value;
 	}
 
-	@Override
 	public Double getScore() {
 		return score;
 	}
 
-	@Override
 	public byte[] getValue() {
 		return value;
 	}

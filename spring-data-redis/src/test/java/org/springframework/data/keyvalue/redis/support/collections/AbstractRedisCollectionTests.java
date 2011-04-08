@@ -90,8 +90,6 @@ public abstract class AbstractRedisCollectionTests<T> {
 		// remove the collection entirely since clear() doesn't always work
 		collection.getOperations().delete(Collections.singleton(collection.getKey()));
 		template.execute(new RedisCallback<Object>() {
-
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;

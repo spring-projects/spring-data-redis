@@ -31,7 +31,6 @@ class SingleDataSource implements DataSource {
 		this.connection = connection;
 	}
 
-	@Override
 	public RedisConnection getConnection() {
 		return connection;
 	}

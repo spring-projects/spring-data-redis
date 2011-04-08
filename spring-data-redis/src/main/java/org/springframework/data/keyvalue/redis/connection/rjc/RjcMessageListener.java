@@ -32,12 +32,10 @@ class RjcMessageListener implements MessageListener, PMessageListener {
 		this.listener = messageListener;
 	}
 
-	@Override
 	public void onMessage(String channel, String message) {
 		listener.onMessage(new DefaultMessage(RjcUtils.encode(channel), RjcUtils.encode(message)), null);
 	}
 
-	@Override
 	public void onMessage(String pattern, String channel, String message) {
 		listener.onMessage(new DefaultMessage(RjcUtils.encode(channel), RjcUtils.encode(message)),
 				RjcUtils.encode(pattern));

@@ -32,7 +32,6 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 		this.type = type;
 	}
 
-	@Override
 	public T fromHash(Map<String, String> hash) {
 		T instance = org.springframework.beans.BeanUtils.instantiate(type);
 		try {
@@ -43,7 +42,6 @@ public class BeanUtilsHashMapper<T> implements HashMapper<T, String, String> {
 		return instance;
 	}
 
-	@Override
 	public Map<String, String> toHash(T object) {
 		try {
 			return BeanUtils.describe(object);

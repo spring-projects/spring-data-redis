@@ -42,12 +42,10 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public T fromHash(Map<String, Object> hash) {
 		return (T) mapper.convertValue(hash, userType);
 	}
 
-	@Override
 	public Map<String, Object> toHash(T object) {
 		return mapper.convertValue(object, mapType);
 	}

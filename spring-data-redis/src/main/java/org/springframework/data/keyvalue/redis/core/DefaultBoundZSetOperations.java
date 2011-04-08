@@ -41,97 +41,78 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		this.ops = operations.opsForZSet();
 	}
 
-	@Override
 	public Boolean add(V value, double score) {
 		return ops.add(getKey(), value, score);
 	}
 
-	@Override
 	public Double incrementScore(V value, double delta) {
 		return ops.incrementScore(getKey(), value, delta);
 	}
 
-	@Override
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}
 
-	@Override
 	public void intersectAndStore(K destKey, K otherKey) {
 		ops.intersectAndStore(getKey(), otherKey, destKey);
 	}
 
-	@Override
 	public void intersectAndStore(Collection<K> otherKeys, K destKey) {
 		ops.intersectAndStore(getKey(), otherKeys, destKey);
 	}
 
-	@Override
 	public Set<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
-	@Override
 	public Set<V> rangeByScore(double min, double max) {
 		return ops.rangeByScore(getKey(), min, max);
 	}
 
-	@Override
 	public Long rank(Object o) {
 		return ops.rank(getKey(), o);
 	}
 
-	@Override
 	public Long reverseRank(Object o) {
 		return ops.reverseRank(getKey(), o);
 	}
 
-	@Override
 	public Double score(Object o) {
 		return ops.score(getKey(), o);
 	}
 
-	@Override
 	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}
 
-	@Override
 	public void removeRange(long start, long end) {
 		ops.removeRange(getKey(), start, end);
 	}
 
-	@Override
 	public void removeRangeByScore(double min, double max) {
 		ops.removeRangeByScore(getKey(), min, max);
 	}
 
-	@Override
 	public Set<V> reverseRange(long start, long end) {
 		return ops.reverseRange(getKey(), start, end);
 	}
 
-	@Override
 	public Long count(double min, double max) {
 		return ops.count(getKey(), min, max);
 	}
 
-	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	@Override
 	public void unionAndStore(K otherKey, K destKey) {
 		ops.unionAndStore(getKey(), otherKey, destKey);
 	}
 
-	@Override
 	public void unionAndStore(Collection<K> otherKeys, K destKey) {
 		ops.unionAndStore(getKey(), otherKeys, destKey);
 	}
 
-	@Override
 	public DataType getType() {
 		return DataType.ZSET;
 	}

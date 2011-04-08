@@ -133,7 +133,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		zSetOps = new DefaultZSetOperations<K, V>(this);
 	}
 
-	@Override
 	public <T> T execute(RedisCallback<T> action) {
 		return execute(action, isExposeConnection());
 	}
@@ -192,7 +191,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 
-	@Override
 	public <T> T execute(SessionCallback<T> session) {
 		RedisConnectionFactory factory = getConnectionFactory();
 		// bind connection
@@ -425,23 +423,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	//
 	// RedisOperations
 	//
-	@Override
 	public List<Object> exec() {
 		return execute(new RedisCallback<List<Object>>() {
 
-			@Override
 			public List<Object> doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.exec();
 			}
 		});
 	}
 
-	@Override
 	public void delete(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.del(rawKey);
 				return null;
@@ -449,12 +443,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public void delete(Collection<K> keys) {
 		final byte[][] rawKeys = rawKeys(keys);
 
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.del(rawKeys);
 				return null;
@@ -462,45 +454,38 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public Boolean hasKey(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.exists(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
 	public Boolean expire(K key, long timeout, TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
 		final int rawTimeout = (int) unit.toSeconds(timeout);
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.expire(rawKey, rawTimeout);
 			}
 		}, true);
 	}
 
-	@Override
 	public Boolean expireAt(K key, Date date) {
 		final byte[] rawKey = rawKey(key);
 		final long rawTimeout = date.getTime();
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.expireAt(rawKey, rawTimeout);
 			}
 		}, true);
 	}
 
-	@Override
 	public void convertAndSend(String channel, Object message) {
 		Assert.hasText(channel, "a non-empty channel is required");
 
@@ -508,7 +493,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		final byte[] rawMessage = rawValue(message);
 
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.publish(rawChannel, rawMessage);
 				return null;
@@ -521,12 +505,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// Value operations
 	//
 
-	@Override
 	public Long getExpire(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Long>() {
-			@Override
 			public Long doInRedis(RedisConnection connection) {
 				return Long.valueOf(connection.ttl(rawKey));
 			}
@@ -534,12 +516,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public Set<K> keys(K pattern) {
 		final byte[] rawKey = rawKey(pattern);
 
 		Collection<byte[]> rawKeys = execute(new RedisCallback<Collection<byte[]>>() {
-			@Override
 			public Collection<byte[]> doInRedis(RedisConnection connection) {
 				return connection.keys(rawKey);
 			}
@@ -548,34 +528,28 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (Set<K>) SerializationUtils.deserialize(rawKeys, keySerializer);
 	}
 
-	@Override
 	public Boolean persist(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.persist(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
 	public Boolean move(K key, final int dbIndex) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.move(rawKey, dbIndex);
 			}
 		}, true);
 	}
 
-	@Override
 	public K randomKey() {
 		byte[] rawKey = execute(new RedisCallback<byte[]>() {
-			@Override
 			public byte[] doInRedis(RedisConnection connection) {
 				return connection.randomKey();
 			}
@@ -584,13 +558,11 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return deserializeKey(rawKey);
 	}
 
-	@Override
 	public void rename(K oldKey, K newKey) {
 		final byte[] rawOldKey = rawKey(oldKey);
 		final byte[] rawNewKey = rawKey(newKey);
 
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.rename(rawOldKey, rawNewKey);
 				return null;
@@ -598,35 +570,29 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public Boolean renameIfAbsent(K oldKey, K newKey) {
 		final byte[] rawOldKey = rawKey(oldKey);
 		final byte[] rawNewKey = rawKey(newKey);
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.renameNX(rawOldKey, rawNewKey);
 			}
 		}, true);
 	}
 
-	@Override
 	public DataType type(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<DataType>() {
-			@Override
 			public DataType doInRedis(RedisConnection connection) {
 				return connection.type(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
 	public void multi() {
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.multi();
 				return null;
@@ -634,11 +600,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public void discard() {
 		execute(new RedisCallback<Object>() {
 
-			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.discard();
 				return null;
@@ -646,12 +610,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public void watch(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.watch(rawKey);
 				return null;
@@ -659,12 +621,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public void watch(Collection<K> keys) {
 		final byte[][] rawKeys = rawKeys(keys);
 
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.watch(rawKeys);
 				return null;
@@ -672,10 +632,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
-	@Override
 	public void unwatch() {
 		execute(new RedisCallback<Object>() {
-			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.unwatch();
 				return null;
@@ -686,18 +644,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	// Sort operations
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public List<V> sort(SortQuery<K> query) {
 		return sort(query, valueSerializer);
 	}
 
-	@Override
 	public <T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer) {
 		final byte[] rawKey = rawKey(query.getKey());
 		final SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
 
 		List<byte[]> vals = execute(new RedisCallback<List<byte[]>>() {
-			@Override
 			public List<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.sort(rawKey, params);
 			}
@@ -707,12 +662,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public <T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper) {
 		return sort(query, bulkMapper, valueSerializer);
 	}
 
-	@Override
 	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer) {
 		List<S> values = sort(query, resultSerializer);
 
@@ -733,66 +686,54 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return result;
 	}
 
-	@Override
 	public Long sort(SortQuery<K> query, K storeKey) {
 		final byte[] rawStoreKey = rawKey(storeKey);
 		final byte[] rawKey = rawKey(query.getKey());
 		final SortParameters params = QueryUtils.convertQuery(query, stringSerializer);
 
 		return execute(new RedisCallback<Long>() {
-			@Override
 			public Long doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.sort(rawKey, params, rawStoreKey);
 			}
 		}, true);
 	}
 
-	@Override
 	public BoundValueOperations<K, V> boundValueOps(K key) {
 		return new DefaultBoundValueOperations<K, V>(key, this);
 	}
 
-	@Override
 	public ValueOperations<K, V> opsForValue() {
 		return valueOps;
 	}
 
-	@Override
 	public ListOperations<K, V> opsForList() {
 		return listOps;
 	}
 
-	@Override
 	public BoundListOperations<K, V> boundListOps(K key) {
 		return new DefaultBoundListOperations<K, V>(key, this);
 	}
 
-	@Override
 	public BoundSetOperations<K, V> boundSetOps(K key) {
 		return new DefaultBoundSetOperations<K, V>(key, this);
 	}
 
-	@Override
 	public SetOperations<K, V> opsForSet() {
 		return setOps;
 	}
 
-	@Override
 	public BoundZSetOperations<K, V> boundZSetOps(K key) {
 		return new DefaultBoundZSetOperations<K, V>(key, this);
 	}
 
-	@Override
 	public ZSetOperations<K, V> opsForZSet() {
 		return zSetOps;
 	}
 
-	@Override
 	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
 		return new DefaultBoundHashOperations<K, HK, HV>(key, this);
 	}
 
-	@Override
 	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
 		return new DefaultHashOperations<K, HK, HV>(this);
 	}

@@ -40,12 +40,10 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		this.operations = operations;
 	}
 
-	@Override
 	public String getKey() {
 		return key;
 	}
 
-	@Override
 	public RedisOperations<String, E> getOperations() {
 		return operations;
 	}
@@ -59,8 +57,10 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return modified;
 	}
 
+	@Override
 	public abstract boolean add(E e);
 
+	@Override
 	public abstract void clear();
 
 	@Override
@@ -72,6 +72,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return contains;
 	}
 
+	@Override
 	public abstract boolean remove(Object o);
 
 
@@ -84,6 +85,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return modified;
 	}
 
+	@Override
 	public boolean retainAll(Collection<?> c) {
 		throw new UnsupportedOperationException();
 	}
@@ -119,27 +121,22 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return sb.toString();
 	}
 
-	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return operations.expire(key, timeout, unit);
 	}
 
-	@Override
 	public Boolean expireAt(Date date) {
 		return operations.expireAt(key, date);
 	}
 
-	@Override
 	public Long getExpire() {
 		return operations.getExpire(key);
 	}
 
-	@Override
 	public Boolean persist() {
 		return operations.persist(key);
 	}
 
-	@Override
 	public void rename(final String newKey) {
 		CollectionUtils.rename(key, newKey, operations);
 		key = newKey;

@@ -22,7 +22,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -150,7 +149,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 				null, dbIndex)));
 	}
 
-	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return JedisUtils.convertJedisAccessException(ex);
 	}
