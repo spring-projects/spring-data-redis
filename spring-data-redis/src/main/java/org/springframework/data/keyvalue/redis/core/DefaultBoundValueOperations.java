@@ -37,50 +37,62 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 		this.ops = operations.opsForValue();
 	}
 
+	@Override
 	public V get() {
 		return ops.get(getKey());
 	}
 
+	@Override
 	public V getAndSet(V value) {
 		return ops.getAndSet(getKey(), value);
 	}
 
+	@Override
 	public Long increment(long delta) {
 		return ops.increment(getKey(), delta);
 	}
 
+	@Override
 	public Integer append(String value) {
 		return ops.append(getKey(), value);
 	}
 
+	@Override
 	public String get(long start, long end) {
 		return ops.get(getKey(), start, end);
 	}
 
+	@Override
 	public void set(V value, long timeout, TimeUnit unit) {
 		ops.set(getKey(), value, timeout, unit);
 	}
 
+	@Override
 	public void set(V value) {
 		ops.set(getKey(), value);
 	}
 
+	@Override
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
 	}
 
+	@Override
 	public void set(V value, long offset) {
 		ops.set(getKey(), value, offset);
 	}
 
+	@Override
 	public Long size() {
 		return ops.size(getKey());
 	}
 
+	@Override
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}
 
+	@Override
 	public DataType getType() {
 		return DataType.STRING;
 	}

@@ -98,22 +98,26 @@ public abstract class AbstractSubscription implements Subscription {
 	 */
 	protected abstract void doClose();
 
+	@Override
 	public MessageListener getListener() {
 		return listener;
 	}
 
+	@Override
 	public Collection<byte[]> getChannels() {
 		synchronized (channels) {
 			return clone(channels);
 		}
 	}
 
+	@Override
 	public Collection<byte[]> getPatterns() {
 		synchronized (patterns) {
 			return clone(patterns);
 		}
 	}
 
+	@Override
 	public void pSubscribe(byte[]... patterns) {
 		checkPulse();
 
@@ -126,11 +130,13 @@ public abstract class AbstractSubscription implements Subscription {
 		doPsubscribe(patterns);
 	}
 
+	@Override
 	public void pUnsubscribe() {
 		pUnsubscribe((byte[][]) null);
 	}
 
 
+	@Override
 	public void subscribe(byte[]... channels) {
 		checkPulse();
 
@@ -143,10 +149,12 @@ public abstract class AbstractSubscription implements Subscription {
 		doSubscribe(channels);
 	}
 
+	@Override
 	public void unsubscribe() {
 		unsubscribe((byte[][]) null);
 	}
 
+	@Override
 	public void pUnsubscribe(byte[]... patts) {
 		if (!isAlive()) {
 			return;
@@ -176,6 +184,7 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
+	@Override
 	public void unsubscribe(byte[]... chans) {
 		if (!isAlive()) {
 			return;
@@ -205,6 +214,7 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
+	@Override
 	public boolean isAlive() {
 		return alive.get();
 	}

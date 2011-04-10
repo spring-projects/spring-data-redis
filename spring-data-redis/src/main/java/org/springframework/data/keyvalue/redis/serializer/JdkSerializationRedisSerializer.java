@@ -32,6 +32,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	private Converter<byte[], Object> deserializer = new DeserializingConverter();
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public Object deserialize(byte[] bytes) {
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
@@ -44,6 +45,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		}
 	}
 
+	@Override
 	public byte[] serialize(Object object) {
 		if (object == null) {
 			return SerializationUtils.EMPTY_ARRAY;

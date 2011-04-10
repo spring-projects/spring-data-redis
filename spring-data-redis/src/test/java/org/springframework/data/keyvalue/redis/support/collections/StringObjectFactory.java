@@ -24,6 +24,7 @@ import java.util.UUID;
  */
 public class StringObjectFactory implements ObjectFactory<String> {
 
+	@Override
 	public String instance() {
 		return UUID.randomUUID().toString();
 	}

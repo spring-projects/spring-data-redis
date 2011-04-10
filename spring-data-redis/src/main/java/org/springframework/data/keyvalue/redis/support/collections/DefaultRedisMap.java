@@ -47,14 +47,17 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 			this.value = value;
 		}
 
+		@Override
 		public K getKey() {
 			return key;
 		}
 
+		@Override
 		public V getValue() {
 			return value;
 		}
 
+		@Override
 		public V setValue(V value) {
 			throw new UnsupportedOperationException();
 		}
@@ -79,26 +82,32 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		this.hashOps = boundOps;
 	}
 
+	@Override
 	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
 	}
 
+	@Override
 	public RedisOperations<String, ?> getOperations() {
 		return hashOps.getOperations();
 	}
 
+	@Override
 	public void clear() {
 		getOperations().delete(Collections.singleton(getKey()));
 	}
 
+	@Override
 	public boolean containsKey(Object key) {
 		return hashOps.hasKey(key);
 	}
 
+	@Override
 	public boolean containsValue(Object value) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
 		Set<K> keySet = keySet();
 		Collection<V> multiGet = hashOps.multiGet(keySet);
@@ -114,38 +123,46 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return entries;
 	}
 
+	@Override
 	public V get(Object key) {
 		return hashOps.get(key);
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return size() == 0;
 	}
 
+	@Override
 	public Set<K> keySet() {
 		return hashOps.keys();
 	}
 
+	@Override
 	public V put(K key, V value) {
 		V oldV = get(key);
 		hashOps.put(key, value);
 		return oldV;
 	}
 
+	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
 		hashOps.putAll(m);
 	}
 
+	@Override
 	public V remove(Object key) {
 		V v = get(key);
 		hashOps.delete(key);
 		return v;
 	}
 
+	@Override
 	public int size() {
 		return hashOps.size().intValue();
 	}
 
+	@Override
 	public Collection<V> values() {
 		return hashOps.values();
 	}
@@ -177,6 +194,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return sb.toString();
 	}
 
+	@Override
 	public V putIfAbsent(K key, V value) {
 		throw new UnsupportedOperationException();
 
@@ -198,6 +216,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		//		}
 	}
 
+	@Override
 	public boolean remove(Object key, Object value) {
 		throw new UnsupportedOperationException();
 
@@ -223,6 +242,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		//		}
 	}
 
+	@Override
 	public boolean replace(K key, V oldValue, V newValue) {
 		throw new UnsupportedOperationException();
 
@@ -248,6 +268,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		//		}
 	}
 
+	@Override
 	public V replace(K key, V value) {
 		throw new UnsupportedOperationException();
 
@@ -273,31 +294,38 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		//		}
 	}
 
+	@Override
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return hashOps.expire(timeout, unit);
 	}
 
+	@Override
 	public Boolean expireAt(Date date) {
 		return hashOps.expireAt(date);
 	}
 
+	@Override
 	public Long getExpire() {
 		return hashOps.getExpire();
 	}
 
+	@Override
 	public Boolean persist() {
 		return hashOps.persist();
 	}
 
 
+	@Override
 	public String getKey() {
 		return hashOps.getKey();
 	}
 
+	@Override
 	public void rename(String newKey) {
 		hashOps.rename(newKey);
 	}
 
+	@Override
 	public DataType getType() {
 		return hashOps.getType();
 	}

@@ -85,6 +85,7 @@ public class RjcConnectionFactory implements InitializingBean, DisposableBean, R
 		}
 	}
 
+	@Override
 	public RedisConnection getConnection() {
 		return postProcessConnection(new RjcConnection(dataSource.getConnection(), dbIndex));
 	}
@@ -101,6 +102,7 @@ public class RjcConnectionFactory implements InitializingBean, DisposableBean, R
 		return connection;
 	}
 
+	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return RjcUtils.convertRjcAccessException(ex);
 	}

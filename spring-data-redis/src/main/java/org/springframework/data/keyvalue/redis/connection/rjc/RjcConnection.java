@@ -76,6 +76,7 @@ public class RjcConnection implements RedisConnection {
 		return new UncategorizedKeyvalueStoreException("Unknown rjc exception", ex);
 	}
 
+	@Override
 	public void close() throws DataAccessException {
 		isClosed = true;
 
@@ -88,22 +89,27 @@ public class RjcConnection implements RedisConnection {
 	}
 
 
+	@Override
 	public boolean isClosed() {
 		return isClosed;
 	}
 
+	@Override
 	public Session getNativeConnection() {
 		return session;
 	}
 
+	@Override
 	public boolean isQueueing() {
 		return client.isInMulti();
 	}
 
+	@Override
 	public boolean isPipelined() {
 		return (pipeline != null);
 	}
 
+	@Override
 	public void openPipeline() {
 		if (pipeline == null) {
 			pipeline = client;
@@ -111,6 +117,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			List execute = client.getAll();
@@ -121,6 +128,7 @@ public class RjcConnection implements RedisConnection {
 		return Collections.emptyList();
 	}
 
+	@Override
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
 		SortingParams sortParams = RjcUtils.convertSortParams(params);
@@ -144,6 +152,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 
 		SortingParams sortParams = RjcUtils.convertSortParams(params);
@@ -168,6 +177,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long dbSize() {
 		try {
 			if (isPipelined()) {
@@ -181,6 +191,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 
+	@Override
 	public void flushDb() {
 		try {
 			if (isPipelined()) {
@@ -193,6 +204,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void flushAll() {
 		try {
 			if (isPipelined()) {
@@ -205,6 +217,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void bgSave() {
 		try {
 			if (isPipelined()) {
@@ -217,6 +230,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void bgWriteAof() {
 		try {
 			if (isPipelined()) {
@@ -229,6 +243,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void save() {
 		try {
 			if (isPipelined()) {
@@ -241,6 +256,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<String> getConfig(String param) {
 		try {
 			if (isPipelined()) {
@@ -253,6 +269,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Properties info() {
 		try {
 			if (isPipelined()) {
@@ -265,6 +282,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long lastSave() {
 		try {
 			if (isPipelined()) {
@@ -277,6 +295,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void setConfig(String param, String value) {
 		try {
 			if (isPipelined()) {
@@ -290,6 +309,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 
+	@Override
 	public void resetConfigStats() {
 		try {
 			if (isPipelined()) {
@@ -303,6 +323,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void shutdown() {
 		try {
 			if (isPipelined()) {
@@ -315,6 +336,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] echo(byte[] message) {
 		String stringMsg = RjcUtils.decode(message);
 		try {
@@ -328,6 +350,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public String ping() {
 		try {
 			if (isPipelined()) {
@@ -339,6 +362,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long del(byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -353,6 +377,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void discard() {
 		try {
 			if (isPipelined()) {
@@ -366,6 +391,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<Object> exec() {
 		try {
 			if (isPipelined()) {
@@ -378,6 +404,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean exists(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -392,6 +419,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean expire(byte[] key, long seconds) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -406,6 +434,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean expireAt(byte[] key, long unixTime) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -420,6 +449,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> keys(byte[] pattern) {
 		String stringKey = RjcUtils.decode(pattern);
 
@@ -434,6 +464,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void multi() {
 		if (isQueueing()) {
 			return;
@@ -449,6 +480,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean persist(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -463,6 +495,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean move(byte[] key, int dbIndex) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -477,6 +510,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] randomKey() {
 		try {
 			if (isPipelined()) {
@@ -489,6 +523,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void rename(byte[] oldName, byte[] newName) {
 		String stringOldKey = RjcUtils.decode(oldName);
 		String stringNewKey = RjcUtils.decode(newName);
@@ -504,6 +539,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		String stringOldKey = RjcUtils.decode(oldName);
 		String stringNewKey = RjcUtils.decode(newName);
@@ -519,6 +555,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void select(int dbIndex) {
 		try {
 			if (isPipelined()) {
@@ -531,6 +568,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long ttl(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -545,6 +583,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public DataType type(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -559,6 +598,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void unwatch() {
 		try {
 			if (isPipelined()) {
@@ -572,6 +612,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void watch(byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -595,6 +636,7 @@ public class RjcConnection implements RedisConnection {
 	// String commands
 	//
 
+	@Override
 	public byte[] get(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -610,6 +652,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void set(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -626,6 +669,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 
+	@Override
 	public byte[] getSet(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -641,6 +685,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long append(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -656,6 +701,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<byte[]> mGet(byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -670,6 +716,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void mSet(Map<byte[], byte[]> tuples) {
 		String[] decodeMap = RjcUtils.flatten(tuples);
 
@@ -684,6 +731,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void mSetNX(Map<byte[], byte[]> tuples) {
 		String[] decodeMap = RjcUtils.flatten(tuples);
 
@@ -699,6 +747,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void setEx(byte[] key, long time, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -714,6 +763,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean setNX(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -729,6 +779,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] getRange(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -743,6 +794,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long decr(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -757,6 +809,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long decrBy(byte[] key, long value) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -771,6 +824,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long incr(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -786,6 +840,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long incrBy(byte[] key, long value) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -801,6 +856,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean getBit(byte[] key, long offset) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -815,6 +871,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void setBit(byte[] key, long offset, boolean value) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -829,6 +886,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void setRange(byte[] key, byte[] value, long offset) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -844,6 +902,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long strLen(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -862,6 +921,7 @@ public class RjcConnection implements RedisConnection {
 	// List commands
 	//
 
+	@Override
 	public Long lPush(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -877,6 +937,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long rPush(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -893,6 +954,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -907,6 +969,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -921,6 +984,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] lIndex(byte[] key, long index) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -936,6 +1000,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -953,6 +1018,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long lLen(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -968,6 +1034,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] lPop(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -983,6 +1050,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -998,6 +1066,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long lRem(byte[] key, long count, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1014,6 +1083,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void lSet(byte[] key, long index, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1029,6 +1099,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void lTrim(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -1044,6 +1115,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] rPop(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -1059,6 +1131,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		String stringKey = RjcUtils.decode(srcKey);
 		String stringDest = RjcUtils.decode(dstKey);
@@ -1075,6 +1148,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		String stringKey = RjcUtils.decode(srcKey);
 		String stringDest = RjcUtils.decode(dstKey);
@@ -1090,6 +1164,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long lPushX(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1104,6 +1179,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long rPushX(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1123,6 +1199,7 @@ public class RjcConnection implements RedisConnection {
 	// Set commands
 	//
 
+	@Override
 	public Boolean sAdd(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1139,6 +1216,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long sCard(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -1154,6 +1232,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -1169,6 +1248,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void sDiffStore(byte[] destKey, byte[]... keys) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
@@ -1185,6 +1265,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 		try {
@@ -1199,6 +1280,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void sInterStore(byte[] destKey, byte[]... keys) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
@@ -1214,6 +1296,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1230,6 +1313,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> sMembers(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1244,6 +1328,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		String stringSrc = RjcUtils.decode(srcKey);
 		String stringDest = RjcUtils.decode(destKey);
@@ -1261,6 +1346,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] sPop(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1275,6 +1361,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] sRandMember(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1289,6 +1376,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean sRem(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1305,6 +1393,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -1320,6 +1409,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void sUnionStore(byte[] destKey, byte[]... keys) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
@@ -1340,6 +1430,7 @@ public class RjcConnection implements RedisConnection {
 	// ZSet commands
 	//
 
+	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1355,6 +1446,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zCard(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -1369,6 +1461,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zCount(byte[] key, double min, double max) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1383,6 +1476,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1398,6 +1492,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(sets);
@@ -1415,6 +1510,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(sets);
@@ -1430,6 +1526,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1444,6 +1541,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<Tuple> zRangeWithScore(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1458,6 +1556,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
@@ -1474,6 +1573,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
@@ -1490,6 +1590,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Long.toString(start);
@@ -1507,6 +1608,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
@@ -1524,6 +1626,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
@@ -1541,6 +1644,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zRank(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1556,6 +1660,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean zRem(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1571,6 +1676,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zRemRange(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1584,6 +1690,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
@@ -1600,6 +1707,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1614,6 +1722,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1629,6 +1738,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Double zScore(byte[] key, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringValue = RjcUtils.decode(value);
@@ -1644,6 +1754,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(destKey);
@@ -1661,6 +1772,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(sets);
@@ -1680,6 +1792,7 @@ public class RjcConnection implements RedisConnection {
 	// Hash commands
 	//
 
+	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringField = RjcUtils.decode(field);
@@ -1696,6 +1809,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		String stringKey = RjcUtils.decode(key);
 		String stringField = RjcUtils.decode(field);
@@ -1712,6 +1826,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean hDel(byte[] key, byte[] field) {
 		String stringKey = RjcUtils.decode(key);
 		String stringField = RjcUtils.decode(field);
@@ -1727,6 +1842,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
 		String stringKey = RjcUtils.decode(key);
 		String stringField = RjcUtils.decode(field);
@@ -1742,6 +1858,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
 		String stringKey = RjcUtils.decode(key);
 		String stringField = RjcUtils.decode(field);
@@ -1757,6 +1874,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 
@@ -1771,6 +1889,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		String stringKey = RjcUtils.decode(key);
 		String stringField = RjcUtils.decode(field);
@@ -1786,6 +1905,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> hKeys(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1799,6 +1919,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Long hLen(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1812,6 +1933,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		String stringKey = RjcUtils.decode(key);
 		String[] stringKeys = RjcUtils.decodeMultiple(fields);
@@ -1827,6 +1949,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
 		String stringKey = RjcUtils.decode(key);
 		Map<String, String> stringTuple = RjcUtils.decodeMap(tuple);
@@ -1842,6 +1965,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public List<byte[]> hVals(byte[] key) {
 		String stringKey = RjcUtils.decode(key);
 		try {
@@ -1860,6 +1984,7 @@ public class RjcConnection implements RedisConnection {
 	//
 	// Pub/Sub functionality
 	//
+	@Override
 	public Long publish(byte[] channel, byte[] message) {
 		try {
 			if (isQueueing()) {
@@ -1874,14 +1999,17 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
+	@Override
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
+	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
@@ -1905,6 +2033,7 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(

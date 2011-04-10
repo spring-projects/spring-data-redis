@@ -56,6 +56,7 @@ abstract class CollectionUtils {
 	static <K> void rename(final K key, final K newKey, RedisOperations<K, ?> operations) {
 		operations.execute(new SessionCallback<Object>() {
 			@SuppressWarnings("unchecked")
+			@Override
 			public Object execute(RedisOperations operations) throws DataAccessException {
 				do {
 					operations.watch(key);
@@ -75,6 +76,7 @@ abstract class CollectionUtils {
 
 	static <K> Boolean renameIfAbsent(final K key, final K newKey, RedisOperations<K, ?> operations) {
 		return operations.execute(new SessionCallback<Boolean>() {
+			@Override
 			public Boolean execute(RedisOperations operations) throws DataAccessException {
 				List<Object> exec = null;
 				do {

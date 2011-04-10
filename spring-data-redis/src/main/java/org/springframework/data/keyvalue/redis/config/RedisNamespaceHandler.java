@@ -15,6 +15,7 @@
  */
 package org.springframework.data.keyvalue.redis.config;
 
+import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  */
 class RedisNamespaceHandler extends NamespaceHandlerSupport {
 
+	@Override
 	public void init() {
 		registerBeanDefinitionParser("listener-container", new RedisListenerContainerParser());
 	}

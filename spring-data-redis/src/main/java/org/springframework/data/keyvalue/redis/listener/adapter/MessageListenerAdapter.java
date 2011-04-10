@@ -23,6 +23,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.connection.Message;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
+import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
@@ -165,6 +166,8 @@ public class MessageListenerAdapter implements MessageListener {
 	 * @param message the incoming Redis message
 	 * @see #handleListenerException
 	 */
+	@Override
+	@SuppressWarnings("unchecked")
 	public void onMessage(Message message, byte[] pattern) {
 		try {
 

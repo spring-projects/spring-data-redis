@@ -47,6 +47,8 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	private volatile boolean capped = false;
 
+	private volatile long defaultWait = 0;
+
 	private class DefaultRedisListIterator extends RedisIterator<E> {
 
 		public DefaultRedisListIterator(Iterator<E> delegate) {
@@ -100,10 +102,12 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		capped = (maxSize > 0);
 	}
 
+	@Override
 	public List<E> range(long start, long end) {
 		return listOps.range(start, end);
 	}
 
+	@Override
 	public RedisList<E> trim(int start, int end) {
 		listOps.trim(start, end);
 		return this;
@@ -149,6 +153,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return (result != null && result.longValue() > 0);
 	}
 
+	@Override
 	public void add(int index, E element) {
 		if (index == 0) {
 			listOps.leftPush(element);
@@ -171,6 +176,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
 	}
 
+	@Override
 	public boolean addAll(int index, Collection<? extends E> c) {
 		// insert collection in reverse
 		if (index == 0) {
@@ -200,6 +206,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		throw new IllegalArgumentException("Redis supports insertion only at the beginning or the end of the list");
 	}
 
+	@Override
 	public E get(int index) {
 		if (index < 0 || index > size()) {
 			throw new IndexOutOfBoundsException();
@@ -207,33 +214,40 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return listOps.index(index);
 	}
 
+	@Override
 	public int indexOf(Object o) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public int lastIndexOf(Object o) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public ListIterator<E> listIterator() {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public ListIterator<E> listIterator(int index) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public E remove(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 
+	@Override
 	public E set(int index, E e) {
 		E object = get(index);
 		listOps.set(index, e);
 		return object;
 	}
 
+	@Override
 	public List<E> subList(int fromIndex, int toIndex) {
 		throw new UnsupportedOperationException();
 	}
@@ -242,6 +256,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	// Queue methods
 	//
 
+	@Override
 	public E element() {
 		E value = peek();
 		if (value == null)
@@ -251,6 +266,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 
+	@Override
 	public boolean offer(E e) {
 		listOps.rightPush(e);
 		cap();
@@ -258,16 +274,19 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	}
 
 
+	@Override
 	public E peek() {
 		return listOps.index(0);
 	}
 
 
+	@Override
 	public E poll() {
 		return listOps.leftPop();
 	}
 
 
+	@Override
 	public E remove() {
 		E value = poll();
 		if (value == null)
@@ -280,25 +299,30 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	// Dequeue
 	//
 
+	@Override
 	public void addFirst(E e) {
 		listOps.leftPush(e);
 		cap();
 	}
 
+	@Override
 	public void addLast(E e) {
 		add(e);
 	}
 
+	@Override
 	public Iterator<E> descendingIterator() {
 		List<E> content = content();
 		Collections.reverse(content);
 		return new DefaultRedisListIterator(content.iterator());
 	}
 
+	@Override
 	public E getFirst() {
 		return element();
 	}
 
+	@Override
 	public E getLast() {
 		E e = peekLast();
 		if (e == null) {
@@ -307,32 +331,39 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return e;
 	}
 
+	@Override
 	public boolean offerFirst(E e) {
 		addFirst(e);
 		return true;
 	}
 
+	@Override
 	public boolean offerLast(E e) {
 		addLast(e);
 		return true;
 	}
 
+	@Override
 	public E peekFirst() {
 		return peek();
 	}
 
+	@Override
 	public E peekLast() {
 		return listOps.index(-1);
 	}
 
+	@Override
 	public E pollFirst() {
 		return poll();
 	}
 
+	@Override
 	public E pollLast() {
 		return listOps.rightPop();
 	}
 
+	@Override
 	public E pop() {
 		E e = poll();
 		if (e == null) {
@@ -341,18 +372,22 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return e;
 	}
 
+	@Override
 	public void push(E e) {
 		addFirst(e);
 	}
 
+	@Override
 	public E removeFirst() {
 		return pop();
 	}
 
+	@Override
 	public boolean removeFirstOccurrence(Object o) {
 		return remove(o);
 	}
 
+	@Override
 	public E removeLast() {
 		E e = pollLast();
 		if (e == null) {
@@ -361,6 +396,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return e;
 	}
 
+	@Override
 	public boolean removeLastOccurrence(Object o) {
 		Long result = listOps.remove(-1, o);
 		return (result != null && result.longValue() > 0);
@@ -371,6 +407,7 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	// BlockingQueue
 	//
 
+	@Override
 	public int drainTo(Collection<? super E> c, int maxElements) {
 		if (this.equals(c)) {
 			throw new IllegalArgumentException("Cannot drain a queue to itself");
@@ -386,27 +423,33 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		return loop;
 	}
 
+	@Override
 	public int drainTo(Collection<? super E> c) {
 		return drainTo(c, size());
 	}
 
+	@Override
 	public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
 		return offer(e);
 	}
 
+	@Override
 	public E poll(long timeout, TimeUnit unit) throws InterruptedException {
 		E element = listOps.leftPop(timeout, unit);
 		return (element == null ? null : element);
 	}
 
+	@Override
 	public void put(E e) throws InterruptedException {
 		offer(e);
 	}
 
+	@Override
 	public int remainingCapacity() {
 		return Integer.MAX_VALUE;
 	}
 
+	@Override
 	public E take() throws InterruptedException {
 		return poll(0, TimeUnit.SECONDS);
 	}
@@ -416,39 +459,48 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	// BlockingDeque
 	//
 
+	@Override
 	public boolean offerFirst(E e, long timeout, TimeUnit unit) throws InterruptedException {
 		return offerFirst(e);
 	}
 
+	@Override
 	public boolean offerLast(E e, long timeout, TimeUnit unit) throws InterruptedException {
 		return offerLast(e);
 	}
 
+	@Override
 	public E pollFirst(long timeout, TimeUnit unit) throws InterruptedException {
 		return poll(timeout, unit);
 	}
 
+	@Override
 	public E pollLast(long timeout, TimeUnit unit) throws InterruptedException {
 		E element = listOps.rightPop(timeout, unit);
 		return (element == null ? null : element);
 	}
 
+	@Override
 	public void putFirst(E e) throws InterruptedException {
 		add(e);
 	}
 
+	@Override
 	public void putLast(E e) throws InterruptedException {
 		put(e);
 	}
 
+	@Override
 	public E takeFirst() throws InterruptedException {
 		return take();
 	}
 
+	@Override
 	public E takeLast() throws InterruptedException {
 		return pollLast(0, TimeUnit.SECONDS);
 	}
 
+	@Override
 	public DataType getType() {
 		return DataType.LIST;
 	}

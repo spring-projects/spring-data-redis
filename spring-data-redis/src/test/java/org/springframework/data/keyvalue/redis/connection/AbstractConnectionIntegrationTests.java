@@ -196,6 +196,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		final BlockingDeque<Message> queue = new LinkedBlockingDeque<Message>();
 
 		final MessageListener ml = new MessageListener() {
+			@Override
 			public void onMessage(Message message, byte[] pattern) {
 				queue.add(message);
 				System.out.println("received message");
@@ -211,12 +212,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		final AtomicBoolean flag = new AtomicBoolean(true);
 
 		Runnable listener = new Runnable() {
+			@Override
 			public void run() {
 				subConn.subscribe(ml, channel);
 				System.out.println("Subscribed");
 				while (flag.get()) {
 					try {
-						Thread.sleep(2000);
+						Thread.currentThread().sleep(2000);
 					} catch (Exception ex) {
 						return;
 					}
@@ -249,6 +251,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		MessageListener listener = new MessageListener() {
 
+			@Override
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedChannel, message.getChannel());
 				assertArrayEquals(expectedMessage, message.getBody());
@@ -256,10 +259,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		};
 
 		Thread th = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
-					Thread.sleep(1000);
+					Thread.currentThread().sleep(1000);
 				} catch (InterruptedException ex) {
 					throw new RuntimeException(ex);
 				}
@@ -284,6 +288,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		MessageListener listener = new MessageListener() {
 
+			@Override
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedPattern, pattern);
 				assertArrayEquals(expectedMessage, message.getBody());
@@ -292,10 +297,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		};
 
 		Thread th = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
-					Thread.sleep(1000);
+					Thread.currentThread().sleep(1000);
 				} catch (InterruptedException ex) {
 					throw new RuntimeException(ex);
 				}

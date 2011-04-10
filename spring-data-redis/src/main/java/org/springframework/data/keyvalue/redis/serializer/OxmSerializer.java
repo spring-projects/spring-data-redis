@@ -50,6 +50,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		afterPropertiesSet();
 	}
 
+	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(marshaller, "non-null marshaller required");
 		Assert.notNull(unmarshaller, "non-null unmarshaller required");
@@ -69,6 +70,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		this.unmarshaller = unmarshaller;
 	}
 
+	@Override
 	public Object deserialize(byte[] bytes) throws SerializationException {
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
@@ -81,6 +83,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		}
 	}
 
+	@Override
 	public byte[] serialize(Object t) throws SerializationException {
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;

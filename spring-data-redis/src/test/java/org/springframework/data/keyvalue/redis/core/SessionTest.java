@@ -37,6 +37,7 @@ public class SessionTest {
 		final StringRedisTemplate template = new StringRedisTemplate(factory);
 
 		template.execute(new SessionCallback<Object>() {
+			@Override
 			public Object execute(RedisOperations operations) {
 				checkConnection(template, conn);
 				template.discard();
@@ -49,6 +50,8 @@ public class SessionTest {
 
 	private void checkConnection(RedisTemplate<?, ?> template, final RedisConnection expectedConnection) {
 		template.execute(new RedisCallback<Object>() {
+
+			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				assertSame(expectedConnection, connection);
 				return null;

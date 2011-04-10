@@ -32,36 +32,43 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		super(template);
 	}
 
+	@Override
 	public Boolean add(final K key, final V value, final double score) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 
 		return execute(new RedisCallback<Boolean>() {
+			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.zAdd(rawKey, score, rawValue);
 			}
 		}, true);
 	}
 
+	@Override
 	public Double incrementScore(K key, V value, final double delta) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 
 		return execute(new RedisCallback<Double>() {
+			@Override
 			public Double doInRedis(RedisConnection connection) {
 				return connection.zIncrBy(rawKey, delta, rawValue);
 			}
 		}, true);
 	}
 
+	@Override
 	public void intersectAndStore(K key, K otherKey, K destKey) {
 		intersectAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
+	@Override
 	public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
 		execute(new RedisCallback<Object>() {
+			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.zInterStore(rawDestKey, rawKeys);
 				return null;
@@ -69,10 +76,13 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
 	public Set<V> range(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+			@Override
 			public Set<byte[]> doInRedis(RedisConnection connection) {
 				return connection.zRange(rawKey, start, end);
 			}
@@ -81,10 +91,13 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
 	public Set<V> rangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
 
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+			@Override
 			public Set<byte[]> doInRedis(RedisConnection connection) {
 				return connection.zRangeByScore(rawKey, min, max);
 			}
@@ -93,11 +106,13 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
+	@Override
 	public Long rank(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(o);
 
 		return execute(new RedisCallback<Long>() {
+			@Override
 			public Long doInRedis(RedisConnection connection) {
 				Long zRank = connection.zRank(rawKey, rawValue);
 				return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
@@ -105,11 +120,13 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	@Override
 	public Long reverseRank(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(o);
 
 		return execute(new RedisCallback<Long>() {
+			@Override
 			public Long doInRedis(RedisConnection connection) {
 				Long zRank = connection.zRevRank(rawKey, rawValue);
 				return (zRank != null && zRank.longValue() >= 0 ? zRank : null);
@@ -117,20 +134,24 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	@Override
 	public Boolean remove(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(o);
 
 		return execute(new RedisCallback<Boolean>() {
+			@Override
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.zRem(rawKey, rawValue);
 			}
 		}, true);
 	}
 
+	@Override
 	public void removeRange(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 		execute(new RedisCallback<Object>() {
+			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.zRemRange(rawKey, start, end);
 				return null;
@@ -138,9 +159,11 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	@Override
 	public void removeRangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
 		execute(new RedisCallback<Object>() {
+			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.zRemRangeByScore(rawKey, min, max);
 				return null;
@@ -148,10 +171,13 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
 	public Set<V> reverseRange(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+			@Override
 			public Set<byte[]> doInRedis(RedisConnection connection) {
 				return connection.zRevRange(rawKey, start, end);
 			}
@@ -160,45 +186,54 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
+	@Override
 	public Double score(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(o);
 
 		return execute(new RedisCallback<Double>() {
+			@Override
 			public Double doInRedis(RedisConnection connection) {
 				return connection.zScore(rawKey, rawValue);
 			}
 		}, true);
 	}
 
+	@Override
 	public Long count(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Long>() {
+			@Override
 			public Long doInRedis(RedisConnection connection) {
 				return connection.zCount(rawKey, min, max);
 			}
 		}, true);
 	}
 
+	@Override
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Long>() {
+			@Override
 			public Long doInRedis(RedisConnection connection) {
 				return connection.zCard(rawKey);
 			}
 		}, true);
 	}
 
+	@Override
 	public void unionAndStore(K key, K otherKey, K destKey) {
 		unionAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
+	@Override
 	public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
 		execute(new RedisCallback<Object>() {
+			@Override
 			public Object doInRedis(RedisConnection connection) {
 				connection.zUnionStore(rawDestKey, rawKeys);
 				return null;

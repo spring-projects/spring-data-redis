@@ -33,11 +33,13 @@ public class DecoratingStringHashMapper<T> implements HashMapper<T, String, Stri
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public T fromHash(Map<String, String> hash) {
 		Map h = hash;
 		return delegate.fromHash(h);
 	}
 
+	@Override
 	public Map<String, String> toHash(T object) {
 		Map<?, ?> hash = delegate.toHash(object);
 		Map<String, String> flatten = new LinkedHashMap<String, String>(hash.size());

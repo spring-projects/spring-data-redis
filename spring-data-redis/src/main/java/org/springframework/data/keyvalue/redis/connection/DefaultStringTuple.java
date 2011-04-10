@@ -50,6 +50,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 		this.valueAsString = valueAsString;
 	}
 
+	@Override
 	public String getValueAsString() {
 		return valueAsString;
 	}
