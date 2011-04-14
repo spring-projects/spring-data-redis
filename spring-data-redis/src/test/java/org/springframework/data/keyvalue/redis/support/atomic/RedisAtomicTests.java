@@ -105,4 +105,11 @@ public class RedisAtomicTests {
 		int delta = 5;
 		assertEquals(delta, intCounter.addAndGet(delta));
 	}
+
+	@Test
+	public void testReadExistingValue() throws Exception {
+		longCounter.set(5);
+		RedisAtomicLong keyCopy = new RedisAtomicLong(longCounter.getKey(), factory);
+		assertEquals(longCounter.get(), keyCopy.get());
+	}
 }

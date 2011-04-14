@@ -77,8 +77,10 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		this.generalOps = redisTemplate;
 		this.operations = generalOps.opsForValue();
 
-		if (initialValue == null || this.operations.get(redisCounter) == null) {
-			set(0);
+		if (initialValue == null) {
+			if (this.operations.get(redisCounter) == null) {
+				set(0);
+			}
 		}
 		else {
 			set(initialValue);
