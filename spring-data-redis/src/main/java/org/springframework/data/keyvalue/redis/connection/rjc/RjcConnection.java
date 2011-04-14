@@ -80,6 +80,11 @@ public class RjcConnection implements RedisConnection {
 	public void close() throws DataAccessException {
 		isClosed = true;
 
+		// reset the connection (in case a pool is being used)
+		if (dbIndex > 0) {
+			select(0);
+		}
+
 		try {
 			subscriber.close();
 			session.close();

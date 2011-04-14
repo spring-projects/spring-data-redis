@@ -129,6 +129,11 @@ public class JedisConnection implements RedisConnection {
 					pool.returnBrokenResource(jedis);
 				}
 				else {
+					// reset the connection 
+					if (dbIndex > 0) {
+						select(0);
+					}
+
 					pool.returnResource(jedis);
 				}
 			}
