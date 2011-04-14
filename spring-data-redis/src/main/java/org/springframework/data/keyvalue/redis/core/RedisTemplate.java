@@ -538,14 +538,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public Set<K> keys(K pattern) {
 		final byte[] rawKey = rawKey(pattern);
 
-		Collection<byte[]> rawKeys = execute(new RedisCallback<Collection<byte[]>>() {
+		Set<byte[]> rawKeys = execute(new RedisCallback<Set<byte[]>>() {
 			@Override
-			public Collection<byte[]> doInRedis(RedisConnection connection) {
+			public Set<byte[]> doInRedis(RedisConnection connection) {
 				return connection.keys(rawKey);
 			}
 		}, true);
 
-		return (Set<K>) SerializationUtils.deserialize(rawKeys, keySerializer);
+		return SerializationUtils.deserialize(rawKeys, keySerializer);
 	}
 
 	@Override
