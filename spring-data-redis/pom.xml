@@ -87,6 +87,7 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-oxm</artifactId>
       <version>${org.springframework.version}</version>
+      <optional>true</optional>
     </dependency>
 
     <!-- Jackson JSON -->
