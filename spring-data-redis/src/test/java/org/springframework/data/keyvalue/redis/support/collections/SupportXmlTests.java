@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.config;
+package org.springframework.data.keyvalue.redis.support.collections;
 
-import org.springframework.beans.factory.xml.NamespaceHandler;
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import java.util.Map;
+
+import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
- * {@link NamespaceHandler} for Spring Data Redis namespace.
- * 
  * @author Costin Leau
  */
-class RedisNamespaceHandler extends NamespaceHandlerSupport {
+public class SupportXmlTests {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("listener-container", new RedisListenerContainerParser());
-		registerBeanDefinitionParser("collection", new RedisCollectionParser());
+	@Test
+	public void testContainerSetup() throws Exception {
+		GenericXmlApplicationContext ctx = new GenericXmlApplicationContext(
+				"/org/springframework/data/keyvalue/redis/support/collections/container.xml");
+
+		RedisList list = ctx.getBean("non-existing", RedisList.class);
+		RedisProperties props = ctx.getBean("props", RedisProperties.class);
+		Map map = ctx.getBean("map", Map.class);
 	}
 }

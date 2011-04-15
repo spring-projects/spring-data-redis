@@ -149,4 +149,61 @@ listener method arguments. Default is a StringRedisSerializer.
       </xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
+  
+  <xsd:element name="collection">
+    <xsd:annotation>
+      <xsd:documentation><![CDATA[
+Factory creating collections on top of Redis keys.
+      ]]></xsd:documentation>
+      <xsd:appinfo>
+        <tool:annotation>
+          <tool:exports type="org.springframework.data.keyvalue.redis.support.collections.RedisCollectionFactoryBean"/>
+        </tool:annotation>
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:complexType>
+	  <xsd:attribute name="id" type="xsd:ID">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+The name of the Redis collection.]]></xsd:documentation>
+		</xsd:annotation>
+	  </xsd:attribute>
+      <xsd:attribute name="key" type="xsd:string" use="optional">
+        <xsd:annotation>
+          <xsd:documentation><![CDATA[
+Redis key of the created collection. Defaults to bean id.
+          ]]></xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="template" type="xsd:string" default="redisTemplate">
+        <xsd:annotation>
+          <xsd:documentation><![CDATA[
+A reference to a RedisTemplate bean.Default is "redisTemplate".
+          ]]></xsd:documentation>
+          <xsd:appinfo>
+            <tool:annotation kind="ref">
+              <tool:expected-type type="org.springframework.data.keyvalue.redis.core.RedisTemplate"/>
+            </tool:annotation>
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="type" default="LIST" use="optional">
+        <xsd:annotation>
+          <xsd:documentation><![CDATA[
+The collection type (default is list). 
+If the key exists, its type takes priority. The type is used to disambiguate the collection type (map vs properties) or 
+specify one in case the key is missing.]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+        	<xsd:restriction base="xsd:string">
+        		<xsd:enumeration value="LIST"/>
+        		<xsd:enumeration value="SET"/>
+        		<xsd:enumeration value="ZSET"/>
+        		<xsd:enumeration value="MAP"/>
+        		<xsd:enumeration value="PROPERTIES"/>
+        	</xsd:restriction>
+        </xsd:simpleType>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
 </xsd:schema>

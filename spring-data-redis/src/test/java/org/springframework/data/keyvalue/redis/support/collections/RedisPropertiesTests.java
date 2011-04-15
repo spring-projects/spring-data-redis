@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,7 +129,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 		StringWriter writer = new StringWriter();
 		props.store(writer, "no-comment");
-		System.out.println(writer.toString());
+		//System.out.println(writer.toString());
 	}
 
 	@Test
@@ -165,7 +166,8 @@ public class RedisPropertiesTests extends RedisMapTests {
 	public void testPropertiesList() throws Exception {
 		defaults.setProperty("a", "b");
 		props.setProperty("x", "y");
-		props.list(System.out);
+		StringWriter wr = new StringWriter();
+		props.list(new PrintWriter(wr));
 	}
 
 	@Test

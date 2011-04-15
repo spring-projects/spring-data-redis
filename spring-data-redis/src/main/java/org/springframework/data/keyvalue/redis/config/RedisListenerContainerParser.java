@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 /**
- * Parser for the JMS <code>&lt;listener-container&gt;</code> element.
+ * Parser for the Redis <code>&lt;listener-container&gt;</code> element.
  * 
  * @author Costin Leau
  */

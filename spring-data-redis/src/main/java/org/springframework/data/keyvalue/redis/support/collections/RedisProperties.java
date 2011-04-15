@@ -15,6 +15,8 @@
  */
 package org.springframework.data.keyvalue.redis.support.collections;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -260,6 +262,16 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	@Override
 	public Object replace(Object key, Object value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public synchronized void storeToXML(OutputStream os, String comment, String encoding) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public synchronized void storeToXML(OutputStream os, String comment) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 }
