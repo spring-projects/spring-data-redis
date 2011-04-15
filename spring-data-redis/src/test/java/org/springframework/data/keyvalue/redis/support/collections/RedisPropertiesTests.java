@@ -44,19 +44,19 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 /**
  * @author Costin Leau
  */
-public class RedisPropertiesTest extends RedisMapTests {
+public class RedisPropertiesTests extends RedisMapTests {
 
 	protected Properties defaults = new Properties();
 	protected RedisProperties props;
 
 	/**
-	 * Constructs a new <code>RedisPropertiesTest</code> instance.
+	 * Constructs a new <code>RedisPropertiesTests</code> instance.
 	 *
 	 * @param keyFactory
 	 * @param valueFactory
 	 * @param template
 	 */
-	public RedisPropertiesTest(ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory,
+	public RedisPropertiesTests(ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory,
 			RedisTemplate template) {
 		super(keyFactory, valueFactory, template);
 	}
