@@ -225,6 +225,15 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 	/**
+	 * Returns the index of the database.
+	 *
+	 * @return Returns the database index
+	 */
+	public int getDatabase() {
+		return dbIndex;
+	}
+
+	/**
 	 * Sets the index of the database used by this connection factory.
 	 * Can be between 0 (default) and 15.
 	 * 
