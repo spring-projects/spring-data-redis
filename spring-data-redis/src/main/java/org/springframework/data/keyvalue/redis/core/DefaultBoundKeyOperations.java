@@ -66,7 +66,9 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 
 	@Override
 	public void rename(K newKey) {
-		ops.rename(key, newKey);
+		if (ops.hasKey(key)) {
+			ops.rename(key, newKey);
+		}
 		key = newKey;
 	}
 }
