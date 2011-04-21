@@ -8,18 +8,18 @@ apply plugin: 'docbook'
 assemble.dependsOn = ['api', 'docbook']
 
 
-docbookHtmlSingle.stylesheet = new File(projectDir, 'docs/src/reference/resources/xsl/html-single-custom.xsl')
+docbookHtmlSingle.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-single-custom.xsl')
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
-[docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceDirectory = new File(projectDir, 'docs/src/reference/docbook')
+[docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceDirectory = new File(projectDir, 'src/reference/docbook')
 
 docbookHtml.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-custom.xsl')
 docbookHtmlSingle.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-single-custom.xsl')
 docbookFoPdf.stylesheet = new File(projectDir, 'src/reference/resources/xsl/pdf-custom.xsl')
 def imagesDir = new File(projectDir, 'src/reference/resources/images');
-docbookFoPdf.admonGraphicsPath = "${imagesDir}/"
+docbookFoPdf.admonGraphicsPath = "${imagesDir}/admon"
 docbookFoPdf.imgSrcPath = "${imagesDir}"
 
-spec = copySpec {
+refSpec = copySpec {
     into ('reference') {
         from("$buildDir/docs")
         from("$projectDir/src/reference/resources")
@@ -29,6 +29,13 @@ spec = copySpec {
     }
 }
 
+task reference (type: Copy) {
+    dependsOn 'docbook'
+    group = 'Documentation'
+    description = "Builds aggregated DocBook"
+    destinationDir = buildDir
+    with(refSpec)
+}
     
 task api(type: Javadoc) {
   group = 'Documentation'

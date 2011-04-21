@@ -63,7 +63,8 @@ configure(javaprojects) {
   apply plugin: 'docbook'
   apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
 
-	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
+  bundlor.useProjectProps = true
+[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 	
 	// Common dependencies
 	dependencies {
@@ -111,8 +112,13 @@ task dist(type: Zip) {
 
     def zipRootDir = "${project.name}-$version"
     into(zipRootDir) {
-        from('$rootDir/docs/src/info') {
+        from('/docs/src/info') {
             include '*.txt'
+        }
+        from('/docs/build/') {
+            into 'docs'
+            include 'reference/**/*'
+            include 'api/**/*'
         }
         into('dist') {
             from javaprojects.collect {project -> project.libsDir }

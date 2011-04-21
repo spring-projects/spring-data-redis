@@ -1,3 +1,0 @@
-[submodule "buildSrc"]
-	path = buildSrc
-	url = git@github.com:SpringSource/spring-build-gradle.git

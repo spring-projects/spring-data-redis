@@ -10,8 +10,4 @@ dependencies {
 	compile "org.jredis:jredis-anthonylauzon:$jredisVersion"
 	compile "org.springframework:spring-oxm:$springVersion"
 	compile "commons-beanutils:commons-beanutils-core:1.8.3"
-}
-
-version = "123"
-bundlor.useProjectProps = true
-	
+}	
