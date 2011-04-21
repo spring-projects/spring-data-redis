@@ -1,0 +1,106 @@
+apply plugin: 'maven'
+
+// Distro zip
+// SpringSource s3 maven deployer
+configurations {
+    antaws
+}
+
+dependencies {
+    antaws "org.springframework.build:org.springframework.build.aws.ant:3.0.3.RELEASE",
+            "net.java.dev.jets3t:jets3t:0.6.1"
+}
+
+
+// Create a source jar for uploading
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.java
+}
+
+artifacts {
+    archives sourceJar
+}
+
+task dist(type: Zip) {
+    dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
+
+    evaluationDependsOn(':docs')
+
+    def zipRootDir = "${project.name}-$version"
+    into(zipRootDir) {
+        from(rootDir/docs/src/info) {
+            include '*.txt'
+        }
+        into('dist') {
+            from javaProjects.collect {project -> project.libsDir }
+        }
+    }
+    doLast {
+        ant.checksum(file: archivePath, algorithm: 'SHA1', fileext: '.sha1')
+    }
+}
+
+task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload) {
+    archiveFile = dist.archivePath
+    projectKey = 'DATAKV'
+    projectName = 'Spring Data Key Value'
+}
+
+
+// Remove the archive configuration from the runtime configuration, so that anything added to archives
+// (such as the source jar) is no longer included in the runtime classpath
+configurations.default.extendsFrom = [configurations.runtime] as Set
+// Add the main jar into the default configuration
+artifacts { 'default' jar }
+
+gradle.taskGraph.whenReady {graph ->
+    if (graph.hasTask(uploadArchives)) {
+        // check properties defined and fail early
+        s3AccessKey
+        s3SecretAccessKey
+        mavenSyncRepoDir
+    }
+}
+
+def deployer = null
+
+uploadArchives {
+    description = "Maven deploy of archives artifacts to SpringSource Maven repos" // url appended below
+    // Maven deployment
+    def releaseRepositoryUrl = "file://${project.properties.mavenSyncRepoDir}"
+    def milestoneRepositoryUrl = 's3://maven.springframework.org/milestone'
+    def snapshotRepositoryUrl = 's3://maven.springframework.org/snapshot'
+
+    // add a configuration with a classpath that includes our s3 maven deployer
+    configurations { deployerJars }
+    dependencies {
+      deployerJars "org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE"
+    }
+
+    deployer = repositories.mavenDeployer {
+        configuration = configurations.deployerJars
+        if (releaseBuild) {
+            // "mavenSyncRepoDir" should be set in properties
+            repository(url: releaseRepositoryUrl)
+        } else {
+            s3credentials = [userName: project.properties.s3AccessKey, passphrase: project.properties.s3SecretAccessKey]
+            repository(url: milestoneRepositoryUrl) {
+                authentication(s3credentials)
+            }
+            snapshotRepository(url: snapshotRepositoryUrl) {
+                authentication(s3credentials)
+            }
+        }
+    }
+    
+    pom.project {
+      licenses {
+        license {
+          name "The Apache Software License, Version 2.0"
+          url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+          distribution "repo"
+        }
+      }
+    }
+}
