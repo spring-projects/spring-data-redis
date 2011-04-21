@@ -16,47 +16,13 @@
 
 package org.springframework.data.keyvalue.redis.connection;
 
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Interface for the commands supported by Redis.
  * 
  * @author Costin Leau
  */
-public interface RedisCommands extends RedisTxCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
-		RedisZSetCommands, RedisHashCommands, RedisServerCommands, RedisPubSubCommands {
-
-	Boolean exists(byte[] key);
-
-	Long del(byte[]... keys);
-
-	DataType type(byte[] key);
-
-	Collection<byte[]> keys(byte[] pattern);
-
-	byte[] randomKey();
-
-	void rename(byte[] oldName, byte[] newName);
-
-	Boolean renameNX(byte[] oldName, byte[] newName);
-
-	Boolean expire(byte[] key, long seconds);
-
-	Boolean expireAt(byte[] key, long unixTime);
-
-	Boolean persist(byte[] key);
-
-	Long ttl(byte[] key);
-
-	void select(int dbIndex);
-
-	byte[] echo(byte[] message);
-
-	String ping();
-
-	// sort commands
-	List<byte[]> sort(byte[] key, SortParameters params);
-
-	Long sort(byte[] key, SortParameters params, byte[] storeKey);
+public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
+		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
+		RedisServerCommands {
 }

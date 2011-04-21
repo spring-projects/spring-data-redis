@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.core.BoundZSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
@@ -210,5 +211,10 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public Double score(Object o) {
 		return boundZSetOps.score(o);
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.ZSET;
 	}
 }

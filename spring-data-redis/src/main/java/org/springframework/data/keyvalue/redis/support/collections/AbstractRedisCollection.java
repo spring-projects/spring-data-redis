@@ -17,6 +17,8 @@ package org.springframework.data.keyvalue.redis.support.collections;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
@@ -30,7 +32,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 
 	public static final String ENCODING = "UTF-8";
 
-	private final String key;
+	private volatile String key;
 	private final RedisOperations<String, E> operations;
 
 	public <K> AbstractRedisCollection(String key, RedisOperations<String, E> operations) {
@@ -115,5 +117,31 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		sb.append("RedisStore for key:");
 		sb.append(getKey());
 		return sb.toString();
+	}
+
+	@Override
+	public Boolean expire(long timeout, TimeUnit unit) {
+		return operations.expire(key, timeout, unit);
+	}
+
+	@Override
+	public Boolean expireAt(Date date) {
+		return operations.expireAt(key, date);
+	}
+
+	@Override
+	public Long getExpire() {
+		return operations.getExpire(key);
+	}
+
+	@Override
+	public Boolean persist() {
+		return operations.persist(key);
+	}
+
+	@Override
+	public void rename(final String newKey) {
+		CollectionUtils.rename(key, newKey, operations);
+		key = newKey;
 	}
 }

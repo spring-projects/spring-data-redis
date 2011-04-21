@@ -15,7 +15,6 @@
  */
 package org.springframework.data.keyvalue.redis.listener.adapter;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.logging.Log;
@@ -152,8 +151,7 @@ public class MessageListenerAdapter implements MessageListener {
 	/**
 	 * Set the serializer that will convert incoming raw Redis messages to
 	 * listener method arguments.
-	 * <p>The default converter is a {@link JdkSerializationRedisSerializer}, which is able
-	 * to handle {@link Serializable} objects.
+	 * <p>The default converter is a {@link StringRedisSerializer}.
 	 */
 	public void setSerializer(RedisSerializer<?> serializer) {
 		this.serializer = serializer;
@@ -286,11 +284,11 @@ public class MessageListenerAdapter implements MessageListener {
 				throw (DataAccessException) targetEx;
 			}
 			else {
-				throw new ListenerExecutionFailedException("Listener method '" + methodName + "' threw exception",
+				throw new RedisListenerExecutionFailedException("Listener method '" + methodName + "' threw exception",
 						targetEx);
 			}
 		} catch (Throwable ex) {
-			throw new ListenerExecutionFailedException("Failed to invoke target method '" + methodName
+			throw new RedisListenerExecutionFailedException("Failed to invoke target method '" + methodName
 					+ "' with arguments " + ObjectUtils.nullSafeToString(arguments), ex);
 		}
 	}

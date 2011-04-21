@@ -23,6 +23,7 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.core.BoundListOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
 
@@ -497,5 +498,10 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public E takeLast() throws InterruptedException {
 		return pollLast(0, TimeUnit.SECONDS);
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.LIST;
 	}
 }

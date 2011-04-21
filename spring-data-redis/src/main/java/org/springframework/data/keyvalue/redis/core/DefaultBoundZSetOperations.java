@@ -19,12 +19,14 @@ package org.springframework.data.keyvalue.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
+
 /**
  * Default implementation for {@link BoundZSetOperations}.
  * 
  * @author Costin Leau
  */
-class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements BoundZSetOperations<K, V> {
+class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundZSetOperations<K, V> {
 
 	private final ZSetOperations<K, V> ops;
 
@@ -34,9 +36,9 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	 * @param key
 	 * @param oeprations
 	 */
-	public DefaultBoundZSetOperations(K key, RedisOperations<K, V> oeprations) {
-		super(key);
-		this.ops = oeprations.opsForZSet();
+	public DefaultBoundZSetOperations(K key, RedisOperations<K, V> operations) {
+		super(key, operations);
+		this.ops = operations.opsForZSet();
 	}
 
 	@Override
@@ -127,5 +129,10 @@ class DefaultBoundZSetOperations<K, V> extends DefaultKeyBound<K> implements Bou
 	@Override
 	public void unionAndStore(Collection<K> otherKeys, K destKey) {
 		ops.unionAndStore(getKey(), otherKeys, destKey);
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.ZSET;
 	}
 }

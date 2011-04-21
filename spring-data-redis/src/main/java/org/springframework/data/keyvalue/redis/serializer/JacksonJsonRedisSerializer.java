@@ -26,6 +26,8 @@ import org.springframework.util.Assert;
  * {@link RedisSerializer} that  can read and write JSON using <a href="http://jackson.codehaus.org/">Jackson's</a> {@link ObjectMapper}.
  *
  * <p>This converter can be used to bind to typed beans, or untyped {@link java.util.HashMap HashMap} instances.
+ * 
+ * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  *
  * @author Costin Leau
  */
@@ -44,7 +46,7 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public T deserialize(byte[] bytes) throws SerializationException {
-		if (SerializerUtils.isEmpty(bytes)) {
+		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
 		try {
@@ -57,7 +59,7 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 	@Override
 	public byte[] serialize(Object t) throws SerializationException {
 		if (t == null) {
-			return SerializerUtils.EMPTY_ARRAY;
+			return SerializationUtils.EMPTY_ARRAY;
 		}
 		try {
 			return this.objectMapper.writeValueAsBytes(t);

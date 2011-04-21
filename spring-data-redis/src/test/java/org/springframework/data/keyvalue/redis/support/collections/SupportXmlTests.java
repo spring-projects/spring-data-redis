@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.serializer;
+package org.springframework.data.keyvalue.redis.support.collections;
+
+import java.util.Map;
+
+import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 /**
- * Minimal class used for sharing pieces of code between the serializers
- * 
  * @author Costin Leau
  */
-abstract class SerializerUtils {
-	static final byte[] EMPTY_ARRAY = new byte[0];
+public class SupportXmlTests {
 
-	static boolean isEmpty(byte[] data) {
-		return (data == null || data.length == 0);
+	@Test
+	public void testContainerSetup() throws Exception {
+		GenericXmlApplicationContext ctx = new GenericXmlApplicationContext(
+				"/org/springframework/data/keyvalue/redis/support/collections/container.xml");
+
+		RedisList list = ctx.getBean("non-existing", RedisList.class);
+		RedisProperties props = ctx.getBean("props", RedisProperties.class);
+		Map map = ctx.getBean("map", Map.class);
 	}
 }

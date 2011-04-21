@@ -17,6 +17,7 @@
 package org.springframework.data.keyvalue.redis.connection.jredis;
 
 import org.jredis.JRedis;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
@@ -43,10 +44,47 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Test
 	public void testRaw() throws Exception {
 		JRedis jr = (JRedis) factory.getConnection().getNativeConnection();
-		
+
 		System.out.println(jr.dbsize());
 		System.out.println(jr.exists("foobar"));
 		jr.set("foobar", "barfoo");
 		System.out.println(jr.get("foobar"));
+	}
+
+	@Ignore("JRedis does not support pipelining")
+	public void testNullCollections() {
+	}
+
+	@Ignore
+	public void testNullKey() throws Exception {
+	}
+
+	@Ignore
+	public void testNullValue() throws Exception {
+	}
+
+	@Ignore
+	public void testHashNullKey() throws Exception {
+	}
+
+	@Ignore
+	public void testHashNullValue() throws Exception {
+	}
+
+	@Ignore
+	public void testNullSerialization() throws Exception {
+	}
+
+	@Ignore
+	public void testPubSub() throws Exception {
+	}
+
+	@Ignore
+	public void testPubSubWithPatterns() {
+	}
+
+	@Ignore
+	public void testPubSubWithNamedChannels() {
+
 	}
 }

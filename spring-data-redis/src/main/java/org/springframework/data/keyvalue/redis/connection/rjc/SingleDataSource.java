@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis.core;
+package org.springframework.data.keyvalue.redis.connection.rjc;
+
+import org.idevlab.rjc.ds.DataSource;
+import org.idevlab.rjc.ds.RedisConnection;
 
 /**
- * Contract defining the bind of the implementing entity to a Redis 'key'.
- * Useful for executing 'bound' operations or operating over Redis 'collection' or 'views'.
- *  
+ * Basic data source that always returns the same connection.
+ * 
  * @author Costin Leau
  */
-public interface KeyBound<K> {
+class SingleDataSource implements DataSource {
 
-	/**
-	 * Returns the key associated with this entity.
-	 * 
-	 * @return key associated with the implementing entity
-	 */
-	K getKey();
+	private final RedisConnection connection;
+
+	SingleDataSource(RedisConnection connection) {
+		this.connection = connection;
+	}
+
+	@Override
+	public RedisConnection getConnection() {
+		return connection;
+	}
 }

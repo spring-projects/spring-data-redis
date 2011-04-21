@@ -2,6 +2,32 @@ SPRING DATA KEY/VALUE INTEGRATION CHANGELOG
 ===========================================
 http://www.springsource.org/spring-data
 
+Changes in version 1.0.0.M3 (2011-04-06)
+----------------------------------------
+
+Redis
+-----
+
+General
+* Added support for RJC (new Redis client)
+* Added dedicated SORT and SORT/GET support
+* Introduced HashMapper feature for mapping objects to and from maps
+* Improved exception hierarchy to be more consistent with Spring DAO
+* Made several Redis dependencies optional to eliminate unnecessary jars from the classpath
+
+Package o.s.d.k.redis.connection
+* Added support for indexes to RedisConnectionFactories
+* Added new key operations to KeyOperations (formerly KeyBound)
+* Improved handling of Jedis exceptions
+
+Package o.s.d.k.redis.core
+* Serializers are exposed to RedisCallback
+* Added missing operations (move, select) to RedisTemplate
+* Fixed the signature of various method
+
+Package o.s.d.k.redis.support.atomic
+* Fixed incorrect serialization leading to error for RedisAtomicInteger & RedisAtomicLong
+
 
 Changes in version 1.0.0.M2 (2011-02-10)
 ----------------------------------------

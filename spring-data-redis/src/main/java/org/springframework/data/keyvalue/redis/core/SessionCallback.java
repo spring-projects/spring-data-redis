@@ -15,6 +15,8 @@
  */
 package org.springframework.data.keyvalue.redis.core;
 
+import org.springframework.dao.DataAccessException;
+
 /**
  * Callback executing all operations against a surrogate 'session' (basically against the same underlying Redis connection).
  * Allows 'transactions' to take place through the use of multi/discard/exec/watch/unwatch commands. 
@@ -29,5 +31,5 @@ public interface SessionCallback<T> {
 	 * @param operations Redis operations
 	 * @return return value
 	 */
-	<K, V> T execute(RedisOperations<K, V> operations);
+	<K, V> T execute(RedisOperations<K, V> operations) throws DataAccessException;
 }

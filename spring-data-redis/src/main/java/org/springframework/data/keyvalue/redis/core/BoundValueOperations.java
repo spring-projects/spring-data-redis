@@ -22,11 +22,13 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author Costin Leau
  */
-public interface BoundValueOperations<K, V> extends KeyBound<K> {
+public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 	RedisOperations<K, V> getOperations();
 
 	void set(V value);
+
+	void set(V value, long offset);
 
 	void set(V value, long timeout, TimeUnit unit);
 
@@ -34,15 +36,13 @@ public interface BoundValueOperations<K, V> extends KeyBound<K> {
 
 	V get();
 
+	String get(long start, long end);
+
 	V getAndSet(V value);
 
 	Long increment(long delta);
 
 	Integer append(String value);
-
-	String get(int start, int end);
-
-	void set(int start, int end);
 
 	Long size();
 }

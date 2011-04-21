@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * Delegates serialization/deserialization to OXM {@link Marshaller} and
  * {@link Unmarshaller}.
  * 
- * <b>Note:</b>Null objects are serialized as empty arrays.
+ * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  * 
  * @author Costin Leau
  */
@@ -72,7 +72,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 
 	@Override
 	public Object deserialize(byte[] bytes) throws SerializationException {
-		if (SerializerUtils.isEmpty(bytes)) {
+		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
 
@@ -86,7 +86,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 	@Override
 	public byte[] serialize(Object t) throws SerializationException {
 		if (t == null) {
-			return SerializerUtils.EMPTY_ARRAY;
+			return SerializationUtils.EMPTY_ARRAY;
 		}
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();

@@ -16,13 +16,9 @@
 
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.springframework.data.keyvalue.redis.SettingsUtils;
 import org.springframework.data.keyvalue.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.keyvalue.redis.connection.Message;
-import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
 
 import redis.clients.jedis.BinaryJedis;
@@ -45,83 +41,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@Override
 	protected RedisConnectionFactory getConnectionFactory() {
 		return factory;
-	}
-
-	@Test
-	public void testPubSubWithNamedChannels() {
-		final byte[] expectedChannel = "channel1".getBytes();
-		final byte[] expectedMessage = "msg".getBytes();
-
-		MessageListener listener = new MessageListener() {
-
-			@Override
-			public void onMessage(Message message, byte[] pattern) {
-				assertArrayEquals(expectedChannel, message.getChannel());
-				assertArrayEquals(expectedMessage, message.getBody());
-				System.out.println("Received message '" + new String(message.getBody()) + "'");
-			}
-		};
-
-		Thread th = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				// sleep 1 second to let the registration happen
-				try {
-					Thread.currentThread().sleep(1000);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
-				}
-
-				// open a new connection
-				JedisConnection connection2 = factory.getConnection();
-				connection2.publish(expectedMessage, expectedChannel);
-				connection2.close();
-				// unsubscribe connection
-				connection.getSubscription().unsubscribe();
-			}
-		});
-
-		th.start();
-		connection.subscribe(listener, expectedChannel);
-	}
-
-	@Test
-	public void testPubSubWithPatterns() {
-		final byte[] expectedPattern = "channel*".getBytes();
-		final byte[] expectedMessage = "msg".getBytes();
-
-		MessageListener listener = new MessageListener() {
-
-			@Override
-			public void onMessage(Message message, byte[] pattern) {
-				assertArrayEquals(expectedPattern, pattern);
-				assertArrayEquals(expectedMessage, message.getBody());
-				System.out.println("Received message '" + new String(message.getBody()) + "'");
-			}
-		};
-
-		Thread th = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				// sleep 1 second to let the registration happen
-				try {
-					Thread.currentThread().sleep(1000);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
-				}
-
-				// open a new connection
-				JedisConnection connection2 = factory.getConnection();
-				connection2.publish(expectedMessage, "channel1".getBytes());
-				connection2.publish(expectedMessage, "channel2".getBytes());
-				connection2.close();
-				// unsubscribe connection
-				connection.getSubscription().pUnsubscribe(expectedPattern);
-			}
-		});
-
-		th.start();
-		connection.pSubscribe(listener, expectedPattern);
 	}
 
 	@Test

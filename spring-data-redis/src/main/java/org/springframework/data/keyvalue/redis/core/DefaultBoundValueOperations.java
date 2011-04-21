@@ -17,10 +17,12 @@ package org.springframework.data.keyvalue.redis.core;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
+
 /**
  * @author Costin Leau
  */
-class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements BoundValueOperations<K, V> {
+class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundValueOperations<K, V> {
 
 	private final ValueOperations<K, V> ops;
 
@@ -31,7 +33,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	 * @param operations
 	 */
 	public DefaultBoundValueOperations(K key, RedisOperations<K, V> operations) {
-		super(key);
+		super(key, operations);
 		this.ops = operations.opsForValue();
 	}
 
@@ -56,7 +58,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	}
 
 	@Override
-	public String get(int start, int end) {
+	public String get(long start, long end) {
 		return ops.get(getKey(), start, end);
 	}
 
@@ -76,8 +78,8 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	}
 
 	@Override
-	public void set(int start, int end) {
-		ops.set(getKey(), start, end);
+	public void set(V value, long offset) {
+		ops.set(getKey(), value, offset);
 	}
 
 	@Override
@@ -88,5 +90,10 @@ class DefaultBoundValueOperations<K, V> extends DefaultKeyBound<K> implements Bo
 	@Override
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.STRING;
 	}
 }

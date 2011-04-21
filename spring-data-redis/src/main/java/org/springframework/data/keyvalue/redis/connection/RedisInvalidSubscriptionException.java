@@ -13,35 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.keyvalue.redis;
+package org.springframework.data.keyvalue.redis.connection;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
 /**
- * Exception thrown when issuing commands on a connection that is subscribed and waiting
- * for events.
+ * Exception thrown when subscribing to an expired/dead {@link Subscription}.
  * 
  * @author Costin Leau
- * @see org.springframework.data.keyvalue.redis.connection.RedisPubSubCommands
  */
-public class SubscribedRedisConnectionException extends InvalidDataAccessApiUsageException {
+public class RedisInvalidSubscriptionException extends InvalidDataAccessResourceUsageException {
 
 	/**
-	 * Constructs a new <code>SubscribedRedisConnectionException</code> instance.
+	 * Constructs a new <code>RedisInvalidSubscriptionException</code> instance.
 	 *
 	 * @param msg
 	 * @param cause
 	 */
-	public SubscribedRedisConnectionException(String msg, Throwable cause) {
+	public RedisInvalidSubscriptionException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 
 	/**
-	 * Constructs a new <code>SubscribedRedisConnectionException</code> instance.
+	 * Constructs a new <code>RedisInvalidSubscriptionException</code> instance.
 	 *
 	 * @param msg
 	 */
-	public SubscribedRedisConnectionException(String msg) {
+	public RedisInvalidSubscriptionException(String msg) {
 		super(msg);
 	}
 }

@@ -15,13 +15,8 @@
  */
 package org.springframework.data.keyvalue.redis.connection.jedis;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
-import org.springframework.data.keyvalue.redis.connection.Subscription;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
+import org.springframework.data.keyvalue.redis.connection.util.AbstractSubscription;
 
 import redis.clients.jedis.BinaryJedisPubSub;
 
@@ -30,132 +25,48 @@ import redis.clients.jedis.BinaryJedisPubSub;
  * 
  * @author Costin Leau
  */
-class JedisSubscription implements Subscription {
+class JedisSubscription extends AbstractSubscription {
 
-	private final MessageListener listener;
 	private final BinaryJedisPubSub jedisPubSub;
 
-	private final Collection<byte[]> channels = new ArrayList<byte[]>(2);
-	private final Collection<byte[]> patterns = new ArrayList<byte[]>(2);
-
 	JedisSubscription(MessageListener listener, BinaryJedisPubSub jedisPubSub, byte[][] channels, byte[][] patterns) {
-		Assert.notNull(listener);
-		this.listener = listener;
+		super(listener, channels, patterns);
 		this.jedisPubSub = jedisPubSub;
-
-		if (!ObjectUtils.isEmpty(channels)) {
-			synchronized (this.channels) {
-				for (byte[] bs : channels) {
-					this.channels.add(bs);
-				}
-			}
-		}
-
-		if (!ObjectUtils.isEmpty(patterns)) {
-			synchronized (this.patterns) {
-				for (byte[] bs : patterns) {
-					this.patterns.add(bs);
-				}
-			}
-		}
 	}
 
 	@Override
-	public Collection<byte[]> getChannels() {
-		synchronized (channels) {
-			return new ArrayList<byte[]>(channels);
-		}
-	}
-
-	@Override
-	public MessageListener getListener() {
-		return listener;
-	}
-
-	@Override
-	public Collection<byte[]> getPatterns() {
-		synchronized (patterns) {
-			return new ArrayList<byte[]>(patterns);
-		}
-	}
-
-	@Override
-	public void pSubscribe(byte[]... patterns) {
-		Assert.notEmpty(patterns, "at least one pattern required");
-
-		synchronized (this.patterns) {
-			for (byte[] bs : patterns) {
-				this.patterns.add(bs);
-			}
-		}
-
-		jedisPubSub.psubscribe(patterns);
-	}
-
-	@Override
-	public void pUnsubscribe() {
-		synchronized (patterns) {
-			patterns.clear();
-		}
+	protected void doClose() {
+		jedisPubSub.unsubscribe();
 		jedisPubSub.punsubscribe();
 	}
 
 	@Override
-	public void pUnsubscribe(byte[]... patterns) {
-		if (ObjectUtils.isEmpty(patterns)) {
-			unsubscribe();
+	protected void doPsubscribe(byte[]... patterns) {
+		jedisPubSub.psubscribe(patterns);
+	}
+
+	@Override
+	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
+		if (all) {
+			jedisPubSub.punsubscribe();
 		}
-
 		else {
-			synchronized (this.patterns) {
-				for (byte[] bs : patterns) {
-					this.patterns.remove(bs);
-				}
-			}
-
 			jedisPubSub.punsubscribe(patterns);
 		}
 	}
 
 	@Override
-	public void subscribe(byte[]... channels) {
-		Assert.notEmpty(channels, "at least one channel required");
-
-		synchronized (this.channels) {
-			for (byte[] bs : channels) {
-				this.channels.add(bs);
-			}
-		}
-
+	protected void doSubscribe(byte[]... channels) {
 		jedisPubSub.subscribe(channels);
 	}
 
 	@Override
-	public void unsubscribe() {
-		synchronized (channels) {
-			channels.clear();
-		}
-		jedisPubSub.unsubscribe();
-	}
-
-	@Override
-	public void unsubscribe(byte[]... channels) {
-		if (ObjectUtils.isEmpty(channels)) {
-			unsubscribe();
+	protected void doUnsubscribe(boolean all, byte[]... channels) {
+		if (all) {
+			jedisPubSub.unsubscribe();
 		}
 		else {
-			synchronized (this.channels) {
-				for (byte[] bs : channels) {
-					this.channels.remove(bs);
-				}
-			}
-
 			jedisPubSub.unsubscribe(channels);
 		}
-	}
-
-	@Override
-	public boolean isAlive() {
-		return jedisPubSub.isSubscribed();
 	}
 }

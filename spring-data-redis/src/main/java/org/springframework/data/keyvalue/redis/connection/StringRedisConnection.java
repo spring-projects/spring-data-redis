@@ -60,6 +60,8 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Boolean persist(String key);
 
+	Boolean move(String key, int dbIndex);
+
 	Long ttl(String key);
 
 	String echo(String message);
@@ -95,9 +97,9 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long append(String key, String value);
 
-	String getRange(String key, int start, int end);
+	String getRange(String key, long start, long end);
 
-	void setRange(String key, int start, int end);
+	void setRange(String key, String value, long offset);
 
 	Boolean getBit(String key, long offset);
 

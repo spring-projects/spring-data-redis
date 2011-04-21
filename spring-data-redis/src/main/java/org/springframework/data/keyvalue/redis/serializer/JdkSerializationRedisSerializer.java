@@ -34,6 +34,10 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object deserialize(byte[] bytes) {
+		if (SerializationUtils.isEmpty(bytes)) {
+			return null;
+		}
+
 		try {
 			return deserializer.convert(bytes);
 		} catch (Exception ex) {
@@ -43,6 +47,9 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 
 	@Override
 	public byte[] serialize(Object object) {
+		if (object == null) {
+			return SerializationUtils.EMPTY_ARRAY;
+		}
 		try {
 			return serializer.convert(object);
 		} catch (Exception ex) {

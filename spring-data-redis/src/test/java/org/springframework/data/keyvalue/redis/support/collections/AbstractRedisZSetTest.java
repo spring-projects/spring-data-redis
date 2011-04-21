@@ -141,7 +141,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertEquals(Long.valueOf(0), zSet.rank(t1));
 		assertEquals(Long.valueOf(1), zSet.rank(t2));
 		assertEquals(Long.valueOf(2), zSet.rank(t3));
-		System.out.println(zSet.rank(getT()));
+		assertNull(zSet.rank(getT()));
 		//assertNull();
 	}
 

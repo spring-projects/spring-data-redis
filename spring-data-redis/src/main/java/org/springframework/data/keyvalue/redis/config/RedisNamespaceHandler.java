@@ -28,5 +28,6 @@ class RedisNamespaceHandler extends NamespaceHandlerSupport {
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("listener-container", new RedisListenerContainerParser());
+		registerBeanDefinitionParser("collection", new RedisCollectionParser());
 	}
 }

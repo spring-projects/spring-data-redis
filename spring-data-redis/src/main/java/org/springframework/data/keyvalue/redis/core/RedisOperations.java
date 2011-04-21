@@ -64,6 +64,17 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(SessionCallback<T> session);
 
+	//	/**
+	//	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback <b>cannot</b>
+	//	 * return a non-null value as it gets overwritten by the pipeline.
+	//	 * 
+	//	 * @param <T> list element return type
+	//	 * @param action callback object to execute 
+	//	 * @return list of objects returned by the pipeline
+	//	 */
+	//	List<V> executePipelined(RedisCallback<?> action);
+
+
 	Boolean hasKey(K key);
 
 	void delete(K key);
@@ -84,7 +95,9 @@ public interface RedisOperations<K, V> {
 
 	Boolean expireAt(K key, Date date);
 
-	void persist(K key);
+	Boolean persist(K key);
+
+	Boolean move(K key, int dbIndex);
 
 	Long getExpire(K key);
 
@@ -101,7 +114,7 @@ public interface RedisOperations<K, V> {
 
 	void discard();
 
-	Object exec();
+	List<Object> exec();
 
 	// pubsub functionality on the template
 	void convertAndSend(String destination, Object message);
@@ -192,13 +205,15 @@ public interface RedisOperations<K, V> {
 
 	List<V> sort(SortQuery<K> query);
 
-
 	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
-
 
 	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
 
 	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
 
 	Long sort(SortQuery<K> query, K storeKey);
+
+	RedisSerializer<?> getValueSerializer();
+
+	RedisSerializer<?> getKeySerializer();
 }

@@ -17,9 +17,9 @@
   <section id="redis:requirements">
     <title>Redis Requirements</title>
     <para>SDKV requires Redis 2.0 or above (Redis 2.2 is recommended) and Java SE 6.0 or above.
-    In terms of language bindings (or connectors), SDKV integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink> and 
-    <ulink url="http://github.com/alphazero/jredis">JRedis</ulink>, two popular open source Java libraries for Redis. If you are aware of
-    any other connector that we should be integrating is, please send us feedback.
+    In terms of language bindings (or connectors), SDKV integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink>,  
+    <ulink url="http://github.com/alphazero/jredis">JRedis</ulink> and <ulink url="https://github.com/e-mzungu/rjc">RJC</ulink>, three popular open source Java libraries for Redis. 
+    If you are aware of any other connector that we should be integrating is, please send us feedback.
     </para>
   </section>
   

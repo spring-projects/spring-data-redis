@@ -24,6 +24,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisConnectionFactory;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.Jedis;
@@ -33,7 +34,7 @@ import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.Protocol;
 
 /**
- * Connection factory using creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
+ * Connection factory creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
  * 
  * @author Costin Leau
  */
@@ -50,6 +51,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private boolean usePool = true;
 	private JedisPool pool = null;
 	private JedisPoolConfig poolConfig = new JedisPoolConfig();
+
+	private int dbIndex = 0;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance
@@ -99,6 +102,18 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 	}
 
+	/**
+	 * Post process a newly retrieved connection. Useful for decorating or executing
+	 * initialization commands on a new connection.
+	 * This implementation simply returns the connection.
+	 * 
+	 * @param connection
+	 * @return processed connection
+	 */
+	protected JedisConnection postProcessConnection(JedisConnection connection) {
+		return connection;
+	}
+
 	public void afterPropertiesSet() {
 		if (shardInfo == null) {
 			shardInfo = new JedisShardInfo(hostName, port);
@@ -113,8 +128,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		if (usePool) {
-			pool = new JedisPool(poolConfig, shardInfo.getHost(), shardInfo.getPort(),
-					shardInfo.getTimeout(), shardInfo.getPassword());
+			pool = new JedisPool(poolConfig, shardInfo.getHost(), shardInfo.getPort(), shardInfo.getTimeout(),
+					shardInfo.getPassword());
 		}
 	}
 
@@ -131,7 +146,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	public JedisConnection getConnection() {
 		Jedis jedis = fetchJedisConnector();
-		return (usePool ? new JedisConnection(jedis, pool) : new JedisConnection(jedis));
+		return postProcessConnection((usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis,
+				null, dbIndex)));
 	}
 
 	@Override
@@ -262,5 +278,26 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public void setPoolConfig(JedisPoolConfig poolConfig) {
 		this.poolConfig = poolConfig;
+	}
+
+
+	/**
+	 * Returns the index of the database.
+	 *
+	 * @return Returns the database index
+	 */
+	public int getDatabase() {
+		return dbIndex;
+	}
+
+	/**
+	 * Sets the index of the database used by this connection factory.
+	 * Default is 0.
+	 * 
+	 * @param index database index
+	 */
+	public void setDatabase(int index) {
+		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+		this.dbIndex = index;
 	}
 }

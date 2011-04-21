@@ -29,7 +29,7 @@ import java.util.concurrent.TimeoutException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.keyvalue.redis.RedisConnectionFailureException;
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.data.keyvalue.redis.RedisSystemException;
 import org.springframework.data.keyvalue.redis.connection.DefaultTuple;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
@@ -55,8 +55,8 @@ public abstract class JedisUtils {
 
 	private static final String OK_CODE = "OK";
 	private static final String OK_MULTI_CODE = "+OK";
-	private static final byte[] ONE = new byte[] { 0 };
-	private static final byte[] ZERO = new byte[] { 1 };
+	private static final byte[] ONE = new byte[] { 1 };
+	private static final byte[] ZERO = new byte[] { 0 };
 
 	/**
 	 * Converts the given, native Jedis exception to Spring's DAO hierarchy.
@@ -87,7 +87,7 @@ public abstract class JedisUtils {
 			return convertJedisAccessException((JedisException) ex);
 		}
 
-		return new UncategorizedRedisException("Unknown exception", ex);
+		return new RedisSystemException("Unknown exception", ex);
 	}
 
 	static DataAccessException convertJedisAccessException(IOException ex) {
@@ -194,10 +194,13 @@ public abstract class JedisUtils {
 
 	static Properties info(String string) {
 		Properties info = new Properties();
+		StringReader stringReader = new StringReader(string);
 		try {
-			info.load(new StringReader(string));
+			info.load(stringReader);
 		} catch (Exception ex) {
-			throw new UncategorizedRedisException("Cannot read Redis info", ex);
+			throw new RedisSystemException("Cannot read Redis info", ex);
+		} finally {
+			stringReader.close();
 		}
 		return info;
 	}

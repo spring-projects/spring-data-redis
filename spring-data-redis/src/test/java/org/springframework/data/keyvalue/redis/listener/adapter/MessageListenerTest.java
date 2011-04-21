@@ -25,8 +25,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.keyvalue.redis.connection.DefaultMessage;
 import org.springframework.data.keyvalue.redis.connection.Message;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
-import org.springframework.data.keyvalue.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 
 /**
  * Unit test for MessageListenerAdapter.
@@ -35,16 +35,16 @@ import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
  */
 public class MessageListenerTest {
 
-	private static final RedisSerializer serializer = new JdkSerializationRedisSerializer();
+	private static final RedisSerializer serializer = new StringRedisSerializer();
 	private static final String CHANNEL = "some::test:";
 	private static final byte[] RAW_CHANNEL = serializer.serialize(CHANNEL);
 	private static final String PAYLOAD = "do re mi";
 	private static final byte[] RAW_PAYLOAD = serializer.serialize(PAYLOAD);
-	private static final Message STRING_MSG = new DefaultMessage(RAW_PAYLOAD, RAW_CHANNEL);
+	private static final Message STRING_MSG = new DefaultMessage(RAW_CHANNEL, RAW_PAYLOAD);
 
 	private MessageListenerAdapter adapter;
 
-	interface Delegate {
+	public static interface Delegate {
 		void handleMessage(String argument);
 
 		void customMethod(String arg);
@@ -76,7 +76,6 @@ public class MessageListenerTest {
 
 		MessageListenerAdapter adapter = new MessageListenerAdapter(mock);
 		adapter.onMessage(STRING_MSG, null);
-
 		verify(mock).onMessage(STRING_MSG, null);
 	}
 

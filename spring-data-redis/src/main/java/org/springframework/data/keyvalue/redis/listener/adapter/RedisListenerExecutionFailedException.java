@@ -23,24 +23,24 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
  * @author Costin Leau
  * @see MessageListenerAdapter
  */
-public class ListenerExecutionFailedException extends InvalidDataAccessApiUsageException {
+public class RedisListenerExecutionFailedException extends InvalidDataAccessApiUsageException {
 
 	/**
-	 * Constructs a new <code>ListenerExecutionFailedException</code> instance.
+	 * Constructs a new <code>RedisListenerExecutionFailedException</code> instance.
 	 *
 	 * @param msg
 	 * @param cause
 	 */
-	public ListenerExecutionFailedException(String msg, Throwable cause) {
+	public RedisListenerExecutionFailedException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 
 	/**
-	 * Constructs a new <code>ListenerExecutionFailedException</code> instance.
+	 * Constructs a new <code>RedisListenerExecutionFailedException</code> instance.
 	 *
 	 * @param msg
 	 */
-	public ListenerExecutionFailedException(String msg) {
+	public RedisListenerExecutionFailedException(String msg) {
 		super(msg);
 	}
 }

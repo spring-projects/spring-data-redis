@@ -18,7 +18,6 @@ package org.springframework.data.keyvalue.redis.connection.jedis;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +26,10 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.UncategorizedKeyvalueStoreException;
-import org.springframework.data.keyvalue.redis.SubscribedRedisConnectionException;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.connection.MessageListener;
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
+import org.springframework.data.keyvalue.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.keyvalue.redis.connection.SortParameters;
 import org.springframework.data.keyvalue.redis.connection.Subscription;
 import org.springframework.util.ReflectionUtils;
@@ -72,6 +71,7 @@ public class JedisConnection implements RedisConnection {
 
 	private volatile JedisSubscription subscription;
 	private volatile Pipeline pipeline;
+	private final int dbIndex;
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance.
@@ -79,7 +79,7 @@ public class JedisConnection implements RedisConnection {
 	 * @param jedis Jedis entity
 	 */
 	public JedisConnection(Jedis jedis) {
-		this(jedis, null);
+		this(jedis, null, 0);
 	}
 
 	/**
@@ -89,13 +89,20 @@ public class JedisConnection implements RedisConnection {
 	 * @param jedis
 	 * @param pool can be null, if no pool is used
 	 */
-	public JedisConnection(Jedis jedis, Pool<Jedis> pool) {
+	public JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex) {
 		this.jedis = jedis;
 		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
 		transaction = new Transaction(client);
 
 		this.pool = pool;
+
+		this.dbIndex = dbIndex;
+
+		// select the db
+		if (dbIndex > 0) {
+			select(dbIndex);
+		}
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
@@ -122,6 +129,11 @@ public class JedisConnection implements RedisConnection {
 					pool.returnBrokenResource(jedis);
 				}
 				else {
+					// reset the connection 
+					if (dbIndex > 0) {
+						select(0);
+					}
+
 					pool.returnResource(jedis);
 				}
 			}
@@ -178,10 +190,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
-			return pipeline.execute();
+			List execute = pipeline.execute();
+			if (execute != null && !execute.isEmpty()) {
+				return execute;
+			}
 		}
 		return Collections.emptyList();
 	}
@@ -209,7 +225,7 @@ public class JedisConnection implements RedisConnection {
 				else {
 					pipeline.sort(key);
 				}
-				
+
 				return null;
 			}
 			return (sortParams != null ? jedis.sort(key, sortParams) : jedis.sort(key));
@@ -565,7 +581,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Collection<byte[]> keys(byte[] pattern) {
+	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {
 				transaction.keys(pattern);
@@ -609,6 +625,23 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			return (jedis.persist(key) == 1);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Boolean move(byte[] key, int dbIndex) {
+		try {
+			if (isQueueing()) {
+				client.move(key, dbIndex);
+				return null;
+			}
+			if (isPipelined()) {
+				client.move(key, dbIndex);
+				return null;
+			}
+			return (jedis.move(key, dbIndex) == 1);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -733,7 +766,8 @@ public class JedisConnection implements RedisConnection {
 			for (byte[] key : keys) {
 				if (isPipelined()) {
 					pipeline.watch(key);
-				} else {
+				}
+				else {
 					jedis.watch(key);
 				}
 			}
@@ -902,7 +936,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public byte[] getRange(byte[] key, int start, int end) {
+	public byte[] getRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
 				transaction.substr(key, (int) start, (int) end);
@@ -1021,7 +1055,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public void setRange(byte[] key, int start, int end) {
+	public void setRange(byte[] key, byte[] value, long start) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -1088,11 +1122,11 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				final List<byte[]> args = new ArrayList<byte[]>();
 				for (final byte[] arg : keys) {
-		            args.add(arg);
-		        }
-		        args.add(Protocol.toByteArray(timeout));
-		        pipeline.blpop(args.toArray(new byte[args.size()][]));
-		        return null;
+					args.add(arg);
+				}
+				args.add(Protocol.toByteArray(timeout));
+				pipeline.blpop(args.toArray(new byte[args.size()][]));
+				return null;
 			}
 			return jedis.blpop(timeout, keys);
 		} catch (Exception ex) {
@@ -1109,11 +1143,11 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				final List<byte[]> args = new ArrayList<byte[]>();
 				for (final byte[] arg : keys) {
-		            args.add(arg);
-		        }
-		        args.add(Protocol.toByteArray(timeout));
-		        pipeline.brpop(args.toArray(new byte[args.size()][]));
-		        return null;
+					args.add(arg);
+				}
+				args.add(Protocol.toByteArray(timeout));
+				pipeline.brpop(args.toArray(new byte[args.size()][]));
+				return null;
 			}
 			return jedis.brpop(timeout, keys);
 		} catch (Exception ex) {
@@ -1758,11 +1792,10 @@ public class JedisConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
-				transaction.zrangeWithScores(key, (int) start, (int) end);
-				return null;
+				throw new UnsupportedOperationException();
 			}
 			if (isPipelined()) {
-				pipeline.zrangeWithScores(key, (int) start, (int) end);
+				pipeline.zrangeByScoreWithScores(key, (int) start, (int) end);
 				return null;
 			}
 			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, (int) start, (int) end));
@@ -2194,7 +2227,7 @@ public class JedisConnection implements RedisConnection {
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		if (isSubscribed()) {
-			throw new SubscribedRedisConnectionException(
+			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
@@ -2210,6 +2243,7 @@ public class JedisConnection implements RedisConnection {
 
 			subscription = new JedisSubscription(listener, jedisPubSub, null, patterns);
 			jedis.psubscribe(jedisPubSub, patterns);
+
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -2218,7 +2252,7 @@ public class JedisConnection implements RedisConnection {
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		if (isSubscribed()) {
-			throw new SubscribedRedisConnectionException(
+			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
 
@@ -2234,6 +2268,7 @@ public class JedisConnection implements RedisConnection {
 
 			subscription = new JedisSubscription(listener, jedisPubSub, channels, null);
 			jedis.subscribe(jedisPubSub, channels);
+
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -2241,7 +2276,7 @@ public class JedisConnection implements RedisConnection {
 
 	private void checkSubscription() {
 		if (isSubscribed()) {
-			throw new SubscribedRedisConnectionException("Cannot execute command - connection is subscribed");
+			throw new RedisSubscribedConnectionException("Cannot execute command - connection is subscribed");
 		}
 	}
 }

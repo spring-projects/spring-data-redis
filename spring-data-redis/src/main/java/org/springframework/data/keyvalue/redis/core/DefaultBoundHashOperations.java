@@ -19,12 +19,14 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.data.keyvalue.redis.connection.DataType;
+
 /**
  * Default implementation for {@link HashOperations}.
  * 
  * @author Costin Leau
  */
-class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implements BoundHashOperations<H, HK, HV> {
+class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H> implements BoundHashOperations<H, HK, HV> {
 
 	private final HashOperations<H, HK, HV> ops;
 
@@ -35,7 +37,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	 * @param template
 	 */
 	public DefaultBoundHashOperations(H key, RedisOperations<H, ?> operations) {
-		super(key);
+		super(key, operations);
 		this.ops = operations.opsForHash();
 	}
 
@@ -102,5 +104,10 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultKeyBound<H> implement
 	@Override
 	public Map<HK, HV> entries() {
 		return ops.entries(getKey());
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.HASH;
 	}
 }

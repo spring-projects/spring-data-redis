@@ -162,7 +162,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		V v1 = getValue();
 
-		assertNull(map.get(UUID.randomUUID()));
+		assertNull(map.get(UUID.randomUUID().toString()));
 		assertNull(map.get(k1));
 		map.put(k1, v1);
 		assertEquals(v1, map.get(k1));

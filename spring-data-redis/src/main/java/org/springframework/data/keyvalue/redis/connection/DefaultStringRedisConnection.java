@@ -15,7 +15,6 @@
  */
 package org.springframework.data.keyvalue.redis.connection;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -24,8 +23,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.springframework.data.keyvalue.redis.UncategorizedRedisException;
+import org.springframework.data.keyvalue.redis.RedisSystemException;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
+import org.springframework.data.keyvalue.redis.serializer.SerializationUtils;
 import org.springframework.data.keyvalue.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
@@ -88,7 +88,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.bRPopLPush(timeout, srcKey, dstKey);
 	}
 
-	public void close() throws UncategorizedRedisException {
+	public void close() throws RedisSystemException {
 		delegate.close();
 	}
 
@@ -156,7 +156,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.getNativeConnection();
 	}
 
-	public byte[] getRange(byte[] key, int start, int end) {
+	public byte[] getRange(byte[] key, long start, long end) {
 		return delegate.getRange(key, start, end);
 	}
 
@@ -240,7 +240,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.isSubscribed();
 	}
 
-	public Collection<byte[]> keys(byte[] pattern) {
+	public Set<byte[]> keys(byte[] pattern) {
 		return delegate.keys(pattern);
 	}
 
@@ -306,6 +306,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Boolean persist(byte[] key) {
 		return delegate.persist(key);
+	}
+
+	public Boolean move(byte[] key, int dbIndex) {
+		return delegate.move(key, dbIndex);
 	}
 
 	public String ping() {
@@ -396,8 +400,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.setNX(key, value);
 	}
 
-	public void setRange(byte[] key, int start, int end) {
-		delegate.setRange(key, start, end);
+	public void setRange(byte[] key, byte[] value, long start) {
+		delegate.setRange(key, value, start);
 	}
 
 	public void shutdown() {
@@ -576,7 +580,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		byte[][] ret = new byte[keys.length][];
 
 		for (int i = 0; i < ret.length; i++) {
-			byte[] bs = serializer.serialize(keys[i]);
+			ret[i] = serializer.serialize(keys[i]);
 		}
 
 		return ret;
@@ -593,20 +597,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 
-	private List<String> deserialize(Collection<byte[]> data) {
-		List<String> result = new ArrayList<String>(data.size());
-		for (byte[] raw : data) {
-			result.add(serializer.deserialize(raw));
-		}
-		return result;
+	private List<String> deserialize(List<byte[]> data) {
+		return SerializationUtils.deserialize(data, serializer);
 	}
 
 	private Set<String> deserialize(Set<byte[]> data) {
-		Set<String> result = new LinkedHashSet<String>(data.size());
-		for (byte[] raw : data) {
-			result.add(serializer.deserialize(raw));
-		}
-		return result;
+		return SerializationUtils.deserialize(data, serializer);
 	}
 
 	private String deserialize(byte[] data) {
@@ -614,6 +610,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private Set<StringTuple> deserializeTuple(Set<Tuple> data) {
+		if (data == null) {
+			return null;
+		}
 		Set<StringTuple> result = new LinkedHashSet<StringTuple>(data.size());
 		for (Tuple raw : data) {
 			result.add(new DefaultStringTuple(raw, serializer.deserialize(raw.getValue())));
@@ -688,7 +687,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public String getRange(String key, int start, int end) {
+	public String getRange(String key, long start, long end) {
 		return deserialize(delegate.getRange(serialize(key), start, end));
 	}
 
@@ -844,6 +843,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
+	public Boolean move(String key, int dbIndex) {
+		return delegate.move(serialize(key), dbIndex);
+	}
+
+	@Override
 	public void pSubscribe(MessageListener listener, String... patterns) {
 		delegate.pSubscribe(listener, serializeMulti(patterns));
 	}
@@ -924,8 +928,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public void setRange(String key, int start, int end) {
-		delegate.setRange(serialize(key), start, end);
+	public void setRange(String key, String value, long start) {
+		delegate.setRange(serialize(key), serialize(value), start);
 	}
 
 	@Override

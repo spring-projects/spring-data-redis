@@ -4,6 +4,10 @@ Spring Data - Key Value
 The primary goal of the [Spring Data](http://www.springsource.org/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 As the name implies, the **Key Value** modules provides integration with key value stores such as [Redis](http://code.google.com/p/redis/) and [Riak](http://www.basho.com/Riak.html).
 
+Examples
+--------
+For examples on using the Spring Data Key Value, see the dedicated project, also available on [GitHub](https://github.com/SpringSource/spring-data-keyvalue-examples)
+
 Getting Help
 ------------
 

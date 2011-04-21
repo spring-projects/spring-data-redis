@@ -5,14 +5,14 @@ Bundle-ManifestVersion: 2
 Import-Package: 
  sun.reflect;version="0";resolution:=optional
 Import-Template: 
- org.springframework.beans.*;version="[3.0.0, 4.0.0)",
- org.springframework.context.*;version="[3.0.0, 4.0.0)",
- org.springframework.core.*;version="[3.0.0, 4.0.0)",
- org.springframework.dao.*;version="[3.0.0, 4.0.0)",
- org.springframework.scheduling.*;resolution:="optional";version="[3.0.0, 4.0.0)",
- org.springframework.util.*;version="[3.0.0, 4.0.0)",
- org.springframework.oxm.*;resolution:="optional";version="[3.0.0, 4.0.0)",
- org.springframework.transaction.support.*;version="[3.0.0, 4.0.0)",
+ org.springframework.beans.*;version=${spring.range},
+ org.springframework.context.*;version=${spring.range},
+ org.springframework.core.*;version=${spring.range},
+ org.springframework.dao.*;version=${spring.range},
+ org.springframework.scheduling.*;resolution:="optional";version=${spring.range},
+ org.springframework.util.*;version=${spring.range},
+ org.springframework.oxm.*;resolution:="optional";version=${spring.range},
+ org.springframework.transaction.support.*;version=${spring.range},
  org.aopalliance.*;version="[1.0.0, 2.0.0)";resolution:=optional,
  org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
  org.springframework.data.keyvalue.*;version=${version},
@@ -20,9 +20,9 @@ Import-Template:
  javax.xml.transform.*;resolution:="optional";version="0",
  org.jredis.*;version="[1.0.0, 2.0.0)",
  org.jredis.ri.alphazero.*;version="[1.0.0, 2.0.0)",
- redis.clients.jedis.*;version="[1.5.2, 2.0.0)",
- redis.clients.util.*;version="[1.5.2, 2.0.0)",
+ redis.clients.jedis.*;version=${jedis.range},
+ redis.clients.util.*;version=${jedis.range},
+ org.idevlab.rjc.*;version=${rjc.range},
  org.apache.commons.pool.impl.*;version="[1.0.0, 3.0.0)",
- org.codehaus.jackson.*;version="[1.6, 2.0.0)",
- org.apache.commons.beanutils.*;version="[1.8.0, 2.0.0)"
-
+ org.codehaus.jackson.*;version=${jackson.range},
+ org.apache.commons.beanutils.*;version=1.8.5
