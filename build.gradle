@@ -64,7 +64,7 @@ configure(javaprojects) {
   apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
 
   bundlor.useProjectProps = true
-[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
+  [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 	
 	// Common dependencies
 	dependencies {
