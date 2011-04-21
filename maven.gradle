@@ -1,17 +1,5 @@
 apply plugin: 'maven'
 
-// Distro zip
-// SpringSource s3 maven deployer
-configurations {
-    antaws
-}
-
-dependencies {
-    antaws "org.springframework.build:org.springframework.build.aws.ant:3.0.3.RELEASE",
-            "net.java.dev.jets3t:jets3t:0.6.1"
-}
-
-
 // Create a source jar for uploading
 task sourceJar(type: Jar) {
     classifier = 'sources'
@@ -22,31 +10,13 @@ artifacts {
     archives sourceJar
 }
 
-task dist(type: Zip) {
-    dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
-
-    evaluationDependsOn(':docs')
-
-    def zipRootDir = "${project.name}-$version"
-    into(zipRootDir) {
-        from(rootDir/docs/src/info) {
-            include '*.txt'
-        }
-        into('dist') {
-            from javaProjects.collect {project -> project.libsDir }
-        }
-    }
-    doLast {
-        ant.checksum(file: archivePath, algorithm: 'SHA1', fileext: '.sha1')
-    }
+// Configuration for SpringSource s3 maven deployer
+configurations {
+    deployerJars
 }
-
-task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload) {
-    archiveFile = dist.archivePath
-    projectKey = 'DATAKV'
-    projectName = 'Spring Data Key Value'
+dependencies {
+    deployerJars "org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE"
 }
-
 
 // Remove the archive configuration from the runtime configuration, so that anything added to archives
 // (such as the source jar) is no longer included in the runtime classpath
@@ -59,7 +29,6 @@ gradle.taskGraph.whenReady {graph ->
         // check properties defined and fail early
         s3AccessKey
         s3SecretAccessKey
-        mavenSyncRepoDir
     }
 }
 
@@ -94,7 +63,7 @@ uploadArchives {
         }
     }
     
-    pom.project {
+    deployer.pom.project {
       licenses {
         license {
           name "The Apache Software License, Version 2.0"

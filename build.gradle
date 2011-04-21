@@ -51,8 +51,8 @@ allprojects {
 	}
 }
 
-javaprojects = subprojects.findAll { project ->
-    project.path.startsWith(':spring-data-')
+javaprojects = subprojects.findAll { 
+    project -> project.path.startsWith(':spring-data-')
 }
 
 configure(javaprojects) {
@@ -88,9 +88,9 @@ configure(javaprojects) {
 		testCompile "org.mockito:mockito-all:$mockitoVersion"
 	}
 	
-	sourceSets.main.classesDir = new File(buildDir, "classes/" + project.name.substring("spring-data".length() + 1))
+	apply from: "$rootDir/maven.gradle"
+	//sourceSets.main.classesDir = new File(buildDir, "classes/" + project.name.substring("spring-data".length() + 1))
   
-	apply from: "$rootDir/dist.gradle"
 }
 
 ideaProject {
@@ -101,4 +101,31 @@ ideaProject {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '0.9.2'
+}
+
+// Distribution tasks
+task dist(type: Zip) {
+    dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
+
+    evaluationDependsOn(':docs')
+
+    def zipRootDir = "${project.name}-$version"
+    into(zipRootDir) {
+        from('$rootDir/docs/src/info') {
+            include '*.txt'
+        }
+        into('dist') {
+            from javaprojects.collect {project -> project.libsDir }
+        }
+    }
+    doLast {
+        ant.checksum(file: archivePath, algorithm: 'SHA1', fileext: '.sha1')
+    }
+}
+
+task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload) {
+    description = "Upload Zip Distribution"
+    archiveFile = dist.archivePath
+    projectKey = 'DATAKV'
+    projectName = 'Spring Data Key Value'
 }

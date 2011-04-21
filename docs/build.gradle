@@ -12,12 +12,12 @@ docbookHtmlSingle.stylesheet = new File(projectDir, 'docs/src/reference/resource
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceDirectory = new File(projectDir, 'docs/src/reference/docbook')
 
-docbookHtml.stylesheet = new File(projectDir, 'docs/src/reference/resources/xsl/html-custom.xsl')
-docbookHtmlSingle.stylesheet = new File(projectDir, 'docs/src/reference/resources/xsl/html-single-custom.xsl')
-docbookFoPdf.stylesheet = new File(projectDir, 'docs/src/reference/resources/xsl/pdf-custom.xsl')
-def imagesDir = new File(projectDir, 'docs/src/reference/resources/images');
-//    docbookFoPdf.admonGraphicsPath = "${imagesDir}/"
-docbookFoPdf.imgSrcPath = "${projectDir}/docs/reference/resources/"
+docbookHtml.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-custom.xsl')
+docbookHtmlSingle.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-single-custom.xsl')
+docbookFoPdf.stylesheet = new File(projectDir, 'src/reference/resources/xsl/pdf-custom.xsl')
+def imagesDir = new File(projectDir, 'src/reference/resources/images');
+docbookFoPdf.admonGraphicsPath = "${imagesDir}/"
+docbookFoPdf.imgSrcPath = "${imagesDir}"
 
 spec = copySpec {
     into ('reference') {
@@ -96,8 +96,9 @@ task docSiteLogin(type: org.springframework.gradle.tasks.Login) {
 }
     
 // upload task   
-task uploadApidocs(type: org.springframework.gradle.tasks.ScpUpload) {
+task uploadApi(type: org.springframework.gradle.tasks.ScpUpload) {
     dependsOn api
+    description = "Upload API Distribution"    
     baseName = "${rootProject.name}"
     appendix = 'apidocs'
     remoteDir = '.'
