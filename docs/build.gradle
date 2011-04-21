@@ -99,17 +99,19 @@ apiSpec = copySpec {
 task docSiteLogin(type: org.springframework.gradle.tasks.Login) {
     if (project.hasProperty('sshHost')) {
         host = project.property('sshHost')
+        username = project.property('sshUsername')
+        key = project.property('sshPrivateKey')
     }
 }
     
 // upload task   
 task uploadApi(type: org.springframework.gradle.tasks.ScpUpload) {
-    dependsOn api
+    dependsOn api, docbook
     description = "Upload API Distribution"    
-    baseName = "${rootProject.name}"
-    appendix = 'apidocs'
-    remoteDir = '.'
+    remoteDir = "./static.spring/spring-data/data-keyvalue/docs/${project.version}"
+    println 'Uploading to ' + remoteDir
     login = docSiteLogin
 
     with(apiSpec)
+    with(refSpec)
 }
