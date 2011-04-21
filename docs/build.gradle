@@ -8,13 +8,13 @@ apply plugin: 'docbook'
 assemble.dependsOn = ['api', 'docbook']
 
 
-docbookHtmlSingle.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-single-custom.xsl')
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceDirectory = new File(projectDir, 'src/reference/docbook')
 
 docbookHtml.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-custom.xsl')
 docbookHtmlSingle.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-single-custom.xsl')
 docbookFoPdf.stylesheet = new File(projectDir, 'src/reference/resources/xsl/pdf-custom.xsl')
+
 def imagesDir = new File(projectDir, 'src/reference/resources/images');
 docbookFoPdf.admonGraphicsPath = "${imagesDir}/admon"
 docbookFoPdf.imgSrcPath = "${imagesDir}"
@@ -109,7 +109,6 @@ task uploadApi(type: org.springframework.gradle.tasks.ScpUpload) {
     dependsOn api, docbook
     description = "Upload API Distribution"    
     remoteDir = "./static.spring/spring-data/data-keyvalue/docs/${project.version}"
-    println 'Uploading to ' + remoteDir
     login = docSiteLogin
 
     with(apiSpec)

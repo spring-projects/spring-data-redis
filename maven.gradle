@@ -4,6 +4,7 @@ apply plugin: 'maven'
 task sourceJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.java
+    from sourceSets.main.resources
 }
 
 artifacts {
@@ -49,7 +50,9 @@ uploadArchives {
 
     deployer = repositories.mavenDeployer {
         configuration = configurations.deployerJars
+        // releaseBuild
         if (releaseBuild) {
+            logger.info("Deploying to local Maven repo " + releaseRepositoryUrl)
             // "mavenSyncRepoDir" should be set in properties
             repository(url: releaseRepositoryUrl)
         } else {
@@ -71,5 +74,5 @@ uploadArchives {
           distribution "repo"
         }
       }
-    }
+  }
 }
