@@ -110,19 +110,12 @@ and stop as soon as possible.
         </xsd:appinfo>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="channel" type="xsd:string">
+    <xsd:attribute name="topic" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation><![CDATA[
-The channel(s) to which the listener is subscribed. Multiple values can be specified
-by separating them with spaces.
-        ]]></xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="pattern" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation><![CDATA[
-The pattern(s) matching the channels to which the listener is subscribed. Multiple values can be specified
-by separating them with spaces.
+The topics(s) to which the listener is subscribed. Can be (in Redis terminology) a 
+channel or/and a pattern. Multiple values can be specified by separating them with 
+spaces. Patterns can be specified by using the '*' character. 
         ]]></xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>

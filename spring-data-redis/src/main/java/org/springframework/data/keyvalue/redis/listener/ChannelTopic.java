@@ -16,7 +16,7 @@
 package org.springframework.data.keyvalue.redis.listener;
 
 /**
- * Topic describing a channel.
+ * Channel topic implementation (maps to a Redis channel). 
  * 
  * @author Costin Leau
  */
@@ -34,9 +34,9 @@ public class ChannelTopic implements Topic {
 	}
 
 	/**
-	 * Returns the channel name.
+	 * Returns the topic name.
 	 *  
-	 * @return channel name
+	 * @return topic name
 	 */
 	public String getTopic() {
 		return channelName;
