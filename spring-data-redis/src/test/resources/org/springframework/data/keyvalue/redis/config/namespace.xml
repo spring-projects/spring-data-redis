@@ -14,10 +14,10 @@
 	 			
 	<redis:listener-container topic-serializer="serializer">
 		<!-- default handle method -->
-		<redis:listener ref="testBean1" channel="z1 z2" pattern="x*"/>
+		<redis:listener ref="testBean1" topic="z1 z2 x*"/>
 		<!-- channel subscription only -->
-		<redis:listener ref="testBean1" method="anotherHandle" channel="x1" serializer="serializer"/>
-		<redis:listener ref="testBean2" channel="exception"/>
+		<redis:listener ref="testBean1" method="anotherHandle" topic="x1" serializer="serializer"/>
+		<redis:listener ref="testBean2" topic="exception"/>
 	</redis:listener-container>
 	
 	<bean id="testBean1" class="org.springframework.data.keyvalue.redis.listener.adapter.RedisMDP"/>

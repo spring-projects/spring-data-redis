@@ -117,26 +117,15 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		// assemble topics
 		Collection<Topic> topics = new ArrayList<Topic>();
 
-		// get channels
-		String channels = element.getAttribute("channel");
-		if (StringUtils.hasText(channels)) {
-			String[] array = StringUtils.delimitedListToStringArray(channels, " ");
+		// get topic
+		String xTopics = element.getAttribute("topic");
+		if (StringUtils.hasText(xTopics)) {
+			String[] array = StringUtils.delimitedListToStringArray(xTopics, " ");
 
 			for (String string : array) {
-				topics.add(new ChannelTopic(string));
+				topics.add(string.contains("*") ? new PatternTopic(string) : new ChannelTopic(string));
 			}
 		}
-
-		// get patterns
-		String patterns = element.getAttribute("pattern");
-		if (StringUtils.hasText(patterns)) {
-			String[] array = StringUtils.delimitedListToStringArray(patterns, " ");
-
-			for (String string : array) {
-				topics.add(new PatternTopic(string));
-			}
-		}
-
 		ret[0] = builder.getBeanDefinition();
 		ret[1] = topics;
 

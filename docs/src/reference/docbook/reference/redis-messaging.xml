@@ -155,7 +155,7 @@ template.convertAndSend("hello!", "world");]]></programlisting>
   &lt;!-- the default ConnectionFactory --&gt;
   &lt;redis:listener-container&gt;
     &lt;!-- the method attribute can be skipped as the default method name is "handleMessage" --&gt;
-    &lt;redis:listener ref="listener" method="handleMessage" channel="chatroom" /&gt;
+    &lt;redis:listener ref="listener" method="handleMessage" topic="chatroom" /&gt;
   &lt;/redis:listener-container&gt;
   
   &lt;bean class="redisexample.DefaultMessageDelegate"/&gt;
@@ -177,7 +177,7 @@ template.convertAndSend("hello!", "world");]]></programlisting>
 &lt;bean id="redisContainer" class="org.springframework.data.keyvalue.redis.listener.RedisMessageListenerContainer"&gt;
     &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
     &lt;property name="messageListeners"&gt;
-      <lineannotation>&lt;!-- map of listeners and their associated topics (channels or topics) --&gt;</lineannotation>
+      <lineannotation>&lt;!-- map of listeners and their associated topics (channels or/and patterns) --&gt;</lineannotation>
       &lt;map&gt;
         <emphasis role="bold">&lt;entry key-ref="messageListener"&gt;</emphasis>
             &lt;bean class="org.springframework.data.keyvalue.redis.listener.ChannelTopic">
