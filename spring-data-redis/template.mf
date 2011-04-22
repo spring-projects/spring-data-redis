@@ -2,6 +2,7 @@ Bundle-SymbolicName: org.springframework.data.keyvalue.redis
 Bundle-Name: Spring Data Redis Support
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
+Export-Template: org.springframework.data.keyvalue.redis.*;version=${version}
 Import-Package: 
  sun.reflect;version="0";resolution:=optional
 Import-Template: 
