@@ -87,18 +87,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public RedisTemplate() {
 	}
 
-	/**
-	 * Constructs a new <code>RedisTemplate</code> instance and automatically initializes the template.
-	 * If other parameters need to be set, it is recommended to use {@link #setConnectionFactory(RedisConnectionFactory)} instead.
-	 *
-	 * @param connectionFactory connection factory for creating new connections
-	 */
-	public RedisTemplate(RedisConnectionFactory connectionFactory) {
-		this.setConnectionFactory(connectionFactory);
-		afterPropertiesSet();
-	}
-
-
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
@@ -126,11 +114,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		if (defaultUsed) {
 			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
 		}
-
-		valueOps = new DefaultValueOperations<K, V>(this);
-		listOps = new DefaultListOperations<K, V>(this);
-		setOps = new DefaultSetOperations<K, V>(this);
-		zSetOps = new DefaultZSetOperations<K, V>(this);
 	}
 
 	@Override
@@ -754,11 +737,17 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public ValueOperations<K, V> opsForValue() {
+		if (valueOps == null) {
+			valueOps = new DefaultValueOperations<K, V>(this);
+		}
 		return valueOps;
 	}
 
 	@Override
 	public ListOperations<K, V> opsForList() {
+		if (listOps == null) {
+			listOps = new DefaultListOperations<K, V>(this);
+		}
 		return listOps;
 	}
 
@@ -774,6 +763,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public SetOperations<K, V> opsForSet() {
+		if (setOps == null) {
+			setOps = new DefaultSetOperations<K, V>(this);
+		}
 		return setOps;
 	}
 
@@ -784,6 +776,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public ZSetOperations<K, V> opsForZSet() {
+		if (zSetOps == null) {
+			zSetOps = new DefaultZSetOperations<K, V>(this);
+		}
 		return zSetOps;
 	}
 

@@ -25,6 +25,7 @@ import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionF
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.core.StringRedisTemplate;
 import org.springframework.data.keyvalue.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.OxmSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -71,7 +72,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 		jedisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
+		RedisTemplate<String, String> genericTemplate = new StringRedisTemplate(jedisConnFactory);
 
 		RedisTemplate<String, String> xstreamGenericTemplate = new RedisTemplate<String, String>();
 		xstreamGenericTemplate.setConnectionFactory(jedisConnFactory);
@@ -92,7 +93,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jredisConnFactory.setHostName(SettingsUtils.getHost());
 		jredisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
+		RedisTemplate<String, String> genericTemplateJR = new StringRedisTemplate(jredisConnFactory);
 		RedisTemplate<String, Person> xGenericTemplateJR = new RedisTemplate<String, Person>();
 		xGenericTemplateJR.setConnectionFactory(jredisConnFactory);
 		xGenericTemplateJR.setDefaultSerializer(serializer);
@@ -114,7 +115,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		rjcConnFactory.setHostName(SettingsUtils.getHost());
 		rjcConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> genericTemplateRJC = new RedisTemplate<String, String>(jredisConnFactory);
+		RedisTemplate<String, String> genericTemplateRJC = new StringRedisTemplate(jredisConnFactory);
 		RedisTemplate<String, Person> xGenericTemplateRJC = new RedisTemplate<String, Person>();
 		xGenericTemplateRJC.setConnectionFactory(rjcConnFactory);
 		xGenericTemplateRJC.setDefaultSerializer(serializer);

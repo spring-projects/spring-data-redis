@@ -47,7 +47,9 @@ public class PubSubTestParams {
 		jedisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate(jedisConnFactory);
-		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>();
+		personTemplate.setConnectionFactory(jedisConnFactory);
+		personTemplate.afterPropertiesSet();
 
 		// create RJC
 
@@ -58,7 +60,9 @@ public class PubSubTestParams {
 		rjcConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateRJC = new StringRedisTemplate(rjcConnFactory);
-		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>(rjcConnFactory);
+		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>();
+		personTemplateRJC.setConnectionFactory(rjcConnFactory);
+		personTemplateRJC.afterPropertiesSet();
 
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
