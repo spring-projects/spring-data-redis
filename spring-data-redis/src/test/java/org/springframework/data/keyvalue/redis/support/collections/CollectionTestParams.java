@@ -103,9 +103,9 @@ public abstract class CollectionTestParams {
 		xstreamPersonTemplateJR.afterPropertiesSet();
 
 		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>();
-		jsonPersonTemplate.setValueSerializer(jsonSerializer);
-		jsonPersonTemplate.setConnectionFactory(jredisConnFactory);
-		jsonPersonTemplate.afterPropertiesSet();
+		jsonPersonTemplateJR.setValueSerializer(jsonSerializer);
+		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
+		jsonPersonTemplateJR.afterPropertiesSet();
 
 
 		// rjc
