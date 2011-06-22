@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
 import org.springframework.data.keyvalue.redis.connection.RedisListCommands.Position;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Default implementation of {@link ListOperations}.
@@ -59,7 +60,8 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(new ValueDeserializingRedisCallback(key) {
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.bLPop(tm, rawKey).get(0);
+				List<byte[]> lPop = connection.bLPop(tm, rawKey);
+				return (CollectionUtils.isEmpty(lPop) ? null : lPop.get(1));
 			}
 		}, true);
 	}
@@ -153,7 +155,8 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		return execute(new ValueDeserializingRedisCallback(key) {
 			@Override
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.bRPop(tm, rawKey).get(0);
+				List<byte[]> bRPop = connection.bRPop(tm, rawKey);
+				return (CollectionUtils.isEmpty(bRPop) ? null : bRPop.get(1));
 			}
 		}, true);
 	}
