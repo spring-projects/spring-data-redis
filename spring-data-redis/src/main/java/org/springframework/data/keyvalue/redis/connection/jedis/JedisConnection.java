@@ -2213,7 +2213,8 @@ public class JedisConnection implements RedisConnection {
 				throw new UnsupportedOperationException();
 			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline.publish(channel, message);
+				return null;
 			}
 			return jedis.publish(channel, message);
 		} catch (Exception ex) {

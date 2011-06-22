@@ -190,7 +190,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	// pub sub test
 
-	@Test
 	public void testPubSub() throws Exception {
 
 		final BlockingDeque<Message> queue = new LinkedBlockingDeque<Message>();
@@ -244,7 +243,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals(3, queue.size());
 	}
 
-	@Test
 	public void testPubSubWithNamedChannels() {
 		final byte[] expectedChannel = "channel1".getBytes();
 		final byte[] expectedMessage = "msg".getBytes();
@@ -281,7 +279,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.subscribe(listener, expectedChannel);
 	}
 
-	@Test
 	public void testPubSubWithPatterns() {
 		final byte[] expectedPattern = "channel*".getBytes();
 		final byte[] expectedMessage = "msg".getBytes();
