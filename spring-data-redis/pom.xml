@@ -15,9 +15,9 @@
     <!--<jredis.ver>02112010</jredis.ver>-->
     <spring.range>"[3.0.0, 4.0.0)"</spring.range>
     <jredis.ver>03122010</jredis.ver>
-    <jedis.ver>1.5.2</jedis.ver>
+    <jedis.ver>2.0.0</jedis.ver>
     <rjc.ver>0.6.4</rjc.ver>
-    <jedis.range>"[1.0.0,2.0.0)"</jedis.range>
+    <jedis.range>"[2.0.0,2.0.0]"</jedis.range>
     <jackson.range>"[1.6, 2.0.0)"</jackson.range>
     <rjc.range>"[0.6.4, 0.6.4]"</rjc.range>
 	</properties>
