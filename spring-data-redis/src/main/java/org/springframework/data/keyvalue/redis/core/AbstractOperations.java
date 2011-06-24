@@ -17,11 +17,14 @@ package org.springframework.data.keyvalue.redis.core;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
+import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.keyvalue.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.keyvalue.redis.serializer.RedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.SerializationUtils;
 import org.springframework.util.Assert;
@@ -134,6 +137,15 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	Set<V> deserializeValues(Set<byte[]> rawValues) {
 		return SerializationUtils.deserialize(rawValues, valueSerializer);
+	}
+
+	@SuppressWarnings("unchecked")
+	Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues) {
+		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
+		for (Tuple rawValue : rawValues) {
+			set.add(new DefaultTypedTuple(valueSerializer.deserialize(rawValue.getValue()), rawValue.getScore()));
+		}
+		return set;
 	}
 
 	@SuppressWarnings("unchecked")

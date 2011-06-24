@@ -98,6 +98,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private RedisStore createStore(DataType dt) {
 		switch (dt) {
 		case LIST:

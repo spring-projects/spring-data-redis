@@ -886,9 +886,8 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeWithScore(byte[] key, long start, long end) {
+	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		throw new UnsupportedOperationException();
-
 	}
 
 	@Override
@@ -901,7 +900,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -911,7 +910,27 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -961,7 +980,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
+	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		throw new UnsupportedOperationException();
 	}
 

@@ -1740,7 +1740,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeWithScore(byte[] key, long start, long end) {
+	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
 				transaction.zrangeWithScores(key, (int) start, (int) end);
@@ -1773,7 +1773,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1789,16 +1789,17 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
+	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
-			if (isPipelined()) {
-				pipeline.zrangeByScoreWithScores(key, (int) start, (int) end);
+				transaction.zrevrangeWithScores(key, (int) start, (int) end);
 				return null;
 			}
-			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, (int) start, (int) end));
+			if (isPipelined()) {
+				pipeline.zrevrangeWithScores(key, (int) start, (int) end);
+				return null;
+			}
+			return JedisUtils.convertJedisTuple(jedis.zrevrangeWithScores(key, (int) start, (int) end));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1821,7 +1822,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count) {
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
 				throw new UnsupportedOperationException();
@@ -1831,6 +1832,66 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			return JedisUtils.convertJedisTuple(jedis.zrangeByScoreWithScores(key, min, max, (int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			throw new UnsupportedOperationException();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			throw new UnsupportedOperationException();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			throw new UnsupportedOperationException();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			throw new UnsupportedOperationException();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

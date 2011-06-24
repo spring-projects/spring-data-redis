@@ -19,6 +19,8 @@ package org.springframework.data.keyvalue.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.keyvalue.redis.core.ZSetOperations.TypedTuple;
+
 
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
@@ -38,6 +40,16 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Set<V> rangeByScore(double min, double max);
 
 	Set<V> reverseRange(long start, long end);
+
+	Set<V> reverseRangeByScore(double min, double max);
+
+	Set<TypedTuple<V>> rangeWithScores(long start, long end);
+
+	Set<TypedTuple<V>> rangeByScoreWithScores(double min, double max);
+
+	Set<TypedTuple<V>> reverseRangeWithScores(long start, long end);
+
+	Set<TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max);
 
 	void removeRange(long start, long end);
 

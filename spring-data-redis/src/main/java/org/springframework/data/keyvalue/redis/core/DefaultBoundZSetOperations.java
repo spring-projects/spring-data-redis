@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.springframework.data.keyvalue.redis.connection.DataType;
+import org.springframework.data.keyvalue.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * Default implementation for {@link BoundZSetOperations}.
@@ -74,6 +75,31 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	@Override
 	public Set<V> rangeByScore(double min, double max) {
 		return ops.rangeByScore(getKey(), min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> rangeByScoreWithScores(double min, double max) {
+		return ops.rangeByScoreWithScores(getKey(), min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> rangeWithScores(long start, long end) {
+		return ops.rangeWithScores(getKey(), start, end);
+	}
+
+	@Override
+	public Set<V> reverseRangeByScore(double min, double max) {
+		return ops.reverseRangeByScore(getKey(), min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max) {
+		return ops.reverseRangeByScoreWithScores(getKey(), min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> reverseRangeWithScores(long start, long end) {
+		return ops.reverseRangeWithScores(getKey(), start, end);
 	}
 
 	@Override
