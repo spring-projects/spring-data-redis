@@ -19,8 +19,10 @@ package org.springframework.data.keyvalue.redis.connection.jedis;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -40,6 +42,7 @@ import org.springframework.data.keyvalue.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
 
 import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Protocol;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -217,5 +220,14 @@ public abstract class JedisUtils {
 		}
 
 		return result;
+	}
+
+	static byte[][] bXPopArgs(int timeout, byte[]... keys) {
+		final List<byte[]> args = new ArrayList<byte[]>();
+		for (final byte[] arg : keys) {
+			args.add(arg);
+		}
+		args.add(Protocol.toByteArray(timeout));
+		return args.toArray(new byte[args.size()][]);
 	}
 }
