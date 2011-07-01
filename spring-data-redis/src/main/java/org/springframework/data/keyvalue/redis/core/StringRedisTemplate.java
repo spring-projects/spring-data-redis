@@ -36,6 +36,8 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 
 	/**
 	 * Constructs a new <code>StringRedisTemplate</code> instance.
+	 * {@link #setConnectionFactory(RedisConnectionFactory)} and {@link #afterPropertiesSet()} still need to be called.
+	 * 
 	 */
 	public StringRedisTemplate() {
 		RedisSerializer<String> stringSerializer = new StringRedisSerializer();
@@ -46,7 +48,7 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 	}
 
 	/**
-	 * Constructs a new <code>StringRedisTemplate</code> instance.
+	 * Constructs a new <code>StringRedisTemplate</code> instance ready to be used. 
 	 *
 	 * @param connectionFactory connection factory for creating new connections
 	 */

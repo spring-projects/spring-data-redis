@@ -88,42 +88,6 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses as initial value
-	 * the data from the backing store (sets the counter to 0 if no value is found).
-	 *
-	 * Use {@link #RedisAtomicLong(String, RedisOperations, long)} to set the counter to a certain value
-	 * as an alternative constructor or {@link #set(long)}. 
-	 * 
-	 * Note that longs need to be properly serialized so that Redis can recognized the values as numeric and thus modify their value.
-	 * 
-	 * @param redisCounter
-	 * @param operations
-	 */
-	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations) {
-		this.key = redisCounter;
-		this.operations = operations.opsForValue();
-		this.generalOps = operations;
-		if (this.operations.get(redisCounter) == null) {
-			set(0);
-		}
-	}
-
-	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance with the given initial value.
-	 *
-	 * Note that longs need to be properly serialized so that Redis can recognized the values as numeric and thus modify their value.
-	 * 
-	 * @param redisCounter
-	 * @param operations
-	 * @param initialValue
-	 */
-	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> operations, long initialValue) {
-		this.key = redisCounter;
-		this.operations = operations.opsForValue();
-		this.operations.set(redisCounter, initialValue);
-	}
-
-	/**
 	 * Gets the current value.
 	 *
 	 * @return the current value

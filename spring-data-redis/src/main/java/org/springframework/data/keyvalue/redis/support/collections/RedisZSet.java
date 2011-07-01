@@ -21,6 +21,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.springframework.data.keyvalue.redis.core.ZSetOperations.TypedTuple;
+
 /**
  * Redis ZSet (or sorted set (by weight)). Acts as a {@link SortedSet} based on the given priorities or weights associated with each item.
  * <p/>
@@ -43,6 +45,16 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<E> reverseRange(long start, long end);
 
 	Set<E> rangeByScore(double min, double max);
+
+	Set<E> reverseRangeByScore(double min, double max);
+
+	Set<TypedTuple<E>> rangeWithScores(long start, long end);
+
+	Set<TypedTuple<E>> reverseRangeWithScores(long start, long end);
+
+	Set<TypedTuple<E>> rangeByScoreWithScores(double min, double max);
+
+	Set<TypedTuple<E>> reverseRangeByScoreWithScores(double min, double max);
 
 	RedisZSet<E> remove(long start, long end);
 

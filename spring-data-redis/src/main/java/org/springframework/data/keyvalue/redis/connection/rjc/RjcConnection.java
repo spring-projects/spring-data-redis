@@ -1547,7 +1547,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeWithScore(byte[] key, long start, long end) {
+	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
 		try {
 
@@ -1579,41 +1579,6 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
-		String stringKey = RjcUtils.decode(key);
-		String minString = Double.toString(min);
-		String maxString = Double.toString(max);
-
-		try {
-			if (isPipelined()) {
-				pipeline.zrangeByScoreWithScores(stringKey, minString, maxString);
-				return null;
-			}
-			return RjcUtils.convertElementScore(session.zrangeByScoreWithScores(stringKey, minString, maxString));
-		} catch (Exception ex) {
-			throw convertRjcAccessException(ex);
-		}
-	}
-
-	@Override
-	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
-		String stringKey = RjcUtils.decode(key);
-		String minString = Long.toString(start);
-		String maxString = Long.toString(end);
-
-		try {
-
-			if (isPipelined()) {
-				pipeline.zrangeByScoreWithScores(stringKey, minString, maxString);
-				return null;
-			}
-			return RjcUtils.convertElementScore(session.zrangeByScoreWithScores(stringKey, minString, maxString));
-		} catch (Exception ex) {
-			throw convertRjcAccessException(ex);
-		}
-	}
-
-	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
@@ -1631,8 +1596,79 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
+
 	@Override
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count) {
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
+		String stringKey = RjcUtils.decode(key);
+		String minString = Double.toString(min);
+		String maxString = Double.toString(max);
+
+		try {
+			if (isPipelined()) {
+				pipeline.zrevrangeByScore(stringKey, minString, maxString, (int) offset, (int) count);
+				return null;
+			}
+			return RjcUtils.convertToSet(session.zrevrangeByScore(stringKey, minString, maxString, (int) offset,
+					(int) count));
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+		String stringKey = RjcUtils.decode(key);
+		String minString = Double.toString(min);
+		String maxString = Double.toString(max);
+
+		try {
+			if (isPipelined()) {
+				pipeline.zrevrangeByScore(stringKey, minString, maxString);
+				return null;
+			}
+			return RjcUtils.convertToSet(session.zrevrangeByScore(stringKey, minString, maxString));
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
+		String stringKey = RjcUtils.decode(key);
+		String minString = Double.toString(min);
+		String maxString = Double.toString(max);
+
+		try {
+			if (isPipelined()) {
+				pipeline.zrangeByScoreWithScores(stringKey, minString, maxString);
+				return null;
+			}
+			return RjcUtils.convertElementScore(session.zrangeByScoreWithScores(stringKey, minString, maxString));
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
+		String stringKey = RjcUtils.decode(key);
+		String minString = Long.toString(start);
+		String maxString = Long.toString(end);
+
+		try {
+
+			if (isPipelined()) {
+				pipeline.zrevrangeByScoreWithScores(stringKey, minString, maxString);
+				return null;
+			}
+			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, minString, maxString));
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		String stringKey = RjcUtils.decode(key);
 		String minString = Double.toString(min);
 		String maxString = Double.toString(max);
@@ -1644,6 +1680,44 @@ public class RjcConnection implements RedisConnection {
 			}
 			return RjcUtils.convertElementScore(session.zrangeByScoreWithScores(stringKey, minString, maxString,
 					(int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		String stringKey = RjcUtils.decode(key);
+		String minString = Double.toString(min);
+		String maxString = Double.toString(max);
+
+		try {
+
+			if (isPipelined()) {
+				pipeline.zrevrangeByScoreWithScores(stringKey, minString, maxString, (int) offset, (int) count);
+				return null;
+			}
+			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, minString, maxString,
+					(int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+		String stringKey = RjcUtils.decode(key);
+		String minString = Double.toString(min);
+		String maxString = Double.toString(max);
+
+		try {
+
+			if (isPipelined()) {
+				pipeline.zrevrangeByScoreWithScores(stringKey, minString, maxString);
+				return null;
+			}
+			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, minString, maxString));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}

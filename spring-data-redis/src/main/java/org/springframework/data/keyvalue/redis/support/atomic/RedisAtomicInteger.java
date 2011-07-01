@@ -88,43 +88,6 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses as initial value
-	 * the data from the backing store (sets the counter to 0 if no value is found).
-	 * 
-	 * Use {@link #RedisAtomicInteger(String, RedisOperations, int)} to set the counter to a certain value
-	 * as an alternative constructor or {@link #set(int)}.
-	 * 
-	 * Note that integers need to be properly serialized so that Redis can recognized the values as numeric and thus modify their value.
-	 *
-	 * @param redisCounter
-	 * @param operations
-	 */
-	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations) {
-		this.key = redisCounter;
-		this.operations = operations.opsForValue();
-		this.generalOps = operations;
-		if (this.operations.get(redisCounter) == null) {
-			set(0);
-		}
-	}
-
-	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance with the given initial value.
-	 *
-	 * Note that integers need to be properly serialized so that Redis can recognized the values as numeric and thus modify their value.
-	 * 
-	 * @param redisCounter
-	 * @param operations
-	 * @param initialValue
-	 */
-	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> operations, int initialValue) {
-		this.key = redisCounter;
-		this.operations = operations.opsForValue();
-		this.generalOps = operations;
-		this.operations.set(redisCounter, initialValue);
-	}
-
-	/**
 	 * Get the current value.
 	 *
 	 * @return the current value

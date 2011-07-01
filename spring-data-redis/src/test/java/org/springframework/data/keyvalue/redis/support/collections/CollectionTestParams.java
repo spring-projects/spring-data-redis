@@ -24,6 +24,7 @@ import org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionF
 import org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.keyvalue.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.keyvalue.redis.core.RedisTemplate;
+import org.springframework.data.keyvalue.redis.core.StringRedisTemplate;
 import org.springframework.data.keyvalue.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.keyvalue.redis.serializer.OxmSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -56,20 +57,26 @@ public abstract class CollectionTestParams {
 
 		jedisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplate = new RedisTemplate<String, String>(jedisConnFactory);
-		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate(jedisConnFactory);
+		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>();
+		personTemplate.setConnectionFactory(jedisConnFactory);
+		personTemplate.afterPropertiesSet();
 
 		RedisTemplate<String, String> xstreamStringTemplate = new RedisTemplate<String, String>();
 		xstreamStringTemplate.setConnectionFactory(jedisConnFactory);
 		xstreamStringTemplate.setDefaultSerializer(serializer);
 		xstreamStringTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		RedisTemplate<String, Person> xstreamPersonTemplate = new RedisTemplate<String, Person>();
+		xstreamPersonTemplate.setConnectionFactory(jedisConnFactory);
 		xstreamPersonTemplate.setValueSerializer(serializer);
+		xstreamPersonTemplate.afterPropertiesSet();
 
 		// json
-		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>(jedisConnFactory);
+		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>();
+		jsonPersonTemplate.setConnectionFactory(jedisConnFactory);
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
+		jsonPersonTemplate.afterPropertiesSet();
 
 		// jredis
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
@@ -80,18 +87,25 @@ public abstract class CollectionTestParams {
 
 		jredisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
-		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		RedisTemplate<String, String> stringTemplateJR = new StringRedisTemplate(jredisConnFactory);
+		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>();
+		personTemplateJR.setConnectionFactory(jredisConnFactory);
+		personTemplateJR.afterPropertiesSet();
 
 		RedisTemplate<String, Person> xstreamStringTemplateJR = new RedisTemplate<String, Person>();
 		xstreamStringTemplateJR.setConnectionFactory(jredisConnFactory);
 		xstreamStringTemplateJR.setDefaultSerializer(serializer);
 		xstreamStringTemplateJR.afterPropertiesSet();
 
-		RedisTemplate<String, Person> xstreamPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
+		RedisTemplate<String, Person> xstreamPersonTemplateJR = new RedisTemplate<String, Person>();
 		xstreamPersonTemplateJR.setValueSerializer(serializer);
-		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>(jredisConnFactory);
-		jsonPersonTemplate.setValueSerializer(jsonSerializer);
+		xstreamPersonTemplateJR.setConnectionFactory(jredisConnFactory);
+		xstreamPersonTemplateJR.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>();
+		jsonPersonTemplateJR.setValueSerializer(jsonSerializer);
+		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
+		jsonPersonTemplateJR.afterPropertiesSet();
 
 
 		// rjc
@@ -101,8 +115,10 @@ public abstract class CollectionTestParams {
 		rjcConnFactory.setHostName(SettingsUtils.getHost());
 		rjcConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplateRJC = new RedisTemplate<String, String>(rjcConnFactory);
-		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>(rjcConnFactory);
+		RedisTemplate<String, String> stringTemplateRJC = new StringRedisTemplate(rjcConnFactory);
+		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>();
+		personTemplateRJC.setConnectionFactory(rjcConnFactory);
+		personTemplateRJC.afterPropertiesSet();
 
 		RedisTemplate<String, Person> xstreamStringTemplateRJC = new RedisTemplate<String, Person>();
 		xstreamStringTemplateRJC.setConnectionFactory(rjcConnFactory);

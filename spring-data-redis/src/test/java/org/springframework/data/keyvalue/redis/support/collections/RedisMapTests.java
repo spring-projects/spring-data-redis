@@ -65,13 +65,13 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(false);
-
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
-
 		jedisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> genericTemplate = new RedisTemplate<String, String>(jedisConnFactory);
+		RedisTemplate genericTemplate = new RedisTemplate();
+		genericTemplate.setConnectionFactory(jedisConnFactory);
+		genericTemplate.afterPropertiesSet();
 
 		RedisTemplate<String, String> xstreamGenericTemplate = new RedisTemplate<String, String>();
 		xstreamGenericTemplate.setConnectionFactory(jedisConnFactory);
@@ -92,7 +92,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jredisConnFactory.setHostName(SettingsUtils.getHost());
 		jredisConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> genericTemplateJR = new RedisTemplate<String, String>(jredisConnFactory);
+		RedisTemplate genericTemplateJR = new RedisTemplate();
+		genericTemplateJR.setConnectionFactory(jredisConnFactory);
+		genericTemplateJR.afterPropertiesSet();
+
 		RedisTemplate<String, Person> xGenericTemplateJR = new RedisTemplate<String, Person>();
 		xGenericTemplateJR.setConnectionFactory(jredisConnFactory);
 		xGenericTemplateJR.setDefaultSerializer(serializer);
@@ -114,7 +117,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		rjcConnFactory.setHostName(SettingsUtils.getHost());
 		rjcConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> genericTemplateRJC = new RedisTemplate<String, String>(jredisConnFactory);
+		RedisTemplate genericTemplateRJC = new RedisTemplate();
+		genericTemplateRJC.setConnectionFactory(rjcConnFactory);
+		genericTemplateRJC.afterPropertiesSet();
+
 		RedisTemplate<String, Person> xGenericTemplateRJC = new RedisTemplate<String, Person>();
 		xGenericTemplateRJC.setConnectionFactory(rjcConnFactory);
 		xGenericTemplateRJC.setDefaultSerializer(serializer);

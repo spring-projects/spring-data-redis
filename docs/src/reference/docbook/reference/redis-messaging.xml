@@ -162,6 +162,7 @@ template.convertAndSend("hello!", "world");]]></programlisting>
   ...
 &lt;beans&gt;
 </programlisting>
+      <note>The listener topic can be either a channel (e.g. <literal>topic="chatroom"</literal>) or a pattern (e.g. <literal>topic="*room"</literal>)</note>
 	
       <para>The example above uses the Redis namespace to declare the message listener container and automatically register the POJOs as listeners. The full blown, <emphasis>beans</emphasis> definition
       is displayed below:</para>

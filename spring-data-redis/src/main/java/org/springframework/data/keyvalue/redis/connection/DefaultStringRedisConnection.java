@@ -516,16 +516,32 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.zRangeByScore(key, min, max);
 	}
 
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max, long offset, long count) {
-		return delegate.zRangeByScoreWithScore(key, min, max, offset, count);
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		return delegate.zRangeByScoreWithScores(key, min, max, offset, count);
 	}
 
-	public Set<Tuple> zRangeByScoreWithScore(byte[] key, double min, double max) {
-		return delegate.zRangeByScoreWithScore(key, min, max);
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
+		return delegate.zRangeByScoreWithScores(key, min, max);
 	}
 
-	public Set<Tuple> zRangeWithScore(byte[] key, long start, long end) {
-		return delegate.zRangeWithScore(key, start, end);
+	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
+		return delegate.zRangeWithScores(key, start, end);
+	}
+
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
+		return delegate.zRevRangeByScore(key, min, max, offset, count);
+	}
+
+	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+		return delegate.zRevRangeByScore(key, min, max);
+	}
+
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		return delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
+	}
+
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+		return delegate.zRevRangeByScoreWithScores(key, min, max);
 	}
 
 	public Long zRank(byte[] key, byte[] value) {
@@ -548,8 +564,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.zRevRange(key, start, end);
 	}
 
-	public Set<Tuple> zRevRangeWithScore(byte[] key, long start, long end) {
-		return delegate.zRevRangeWithScore(key, start, end);
+	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
+		return delegate.zRevRangeWithScores(key, start, end);
 	}
 
 	public Long zRevRank(byte[] key, byte[] value) {
@@ -1058,18 +1074,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public Set<StringTuple> zRangeByScoreWithScore(String key, double min, double max, long offset, long count) {
-		return deserializeTuple(delegate.zRangeByScoreWithScore(serialize(key), min, max, offset, count));
+	public Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max, long offset, long count) {
+		return deserializeTuple(delegate.zRangeByScoreWithScores(serialize(key), min, max, offset, count));
 	}
 
 	@Override
-	public Set<StringTuple> zRangeByScoreWithScore(String key, double min, double max) {
-		return deserializeTuple(delegate.zRangeByScoreWithScore(serialize(key), min, max));
+	public Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max) {
+		return deserializeTuple(delegate.zRangeByScoreWithScores(serialize(key), min, max));
 	}
 
 	@Override
-	public Set<StringTuple> zRangeWithScore(String key, long start, long end) {
-		return deserializeTuple(delegate.zRangeWithScore(serialize(key), start, end));
+	public Set<StringTuple> zRangeWithScores(String key, long start, long end) {
+		return deserializeTuple(delegate.zRangeWithScores(serialize(key), start, end));
 	}
 
 	@Override
@@ -1098,8 +1114,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	@Override
-	public Set<StringTuple> zRevRangeWithScore(String key, long start, long end) {
-		return deserializeTuple(delegate.zRevRangeWithScore(serialize(key), start, end));
+	public Set<StringTuple> zRevRangeWithScores(String key, long start, long end) {
+		return deserializeTuple(delegate.zRevRangeWithScores(serialize(key), start, end));
 	}
 
 	@Override

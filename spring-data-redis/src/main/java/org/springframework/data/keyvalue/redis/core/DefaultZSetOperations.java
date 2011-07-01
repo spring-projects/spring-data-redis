@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.springframework.data.keyvalue.redis.connection.RedisConnection;
+import org.springframework.data.keyvalue.redis.connection.RedisZSetCommands.Tuple;
 
 /**
  * Default implementation of {@link ZSetOperations}.
@@ -76,7 +77,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Set<V> range(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
@@ -91,7 +91,48 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
+	public Set<V> reverseRange(K key, final long start, final long end) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+			@Override
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.zRevRange(rawKey, start, end);
+			}
+		}, true);
+
+		return deserializeValues(rawValues);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> rangeWithScores(K key, final long start, final long end) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
+			@Override
+			public Set<Tuple> doInRedis(RedisConnection connection) {
+				return connection.zRangeWithScores(rawKey, start, end);
+			}
+		}, true);
+
+		return deserializeTupleValues(rawValues);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> reverseRangeWithScores(K key, final long start, final long end) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
+			@Override
+			public Set<Tuple> doInRedis(RedisConnection connection) {
+				return connection.zRevRangeWithScores(rawKey, start, end);
+			}
+		}, true);
+
+		return deserializeTupleValues(rawValues);
+	}
+
 	@Override
 	public Set<V> rangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
@@ -104,6 +145,50 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 
 		return deserializeValues(rawValues);
+	}
+
+
+	@Override
+	public Set<V> reverseRangeByScore(K key, final double min, final double max) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+			@Override
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.zRevRangeByScore(rawKey, min, max);
+			}
+		}, true);
+
+		return deserializeValues(rawValues);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, final double min, final double max) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
+			@Override
+			public Set<Tuple> doInRedis(RedisConnection connection) {
+				return connection.zRangeByScoreWithScores(rawKey, min, max);
+			}
+		}, true);
+
+		return deserializeTupleValues(rawValues);
+	}
+
+	@Override
+	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, final double min, final double max) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
+			@Override
+			public Set<Tuple> doInRedis(RedisConnection connection) {
+				return connection.zRevRangeByScoreWithScores(rawKey, min, max);
+
+			}
+		}, true);
+
+		return deserializeTupleValues(rawValues);
 	}
 
 	@Override
@@ -169,21 +254,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 				return null;
 			}
 		}, true);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Set<V> reverseRange(K key, final long start, final long end) {
-		final byte[] rawKey = rawKey(key);
-
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-			@Override
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRevRange(rawKey, start, end);
-			}
-		}, true);
-
-		return deserializeValues(rawValues);
 	}
 
 	@Override

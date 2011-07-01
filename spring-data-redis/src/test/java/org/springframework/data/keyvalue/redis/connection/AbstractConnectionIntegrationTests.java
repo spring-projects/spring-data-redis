@@ -189,7 +189,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	// pub sub test
-
 	@Test
 	public void testPubSub() throws Exception {
 
@@ -263,7 +262,7 @@ public abstract class AbstractConnectionIntegrationTests {
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
-					Thread.currentThread().sleep(1000);
+					Thread.currentThread().sleep(2000);
 				} catch (InterruptedException ex) {
 					throw new RuntimeException(ex);
 				}
@@ -301,7 +300,7 @@ public abstract class AbstractConnectionIntegrationTests {
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
-					Thread.currentThread().sleep(1000);
+					Thread.currentThread().sleep(1500);
 				} catch (InterruptedException ex) {
 					throw new RuntimeException(ex);
 				}

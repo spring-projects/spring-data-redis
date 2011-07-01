@@ -18,7 +18,7 @@
     <title>Redis Requirements</title>
     <para>SDKV requires Redis 2.0 or above (Redis 2.2 is recommended) and Java SE 6.0 or above.
     In terms of language bindings (or connectors), SDKV integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink>,  
-    <ulink url="http://github.com/alphazero/jredis">JRedis</ulink> and <ulink url="https://github.com/e-mzungu/rjc">RJC</ulink>, three popular open source Java libraries for Redis. 
+    <ulink url="http://github.com/alphazero/jredis">JRedis</ulink> and <ulink url="http://github.com/e-mzungu/rjc">RJC</ulink>, three popular open source Java libraries for Redis. 
     If you are aware of any other connector that we should be integrating is, please send us feedback.
     </para>
   </section>
@@ -141,6 +141,36 @@
       the Redis key stored values will differ from the decoded ones, even in the simplest cases, since everything (no matter the format) is encoded. This will not be
       the case for Redis values.</para>
       <para>This issue is currently being addressed in the JRedis project and once fixed, will be incorporated by Spring Data Redis.</para>  
+      </important>
+      
+      </section>
+
+      <section id="redis:connectors:rjc">
+        <title>Configuring RJC connector</title>
+        
+        <para><ulink url="http://github.com/e-mzungu/rjc">RJC</ulink> is the third, open-source connector supported by SDKV through the
+        <literal>org.springframework.data.keyvalue.redis.connection.rjc</literal> package.</para> 
+        
+        <para>Similar to the other connectors, a typical RJC configuration can looks like this:</para>
+
+        <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+  <bean id="jredisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.rjc.RjcConnectionFactory"
+        p:host-name="server" p:port="6379"/>
+</beans>]]></programlisting>
+
+      <para>As one can note, the configuration is quite similar to the Jredis or Jedis one.</para>
+      
+      <important><para>Currently, RJC does not have support for binary keys. This forces the <classname>RjcConnection</classname> to perform encoding internally
+      (through <ulink url="http://en.wikipedia.org/wiki/Base64">base64</ulink> schema). In practice, this means it's safe to read/write arbitrary data however 
+      the Redis key stored values will differ from the decoded ones, even in the simplest cases, since everything (no matter the format) is encoded. This will not be
+      the case for Redis values.</para>
+      <para>This issue is currently being addressed in the RJC project and once fixed, will be incorporated by Spring Data Redis.</para>  
       </important>
       
       </section>

@@ -26,6 +26,15 @@ import java.util.Set;
  */
 public interface ZSetOperations<K, V> {
 
+	/**
+	 * Typed ZSet tuple. 
+	 */
+	public interface TypedTuple<V> {
+		V getValue();
+
+		Double getScore();
+	}
+
 	void intersectAndStore(K key, K otherKey, K destKey);
 
 	void intersectAndStore(K key, Collection<K> otherKeys, K destKey);
@@ -36,9 +45,19 @@ public interface ZSetOperations<K, V> {
 
 	Set<V> range(K key, long start, long end);
 
+	Set<V> reverseRange(K key, long start, long end);
+
+	Set<TypedTuple<V>> rangeWithScores(K key, long start, long end);
+
+	Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end);
+
 	Set<V> rangeByScore(K key, double min, double max);
 
-	Set<V> reverseRange(K key, long start, long end);
+	Set<V> reverseRangeByScore(K key, double min, double max);
+
+	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max);
+
+	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max);
 
 	Boolean add(K key, V value, double score);
 

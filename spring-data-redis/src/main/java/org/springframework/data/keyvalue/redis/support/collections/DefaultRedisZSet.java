@@ -23,6 +23,7 @@ import java.util.Set;
 import org.springframework.data.keyvalue.redis.connection.DataType;
 import org.springframework.data.keyvalue.redis.core.BoundZSetOperations;
 import org.springframework.data.keyvalue.redis.core.RedisOperations;
+import org.springframework.data.keyvalue.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * Default implementation for {@link RedisZSet}.
@@ -116,6 +117,31 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	@Override
 	public Set<E> rangeByScore(double min, double max) {
 		return boundZSetOps.rangeByScore(min, max);
+	}
+
+	@Override
+	public Set<E> reverseRangeByScore(double min, double max) {
+		return boundZSetOps.reverseRangeByScore(min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<E>> rangeByScoreWithScores(double min, double max) {
+		return boundZSetOps.rangeByScoreWithScores(min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<E>> rangeWithScores(long start, long end) {
+		return boundZSetOps.rangeWithScores(start, end);
+	}
+
+	@Override
+	public Set<TypedTuple<E>> reverseRangeByScoreWithScores(double min, double max) {
+		return boundZSetOps.reverseRangeByScoreWithScores(min, max);
+	}
+
+	@Override
+	public Set<TypedTuple<E>> reverseRangeWithScores(long start, long end) {
+		return boundZSetOps.reverseRangeWithScores(start, end);
 	}
 
 	@Override
