@@ -5,7 +5,6 @@
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" kind="src" path="/spring-data-core"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.slf4j/slf4j-log4j12/jars/slf4j-log4j12-1.6.1.jar" sourcepath="C:/Users/costin/.gradle/cache/org.slf4j/slf4j-log4j12/sources/slf4j-log4j12-1.6.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-context-support/jars/spring-context-support-3.0.5.RELEASE.jar" sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-context-support/sources/spring-context-support-3.0.5.RELEASE-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-expression/jars/spring-expression-3.0.5.RELEASE.jar" sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-expression/sources/spring-expression-3.0.5.RELEASE-sources.jar"/>
@@ -25,14 +24,15 @@
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-tx/jars/spring-tx-3.0.5.RELEASE.jar" sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-tx/sources/spring-tx-3.0.5.RELEASE-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-test/jars/spring-test-3.0.5.RELEASE.jar" sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-test/sources/spring-test-3.0.5.RELEASE-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-aop/jars/spring-aop-3.0.5.RELEASE.jar" sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-aop/sources/spring-aop-3.0.5.RELEASE-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/redis.clients/jedis/jars/jedis-2.0.0.jar" sourcepath="C:/Users/costin/.gradle/cache/redis.clients/jedis/sources/jedis-2.0.0-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/commons-pool/commons-pool/jars/commons-pool-1.5.6.jar" sourcepath="C:/Users/costin/.gradle/cache/commons-pool/commons-pool/sources/commons-pool-1.5.6-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/javax.annotation/jsr250-api/jars/jsr250-api-1.0.jar" sourcepath="C:/Users/costin/.gradle/cache/javax.annotation/jsr250-api/sources/jsr250-api-1.0-sources.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/spring-data-keyvalue-core"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/commons-beanutils/commons-beanutils-core/jars/commons-beanutils-core-1.8.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/com.thoughtworks.xstream/xstream/jars/xstream-1.3.jar" sourcepath="C:/Users/costin/.gradle/cache/com.thoughtworks.xstream/xstream/sources/xstream-1.3-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/redis.clients/jedis/jars/jedis-1.5.2.jar" sourcepath="C:/Users/costin/.gradle/cache/redis.clients/jedis/sources/jedis-1.5.2-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.mockito/mockito-all/jars/mockito-all-1.8.5.jar" sourcepath="C:/Users/costin/.gradle/cache/org.mockito/mockito-all/sources/mockito-all-1.8.5-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/junit/junit/jars/junit-4.8.1.jar" sourcepath="C:/Users/costin/.gradle/cache/junit/junit/sources/junit-4.8.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/org.slf4j/jcl-over-slf4j/jars/jcl-over-slf4j-1.6.1.jar" sourcepath="C:/Users/costin/.gradle/cache/org.slf4j/jcl-over-slf4j/sources/jcl-over-slf4j-1.6.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="C:/Users/costin/.gradle/cache/commons-logging/commons-logging/jars/commons-logging-1.1.1.jar" sourcepath="C:/Users/costin/.gradle/cache/commons-logging/commons-logging/sources/commons-logging-1.1.1-sources.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/spring-data-core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

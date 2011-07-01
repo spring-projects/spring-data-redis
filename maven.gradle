@@ -37,6 +37,7 @@ def deployer = null
 
 uploadArchives {
     description = "Maven deploy of archives artifacts to SpringSource Maven repos" // url appended below
+    group = "Distribution"
     // Maven deployment
     def releaseRepositoryUrl = "file://${project.properties.mavenSyncRepoDir}"
     def milestoneRepositoryUrl = 's3://maven.springframework.org/milestone'
