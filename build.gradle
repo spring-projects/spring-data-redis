@@ -1,0 +1,140 @@
+// used for artifact names, building doc upload urls, etc.
+description = 'Spring Data Key Value'
+abbreviation = 'DATAKV'
+
+apply plugin: 'base'
+apply plugin: 'idea'
+
+buildscript {
+    repositories {
+//        add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+//            name = "local"
+//            addIvyPattern "e:/work/i21/gradle-plugins/build/repo/[organisation].[module]-ivy-[revision].xml"
+//            addArtifactPattern "e:/work/i21/gradle-plugins/build/repo/[organisation].[module]-[revision](-[classifier]).[ext]"
+//        }
+    
+        add(new org.apache.ivy.plugins.resolver.URLResolver()) {
+            name = "GitHub"
+            addIvyPattern 'http://cloud.github.com/downloads/costin/gradle-stuff/[organization].[module]-[artifact]-[revision].[ext]'
+            addArtifactPattern 'http://cloud.github.com/downloads/costin/gradle-stuff/[organization].[module]-[revision].[ext]'
+        }
+        mavenCentral()
+        mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
+        mavenRepo name: "springsource-org-external", urls: "http://repository.springsource.com/maven/bundles/external"
+    }
+
+    dependencies {
+        classpath 'org.springframework:gradle-stuff:0.1-20110421'
+        classpath 'net.sf.docbook:docbook-xsl:1.75.2:ns-resources@zip'
+    }
+}
+
+allprojects {
+    group = 'org.springframework.data'
+    version = '1.0.0.BUILD-SNAPSHOT'
+   
+    releaseBuild = version.endsWith('RELEASE')
+    snapshotBuild = version.endsWith('SNAPSHOT')
+
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        // Public Spring artefacts
+        mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
+        mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
+        mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
+        mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
+        mavenRepo name: "sonatype-snapshot", urls: "http://oss.sonatype.org/content/repositories/snapshots"
+        mavenRepo name: "jboss", urls: "http://repository.jboss.org/maven2/"
+        mavenRepo name: "java.net", urls: "http://download.java.net/maven/2/"
+	}
+}
+
+javaprojects = subprojects.findAll { 
+    project -> project.path.startsWith(':spring-data-')
+}
+
+configure(javaprojects) {
+  apply plugin: "java"
+  apply plugin: "maven"
+  apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
+  apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
+  apply plugin: 'docbook'
+  apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
+
+  bundlor.useProjectProps = true
+  [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
+	
+	// Common dependencies
+	dependencies {
+		// Logging
+		compile "org.slf4j:slf4j-api:$slf4jVersion"
+		compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+		runtime "log4j:log4j:$log4jVersion"
+		runtime "org.slf4j:slf4j-log4j12:$slf4jVersion"
+		// Spring Framework
+		compile("org.springframework:spring-core:$springVersion") {
+			exclude module: "commons-logging"
+		}
+		compile "org.springframework:spring-beans:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		// Jackson JSON Mapper
+		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		// Testing
+		testCompile "junit:junit:$junitVersion"
+		testCompile "org.springframework:spring-test:$springVersion"
+		testCompile "org.mockito:mockito-all:$mockitoVersion"
+	}
+	
+	apply from: "$rootDir/maven.gradle"
+}
+
+ideaProject {
+	withXml { provider ->
+		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+	}
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '0.9.2'
+    description = "Generate the Gradle wrapper"
+    group = "Distribution"
+}
+
+// Distribution tasks
+task dist(type: Zip) {
+    description = "Generate the ZIP Distribution"
+    group = "Distribution"
+    dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
+
+    evaluationDependsOn(':docs')
+
+    def zipRootDir = "${project.name}-$version"
+    into(zipRootDir) {
+        from('/docs/src/info') {
+            include '*.txt'
+        }
+        from('/docs/build/') {
+            into 'docs'
+            include 'reference/**/*'
+            include 'api/**/*'
+        }
+        into('dist') {
+            from javaprojects.collect {project -> project.libsDir }
+        }
+    }
+    doLast {
+        ant.checksum(file: archivePath, algorithm: 'SHA1', fileext: '.sha1')
+    }
+}
+
+task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn: dist) {
+    description = "Upload the ZIP Distribution"
+    group = "Distribution"
+    archiveFile = dist.archivePath
+    projectKey = 'DATAKV'
+    projectName = 'Spring Data Key Value'
+}

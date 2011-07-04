@@ -1,0 +1,119 @@
+apply plugin: 'maven'
+
+// Create a source jar for uploading
+task sourceJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+// Create a javadoc jar for uploading
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourceJar
+    archives javadocJar
+}
+
+// Configuration for SpringSource s3 maven deployer
+configurations {
+    deployerJars
+}
+dependencies {
+    deployerJars "org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE"
+}
+
+// Remove the archive configuration from the runtime configuration, so that anything added to archives
+// (such as the source jar) is no longer included in the runtime classpath
+configurations.default.extendsFrom = [configurations.runtime] as Set
+// Add the main jar into the default configuration
+artifacts { 'default' jar }
+
+gradle.taskGraph.whenReady {graph ->
+    if (graph.hasTask(uploadArchives)) {
+        // check properties defined and fail early
+        s3AccessKey
+        s3SecretAccessKey
+    }
+}
+
+def deployer = null
+
+uploadArchives {
+    description = "Maven deploy of archives artifacts to SpringSource Maven repos" // url appended below
+    group = "Distribution"
+    // Maven deployment
+    def releaseRepositoryUrl = "file://${project.properties.mavenSyncRepoDir}"
+    def milestoneRepositoryUrl = 's3://maven.springframework.org/milestone'
+    def snapshotRepositoryUrl = 's3://maven.springframework.org/snapshot'
+
+    // add a configuration with a classpath that includes our s3 maven deployer
+    configurations { deployerJars }
+    dependencies {
+      deployerJars "org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE"
+    }
+
+    deployer = repositories.mavenDeployer {
+        configuration = configurations.deployerJars
+        // releaseBuild
+        if (releaseBuild) {
+            logger.info("Deploying to local Maven repo " + releaseRepositoryUrl)
+            // "mavenSyncRepoDir" should be set in properties
+            repository(url: releaseRepositoryUrl)
+        } else {
+            s3credentials = [userName: project.properties.s3AccessKey, passphrase: project.properties.s3SecretAccessKey]
+            repository(url: milestoneRepositoryUrl) {
+                authentication(s3credentials)
+            }
+            snapshotRepository(url: snapshotRepositoryUrl) {
+                authentication(s3credentials)
+            }
+        }
+    }
+    
+    customizePom(deployer.pom)
+}
+
+install {
+    customizePom(repositories.mavenInstaller.pom)
+}
+
+def customizePom(pom) {
+    def optionalDeps = ['log4j','jsr250-api']
+
+    //pom.scopeMappings.addMapping(10, configurations.provided, 'provided')
+    pom.whenConfigured { p ->
+        // Remove test scope dependencies from published poms
+        p.dependencies = p.dependencies.findAll {it.scope != 'test'}
+
+        // Flag optional deps
+        
+        p.dependencies.findAll { dep ->
+            optionalDeps.contains(dep.artifactId) ||
+            dep.groupId.startsWith('org.slf4j')
+        }*.optional = true
+        
+    }
+
+    pom.project {
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+            }
+        }
+        
+        // similar to Spring's configuration
+        dependencies {
+            dependency {
+                artifactId = groupId = 'commons-logging'
+                scope = 'compile'
+                optional = 'true'
+                version = '1.1.1'
+            }
+        }
+    }
+}

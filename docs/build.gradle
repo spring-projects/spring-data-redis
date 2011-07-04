@@ -1,0 +1,136 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+// -----------------------------------------------------------------------------
+// Configuration for the docs subproject
+// -----------------------------------------------------------------------------
+
+apply plugin: 'base'
+apply plugin: 'docbook'
+
+assemble.dependsOn = ['api', 'docbook']
+
+
+[docbookHtml, docbookFoPdf, docbookHtmlSingle]*.group = 'Documentation'
+[docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
+[docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceDirectory = new File(projectDir, 'src/reference/docbook')
+
+docbookHtml.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-custom.xsl')
+docbookHtmlSingle.stylesheet = new File(projectDir, 'src/reference/resources/xsl/html-single-custom.xsl')
+docbookFoPdf.stylesheet = new File(projectDir, 'src/reference/resources/xsl/pdf-custom.xsl')
+
+def imagesDir = new File(projectDir, 'src/reference/resources/images');
+docbookFoPdf.admonGraphicsPath = "${imagesDir}/admon"
+docbookFoPdf.imgSrcPath = "${imagesDir}"
+
+refSpec = copySpec {
+    into ('reference') {
+        from("$buildDir/docs")
+        from("$projectDir/src/reference/resources")
+    }
+    into ('reference/images') {
+        from (imagesDir)
+    }
+    
+    p = new Properties()
+    
+    for (e in project.properties) {
+      if (e.key != null && e.value != null)
+         p.setProperty(e.key, e.value.toString())
+    }
+    
+    filter(ReplaceTokens, tokens: p)
+}
+
+task reference (type: Copy) {
+    dependsOn 'docbook'
+    description = "Builds aggregated DocBook"
+    group = "Documentation"
+    logger.info("Version is " + version)
+    destinationDir = buildDir
+    with(refSpec)
+}
+    
+task api(type: Javadoc) {
+  group = "Documentation"
+  description = "Builds aggregated JavaDoc HTML for all core project classes."
+    
+  // this task is a bit ugly to configure. it was a user contribution, and
+  // Hans tells me it's on the roadmap to redesign it.
+  
+  srcDir = file("${projectDir}/src/api")
+  destinationDir = file("${buildDir}/api")
+  tmpDir = file("${buildDir}/api-work")
+  
+  configure(options) {
+      stylesheetFile = file("${srcDir}/spring-javadoc.css")
+      links = ["http://static.springframework.org/spring/docs/3.0.x/javadoc-api"]
+      overview = "${srcDir}/overview.html"
+      docFilesSubDirs = true
+      outputLevel = org.gradle.external.javadoc.JavadocOutputLevel.QUIET
+      breakIterator = true
+      showFromProtected()
+      groups = [
+        'Spring Data Key Value Core': ['org.springframework.data.keyvalue*'], 
+        'Spring Data Redis Support' : ['org.springframework.data.keyvalue.redis*'],
+        'Spring Data Riak Support'  : ['org.springframework.data.keyvalue.riak*']
+      ]
+  
+     links = [
+        "http://static.springframework.org/spring/docs/3.0.x/javadoc-api",
+        "http://download.oracle.com/javase/6/docs/api/"
+     ]
+     
+     exclude "org/springframework/data/keyvalue/redis/config/**"
+  }
+    
+  title = "${rootProject.description} ${version} API"
+
+  // collect all the sources that will be included in the javadoc output
+  source javaprojects.collect {project ->
+      project.sourceSets.main.allJava
+  }
+
+  // collect all main classpaths to be able to resolve @see refs, etc.
+  // this collection also determines the set of projects that this
+  // task dependsOn, thus the runtimeClasspath is used to ensure all
+  // projects are included, not just *dependencies* of all classes.
+  // this is awkward and took me a while to figure out.
+  classpath = files(javaprojects.collect {project ->
+      project.sourceSets.main.runtimeClasspath
+  })
+
+  // copy the images from the doc-files dir over to the target
+  doLast { task ->
+      copy {
+          from file("${task.srcDir}/doc-files")
+          into file("${task.destinationDir}/doc-files")
+      }
+  }
+}
+
+apiSpec = copySpec {
+    into('api') {
+        from(api.destinationDir)
+    }
+}
+     
+task docSiteLogin(type: org.springframework.gradle.tasks.Login) {
+    if (project.hasProperty('sshHost')) {
+        host = project.property('sshHost')
+        username = project.property('sshUsername')
+        key = project.property('sshPrivateKey')
+    }
+}
+    
+// upload task   
+task uploadApi(type: org.springframework.gradle.tasks.ScpUpload) {
+    dependsOn api, docbook
+    description = "Upload API Distribution"
+    group = "Distribution"
+    remoteDir = "./static.spring/spring-data/data-keyvalue/docs/${project.version}"
+    login = docSiteLogin
+
+    with(apiSpec)
+    with(refSpec)
+}

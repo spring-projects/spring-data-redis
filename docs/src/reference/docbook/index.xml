@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0"
+    xml:id="spring-data-keyvalue-reference"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <bookinfo>
+        <title>Spring Data Key-Value - Reference Documentation</title>
+        <titleabbrev>Spring Data Key-Value ${version}</titleabbrev>
+        <releaseinfo>@version@</releaseinfo>
+        <productname>Spring Data Key-Value</productname>
+
+        <authorgroup>
+            <author>
+                <firstname>Costin</firstname>
+                <surname>Leau</surname>
+                <affiliation>SpringSource</affiliation>
+            </author>
+            <author>
+                <firstname>Jon</firstname>
+                <surname>Brisbin</surname>
+                <affiliation>SpringSource</affiliation>
+            </author>
+        </authorgroup>
+
+        <legalnotice>
+            <para>
+                Copies of this document may be made for your own use and for distribution
+                to others, provided that you do not charge any fee for such copies and
+                further provided that each copy contains this Copyright Notice, whether
+                distributed in print or electronically.
+            </para>
+        </legalnotice>
+    </bookinfo>
+
+    <toc/>
+    <xi:include href="preface.xml"/>
+    <!--
+
+    <part id="introduction">
+      <title>Introduction</title>
+       
+      <xi:include href="introduction/introduction.xml"/>
+      <xi:include href="introduction/why-sd-kv.xml"/>
+      <xi:include href="introduction/requirements.xml"/>
+      <xi:include href="introduction/getting-started.xml"/>
+    </part>
+
+    <part id="reference">
+      <title>Reference Documentation</title>
+       
+      <xi:include href="reference/introduction.xml"/>
+      <xi:include href="reference/redis.xml"/>
+      <xi:include href="reference/riak.xml"/>
+    </part>
+
+    <part id="appendixes">
+      <title>Appendixes</title>
+      
+      <xi:include href="appendix/introduction.xml"/>
+      <xi:include href="appendix/appendix-schema.xml"/>
+    </part>
+-->
+    <!--
+    <part id="resources">
+      <title>Other Documentation</title>
+       
+      <partintro>
+          <para>
+              In addition to this reference documentation, there are a number of
+              other resources that may help you learn how to use the various key value
+              stores and Spring Data. These additional, third-party resources are
+              enumerated in this section.
+          </para>
+      </partintro>
+      <xi:include href="links.xml"/>       
+    </part>
+    -->
+    
+</book>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="get-started">
+    <title>Getting Started</title>
+
+    <para>Learning a new framework is not always straight forward. In this section, we (the Spring Data team) 
+    tried to provide, what we think is, an easy to follow guide for starting with Spring Data Key Value module. 
+    Of course, feel free to create your own learning 'path' as you see fit and, if possible, please report back
+    any improvements to the documentation that can help others.</para>
+
+    <section id="get-started:first-steps">
+		<title>First Steps</title>
+		
+		<para>As explained in <xref linkend="why-Spring Data-Key Value"/>, Spring Data Key Value (SDKV) provides integration 
+		between	Spring framework and key value (KV) stores. Thus, it is important to become acquainted with both of these 
+		frameworks (storages or environments depending on how you want to name them). Throughout the SDKV documentation, 
+		each section provides links to resources relevant however, it is best to become familiar with these topics beforehand.</para>
+		  
+		<section id="get-started:first-steps:spring">
+			<title>Knowing Spring</title>
+			<para>Spring Data uses heavily Spring framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality, 
+			such as the <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/beans.html">IoC</ulink> container,
+			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/resources.html">resource</ulink> abstract or
+			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/aop.html">AOP</ulink> infrastructure. While it is not important
+			to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar.
+			These being said, the more knowledge one has about the Spring, the faster she will pick Spring Data Key Value.
+			Besides the very comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework,
+			there are a lot of articles, blog entries and books on the matter - take a look at the Spring framework
+			<ulink url="http://www.springsource.org/documentation">home page</ulink> for more information. In general, this should be the starting point for 
+			developers wanting to try Spring DKV.</para>
+		</section>
+		<section id="get-started:first-steps:nosql">
+			<title>Knowing NoSQL and Key Value stores</title>
+			<para>NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worth even the
+			term itself has multiple <ulink url="http://www.google.com/search?q=nosoql+acronym">meanings</ulink>).
+			While some of the principles are common, it is crucial that the user is familiar to some degree with the stores supported by SDKV.
+			The best way to get acquainted to this solutions is to read their documentation and follow their examples - it usually doesn't take more then 5-10 minutes
+			to go through them and if you are coming from an RDMBS-only background many times these exercises can be an eye opener. 
+			</para>
+		</section>
+		<section id="get-started:first-steps:samples">
+			<title>Trying Out The Samples</title>
+			<para>Unfortunately the SDKV project is very young and there are no samples available yet. However we are working on them and plan to make them available
+			as soon as possible. In the meantime however, one can use our test suite as a code example (assuming the documentation is not enough) - we provide extensive
+			integration tests for our code base.
+			</para>
+			<!-- 
+			<para>The current distribution contains:</para>
+			<itemizedlist>
+				<listitem>
+					<para>Simple Service Sample</para>
+					<para>A simple example that illustrates OSGi service publication and consumption through Spring DM. This is a good starting point
+					for users learning the basics.</para>
+				</listitem>
+				<listitem>
+					<para>Weather Sample</para>
+					<para>A demo that shows more advanced features of Spring DM and OSGi. The application creates a very simple weather information services 
+					presenting some best practices in designing an application to take advantage of the modularity offered by OSGi.</para>
+				</listitem>
+				<listitem>
+					<para>Simple Web App Sample</para>
+					<para>As the name implies, this is a simple web application, containing Servlets, JSPs and JSP tags, that runs inside OSGi through Spring DM.</para>
+				</listitem>
+				<listitem>
+					<para>Web Console Sample</para>
+					<para>A more complicated sample that demos a Spring MVC annotation based, web application that runs inside OSGi through Spring DM, featuring 
+					class path scanning and various Spring taglib. Additionally, the web application interacts with the OSGi environment through the web UI.</para>
+				</listitem>
+			</itemizedlist> 
+			<para>Each project contains instructions regarding its content and startup procedure. Users are encouraged to experiment with the samples to get a better
+			understanding of the technologies used.</para>
+			 -->
+		</section>
+	</section>
+    
+    <section id="get-started:help">
+		<title>Need Help?</title>
+		
+		<para>If you encounter issues or you are just looking for an advice, feel free to use one of the links below:</para>
+		
+		<section id="get-started:help:community">
+  		    <title>Community Support</title>
+			<para>The Spring Data <ulink url="http://forum.springframework.org/forumdisplay.php?f=80">forum</ulink> is a message board for all Spring Data (not just Key Value) users to
+			share information and help each other. Note that registration is needed <emphasis>only</emphasis> for posting.
+			</para>
+		</section>
+		<section id="get-started:help:professional">
+  		    <title>Professional Support</title>
+			<para>Professional, from-the-source support, with guaranteed response time, is available from <ulink url="http://www.springsource.com">SpringSource</ulink>,
+			the company behind Spring Data and Spring.  
+			</para>
+		</section>
+    </section>
+    
+    <section id="get-started:up-to-date">
+		<title>Following Development</title>
+		
+		<para>For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home 
+		<ulink url="http://www.springsource.org/spring-data">page</ulink>.   
+		</para>
+		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the Spring Community 
+		<ulink url="http://forum.springsource.org">forums</ulink>.</para>
+		<para>If you encounter a bug or want to suggest an improvement, 
+		please create a ticket on the Spring Data issue <ulink url="https://jira.springframework.org/browse/DATAKV">tracker</ulink>.</para>
+		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
+		Spring Community <ulink url="http://www.springframework.org/">Portal</ulink>.</para>
+		<para>Lastly, you can follow the SpringSource Data <ulink url="http://blog.springsource.com/category/data-access/">blog</ulink> or the project team on Twitter 
+		(<ulink url="http://twitter.com/costinl">Costin</ulink>)</para>
+	</section>
+    
+</chapter>

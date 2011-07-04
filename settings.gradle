@@ -1,0 +1,8 @@
+rootProject.name = 'spring-data-key-value'
+
+include 'docs'
+include "spring-data-keyvalue-core",
+        "spring-data-redis",
+        "spring-data-riak"
+        
+docs = findProject(':docs')
