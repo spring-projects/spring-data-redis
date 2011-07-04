@@ -105,7 +105,9 @@ task wrapper(type: Wrapper) {
 }
 
 // Distribution tasks
-task dist(type: Zip, group: "Distribute") {
+task dist(type: Zip) {
+    description = "Generate the ZIP Distribution"
+    group = "Distribution"
     dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
 
     evaluationDependsOn(':docs')
@@ -129,8 +131,8 @@ task dist(type: Zip, group: "Distribute") {
     }
 }
 
-task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload) {
-    description = "Upload Zip Distribution"
+task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn: dist) {
+    description = "Upload the ZIP Distribution"
     group = "Distribution"
     archiveFile = dist.archivePath
     projectKey = 'DATAKV'

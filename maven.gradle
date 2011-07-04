@@ -1,14 +1,20 @@
 apply plugin: 'maven'
 
 // Create a source jar for uploading
-task sourceJar(type: Jar) {
+task sourceJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
-    from sourceSets.main.java
-    from sourceSets.main.resources
+    from sourceSets.main.allSource
+}
+
+// Create a javadoc jar for uploading
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 artifacts {
     archives sourceJar
+    archives javadocJar
 }
 
 // Configuration for SpringSource s3 maven deployer
@@ -67,13 +73,47 @@ uploadArchives {
         }
     }
     
-    deployer.pom.project {
-      licenses {
-        license {
-          name "The Apache Software License, Version 2.0"
-          url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-          distribution "repo"
+    customizePom(deployer.pom)
+}
+
+install {
+    customizePom(repositories.mavenInstaller.pom)
+}
+
+def customizePom(pom) {
+    def optionalDeps = ['log4j','jsr250-api']
+
+    //pom.scopeMappings.addMapping(10, configurations.provided, 'provided')
+    pom.whenConfigured { p ->
+        // Remove test scope dependencies from published poms
+        p.dependencies = p.dependencies.findAll {it.scope != 'test'}
+
+        // Flag optional deps
+        
+        p.dependencies.findAll { dep ->
+            optionalDeps.contains(dep.artifactId) ||
+            dep.groupId.startsWith('org.slf4j')
+        }*.optional = true
+        
+    }
+
+    pom.project {
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+            }
         }
-      }
-  }
+        
+        // similar to Spring's configuration
+        dependencies {
+            dependency {
+                artifactId = groupId = 'commons-logging'
+                scope = 'compile'
+                optional = 'true'
+                version = '1.1.1'
+            }
+        }
+    }
 }

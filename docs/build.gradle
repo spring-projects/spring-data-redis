@@ -28,6 +28,10 @@ refSpec = copySpec {
     into ('reference/images') {
         from (imagesDir)
     }
+    //expand(project.properties)
+    filter { String line ->
+        "[$line]"
+    }
 }
 
 task reference (type: Copy) {
