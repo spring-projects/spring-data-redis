@@ -7,7 +7,7 @@
     <bookinfo>
         <title>Spring Data Key-Value - Reference Documentation</title>
         <titleabbrev>Spring Data Key-Value ${version}</titleabbrev>
-        <releaseinfo>${version}</releaseinfo>
+        <releaseinfo>@version@</releaseinfo>
         <productname>Spring Data Key-Value</productname>
 
         <authorgroup>
@@ -34,8 +34,8 @@
     </bookinfo>
 
     <toc/>
-
     <xi:include href="preface.xml"/>
+    <!--
 
     <part id="introduction">
       <title>Introduction</title>
@@ -60,7 +60,7 @@
       <xi:include href="appendix/introduction.xml"/>
       <xi:include href="appendix/appendix-schema.xml"/>
     </part>
-
+-->
     <!--
     <part id="resources">
       <title>Other Documentation</title>

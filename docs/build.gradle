@@ -1,3 +1,6 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
 // -----------------------------------------------------------------------------
 // Configuration for the docs subproject
 // -----------------------------------------------------------------------------
@@ -28,16 +31,22 @@ refSpec = copySpec {
     into ('reference/images') {
         from (imagesDir)
     }
-    //expand(project.properties)
-    filter { String line ->
-        "[$line]"
+    
+    p = new Properties()
+    
+    for (e in project.properties) {
+      if (e.key != null && e.value != null)
+         p.setProperty(e.key, e.value.toString())
     }
+    
+    filter(ReplaceTokens, tokens: p)
 }
 
 task reference (type: Copy) {
     dependsOn 'docbook'
     description = "Builds aggregated DocBook"
     group = "Documentation"
+    logger.info("Version is " + version)
     destinationDir = buildDir
     with(refSpec)
 }
