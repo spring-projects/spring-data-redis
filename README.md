@@ -13,21 +13,22 @@ Getting Help
 
 Read the main project [website](http://www.springsource.org/spring-data) and the [User Guide](http://static.springsource.org/spring-data/datastore-keyvalue/snapshot-site/reference/html/). Look at the source code and the [JavaDocs](http://static.springsource.org/spring-data/data-keyvalue/snapshot-site/apidocs/). For more detailed questions, use the [forum](http://forum.springsource.org/forumdisplay.php?f=80). If you are new to Spring as well as to Spring Data, look for information about [Spring projects](http://www.springsource.org/projects). 
 
-# Quick Start
-
+Quick Start
+-----------
 
 ## Redis
 
 For those in a hurry:
 
-
 * Download the jar through Maven:
+
 
       <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-redis</artifactId>
         <version>1.0.0.BUILD-SNAPSHOT</version>
       </dependency> 
+
 
       <repository>
         <id>spring-maven-snapshot</id>
@@ -61,8 +62,6 @@ For those in a hurry:
       ListOperations<String, Person> listOps = template.listOps();
       listOps.rightPush(random, new Person("Jane", "Smith"));
       List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
-      
-
 
 Contributing to Spring Data
 ---------------------------
