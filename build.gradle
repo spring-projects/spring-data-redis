@@ -177,7 +177,7 @@ task wrapper(type: Wrapper) {
 task dist(type: Zip) {
     description = "Generate the ZIP Distribution"
     group = "Distribution"
-    dependsOn subprojects*.tasks*.matching { task -> task.name == 'assemble' }
+    dependsOn jar, subprojects*.tasks*.matching { task -> task.name == 'assemble' }
 
     evaluationDependsOn(':docs')
 
@@ -190,6 +190,9 @@ task dist(type: Zip) {
             into 'docs'
             include 'reference/**/*'
             include 'api/**/*'
+        }
+            into('dist') {
+            from javaprojects.collect {project -> project.libsDir }
         }
     }
     doLast {
@@ -205,4 +208,5 @@ task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn
     projectName = 'Spring Data Key Value'
 }
 
+assemble.dependsOn = ['jar', 'sourceJar', 'javadocJar']
 defaultTasks 'clean', 'build'

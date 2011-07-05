@@ -1,15 +1,15 @@
 apply plugin: 'maven'
 
 // Create a source jar for uploading
-task sourceJar(type: Jar, dependsOn: classes) {
+task sourceJar(type: Jar, dependsOn: jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
 }
 
 // Create a javadoc jar for uploading
-task javadocJar(type: Jar, dependsOn: javadoc) {
+task javadocJar(type: Jar, dependsOn: rootProject.javadoc) {
     classifier = 'javadoc'
-    from javadoc.destinationDir
+    from rootProject.javadoc.destinationDir
 }
 
 artifacts {

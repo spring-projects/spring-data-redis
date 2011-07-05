@@ -7,7 +7,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 apply plugin: 'base'
 apply plugin: 'docbook'
 
-assemble.dependsOn = [rootProject.javadoc, 'docbook']
+assemble.dependsOn = [rootProject.javadoc, 'reference']
 
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.group = 'Documentation'
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
