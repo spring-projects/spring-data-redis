@@ -89,10 +89,16 @@ def customizePom(pom) {
         p.dependencies = p.dependencies.findAll {it.scope != 'test'}
 
         // Flag optional deps
-        
+        def opDeps = configurations.testRuntime.allDependencies.findAll { gradleDep ->
+            gradleDep.asDynamicObject.hasProperty('optional') && gradleDep.optional
+        }
+
         p.dependencies.findAll { dep ->
             optionalDeps.contains(dep.artifactId) ||
-            dep.groupId.startsWith('org.slf4j')
+            dep.groupId.startsWith('org.slf4j') ||
+            opDeps.any { op ->
+                (dep.groupId == op.group && dep.artifactId == op.name)
+            }
         }*.optional = true
         
     }
