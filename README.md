@@ -61,6 +61,7 @@ For those in a hurry:
       ListOperations<String, Person> listOps = template.listOps();
       listOps.rightPush(random, new Person("Jane", "Smith"));
       List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
+      
 
 
 Contributing to Spring Data
