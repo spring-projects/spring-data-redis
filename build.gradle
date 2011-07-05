@@ -104,15 +104,7 @@ javaprojects = rootProject
 sourceCompatibility = 1.6
 targetCompatibility = 1.6 
 
-apply from: "$rootDir/maven.gradle"
-
 javadoc {
-  group = "Documentation"
-  description = "Builds aggregated JavaDoc HTML for all core project classes."
-    
-  // this task is a bit ugly to configure. it was a user contribution, and
-  // Hans tells me it's on the roadmap to redesign it.
-  
   srcDir = file("${projectDir}/docs/src/api")
   destinationDir = file("${buildDir}/api")
   tmpDir = file("${buildDir}/api-work")
@@ -207,6 +199,8 @@ task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn
     projectKey = 'DATAKV'
     projectName = 'Spring Data Key Value'
 }
+
+apply from: "$rootDir/maven.gradle"
 
 assemble.dependsOn = ['jar', 'sourceJar', 'javadocJar']
 defaultTasks 'clean', 'build'

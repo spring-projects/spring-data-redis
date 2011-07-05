@@ -7,9 +7,9 @@ task sourceJar(type: Jar, dependsOn: jar) {
 }
 
 // Create a javadoc jar for uploading
-task javadocJar(type: Jar, dependsOn: rootProject.javadoc) {
+task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    from rootProject.javadoc.destinationDir
+    from javadoc.destinationDir
 }
 
 artifacts {

@@ -1,12 +1,10 @@
 -breakiterator 
--header "Spring Data Key-Value"
+-header "Spring Data Redis"
 -source 1.6
 -protected
 -quiet
 -docfilessubdirs
--group "Spring Data Key Value Core" "org.springframework.data.keyvalue*"
 -group "Spring Data Redis Support" "org.springframework.data.redis*"
--group "Spring Data Riak Support" "org.springframework.data.keyvalue.riak*"
 -link http://static.springframework.org/spring/docs/3.0.x/javadoc-api
 -link http://download.oracle.com/javase/6/docs/api/
 -exclude org.springframework.data.redis.config
