@@ -45,9 +45,9 @@ For those in a hurry:
         xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
         
-        <bean id="jedisFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
+        <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
         
-        <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate"
+        <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
             p:connection-factory="jedisFactory"/>
       </beans>
 

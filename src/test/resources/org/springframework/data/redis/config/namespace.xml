@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:redis="http://www.springframework.org/schema/redis"
+		xmlns:task="http://www.springframework.org/schema/task"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+				http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+				http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
+
+	<!-- the default ConnectionFactory -->
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
+
+	<task:executor id="testTaskExecutor" />
+	 			
+	<redis:listener-container topic-serializer="serializer">
+		<!-- default handle method -->
+		<redis:listener ref="testBean1" topic="z1 z2 x*"/>
+		<!-- channel subscription only -->
+		<redis:listener ref="testBean1" method="anotherHandle" topic="x1" serializer="serializer"/>
+		<redis:listener ref="testBean2" topic="exception"/>
+	</redis:listener-container>
+	
+	<bean id="testBean1" class="org.springframework.data.redis.listener.adapter.RedisMDP"/>
+	<bean id="testBean2" class="org.springframework.data.redis.listener.adapter.ThrowableMessageListener"/>
+	
+	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+	
+	<bean id="handler" class="org.springframework.data.redis.config.StubErrorHandler"/>
+	
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+		<property name="connectionFactory" ref="redisConnectionFactory"/>
+	</bean>
+	
+</beans>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
+	
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate" p:connection-factory-ref="connectionFactory"/>
+	
+	<bean id="injected" class="org.springframework.data.redis.RedisViewPE" 
+		p:value-ops-ref="redisTemplate" 
+		p:list-ops-ref="redisTemplate"
+		p:set-ops-ref="redisTemplate"
+		p:zset-ops-ref="redisTemplate"
+		p:hash-ops-ref="redisTemplate"
+		/>
+</beans>

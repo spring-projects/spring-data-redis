@@ -11,3 +11,4 @@ src/ant/.ant-targets-upload-dist.xml
 *.iml
 *.ipr
 *.iws
+*.log

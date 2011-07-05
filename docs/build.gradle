@@ -1,4 +1,3 @@
-import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 
 // -----------------------------------------------------------------------------
@@ -9,7 +8,6 @@ apply plugin: 'base'
 apply plugin: 'docbook'
 
 assemble.dependsOn = ['api', 'docbook']
-
 
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.group = 'Documentation'
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
@@ -46,7 +44,6 @@ task reference (type: Copy) {
     dependsOn 'docbook'
     description = "Builds aggregated DocBook"
     group = "Documentation"
-    logger.info("Version is " + version)
     destinationDir = buildDir
     with(refSpec)
 }
@@ -71,9 +68,7 @@ task api(type: Javadoc) {
       breakIterator = true
       showFromProtected()
       groups = [
-        'Spring Data Key Value Core': ['org.springframework.data.keyvalue*'], 
-        'Spring Data Redis Support' : ['org.springframework.data.keyvalue.redis*'],
-        'Spring Data Riak Support'  : ['org.springframework.data.keyvalue.riak*']
+        'Spring Data Redis Support' : ['org.springframework.data.redis*'],
       ]
   
      links = [

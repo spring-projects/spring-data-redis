@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/redis/spring-redis-1.0.xsd=org/springframework/data/redis/config/spring-redis-1.0.xsd
+http\://www.springframework.org/schema/redis/spring-redis.xsd=org/springframework/data/redis/config/spring-redis-1.0.xsd

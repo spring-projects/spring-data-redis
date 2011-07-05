@@ -1,0 +1,4 @@
+# Tooling related information for the jms namespace
+http\://www.springframework.org/schema/redis@name=redis Namespace
+http\://www.springframework.org/schema/redis@prefix=redis
+http\://www.springframework.org/schema/redis@icon=org/springframework/data/redis/config/spring-redis.gif

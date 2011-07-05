@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:redis="http://www.springframework.org/schema/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
+
+	<bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate" p:connectionFactory-ref="connectionFactory"/>
+	
+	<redis:collection id="non-existing" />
+	<redis:collection id="props" key="prop-key" type="PROPERTIES"/>
+	<redis:collection id="map" key="map-key" type="MAP"/>
+
+</beans>

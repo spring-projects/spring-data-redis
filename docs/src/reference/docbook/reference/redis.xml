@@ -46,7 +46,7 @@
       
       <para>One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required;
       currently SDKV has support for Jedis and JRedis. No matter the library one chooses, there only one set of SDKV API that one needs to use that behaves consistently 
-      across all connectors, namely the <literal>org.springframework.data.keyvalue.redis.connection</literal> package and its 
+      across all connectors, namely the <literal>org.springframework.data.redis.connection</literal> package and its 
       <interfacename>RedisConnection</interfacename> and <interfacename>RedisConnectionFactory</interfacename> interfaces for working respectively for retrieving active
       <literal>connection</literal> to Redis.</para>
       
@@ -86,7 +86,7 @@
         <title>Configuring Jedis connector</title>
         
         <para><ulink url="http://github.com/xetorthio/jedis">Jedis</ulink> is one of the connectors supported by the Key Value module through the 
-        <literal>org.springframework.data.keyvalue.redis.connection.jedis</literal> package. In its simples form, the Jedis configuration looks as follow:</para>
+        <literal>org.springframework.data.redis.connection.jedis</literal> package. In its simples form, the Jedis configuration looks as follow:</para>
         
         <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -95,7 +95,7 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
     <!-- Jedis ConnectionFactory -->
-  <bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"/>
+  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
 </beans>]]></programlisting>
 
       <para>For production use however, one might want to tweak the settings such as the host or password:</para>
@@ -107,7 +107,7 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"
+  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
         
@@ -117,7 +117,7 @@
         <title>Configuring JRedis connector</title>
         
         <para><ulink url="http://github.com/alphazero/jredis">JRedis</ulink> is another popular, open-source connector supported by SDKV through the
-        <literal>org.springframework.data.keyvalue.redis.connection.jredis</literal> package.</para> 
+        <literal>org.springframework.data.redis.connection.jredis</literal> package.</para> 
         <note>Since JRedis itself does not support (yet) Redis 2.x commands, SDKV uses an updated fork available 
         <ulink url="http://github.com/anthonylauzon/jredis">here</ulink>.</note>
         
@@ -130,7 +130,7 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="jredisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jredis.JredisConnectionFactory"
+  <bean id="jredisConnectionFactory" class="org.springframework.data.redis.connection.jredis.JredisConnectionFactory"
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
 
@@ -149,7 +149,7 @@
         <title>Configuring RJC connector</title>
         
         <para><ulink url="http://github.com/e-mzungu/rjc">RJC</ulink> is the third, open-source connector supported by SDKV through the
-        <literal>org.springframework.data.keyvalue.redis.connection.rjc</literal> package.</para> 
+        <literal>org.springframework.data.redis.connection.rjc</literal> package.</para> 
         
         <para>Similar to the other connectors, a typical RJC configuration can looks like this:</para>
 
@@ -160,7 +160,7 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="jredisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.rjc.RjcConnectionFactory"
+  <bean id="jredisConnectionFactory" class="org.springframework.data.redis.connection.rjc.RjcConnectionFactory"
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
 
@@ -180,7 +180,7 @@
     <section id="redis:template">
       <title>Working with Objects through <classname>RedisTemplate</classname></title>
       
-      <para>Most users are likely to use <classname>RedisTemplate</classname> and its coresponding package <literal>org.springframework.data.keyvalue.redis.core</literal> - the
+      <para>Most users are likely to use <classname>RedisTemplate</classname> and its coresponding package <literal>org.springframework.data.redis.core</literal> - the
       template is in fact the central class of the Redis module due to its rich feature set.
       The template offers a high-level abstraction for Redis interaction - while <interfacename>RedisConnection</interfacename> offer low level methods that accept and return
       binary values (<literal>byte</literal> arrays), the template takes care of serialization and connection management, freeing the user from dealing with such details.</para>
@@ -256,7 +256,7 @@
       
       <para>Out of the box, <classname>RedisTemplate</classname> uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be
       serializer/deserialized through Java. The serialization mechanism can be easily changed on the template and the Redis module offers several implementations available in the 
-      <literal>org.springframework.data.keyvalue.redis.serializer</literal> package - see <xref linkend="redis:serializer"/> for more information.
+      <literal>org.springframework.data.redis.serializer</literal> package - see <xref linkend="redis:serializer"/> for more information.
       Note that the template requires all keys to be non-null - values can be null as long as the underlying
       serializer accepts them; read the javadoc of each serializer for more information.</para>
       
@@ -270,11 +270,11 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"
+  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
         p:use-pool="true"/>
   
   <!-- redis template definition -->
-  <bean id="redisTemplate" class="org.springframework.data.keyvalue.redis.core.RedisTemplate"
+  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
     p:connection-factory-ref="jedisConnectionFactory"/>
 
   ... 
@@ -314,10 +314,10 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="jedisConnectionFactory" class="org.springframework.data.keyvalue.redis.connection.jedis.JedisConnectionFactory"
+  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
         p:use-pool="true"/>
   
-  <bean id="stringRedisTemplate" class="org.springframework.data.keyvalue.redis.core.StringRedisTemplate"
+  <bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate"
     p:connection-factory-ref="jedisConnectionFactory"/>
 
   ... 
@@ -355,7 +355,7 @@
 	  <para>From the framework perspective, the data stored in Redis are just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored 
 	  rather then what it represents. It is up to the user to decide whether the information gets translated into Strings or any other objects. The conversion between the user (custom) 
 	  types and raw data (and vice-versa) is handled in SDKV Redis through the <interfacename>RedisSerializer</interfacename> interface 
-	  (package <literal>org.springframework.data.keyvalue.redis.serializer</literal>) which as the name implies, takes care of the serialization process. Multiple implementations are
+	  (package <literal>org.springframework.data.redis.serializer</literal>) which as the name implies, takes care of the serialization process. Multiple implementations are
 	  available out of the box, two of which have been already mentioned before in this documentation: the <literal>StringRedisSerializer</literal> and 
 	  the <literal>JdkSerializationRedisSerializer</literal>. However one can use <classname>OxmSerializer</classname> for Object/XML mapping through Spring 3 
 	  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/oxm.html">OXM</ulink> support or <classname>JacksonJsonRedisSerializer</classname> for storing
@@ -368,7 +368,7 @@
     <section id="redis:support">
       <title>Support Classes</title>
       
-      <para>Package <literal>org.springframework.data.keyvalue.redis.support</literal> offers various reusable components that rely on Redis as a backing store. Curently the package contains
+      <para>Package <literal>org.springframework.data.redis.support</literal> offers various reusable components that rely on Redis as a backing store. Curently the package contains
       various JDK-based interface implementations on top of Redis such as <ulink url="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/atomic/package-summary.html">atomic</ulink> 
       counters and JDK <interfacename><ulink url="http://download.oracle.com/javase/6/docs/api/java/util/Collection.html">Collections</ulink></interfacename>.</para>
       
@@ -385,7 +385,7 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="queue" class="org.springframework.data.keyvalue.redis.support.collections.DefaultRedisList">
+  <bean id="queue" class="org.springframework.data.redis.support.collections.DefaultRedisList">
     <constructor-arg ref="redisTemplat"/>
     <constructor-arg value="queue-key"/>
   </bean>

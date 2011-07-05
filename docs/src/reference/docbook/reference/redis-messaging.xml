@@ -15,8 +15,8 @@
     listener containers that is used to create Message-Driven POJOs
     (MDPs) and for synchronous reception, the <interfacename>RedisConnection</interfacename> contract.</para>
 
-    <para>The package <literal>org.springframework.data.keyvalue.redis.connection</literal> and
-    <literal>org.springframework.data.keyvalue.redis.listener</literal> provide
+    <para>The package <literal>org.springframework.data.redis.connection</literal> and
+    <literal>org.springframework.data.redis.listener</literal> provide
     the core functionality for using Redis messaging.</para>
 
   <section id="redis:pubsub:publish">
@@ -168,20 +168,20 @@ template.convertAndSend("hello!", "world");]]></programlisting>
       is displayed below:</para>
       
       <programlisting language="xml"><lineannotation>&lt;!-- this is the Message Driven POJO (MDP) --&gt;</lineannotation>
-<emphasis role="bold">&lt;bean id="messageListener" class="org.springframework.data.keyvalue.redis.listener.adapter.MessageListenerAdapter"&gt;</emphasis>
+<emphasis role="bold">&lt;bean id="messageListener" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter"&gt;</emphasis>
     &lt;constructor-arg&gt;
         &lt;bean class="redisexample.DefaultMessageDelegate"/&gt;
     &lt;/constructor-arg&gt;
 &lt;/bean&gt;
 
 <lineannotation>&lt;!-- and this is the message listener container... --&gt;</lineannotation>
-&lt;bean id="redisContainer" class="org.springframework.data.keyvalue.redis.listener.RedisMessageListenerContainer"&gt;
+&lt;bean id="redisContainer" class="org.springframework.data.redis.listener.RedisMessageListenerContainer"&gt;
     &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
     &lt;property name="messageListeners"&gt;
       <lineannotation>&lt;!-- map of listeners and their associated topics (channels or/and patterns) --&gt;</lineannotation>
       &lt;map&gt;
         <emphasis role="bold">&lt;entry key-ref="messageListener"&gt;</emphasis>
-            &lt;bean class="org.springframework.data.keyvalue.redis.listener.ChannelTopic">
+            &lt;bean class="org.springframework.data.redis.listener.ChannelTopic">
                &lt;constructor-arg value="chatroom"&gt;
             &lt;/bean&gt;
         &lt;/entry&gt;
