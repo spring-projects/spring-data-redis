@@ -5,20 +5,15 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
 
     <bookinfo>
-        <title>Spring Data Key-Value - Reference Documentation</title>
-        <titleabbrev>Spring Data Key-Value ${version}</titleabbrev>
+        <title>Spring Data Redis Reference Documentation</title>
+        <titleabbrev>Spring Data Redis @version@</titleabbrev>
         <releaseinfo>@version@</releaseinfo>
-        <productname>Spring Data Key-Value</productname>
+        <productname>Spring Data Redis</productname>
 
         <authorgroup>
             <author>
                 <firstname>Costin</firstname>
                 <surname>Leau</surname>
-                <affiliation>SpringSource</affiliation>
-            </author>
-            <author>
-                <firstname>Jon</firstname>
-                <surname>Brisbin</surname>
                 <affiliation>SpringSource</affiliation>
             </author>
         </authorgroup>
@@ -35,7 +30,6 @@
 
     <toc/>
     <xi:include href="preface.xml"/>
-    <!--
 
     <part id="introduction">
       <title>Introduction</title>
@@ -51,7 +45,6 @@
        
       <xi:include href="reference/introduction.xml"/>
       <xi:include href="reference/redis.xml"/>
-      <xi:include href="reference/riak.xml"/>
     </part>
 
     <part id="appendixes">
@@ -60,7 +53,6 @@
       <xi:include href="appendix/introduction.xml"/>
       <xi:include href="appendix/appendix-schema.xml"/>
     </part>
--->
     <!--
     <part id="resources">
       <title>Other Documentation</title>

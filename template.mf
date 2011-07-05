@@ -16,7 +16,6 @@ Import-Template:
  org.springframework.transaction.support.*;version=${spring.range},
  org.aopalliance.*;version="[1.0.0, 2.0.0)";resolution:=optional,
  org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
- org.springframework.data.keyvalue.*;version=${version},
  org.w3c.dom.*;version="0",
  javax.xml.transform.*;resolution:="optional";version="0",
  org.jredis.*;version="[1.0.0, 2.0.0)",
