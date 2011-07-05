@@ -7,7 +7,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 apply plugin: 'base'
 apply plugin: 'docbook'
 
-assemble.dependsOn = ['api', 'docbook']
+assemble.dependsOn = [rootProject.javadoc, 'docbook']
 
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.group = 'Documentation'
 [docbookHtml, docbookFoPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml'
@@ -48,65 +48,10 @@ task reference (type: Copy) {
     with(refSpec)
 }
     
-task api(type: Javadoc) {
-  group = "Documentation"
-  description = "Builds aggregated JavaDoc HTML for all core project classes."
-    
-  // this task is a bit ugly to configure. it was a user contribution, and
-  // Hans tells me it's on the roadmap to redesign it.
-  
-  srcDir = file("${projectDir}/src/api")
-  destinationDir = file("${buildDir}/api")
-  tmpDir = file("${buildDir}/api-work")
-  
-  configure(options) {
-      stylesheetFile = file("${srcDir}/spring-javadoc.css")
-      links = ["http://static.springframework.org/spring/docs/3.0.x/javadoc-api"]
-      overview = "${srcDir}/overview.html"
-      docFilesSubDirs = true
-      outputLevel = org.gradle.external.javadoc.JavadocOutputLevel.QUIET
-      breakIterator = true
-      showFromProtected()
-      groups = [
-        'Spring Data Redis Support' : ['org.springframework.data.redis*'],
-      ]
-  
-     links = [
-        "http://static.springframework.org/spring/docs/3.0.x/javadoc-api",
-        "http://download.oracle.com/javase/6/docs/api/"
-     ]
-     
-     exclude "org/springframework/data/keyvalue/redis/config/**"
-  }
-    
-  title = "${rootProject.description} ${version} API"
-
-  // collect all the sources that will be included in the javadoc output
-  source javaprojects.collect {project ->
-      project.sourceSets.main.allJava
-  }
-
-  // collect all main classpaths to be able to resolve @see refs, etc.
-  // this collection also determines the set of projects that this
-  // task dependsOn, thus the runtimeClasspath is used to ensure all
-  // projects are included, not just *dependencies* of all classes.
-  // this is awkward and took me a while to figure out.
-  classpath = files(javaprojects.collect {project ->
-      project.sourceSets.main.runtimeClasspath
-  })
-
-  // copy the images from the doc-files dir over to the target
-  doLast { task ->
-      copy {
-          from file("${task.srcDir}/doc-files")
-          into file("${task.destinationDir}/doc-files")
-      }
-  }
-}
 
 apiSpec = copySpec {
     into('api') {
-        from(api.destinationDir)
+        from(rootProject.javadoc.destinationDir)
     }
 }
      
@@ -120,7 +65,7 @@ task docSiteLogin(type: org.springframework.gradle.tasks.Login) {
     
 // upload task   
 task uploadApi(type: org.springframework.gradle.tasks.ScpUpload) {
-    dependsOn api, docbook
+    dependsOn rootProject.javadoc, docbook
     description = "Upload API Distribution"
     group = "Distribution"
     remoteDir = "./static.spring/spring-data/data-keyvalue/docs/${project.version}"

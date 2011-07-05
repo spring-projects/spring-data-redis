@@ -106,6 +106,61 @@ targetCompatibility = 1.6
 
 apply from: "$rootDir/maven.gradle"
 
+javadoc {
+  group = "Documentation"
+  description = "Builds aggregated JavaDoc HTML for all core project classes."
+    
+  // this task is a bit ugly to configure. it was a user contribution, and
+  // Hans tells me it's on the roadmap to redesign it.
+  
+  srcDir = file("${projectDir}/docs/src/api")
+  destinationDir = file("${buildDir}/api")
+  tmpDir = file("${buildDir}/api-work")
+  
+  configure(options) {
+      stylesheetFile = file("${srcDir}/spring-javadoc.css")
+      overview = "${srcDir}/overview.html"
+      docFilesSubDirs = true
+      outputLevel = org.gradle.external.javadoc.JavadocOutputLevel.QUIET
+      breakIterator = true
+      showFromProtected()
+      groups = [
+        'Spring Data Redis Support' : ['org.springframework.data.redis*'],
+      ]
+  
+     links = [
+        "http://static.springframework.org/spring/docs/3.0.x/javadoc-api",
+        "http://download.oracle.com/javase/6/docs/api/"
+     ]
+     
+     exclude "org/springframework/data/redis/config/**"
+  }
+    
+  title = "${rootProject.description} ${version} API"
+
+  // collect all the sources that will be included in the javadoc output
+  source javaprojects.collect {project ->
+      project.sourceSets.main.allJava
+  }
+
+  // collect all main classpaths to be able to resolve @see refs, etc.
+  // this collection also determines the set of projects that this
+  // task dependsOn, thus the runtimeClasspath is used to ensure all
+  // projects are included, not just *dependencies* of all classes.
+  // this is awkward and took me a while to figure out.
+  classpath = files(javaprojects.collect {project ->
+      project.sourceSets.main.runtimeClasspath
+  })
+
+  // copy the images from the doc-files dir over to the target
+  doLast { task ->
+      copy {
+          from file("${task.srcDir}/doc-files")
+          into file("${task.destinationDir}/doc-files")
+      }
+  }
+}
+
 ideaProject {
 	withXml { provider ->
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
