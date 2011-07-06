@@ -66,11 +66,11 @@ task docSiteLogin(type: org.springframework.gradle.tasks.Login) {
 }
     
 // upload task   
-task uploadApi(type: org.springframework.gradle.tasks.ScpUpload) {
-    dependsOn rootProject.javadoc, docbook
+task uploadDocs(type: org.springframework.gradle.tasks.ScpUpload) {
+    dependsOn rootProject.javadoc, reference
     description = "Upload API Distribution"
     group = "Distribution"
-    remoteDir = "./static.spring/spring-data/data-keyvalue/docs/${project.version}"
+    remoteDir = "./static.spring/spring-data/data-redis/docs/${project.version}"
     login = docSiteLogin
 
     with(apiSpec)

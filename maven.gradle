@@ -101,6 +101,7 @@ def customizePom(pom) {
             }
         }*.optional = true
         
+        p.groupId = "org.springframework.data"
     }
 
     pom.project {
