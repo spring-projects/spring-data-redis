@@ -2,7 +2,6 @@
 target
 bin
 build
-bin
 .gradle
 .springBeans
 .ant-targets-build.xml
