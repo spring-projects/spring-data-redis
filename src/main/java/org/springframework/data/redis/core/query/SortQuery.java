@@ -58,21 +58,21 @@ public interface SortQuery<K> {
 	/**
 	 * Return the target key for sorting.
 	 * 
-	 * @return
+	 * @return the target key
 	 */
 	K getKey();
 
 	/**
 	 * Returns the pattern of the external key used for sorting.
 	 * 
-	 * @return 
+	 * @return the external key pattern
 	 */
 	String getBy();
 
 	/**
 	 * Returns the external key(s) whose values are returned by the sort.
 	 *  
-	 * @return
+	 * @return the (list of) keys used for GET
 	 */
 	List<String> getGetPattern();
 }

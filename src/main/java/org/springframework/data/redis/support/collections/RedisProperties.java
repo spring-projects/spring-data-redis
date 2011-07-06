@@ -23,9 +23,9 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
@@ -59,7 +59,8 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
 	 *
-	 * @param boundOps
+	 * @param key
+	 * @param operations
 	 */
 	public RedisProperties(String key, RedisOperations<String, ?> operations) {
 		this(null, operations.<String, String> boundHashOps(key));
@@ -69,6 +70,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	 * Constructs a new <code>RedisProperties</code> instance.
 	 *
 	 * @param defaults
+	 * @param boundOps
 	 */
 	public RedisProperties(Properties defaults, BoundHashOperations<String, String, String> boundOps) {
 		super(defaults);
@@ -80,7 +82,8 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	 * Constructs a new <code>RedisProperties</code> instance.
 	 *
 	 * @param defaults
-	 * @param boundOps
+	 * @param key
+	 * @param operations
 	 */
 	public RedisProperties(Properties defaults, String key, RedisOperations<String, ?> operations) {
 		this(defaults, operations.<String, String> boundHashOps(key));

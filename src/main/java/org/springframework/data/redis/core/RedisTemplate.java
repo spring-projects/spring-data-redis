@@ -136,7 +136,6 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	/**
 	 * Executes the given action object within a connection that can be exposed or not. Additionally, the connection
 	 * can be pipelined. Note the results of the pipeline are discarded (making it suitable for write-only scenarios).
-	 * Use {@link #executePipelined(RedisCallback)} as an alternative.
 	 * 
 	 * @param <T> return type
 	 * @param action callback object to execute
