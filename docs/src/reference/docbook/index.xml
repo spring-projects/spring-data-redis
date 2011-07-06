@@ -35,7 +35,7 @@
       <title>Introduction</title>
        
       <xi:include href="introduction/introduction.xml"/>
-      <xi:include href="introduction/why-sd-kv.xml"/>
+      <xi:include href="introduction/why-sdr.xml"/>
       <xi:include href="introduction/requirements.xml"/>
       <xi:include href="introduction/getting-started.xml"/>
     </part>
@@ -68,5 +68,4 @@
       <xi:include href="links.xml"/>       
     </part>
     -->
-    
 </book>

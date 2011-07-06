@@ -2,9 +2,8 @@
       <title>Document structure</title>
 
 	  <para>This part of the reference documentation explains the core functionality
-	  offered by Spring Data Key Value.</para>
+	  offered by Spring Data Redis.</para>
 
       <para><xref linkend="redis"/> introduces the Redis module feature set.</para>
-      <para><xref linkend="riak"/> introduces the Riak module feature set.</para>
 
       </partintro>

@@ -2,12 +2,12 @@
 
 <partintro xmlns="http://docbook.org/ns/docbook" version="5.0">
           <para>
-            <para>This document is the reference guide for Spring Data - Key Value Support. 
+            <para>This document is the reference guide for Spring Data Redis (SDR) Support. 
             It explains Key Value module concepts and semantics and the syntax for various
             stores namespaces.</para>
 			
 			<para>For an introduction to key value stores or Spring, or Spring Data examples, please refer to
-			<xref linkend="get-started"/> - this documentation refers only to Spring Data Key Value Support and 
+			<xref linkend="get-started"/> - this documentation refers only to Spring Data Redis Support and 
 			assumes the user is familiar with the key value storages and Spring concepts.</para>
 
 			</para>

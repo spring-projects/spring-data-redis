@@ -10,9 +10,9 @@
     <section id="get-started:first-steps">
 		<title>First Steps</title>
 		
-		<para>As explained in <xref linkend="why-Spring Data-Key Value"/>, Spring Data Key Value (SDKV) provides integration 
-		between	Spring framework and key value (KV) stores. Thus, it is important to become acquainted with both of these 
-		frameworks (storages or environments depending on how you want to name them). Throughout the SDKV documentation, 
+		<para>As explained in <xref linkend="why-sdr"/>, Spring Data Redis (SDR) provides integration 
+		between	Spring framework and the Redis key value store. Thus, it is important to become acquainted with both of these 
+		frameworks (storages or environments depending on how you want to name them). Throughout the SDR documentation, 
 		each section provides links to resources relevant however, it is best to become familiar with these topics beforehand.</para>
 		  
 		<section id="get-started:first-steps:spring">

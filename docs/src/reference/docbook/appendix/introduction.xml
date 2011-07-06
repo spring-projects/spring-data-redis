@@ -5,6 +5,5 @@
 	  Various appendixes outside the reference documentation.
       </para>
 
-      <para><xref linkend="appendix-schema"/> defines the schemas provided by Spring Data
-      Key Value.</para>
+      <para><xref linkend="appendix-schema"/> defines the schemas provided by Spring Data Redis.</para>
    </partintro>

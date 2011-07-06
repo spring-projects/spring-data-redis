@@ -23,7 +23,9 @@ docbookFoPdf.imgSrcPath = "${imagesDir}"
 
 refSpec = copySpec {
     into ('reference') {
-        from("$buildDir/docs")
+        from("$buildDir/docs") {
+           exclude '*.fo'
+        }
         from("$projectDir/src/reference/resources")
     }
     into ('reference/images') {

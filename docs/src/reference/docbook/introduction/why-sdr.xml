@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xml:id="why-Spring Data-Key Value" xmlns="http://docbook.org/ns/docbook" version="5.0">
-    <title>Why Spring Data - Key Value?</title>
+<chapter xml:id="why-spring-redis" xmlns="http://docbook.org/ns/docbook" version="5.0">
+    <title>Why Spring Data Redis?</title>
 
     <para>The Spring Framework is the leading full-stack Java/JEE
     application framework. It provides a lightweight container and a
@@ -12,8 +12,8 @@
     and speed. In terms of implementation, Key Value stores represent one of the
     largest (and oldest) member in the NoSQL space.</para>
 
-    <para>The Spring Data Key Value (or SDKV) framework makes it easy to 
-    write Spring applications that use a Key Value store by eliminating the redundant
+    <para>The Spring Data Redis (or SDR) framework makes it easy to 
+    write Spring applications that use the Redis key value store by eliminating the redundant
     tasks and boiler place code required for interacting with the store through
     Spring's excellent infrastructure support.</para>
 </chapter>

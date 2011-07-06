@@ -1,11 +1,11 @@
   <chapter xml:id="requirements" xmlns="http://docbook.org/ns/docbook" version="5.0">
       <title>Requirements</title>
 
-      <para>Spring Data Key Value 1.x binaries requires JDK level 6.0 and above, 
+      <para>Spring Data Redis 1.x binaries requires JDK level 6.0 and above, 
       and <ulink url="http://www.springsource.org/documentation">Spring Framework</ulink>
       3.0.x and above.</para>
       <para>
-      In terms of key value stores, <ulink url="http://code.google.com/p/redis/">Redis</ulink> 2.0.x 
-      and <ulink url="http://www.basho.com/Riak.html">Riak</ulink> 0.13 are required.
+      In terms of key value stores, <ulink url="http://code.google.com/p/redis/">Redis</ulink> 2.2.x 
+      is required.
       </para>
   </chapter>
