@@ -70,7 +70,7 @@ task uploadDocs(type: org.springframework.gradle.tasks.ScpUpload) {
     dependsOn rootProject.javadoc, reference
     description = "Upload API Distribution"
     group = "Distribution"
-    remoteDir = "./static.spring/spring-data/data-redis/docs/${project.version}"
+    remoteDir = "/opt/www/domains/springframework.org/www/htdocs/spring-data/data-redis/docs/${project.version}"
     login = docSiteLogin
 
     with(apiSpec)
