@@ -23,13 +23,9 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.DefaultValueWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.support.collections.DefaultRedisSet;
-import org.springframework.data.redis.support.collections.RedisSet;
 import org.springframework.util.Assert;
 
 /**
@@ -38,12 +34,11 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  */
 @SuppressWarnings("unchecked")
-public class RedisCache implements Cache {
+class RedisCache implements Cache {
 
 	private final String name;
-	private final RedisSet<Object> keys;
 	private final RedisTemplate template;
-	private final byte[] nameAsBytes;
+	private final byte[] prefix;
 	private final byte[] setName;
 
 	/**
@@ -51,30 +46,20 @@ public class RedisCache implements Cache {
 	 * Constructs a new <code>RedisCache</code> instance.
 	 *
 	 * @param name cache name
+	 * @param prefix
+	 * @param cachePrefix 
 	 */
-	public RedisCache(String name, RedisTemplate<? extends Object, ? extends Object> template) {
+	RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template) {
+
 		Assert.hasText(name, "non-empty cache name is required");
 		this.name = name;
 		this.template = template;
+		this.prefix = prefix;
 
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
-		this.nameAsBytes = stringSerializer.serialize(name + ":");
-
-
-		// extract connection and create an ops for set
-		RedisConnectionFactory connectionFactory = template.getConnectionFactory();
-		RedisTemplate<String, Object> setTemplate = new RedisTemplate<String, Object>();
-		setTemplate.setConnectionFactory(connectionFactory);
-		setTemplate.setDefaultSerializer(template.getDefaultSerializer());
-		setTemplate.setKeySerializer(stringSerializer);
-
-		// the values of the set are the cache keys
-		setTemplate.setValueSerializer(template.getKeySerializer());
-		setTemplate.afterPropertiesSet();
-
-		String sName = name + "-keys";
-		this.keys = new DefaultRedisSet<Object>(sName, setTemplate);
+		// name of the set holding the keys
+		String sName = name + "~keys";
 		this.setName = stringSerializer.serialize(sName);
 	}
 
@@ -108,7 +93,7 @@ public class RedisCache implements Cache {
 	@Override
 	public void put(final Object key, final Object value) {
 		final byte[] k = computeKey(key);
-		
+
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.set(k, template.getValueSerializer().serialize(value));
@@ -135,6 +120,7 @@ public class RedisCache implements Cache {
 	@Override
 	public void clear() {
 		// need to del each key individually
+		// TODO: change this to a sorted set to allow pagination
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				// need to paginate the keys
@@ -149,11 +135,13 @@ public class RedisCache implements Cache {
 	}
 
 	private byte[] computeKey(Object key) {
-		RedisSerializer keySerializer = template.getKeySerializer();
-		byte[] k = keySerializer.serialize(key);
+		byte[] k = template.getKeySerializer().serialize(key);
 
-		byte[] result = Arrays.copyOf(nameAsBytes, nameAsBytes.length + k.length);
-		System.arraycopy(k, 0, result, nameAsBytes.length, k.length);
+		if (prefix == null || prefix.length == 0)
+			return k;
+
+		byte[] result = Arrays.copyOf(prefix, prefix.length + k.length);
+		System.arraycopy(k, 0, result, prefix.length, k.length);
 		return result;
 	}
 }

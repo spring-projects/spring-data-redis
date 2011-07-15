@@ -52,7 +52,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Override
 	protected Cache createCache(RedisTemplate nativeCache) {
-		return new RedisCache(CACHE_NAME, nativeCache);
+		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache);
 	}
 
 	@Override

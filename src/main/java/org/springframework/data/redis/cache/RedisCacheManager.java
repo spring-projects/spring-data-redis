@@ -27,6 +27,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * CacheManager implementation for Redis.
+ * By default saves the keys by appending a prefix (which acts as a namespace). For performance reasons, the current implementation
+ * uses a set for the keys in each cache.
  * 
  * @author Costin Leau
  */
@@ -37,6 +39,9 @@ public class RedisCacheManager implements CacheManager {
 	private final Collection<String> names = Collections.unmodifiableSet(caches.keySet());
 	private final RedisTemplate template;
 
+	private boolean usePrefix;
+	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
+
 	public RedisCacheManager(RedisTemplate template) {
 		this.template = template;
 	}
@@ -44,7 +49,7 @@ public class RedisCacheManager implements CacheManager {
 	public Cache getCache(String name) {
 		Cache c = caches.get(name);
 		if (c == null) {
-			c = new RedisCache(name, template);
+			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template);
 			caches.put(name, c);
 			names.add(name);
 		}
@@ -54,5 +59,14 @@ public class RedisCacheManager implements CacheManager {
 
 	public Collection<String> getCacheNames() {
 		return names;
+	}
+
+	/**
+	 * Sets the cachePrefix.
+	 *
+	 * @param cachePrefix the cachePrefix to set
+	 */
+	public void setCachePrefix(RedisCachePrefix cachePrefix) {
+		this.cachePrefix = cachePrefix;
 	}
 }
