@@ -3,6 +3,10 @@ SPRING DATA REDIS INTEGRATION CHANGELOG
 http://www.springsource.org/spring-data
 
 
+Changes in version 1.0.0.RC1 (2011-mm-dd)
+----------------------------------------
+
+
 Changes in version 1.0.0.M4 (2011-07-18)
 ----------------------------------------
 
