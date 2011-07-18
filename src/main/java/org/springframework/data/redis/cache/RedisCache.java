@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 @SuppressWarnings("unchecked")
 class RedisCache implements Cache {
 
+	private static final int PAGE_SIZE = 128;
 	private final String name;
 	private final RedisTemplate template;
 	private final byte[] prefix;
@@ -87,7 +88,7 @@ class RedisCache implements Cache {
 				byte[] bs = connection.get(computeKey(key));
 				return (bs == null ? null : new DefaultValueWrapper(template.getValueSerializer().deserialize(bs)));
 			}
-		});
+		}, true);
 	}
 
 	@Override
@@ -97,10 +98,10 @@ class RedisCache implements Cache {
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.set(k, template.getValueSerializer().serialize(value));
-				connection.sAdd(setName, k);
+				connection.zAdd(setName, 0, k);
 				return null;
 			}
-		});
+		}, true);
 	}
 
 	@Override
@@ -111,27 +112,33 @@ class RedisCache implements Cache {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.del(k);
 				// remove key from set
-				connection.sRem(setName, k);
+				connection.zRem(setName, k);
 				return null;
 			}
-		});
+		}, true);
 	}
 
 	@Override
 	public void clear() {
 		// need to del each key individually
-		// TODO: change this to a sorted set to allow pagination
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				// need to paginate the keys
-				Set<byte[]> keys = connection.sMembers(setName);
-				for (byte[] bs : keys) {
-					connection.del(bs);
-				}
+				int offset = 0;
+				boolean finished = false;
+				do {
+					// need to paginate the keys
+					Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
+					finished = keys.size() < PAGE_SIZE;
+					offset++;
+					if (!keys.isEmpty()) {
+						connection.del(keys.toArray(new byte[keys.size()][]));
+					}
+				} while (!finished);
+
 				connection.del(setName);
 				return null;
 			}
-		});
+		}, true);
 	}
 
 	private byte[] computeKey(Object key) {
