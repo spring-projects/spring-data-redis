@@ -32,6 +32,11 @@ import org.springframework.util.StringUtils;
  */
 public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAware, FactoryBean<RedisStore> {
 
+	/**
+	 * Collection types supported by this factory.
+	 * 
+	 * @author Costin Leau
+	 */
 	public enum CollectionType {
 		LIST {
 			@Override
