@@ -2,6 +2,35 @@ SPRING DATA KEY/VALUE INTEGRATION CHANGELOG
 ===========================================
 http://www.springsource.org/spring-data
 
+Changes in version 1.0.0.M4 (2011-07-18)
+----------------------------------------
+
+General
+* Split Spring Data Key Value project into separate projects for Redis and Riak
+* Changed build system to Gradle
+* Changed root package from org.springframework.data.keyvalue.redis to org.springframework.data.redis
+* Introduced Redis implementation for Spring 3.1 cache abstraction
+* Upgraded to Spring Framework 3.1 M2
+* Upgraded to Jedis 2.0.0
+
+
+Package o.s.d.redis.connection
+* Added awarness of the selected Redis DB
+
+Package o.s.d.redis.core
+* Added missing zRange* operations
+* Fixed incorrect cast in RedisTemplate#keys()
+* Removed ConnectionFactory constructor
+
+
+Package o.s.d.redis.listener
+* Simplified namespace declaration for Redis pubsub
+
+Package o.s.d.redis.support
+* Improved compatibility of atomic counters with M2 release
+* Added Properties implementation on top of Redis
+
+
 Changes in version 1.0.0.M3 (2011-04-06)
 ----------------------------------------
 
