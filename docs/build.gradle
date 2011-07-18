@@ -64,7 +64,13 @@ task docSiteLogin(type: org.springframework.gradle.tasks.Login) {
         key = project.property('sshPrivateKey')
     }
 }
-    
+
+infoSpec = copySpec {
+    from("$projectDir/src/info") {
+        include 'changelog.txt'
+    }
+}
+
 // upload task   
 task uploadDocs(type: org.springframework.gradle.tasks.ScpUpload) {
     dependsOn rootProject.javadoc, reference
@@ -75,4 +81,5 @@ task uploadDocs(type: org.springframework.gradle.tasks.ScpUpload) {
 
     with(apiSpec)
     with(refSpec)
+    with(infoSpec)
 }

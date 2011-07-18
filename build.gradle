@@ -204,7 +204,7 @@ task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn
     group = "Distribution"
     archiveFile = dist.archivePath
     projectKey = 'DATAKV'
-    projectName = 'Spring Data Key Value'
+    projectName = 'Spring Data Redis'
 }
 
 defaultTasks 'clean', 'build'

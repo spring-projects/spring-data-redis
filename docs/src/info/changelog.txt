@@ -14,7 +14,6 @@ General
 * Upgraded to Spring Framework 3.1 M2
 * Upgraded to Jedis 2.0.0
 
-
 Package o.s.d.redis.connection
 * Added awarness of the selected Redis DB
 
@@ -22,7 +21,6 @@ Package o.s.d.redis.core
 * Added missing zRange* operations
 * Fixed incorrect cast in RedisTemplate#keys()
 * Removed ConnectionFactory constructor
-
 
 Package o.s.d.redis.listener
 * Simplified namespace declaration for Redis pubsub
