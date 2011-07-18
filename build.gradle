@@ -32,8 +32,8 @@ buildscript {
 
 allprojects {
     group = 'org.springframework.data.redis'
-    version = '1.0.0.BUILD-SNAPSHOT'
-   
+    version = "$springDataRedisVersion"
+    
     releaseBuild = version.endsWith('RELEASE')
     snapshotBuild = version.endsWith('SNAPSHOT')
 
@@ -167,11 +167,15 @@ task wrapper(type: Wrapper) {
     group = "Distribution"
 }
 
+apply from: "$rootDir/maven.gradle"
+
+assemble.dependsOn = ['jar', 'sourceJar', 'javadocJar']
+
 // Distribution tasks
 task dist(type: Zip) {
     description = "Generate the ZIP Distribution"
     group = "Distribution"
-    dependsOn jar, subprojects*.tasks*.matching { task -> task.name == 'assemble' }
+    dependsOn assemble, subprojects*.tasks*.matching { task -> task.name == 'assemble' }
 
     evaluationDependsOn(':docs')
 
@@ -183,6 +187,9 @@ task dist(type: Zip) {
         from('/docs/build/') {
             into 'docs'
             include 'reference/**/*'
+        }
+        from('build/') {
+            into 'docs'
             include 'api/**/*'
         }
             into('dist') {
@@ -202,7 +209,4 @@ task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn
     projectName = 'Spring Data Key Value'
 }
 
-apply from: "$rootDir/maven.gradle"
-
-assemble.dependsOn = ['jar', 'sourceJar', 'javadocJar']
 defaultTasks 'clean', 'build'
