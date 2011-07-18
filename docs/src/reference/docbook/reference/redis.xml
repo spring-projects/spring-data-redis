@@ -34,7 +34,8 @@
       <xref linkend="redis:template"/> explains the abstraction builds on top of the low-level <interfacename>Connection</interfacename> API to handle the 
       infrastructural concerns and object conversion.</listitem>
       <listitem><emphasis>Support Classes</emphasis> - that offer reusable components (built on the aforementioned abstractions) such as 
-      <interfacename>java.util.Collection</interfacename> backed by Redis as documented in <xref linkend="redis:support"/></listitem>
+      <interfacename>java.util.Collection</interfacename> or Spring 3.1 <ulink url="http://blog.springsource.com/2011/02/23/spring-3-1-m1-caching/">cache</ulink> implementation backed by 
+      Redis as documented in <xref linkend="redis:support"/></listitem>
     </itemizedlist>
     
     <para>For most tasks, the high-level abstractions and support services are the best choice. Note that at any point, one can move between layers - for example, it's very
@@ -404,6 +405,28 @@
 
 	<para>As shown in the example above, the consuming code is decoupled from the actual storage implementation - in fact there is no indication that Redis is used underneath. This makes moving from
 	development to production environments transparent and highly increases testability (the Redis implementation can just as well be replaced with an in-memory one).</para>
+	
+	 <section id="redis:support:cache-abstraction">
+        <title>Support for Spring Cache Abstraction</title>
+  	
+  	<para>Spring Redis provides an implementation for Spring 3.1 <ulink url="http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/cache.html">cache abstraction</ulink>
+  	through the <literal>org.springframework.data.redis.cache</literal> package. To use Redis as a backing implementation, simply add <literal>RedisCacheManager</literal> to your configuration:</para>
+  	
+  	<programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:cache="http://www.springframework.org/schema/cache"
+  xmlns:c="http://www.springframework.org/schema/c"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+  <!-- turn on declarative caching -->
+  <cache:annotation-driven />
+  
+  <!-- declare Redis Cache Manager -->
+  <bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager" c:template-ref="gemfire-cache">
+</beans>]]>
+  	
+  	</programlisting>
+  </section>
+	 
     </section>
     
     <section id="redis:future">

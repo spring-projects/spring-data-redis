@@ -10,7 +10,7 @@
     <section id="get-started:first-steps">
 		<title>First Steps</title>
 		
-		<para>As explained in <xref linkend="why-sdr"/>, Spring Data Redis (SDR) provides integration 
+		<para>As explained in <xref linkend="why-spring-redis"/>, Spring Data Redis (SDR) provides integration 
 		between	Spring framework and the Redis key value store. Thus, it is important to become acquainted with both of these 
 		frameworks (storages or environments depending on how you want to name them). Throughout the SDR documentation, 
 		each section provides links to resources relevant however, it is best to become familiar with these topics beforehand.</para>
@@ -39,36 +39,12 @@
 		</section>
 		<section id="get-started:first-steps:samples">
 			<title>Trying Out The Samples</title>
-			<para>Unfortunately the SDKV project is very young and there are no samples available yet. However we are working on them and plan to make them available
-			as soon as possible. In the meantime however, one can use our test suite as a code example (assuming the documentation is not enough) - we provide extensive
-			integration tests for our code base.
-			</para>
-			<!-- 
-			<para>The current distribution contains:</para>
-			<itemizedlist>
-				<listitem>
-					<para>Simple Service Sample</para>
-					<para>A simple example that illustrates OSGi service publication and consumption through Spring DM. This is a good starting point
-					for users learning the basics.</para>
-				</listitem>
-				<listitem>
-					<para>Weather Sample</para>
-					<para>A demo that shows more advanced features of Spring DM and OSGi. The application creates a very simple weather information services 
-					presenting some best practices in designing an application to take advantage of the modularity offered by OSGi.</para>
-				</listitem>
-				<listitem>
-					<para>Simple Web App Sample</para>
-					<para>As the name implies, this is a simple web application, containing Servlets, JSPs and JSP tags, that runs inside OSGi through Spring DM.</para>
-				</listitem>
-				<listitem>
-					<para>Web Console Sample</para>
-					<para>A more complicated sample that demos a Spring MVC annotation based, web application that runs inside OSGi through Spring DM, featuring 
-					class path scanning and various Spring taglib. Additionally, the web application interacts with the OSGi environment through the web UI.</para>
-				</listitem>
-			</itemizedlist> 
-			<para>Each project contains instructions regarding its content and startup procedure. Users are encouraged to experiment with the samples to get a better
-			understanding of the technologies used.</para>
-			 -->
+			<para>One can find various samples for key value stores in the dedicated example repo, at 
+			<ulink url="https://github.com/SpringSource/spring-data-keyvalue-examples">http://github.com/SpringSource/spring-data-keyvalue-examples</ulink>. For Spring Redis,
+			of interest is the <literal>retwisj</literal> sample, a Twitter-clone built on top of Redis which can be run locally or be deployed into the cloud. See its 
+			<ulink url="http://static.springsource.org/spring-data/data-keyvalue/examples/retwisj/current/">documentation</ulink>, the following blog 
+			<ulink url="http://blog.springsource.com/2011/04/27/getting-started-redis-spring-cloud-foundry/">entry</ulink> or the 
+			<ulink url="http://retwisj.cloudfoundry.com/">live instance</ulink> for more information.</para>
 		</section>
 	</section>
     
