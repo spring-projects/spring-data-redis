@@ -1,6 +1,7 @@
-SPRING DATA KEY/VALUE INTEGRATION CHANGELOG
-===========================================
+SPRING DATA REDIS INTEGRATION CHANGELOG
+=======================================
 http://www.springsource.org/spring-data
+
 
 Changes in version 1.0.0.M4 (2011-07-18)
 ----------------------------------------
