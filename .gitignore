@@ -4,9 +4,7 @@ bin
 build
 .gradle
 .springBeans
-.ant-targets-build.xml
 pom.xml
-src/ant/.ant-targets-upload-dist.xml
 *.iml
 *.ipr
 *.iws

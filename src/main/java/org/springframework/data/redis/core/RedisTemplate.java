@@ -698,6 +698,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public <T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer) {
 		List<S> values = sort(query, resultSerializer);
 
+		if (values == null || values.isEmpty()) {
+			return Collections.emptyList();
+		}
+
 		int bulkSize = query.getGetPattern().size();
 		List<T> result = new ArrayList<T>(values.size() / bulkSize + 1);
 
