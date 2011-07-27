@@ -54,4 +54,29 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 	public String getValueAsString() {
 		return valueAsString;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((valueAsString == null) ? 0 : valueAsString.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (super.equals(obj)) {
+			if (!(obj instanceof DefaultStringTuple))
+				return false;
+			DefaultStringTuple other = (DefaultStringTuple) obj;
+			if (valueAsString == null) {
+				if (other.valueAsString != null)
+					return false;
+			}
+			else if (!valueAsString.equals(other.valueAsString))
+				return false;
+			return true;
+		}
+		return false;
+	}
 }

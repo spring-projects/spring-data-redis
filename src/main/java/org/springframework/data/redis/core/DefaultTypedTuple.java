@@ -47,4 +47,44 @@ class DefaultTypedTuple<V> implements TypedTuple<V> {
 	public V getValue() {
 		return value;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((score == null) ? 0 : score.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof DefaultTypedTuple))
+			return false;
+		DefaultTypedTuple other = (DefaultTypedTuple) obj;
+		if (score == null) {
+			if (other.score != null)
+				return false;
+		}
+		else if (!score.equals(other.score))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		}
+		else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
+
+	@Override
+	public int compareTo(Double o) {
+		Double d = (score == null ? Double.valueOf(0) : score);
+		Double a = (o == null ? Double.valueOf(0) : o);
+		return d.compareTo(a);
+	}
 }

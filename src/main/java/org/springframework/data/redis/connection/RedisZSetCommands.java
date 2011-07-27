@@ -36,7 +36,7 @@ public interface RedisZSetCommands {
 	/**
 	 * ZSet tuple. 
 	 */
-	public interface Tuple {
+	public interface Tuple extends Comparable<Double> {
 		byte[] getValue();
 
 		Double getScore();
