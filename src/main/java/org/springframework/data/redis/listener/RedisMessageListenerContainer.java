@@ -203,8 +203,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		if (isRunning()) {
 			running = false;
 			synchronized (monitor) {
+				boolean shouldWait = listening;
 				subscriptionTask.cancel();
-				if (listening) {
+				if (shouldWait) {
 					try {
 						monitor.wait(initWait);
 					} catch (InterruptedException ex) {
