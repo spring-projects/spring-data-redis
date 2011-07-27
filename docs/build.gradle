@@ -21,17 +21,26 @@ def imagesDir = new File(projectDir, 'src/reference/resources/images');
 docbookFoPdf.admonGraphicsPath = "${imagesDir}/admon"
 docbookFoPdf.imgSrcPath = "${imagesDir}"
 
+// defined separately to prevent the replacement from taking place (seems to affect the images)
+imgSpec = copySpec {
+    into ('reference') {
+        from("$projectDir/src/reference/resources") {
+            include "css/**/*"
+        }
+    }
+    
+    into ('reference/images') {
+       from (imagesDir)
+    }
+}
+
 refSpec = copySpec {
     into ('reference') {
         from("$buildDir/docs") {
            exclude '*.fo'
         }
-        from("$projectDir/src/reference/resources")
     }
-    into ('reference/images') {
-        from (imagesDir)
-    }
-    
+
     p = new Properties()
     
     for (e in project.properties) {
@@ -40,6 +49,7 @@ refSpec = copySpec {
     }
     
     filter(ReplaceTokens, tokens: p)
+    with(imgSpec)
 }
 
 task reference (type: Copy) {
