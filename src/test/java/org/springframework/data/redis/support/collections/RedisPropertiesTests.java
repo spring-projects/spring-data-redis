@@ -176,11 +176,11 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 	@Test
 	public void testPropertyNames() throws Exception {
-		String key1="foo";
-		String key2="x";
+		String key1 = "foo";
+		String key2 = "x";
 		String key3 = "d";
 
-		String val ="o";
+		String val = "o";
 
 		defaults.setProperty(key3, val);
 		props.setProperty(key1, val);
@@ -193,6 +193,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 		keys.add(names.nextElement());
 
 		assertFalse(names.hasMoreElements());
+	}
+
+	@Test
+	public void testDefaultInit() throws Exception {
+		RedisProperties redisProperties = new RedisProperties("foo", template);
+		redisProperties.propertyNames();
 	}
 
 	@Test

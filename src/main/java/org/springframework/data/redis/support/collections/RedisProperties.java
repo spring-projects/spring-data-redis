@@ -23,9 +23,9 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
@@ -104,11 +104,13 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	public synchronized void putAll(Map<? extends Object, ? extends Object> t) {
 		delegate.putAll((Map<? extends String, ? extends String>) t);
 	}
-	
+
 	@Override
 	public Enumeration<?> propertyNames() {
 		Set<String> keys = new LinkedHashSet<String>(delegate.keySet());
-		keys.addAll(defaults.stringPropertyNames());
+		if (defaults != null) {
+			keys.addAll(defaults.stringPropertyNames());
+		}
 		return Collections.enumeration(keys);
 	}
 
