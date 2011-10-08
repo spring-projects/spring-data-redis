@@ -16,10 +16,15 @@
 
 package org.springframework.data.redis.cache;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -75,5 +80,47 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	@Override
 	protected Object getObject() {
 		return objFactory.instance();
+	}
+
+	@Test
+	public void testConcurrentRead() throws Exception {
+		final Object key1 = getObject();
+		final Object value1 = getObject();
+
+		final Object key2 = getObject();
+		final Object value2 = getObject();
+
+		cache.put(key1, value1);
+		cache.put(key2, value2);
+
+		final Object monitor = new Object();
+
+		Thread th = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				synchronized (monitor) {
+					monitor.notify();
+				}
+				cache.clear();
+				cache.put(value1, key1);
+				cache.put(value2, key2);
+			}
+		}, "concurrent-cache-access");
+
+		th.run();
+
+		synchronized (monitor) {
+			monitor.wait(TimeUnit.MILLISECONDS.convert(1, TimeUnit.SECONDS));
+		}
+
+		final Object key3 = getObject();
+		final Object value3 = getObject();
+
+		cache.put(key3, value3);
+		cache.put(value3, key3);
+
+		assertNull(cache.get(key1));
+		assertNull(cache.get(key2));
+		assertEquals(key1, cache.get(value1).get());
 	}
 }

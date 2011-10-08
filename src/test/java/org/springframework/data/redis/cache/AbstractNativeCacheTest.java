@@ -32,7 +32,7 @@ import org.springframework.cache.Cache;
 public abstract class AbstractNativeCacheTest<T> {
 
 	private T nativeCache;
-	private Cache cache;
+	protected Cache cache;
 	protected final static String CACHE_NAME = "testCache";
 
 	@Before

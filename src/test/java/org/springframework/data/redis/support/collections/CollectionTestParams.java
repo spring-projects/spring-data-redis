@@ -136,11 +136,15 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateRJC.afterPropertiesSet();
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { stringFactory, stringTemplateRJC },
-				{ personFactory, personTemplateRJC }, { stringFactory, stringTemplateJR },
-				{ personFactory, personTemplateJR }, { personFactory, personTemplate },
+				{ personFactory, personTemplateRJC },
+				//{ stringFactory, stringTemplateJR },
+				//{ personFactory, personTemplateJR }, 
+				{ personFactory, personTemplate },
 				{ stringFactory, xstreamStringTemplate }, { personFactory, xstreamPersonTemplate },
-				{ stringFactory, xstreamStringTemplateJR }, { personFactory, xstreamPersonTemplateJR },
-				{ personFactory, jsonPersonTemplate }, { personFactory, jsonPersonTemplateJR },
+				//{ stringFactory, xstreamStringTemplateJR }, 
+				//{ personFactory, xstreamPersonTemplateJR },
+				{ personFactory, jsonPersonTemplate },
+				//{ personFactory, jsonPersonTemplateJR },
 				{ stringFactory, xstreamStringTemplateRJC }, { personFactory, xstreamPersonTemplateRJC },
 				{ personFactory, jsonPersonTemplateRJC } });
 	}

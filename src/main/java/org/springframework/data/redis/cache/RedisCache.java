@@ -41,6 +41,8 @@ class RedisCache implements Cache {
 	private final RedisTemplate template;
 	private final byte[] prefix;
 	private final byte[] setName;
+	private final byte[] cacheLockName;
+	private long WAIT_FOR_LOCK = 300;
 
 	/**
 	 * 
@@ -62,6 +64,7 @@ class RedisCache implements Cache {
 		// name of the set holding the keys
 		String sName = name + "~keys";
 		this.setName = stringSerializer.serialize(sName);
+		this.cacheLockName = stringSerializer.serialize(name + "~lock");
 	}
 
 	@Override
@@ -85,6 +88,7 @@ class RedisCache implements Cache {
 		return (ValueWrapper) template.execute(new RedisCallback<ValueWrapper>() {
 			@Override
 			public ValueWrapper doInRedis(RedisConnection connection) throws DataAccessException {
+				waitForLock(connection);
 				byte[] bs = connection.get(computeKey(key));
 				return (bs == null ? null : new DefaultValueWrapper(template.getValueSerializer().deserialize(bs)));
 			}
@@ -97,8 +101,12 @@ class RedisCache implements Cache {
 
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				waitForLock(connection);
+				connection.multi();
 				connection.set(k, template.getValueSerializer().serialize(value));
 				connection.zAdd(setName, 0, k);
+				connection.exec();
+
 				return null;
 			}
 		}, true);
@@ -123,20 +131,34 @@ class RedisCache implements Cache {
 		// need to del each key individually
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				int offset = 0;
-				boolean finished = false;
-				do {
-					// need to paginate the keys
-					Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
-					finished = keys.size() < PAGE_SIZE;
-					offset++;
-					if (!keys.isEmpty()) {
-						connection.del(keys.toArray(new byte[keys.size()][]));
-					}
-				} while (!finished);
+				// another clear is on-going
+				if (connection.exists(cacheLockName)) {
+					return null;
+				}
 
-				connection.del(setName);
-				return null;
+				try {
+					connection.set(cacheLockName, cacheLockName);
+
+					int offset = 0;
+					boolean finished = false;
+
+					do {
+						// need to paginate the keys
+						Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE
+								- 1);
+						finished = keys.size() < PAGE_SIZE;
+						offset++;
+						if (!keys.isEmpty()) {
+							connection.del(keys.toArray(new byte[keys.size()][]));
+						}
+					} while (!finished);
+
+					connection.del(setName);
+					return null;
+
+				} finally {
+					connection.del(cacheLockName);
+				}
 			}
 		}, true);
 	}
@@ -150,5 +172,23 @@ class RedisCache implements Cache {
 		byte[] result = Arrays.copyOf(prefix, prefix.length + k.length);
 		System.arraycopy(k, 0, result, prefix.length, k.length);
 		return result;
+	}
+
+	private boolean waitForLock(RedisConnection connection) {
+		boolean retry;
+		boolean foundLock = false;
+		do {
+			retry = false;
+			if (connection.exists(cacheLockName)) {
+				foundLock = true;
+				try {
+					Thread.currentThread().wait(WAIT_FOR_LOCK);
+				} catch (InterruptedException ex) {
+					// ignore
+				}
+				retry = true;
+			}
+		} while (retry);
+		return foundLock;
 	}
 }
