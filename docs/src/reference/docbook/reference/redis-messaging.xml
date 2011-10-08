@@ -158,7 +158,7 @@ template.convertAndSend("hello!", "world");]]></programlisting>
     &lt;redis:listener ref="listener" method="handleMessage" topic="chatroom" /&gt;
   &lt;/redis:listener-container&gt;
   
-  &lt;bean class="redisexample.DefaultMessageDelegate"/&gt;
+  &lt;bean id="listener" class="redisexample.DefaultMessageDelegate"/&gt;
   ...
 &lt;beans&gt;
 </programlisting>
