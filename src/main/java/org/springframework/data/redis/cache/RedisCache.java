@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import org.springframework.cache.Cache;
-import org.springframework.cache.interceptor.DefaultValueWrapper;
+import org.springframework.cache.support.ValueWrapperImpl;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
@@ -90,7 +90,7 @@ class RedisCache implements Cache {
 			public ValueWrapper doInRedis(RedisConnection connection) throws DataAccessException {
 				waitForLock(connection);
 				byte[] bs = connection.get(computeKey(key));
-				return (bs == null ? null : new DefaultValueWrapper(template.getValueSerializer().deserialize(bs)));
+				return (bs == null ? null : new ValueWrapperImpl(template.getValueSerializer().deserialize(bs)));
 			}
 		}, true);
 	}
