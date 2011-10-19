@@ -27,7 +27,10 @@ imgSpec = copySpec {
         from("$projectDir/src/reference/resources") {
             include "css/**/*"
         }
-    }
+        from("$buildDir/docs") {
+            include '*.pdf'
+        }
+   }
     
     into ('reference/images') {
        from (imagesDir)
@@ -38,6 +41,7 @@ refSpec = copySpec {
     into ('reference') {
         from("$buildDir/docs") {
            exclude '*.fo'
+           exclude '*.pdf'
         }
     }
 
