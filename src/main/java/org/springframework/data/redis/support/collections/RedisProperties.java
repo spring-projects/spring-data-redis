@@ -252,7 +252,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	@Override
 	public Object putIfAbsent(Object key, Object value) {
-		throw new UnsupportedOperationException();
+		return (hashOps.putIfAbsent((String) key, (String) value) ? null : get(key));
 	}
 
 	@Override

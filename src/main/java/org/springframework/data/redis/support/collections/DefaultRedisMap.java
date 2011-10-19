@@ -30,7 +30,10 @@ import org.springframework.data.redis.core.RedisOperations;
 
 /**
  * Default implementation for {@link RedisMap}.
- *  
+ * 
+ * Note that the current implementation doesn't provide the same locking semantics across all methods.
+ * In highly concurrent environments, race conditions might appear.
+ * 
  * @author Costin Leau
  */
 public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
@@ -196,7 +199,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	@Override
 	public V putIfAbsent(K key, V value) {
-		throw new UnsupportedOperationException();
+		return (hashOps.putIfAbsent(key, value) ? null : get(key));
 
 		//		RedisOperations<String, ?> ops = hashOps.getOperations();
 		//

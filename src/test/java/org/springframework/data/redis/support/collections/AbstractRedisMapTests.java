@@ -15,10 +15,17 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+import static org.junit.matchers.JUnitMatchers.hasItem;
+import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,9 +49,6 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.support.collections.DefaultRedisMap;
-import org.springframework.data.redis.support.collections.RedisMap;
-import org.springframework.data.redis.support.collections.RedisStore;
 
 /**
  * Integration test for Redis Map.
@@ -355,7 +359,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 
-	@Test(expected = UnsupportedOperationException.class)
+	//@Test(expected = UnsupportedOperationException.class)
 	public void testConcurrentPutIfAbsent() {
 		K k1 = getKey();
 		K k2 = getKey();

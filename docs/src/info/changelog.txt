@@ -3,8 +3,24 @@ SPRING DATA REDIS INTEGRATION CHANGELOG
 http://www.springsource.org/spring-data
 
 
-Changes in version 1.0.0.RC1 (2011-mm-dd)
+Changes in version 1.0.0.RC1 (2011-10-19)
 ----------------------------------------
+
+General
+* Upgraded to Spring Framework 3.1 RC1
+* Upgraded slfj, Jackson libraries
+* Changed compile source/target compatibility to JDK 1.5
+
+Package o.s.d.redis.connection
+* Added equals/hashCode/compareTo methods to TypedTuple
+
+Package o.s.d.redis.core
+* Fixed potential bug in RedisTemplate#sort
+* Added equals/hashCode/compareTo methods to TypedTuple
+
+Package o.s.d.redis.support
+* Fixed potential bug in RedisProperties
+* Improved Redis cache implementation under heavy concurrent access
 
 
 Changes in version 1.0.0.M4 (2011-07-18)
