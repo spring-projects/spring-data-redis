@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.cache;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -29,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.CollectionTestParams;
@@ -122,5 +124,14 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertNull(cache.get(key1));
 		assertNull(cache.get(key2));
 		assertEquals(key1, cache.get(value1).get());
+	}
+	
+	@Test
+	public void testCacheName() throws Exception {
+		CacheManager redisCM = new RedisCacheManager(template);
+		String cacheName = "s2gx11";
+		Cache cache = redisCM.getCache(cacheName);
+		assertNotNull(cache);
+		assertTrue(redisCM.getCacheNames().contains(cacheName));
 	}
 }

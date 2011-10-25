@@ -51,7 +51,6 @@ public class RedisCacheManager implements CacheManager {
 		if (c == null) {
 			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template);
 			caches.put(name, c);
-			names.add(name);
 		}
 
 		return c;
