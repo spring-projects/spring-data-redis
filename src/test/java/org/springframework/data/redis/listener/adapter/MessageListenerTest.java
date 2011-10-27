@@ -41,7 +41,8 @@ public class MessageListenerTest {
 	private static final byte[] RAW_CHANNEL = serializer.serialize(CHANNEL);
 	private static final String PAYLOAD = "do re mi";
 	private static final byte[] RAW_PAYLOAD = serializer.serialize(PAYLOAD);
-	private static final Message STRING_MSG = new DefaultMessage(RAW_CHANNEL, RAW_PAYLOAD);
+	private static final Message STRING_MSG = new DefaultMessage(RAW_CHANNEL,
+			RAW_PAYLOAD);
 
 	private MessageListenerAdapter adapter;
 
@@ -49,6 +50,8 @@ public class MessageListenerTest {
 		void handleMessage(String argument);
 
 		void customMethod(String arg);
+
+		void customMethodWithChannel(String arg, String channel);
 	}
 
 	@Mock
@@ -67,20 +70,31 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
-		assertEquals(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD, adapter.getDefaultListenerMethod());
+	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault()
+			throws Exception {
+		assertEquals(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD,
+				adapter.getDefaultListenerMethod());
 	}
 
-	@Test
+	@Test(expected = IllegalStateException.class)
+	// TODO: revisit the exception/method discovery during invocation
+	// TODO: potentially move the discovery early on
 	public void testAdapterWithListenerAndDefaultMessage() throws Exception {
 		MessageListener mock = mock(MessageListener.class);
 
-		MessageListenerAdapter adapter = new MessageListenerAdapter(mock);
+		MessageListenerAdapter adapter = new MessageListenerAdapter(mock) {
+
+			@Override
+			protected void handleListenerException(Throwable ex) {
+				throw new IllegalStateException(ex);
+			}
+		};
+
 		adapter.onMessage(STRING_MSG, null);
 		verify(mock).onMessage(STRING_MSG, null);
 	}
 
-
+	@Test
 	public void testRawMessage() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.onMessage(STRING_MSG, null);
@@ -88,12 +102,21 @@ public class MessageListenerTest {
 		verify(target).handleMessage(PAYLOAD);
 	}
 
-
+	@Test
 	public void testCustomMethod() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethod");
 		adapter.onMessage(STRING_MSG, null);
 
 		verify(target).customMethod(PAYLOAD);
+	}
+
+	@Test
+	public void testCustomMethodWithChannel() throws Exception {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
+		adapter.setDefaultListenerMethod("customMethodWithChannel");
+		adapter.onMessage(STRING_MSG, RAW_CHANNEL);
+
+		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);
 	}
 }
