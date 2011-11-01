@@ -459,7 +459,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@Override
 	public Boolean expire(K key, long timeout, TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
-		final int rawTimeout = (int) unit.toSeconds(timeout);
+		final long rawTimeout = unit.toSeconds(timeout);
 
 		return execute(new RedisCallback<Boolean>() {
 			@Override
@@ -472,7 +472,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@Override
 	public Boolean expireAt(K key, Date date) {
 		final byte[] rawKey = rawKey(key);
-		final long rawTimeout = date.getTime();
+		final long rawTimeout = date.getTime() / 1000;
 
 		return execute(new RedisCallback<Boolean>() {
 			@Override
