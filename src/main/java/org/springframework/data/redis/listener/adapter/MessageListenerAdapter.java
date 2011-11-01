@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.Message;
@@ -35,12 +36,21 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
+import org.springframework.util.StringUtils;
 
 /**
  * Message listener adapter that delegates the handling of messages to target
  * listener methods via reflection, with flexible message type conversion.
  * Allows listener methods to operate on message content types, completely
  * independent from the Redis API.
+ * 
+ * <p/> Make sure to call {@link #afterPropertiesSet()} after setting all the parameters
+ * on the adapter.
+ * 
+ * <p/>Note that if the underlying "delegate" is implementing {@link MessageListener}, the adapter
+ * will delegate to it and allow an invalid method to be specified. However if it is not, the method
+ * becomes mandatory.
+ * This lenient behavior allows the adapter to be used uniformly across existing listeners and message POJOs.
  * 
  * <p/>
  * Modeled as much as possible after the JMS MessageListenerAdapter in Spring
@@ -97,14 +107,20 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  * @author Costin Leau
  * @see org.springframework.jms.listener.adapter.MessageListenerAdapter
  */
-public class MessageListenerAdapter implements MessageListener {
+public class MessageListenerAdapter implements InitializingBean, MessageListener {
 
 	private class MethodInvoker {
 		private final Object delegate;
-		List<Method> methods;
+		private String methodName;
+
+		private List<Method> methods;
+		private boolean lenient = false;
 
 		MethodInvoker(Object delegate, final String methodName) {
 			this.delegate = delegate;
+			this.methodName = methodName;
+
+			lenient = delegate instanceof MessageListener;
 
 			Class<?> c = delegate.getClass();
 
@@ -112,42 +128,45 @@ public class MessageListenerAdapter implements MessageListener {
 
 			ReflectionUtils.doWithMethods(c, new MethodCallback() {
 
-				public void doWith(Method method)
-						throws IllegalArgumentException, IllegalAccessException {
+				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 					ReflectionUtils.makeAccessible(method);
 					methods.add(method);
 				}
 
 			}, new MethodFilter() {
 				public boolean matches(Method method) {
-					if (Modifier.isPublic(method.getModifiers())
-							&& methodName.equals(method.getName())) {
+					if (Modifier.isPublic(method.getModifiers()) && methodName.equals(method.getName())) {
 						// check out the argument numbers
 						Class<?>[] parameterTypes = method.getParameterTypes();
 
-						return ((parameterTypes.length == 2 && String.class
-								.equals(parameterTypes[1])) || parameterTypes.length == 1);
+						return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
 					}
 					return false;
 				}
 			});
 
-			Assert.isTrue(!methods.isEmpty(),
-							"Cannot find a suitable method named ["
-									+ c.getName()
-									+ "#"
-									+ methodName
-									+ "] - is the method public and has the proper arguments?");
+			Assert.isTrue(lenient || !methods.isEmpty(), "Cannot find a suitable method named [" + c.getName() + "#"
+					+ methodName
+					+ "] - is the method public and has the proper arguments?");
 		}
 
 		void invoke(Object[] arguments) throws InvocationTargetException, IllegalAccessException {
 
-			Object[] message = new Object[] {arguments[0]};
+			Object[] message = new Object[] { arguments[0] };
 			for (Method m : methods) {
 				Class<?>[] types = m.getParameterTypes();
-				Object[] args = (types.length == 2 ? arguments: message);
+				Object[] args = (types.length == 2 ? arguments : message);
 				m.invoke(delegate, args);
 			}
+		}
+
+		/**
+		 * Returns the current methodName.
+		 *
+		 * @return the methodName
+		 */
+		public String getMethodName() {
+			return methodName;
 		}
 	}
 
@@ -159,9 +178,9 @@ public class MessageListenerAdapter implements MessageListener {
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private Object delegate;
+	private volatile Object delegate;
 
-	private MethodInvoker invoker;
+	private volatile MethodInvoker invoker;
 
 	private String defaultListenerMethod = ORIGINAL_DEFAULT_LISTENER_METHOD;
 
@@ -202,7 +221,6 @@ public class MessageListenerAdapter implements MessageListener {
 	public void setDelegate(Object delegate) {
 		Assert.notNull(delegate, "Delegate must not be null");
 		this.delegate = delegate;
-		this.invoker = null;
 	}
 
 	/**
@@ -224,7 +242,6 @@ public class MessageListenerAdapter implements MessageListener {
 	 */
 	public void setDefaultListenerMethod(String defaultListenerMethod) {
 		this.defaultListenerMethod = defaultListenerMethod;
-		this.invoker = null;
 	}
 
 	/**
@@ -258,6 +275,19 @@ public class MessageListenerAdapter implements MessageListener {
 		this.stringSerializer = serializer;
 	}
 
+	@Override
+	public void afterPropertiesSet() {
+		String methodName = getDefaultListenerMethod();
+
+		if (!StringUtils.hasText(methodName)) {
+			throw new InvalidDataAccessApiUsageException("No default listener method specified: "
+					+ "Either specify a non-null value for the 'defaultListenerMethod' property or "
+					+ "override the 'getListenerMethodName' method.");
+		}
+
+		invoker = new MethodInvoker(delegate, methodName);
+	}
+
 	/**
 	 * Standard Redis {@link MessageListener} entry point.
 	 * <p>
@@ -284,24 +314,9 @@ public class MessageListenerAdapter implements MessageListener {
 			Object convertedMessage = extractMessage(message);
 			String convertedChannel = stringSerializer.deserialize(pattern);
 			// Invoke the handler method with appropriate arguments.
-			Object[] listenerArguments = new Object[] { convertedMessage,
-					convertedChannel };
+			Object[] listenerArguments = new Object[] { convertedMessage, convertedChannel };
 
-			String methodName = getListenerMethodName(message, convertedMessage);
-
-			if (methodName == null) {
-				throw new InvalidDataAccessApiUsageException(
-						"No default listener method specified: "
-								+ "Either specify a non-null value for the 'defaultListenerMethod' property or "
-								+ "override the 'getListenerMethodName' method.");
-			}
-
-			if (invoker == null) {
-				invoker = new MethodInvoker(delegate, methodName);
-			}
-
-
-			invokeListenerMethod(methodName, listenerArguments);
+			invokeListenerMethod(invoker.getMethodName(), listenerArguments);
 		} catch (Throwable th) {
 			handleListenerException(th);
 		}
@@ -360,8 +375,7 @@ public class MessageListenerAdapter implements MessageListener {
 	 * @return the name of the listener method (never <code>null</code>)
 	 * @see #setDefaultListenerMethod
 	 */
-	protected String getListenerMethodName(Message originalMessage,
-			Object extractedMessage) {
+	protected String getListenerMethodName(Message originalMessage, Object extractedMessage) {
 		return getDefaultListenerMethod();
 	}
 
@@ -373,7 +387,6 @@ public class MessageListenerAdapter implements MessageListener {
 	 * @param arguments
 	 *            the message arguments to be passed in
 	 * @see #getListenerMethodName
-	 * @see #buildListenerArguments
 	 */
 	protected void invokeListenerMethod(String methodName, Object[] arguments) {
 		try {
@@ -382,16 +395,14 @@ public class MessageListenerAdapter implements MessageListener {
 			Throwable targetEx = ex.getTargetException();
 			if (targetEx instanceof DataAccessException) {
 				throw (DataAccessException) targetEx;
-			} else {
-				throw new RedisListenerExecutionFailedException(
-						"Listener method '" + methodName + "' threw exception",
+			}
+			else {
+				throw new RedisListenerExecutionFailedException("Listener method '" + methodName + "' threw exception",
 						targetEx);
 			}
 		} catch (Throwable ex) {
-			throw new RedisListenerExecutionFailedException(
-					"Failed to invoke target method '" + methodName
-							+ "' with arguments "
-							+ ObjectUtils.nullSafeToString(arguments), ex);
+			throw new RedisListenerExecutionFailedException("Failed to invoke target method '" + methodName
+					+ "' with arguments " + ObjectUtils.nullSafeToString(arguments), ex);
 		}
 	}
 }

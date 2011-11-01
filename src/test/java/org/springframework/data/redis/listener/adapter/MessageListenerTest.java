@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.listener.adapter;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +27,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -97,6 +98,7 @@ public class MessageListenerTest {
 	@Test
 	public void testRawMessage() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
+		adapter.afterPropertiesSet();
 		adapter.onMessage(STRING_MSG, null);
 
 		verify(target).handleMessage(PAYLOAD);
@@ -106,6 +108,8 @@ public class MessageListenerTest {
 	public void testCustomMethod() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethod");
+		adapter.afterPropertiesSet();
+
 		adapter.onMessage(STRING_MSG, null);
 
 		verify(target).customMethod(PAYLOAD);
@@ -115,6 +119,8 @@ public class MessageListenerTest {
 	public void testCustomMethodWithChannel() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethodWithChannel");
+		adapter.afterPropertiesSet();
+
 		adapter.onMessage(STRING_MSG, RAW_CHANNEL);
 
 		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);

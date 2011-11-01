@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,8 +35,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.support.collections.ObjectFactory;
 
@@ -56,7 +55,7 @@ public class PubSubTests<T> {
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
 
 	private final Object handler = new Object() {
-		void handleMessage(String message) {
+		public void handleMessage(String message) {
 			bag.add(message);
 		}
 	};
@@ -66,6 +65,7 @@ public class PubSubTests<T> {
 	@Before
 	public void setUp() throws Exception {
 		adapter.setSerializer(template.getValueSerializer());
+		adapter.afterPropertiesSet();
 
 		container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(template.getConnectionFactory());
