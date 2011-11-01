@@ -50,12 +50,12 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 		this.valueAsString = valueAsString;
 	}
 
-	@Override
+	
 	public String getValueAsString() {
 		return valueAsString;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
@@ -63,7 +63,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 		return result;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (super.equals(obj)) {
 			if (!(obj instanceof DefaultStringTuple))

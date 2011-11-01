@@ -37,7 +37,7 @@ public class SimpleRedisSerializerTests {
 	private static class A implements Serializable {
 		private Integer value = Integer.valueOf(30);
 
-		@Override
+		
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
@@ -45,7 +45,7 @@ public class SimpleRedisSerializerTests {
 			return result;
 		}
 
-		@Override
+		
 		public boolean equals(Object obj) {
 			if (this == obj)
 				return true;
@@ -68,7 +68,7 @@ public class SimpleRedisSerializerTests {
 		private String name = getClass().getName();
 		private A a = new A();
 
-		@Override
+		
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
@@ -77,7 +77,7 @@ public class SimpleRedisSerializerTests {
 			return result;
 		}
 
-		@Override
+		
 		public boolean equals(Object obj) {
 			if (this == obj)
 				return true;

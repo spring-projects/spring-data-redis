@@ -20,7 +20,7 @@ import org.springframework.data.redis.hash.JacksonHashMapper;
 
 public class JacksonHashMapperTest extends AbstractHashMapperTest {
 
-	@Override
+	
 	protected HashMapper mapperFor(Class t) {
 		return new JacksonHashMapper(t);
 	}

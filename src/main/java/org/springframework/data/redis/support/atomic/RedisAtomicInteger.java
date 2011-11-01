@@ -127,7 +127,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
 			@SuppressWarnings("unchecked")
-			@Override
+			
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {
 					operations.watch(Collections.singleton(key));
@@ -225,38 +225,38 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		return (double) get();
 	}
 
-	@Override
+	
 	public String getKey() {
 		return key;
 	}
 
-	@Override
+	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}
 
-	@Override
+	
 	public Boolean expireAt(Date date) {
 		return generalOps.expireAt(key, date);
 	}
 
-	@Override
+	
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
-	@Override
+	
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
-	@Override
+	
 	public void rename(String newKey) {
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
 
-	@Override
+	
 	public DataType getType() {
 		return DataType.STRING;
 	}

@@ -37,12 +37,12 @@ public class RedisListTests extends AbstractRedisListTests<Object> {
 		super(factory, template);
 	}
 
-	@Override
+	
 	RedisStore copyStore(RedisStore store) {
 		return new DefaultRedisList(store.getKey().toString(), store.getOperations());
 	}
 
-	@Override
+	
 	AbstractRedisCollection<Object> createCollection() {
 		String redisName = getClass().getName();
 		return new DefaultRedisList(redisName, template);

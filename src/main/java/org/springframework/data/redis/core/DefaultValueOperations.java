@@ -36,34 +36,34 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		super(template);
 	}
 
-	@Override
+	
 	public V get(final Object key) {
 
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.get(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V getAndSet(K key, V newValue) {
 		final byte[] rawValue = rawValue(newValue);
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.getSet(rawKey, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long increment(K key, final long delta) {
 		final byte[] rawKey = rawKey(key);
 		// TODO add conversion service in here ?
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				if (delta == 1) {
 					return connection.incr(rawKey);
@@ -82,25 +82,25 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	@Override
+	
 	public Integer append(K key, String value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawString = rawString(value);
 
 		return execute(new RedisCallback<Integer>() {
-			@Override
+			
 			public Integer doInRedis(RedisConnection connection) {
 				return connection.append(rawKey, rawString).intValue();
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public String get(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
 		byte[] rawReturn = execute(new RedisCallback<byte[]>() {
-			@Override
+			
 			public byte[] doInRedis(RedisConnection connection) {
 				return connection.getRange(rawKey, start, end);
 			}
@@ -110,7 +110,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
+	
 	public List<V> multiGet(Collection<K> keys) {
 		if (keys.isEmpty()) {
 			return Collections.emptyList();
@@ -124,7 +124,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}
 
 		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-			@Override
+			
 			public List<byte[]> doInRedis(RedisConnection connection) {
 				return connection.mGet(rawKeys);
 			}
@@ -133,7 +133,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return deserializeValues(rawValues);
 	}
 
-	@Override
+	
 	public void multiSet(Map<? extends K, ? extends V> m) {
 		if (m.isEmpty()) {
 			return;
@@ -146,7 +146,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}
 
 		execute(new RedisCallback<Object>() {
-			@Override
+			
 			public Object doInRedis(RedisConnection connection) {
 				connection.mSet(rawKeys);
 				return null;
@@ -154,7 +154,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	@Override
+	
 	public void multiSetIfAbsent(Map<? extends K, ? extends V> m) {
 		if (m.isEmpty()) {
 			return;
@@ -167,7 +167,7 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}
 
 		execute(new RedisCallback<Object>() {
-			@Override
+			
 			public Object doInRedis(RedisConnection connection) {
 				connection.mSetNX(rawKeys);
 				return null;
@@ -175,11 +175,11 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	@Override
+	
 	public void set(K key, V value) {
 		final byte[] rawValue = rawValue(value);
 		execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				connection.set(rawKey, rawValue);
 				return null;
@@ -187,14 +187,14 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	@Override
+	
 	public void set(K key, V value, long timeout, TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 		final long rawTimeout = unit.toSeconds(timeout);
 
 		execute(new RedisCallback<Object>() {
-			@Override
+			
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.setEx(rawKey, (int) rawTimeout, rawValue);
 				return null;
@@ -202,13 +202,13 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	@Override
+	
 	public Boolean setIfAbsent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 
 		return execute(new RedisCallback<Boolean>() {
-			@Override
+			
 			public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.setNX(rawKey, rawValue);
 			}
@@ -216,13 +216,13 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 
-	@Override
+	
 	public void set(K key, final V value, final long offset) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 
 		execute(new RedisCallback<Object>() {
-			@Override
+			
 			public Object doInRedis(RedisConnection connection) {
 				connection.setRange(rawKey, rawValue, offset);
 				return null;
@@ -230,12 +230,12 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	@Override
+	
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.strLen(rawKey);
 			}

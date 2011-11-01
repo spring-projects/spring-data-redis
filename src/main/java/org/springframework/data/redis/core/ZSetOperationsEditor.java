@@ -25,7 +25,7 @@ import java.beans.PropertyEditorSupport;
  */
 class ZSetOperationsEditor extends PropertyEditorSupport {
 
-	@Override
+	
 	public void setValue(Object value) {
 		if (value instanceof RedisOperations) {
 			super.setValue(((RedisOperations) value).opsForZSet());

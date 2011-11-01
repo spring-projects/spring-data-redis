@@ -66,14 +66,14 @@ public class RedisPropertiesTests extends RedisMapTests {
 		super(keyFactory, valueFactory, template);
 	}
 
-	@Override
+	
 	RedisMap<Object, Object> createMap() {
 		String redisName = getClass().getSimpleName();
 		props = new RedisProperties(defaults, redisName, new StringRedisTemplate(template.getConnectionFactory()));
 		return props;
 	}
 
-	@Override
+	
 	protected RedisStore copyStore(RedisStore store) {
 		return new RedisProperties(store.getKey(), store.getOperations());
 	}

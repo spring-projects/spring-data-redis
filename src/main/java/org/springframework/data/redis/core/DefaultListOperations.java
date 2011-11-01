@@ -33,32 +33,32 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		super(template);
 	}
 
-	@Override
+	
 	public V index(K key, final long index) {
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.lIndex(rawKey, index);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V leftPop(K key) {
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.lPop(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V leftPop(K key, long timeout, TimeUnit unit) {
 		final int tm = (int) unit.toSeconds(timeout);
 
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				List<byte[]> lPop = connection.bLPop(tm, rawKey);
 				return (CollectionUtils.isEmpty(lPop) ? null : lPop.get(1));
@@ -66,94 +66,94 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		}, true);
 	}
 
-	@Override
+	
 	public Long leftPush(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lPush(rawKey, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long leftPushIfPresent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lPushX(rawKey, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long leftPush(K key, V pivot, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawPivot = rawValue(pivot);
 		final byte[] rawValue = rawValue(value);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lInsert(rawKey, Position.BEFORE, rawPivot, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lLen(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public List<V> range(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<List<V>>() {
 			@SuppressWarnings("unchecked")
-			@Override
+			
 			public List<V> doInRedis(RedisConnection connection) {
 				return deserializeValues(connection.lRange(rawKey, start, end));
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long remove(K key, final long count, Object value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lRem(rawKey, count, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V rightPop(K key) {
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				return connection.rPop(rawKey);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V rightPop(K key, long timeout, TimeUnit unit) {
 		final int tm = (int) unit.toSeconds(timeout);
 
 		return execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				List<byte[]> bRPop = connection.bRPop(tm, rawKey);
 				return (CollectionUtils.isEmpty(bRPop) ? null : bRPop.get(1));
@@ -161,74 +161,74 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		}, true);
 	}
 
-	@Override
+	
 	public Long rightPush(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.rPush(rawKey, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long rightPushIfPresent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.rPushX(rawKey, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public Long rightPush(K key, V pivot, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawPivot = rawValue(pivot);
 		final byte[] rawValue = rawValue(value);
 
 		return execute(new RedisCallback<Long>() {
-			@Override
+			
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lInsert(rawKey, Position.AFTER, rawPivot, rawValue);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey) {
 		final byte[] rawDestKey = rawKey(destinationKey);
 
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.rPopLPush(rawSourceKey, rawDestKey);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit) {
 		final int tm = (int) unit.toSeconds(timeout);
 		final byte[] rawDestKey = rawKey(destinationKey);
 
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawSourceKey, RedisConnection connection) {
 				return connection.bRPopLPush(tm, rawSourceKey, rawDestKey);
 			}
 		}, true);
 	}
 
-	@Override
+	
 	public void set(K key, final long index, V value) {
 		final byte[] rawValue = rawValue(value);
 		execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				connection.lSet(rawKey, index, rawValue);
 				return null;
@@ -236,10 +236,10 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		}, true);
 	}
 
-	@Override
+	
 	public void trim(K key, final long start, final long end) {
 		execute(new ValueDeserializingRedisCallback(key) {
-			@Override
+			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				connection.lTrim(rawKey, start, end);
 				return null;

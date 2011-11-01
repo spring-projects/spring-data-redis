@@ -85,7 +85,7 @@ public class MessageListenerTest {
 
 		MessageListenerAdapter adapter = new MessageListenerAdapter(mock) {
 
-			@Override
+			
 			protected void handleListenerException(Throwable ex) {
 				throw new IllegalStateException(ex);
 			}

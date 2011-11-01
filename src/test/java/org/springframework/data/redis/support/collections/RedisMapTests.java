@@ -42,7 +42,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		super(keyFactory, valueFactory, template);
 	}
 
-	@Override
+	
 	RedisMap<Object, Object> createMap() {
 		String redisName = getClass().getSimpleName();
 		return new DefaultRedisMap<Object, Object>(redisName, template);

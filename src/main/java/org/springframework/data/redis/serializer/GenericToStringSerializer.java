@@ -64,7 +64,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 		converter = new Converter(typeConverter);
 	}
 
-	@Override
+	
 	public T deserialize(byte[] bytes) {
 		if (bytes == null) {
 			return null;
@@ -74,7 +74,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 		return converter.convert(string, type);
 	}
 
-	@Override
+	
 	public byte[] serialize(T object) {
 		if (object == null) {
 			return null;
@@ -83,7 +83,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 		return string.getBytes(charset);
 	}
 
-	@Override
+	
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (converter == null && beanFactory instanceof ConfigurableBeanFactory) {
 			ConfigurableBeanFactory cFB = (ConfigurableBeanFactory) beanFactory;

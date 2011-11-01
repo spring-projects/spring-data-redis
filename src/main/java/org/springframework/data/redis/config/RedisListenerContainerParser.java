@@ -43,13 +43,13 @@ import org.w3c.dom.NamedNodeMap;
  */
 class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 
-	@Override
+	
 	protected Class<RedisMessageListenerContainer> getBeanClass(Element element) {
 		return RedisMessageListenerContainer.class;
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
+	
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		// parse attributes (but replace the value assignment with references)
 		NamedNodeMap attributes = element.getAttributes();
@@ -87,7 +87,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		}
 	}
 
-	@Override
+	
 	protected boolean isEligibleAttribute(String attributeName) {
 		return (!"phase".equals(attributeName));
 	}
@@ -132,7 +132,7 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		return ret;
 	}
 
-	@Override
+	
 	protected boolean shouldGenerateId() {
 		return true;
 	}

@@ -67,12 +67,10 @@ class RedisCache implements Cache {
 		this.cacheLockName = stringSerializer.serialize(name + "~lock");
 	}
 
-	@Override
 	public String getName() {
 		return name;
 	}
 
-	@Override
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -83,10 +81,10 @@ class RedisCache implements Cache {
 		return template;
 	}
 
-	@Override
+	
 	public ValueWrapper get(final Object key) {
 		return (ValueWrapper) template.execute(new RedisCallback<ValueWrapper>() {
-			@Override
+			
 			public ValueWrapper doInRedis(RedisConnection connection) throws DataAccessException {
 				waitForLock(connection);
 				byte[] bs = connection.get(computeKey(key));
@@ -95,7 +93,7 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-	@Override
+	
 	public void put(final Object key, final Object value) {
 		final byte[] k = computeKey(key);
 
@@ -112,7 +110,7 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-	@Override
+	
 	public void evict(Object key) {
 		final byte[] k = computeKey(key);
 
@@ -126,7 +124,7 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-	@Override
+	
 	public void clear() {
 		// need to del each key individually
 		template.execute(new RedisCallback<Object>() {

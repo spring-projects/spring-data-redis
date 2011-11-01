@@ -49,7 +49,7 @@ public class NamespaceTest {
 	public void testSanityTest() throws Exception {
 		RedisMessageListenerContainer container = ctx.getBean(RedisMessageListenerContainer.class);
 		assertTrue(container.isRunning());
-		Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 	}
 
 	@Test
@@ -57,7 +57,7 @@ public class NamespaceTest {
 		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
 		template.convertAndSend("x1", "[X]test");
 		template.convertAndSend("z1", "[Z]test");
-		Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 	}
 
 	public void testErrorHandler() throws Exception {

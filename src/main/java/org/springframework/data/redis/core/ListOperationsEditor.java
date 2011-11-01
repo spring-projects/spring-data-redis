@@ -24,7 +24,7 @@ import java.beans.PropertyEditorSupport;
  * @author Costin Leau
  */
 class ListOperationsEditor extends PropertyEditorSupport {
-	@Override
+	
 	public void setValue(Object value) {
 		if (value instanceof RedisOperations) {
 			super.setValue(((RedisOperations) value).opsForList());

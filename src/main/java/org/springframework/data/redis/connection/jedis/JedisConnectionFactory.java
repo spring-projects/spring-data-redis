@@ -150,7 +150,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 				null, dbIndex)));
 	}
 
-	@Override
+	
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return JedisUtils.convertJedisAccessException(ex);
 	}

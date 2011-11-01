@@ -34,18 +34,18 @@ class JedisSubscription extends AbstractSubscription {
 		this.jedisPubSub = jedisPubSub;
 	}
 
-	@Override
+	
 	protected void doClose() {
 		jedisPubSub.unsubscribe();
 		jedisPubSub.punsubscribe();
 	}
 
-	@Override
+	
 	protected void doPsubscribe(byte[]... patterns) {
 		jedisPubSub.psubscribe(patterns);
 	}
 
-	@Override
+	
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		if (all) {
 			jedisPubSub.punsubscribe();
@@ -55,12 +55,12 @@ class JedisSubscription extends AbstractSubscription {
 		}
 	}
 
-	@Override
+	
 	protected void doSubscribe(byte[]... channels) {
 		jedisPubSub.subscribe(channels);
 	}
 
-	@Override
+	
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		if (all) {
 			jedisPubSub.unsubscribe();

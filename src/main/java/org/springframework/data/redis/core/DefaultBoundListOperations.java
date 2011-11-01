@@ -42,92 +42,92 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	}
 
 
-	@Override
+	
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}
 
-	@Override
+	
 	public V index(long index) {
 		return ops.index(getKey(), index);
 	}
 
-	@Override
+	
 	public V leftPop() {
 		return ops.leftPop(getKey());
 	}
 
-	@Override
+	
 	public V leftPop(long timeout, TimeUnit unit) {
 		return ops.leftPop(getKey(), timeout, unit);
 	}
 
-	@Override
+	
 	public Long leftPush(V value) {
 		return ops.leftPush(getKey(), value);
 	}
 
-	@Override
+	
 	public Long leftPushIfPresent(V value) {
 		return ops.leftPushIfPresent(getKey(), value);
 	}
 
-	@Override
+	
 	public Long leftPush(V pivot, V value) {
 		return ops.leftPush(getKey(), pivot, value);
 	}
 
-	@Override
+	
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	@Override
+	
 	public List<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
-	@Override
+	
 	public Long remove(long i, Object value) {
 		return ops.remove(getKey(), i, value);
 	}
 
-	@Override
+	
 	public V rightPop() {
 		return ops.rightPop(getKey());
 	}
 
-	@Override
+	
 	public V rightPop(long timeout, TimeUnit unit) {
 		return ops.rightPop(getKey(), timeout, unit);
 	}
 
-	@Override
+	
 	public Long rightPushIfPresent(V value) {
 		return ops.rightPushIfPresent(getKey(), value);
 	}
 
-	@Override
+	
 	public Long rightPush(V value) {
 		return ops.rightPush(getKey(), value);
 	}
 
-	@Override
+	
 	public Long rightPush(V pivot, V value) {
 		return ops.rightPush(getKey(), pivot, value);
 	}
 
-	@Override
+	
 	public void trim(long start, long end) {
 		ops.trim(getKey(), start, end);
 	}
 
-	@Override
+	
 	public void set(long index, V value) {
 		ops.set(getKey(), index, value);
 	}
 
-	@Override
+	
 	public DataType getType() {
 		return DataType.LIST;
 	}

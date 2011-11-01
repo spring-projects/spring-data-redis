@@ -40,17 +40,17 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		this.operations = operations;
 	}
 
-	@Override
+	
 	public String getKey() {
 		return key;
 	}
 
-	@Override
+	
 	public RedisOperations<String, E> getOperations() {
 		return operations;
 	}
 
-	@Override
+	
 	public boolean addAll(Collection<? extends E> c) {
 		boolean modified = false;
 		for (E e : c) {
@@ -63,7 +63,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 
 	public abstract void clear();
 
-	@Override
+	
 	public boolean containsAll(Collection<?> c) {
 		boolean contains = true;
 		for (Object object : c) {
@@ -75,7 +75,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	public abstract boolean remove(Object o);
 
 
-	@Override
+	
 	public boolean removeAll(Collection<?> c) {
 		boolean modified = false;
 		for (Object object : c) {
@@ -88,7 +88,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
+	
 	public boolean equals(Object o) {
 		if (o == this)
 			return true;
@@ -103,7 +103,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return false;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		int result = 17 + getClass().hashCode();
 		result = result * 31 + key.hashCode();
@@ -111,7 +111,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 	}
 
 
-	@Override
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("RedisStore for key:");
@@ -119,27 +119,27 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return sb.toString();
 	}
 
-	@Override
+	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return operations.expire(key, timeout, unit);
 	}
 
-	@Override
+	
 	public Boolean expireAt(Date date) {
 		return operations.expireAt(key, date);
 	}
 
-	@Override
+	
 	public Long getExpire() {
 		return operations.getExpire(key);
 	}
 
-	@Override
+	
 	public Boolean persist() {
 		return operations.persist(key);
 	}
 
-	@Override
+	
 	public void rename(final String newKey) {
 		CollectionUtils.rename(key, newKey, operations);
 		key = newKey;

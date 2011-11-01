@@ -41,72 +41,72 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 		this.ops = operations.opsForHash();
 	}
 
-	@Override
+	
 	public void delete(Object key) {
 		ops.delete(getKey(), key);
 	}
 
-	@Override
+	
 	public HV get(Object key) {
 		return ops.get(getKey(), key);
 	}
 
-	@Override
+	
 	public Collection<HV> multiGet(Collection<HK> hashKeys) {
 		return ops.multiGet(getKey(), hashKeys);
 	}
 
-	@Override
+	
 	public RedisOperations<H, ?> getOperations() {
 		return ops.getOperations();
 	}
 
-	@Override
+	
 	public boolean hasKey(Object key) {
 		return ops.hasKey(getKey(), key);
 	}
 
-	@Override
+	
 	public Long increment(HK key, long delta) {
 		return ops.increment(getKey(), key, delta);
 	}
 
-	@Override
+	
 	public Set<HK> keys() {
 		return ops.keys(getKey());
 	}
 
-	@Override
+	
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	@Override
+	
 	public void putAll(Map<? extends HK, ? extends HV> m) {
 		ops.putAll(getKey(), m);
 	}
 
-	@Override
+	
 	public void put(HK key, HV value) {
 		ops.put(getKey(), key, value);
 	}
 
-	@Override
+	
 	public Boolean putIfAbsent(HK key, HV value) {
 		return ops.putIfAbsent(getKey(), key, value);
 	}
 
-	@Override
+	
 	public Collection<HV> values() {
 		return ops.values(getKey());
 	}
 
-	@Override
+	
 	public Map<HK, HV> entries() {
 		return ops.entries(getKey());
 	}
 
-	@Override
+	
 	public DataType getType() {
 		return DataType.HASH;
 	}

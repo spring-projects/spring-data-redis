@@ -27,7 +27,7 @@ public class PersonObjectFactory implements ObjectFactory<Person> {
 
 	private int counter = 0;
 
-	@Override
+	
 	public Person instance() {
 		String uuid = UUID.randomUUID().toString();
 		return new Person(uuid, uuid, ++counter, new Address(uuid, counter));

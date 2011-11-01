@@ -275,7 +275,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		this.stringSerializer = serializer;
 	}
 
-	@Override
+	
 	public void afterPropertiesSet() {
 		String methodName = getDefaultListenerMethod();
 
@@ -299,7 +299,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	 *            the incoming Redis message
 	 * @see #handleListenerException
 	 */
-	@Override
+	
 	public void onMessage(Message message, byte[] pattern) {
 		try {
 			// Check whether the delegate is a MessageListener impl itself.

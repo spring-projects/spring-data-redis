@@ -32,7 +32,7 @@ public class ByteArrayWrapper {
 		this.hashCode = Arrays.hashCode(array);
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (obj instanceof ByteArrayWrapper) {
 			return Arrays.equals(array, ((ByteArrayWrapper) obj).array);
@@ -41,7 +41,7 @@ public class ByteArrayWrapper {
 		return false;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		return hashCode;
 	}

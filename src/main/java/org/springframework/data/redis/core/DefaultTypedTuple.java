@@ -38,17 +38,17 @@ class DefaultTypedTuple<V> implements TypedTuple<V> {
 		this.value = value;
 	}
 
-	@Override
+	
 	public Double getScore() {
 		return score;
 	}
 
-	@Override
+	
 	public V getValue() {
 		return value;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -57,7 +57,7 @@ class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return result;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -81,7 +81,7 @@ class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return true;
 	}
 
-	@Override
+	
 	public int compareTo(Double o) {
 		Double d = (score == null ? Double.valueOf(0) : score);
 		Double a = (o == null ? Double.valueOf(0) : o);

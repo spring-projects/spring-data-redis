@@ -100,7 +100,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.getOperations().delete(Collections.singleton(map.getKey()));
 		template.execute(new RedisCallback<Object>() {
 
-			@Override
+			
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;

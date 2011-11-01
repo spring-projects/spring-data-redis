@@ -40,36 +40,36 @@ class DefaultSortCriterion<K> implements SortCriterion<K> {
 		this.key = key;
 	}
 
-	@Override
+	
 	public SortCriterion<K> alphabetical(boolean alpha) {
 		this.alpha = Boolean.valueOf(alpha);
 		return this;
 	}
 
-	@Override
+	
 	public SortQuery<K> build() {
 		return new DefaultSortQuery<K>(key, by, limit, order, alpha, getKeys);
 	}
 
-	@Override
+	
 	public SortCriterion<K> limit(long offset, long count) {
 		this.limit = new Range(offset, count);
 		return this;
 	}
 
-	@Override
+	
 	public SortCriterion<K> limit(Range range) {
 		this.limit = range;
 		return this;
 	}
 
-	@Override
+	
 	public SortCriterion<K> order(Order order) {
 		this.order = order;
 		return this;
 	}
 
-	@Override
+	
 	public SortCriterion<K> get(String getPattern) {
 		this.getKeys.add(getPattern);
 		return this;

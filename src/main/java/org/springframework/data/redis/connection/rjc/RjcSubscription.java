@@ -35,27 +35,27 @@ class RjcSubscription extends AbstractSubscription {
 		subscriber.setPMessageListener(new RjcMessageListener(listener));
 	}
 
-	@Override
+	
 	protected void doClose() {
 		subscriber.close();
 	}
 
-	@Override
+	
 	protected void doPsubscribe(byte[]... patterns) {
 		subscriber.psubscribe(RjcUtils.decodeMultiple(patterns));
 	}
 
-	@Override
+	
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		subscriber.punsubscribe(RjcUtils.decodeMultiple(patterns));
 	}
 
-	@Override
+	
 	protected void doSubscribe(byte[]... channels) {
 		subscriber.subscribe(RjcUtils.decodeMultiple(channels));
 	}
 
-	@Override
+	
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		subscriber.punsubscribe(RjcUtils.decodeMultiple(channels));
 	}

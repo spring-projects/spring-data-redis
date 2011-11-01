@@ -16,9 +16,10 @@
 
 package org.springframework.data.redis.cache;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -57,12 +58,12 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		return CollectionTestParams.testParams();
 	}
 
-	@Override
+	
 	protected Cache createCache(RedisTemplate nativeCache) {
 		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache);
 	}
 
-	@Override
+	
 	protected RedisTemplate createNativeCache() throws Exception {
 		return template;
 	}
@@ -79,7 +80,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	@Override
+	
 	protected Object getObject() {
 		return objFactory.instance();
 	}
@@ -98,7 +99,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		final Object monitor = new Object();
 
 		Thread th = new Thread(new Runnable() {
-			@Override
+
 			public void run() {
 				synchronized (monitor) {
 					monitor.notify();

@@ -110,7 +110,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
 
 
-	@Override
+	
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
 			manageExecutor = true;
@@ -137,7 +137,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return new SimpleAsyncTaskExecutor(threadNamePrefix);
 	}
 
-	@Override
+	
 	public void destroy() throws Exception {
 		initialized = false;
 
@@ -154,29 +154,29 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	@Override
+	
 	public boolean isAutoStartup() {
 		return true;
 	}
 
-	@Override
+	
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
 	}
 
-	@Override
+	
 	public int getPhase() {
 		// start the latest
 		return Integer.MAX_VALUE;
 	}
 
-	@Override
+	
 	public boolean isRunning() {
 		return running;
 	}
 
-	@Override
+	
 	public void start() {
 		if (!running) {
 			running = true;
@@ -198,7 +198,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	@Override
+	
 	public void stop() {
 		if (isRunning()) {
 			running = false;
@@ -302,7 +302,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		this.connectionFactory = connectionFactory;
 	}
 
-	@Override
+	
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -511,12 +511,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			private long WAIT = 500;
 			private long ROUNDS = 3;
 
-			@Override
+			
 			public boolean isLongLived() {
 				return false;
 			}
 
-			@Override
+			
 			public void run() {
 				// wait for subscription to be initialized
 				boolean done = false;
@@ -544,12 +544,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private volatile RedisConnection connection;
 		private final Object localMonitor = new Object();
 
-		@Override
+		
 		public boolean isLongLived() {
 			return true;
 		}
 
-		@Override
+		
 		public void run() {
 			connection = connectionFactory.getConnection();
 			try {
@@ -696,7 +696,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	private class DispatchMessageListener implements MessageListener {
 
-		@Override
+		
 		public void onMessage(Message message, byte[] pattern) {
 			// do channel matching first
 			byte[] channel = message.getChannel();
@@ -721,7 +721,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private void dispatchChannels(Collection<MessageListener> ch, final Message message) {
 			for (final MessageListener messageListener : ch) {
 				taskExecutor.execute(new Runnable() {
-					@Override
+					
 					public void run() {
 						processMessage(messageListener, message, null);
 					}
@@ -732,7 +732,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private void dispatchPatterns(Collection<MessageListener> pt, final Message message, final byte[] pattern) {
 			for (final MessageListener messageListener : pt) {
 				taskExecutor.execute(new Runnable() {
-					@Override
+					
 					public void run() {
 						processMessage(messageListener, message, pattern.clone());
 					}

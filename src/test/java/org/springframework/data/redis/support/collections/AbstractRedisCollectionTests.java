@@ -93,7 +93,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		collection.getOperations().delete(Collections.singleton(collection.getKey()));
 		template.execute(new RedisCallback<Object>() {
 
-			@Override
+			
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;

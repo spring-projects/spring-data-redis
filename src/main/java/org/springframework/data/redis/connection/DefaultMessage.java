@@ -32,17 +32,17 @@ public class DefaultMessage implements Message {
 		this.channel = channel;
 	}
 
-	@Override
+	
 	public byte[] getChannel() {
 		return (channel != null ? channel.clone() : null);
 	}
 
-	@Override
+	
 	public byte[] getBody() {
 		return (body != null ? body.clone() : null);
 	}
 
-	@Override
+	
 	public String toString() {
 		if (toString == null){
 			toString = new String(body);

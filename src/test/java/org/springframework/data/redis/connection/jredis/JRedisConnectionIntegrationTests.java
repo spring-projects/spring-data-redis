@@ -37,7 +37,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		factory.afterPropertiesSet();
 	}
 
-	@Override
+	
 	protected RedisConnectionFactory getConnectionFactory() {
 		return factory;
 	}

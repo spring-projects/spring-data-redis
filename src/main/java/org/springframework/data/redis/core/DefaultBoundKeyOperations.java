@@ -35,7 +35,7 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 		this.ops = operations;
 	}
 
-	@Override
+	
 	public K getKey() {
 		return key;
 	}
@@ -44,27 +44,27 @@ abstract class DefaultBoundKeyOperations<K> implements BoundKeyOperations<K> {
 		this.key = key;
 	}
 
-	@Override
+	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return ops.expire(key, timeout, unit);
 	}
 
-	@Override
+	
 	public Boolean expireAt(Date date) {
 		return ops.expireAt(key, date);
 	}
 
-	@Override
+	
 	public Long getExpire() {
 		return ops.getExpire(key);
 	}
 
-	@Override
+	
 	public Boolean persist() {
 		return ops.persist(key);
 	}
 
-	@Override
+	
 	public void rename(K newKey) {
 		if (ops.hasKey(key)) {
 			ops.rename(key, newKey);

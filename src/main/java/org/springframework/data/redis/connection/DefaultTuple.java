@@ -41,17 +41,17 @@ public class DefaultTuple implements Tuple {
 		this.value = value;
 	}
 
-	@Override
+	
 	public Double getScore() {
 		return score;
 	}
 
-	@Override
+	
 	public byte[] getValue() {
 		return value;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -71,7 +71,7 @@ public class DefaultTuple implements Tuple {
 		return true;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -80,7 +80,7 @@ public class DefaultTuple implements Tuple {
 		return result;
 	}
 
-	@Override
+	
 	public int compareTo(Double o) {
 		Double d = (score == null ? Double.valueOf(0.0d) : score);
 		Double a = (o == null ? Double.valueOf(0.0d) : o);

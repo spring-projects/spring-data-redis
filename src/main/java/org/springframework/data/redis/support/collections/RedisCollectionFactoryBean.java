@@ -39,31 +39,31 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 	 */
 	public enum CollectionType {
 		LIST {
-			@Override
+			
 			public DataType dataType() {
 				return DataType.LIST;
 			}
 		},
 		SET {
-			@Override
+			
 			public DataType dataType() {
 				return DataType.SET;
 			}
 		},
 		ZSET {
-			@Override
+			
 			public DataType dataType() {
 				return DataType.ZSET;
 			}
 		},
 		MAP {
-			@Override
+			
 			public DataType dataType() {
 				return DataType.HASH;
 			}
 		},
 		PROPERTIES {
-			@Override
+			
 			public DataType dataType() {
 				return DataType.HASH;
 			}
@@ -79,7 +79,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 	private String key;
 	private String beanName;
 
-	@Override
+	
 	public void afterPropertiesSet() {
 		if (!StringUtils.hasText(key)) {
 			key = beanName;
@@ -124,22 +124,22 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		return null;
 	}
 
-	@Override
+	
 	public RedisStore getObject() {
 		return store;
 	}
 
-	@Override
+	
 	public Class<?> getObjectType() {
 		return (store != null ? store.getClass() : RedisStore.class);
 	}
 
-	@Override
+	
 	public boolean isSingleton() {
 		return true;
 	}
 
-	@Override
+	
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}

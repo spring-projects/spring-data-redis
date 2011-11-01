@@ -41,7 +41,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 			super(delegate);
 		}
 
-		@Override
+		
 		protected void removeFromRedisStorage(E item) {
 			DefaultRedisZSet.this.remove(item);
 		}
@@ -92,123 +92,121 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		this.defaultScore = defaultScore;
 	}
 
-	@Override
+	
 	public RedisZSet<E> intersectAndStore(RedisZSet<?> set, String destKey) {
 		boundZSetOps.intersectAndStore(set.getKey(), destKey);
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	@Override
+	
 	public RedisZSet<E> intersectAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 		boundZSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	@Override
+	
 	public Set<E> range(long start, long end) {
 		return boundZSetOps.range(start, end);
 	}
 
-	@Override
+	
 	public Set<E> reverseRange(long start, long end) {
 		return boundZSetOps.reverseRange(start, end);
 	}
 
-	@Override
+	
 	public Set<E> rangeByScore(double min, double max) {
 		return boundZSetOps.rangeByScore(min, max);
 	}
 
-	@Override
+	
 	public Set<E> reverseRangeByScore(double min, double max) {
 		return boundZSetOps.reverseRangeByScore(min, max);
 	}
 
-	@Override
+	
 	public Set<TypedTuple<E>> rangeByScoreWithScores(double min, double max) {
 		return boundZSetOps.rangeByScoreWithScores(min, max);
 	}
 
-	@Override
+	
 	public Set<TypedTuple<E>> rangeWithScores(long start, long end) {
 		return boundZSetOps.rangeWithScores(start, end);
 	}
 
-	@Override
+	
 	public Set<TypedTuple<E>> reverseRangeByScoreWithScores(double min, double max) {
 		return boundZSetOps.reverseRangeByScoreWithScores(min, max);
 	}
 
-	@Override
+	
 	public Set<TypedTuple<E>> reverseRangeWithScores(long start, long end) {
 		return boundZSetOps.reverseRangeWithScores(start, end);
 	}
 
-	@Override
+	
 	public RedisZSet<E> remove(long start, long end) {
 		boundZSetOps.removeRange(start, end);
 		return this;
 	}
 
-	@Override
+	
 	public RedisZSet<E> removeByScore(double min, double max) {
 		boundZSetOps.removeRangeByScore(min, max);
 		return this;
 	}
 
-	@Override
+	
 	public RedisZSet<E> unionAndStore(RedisZSet<?> set, String destKey) {
 		boundZSetOps.unionAndStore(set.getKey(), destKey);
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	@Override
 	public RedisZSet<E> unionAndStore(Collection<? extends RedisZSet<?>> sets, String destKey) {
 		boundZSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisZSet<E>(boundZSetOps.getOperations().boundZSetOps(destKey), getDefaultScore());
 	}
 
-	@Override
+	
 	public boolean add(E e) {
 		return add(e, getDefaultScore());
 	}
 
-	@Override
 	public boolean add(E e, double score) {
 		return boundZSetOps.add(e, score);
 	}
 
-	@Override
+	
 	public void clear() {
 		boundZSetOps.removeRange(0, -1);
 	}
 
-	@Override
+	
 	public boolean contains(Object o) {
 		return (boundZSetOps.rank(o) != null);
 	}
 
-	@Override
+	
 	public Iterator<E> iterator() {
 		return new DefaultRedisSortedSetIterator(boundZSetOps.range(0, -1).iterator());
 	}
 
-	@Override
+	
 	public boolean remove(Object o) {
 		return boundZSetOps.remove(o);
 	}
 
-	@Override
+	
 	public int size() {
 		return boundZSetOps.size().intValue();
 	}
 
-	@Override
+	
 	public Double getDefaultScore() {
 		return defaultScore;
 	}
 
-	@Override
+	
 	public E first() {
 		Iterator<E> iterator = boundZSetOps.range(0, 0).iterator();
 		if (iterator.hasNext())
@@ -216,7 +214,7 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	@Override
+	
 	public E last() {
 		Iterator<E> iterator = boundZSetOps.reverseRange(0, 0).iterator();
 		if (iterator.hasNext())
@@ -224,22 +222,22 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 		throw new NoSuchElementException();
 	}
 
-	@Override
+	
 	public Long rank(Object o) {
 		return boundZSetOps.rank(o);
 	}
 
-	@Override
+	
 	public Long reverseRank(Object o) {
 		return boundZSetOps.reverseRank(o);
 	}
 
-	@Override
+	
 	public Double score(Object o) {
 		return boundZSetOps.score(o);
 	}
 
-	@Override
+	
 	public DataType getType() {
 		return DataType.ZSET;
 	}

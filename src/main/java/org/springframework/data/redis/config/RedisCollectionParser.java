@@ -28,12 +28,12 @@ import org.w3c.dom.Element;
  */
 public class RedisCollectionParser extends AbstractSimpleBeanDefinitionParser {
 
-	@Override
+	
 	protected Class<?> getBeanClass(Element element) {
 		return RedisCollectionFactoryBean.class;
 	}
 
-	@Override
+	
 	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
 		String template = element.getAttribute("template");
 		if (StringUtils.hasText(template)) {
@@ -41,7 +41,7 @@ public class RedisCollectionParser extends AbstractSimpleBeanDefinitionParser {
 		}
 	}
 
-	@Override
+	
 	protected boolean isEligibleAttribute(String attributeName) {
 		return super.isEligibleAttribute(attributeName) && (!"template".equals(attributeName));
 	}
