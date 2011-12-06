@@ -19,11 +19,11 @@ Import-Template:
  org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
  org.w3c.dom.*;version="0",
  javax.xml.transform.*;resolution:="optional";version="0",
- org.jredis.*;version="[1.0.0, 2.0.0)",
- org.jredis.ri.alphazero.*;version="[1.0.0, 2.0.0)",
+ org.jredis.*;resolution:="optional";version="[1.0.0, 2.0.0)",
+ org.jredis.ri.alphazero.*;resolution:="optional";version="[1.0.0, 2.0.0)",
  redis.clients.jedis.*;version=${jedis.range},
  redis.clients.util.*;version=${jedis.range},
- org.idevlab.rjc.*;version=${rjc.range},
- org.apache.commons.pool.impl.*;version="[1.0.0, 3.0.0)",
- org.codehaus.jackson.*;version=${jackson.range},
- org.apache.commons.beanutils.*;version=1.8.5
+ org.idevlab.rjc.*;resolution:="optional";version=${rjc.range},
+ org.apache.commons.pool.impl.*;resolution:="optional";version="[1.0.0, 3.0.0)",
+ org.codehaus.jackson.*;resolution:="optional";version=${jackson.range},
+ org.apache.commons.beanutils.*;resolution:="optional";version=1.8.5

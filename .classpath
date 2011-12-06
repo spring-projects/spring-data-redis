@@ -6,8 +6,8 @@
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-core-asl/sources/jackson-core-asl-1.8.5-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-core-asl/jars/jackson-core-asl-1.8.5.jar" exported="true"/>
-	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-mapper-asl/sources/jackson-mapper-asl-1.8.5-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-mapper-asl/jars/jackson-mapper-asl-1.8.5.jar" exported="true"/>
+	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-core-asl/sources/jackson-core-asl-1.8.6-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-core-asl/jars/jackson-core-asl-1.8.6.jar" exported="true"/>
+	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-mapper-asl/sources/jackson-mapper-asl-1.8.6-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/org.codehaus.jackson/jackson-mapper-asl/jars/jackson-mapper-asl-1.8.6.jar" exported="true"/>
 	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-oxm/sources/spring-oxm-3.1.0.RC2-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-oxm/jars/spring-oxm-3.1.0.RC2.jar" exported="true"/>
 	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/log4j/log4j/sources/log4j-1.2.16-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/log4j/log4j/bundles/log4j-1.2.16.jar" exported="true"/>
 	<classpathentry sourcepath="C:/Users/costin/.gradle/cache/org.springframework/spring-aop/sources/spring-aop-3.1.0.RC2-sources.jar" kind="lib" path="C:/Users/costin/.gradle/cache/org.springframework/spring-aop/jars/spring-aop-3.1.0.RC2.jar" exported="true"/>
