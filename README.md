@@ -24,12 +24,19 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
   <version>${version}</version>
 </dependency> 
 
-
+<!-- used for nightly builds -->
 <repository>
   <id>spring-maven-snapshot</id>
   <snapshots><enabled>true</enabled></snapshots>
   <name>Springframework Maven SNAPSHOT Repository</name>
   <url>http://maven.springframework.org/snapshot</url>
+</repository> 
+
+<!-- used for milestone/rc releases -->
+<repository>
+  <id>spring-maven-milestone</id>
+  <name>Springframework Maven Milestone Repository</name>
+  <url>http://maven.springframework.org/milestone</url>
 </repository> 
 ~~~~~
 
@@ -38,46 +45,49 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
 ~~~~~ groovy
 repositories {
    mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
+   mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
 }
 
+// used for nightly builds
 dependencies {
    compile "org.springframework.data:spring-data-redis:${version}"
 }
 ~~~~~
 
-The latest `version` is _1.0.0.RC1_
+The latest milestone is _1.0.0.RC1_
+The latest nightly is _1.0.0.BUILD-SNAPSHOT_
 
 # Usage (for the impatient)
 
 * Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis)):
 
 ~~~~~ xml
-      <beans xmlns="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
-        xmlns:p="http://www.springframework.org/schema/p"
-        xsi:schemaLocation="
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-        
-        <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
-        
-        <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
-            p:connection-factory="jedisFactory"/>
-      </beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance 
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="
+  http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+  
+  <bean id="jedisFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
+  
+  <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"
+      p:connection-factory="jedisFactory"/>
+</beans>
 ~~~~~
 
 * Use `RedisTemplate` to interact with the Redis store:
 
 ~~~~~ java
-      String random = template.randomKey();
-      template.set(random, new Person("John", "Smith"));
+String random = template.randomKey();
+template.set(random, new Person("John", "Smith"));
 ~~~~~
 
 * Use Redis 'views' to execute specific operations based on the underlying Redis type:
 
 ~~~~~ java
-      ListOperations<String, Person> listOps = template.listOps();
-      listOps.rightPush(random, new Person("Jane", "Smith"));
-      List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
+ListOperations<String, Person> listOps = template.listOps();
+listOps.rightPush(random, new Person("Jane", "Smith"));
+List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
 ~~~~~
 
 # Building
@@ -94,7 +104,7 @@ from the project root folder. This will compile the sources, run the tests and c
 Here are some ways for you to get involved in the community:
 
 * Get involved with the Spring community on the Spring Community Forums.  Please help out on the [forum](http://forum.springsource.org/forumdisplay.php?f=80) by responding to questions and joining the debate.
-* Create [JIRA](https://jira.springframework.org/browse/DATAKV) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
+* Create [JIRA](https://jira.springframework.org/browse/DATAREDIS) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
 * Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, please reference a JIRA ticket as well covering the specific issue you are addressing.
 * Watch for upcoming articles on Spring by [subscribing](http://www.springsource.org/node/feed) to springframework.org
 
