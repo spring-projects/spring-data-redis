@@ -54,8 +54,8 @@ dependencies {
 }
 ~~~~~
 
-The latest milestone is _1.0.0.RC1_   
-The latest nightly is _1.0.0.BUILD-SNAPSHOT_
+Latest GA release is _1.0.0.RELEASE_  
+Latest nightly is _1.0.1.BUILD-SNAPSHOT_
 
 # Usage (for the impatient)
 
@@ -96,7 +96,17 @@ Spring Hadoop uses Gradle as its build system. To build the system simply run:
 
     gradlew
 
-from the project root folder. This will compile the sources, run the tests and create the artifacts.
+from the project root folder. This will compile the sources, run the tests and create the artifacts.  
+
+To generate IDE-specific files, use
+
+    gradlew eclipse
+ 
+or
+
+    gradlew idea 
+
+depending on your editor.
 
 # Contributing
 
