@@ -2,8 +2,11 @@ SPRING DATA REDIS INTEGRATION CHANGELOG
 =======================================
 http://www.springsource.org/spring-data
 
-Changes in version 1.0.0.RC2 (2011-mm-dd)
------------------------------------------
+Changes in version 1.0.0.RELEASE (2011-12-14)
+---------------------------------------------
+
+General
+* Upgraded to Spring Framework 3.1 GA
 
 
 Changes in version 1.0.0.RC1 (2011-10-19)

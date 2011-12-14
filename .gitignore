@@ -9,3 +9,5 @@ pom.xml
 *.ipr
 *.iws
 *.log
+.classpath
+.project
