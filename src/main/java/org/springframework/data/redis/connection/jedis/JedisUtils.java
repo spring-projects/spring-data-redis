@@ -90,7 +90,7 @@ public abstract class JedisUtils {
 			return convertJedisAccessException((JedisException) ex);
 		}
 
-		return new RedisSystemException("Unknown exception", ex);
+		return null;
 	}
 
 	static DataAccessException convertJedisAccessException(IOException ex) {
