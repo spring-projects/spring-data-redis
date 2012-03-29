@@ -72,6 +72,7 @@ public class PubSubTests<T> {
 		container.setBeanName("container");
 		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
 		container.afterPropertiesSet();
+		container.start();
 
 		Thread.sleep(1000);
 	}

@@ -122,8 +122,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		initialized = true;
-
-		start();
 	}
 
 	/**
