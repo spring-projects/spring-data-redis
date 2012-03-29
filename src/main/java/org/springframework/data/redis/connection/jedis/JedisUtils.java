@@ -34,17 +34,17 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
 
+import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.SortingParams;
-import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
@@ -90,7 +90,7 @@ public abstract class JedisUtils {
 			return convertJedisAccessException((JedisException) ex);
 		}
 
-		return new RedisSystemException("Unknown exception", ex);
+		return null;
 	}
 
 	static DataAccessException convertJedisAccessException(IOException ex) {
