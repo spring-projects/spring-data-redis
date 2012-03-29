@@ -164,7 +164,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(new ValueDeserializingRedisCallback(key) {
 			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
-				return connection.randomKey();
+				return connection.sRandMember(rawKey);
 			}
 		}, true);
 	}
