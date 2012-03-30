@@ -19,6 +19,7 @@ package org.springframework.data.redis.connection.sredis;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -82,6 +83,10 @@ abstract class SRedisUtils {
 
 	static List<byte[]> toBytesList(Object[] byteArrays) {
 		List<byte[]> list = new ArrayList<byte[]>(byteArrays.length);
+		if (byteArrays.length == 1 && byteArrays[0] == null) {
+			return Collections.emptyList();
+		}
+
 		for (Object obj : byteArrays) {
 			if (obj instanceof byte[])
 				list.add((byte[]) obj);

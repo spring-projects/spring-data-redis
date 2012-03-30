@@ -107,7 +107,6 @@ public class SRedisConnection implements RedisConnection {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			ListenableFuture<MultiBulkReply> reply = pipeline.exec();
@@ -130,10 +129,10 @@ public class SRedisConnection implements RedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline.sort(key, sort, null, null);
+				pipeline.sort(key, sort, null, (Object[]) null);
 				return null;
 			}
-			return SRedisUtils.toBytesList(client.sort(key, sort, null, null).byteArrays);
+			return SRedisUtils.toBytesList(client.sort(key, sort, null, (Object[]) null).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -145,10 +144,10 @@ public class SRedisConnection implements RedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline.sort(key, sort, null, null);
+				pipeline.sort(key, sort, null, (Object[]) null);
 				return null;
 			}
-			return SRedisUtils.toLong(client.sort(key, sort, null, null).byteArrays);
+			return SRedisUtils.toLong(client.sort(key, sort, null, (Object[]) null).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -340,10 +339,10 @@ public class SRedisConnection implements RedisConnection {
 	public Long del(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.del(keys);
+				pipeline.del((Object[]) keys);
 				return null;
 			}
-			return client.del(keys).integer;
+			return client.del((Object[]) keys).integer;
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -640,10 +639,10 @@ public class SRedisConnection implements RedisConnection {
 	public List<byte[]> mGet(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.mget(keys);
+				pipeline.mget((Object[]) keys);
 				return null;
 			}
-			return SRedisUtils.toBytesList(client.mget(keys).byteArrays);
+			return SRedisUtils.toBytesList(client.mget((Object) keys).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -653,10 +652,10 @@ public class SRedisConnection implements RedisConnection {
 	public void mSet(Map<byte[], byte[]> tuples) {
 		try {
 			if (isPipelined()) {
-				pipeline.mset(SRedisUtils.convert(tuples));
+				pipeline.mset((Object[]) SRedisUtils.convert(tuples));
 				return;
 			}
-			client.mset(SRedisUtils.convert(tuples));
+			client.mset((Object[]) SRedisUtils.convert(tuples));
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -666,10 +665,10 @@ public class SRedisConnection implements RedisConnection {
 	public void mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isPipelined()) {
-				pipeline.msetnx(SRedisUtils.convert(tuples));
+				pipeline.msetnx((Object[]) SRedisUtils.convert(tuples));
 				return;
 			}
-			client.msetnx(SRedisUtils.convert(tuples));
+			client.msetnx((Object[]) SRedisUtils.convert(tuples));
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1084,10 +1083,10 @@ public class SRedisConnection implements RedisConnection {
 	public Set<byte[]> sDiff(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.sdiff(keys);
+				pipeline.sdiff((Object[]) keys);
 				return null;
 			}
-			return SRedisUtils.toSet(client.sdiff(keys).byteArrays);
+			return SRedisUtils.toSet(client.sdiff((Object[]) keys).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1097,10 +1096,10 @@ public class SRedisConnection implements RedisConnection {
 	public void sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.sdiffstore(destKey, keys);
+				pipeline.sdiffstore(destKey, (Object[]) keys);
 				return;
 			}
-			client.sdiffstore(destKey, keys);
+			client.sdiffstore(destKey, (Object[]) keys);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1110,10 +1109,10 @@ public class SRedisConnection implements RedisConnection {
 	public Set<byte[]> sInter(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.sinter(keys);
+				pipeline.sinter((Object[]) keys);
 				return null;
 			}
-			return SRedisUtils.toSet(client.sinter(keys).byteArrays);
+			return SRedisUtils.toSet(client.sinter((Object[]) keys).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1123,10 +1122,10 @@ public class SRedisConnection implements RedisConnection {
 	public void sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.sinterstore(destKey, keys);
+				pipeline.sinterstore(destKey, (Object[]) keys);
 				return;
 			}
-			client.sinterstore(destKey, keys);
+			client.sinterstore(destKey, (Object[]) keys);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1214,10 +1213,10 @@ public class SRedisConnection implements RedisConnection {
 	public Set<byte[]> sUnion(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.sunion(keys);
+				pipeline.sunion((Object[]) keys);
 				return null;
 			}
-			return SRedisUtils.toSet(client.sunion(keys).byteArrays);
+			return SRedisUtils.toSet(client.sunion((Object[]) keys).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1227,10 +1226,10 @@ public class SRedisConnection implements RedisConnection {
 	public void sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline.sunionstore(destKey, keys);
+				pipeline.sunionstore(destKey, (Object[]) keys);
 				return;
 			}
-			client.sunionstore(destKey, keys);
+			client.sunionstore(destKey, (Object[]) keys);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1687,10 +1686,10 @@ public class SRedisConnection implements RedisConnection {
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		try {
 			if (isPipelined()) {
-				pipeline.hmget(key, fields);
+				pipeline.hmget(key, (Object[]) fields);
 				return null;
 			}
-			return SRedisUtils.toBytesList(client.hmget(key, fields).byteArrays);
+			return SRedisUtils.toBytesList(client.hmget(key, (Object[]) fields).byteArrays);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}

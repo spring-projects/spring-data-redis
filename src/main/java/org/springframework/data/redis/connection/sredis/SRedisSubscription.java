@@ -36,36 +36,36 @@ class SRedisSubscription extends AbstractSubscription {
 	}
 
 	protected void doClose() {
-		client.unsubscribe(null);
-		client.punsubscribe(null);
+		client.unsubscribe((Object[]) null);
+		client.punsubscribe((Object[]) null);
 	}
 
 
 	protected void doPsubscribe(byte[]... patterns) {
-		client.psubscribe(patterns);
+		client.psubscribe((Object[]) patterns);
 	}
 
 
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		if (all) {
-			client.punsubscribe(null);
+			client.punsubscribe((Object[]) null);
 		}
 		else {
-			client.punsubscribe(patterns);
+			client.punsubscribe((Object[]) patterns);
 		}
 	}
 
 	protected void doSubscribe(byte[]... channels) {
-		client.subscribe(channels);
+		client.subscribe((Object[]) channels);
 	}
 
 
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		if (all) {
-			client.unsubscribe(null);
+			client.unsubscribe((Object[]) null);
 		}
 		else {
-			client.unsubscribe(channels);
+			client.unsubscribe((Object[]) channels);
 		}
 	}
 }

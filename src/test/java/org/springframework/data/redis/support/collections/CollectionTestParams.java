@@ -23,6 +23,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
+import org.springframework.data.redis.connection.sredis.SRedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
@@ -135,6 +136,32 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
 		jsonPersonTemplateRJC.afterPropertiesSet();
 
+		// SRP
+		SRedisConnectionFactory srConnFactory = new SRedisConnectionFactory();
+		srConnFactory.setPort(SettingsUtils.getPort());
+		srConnFactory.setHostName(SettingsUtils.getHost());
+		srConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> stringTemplateSRP = new StringRedisTemplate(srConnFactory);
+		RedisTemplate<String, Person> personTemplateSRP = new RedisTemplate<String, Person>();
+		personTemplateSRP.setConnectionFactory(srConnFactory);
+		personTemplateSRP.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xstreamStringTemplateSRP = new RedisTemplate<String, Person>();
+		xstreamStringTemplateSRP.setConnectionFactory(srConnFactory);
+		xstreamStringTemplateSRP.setDefaultSerializer(serializer);
+		xstreamStringTemplateSRP.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xstreamPersonTemplateSRP = new RedisTemplate<String, Person>();
+		xstreamPersonTemplateSRP.setValueSerializer(serializer);
+		xstreamPersonTemplateSRP.setConnectionFactory(srConnFactory);
+		xstreamPersonTemplateSRP.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateSRP = new RedisTemplate<String, Person>();
+		jsonPersonTemplateSRP.setValueSerializer(jsonSerializer);
+		jsonPersonTemplateSRP.setConnectionFactory(srConnFactory);
+		jsonPersonTemplateSRP.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { stringFactory, stringTemplateRJC },
 				{ personFactory, personTemplateRJC },
 				//{ stringFactory, stringTemplateJR },
@@ -146,6 +173,10 @@ public abstract class CollectionTestParams {
 				{ personFactory, jsonPersonTemplate },
 				//{ personFactory, jsonPersonTemplateJR },
 				{ stringFactory, xstreamStringTemplateRJC }, { personFactory, xstreamPersonTemplateRJC },
-				{ personFactory, jsonPersonTemplateRJC } });
+				{ personFactory, jsonPersonTemplateRJC },
+				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
+				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },
+				{ personFactory, jsonPersonTemplateSRP }
+		});
 	}
 }
