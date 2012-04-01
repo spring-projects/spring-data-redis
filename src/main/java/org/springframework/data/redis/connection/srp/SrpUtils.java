@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.data.redis.connection.sredis;
+package org.springframework.data.redis.connection.srp;
 
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,6 +37,7 @@ import org.springframework.util.Assert;
 import redis.client.RedisException;
 import redis.reply.BulkReply;
 import redis.reply.MultiBulkReply;
+import redis.reply.Reply;
 
 import com.google.common.base.Charsets;
 
@@ -46,7 +46,7 @@ import com.google.common.base.Charsets;
  * 
  * @author Costin Leau
  */
-abstract class SRedisUtils {
+abstract class SrpUtils {
 
 	private static final byte[] ONE = new byte[] { 1 };
 	private static final byte[] ZERO = new byte[] { 0 };
@@ -70,7 +70,7 @@ abstract class SRedisUtils {
 	static Properties info(BulkReply reply) {
 		Properties info = new Properties();
 		// use the same charset as the library
-		StringReader stringReader = new StringReader(new String(reply.bytes, Charsets.UTF_8));
+		StringReader stringReader = new StringReader(new String(reply.data(), Charsets.UTF_8));
 		try {
 			info.load(stringReader);
 		} catch (Exception ex) {
@@ -81,17 +81,17 @@ abstract class SRedisUtils {
 		return info;
 	}
 
-	static List<byte[]> toBytesList(Object[] byteArrays) {
-		List<byte[]> list = new ArrayList<byte[]>(byteArrays.length);
-		if (byteArrays.length == 1 && byteArrays[0] == null) {
-			return Collections.emptyList();
-		}
-
-		for (Object obj : byteArrays) {
-			if (obj instanceof byte[])
-				list.add((byte[]) obj);
+	static List<byte[]> toBytesList(Reply[] replies) {
+		List<byte[]> list = new ArrayList<byte[]>(replies.length);
+		for (Reply reply : replies) {
+			Object data = reply.data();
+			if (data == null) {
+				list.add(null);
+			}
+			else if (data instanceof byte[])
+				list.add((byte[]) data);
 			else
-				throw new IllegalArgumentException("array contains more then just bytes" + obj);
+				throw new IllegalArgumentException("array contains more then just nulls and bytes -> " + data);
 		}
 
 		return list;
@@ -101,7 +101,7 @@ abstract class SRedisUtils {
 		return Arrays.asList(byteArrays);
 	}
 
-	static Set<byte[]> toSet(Object[] byteArrays) {
+	static Set<byte[]> toSet(Reply[] byteArrays) {
 		return new LinkedHashSet<byte[]>(toBytesList(byteArrays));
 	}
 
@@ -126,21 +126,21 @@ abstract class SRedisUtils {
 	}
 
 	static Double toDouble(byte[] bytes) {
-		return Double.valueOf(new String(bytes, Charsets.UTF_8));
+		return (bytes == null || bytes.length == 0 ? null : Double.valueOf(new String(bytes, Charsets.UTF_8)));
 	}
 
-	static Long toLong(Object[] byteArrays) {
-		return Long.valueOf(new String((byte[]) byteArrays[0], Charsets.UTF_8));
+	static Long toLong(Object[] bytes) {
+		return (bytes == null || bytes.length == 0 ? null : Long.valueOf(new String((byte[]) bytes[0], Charsets.UTF_8)));
 	}
 
 	static Set<Tuple> convertTuple(MultiBulkReply zrange) {
-		Object[] byteArrays = zrange.byteArrays;
+		Reply[] byteArrays = zrange.data();
 		Set<Tuple> tuples = new LinkedHashSet<Tuple>(byteArrays.length / 2 + 1);
 
 		for (int i = 0; i < byteArrays.length; i++) {
-			byte[] value = (byte[]) byteArrays[i];
+			byte[] value = (byte[]) byteArrays[i].data();
 			i++;
-			Double score = toDouble((byte[]) byteArrays[i]);
+			Double score = toDouble((byte[]) byteArrays[i].data());
 			tuples.add(new DefaultTuple(value, score));
 		}
 

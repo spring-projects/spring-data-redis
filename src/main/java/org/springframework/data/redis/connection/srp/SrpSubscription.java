@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.data.redis.connection.sredis;
+package org.springframework.data.redis.connection.srp;
 
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
@@ -26,11 +26,11 @@ import redis.client.RedisClient;
  * 
  * @author Costin Leau
  */
-class SRedisSubscription extends AbstractSubscription {
+class SrpSubscription extends AbstractSubscription {
 
 	private final RedisClient client;
 
-	SRedisSubscription(MessageListener listener, RedisClient client) {
+	SrpSubscription(MessageListener listener, RedisClient client) {
 		super(listener);
 		this.client = client;
 	}

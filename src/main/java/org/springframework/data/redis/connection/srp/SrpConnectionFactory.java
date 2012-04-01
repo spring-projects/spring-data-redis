@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.data.redis.connection.sredis;
+package org.springframework.data.redis.connection.srp;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.Socket;
-import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,67 +27,60 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.util.ReflectionUtils;
-
-import redis.client.SocketPool;
 
 /**
  * Connection factory creating <a href="http://github.com/spullara/redis-protocol">Redis Protocol</a> based connections.
  * 
  * @author Costin Leau
  */
-public class SRedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
+public class SrpConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 
 	private String hostName = "localhost";
 	private int port = 6379;
-	private SocketPool pool;
+	private BlockingQueue<SrpConnection> trackedConnections = new ArrayBlockingQueue<SrpConnection>(50);
+		
 
 	/**
 	 * Constructs a new <code>SRedisConnectionFactory</code> instance
 	 * with default settings.
 	 */
-	public SRedisConnectionFactory() {
+	public SrpConnectionFactory() {
 	}
 
 	/**
 	 * Constructs a new <code>SRedisConnectionFactory</code> instance
 	 * with default settings.
 	 */
-	public SRedisConnectionFactory(String host, int port) {
+	public SrpConnectionFactory(String host, int port) {
 		this.hostName = host;
 		this.port = port;
 	}
 
 	public void afterPropertiesSet() {
-		pool = new SocketPool(hostName, port);
 	}
 
 	public void destroy() {
-		Field f = ReflectionUtils.findField(SocketPool.class, "queue");
-		ReflectionUtils.makeAccessible(f);
-		Queue<Socket> queue = (Queue<Socket>) ReflectionUtils.getField(f, pool);
-		Socket s = null;
+		SrpConnection con;
 		do {
-			s = queue.poll();
-			if (s != null) {
+			con = trackedConnections.poll();
+			if (con != null && !con.isClosed()) {
 				try {
-					s.close();
-				} catch (IOException ex) {
+					con.close();
+				} catch (Exception ex) {
 					// ignore
 				}
 			}
-		} while (s != null);
-		pool = null;
+		} while (con != null);
 	}
 
 	public RedisConnection getConnection() {
-		return new SRedisConnection(pool);
+		return new SrpConnection(hostName, port, trackedConnections);
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return SRedisUtils.convertSRedisAccessException(ex);
+		return SrpUtils.convertSRedisAccessException(ex);
 	}
 
 	/**

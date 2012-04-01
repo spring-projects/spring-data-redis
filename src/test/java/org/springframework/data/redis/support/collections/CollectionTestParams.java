@@ -23,7 +23,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
-import org.springframework.data.redis.connection.sredis.SRedisConnectionFactory;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
@@ -137,7 +137,7 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateRJC.afterPropertiesSet();
 
 		// SRP
-		SRedisConnectionFactory srConnFactory = new SRedisConnectionFactory();
+		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
 		srConnFactory.setPort(SettingsUtils.getPort());
 		srConnFactory.setHostName(SettingsUtils.getHost());
 		srConnFactory.afterPropertiesSet();

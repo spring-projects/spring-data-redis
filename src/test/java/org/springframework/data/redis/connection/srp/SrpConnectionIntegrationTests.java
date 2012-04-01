@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.sredis.SRedisConnectionFactory;
 
 import redis.client.RedisClient;
 
@@ -28,10 +27,10 @@ import redis.client.RedisClient;
  * @author Costin Leau
  */
 public class SrpConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-	SRedisConnectionFactory factory;
+	SrpConnectionFactory factory;
 
 	public SrpConnectionIntegrationTests() {
-		factory = new SRedisConnectionFactory();
+		factory = new SrpConnectionFactory();
 		factory.setPort(SettingsUtils.getPort());
 		factory.setHostName(SettingsUtils.getHost());
 
@@ -51,5 +50,8 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		System.out.println(rc.exists("foobar"));
 		rc.set("foobar", "barfoo");
 		System.out.println(rc.get("foobar"));
+	}
+
+	public void testNullCollections() throws Exception {
 	}
 }
