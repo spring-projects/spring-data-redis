@@ -20,6 +20,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
 
 import redis.client.RedisClient;
+import redis.client.ReplyListener;
 
 /**
  * Message subscription on top of SRP.
@@ -29,10 +30,13 @@ import redis.client.RedisClient;
 class SrpSubscription extends AbstractSubscription {
 
 	private final RedisClient client;
+	private final ReplyListener listener;
 
 	SrpSubscription(MessageListener listener, RedisClient client) {
 		super(listener);
 		this.client = client;
+		this.listener = new SrpMessageListener(listener);
+		client.addListener(this.listener);
 	}
 
 	protected void doClose() {
@@ -44,7 +48,6 @@ class SrpSubscription extends AbstractSubscription {
 	protected void doPsubscribe(byte[]... patterns) {
 		client.psubscribe((Object[]) patterns);
 	}
-
 
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		if (all) {
@@ -58,7 +61,6 @@ class SrpSubscription extends AbstractSubscription {
 	protected void doSubscribe(byte[]... channels) {
 		client.subscribe((Object[]) channels);
 	}
-
 
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		if (all) {

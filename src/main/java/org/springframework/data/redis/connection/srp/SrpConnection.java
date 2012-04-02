@@ -1465,10 +1465,11 @@ public class SrpConnection implements RedisConnection {
 	public Long zRank(byte[] key, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline.zrank(key, value);
-				return null;
+				//				(Long) pipeline .zrank(key, value).data;
+				//				return null;
+				throw new UnsupportedOperationException();
 			}
-			return client.zrank(key, value).data();
+			return (Long) client.zrank(key, value).data();
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
