@@ -359,9 +359,7 @@ public class SrpConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				//pipeline.discard();
-				//return;
-				throw new UnsupportedOperationException();
+				client.discard();
 			}
 
 			client.discard();
@@ -374,13 +372,9 @@ public class SrpConnection implements RedisConnection {
 	public List<Object> exec() {
 		isMulti = false;
 		try {
-			if (isPipelined()) {
-				//				pipeline.exec();
-				//				return null;
-				throw new UnsupportedOperationException();
-			}
-			//			return SrpUtils.toList(client.exec());
-			throw new UnsupportedOperationException();
+			//			if (isPipelined()) {
+			return Collections.singletonList((Object) client.exec());
+			//			}
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -444,11 +438,11 @@ public class SrpConnection implements RedisConnection {
 			return;
 		}
 		isMulti = true;
+		openPipeline();
 		try {
 			if (isPipelined()) {
-				//				pipeline.multi();
-				//				return;
-				throw new UnsupportedOperationException();
+				client.multi();
+				return;
 			}
 			client.multi();
 		} catch (Exception ex) {
@@ -1308,16 +1302,16 @@ public class SrpConnection implements RedisConnection {
 
 
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
-		
-		Object[] args = new Object[2+sets.length];
-				
+
+		Object[] args = new Object[2 + sets.length];
+
 		args[0] = destKey;
 		args[1] = sets.length;
 		int i = 2;
 		for (byte[] set : sets) {
 			args[i++] = set;
 		}
-		
+
 		try {
 			if (isQueueing()) {
 				pipeline.zinterstore(args);
