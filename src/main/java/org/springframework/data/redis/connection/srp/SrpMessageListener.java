@@ -40,6 +40,10 @@ class SrpMessageListener implements ReplyListener {
 		listener.onMessage(new DefaultMessage(channel, message), null);
 	}
 
+	public void pmessage(byte[] pattern, byte[] channel, byte[] message) {
+		listener.onMessage(new DefaultMessage(channel, message), pattern);
+	}
+
 	public void psubscribed(byte[] arg0, int arg1) {
 	}
 

@@ -11,3 +11,4 @@ pom.xml
 *.log
 .classpath
 .project
+.settings

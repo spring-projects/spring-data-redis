@@ -36,6 +36,7 @@ import org.springframework.data.redis.connection.Subscription;
 import redis.client.RedisClient;
 import redis.client.RedisClient.Pipeline;
 import redis.client.RedisException;
+import redis.reply.Reply;
 
 import com.google.common.base.Charsets;
 
@@ -136,7 +137,7 @@ public class SrpConnection implements RedisConnection {
 				pipeline.sort(key, sort, null, (Object[]) null);
 				return null;
 			}
-			return SrpUtils.toBytesList(client.sort(key, sort, null, (Object[]) null).data());
+			return SrpUtils.toBytesList((Reply[]) client.sort(key, sort, null, (Object[]) null).data());
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -151,7 +152,7 @@ public class SrpConnection implements RedisConnection {
 				pipeline.sort(key, sort, null, (Object[]) null);
 				return null;
 			}
-			return SrpUtils.toLong(client.sort(key, sort, null, (Object[]) null).data());
+			return ((Long) client.sort(key, sort, null, (Object[]) null).data());
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1252,10 +1253,10 @@ public class SrpConnection implements RedisConnection {
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline.zadd(key, score, value, null, null);
+				pipeline.zadd(new Object[] { key, score, value });
 				return null;
 			}
-			return client.zadd(key, score, value, null, null).data() == 1;
+			return client.zadd(new Object[] { key, score, value }).data() == 1;
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1307,17 +1308,26 @@ public class SrpConnection implements RedisConnection {
 
 
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
+		
+		Object[] args = new Object[2+sets.length];
+				
+		args[0] = destKey;
+		args[1] = sets.length;
+		int i = 2;
+		for (byte[] set : sets) {
+			args[i++] = set;
+		}
+		
 		try {
 			if (isQueueing()) {
-				pipeline.zinterstore(destKey, sets.length, (Object[]) sets);
+				pipeline.zinterstore(args);
 				return null;
 			}
-			return client.zinterstore(destKey, sets.length, (Object[]) sets).data();
+			return client.zinterstore(args).data();
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
 	}
-
 
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		try {
@@ -1534,7 +1544,7 @@ public class SrpConnection implements RedisConnection {
 				pipeline.zrevrank(key, value);
 				return null;
 			}
-			return client.zrevrank(key, value).data();
+			return (Long) client.zrevrank(key, value).data();
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
