@@ -53,21 +53,30 @@ abstract class AbstractOperations<K, V> {
 		protected abstract byte[] inRedis(byte[] rawKey, RedisConnection connection);
 	}
 
-	RedisSerializer keySerializer = null;
-	RedisSerializer valueSerializer = null;
-	RedisSerializer hashKeySerializer = null;
-	RedisSerializer hashValueSerializer = null;
-	RedisSerializer stringSerializer = null;
 	RedisTemplate<K, V> template;
 
 	AbstractOperations(RedisTemplate<K, V> template) {
-		keySerializer = template.getKeySerializer();
-		valueSerializer = template.getValueSerializer();
-		hashKeySerializer = template.getHashKeySerializer();
-		hashValueSerializer = template.getHashValueSerializer();
-		stringSerializer = template.getStringSerializer();
-
 		this.template = template;
+	}
+
+	RedisSerializer keySerializer() {
+		return template.getKeySerializer();
+	}
+
+	RedisSerializer valueSerializer() {
+		return template.getValueSerializer();
+	}
+
+	RedisSerializer hashKeySerializer() {
+		return template.getHashKeySerializer();
+	}
+
+	RedisSerializer hashValueSerializer() {
+		return template.getHashValueSerializer();
+	}
+
+	RedisSerializer stringSerializer() {
+		return template.getStringSerializer();
 	}
 
 
@@ -82,27 +91,27 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	byte[] rawKey(Object key) {
 		Assert.notNull(key, "non null key required");
-		return keySerializer.serialize(key);
+		return keySerializer().serialize(key);
 	}
 
 	byte[] rawString(String key) {
-		return stringSerializer.serialize(key);
+		return stringSerializer().serialize(key);
 	}
 
 	@SuppressWarnings("unchecked")
 	byte[] rawValue(Object value) {
-		return valueSerializer.serialize(value);
+		return valueSerializer().serialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HK> byte[] rawHashKey(HK hashKey) {
 		Assert.notNull(hashKey, "non null hash key required");
-		return hashKeySerializer.serialize(hashKey);
+		return hashKeySerializer().serialize(hashKey);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HV> byte[] rawHashValue(HV value) {
-		return hashValueSerializer.serialize(value);
+		return hashValueSerializer().serialize(value);
 	}
 
 	byte[][] rawKeys(K key, K otherKey) {
@@ -136,31 +145,31 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	Set<V> deserializeValues(Set<byte[]> rawValues) {
-		return SerializationUtils.deserialize(rawValues, valueSerializer);
+		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
 	@SuppressWarnings("unchecked")
 	Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues) {
 		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
-			set.add(new DefaultTypedTuple(valueSerializer.deserialize(rawValue.getValue()), rawValue.getScore()));
+			set.add(new DefaultTypedTuple(valueSerializer().deserialize(rawValue.getValue()), rawValue.getScore()));
 		}
 		return set;
 	}
 
 	@SuppressWarnings("unchecked")
 	List<V> deserializeValues(List<byte[]> rawValues) {
-		return SerializationUtils.deserialize(rawValues, valueSerializer);
+		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
 	@SuppressWarnings("unchecked")
 	<T> Set<T> deserializeHashKeys(Set<byte[]> rawKeys) {
-		return SerializationUtils.deserialize(rawKeys, hashKeySerializer);
+		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
 	}
 
 	@SuppressWarnings("unchecked")
 	<T> List<T> deserializeHashValues(List<byte[]> rawValues) {
-		return SerializationUtils.deserialize(rawValues, hashValueSerializer);
+		return SerializationUtils.deserialize(rawValues, hashValueSerializer());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -181,25 +190,25 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	K deserializeKey(byte[] value) {
-		return (K) keySerializer.deserialize(value);
+		return (K) keySerializer().deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	V deserializeValue(byte[] value) {
-		return (V) valueSerializer.deserialize(value);
+		return (V) valueSerializer().deserialize(value);
 	}
 
 	String deserializeString(byte[] value) {
-		return (String) stringSerializer.deserialize(value);
+		return (String) stringSerializer().deserialize(value);
 	}
 
 	@SuppressWarnings( { "unchecked" })
 	<HK> HK deserializeHashKey(byte[] value) {
-		return (HK) hashKeySerializer.deserialize(value);
+		return (HK) hashKeySerializer().deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HV> HV deserializeHashValue(byte[] value) {
-		return (HV) hashValueSerializer.deserialize(value);
+		return (HV) hashValueSerializer().deserialize(value);
 	}
 }
