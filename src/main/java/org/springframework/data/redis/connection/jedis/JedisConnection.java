@@ -1021,7 +1021,14 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			return (jedis.getbit(key, offset) == 0 ? Boolean.FALSE : Boolean.TRUE);
+			// compatibility check for Jedis 2.0.0
+			Object getBit = jedis.getbit(key, offset);
+			// Jedis 2.0
+			if (getBit instanceof Long) {
+				return (((Long)getBit) == 0 ? Boolean.FALSE : Boolean.TRUE);
+			}
+			// Jedis 2.1
+			return ((Boolean) getBit);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1846,7 +1853,7 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return jedis.zrevrangeByScore(key, max, min, (int) offset, (int) count);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1861,7 +1868,7 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return jedis.zrevrangeByScore(key, max, min);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1876,7 +1883,8 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return JedisUtils.convertJedisTuple(jedis.zrevrangeByScoreWithScores(key, max, min, (int) offset,
+					(int) count));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1891,7 +1899,7 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return JedisUtils.convertJedisTuple(jedis.zrevrangeByScoreWithScores(key, max, min));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
