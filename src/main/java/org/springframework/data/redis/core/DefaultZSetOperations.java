@@ -232,25 +232,23 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	
-	public void removeRange(K key, final long start, final long end) {
+	public Long removeRange(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.zRemRange(rawKey, start, end);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zRemRange(rawKey, start, end);
 			}
 		}, true);
 	}
 
 	
-	public void removeRangeByScore(K key, final double min, final double max) {
+	public Long removeRangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.zRemRangeByScore(rawKey, min, max);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zRemRangeByScore(rawKey, min, max);
 			}
 		}, true);
 	}

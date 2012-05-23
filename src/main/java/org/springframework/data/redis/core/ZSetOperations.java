@@ -71,9 +71,9 @@ public interface ZSetOperations<K, V> {
 
 	Boolean remove(K key, Object o);
 
-	void removeRange(K key, long start, long end);
+	Long removeRange(K key, long start, long end);
 
-	void removeRangeByScore(K key, double min, double max);
+	Long removeRangeByScore(K key, double min, double max);
 
 	Long count(K key, double min, double max);
 
