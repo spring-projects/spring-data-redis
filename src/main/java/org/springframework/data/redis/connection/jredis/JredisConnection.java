@@ -710,12 +710,13 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	
-	public void sDiffStore(byte[] destKey, byte[]... keys) {
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		String destSet = JredisUtils.decode(destKey);
 		String[] sets = JredisUtils.decodeMultiple(keys);
 
 		try {
 			jredis.sdiffstore(destSet, sets);
+			return Long.valueOf(-1);
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
@@ -735,12 +736,13 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	
-	public void sInterStore(byte[] destKey, byte[]... keys) {
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		String destSet = JredisUtils.decode(destKey);
 		String[] sets = JredisUtils.decodeMultiple(keys);
 
 		try {
 			jredis.sinterstore(destSet, sets);
+			return Long.valueOf(-1);
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
@@ -813,12 +815,13 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	
-	public void sUnionStore(byte[] destKey, byte[]... keys) {
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		String destSet = JredisUtils.decode(destKey);
 		String[] sets = JredisUtils.decodeMultiple(keys);
 
 		try {
 			jredis.sunionstore(destSet, sets);
+			return Long.valueOf(-1);
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}

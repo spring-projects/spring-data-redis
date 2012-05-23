@@ -1254,7 +1254,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	
-	public void sDiffStore(byte[] destKey, byte[]... keys) {
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -1262,9 +1262,9 @@ public class RjcConnection implements RedisConnection {
 
 			if (isPipelined()) {
 				pipeline.sdiffstore(stringKey, stringKeys);
-				return;
+				return null;
 			}
-			session.sdiffstore(stringKey, stringKeys);
+			return session.sdiffstore(stringKey, stringKeys);
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -1286,16 +1286,16 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	
-	public void sInterStore(byte[] destKey, byte[]... keys) {
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 		try {
 
 			if (isPipelined()) {
 				pipeline.sinterstore(stringKey, stringKeys);
-				return;
+				return null;
 			}
-			session.sinterstore(stringKey, stringKeys);
+			return session.sinterstore(stringKey, stringKeys);
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -1415,7 +1415,7 @@ public class RjcConnection implements RedisConnection {
 	}
 
 	
-	public void sUnionStore(byte[] destKey, byte[]... keys) {
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		String stringKey = RjcUtils.decode(destKey);
 		String[] stringKeys = RjcUtils.decodeMultiple(keys);
 
@@ -1423,9 +1423,9 @@ public class RjcConnection implements RedisConnection {
 
 			if (isPipelined()) {
 				pipeline.sunionstore(stringKey, stringKeys);
-				return;
+				return null;
 			}
-			session.sunionstore(stringKey, stringKeys);
+			return session.sunionstore(stringKey, stringKeys);
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
