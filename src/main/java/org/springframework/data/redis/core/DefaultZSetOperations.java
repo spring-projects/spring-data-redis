@@ -60,19 +60,18 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	
-	public void intersectAndStore(K key, K otherKey, K destKey) {
-		intersectAndStore(key, Collections.singleton(otherKey), destKey);
+	public Long intersectAndStore(K key, K otherKey, K destKey) {
+		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
 	
-	public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.zInterStore(rawDestKey, rawKeys);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zInterStore(rawDestKey, rawKeys);
 			}
 		}, true);
 	}
@@ -294,19 +293,18 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	}
 
 	
-	public void unionAndStore(K key, K otherKey, K destKey) {
-		unionAndStore(key, Collections.singleton(otherKey), destKey);
+	public Long unionAndStore(K key, K otherKey, K destKey) {
+		return unionAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
 	
-	public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
+	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.zUnionStore(rawDestKey, rawKeys);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zUnionStore(rawDestKey, rawKeys);
 			}
 		}, true);
 	}
