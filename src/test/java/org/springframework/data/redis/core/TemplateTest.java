@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
@@ -55,5 +56,15 @@ public class TemplateTest {
 	@Test
 	public void testKeys() throws Exception {
 		assertTrue(template.keys("*") != null);
+	}
+
+	@Test
+	public void testIncrement() throws Exception {
+		StringRedisTemplate sr = new StringRedisTemplate(template.getConnectionFactory());
+		String key = "test.template.inc";
+		ValueOperations<String, String> valueOps = sr.opsForValue();
+		valueOps.set(key, "10");
+		valueOps.increment(key, -10);
+		assertEquals(0, Integer.valueOf(valueOps.get(key)).intValue());
 	}
 }
