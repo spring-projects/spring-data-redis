@@ -48,8 +48,8 @@ import com.google.common.base.Charsets;
  */
 abstract class SrpUtils {
 
-	private static final byte[] ONE = new byte[] { 1 };
-	private static final byte[] ZERO = new byte[] { 0 };
+	private static final byte[] ONE = new byte[] { '1' };
+	private static final byte[] ZERO = new byte[] { '0' };
 	private static final byte[] BEFORE = "BEFORE".getBytes(Charsets.UTF_8);
 	private static final byte[] AFTER = "AFTER".getBytes(Charsets.UTF_8);
 	static final byte[] WITHSCORES = "WITHSCORES".getBytes(Charsets.UTF_8);
