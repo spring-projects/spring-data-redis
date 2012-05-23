@@ -1423,17 +1423,17 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	
-	public void sDiffStore(byte[] destKey, byte[]... keys) {
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sdiffstore(destKey, keys);
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.sdiffstore(destKey, keys);
-				return;
+				return null;
 			}
-			jedis.sdiffstore(destKey, keys);
+			return jedis.sdiffstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1457,17 +1457,17 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	
-	public void sInterStore(byte[] destKey, byte[]... keys) {
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sinterstore(destKey, keys);
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.sinterstore(destKey, keys);
-				return;
+				return null;
 			}
-			jedis.sinterstore(destKey, keys);
+			return jedis.sinterstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1593,17 +1593,17 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	
-	public void sUnionStore(byte[] destKey, byte[]... keys) {
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sunionstore(destKey, keys);
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.sunionstore(destKey, keys);
-				return;
+				return null;
 			}
-			jedis.sunionstore(destKey, keys);
+			return jedis.sunionstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

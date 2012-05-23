@@ -39,15 +39,15 @@ public interface RedisSetCommands {
 
 	Set<byte[]> sInter(byte[]... keys);
 
-	void sInterStore(byte[] destKey, byte[]... keys);
+	Long sInterStore(byte[] destKey, byte[]... keys);
 
 	Set<byte[]> sUnion(byte[]... keys);
 
-	void sUnionStore(byte[] destKey, byte[]... keys);
+	Long sUnionStore(byte[] destKey, byte[]... keys);
 
 	Set<byte[]> sDiff(byte[]... keys);
 
-	void sDiffStore(byte[] destKey, byte[]... keys);
+	Long sDiffStore(byte[] destKey, byte[]... keys);
 
 	Set<byte[]> sMembers(byte[] key);
 
