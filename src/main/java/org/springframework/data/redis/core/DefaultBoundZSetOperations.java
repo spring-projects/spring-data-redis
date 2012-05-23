@@ -58,7 +58,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	}
 
 	
-	public void intersectAndStore(K destKey, K otherKey) {
+	public void intersectAndStore(K otherKey, K destKey) {
 		ops.intersectAndStore(getKey(), otherKey, destKey);
 	}
 
