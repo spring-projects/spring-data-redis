@@ -117,6 +117,15 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testBitSet() throws Exception {
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		assertTrue(!connection.getBit(key, 0));
+		assertTrue(connection.getBit(key, 1));
+	}
+
+	@Test
 	public void testInfo() throws Exception {
 		Properties info = connection.info();
 		assertNotNull(info);
