@@ -1661,7 +1661,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.zcount(key, min, max);
 				return null;
 			}
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline.zcount(key, min, max);
 				return null;
 			}
@@ -1715,7 +1715,7 @@ public class JedisConnection implements RedisConnection {
 				transaction.zinterstore(destKey, sets);
 				return null;
 			}
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline.zinterstore(destKey, sets);
 				return null;
 			}
