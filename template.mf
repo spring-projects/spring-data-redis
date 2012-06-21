@@ -26,4 +26,7 @@ Import-Template:
  org.idevlab.rjc.*;resolution:="optional";version=${rjc.range},
  org.apache.commons.pool.impl.*;resolution:="optional";version="[1.0.0, 3.0.0)",
  org.codehaus.jackson.*;resolution:="optional";version=${jackson.range},
- org.apache.commons.beanutils.*;resolution:="optional";version=1.8.5
+ org.apache.commons.beanutils.*;resolution:="optional";version=1.8.5,
+ redis.client.*;resolution:="optional";version=${srp.range},
+ redis.reply.*;resolution:="optional";version=${srp.range},
+ com.google.common.*;resolution:="optional";version="[11.0.0, 20.0.0)"
