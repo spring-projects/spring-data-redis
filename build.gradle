@@ -209,4 +209,5 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.0'
 }
 
-defaultTasks 'clean', 'build'
+assemble.dependsOn = ['jar', 'sourcesJar']
+defaultTasks 'build'
