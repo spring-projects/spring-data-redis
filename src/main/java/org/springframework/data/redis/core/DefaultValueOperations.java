@@ -73,10 +73,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 					return connection.decr(rawKey);
 				}
 
-				if (delta < 0) {
-					return connection.decrBy(rawKey, delta);
-				}
-
 				return connection.incrBy(rawKey, delta);
 			}
 		}, true);
@@ -109,8 +105,6 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return deserializeString(rawReturn);
 	}
 
-	@SuppressWarnings("unchecked")
-	
 	public List<V> multiGet(Collection<K> keys) {
 		if (keys.isEmpty()) {
 			return Collections.emptyList();

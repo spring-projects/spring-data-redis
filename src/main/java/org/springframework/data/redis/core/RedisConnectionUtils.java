@@ -81,14 +81,8 @@ public abstract class RedisConnectionUtils {
 
 		RedisConnection conn = factory.getConnection();
 
-		boolean synchronizationActive = TransactionSynchronizationManager.isSynchronizationActive();
-
-		if (bind || synchronizationActive) {
+		if (bind) {
 			connHolder = new RedisConnectionHolder(conn);
-			if (synchronizationActive) {
-				TransactionSynchronizationManager.registerSynchronization(new RedisConnectionSynchronization(
-						connHolder, factory, true));
-			}
 			TransactionSynchronizationManager.bindResource(factory, connHolder);
 			return connHolder.getConnection();
 		}

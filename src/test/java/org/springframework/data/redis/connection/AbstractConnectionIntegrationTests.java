@@ -116,6 +116,15 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testBitSet() throws Exception {
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		assertTrue(!connection.getBit(key, 0));
+		assertTrue(connection.getBit(key, 1));
+	}
+
+	@Test
 	public void testInfo() throws Exception {
 		Properties info = connection.info();
 		assertNotNull(info);
@@ -322,5 +331,13 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		th.start();
 		connection.pSubscribe(listener, expectedPattern);
+	}
+
+	@Test
+	public void testExecuteNative() throws Exception {
+		connection.execute("ZADD", getClass() + "#testExecuteNative", "0.9090", "item");
+		//connection.execute("PiNg");
+		connection.execute("iNFo");
+		connection.execute("SET ", getClass() + "testSetNative", UUID.randomUUID().toString());
 	}
 }

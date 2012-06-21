@@ -35,13 +35,13 @@ public interface ZSetOperations<K, V> {
 		Double getScore();
 	}
 
-	void intersectAndStore(K key, K otherKey, K destKey);
+	Long intersectAndStore(K key, K otherKey, K destKey);
 
-	void intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
-	void unionAndStore(K key, K otherKey, K destKey);
+	Long unionAndStore(K key, K otherKey, K destKey);
 
-	void unionAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	Set<V> range(K key, long start, long end);
 
@@ -71,9 +71,9 @@ public interface ZSetOperations<K, V> {
 
 	Boolean remove(K key, Object o);
 
-	void removeRange(K key, long start, long end);
+	Long removeRange(K key, long start, long end);
 
-	void removeRangeByScore(K key, double min, double max);
+	Long removeRangeByScore(K key, double min, double max);
 
 	Long count(K key, double min, double max);
 

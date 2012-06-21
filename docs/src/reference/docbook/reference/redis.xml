@@ -284,7 +284,7 @@
       <programlisting language="java"><![CDATA[public class Example {
 
   // inject the actual template 
-  @Autowired
+  @Resource(name="redisTemplate")
   private RedisTemplate<String, String> template;
 
   // inject the template as ListOperations

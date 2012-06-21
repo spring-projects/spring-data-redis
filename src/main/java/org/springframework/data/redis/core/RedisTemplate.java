@@ -160,16 +160,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		try {
 			RedisConnection connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
 			T result = action.doInRedis(connToExpose);
+
+			// close pipeline
+			if (pipeline && !pipelineStatus) {
+				conn.closePipeline();
+			}
+
 			// TODO: any other connection processing?
 			return postProcessResult(result, conn, existingConnection);
 		} finally {
-			try {
-				if (pipeline && !pipelineStatus) {
-					conn.closePipeline();
-				}
-			} finally {
-				RedisConnectionUtils.releaseConnection(conn, factory);
-			}
+			RedisConnectionUtils.releaseConnection(conn, factory);
 		}
 	}
 

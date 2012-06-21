@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -86,6 +85,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	@Ignore
 	public void testPubSubWithNamedChannels() {
-
 	}
+
+	@Ignore
+	public void testBitSet() throws Exception {
+	}
+
 }

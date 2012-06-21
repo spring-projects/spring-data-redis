@@ -30,25 +30,25 @@ public interface SetOperations<K, V> {
 
 	Set<V> difference(K key, Collection<K> otherKeys);
 
-	void differenceAndStore(K key, K otherKey, K destKey);
+	Long differenceAndStore(K key, K otherKey, K destKey);
 
-	void differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long differenceAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	Set<V> intersect(K key, K otherKey);
 
 	Set<V> intersect(K key, Collection<K> otherKeys);
 
-	void intersectAndStore(K key, K otherKey, K destKey);
+	Long intersectAndStore(K key, K otherKey, K destKey);
 
-	void intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	Set<V> union(K key, K otherKey);
 
 	Set<V> union(K key, Collection<K> otherKeys);
 
-	void unionAndStore(K key, K otherKey, K destKey);
+	Long unionAndStore(K key, K otherKey, K destKey);
 
-	void unionAndStore(K key, Collection<K> otherKeys, K destKey);
+	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
 
 	Boolean add(K key, V value);
 

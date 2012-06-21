@@ -29,6 +29,11 @@ buildscript {
     }
 }
 
+repositories {
+  mavenRepo name: "springsource", urls: "http://repo.springsource.org/libs-snapshot"
+}
+
+
 allprojects {
     group = 'org.springframework.data.redis'
     version = "$springDataRedisVersion"

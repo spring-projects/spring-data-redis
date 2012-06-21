@@ -42,6 +42,10 @@ public interface StringRedisConnection extends RedisConnection {
 		String getValueAsString();
 	}
 
+	Object execute(String command, String... args);
+
+	Object execute(String command);
+
 	Boolean exists(String key);
 
 	Long del(String... keys);

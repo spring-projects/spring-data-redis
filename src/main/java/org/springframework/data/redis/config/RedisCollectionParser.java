@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
  * 
  * @author Costin Leau
  */
-public class RedisCollectionParser extends AbstractSimpleBeanDefinitionParser {
+class RedisCollectionParser extends AbstractSimpleBeanDefinitionParser {
 
 	
 	protected Class<?> getBeanClass(Element element) {

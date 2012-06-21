@@ -49,8 +49,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return difference(key, Collections.singleton(otherKey));
 	}
 
-	@SuppressWarnings("unchecked")
-	
 	public Set<V> difference(final K key, final Collection<K> otherKeys) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
@@ -64,19 +62,18 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 	
-	public void differenceAndStore(K key, K otherKey, K destKey) {
-		differenceAndStore(key, Collections.singleton(otherKey), destKey);
+	public Long differenceAndStore(K key, K otherKey, K destKey) {
+		return differenceAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
 	
-	public void differenceAndStore(final K key, final Collection<K> otherKeys, K destKey) {
+	public Long differenceAndStore(final K key, final Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.sDiffStore(rawDestKey, rawKeys);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.sDiffStore(rawDestKey, rawKeys);
 			}
 		}, true);
 	}
@@ -86,8 +83,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return intersect(key, Collections.singleton(otherKey));
 	}
 
-	@SuppressWarnings("unchecked")
-	
 	public Set<V> intersect(K key, Collection<K> otherKeys) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
@@ -101,17 +96,17 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 	
-	public void intersectAndStore(K key, K otherKey, K destKey) {
-		intersectAndStore(key, Collections.singleton(otherKey), destKey);
+	public Long intersectAndStore(K key, K otherKey, K destKey) {
+		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
 	
-	public void intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
+	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
+			public Long doInRedis(RedisConnection connection) {
 				connection.sInterStore(rawDestKey, rawKeys);
 				return null;
 			}
@@ -130,8 +125,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		}, true);
 	}
 
-	@SuppressWarnings("unchecked")
-	
 	public Set<V> members(K key) {
 		final byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
@@ -222,19 +215,18 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 	
-	public void unionAndStore(K key, K otherKey, K destKey) {
-		unionAndStore(key, Collections.singleton(otherKey), destKey);
+	public Long unionAndStore(K key, K otherKey, K destKey) {
+		return unionAndStore(key, Collections.singleton(otherKey), destKey);
 	}
 
 	
-	public void unionAndStore(K key, Collection<K> otherKeys, K destKey) {
+	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		final byte[] rawDestKey = rawKey(destKey);
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.sUnionStore(rawDestKey, rawKeys);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.sUnionStore(rawDestKey, rawKeys);
 			}
 		}, true);
 	}

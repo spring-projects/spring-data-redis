@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,14 +33,20 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.BinaryTransaction;
+import redis.clients.jedis.Builder;
 import redis.clients.jedis.Client;
+import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Protocol.Command;
+import redis.clients.jedis.Queable;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
@@ -55,10 +62,17 @@ import redis.clients.util.Pool;
 public class JedisConnection implements RedisConnection {
 
 	private static final Field CLIENT_FIELD;
+	private static final Method SEND_COMMAND;
+	private static final Method GET_RESPONSE;
 
 	static {
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
+		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", 
+				new Class[] { Command.class, byte[][].class });
+		ReflectionUtils.makeAccessible(SEND_COMMAND);
+		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
+		ReflectionUtils.makeAccessible(GET_RESPONSE);
 	}
 
 	private final Jedis jedis;
@@ -119,7 +133,31 @@ public class JedisConnection implements RedisConnection {
 		return new RedisSystemException("Unknown jedis exception", ex);
 	}
 
-	
+	public Object execute(String command, byte[]... args) {
+		Assert.hasText(command, "a valid command needs to be specified");
+		List<byte[]> mArgs = new ArrayList<byte[]>();
+		if (!ObjectUtils.isEmpty(args)) {
+			Collections.addAll(mArgs, args);
+		}
+
+		Object result = ReflectionUtils.invokeMethod(SEND_COMMAND, client,
+				Command.valueOf(command.trim().toUpperCase()), mArgs.toArray(new byte[mArgs.size()][]));
+		if (isQueueing() || isPipelined()) {
+			Object target = (isPipelined() ? pipeline : transaction);
+			ReflectionUtils.invokeMethod(GET_RESPONSE, target, new Builder<Object>() {
+				public Object build(Object data) {
+					return data;
+				}
+
+				public String toString() {
+					return "Object";
+				}
+			});
+		}
+
+		return result;
+	}
+
 	public void close() throws DataAccessException {
 		// return the connection to the pool
 		try {
@@ -158,12 +196,12 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Jedis getNativeConnection() {
 		return jedis;
 	}
 
-	
+
 	public boolean isClosed() {
 		try {
 			return !jedis.isConnected();
@@ -172,17 +210,17 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public boolean isQueueing() {
 		return client.isInMulti();
 	}
 
-	
+
 	public boolean isPipelined() {
 		return (pipeline != null);
 	}
 
-	
+
 	public void openPipeline() {
 		if (pipeline == null) {
 			pipeline = jedis.pipelined();
@@ -190,7 +228,6 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			List execute = pipeline.syncAndReturnAll();
@@ -201,7 +238,7 @@ public class JedisConnection implements RedisConnection {
 		return Collections.emptyList();
 	}
 
-	
+
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
 		SortingParams sortParams = JedisUtils.convertSortParams(params);
@@ -233,7 +270,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 
 		SortingParams sortParams = JedisUtils.convertSortParams(params);
@@ -265,14 +302,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long dbSize() {
 		try {
 			if (isQueueing()) {
-				throw new UnsupportedOperationException();
+				transaction.dbSize();
 			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline.dbSize();
 			}
 			return jedis.dbSize();
 		} catch (Exception ex) {
@@ -281,14 +318,14 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	
+
 	public void flushDb() {
 		try {
 			if (isQueueing()) {
-				throw new UnsupportedOperationException();
+				transaction.flushDB();
 			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline.flushDB();
 			}
 			jedis.flushDB();
 		} catch (Exception ex) {
@@ -296,14 +333,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void flushAll() {
 		try {
 			if (isQueueing()) {
-				throw new UnsupportedOperationException();
+				transaction.flushAll();
 			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline.flushAll();
 			}
 			jedis.flushAll();
 		} catch (Exception ex) {
@@ -311,7 +348,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void bgSave() {
 		try {
 			if (isQueueing()) {
@@ -327,7 +364,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void bgWriteAof() {
 		try {
 			if (isQueueing()) {
@@ -343,7 +380,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void save() {
 		try {
 			if (isQueueing()) {
@@ -359,7 +396,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<String> getConfig(String param) {
 		try {
 			if (isQueueing()) {
@@ -375,7 +412,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Properties info() {
 		try {
 			if (isQueueing()) {
@@ -390,7 +427,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long lastSave() {
 		try {
 			if (isQueueing()) {
@@ -406,7 +443,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void setConfig(String param, String value) {
 		try {
 			if (isQueueing()) {
@@ -423,7 +460,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	
+
 	public void resetConfigStats() {
 		try {
 			if (isQueueing()) {
@@ -439,7 +476,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void shutdown() {
 		try {
 			if (isQueueing()) {
@@ -454,7 +491,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] echo(byte[] message) {
 		try {
 			if (isQueueing()) {
@@ -470,7 +507,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public String ping() {
 		try {
 			if (isQueueing()) {
@@ -485,7 +522,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long del(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -502,7 +539,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void discard() {
 		try {
 			client.discard();
@@ -511,7 +548,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<Object> exec() {
 		try {
 			if (isPipelined()) {
@@ -524,7 +561,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean exists(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -541,7 +578,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean expire(byte[] key, long seconds) {
 		try {
 			if (isQueueing()) {
@@ -558,7 +595,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean expireAt(byte[] key, long unixTime) {
 		try {
 			if (isQueueing()) {
@@ -575,7 +612,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			if (isQueueing()) {
@@ -592,7 +629,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void multi() {
 		if (isQueueing()) {
 			return;
@@ -608,7 +645,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean persist(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -625,7 +662,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean move(byte[] key, int dbIndex) {
 		try {
 			if (isQueueing()) {
@@ -642,7 +679,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] randomKey() {
 		try {
 			if (isQueueing()) {
@@ -657,7 +694,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void rename(byte[] oldName, byte[] newName) {
 		try {
 			if (isQueueing()) {
@@ -674,7 +711,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		try {
 			if (isQueueing()) {
@@ -691,7 +728,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void select(int dbIndex) {
 		try {
 			if (isQueueing()) {
@@ -706,7 +743,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long ttl(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -723,7 +760,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public DataType type(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -740,7 +777,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void unwatch() {
 		try {
 			jedis.unwatch();
@@ -749,7 +786,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void watch(byte[]... keys) {
 		if (isQueueing()) {
 			throw new UnsupportedOperationException();
@@ -772,7 +809,7 @@ public class JedisConnection implements RedisConnection {
 	// String commands
 	//
 
-	
+
 	public byte[] get(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -790,7 +827,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void set(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -808,7 +845,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	
+
 	public byte[] getSet(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -825,7 +862,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long append(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -842,7 +879,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<byte[]> mGet(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -859,7 +896,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void mSet(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
@@ -876,7 +913,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
@@ -893,7 +930,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void setEx(byte[] key, long time, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -910,7 +947,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean setNX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -927,7 +964,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] getRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -944,7 +981,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long decr(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -961,7 +998,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long decrBy(byte[] key, long value) {
 		try {
 			if (isQueueing()) {
@@ -978,7 +1015,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long incr(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -995,7 +1032,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long incrBy(byte[] key, long value) {
 		try {
 			if (isQueueing()) {
@@ -1012,7 +1049,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean getBit(byte[] key, long offset) {
 		try {
 			if (isQueueing()) {
@@ -1021,13 +1058,20 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			return (jedis.getbit(key, offset) == 0 ? Boolean.FALSE : Boolean.TRUE);
+			// compatibility check for Jedis 2.0.0
+			Object getBit = jedis.getbit(key, offset);
+			// Jedis 2.0
+			if (getBit instanceof Long) {
+				return (((Long) getBit) == 0 ? Boolean.FALSE : Boolean.TRUE);
+			}
+			// Jedis 2.1
+			return ((Boolean) getBit);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isQueueing()) {
@@ -1042,7 +1086,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void setRange(byte[] key, byte[] value, long start) {
 		try {
 			if (isQueueing()) {
@@ -1057,7 +1101,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long strLen(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1078,7 +1122,7 @@ public class JedisConnection implements RedisConnection {
 	// List commands
 	//
 
-	
+
 	public Long lPush(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1095,7 +1139,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long rPush(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1112,7 +1156,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1129,7 +1173,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1145,7 +1189,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] lIndex(byte[] key, long index) {
 		try {
 			if (isQueueing()) {
@@ -1162,7 +1206,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1179,7 +1223,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long lLen(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1196,7 +1240,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] lPop(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1213,7 +1257,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1230,7 +1274,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long lRem(byte[] key, long count, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1247,7 +1291,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void lSet(byte[] key, long index, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1264,7 +1308,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void lTrim(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1281,7 +1325,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] rPop(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1298,7 +1342,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		try {
 			if (isQueueing()) {
@@ -1315,7 +1359,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		try {
 			if (isQueueing()) {
@@ -1332,7 +1376,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long lPushX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1349,7 +1393,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long rPushX(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1371,7 +1415,7 @@ public class JedisConnection implements RedisConnection {
 	// Set commands
 	//
 
-	
+
 	public Boolean sAdd(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1388,7 +1432,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long sCard(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1405,7 +1449,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> sDiff(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1422,24 +1466,24 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
-	public void sDiffStore(byte[] destKey, byte[]... keys) {
+
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sdiffstore(destKey, keys);
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.sdiffstore(destKey, keys);
-				return;
+				return null;
 			}
-			jedis.sdiffstore(destKey, keys);
+			return jedis.sdiffstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public Set<byte[]> sInter(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1456,24 +1500,24 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
-	public void sInterStore(byte[] destKey, byte[]... keys) {
+
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sinterstore(destKey, keys);
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.sinterstore(destKey, keys);
-				return;
+				return null;
 			}
-			jedis.sinterstore(destKey, keys);
+			return jedis.sinterstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public Boolean sIsMember(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1490,7 +1534,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> sMembers(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1507,7 +1551,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1524,7 +1568,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] sPop(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1541,7 +1585,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] sRandMember(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1558,7 +1602,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean sRem(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1575,7 +1619,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> sUnion(byte[]... keys) {
 		try {
 			if (isQueueing()) {
@@ -1592,18 +1636,18 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
-	public void sUnionStore(byte[] destKey, byte[]... keys) {
+
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isQueueing()) {
 				transaction.sunionstore(destKey, keys);
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.sunionstore(destKey, keys);
-				return;
+				return null;
 			}
-			jedis.sunionstore(destKey, keys);
+			return jedis.sunionstore(destKey, keys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1613,7 +1657,7 @@ public class JedisConnection implements RedisConnection {
 	// ZSet commands
 	//
 
-	
+
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1630,7 +1674,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zCard(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -1647,14 +1691,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zCount(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
 				transaction.zcount(key, min, max);
 				return null;
 			}
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline.zcount(key, min, max);
 				return null;
 			}
@@ -1664,7 +1708,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1681,7 +1725,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
 			ZParams zparams = new ZParams().weights(weights).aggregate(
@@ -1701,14 +1745,14 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isQueueing()) {
 				transaction.zinterstore(destKey, sets);
 				return null;
 			}
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline.zinterstore(destKey, sets);
 				return null;
 			}
@@ -1718,7 +1762,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1735,7 +1779,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1752,7 +1796,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1769,7 +1813,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1786,7 +1830,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1803,7 +1847,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
@@ -1820,7 +1864,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
@@ -1837,7 +1881,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
@@ -1846,13 +1890,13 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return jedis.zrevrangeByScore(key, max, min, (int) offset, (int) count);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1861,13 +1905,13 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return jedis.zrevrangeByScore(key, max, min);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isQueueing()) {
@@ -1876,13 +1920,14 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return JedisUtils.convertJedisTuple(jedis.zrevrangeByScoreWithScores(key, max, min, (int) offset,
+					(int) count));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1891,13 +1936,13 @@ public class JedisConnection implements RedisConnection {
 			if (isPipelined()) {
 				throw new UnsupportedOperationException();
 			}
-			throw new UnsupportedOperationException();
+			return JedisUtils.convertJedisTuple(jedis.zrevrangeByScoreWithScores(key, max, min));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	
+
 	public Long zRank(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1914,7 +1959,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean zRem(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1931,7 +1976,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zRemRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1948,7 +1993,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isQueueing()) {
@@ -1965,7 +2010,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 		try {
 			if (isQueueing()) {
@@ -1982,7 +2027,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zRevRank(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -1999,7 +2044,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Double zScore(byte[] key, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -2016,7 +2061,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
 			ZParams zparams = new ZParams().weights(weights).aggregate(
@@ -2036,7 +2081,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isQueueing()) {
@@ -2057,7 +2102,7 @@ public class JedisConnection implements RedisConnection {
 	// Hash commands
 	//
 
-	
+
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -2074,7 +2119,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isQueueing()) {
@@ -2091,7 +2136,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean hDel(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
@@ -2108,7 +2153,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Boolean hExists(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
@@ -2125,7 +2170,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public byte[] hGet(byte[] key, byte[] field) {
 		try {
 			if (isQueueing()) {
@@ -2142,7 +2187,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2159,7 +2204,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		try {
 			if (isQueueing()) {
@@ -2176,7 +2221,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Set<byte[]> hKeys(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2193,7 +2238,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Long hLen(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2210,7 +2255,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		try {
 			if (isQueueing()) {
@@ -2227,7 +2272,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
 		try {
 			if (isQueueing()) {
@@ -2244,7 +2289,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public List<byte[]> hVals(byte[] key) {
 		try {
 			if (isQueueing()) {
@@ -2265,7 +2310,7 @@ public class JedisConnection implements RedisConnection {
 	//
 	// Pub/Sub functionality
 	//
-	
+
 	public Long publish(byte[] channel, byte[] message) {
 		try {
 			if (isQueueing()) {
@@ -2281,17 +2326,17 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public Subscription getSubscription() {
 		return subscription;
 	}
 
-	
+
 	public boolean isSubscribed() {
 		return (subscription != null && subscription.isAlive());
 	}
 
-	
+
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(
@@ -2316,7 +2361,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	
+
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException(

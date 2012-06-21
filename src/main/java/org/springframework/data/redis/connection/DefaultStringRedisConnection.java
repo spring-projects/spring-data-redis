@@ -372,8 +372,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.sDiff(keys);
 	}
 
-	public void sDiffStore(byte[] destKey, byte[]... keys) {
-		delegate.sDiffStore(destKey, keys);
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
+		return delegate.sDiffStore(destKey, keys);
 	}
 
 	public void select(int dbIndex) {
@@ -412,8 +412,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.sInter(keys);
 	}
 
-	public void sInterStore(byte[] destKey, byte[]... keys) {
-		delegate.sInterStore(destKey, keys);
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
+		return delegate.sInterStore(destKey, keys);
 	}
 
 	public Boolean sIsMember(byte[] key, byte[] value) {
@@ -460,8 +460,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.sUnion(keys);
 	}
 
-	public void sUnionStore(byte[] destKey, byte[]... keys) {
-		delegate.sUnionStore(destKey, keys);
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
+		return delegate.sUnionStore(destKey, keys);
 	}
 
 	public Long ttl(byte[] key) {
@@ -1151,5 +1151,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	
 	public void openPipeline() {
 		delegate.openPipeline();
+	}
+
+
+	public Object execute(String command) {
+		return execute(command, (byte[][]) null);
+	}
+
+	public Object execute(String command, byte[]... args) {
+		return delegate.execute(command, args);
+	}
+
+	public Object execute(String command, String... args) {
+		return execute(command, serializeMulti(args));
 	}
 }
