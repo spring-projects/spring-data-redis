@@ -1154,6 +1154,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 
+	public Object execute(String command) {
+		return execute(command, (byte[][]) null);
+	}
+
 	public Object execute(String command, byte[]... args) {
 		return delegate.execute(command, args);
 	}
