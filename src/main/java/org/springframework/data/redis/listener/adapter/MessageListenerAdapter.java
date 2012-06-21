@@ -307,6 +307,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 			if (delegate != this) {
 				if (delegate instanceof MessageListener) {
 					((MessageListener) delegate).onMessage(message, pattern);
+					return;
 				}
 			}
 

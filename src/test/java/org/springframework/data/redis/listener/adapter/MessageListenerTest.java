@@ -42,8 +42,7 @@ public class MessageListenerTest {
 	private static final byte[] RAW_CHANNEL = serializer.serialize(CHANNEL);
 	private static final String PAYLOAD = "do re mi";
 	private static final byte[] RAW_PAYLOAD = serializer.serialize(PAYLOAD);
-	private static final Message STRING_MSG = new DefaultMessage(RAW_CHANNEL,
-			RAW_PAYLOAD);
+	private static final Message STRING_MSG = new DefaultMessage(RAW_CHANNEL, RAW_PAYLOAD);
 
 	private MessageListenerAdapter adapter;
 
@@ -71,21 +70,14 @@ public class MessageListenerTest {
 	}
 
 	@Test
-	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault()
-			throws Exception {
-		assertEquals(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD,
-				adapter.getDefaultListenerMethod());
+	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
+		assertEquals(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD, adapter.getDefaultListenerMethod());
 	}
 
-	@Test(expected = IllegalStateException.class)
-	// TODO: revisit the exception/method discovery during invocation
-	// TODO: potentially move the discovery early on
 	public void testAdapterWithListenerAndDefaultMessage() throws Exception {
 		MessageListener mock = mock(MessageListener.class);
 
 		MessageListenerAdapter adapter = new MessageListenerAdapter(mock) {
-
-			
 			protected void handleListenerException(Throwable ex) {
 				throw new IllegalStateException(ex);
 			}
@@ -124,5 +116,33 @@ public class MessageListenerTest {
 		adapter.onMessage(STRING_MSG, RAW_CHANNEL);
 
 		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);
+	}
+
+	/**
+	 * @see DATAREDIS-92
+	 */
+	@Test
+	public void triggersListenerImplementingInterfaceCorrectly() {
+
+		SampleListener listener = new SampleListener();
+
+		MessageListener listenerAdapter = new MessageListenerAdapter(listener) {
+			@Override
+			public void setDefaultListenerMethod(String defaultListenerMethod) {
+				throw new RuntimeException("Boom!");
+			}
+		};
+
+		listenerAdapter.onMessage(STRING_MSG, RAW_CHANNEL);
+		assertEquals(1, listener.count);
+	}
+
+	class SampleListener implements MessageListener {
+
+		int count;
+
+		public void onMessage(Message message, byte[] pattern) {
+			count++;
+		}
 	}
 }
