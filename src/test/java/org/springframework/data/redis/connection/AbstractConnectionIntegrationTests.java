@@ -336,5 +336,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void testExecuteNative() throws Exception {
 		connection.execute("ZADD", getClass() + "#testExecuteNative", "0.9090", "item");
+		//connection.execute("PiNg");
+		connection.execute("iNFo");
+		connection.execute("SET ", getClass() + "testSetNative", UUID.randomUUID().toString());
 	}
 }
