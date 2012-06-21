@@ -41,6 +41,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -89,7 +90,7 @@ public class JredisConnection implements RedisConnection {
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
 		List<byte[]> mArgs = new ArrayList<byte[]>();
-		if (args != null) {
+		if (!ObjectUtils.isEmpty(args)) {
 			Collections.addAll(mArgs, args);
 		}
 

@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.BinaryJedis;
@@ -135,10 +136,7 @@ public class JedisConnection implements RedisConnection {
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
 		List<byte[]> mArgs = new ArrayList<byte[]>();
-		if (args == null) {
-			mArgs.add(new byte[0]);
-		}
-		else {
+		if (!ObjectUtils.isEmpty(args)) {
 			Collections.addAll(mArgs, args);
 		}
 
