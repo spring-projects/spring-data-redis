@@ -32,7 +32,9 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.util.Assert;
 
+import redis.Command;
 import redis.client.RedisClient;
 import redis.client.RedisClient.Pipeline;
 import redis.client.RedisException;
@@ -75,6 +77,18 @@ public class SrpConnection implements RedisConnection {
 		return new RedisSystemException("Unknown SRedis exception", ex);
 	}
 
+	public Object execute(String command, byte[]... args) {
+		Assert.hasText(command, "a valid command needs to be specified");
+		String name = command.trim().toUpperCase();
+		Command cmd = new Command(name.getBytes(Charsets.UTF_8), args);
+		if (isPipelined()) {
+			client.pipeline(name, cmd);
+			return null;
+		}
+		else {
+			return client.execute(name, cmd);
+		}
+	}
 
 	public void close() throws DataAccessException {
 		isClosed = true;
@@ -1097,13 +1111,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
-	public void sDiffStore(byte[] destKey, byte[]... keys) {
+	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isPipelined()) {
 				pipeline.sdiffstore(destKey, (Object[]) keys);
-				return;
+				return null;
 			}
-			client.sdiffstore(destKey, (Object[]) keys);
+			return client.sdiffstore(destKey, (Object[]) keys).data();
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1123,13 +1137,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
-	public void sInterStore(byte[] destKey, byte[]... keys) {
+	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isPipelined()) {
 				pipeline.sinterstore(destKey, (Object[]) keys);
-				return;
+				return null;
 			}
-			client.sinterstore(destKey, (Object[]) keys);
+			return client.sinterstore(destKey, (Object[]) keys).data();
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
@@ -1227,13 +1241,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
-	public void sUnionStore(byte[] destKey, byte[]... keys) {
+	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			if (isPipelined()) {
 				pipeline.sunionstore(destKey, (Object[]) keys);
-				return;
+				return null;
 			}
-			client.sunionstore(destKey, (Object[]) keys);
+			return client.sunionstore(destKey, (Object[]) keys).data();
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}
