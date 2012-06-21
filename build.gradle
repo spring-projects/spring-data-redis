@@ -182,15 +182,6 @@ task distZip(type: Zip, dependsOn: [jar, docsZip, schemaZip, sourcesJar, javadoc
             expand(copyright: new Date().format('yyyy'), version: project.version)
         }
 
-        from('samples/') {
-                into 'samples'
-                exclude '**/build/**'
-                exclude '**/bin/**'
-                exclude '**/.settings/**'
-                exclude '**/.gradle/**'
-                exclude '**/.*'
-        }
-        
         from(zipTree(docsZip.archivePath)) {
             into "docs"
         }
