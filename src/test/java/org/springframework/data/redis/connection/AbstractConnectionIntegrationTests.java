@@ -16,7 +16,12 @@
 
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +39,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -332,5 +331,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		th.start();
 		connection.pSubscribe(listener, expectedPattern);
+	}
+
+	@Test
+	public void testExecuteNative() throws Exception {
+		connection.execute("ZADD", getClass() + "#testExecuteNative", "0.9090", "item");
 	}
 }

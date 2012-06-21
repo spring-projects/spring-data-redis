@@ -1152,4 +1152,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public void openPipeline() {
 		delegate.openPipeline();
 	}
+
+
+	public Object execute(String command, byte[]... args) {
+		return delegate.execute(command, args);
+	}
+
+	public Object execute(String command, String... args) {
+		return execute(command, serializeMulti(args));
+	}
 }
