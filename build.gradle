@@ -9,7 +9,7 @@ buildscript {
 }
 
 description = 'Spring Data Redis'
-group = 'org.springframework.data.redis'
+group = 'org.springframework.data'
 
 repositories {
   maven { url "http://repo.springsource.org/libs-snapshot" }
