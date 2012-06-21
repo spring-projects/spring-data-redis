@@ -6,8 +6,8 @@
 
     <bookinfo>
         <title>Spring Data Redis Reference Documentation</title>
-        <titleabbrev>Spring Data Redis @version@</titleabbrev>
-        <releaseinfo>@version@</releaseinfo>
+        <titleabbrev>Spring Data Redis ${version}</titleabbrev>
+        <releaseinfo>${version}</releaseinfo>
         <productname>Spring Data Redis</productname>
 
         <authorgroup>

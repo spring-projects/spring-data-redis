@@ -1,72 +1,29 @@
-// used for artifact names, building doc upload urls, etc.
-description = 'Spring Data Redis'
-abbreviation = 'DATAREDIS'
-
-apply plugin: 'base'
-
 buildscript {
     repositories {
-//        add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-//            name = "local"
-//            addIvyPattern "e:/work/i21/gradle-plugins/build/repo/[organisation].[module]-ivy-[revision].xml"
-//            addArtifactPattern "e:/work/i21/gradle-plugins/build/repo/[organisation].[module]-[revision](-[classifier]).[ext]"
-//        }
-    
-        add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-            name = "GitHub"
-            addIvyPattern 'http://cloud.github.com/downloads/costin/gradle-stuff/[organization].[module]-[artifact]-[revision].[ext]'
-            addArtifactPattern 'http://cloud.github.com/downloads/costin/gradle-stuff/[organization].[module]-[revision].[ext]'
-        }
-        mavenCentral()
-        mavenLocal()
-        mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
-        mavenRepo name: "springsource-org-external", urls: "http://repository.springsource.com/maven/bundles/external"
+        maven { url 'http://repo.springsource.org/plugins-release' }
     }
-
     dependencies {
-        classpath 'org.springframework:gradle-stuff:0.1-20110421'
-        classpath 'net.sf.docbook:docbook-xsl:1.75.2:ns-resources@zip'
+        classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
+        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.5'
     }
 }
+
+description = 'Spring Data Redis'
+group = 'org.springframework.data.redis'
 
 repositories {
-  mavenRepo name: "springsource", urls: "http://repo.springsource.org/libs-snapshot"
+  maven { url "http://repo.springsource.org/libs-snapshot" }
+  maven { url "http://repo.springsource.org/ext-release-local" }
 }
-
-
-allprojects {
-    group = 'org.springframework.data.redis'
-    version = "$springDataRedisVersion"
-    
-    releaseBuild = version.endsWith('RELEASE')
-    snapshotBuild = version.endsWith('SNAPSHOT')
-
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        // Public Spring artefacts
-        mavenRepo name: "springsource-org-release", urls: "http://repository.springsource.com/maven/bundles/release"
-        mavenRepo name: "spring-release", urls: "http://maven.springframework.org/release"
-        mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
-        mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
-        mavenRepo name: "sonatype-snapshot", urls: "http://oss.sonatype.org/content/repositories/snapshots"
-        mavenRepo name: "jboss", urls: "http://repository.jboss.org/maven2/"
-        mavenRepo name: "java.net", urls: "http://download.java.net/maven/2/"
-        mavenRepo name: "ext-snapshots", urls: "http://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo-ext/"
-	}
-
-}
-
 
 apply plugin: "java"
-apply plugin: "maven"
-apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
-apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
-apply plugin: 'docbook'
-apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply from: "$rootDir/maven.gradle"
+apply plugin: 'docbook-reference'
+//apply plugin: 'bundlor'
 
-bundlor.useProjectProps = true
+//bundlor.ext.useProjectProps = true
 [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 
 // Common dependencies
@@ -83,35 +40,33 @@ dependencies {
     }
     compile "org.springframework:spring-context-support:$springVersion"
     compile "org.springframework:spring-tx:$springVersion"
-    compile("org.springframework:spring-oxm:$springVersion") { optional = true } 
+    compile("org.springframework:spring-oxm:$springVersion", optional)
 
     // Redis Drivers
     compile "redis.clients:jedis:$jedisVersion"
     compile "com.github.spullara.redis:client:$srpVersion"
-    compile("org.jredis:jredis-anthonylauzon:$jredisVersion") { optional = true } 
-    compile("org.idevlab:rjc:$rjcVersion") { optional = true } 
+    compile("org.jredis:jredis-anthonylauzon:$jredisVersion", optional)
+    compile("org.idevlab:rjc:$rjcVersion", optional)
     
     // Mappers
-    compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") { optional = true }
-    compile("commons-beanutils:commons-beanutils-core:1.8.3") { optional = true } 
+    compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
+    compile("commons-beanutils:commons-beanutils-core:1.8.3", optional)
 
     // Testing
     testCompile "junit:junit:$junitVersion"
     testCompile "org.springframework:spring-test:$springVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
-    testCompile("javax.annotation:jsr250-api:1.0") { optional = true }
-    testCompile("com.thoughtworks.xstream:xstream:1.3") { optional = true } 
+    testCompile("javax.annotation:jsr250-api:1.0", optional)
+    testCompile("com.thoughtworks.xstream:xstream:1.3", optional)
 }
-
-javaprojects = rootProject
 
 sourceCompatibility = 1.5
 targetCompatibility = 1.5 
 
 javadoc {
-  srcDir = file("${projectDir}/docs/src/api")
+  ext.srcDir = file("${projectDir}/docs/src/api")
   destinationDir = file("${buildDir}/api")
-  tmpDir = file("${buildDir}/api-work")
+  ext.tmpDir = file("${buildDir}/api-work")
   
   configure(options) {
       stylesheetFile = file("${srcDir}/spring-javadoc.css")
@@ -134,82 +89,133 @@ javadoc {
   }
     
   title = "${rootProject.description} ${version} API"
-
-  // collect all the sources that will be included in the javadoc output
-  source javaprojects.collect {project ->
-      project.sourceSets.main.allJava
-  }
-
-  // collect all main classpaths to be able to resolve @see refs, etc.
-  // this collection also determines the set of projects that this
-  // task dependsOn, thus the runtimeClasspath is used to ensure all
-  // projects are included, not just *dependencies* of all classes.
-  // this is awkward and took me a while to figure out.
-  classpath = files(javaprojects.collect {project ->
-      project.sourceSets.main.runtimeClasspath
-  })
-
-  // copy the images from the doc-files dir over to the target
-  doLast { task ->
-      copy {
-          from file("${task.srcDir}/doc-files")
-          into file("${task.destinationDir}/doc-files")
-      }
-  }
 }
 
-ideaProject {
-	withXml { provider ->
-		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
-	}
+jar {
+    manifest.attributes['Implementation-Title'] = 'spring-data-redis'
+    manifest.attributes['Implementation-Version'] = project.version
+
+    from("$rootDir/docs/src/info") {
+        include "license.txt"
+        include "notice.txt"
+        into "META-INF"
+        expand(copyright: new Date().format('yyyy'), version: project.version)
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn:classes) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+reference {
+    sourceDir = file('docs/src/reference/docbook')
+}
+
+task docsZip(type: Zip) {
+    group = 'Distribution'
+    classifier = 'docs'
+    description = "Builds -${classifier} archive containing api and reference for deployment"
+
+    from('docs/src/info') {
+        include 'changelog.txt'
+    }
+
+    from (javadoc) {
+        into 'api'
+    }
+
+    from (reference) {
+        into 'reference'
+    }
+}
+
+task schemaZip(type: Zip) {
+    group = 'Distribution'
+    classifier = 'schema'
+    description = "Builds -${classifier} archive containing all XSDs for deployment"
+
+    def Properties schemas = new Properties();
+    
+    sourceSets.main.resources.find {
+        it.path.endsWith('META-INF' + File.separator + 'spring.schemas')
+    }?.withInputStream { schemas.load(it) }
+
+    ext.paths = [] as Set
+    
+    for (def key : schemas.keySet()) {
+        def shortName = key.replaceAll(/http.*schema.(.*).spring-.*/, '$1')
+        assert shortName != key
+        File xsdFile = sourceSets.main.resources.find {
+            it.path.replace('\\', '/').endsWith(schemas.get(key))
+        }
+        assert xsdFile != null
+        def input = xsdFile.path
+
+        if (!paths.contains(input)) {
+            paths.add(input)
+            into (shortName) {
+               from input
+            }
+        }
+    }
+}
+
+task distZip(type: Zip, dependsOn: [jar, docsZip, schemaZip, sourcesJar, javadocJar]) {
+    group = 'Distribution'
+    classifier = 'dist'
+    description = "Builds -${classifier} archive, containing all jars and docs, " +
+                  "suitable for community download page."
+
+    ext.zipRootDir = "${project.name}-${project.version}"
+
+    into (zipRootDir) {
+        from('docs/src/info') {
+            include 'readme.txt'
+            include 'license.txt'
+            include 'notice.txt'
+            expand(copyright: new Date().format('yyyy'), version: project.version)
+        }
+
+        from('samples/') {
+                into 'samples'
+                exclude '**/build/**'
+                exclude '**/bin/**'
+                exclude '**/.settings/**'
+                exclude '**/.gradle/**'
+                exclude '**/.*'
+        }
+        
+        from(zipTree(docsZip.archivePath)) {
+            into "docs"
+        }
+
+        from(zipTree(schemaZip.archivePath)) {
+            into "schema"
+        }
+        into ("dist") {
+            from rootProject.collect { project -> project.libsDir }
+        }
+    }
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+
+    archives docsZip
+    archives schemaZip
+    archives distZip
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.0-milestone-3'
-    description = "Generate the Gradle wrapper"
-    group = "Distribution"
-}
-
-apply from: "$rootDir/maven.gradle"
-
-assemble.dependsOn = ['jar', 'sourceJar', 'javadocJar']
-
-// Distribution tasks
-task dist(type: Zip) {
-    description = "Generate the ZIP Distribution"
-    group = "Distribution"
-    dependsOn assemble, subprojects*.tasks*.matching { task -> task.name == 'assemble' }
-
-    evaluationDependsOn(':docs')
-
-    def zipRootDir = "${project.name}-$version"
-    into(zipRootDir) {
-        from('/docs/src/info') {
-            include '*.txt'
-        }
-        from('/docs/build/') {
-            into 'docs'
-            include 'reference/**/*'
-        }
-        from('build/') {
-            into 'docs'
-            include 'api/**/*'
-        }
-            into('dist') {
-            from javaprojects.collect {project -> project.libsDir }
-        }
-    }
-    doLast {
-        ant.checksum(file: archivePath, algorithm: 'SHA1', fileext: '.sha1')
-    }
-}
-
-task uploadDist(type: org.springframework.gradle.tasks.S3DistroUpload, dependsOn: dist) {
-    description = "Upload the ZIP Distribution"
-    group = "Distribution"
-    archiveFile = dist.archivePath
-    projectKey = 'DATAKV'
-    projectName = 'Spring Data Redis'
+    description = 'Generates gradlew[.bat] scripts'
+    gradleVersion = '1.0'
 }
 
 defaultTasks 'clean', 'build'
