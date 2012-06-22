@@ -92,7 +92,7 @@ List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
 
 # Building
 
-Spring Hadoop uses Gradle as its build system. To build the system simply run:
+Spring Data Redis uses Gradle as its build system. To build the system simply run:
 
     gradlew
 
