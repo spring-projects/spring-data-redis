@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -386,9 +387,11 @@ public class SrpConnection implements RedisConnection {
 	public List<Object> exec() {
 		isMulti = false;
 		try {
-			//			if (isPipelined()) {
-			return Collections.singletonList((Object) client.exec());
-			//			}
+			Future<Boolean> exec = client.exec();
+			if (!isPipelined()) {
+				exec.get();
+			}
+			return Collections.singletonList((Object) exec);
 		} catch (Exception ex) {
 			throw convertSRAccessException(ex);
 		}

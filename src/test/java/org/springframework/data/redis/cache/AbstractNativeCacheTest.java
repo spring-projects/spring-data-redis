@@ -17,12 +17,14 @@
 package org.springframework.data.redis.cache;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueWrapper;
 
 /**
  * Test for native cache implementations.
@@ -64,9 +66,12 @@ public abstract class AbstractNativeCacheTest<T> {
 		Object key = getObject();
 		Object value = getObject();
 
+		assertNotNull(value);
 		assertNull(cache.get(key));
 		cache.put(key, value);
-		assertEquals(value, cache.get(key).get());
+		ValueWrapper valueWrapper = cache.get(key);
+		assertNotNull(valueWrapper);
+		assertEquals(value, valueWrapper.get());
 	}
 
 	@Test
