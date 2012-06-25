@@ -30,6 +30,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
@@ -68,8 +69,8 @@ public class JedisConnection implements RedisConnection {
 	static {
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
-		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", 
-				new Class[] { Command.class, byte[][].class });
+		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { Command.class,
+				byte[][].class });
 		ReflectionUtils.makeAccessible(SEND_COMMAND);
 		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
 		ReflectionUtils.makeAccessible(GET_RESPONSE);
@@ -135,27 +136,33 @@ public class JedisConnection implements RedisConnection {
 
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
-		List<byte[]> mArgs = new ArrayList<byte[]>();
-		if (!ObjectUtils.isEmpty(args)) {
-			Collections.addAll(mArgs, args);
+		try {
+			List<byte[]> mArgs = new ArrayList<byte[]>();
+			if (!ObjectUtils.isEmpty(args)) {
+				Collections.addAll(mArgs, args);
+			}
+
+			Object result = ReflectionUtils.invokeMethod(SEND_COMMAND, client,
+					Command.valueOf(command.trim().toUpperCase()), mArgs.toArray(new byte[mArgs.size()][]));
+			if (isQueueing() || isPipelined()) {
+				Object target = (isPipelined() ? pipeline : transaction);
+				ReflectionUtils.invokeMethod(GET_RESPONSE, target, new Builder<Object>() {
+					public Object build(Object data) {
+						return data;
+					}
+
+					public String toString() {
+						return "Object";
+					}
+				});
+			}
+			else {
+				client.getOne();
+			}
+			return result;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
-
-		Object result = ReflectionUtils.invokeMethod(SEND_COMMAND, client,
-				Command.valueOf(command.trim().toUpperCase()), mArgs.toArray(new byte[mArgs.size()][]));
-		if (isQueueing() || isPipelined()) {
-			Object target = (isPipelined() ? pipeline : transaction);
-			ReflectionUtils.invokeMethod(GET_RESPONSE, target, new Builder<Object>() {
-				public Object build(Object data) {
-					return data;
-				}
-
-				public String toString() {
-					return "Object";
-				}
-			});
-		}
-
-		return result;
 	}
 
 	public void close() throws DataAccessException {
@@ -230,14 +237,29 @@ public class JedisConnection implements RedisConnection {
 	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
-			List execute = pipeline.syncAndReturnAll();
+			List<Object> execute = pipeline.syncAndReturnAll();
 			if (execute != null && !execute.isEmpty()) {
+				Exception cause = null;
+				for (int i = 0; i < execute.size(); i++) {
+					Object object = execute.get(i);
+					if (object instanceof Exception) {
+						DataAccessException dataAccessException = convertJedisAccessException((Exception) object);
+						if (cause == null) {
+							cause = dataAccessException;
+						}
+						execute.set(i, dataAccessException);
+					}
+				}
+
+				if (cause != null) {
+					throw new RedisPipelineException(cause, execute);
+				}
+
 				return execute;
 			}
 		}
 		return Collections.emptyList();
 	}
-
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 

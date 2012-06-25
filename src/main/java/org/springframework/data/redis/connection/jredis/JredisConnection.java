@@ -89,14 +89,17 @@ public class JredisConnection implements RedisConnection {
 
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
-		List<byte[]> mArgs = new ArrayList<byte[]>();
-		if (!ObjectUtils.isEmpty(args)) {
-			Collections.addAll(mArgs, args);
+		try {
+			List<byte[]> mArgs = new ArrayList<byte[]>();
+			if (!ObjectUtils.isEmpty(args)) {
+				Collections.addAll(mArgs, args);
+			}
+
+			return ReflectionUtils.invokeMethod(SERVICE_REQUEST, jredis, Command.valueOf(command.trim().toUpperCase()),
+					mArgs.toArray(new byte[mArgs.size()][]));
+		} catch (Exception ex) {
+			throw convertJredisAccessException(ex);
 		}
-
-		return ReflectionUtils.invokeMethod(SERVICE_REQUEST, jredis, Command.valueOf(command.trim().toUpperCase()),
-				mArgs.toArray(new byte[mArgs.size()][]));
-
 	}
 
 	public void close() throws RedisSystemException {

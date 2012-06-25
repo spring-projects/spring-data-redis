@@ -209,7 +209,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		final BlockingDeque<Message> queue = new LinkedBlockingDeque<Message>();
 
 		final MessageListener ml = new MessageListener() {
-			
+
 			public void onMessage(Message message, byte[] pattern) {
 				queue.add(message);
 				System.out.println("received message");
@@ -225,7 +225,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		final AtomicBoolean flag = new AtomicBoolean(true);
 
 		Runnable listener = new Runnable() {
-			
+
 			public void run() {
 				subConn.subscribe(ml, channel);
 				System.out.println("Subscribed");
@@ -264,7 +264,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		MessageListener listener = new MessageListener() {
 
-			
+
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedChannel, message.getChannel());
 				assertArrayEquals(expectedMessage, message.getBody());
@@ -272,7 +272,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		};
 
 		Thread th = new Thread(new Runnable() {
-			
+
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
@@ -301,7 +301,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		MessageListener listener = new MessageListener() {
 
-			
+
 			public void onMessage(Message message, byte[] pattern) {
 				assertArrayEquals(expectedPattern, pattern);
 				assertArrayEquals(expectedMessage, message.getBody());
@@ -310,7 +310,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		};
 
 		Thread th = new Thread(new Runnable() {
-			
+
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
@@ -339,5 +339,37 @@ public abstract class AbstractConnectionIntegrationTests {
 		//connection.execute("PiNg");
 		connection.execute("iNFo");
 		connection.execute("SET ", getClass() + "testSetNative", UUID.randomUUID().toString());
+	}
+
+	@Test(expected = DataAccessException.class)
+	public void exceptionExecuteNative() throws Exception {
+		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
+	}
+
+	@Test(expected = RedisPipelineException.class)
+	public void testExceptionExecuteNativeWithPipeline() throws Exception {
+		connection.openPipeline();
+		connection.execute("iNFo");
+		connection.execute("SET ", getClass() + "testSetNative", UUID.randomUUID().toString());
+		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
+		connection.closePipeline();
+	}
+
+	@Test
+	public void testExecuteNativeWithPipeline() throws Exception {
+		String key1 = getClass() + "#ExecuteNativeWithPipeline#1";
+		String value1 = UUID.randomUUID().toString();
+		String key2 = getClass() + "#ExecuteNativeWithPipeline#2";
+		String value2 = UUID.randomUUID().toString();
+
+		connection.openPipeline();
+		connection.execute("SET", key1, value1);
+		connection.execute("SET", key2, value2);
+		connection.execute("GET", key1);
+		connection.execute("GET", key2);
+		List<Object> result = connection.closePipeline();
+		assertEquals(4, result.size());
+		assertArrayEquals(value1.getBytes(), (byte[]) result.get(2));
+		assertArrayEquals(value2.getBytes(), (byte[]) result.get(3));
 	}
 }

@@ -91,4 +91,8 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testBitSet() throws Exception {
 	}
 
+	@Ignore
+	public void exceptionExecuteNativeWithPipeline() throws Exception {
+	}
+
 }

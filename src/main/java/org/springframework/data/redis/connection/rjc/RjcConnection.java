@@ -34,6 +34,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
@@ -83,9 +84,16 @@ public class RjcConnection implements RedisConnection {
 
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
-		connection.sendCommand(Command.valueOf(command.trim().toUpperCase()),
-				(ObjectUtils.isEmpty(args) ? new byte[0][] : args));
-		return connection.getAll();
+		try {
+			connection.sendCommand(Command.valueOf(command.trim().toUpperCase()),
+					(ObjectUtils.isEmpty(args) ? new byte[0][] : args));
+			if (!isPipelined()) {
+				return connection.getAll();
+			}
+			return null;
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
 	}
 
 	public void close() throws DataAccessException {
@@ -135,9 +143,10 @@ public class RjcConnection implements RedisConnection {
 	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
-			List execute = client.getAll();
-			if (execute != null && !execute.isEmpty()) {
-				return execute;
+			try {
+				List execute = client.getAll();
+			} catch (Exception ex) {
+				throw new RedisPipelineException(convertRjcAccessException(ex));
 			}
 		}
 		return Collections.emptyList();
