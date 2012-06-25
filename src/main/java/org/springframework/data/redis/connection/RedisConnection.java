@@ -93,7 +93,8 @@ public interface RedisConnection extends RedisCommands {
 	 * Executes the commands in the pipeline and returns their result.
 	 * If the connection is not pipelined, an empty collection is returned.
 	 * 
+	 * @throws RedisPipelineException if the pipeline contains any incorrect/invalid statements
 	 * @return the result of the executed commands.
 	 */
-	List<Object> closePipeline();
+	List<Object> closePipeline() throws RedisPipelineException;
 }

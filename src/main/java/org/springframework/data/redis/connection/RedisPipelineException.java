@@ -23,7 +23,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
 /**
  * Exception thrown when executing/closing a pipeline that contains one or multiple invalid/incorrect statements.
- * The exception contains the pipeline result, allowing for analysis and tracing.
+ * The exception might also contain the pipeline result (if the driver returns it), allowing for analysis and tracing.
  * <p/>
  * Typically, the first exception returned by the pipeline is used as the <i>cause</i> of this exception for easier
  * debugging.  
@@ -56,6 +56,15 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 		this("Pipeline contained one or more invalid commands", cause, pipelineResult);
 	}
 
+	/**
+	 * Constructs a new <code>RedisPipelineException</code> instance using a default message
+	 * and an empty pipeline result list.
+	 *
+	 * @param cause the cause
+	 */
+	public RedisPipelineException(Exception cause) {
+		this("Pipeline contained one or more invalid commands", cause, Collections.emptyList());
+	}
 
 	/**
 	 * Constructs a new <code>RedisPipelineException</code> instance.
@@ -69,7 +78,7 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 	}
 
 	/**
-	 * Returns the result of the pipeline that caused the exception.
+	 * Optionally returns the result of the pipeline that caused the exception.
 	 * Typically contains both the results of the successful statements but also
 	 * the exceptions of the incorrect ones. 
 	 * 

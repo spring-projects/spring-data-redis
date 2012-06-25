@@ -34,6 +34,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
@@ -142,9 +143,10 @@ public class RjcConnection implements RedisConnection {
 	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
-			List execute = client.getAll();
-			if (execute != null && !execute.isEmpty()) {
-				return execute;
+			try {
+				List execute = client.getAll();
+			} catch (Exception ex) {
+				throw new RedisPipelineException(convertRjcAccessException(ex));
 			}
 		}
 		return Collections.emptyList();
