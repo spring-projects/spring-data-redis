@@ -237,7 +237,7 @@ public class JedisConnection implements RedisConnection {
 	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
-			List execute = pipeline.syncAndReturnAll();
+			List<Object> execute = pipeline.syncAndReturnAll();
 			if (execute != null && !execute.isEmpty()) {
 				Exception cause = null;
 				for (int i = 0; i < execute.size(); i++) {
@@ -250,9 +250,12 @@ public class JedisConnection implements RedisConnection {
 						execute.set(i, dataAccessException);
 					}
 				}
+
 				if (cause != null) {
 					throw new RedisPipelineException(cause, execute);
 				}
+
+				return execute;
 			}
 		}
 		return Collections.emptyList();

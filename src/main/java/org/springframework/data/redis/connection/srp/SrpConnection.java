@@ -64,13 +64,13 @@ public class SrpConnection implements RedisConnection {
 	private PipelineTracker callback;
 	private volatile SrpSubscription subscription;
 
-	private static class PipelineTracker implements FutureCallback<Object> {
+	private static class PipelineTracker implements FutureCallback<Reply> {
 
 		private final List<Object> results = Collections.synchronizedList(new ArrayList<Object>());
-		private final List<ListenableFuture<?>> futures = new ArrayList<ListenableFuture<?>>();
+		private final List<ListenableFuture<? extends Reply>> futures = new ArrayList<ListenableFuture<? extends Reply>>();
 
-		public void onSuccess(Object result) {
-			results.add(result);
+		public void onSuccess(Reply result) {
+			results.add(result.data());
 		}
 
 		public void onFailure(Throwable t) {
@@ -87,7 +87,7 @@ public class SrpConnection implements RedisConnection {
 			return results;
 		}
 
-		public void addCommand(ListenableFuture<?> future) {
+		public void addCommand(ListenableFuture<? extends Reply> future) {
 			futures.add(future);
 			Futures.addCallback(future, this);
 		}
@@ -191,6 +191,7 @@ public class SrpConnection implements RedisConnection {
 				if (cause != null) {
 					throw new RedisPipelineException(cause, execute);
 				}
+
 				return execute;
 			}
 		}
@@ -1882,7 +1883,7 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	// processing method that adds a listener to the future in order to track down the results and close the pipeline
-	private void pipeline(ListenableFuture<?> future) {
+	private void pipeline(ListenableFuture<? extends Reply> future) {
 		callback.addCommand(future);
 	}
 }

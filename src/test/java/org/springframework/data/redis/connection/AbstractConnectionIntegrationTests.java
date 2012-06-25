@@ -347,7 +347,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test(expected = RedisPipelineException.class)
-	public void exceptionExecuteNativeWithPipeline() throws Exception {
+	public void testExceptionExecuteNativeWithPipeline() throws Exception {
 		connection.openPipeline();
 		connection.execute("iNFo");
 		connection.execute("SET ", getClass() + "testSetNative", UUID.randomUUID().toString());
@@ -355,4 +355,21 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.closePipeline();
 	}
 
+	@Test
+	public void testExecuteNativeWithPipeline() throws Exception {
+		String key1 = getClass() + "#ExecuteNativeWithPipeline#1";
+		String value1 = UUID.randomUUID().toString();
+		String key2 = getClass() + "#ExecuteNativeWithPipeline#2";
+		String value2 = UUID.randomUUID().toString();
+
+		connection.openPipeline();
+		connection.execute("SET", key1, value1);
+		connection.execute("SET", key2, value2);
+		connection.execute("GET", key1);
+		connection.execute("GET", key2);
+		List<Object> result = connection.closePipeline();
+		assertEquals(4, result.size());
+		assertArrayEquals(value1.getBytes(), (byte[]) result.get(2));
+		assertArrayEquals(value2.getBytes(), (byte[]) result.get(3));
+	}
 }
