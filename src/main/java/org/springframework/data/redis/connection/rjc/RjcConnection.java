@@ -83,9 +83,16 @@ public class RjcConnection implements RedisConnection {
 
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
-		connection.sendCommand(Command.valueOf(command.trim().toUpperCase()),
-				(ObjectUtils.isEmpty(args) ? new byte[0][] : args));
-		return connection.getAll();
+		try {
+			connection.sendCommand(Command.valueOf(command.trim().toUpperCase()),
+					(ObjectUtils.isEmpty(args) ? new byte[0][] : args));
+			if (!isPipelined()) {
+				return connection.getAll();
+			}
+			return null;
+		} catch (Exception ex) {
+			throw convertRjcAccessException(ex);
+		}
 	}
 
 	public void close() throws DataAccessException {

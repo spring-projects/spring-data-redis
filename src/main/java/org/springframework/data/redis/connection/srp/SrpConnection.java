@@ -80,14 +80,18 @@ public class SrpConnection implements RedisConnection {
 
 	public Object execute(String command, byte[]... args) {
 		Assert.hasText(command, "a valid command needs to be specified");
-		String name = command.trim().toUpperCase();
-		Command cmd = new Command(name.getBytes(Charsets.UTF_8), args);
-		if (isPipelined()) {
-			client.pipeline(name, cmd);
-			return null;
-		}
-		else {
-			return client.execute(name, cmd);
+		try {
+			String name = command.trim().toUpperCase();
+			Command cmd = new Command(name.getBytes(Charsets.UTF_8), args);
+			if (isPipelined()) {
+				client.pipeline(name, cmd);
+				return null;
+			}
+			else {
+				return client.execute(name, cmd);
+			}
+		} catch (RedisException ex) {
+			throw convertSRAccessException(ex);
 		}
 	}
 
