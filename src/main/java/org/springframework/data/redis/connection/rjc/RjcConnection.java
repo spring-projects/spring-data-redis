@@ -144,7 +144,7 @@ public class RjcConnection implements RedisConnection {
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			try {
-				List execute = client.getAll();
+				return RjcUtils.maybeConvert(client.getAll());
 			} catch (Exception ex) {
 				throw new RedisPipelineException(convertRjcAccessException(ex));
 			}

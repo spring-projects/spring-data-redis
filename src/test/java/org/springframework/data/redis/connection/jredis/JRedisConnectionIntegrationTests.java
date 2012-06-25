@@ -95,4 +95,13 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void exceptionExecuteNativeWithPipeline() throws Exception {
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testExceptionExecuteNativeWithPipeline() throws Exception {
+		super.testExceptionExecuteNativeWithPipeline();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testExecuteNativeWithPipeline() throws Exception {
+		super.testExecuteNativeWithPipeline();
+	}
 }

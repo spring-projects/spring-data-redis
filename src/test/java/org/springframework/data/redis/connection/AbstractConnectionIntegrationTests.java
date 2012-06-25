@@ -369,6 +369,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.execute("GET", key2);
 		List<Object> result = connection.closePipeline();
 		assertEquals(4, result.size());
+		System.out.println(result.get(2));
+		System.out.println(result.get(3));
 		assertArrayEquals(value1.getBytes(), (byte[]) result.get(2));
 		assertArrayEquals(value2.getBytes(), (byte[]) result.get(3));
 	}

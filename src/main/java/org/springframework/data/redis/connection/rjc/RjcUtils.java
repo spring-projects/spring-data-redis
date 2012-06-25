@@ -25,20 +25,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.idevlab.rjc.Client.LIST_POSITION;
 import org.idevlab.rjc.ElementScore;
 import org.idevlab.rjc.RedisException;
 import org.idevlab.rjc.SortingParams;
 import org.idevlab.rjc.ZParams;
-import org.idevlab.rjc.Client.LIST_POSITION;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.DefaultTuple;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.data.redis.connection.util.DecodeUtils;
@@ -234,6 +234,16 @@ public abstract class RjcUtils {
 
 		String[] result = Arrays.copyOf(one, one.length + two.length);
 		System.arraycopy(two, 0, result, one.length, two.length);
+		return result;
+	}
+
+	static List<Object> maybeConvert(List<Object> result) {
+		for (int i = 0; i < result.size(); i++) {
+			Object obj = result.get(i);
+			if (obj instanceof String) {
+				result.set(i, encode((String) obj));
+			}
+		}
 		return result;
 	}
 }
