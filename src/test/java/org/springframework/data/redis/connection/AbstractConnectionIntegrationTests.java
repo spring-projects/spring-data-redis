@@ -346,7 +346,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
 	}
 
-	@Test(expected = DataAccessException.class)
+	@Test(expected = RedisPipelineException.class)
 	public void exceptionExecuteNativeWithPipeline() throws Exception {
 		connection.openPipeline();
 		connection.execute("iNFo");

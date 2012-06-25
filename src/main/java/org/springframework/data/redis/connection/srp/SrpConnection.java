@@ -31,6 +31,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
@@ -65,8 +66,8 @@ public class SrpConnection implements RedisConnection {
 
 	private static class PipelineTracker implements FutureCallback<Object> {
 
-		private List<Object> results = Collections.synchronizedList(new ArrayList<Object>());
-		private List<ListenableFuture<?>> futures = new ArrayList<ListenableFuture<?>>();
+		private final List<Object> results = Collections.synchronizedList(new ArrayList<Object>());
+		private final List<ListenableFuture<?>> futures = new ArrayList<ListenableFuture<?>>();
 
 		public void onSuccess(Object result) {
 			results.add(result);
@@ -78,15 +79,22 @@ public class SrpConnection implements RedisConnection {
 
 		public List<Object> complete() {
 			try {
-				return Futures.successfulAsList(futures).get();
+				Futures.successfulAsList(futures).get();
 			} catch (Exception ex) {
-				return results;
+				// ignore
 			}
+
+			return results;
 		}
 
 		public void addCommand(ListenableFuture<?> future) {
 			futures.add(future);
 			Futures.addCallback(future, this);
+		}
+
+		public void close() {
+			results.clear();
+			futures.clear();
 		}
 	}
 
@@ -99,7 +107,7 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
-	protected DataAccessException convertSRAccessException(Exception ex) {
+	protected DataAccessException convertSrpAccessException(Exception ex) {
 		if (ex instanceof RedisException) {
 			return SrpUtils.convertSRedisAccessException((RedisException) ex);
 		}
@@ -107,7 +115,7 @@ public class SrpConnection implements RedisConnection {
 			return new RedisConnectionFailureException("Redis connection failed", (IOException) ex);
 		}
 
-		return new RedisSystemException("Unknown SRedis exception", ex);
+		return new RedisSystemException("Unknown SRP exception", ex);
 	}
 
 	public Object execute(String command, byte[]... args) {
@@ -116,14 +124,14 @@ public class SrpConnection implements RedisConnection {
 			String name = command.trim().toUpperCase();
 			Command cmd = new Command(name.getBytes(Charsets.UTF_8), args);
 			if (isPipelined()) {
-				client.pipeline(name, cmd);
+				pipeline(client.pipeline(name, cmd));
 				return null;
 			}
 			else {
 				return client.execute(name, cmd);
 			}
 		} catch (RedisException ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -134,7 +142,7 @@ public class SrpConnection implements RedisConnection {
 		try {
 			client.close();
 		} catch (IOException ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -164,7 +172,30 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	public List<Object> closePipeline() {
-		return callback.complete();
+		if (pipeline != null) {
+			List<Object> execute = new ArrayList(callback.complete());
+			callback.close();
+			callback = null;
+			if (execute != null && !execute.isEmpty()) {
+				Exception cause = null;
+				for (int i = 0; i < execute.size(); i++) {
+					Object object = execute.get(i);
+					if (object instanceof Exception) {
+						DataAccessException dataAccessException = convertSrpAccessException((Exception) object);
+						if (cause == null) {
+							cause = dataAccessException;
+						}
+						execute.set(i, dataAccessException);
+					}
+				}
+				if (cause != null) {
+					throw new RedisPipelineException(cause, execute);
+				}
+				return execute;
+			}
+		}
+
+		return Collections.emptyList();
 	}
 
 
@@ -179,7 +210,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toBytesList((Reply[]) client.sort(key, sort, null, (Object[]) null).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -194,7 +225,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return ((Long) client.sort(key, sort, null, (Object[]) null).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -206,7 +237,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.dbsize().data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -220,7 +251,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.flushdb();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -233,7 +264,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.flushall();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -246,7 +277,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.bgsave();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -259,7 +290,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.bgrewriteaof();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -272,7 +303,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.save();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -285,7 +316,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return Collections.singletonList(client.config_get(param).toString());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -298,7 +329,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.info(client.info());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -311,7 +342,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.lastsave().data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -324,7 +355,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.config_set(param, value);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -338,7 +369,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.config_resetstat();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -352,7 +383,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.shutdown(save, null);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -365,7 +396,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.echo(message).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -377,7 +408,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.ping().data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -390,7 +421,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.del((Object[]) keys).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -404,7 +435,7 @@ public class SrpConnection implements RedisConnection {
 
 			client.discard();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -418,7 +449,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return Collections.singletonList((Object) exec);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -431,7 +462,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.exists(key).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -444,7 +475,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.expire(key, seconds).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -457,7 +488,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.expireat(key, unixTime).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -470,7 +501,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.keys(pattern).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -488,7 +519,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.multi();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -501,7 +532,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.persist(key).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -514,7 +545,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.move(key, dbIndex).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -527,7 +558,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.randomkey().data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -540,7 +571,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.rename(oldName, newName);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -553,7 +584,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return (client.renamenx(oldName, newName).data() == 1);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -565,7 +596,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.select(dbIndex);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -578,7 +609,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.ttl(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -591,7 +622,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return DataType.fromCode(client.type(key).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -600,7 +631,7 @@ public class SrpConnection implements RedisConnection {
 		try {
 			client.unwatch();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -617,7 +648,7 @@ public class SrpConnection implements RedisConnection {
 				client.watch((Object[]) keys);
 			}
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -635,7 +666,7 @@ public class SrpConnection implements RedisConnection {
 
 			return client.get(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -648,7 +679,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.set(key, value);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -662,7 +693,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.getset(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -675,7 +706,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.append(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -688,7 +719,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toBytesList(client.mget((Object[]) keys).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -701,7 +732,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.mset((Object[]) SrpUtils.convert(tuples));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -714,7 +745,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.msetnx((Object[]) SrpUtils.convert(tuples));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -727,7 +758,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.setex(key, time, value);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -740,7 +771,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.setnx(key, value).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -753,7 +784,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.getrange(key, start, end).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -766,7 +797,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.decr(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -779,7 +810,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.decrby(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -792,7 +823,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.incr(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -805,7 +836,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.incrby(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -820,7 +851,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return (client.getbit(key, offset).data() == 1);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -835,7 +866,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.setbit(key, offset, SrpUtils.asBit(value));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -850,7 +881,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.setrange(key, start, value);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -863,7 +894,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.strlen(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -880,7 +911,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.lpush(key, new Object[] { value }).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -893,7 +924,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.rpush(key, new Object[] { value }).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -907,7 +938,7 @@ public class SrpConnection implements RedisConnection {
 			//			return SrpUtils.toBytesList(client.blpop(timeout, keys).data());
 			throw new UnsupportedOperationException();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -921,7 +952,7 @@ public class SrpConnection implements RedisConnection {
 			//			return SrpUtils.toBytesList(client.brpop(timeout, keys).data());
 			throw new UnsupportedOperationException();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -934,7 +965,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.lindex(key, index).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -947,7 +978,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.linsert(key, SrpUtils.convertPosition(where), pivot, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -960,7 +991,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.llen(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -973,7 +1004,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.lpop(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -986,7 +1017,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toBytesList(client.lrange(key, start, end).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -999,7 +1030,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.lrem(key, count, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1012,7 +1043,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.lset(key, index, value);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1025,7 +1056,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.ltrim(key, start, end);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1038,7 +1069,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.rpop(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1051,7 +1082,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.rpoplpush(srcKey, dstKey).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1064,7 +1095,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.brpoplpush(srcKey, dstKey, timeout).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1077,7 +1108,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.lpushx(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1090,7 +1121,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.rpushx(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1108,7 +1139,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return (client.sadd(key, new Object[] { value }).data() == 1);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1121,7 +1152,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.scard(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1134,7 +1165,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.sdiff((Object[]) keys).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1147,7 +1178,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.sdiffstore(destKey, (Object[]) keys).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1160,7 +1191,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.sinter((Object[]) keys).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1173,7 +1204,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.sinterstore(destKey, (Object[]) keys).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1186,7 +1217,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.sismember(key, value).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1199,7 +1230,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.smembers(key).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1212,7 +1243,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.smove(srcKey, destKey, value).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1225,7 +1256,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.spop(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1238,7 +1269,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.srandmember(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1251,7 +1282,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.srem(key, new Object[] { value }).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1264,7 +1295,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.sunion((Object[]) keys).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1277,7 +1308,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.sunionstore(destKey, (Object[]) keys).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1294,7 +1325,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zadd(new Object[] { key, score, value }).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1307,7 +1338,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zcard(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1320,7 +1351,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zcount(key, min, max).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1333,7 +1364,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toDouble(client.zincrby(key, increment, value).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1361,7 +1392,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zinterstore(args).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1373,7 +1404,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.zrange(key, start, end, null).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1386,7 +1417,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.convertTuple(client.zrange(key, start, end, SrpUtils.WITHSCORES));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1399,7 +1430,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.zrangebyscore(key, min, max, null, null).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1412,7 +1443,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.convertTuple(client.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1425,7 +1456,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.convertTuple(client.zrevrange(key, start, end, SrpUtils.WITHSCORES));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1439,7 +1470,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.zrangebyscore(key, min, max, null, limit).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1453,7 +1484,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.convertTuple(client.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1466,7 +1497,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, limit).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1478,7 +1509,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, null).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1491,7 +1522,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1503,7 +1534,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1517,7 +1548,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return (Long) client.zrank(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1530,7 +1561,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zrem(key, new Object[] { value }).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1543,7 +1574,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zremrangebyrank(key, start, end).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1556,7 +1587,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zremrangebyscore(key, min, max).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1569,7 +1600,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.zrevrange(key, start, end, null).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1582,7 +1613,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return (Long) client.zrevrank(key, value).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1595,7 +1626,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toDouble(client.zscore(key, value).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1613,7 +1644,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.zunionstore(destKey, sets.length, (Object[]) sets).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1630,7 +1661,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hset(key, field, value).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1643,7 +1674,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hsetnx(key, field, value).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1656,7 +1687,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hdel(key, new Object[] { field }).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1669,7 +1700,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hexists(key, field).data() == 1;
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1682,7 +1713,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hget(key, field).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1695,7 +1726,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toMap(client.hgetall(key).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1708,7 +1739,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hincrby(key, field, delta).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1721,7 +1752,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toSet(client.hkeys(key).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1734,7 +1765,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.hlen(key).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1747,7 +1778,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toBytesList(client.hmget(key, (Object[]) fields).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1760,7 +1791,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			client.hmset(key, SrpUtils.convert(tuple));
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1773,7 +1804,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return SrpUtils.toBytesList(client.hvals(key).data());
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1793,7 +1824,7 @@ public class SrpConnection implements RedisConnection {
 			}
 			return client.publish(channel, message).data();
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1822,7 +1853,7 @@ public class SrpConnection implements RedisConnection {
 			subscription = new SrpSubscription(listener, client);
 			subscription.pSubscribe(patterns);
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
@@ -1839,7 +1870,7 @@ public class SrpConnection implements RedisConnection {
 			subscription.subscribe(channels);
 
 		} catch (Exception ex) {
-			throw convertSRAccessException(ex);
+			throw convertSrpAccessException(ex);
 		}
 	}
 
