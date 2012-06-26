@@ -122,7 +122,8 @@ template.convertAndSend("hello!", "world");]]></programlisting>
       various message handling methods are strongly typed according to the
       <emphasis>contents</emphasis> of the various
       <interfacename>Message</interfacename> types that they can receive and
-      handle.</para>
+      handle. In addition, the channel or pattern to which a message is sent can be passed in
+ 	  to the method as the second argument of type String:</para>
 
       <programlisting language="java">public interface MessageDelegate {
 
@@ -133,6 +134,9 @@ template.convertAndSend("hello!", "world");]]></programlisting>
     void handleMessage(byte[] message);
 
     void handleMessage(Serializable message);
+	
+    // pass the channel/pattern as well     
+    void handleMessage(Serializable message, String channel);
 }</programlisting>
 
       <programlisting language="java">public class DefaultMessageDelegate implements MessageDelegate {
