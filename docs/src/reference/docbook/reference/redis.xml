@@ -161,7 +161,7 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="jredisConnectionFactory" class="org.springframework.data.redis.connection.rjc.RjcConnectionFactory"
+  <bean id="rjcConnectionFactory" class="org.springframework.data.redis.connection.rjc.RjcConnectionFactory"
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
 
@@ -173,6 +173,29 @@
       the case for Redis values.</para>
       <para>This issue is currently being addressed in the RJC project and once fixed, will be incorporated by Spring Data Redis.</para>  
       </important>
+      
+      </section>
+      
+      <section id="redis:connectors:srp">
+        <title>Configuring SRP connector</title>
+        
+        <para><ulink url="https://github.com/spullara/redis-protocol">SRP</ulink> (an acronym for Sam's Redis Protocol) is the forth, open-source connector supported by 
+        Spring Redis through the <literal>org.springframework.data.redis.connection.srp</literal> package.</para> 
+        
+        <para>By now, its configuration is probably easy to guess::</para>
+
+        <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+  <bean id="srpConnectionFactory" class="org.springframework.data.redis.connection.srp.SrpConnectionFactory"
+        p:host-name="server" p:port="6379"/>
+</beans>]]></programlisting>
+
+      <para>Needless to say,  the configuration is quite similar to that of the other connectors.</para>
       
       </section>
       
