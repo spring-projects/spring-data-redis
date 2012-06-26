@@ -1,6 +1,48 @@
 SPRING DATA REDIS INTEGRATION CHANGELOG
 =======================================
-http://www.springsource.org/spring-data
+http://www.springsource.org/spring-data/redis
+
+Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
+Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
+
+
+Changes in version 1.0.1.RELEASE (2012-06-27)
+---------------------------------------------
+
+General
+* Introduced support for SRP (Sam's Redis Protocol)
+* Introduced native execution through RedisConnection#execute
+* Upgraded to Spring Framework 3.1.1
+* Upgraded to Jedis 2.1.0
+* Upgraded build system to Gradle 1.0
+
+Package o.s.d.redis.connection
+* Expanded set *store operations to return the resulting set size
+* Refined RedisConnection#closePipeline contract by adding RedisPipelineException 
+
+Package o.s.d.redis.connection.jedis
+* Improved exception translation of Jedis exceptions
+* Fixed value bug in #setBit
+* Added support for zRev* operations (new in Jedis 2.1)
+* Added pipeline support for #zCount
+
+Package o.s.d.redis.connection.jredis
+* Fixed value bug in #setBit
+
+Package o.s.d.redis.core
+* Fixed bug in SetOperations#randomMember
+* Fixed switched arguments in ZSetOperations#intersectAndStore
+* Corrected handling of negative values in ValueOperations#increment
+* Refined internal caching of serializers to cope with template configuration updates
+* Expanded set *store operations to return the resulting set size
+* Expanded ZSetOperations#removeRange* to return the number of elements removed
+* Improved binding of Redis connections to thread
+* Refined handling of pipelined connections to allow potential exceptions to properly propagate
+
+Package o.s.d.redis.listener
+* Improved lifecycle of RedisMessageListenerContainer
+* Fixed bug causing double invocation of custom listeners also implementing MessageListener
+
 
 Changes in version 1.0.0.RELEASE (2011-12-14)
 ---------------------------------------------
