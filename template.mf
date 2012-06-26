@@ -2,30 +2,28 @@ Bundle-SymbolicName: org.springframework.data.redis
 Bundle-Name: Spring Data Redis Support
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
-Export-Template: org.springframework.data.redis.*;version=${version}
 Import-Package: 
  sun.reflect;version="0";resolution:=optional
 Import-Template: 
- org.springframework.beans.*;version=${spring.range},
- org.springframework.cache.*;version=${spring.range},
- org.springframework.context.*;version=${spring.range},
- org.springframework.core.*;version=${spring.range},
- org.springframework.dao.*;version=${spring.range},
- org.springframework.scheduling.*;resolution:="optional";version=${spring.range},
- org.springframework.util.*;version=${spring.range},
- org.springframework.oxm.*;resolution:="optional";version=${spring.range},
- org.springframework.transaction.support.*;version=${spring.range},
+ org.springframework.beans.*;version="[3.1.0, 4.0.0)",
+ org.springframework.cache.*;version="[3.1.0, 4.0.0)",
+ org.springframework.context.*;version="[3.1.0, 4.0.0)",
+ org.springframework.core.*;version="[3.1.0, 4.0.0)",
+ org.springframework.dao.*;version="[3.1.0, 4.0.0)",
+ org.springframework.scheduling.*;resolution:="optional";version="[3.1.0, 4.0.0)",
+ org.springframework.util.*;version="[3.1.0, 4.0.0)",
+ org.springframework.oxm.*;resolution:="optional";version="[3.1.0, 4.0.0)",
+ org.springframework.transaction.support.*;version="[3.1.0, 4.0.0)",
  org.aopalliance.*;version="[1.0.0, 2.0.0)";resolution:=optional,
  org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
  org.w3c.dom.*;version="0",
  javax.xml.transform.*;resolution:="optional";version="0",
  org.jredis.*;resolution:="optional";version="[1.0.0, 2.0.0)",
  org.jredis.ri.alphazero.*;resolution:="optional";version="[1.0.0, 2.0.0)",
- redis.clients.jedis.*;version=${jedis.range},
- redis.clients.util.*;version=${jedis.range},
- org.idevlab.rjc.*;resolution:="optional";version=${rjc.range},
+ redis.clients.*;resolution:="optional";version="[2.1.0, 2.1.0]",
+ org.idevlab.rjc.*;resolution:="optional";version="[0.6.4, 0.6.4]",
  org.apache.commons.pool.impl.*;resolution:="optional";version="[1.0.0, 3.0.0)",
- org.codehaus.jackson.*;resolution:="optional";version=${jackson.range},
+ org.codehaus.jackson.*;resolution:="optional";version="[1.6, 2.0.0)",
  org.apache.commons.beanutils.*;resolution:="optional";version=1.8.5,
- redis.*;resolution:="optional";version=${srp.range},
+ redis.*;resolution:="optional";version="[0.2, 1.0)",
  com.google.common.*;resolution:="optional";version="[11.0.0, 20.0.0)"

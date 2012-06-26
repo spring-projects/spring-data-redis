@@ -13,7 +13,7 @@ group = 'org.springframework.data'
 
 repositories {
   maven { url "http://repo.springsource.org/libs-snapshot" }
-  maven { url "http://repo.springsource.org/ext-release-local" }
+  maven { url "http://repo.springsource.org/plugins-release" }
 }
 
 apply plugin: "java"
@@ -21,9 +21,8 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply from: "$rootDir/maven.gradle"
 apply plugin: 'docbook-reference'
-//apply plugin: 'bundlor'
+apply plugin: 'bundlor'
 
-//bundlor.ext.useProjectProps = true
 [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 
 // Common dependencies
@@ -90,6 +89,11 @@ javadoc {
     
   title = "${rootProject.description} ${version} API"
 }
+
+bundlor {
+   manifestTemplate = file("${projectDir}/template.mf").text
+}
+
 
 jar {
     manifest.attributes['Implementation-Title'] = 'spring-data-redis'
