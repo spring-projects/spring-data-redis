@@ -23,7 +23,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
 public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFactoryAware {
 
 	private final Charset charset;
-	private Converter converter = new Converter(ConversionServiceFactory.createDefaultConversionService());
+	private Converter converter = new Converter(new DefaultConversionService());
 	private Class<T> type;
 
 	public GenericToStringSerializer(Class<T> type) {
@@ -108,7 +108,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 			this.typeConverter = typeConverter;
 		}
 
-		<T> T convert(Object value, Class<T> targetType) {
+		<E> E convert(Object value, Class<E> targetType) {
 			if (conversionService != null) {
 				return conversionService.convert(value, targetType);
 			}

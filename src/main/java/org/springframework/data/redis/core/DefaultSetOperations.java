@@ -200,8 +200,6 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return union(key, Collections.singleton(otherKey));
 	}
 
-	@SuppressWarnings("unchecked")
-	
 	public Set<V> union(K key, Collection<K> otherKeys) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {

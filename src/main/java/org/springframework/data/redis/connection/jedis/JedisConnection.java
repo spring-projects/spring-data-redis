@@ -234,7 +234,6 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			List<Object> execute = pipeline.syncAndReturnAll();

@@ -47,8 +47,6 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 
 	private volatile boolean capped = false;
 
-	private volatile long defaultWait = 0;
-
 	private class DefaultRedisListIterator extends RedisIterator<E> {
 
 		public DefaultRedisListIterator(Iterator<E> delegate) {

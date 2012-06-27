@@ -140,7 +140,6 @@ public class RjcConnection implements RedisConnection {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
 			try {

@@ -118,8 +118,6 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	public List<V> range(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<List<V>>() {
-			@SuppressWarnings("unchecked")
-			
 			public List<V> doInRedis(RedisConnection connection) {
 				return deserializeValues(connection.lRange(rawKey, start, end));
 			}

@@ -26,7 +26,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +35,7 @@ import org.springframework.util.Assert;
  */
 public class RjcConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
-	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
+	private final static Log log = LogFactory.getLog(RjcConnectionFactory.class);
 
 	private String hostName = "localhost";
 	private int port = Protocol.DEFAULT_PORT;

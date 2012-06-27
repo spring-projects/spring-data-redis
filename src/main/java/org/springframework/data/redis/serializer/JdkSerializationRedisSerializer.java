@@ -31,8 +31,6 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	private Converter<Object, byte[]> serializer = new SerializingConverter();
 	private Converter<byte[], Object> deserializer = new DeserializingConverter();
 
-	@SuppressWarnings("unchecked")
-	
 	public Object deserialize(byte[] bytes) {
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;

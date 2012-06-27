@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.transaction.support.ResourceHolder;
-import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
@@ -134,28 +133,6 @@ public abstract class RedisConnectionUtils {
 		}
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(connFactory);
 		return (connHolder != null && conn == connHolder.getConnection());
-	}
-
-	private static class RedisConnectionSynchronization extends
-			ResourceHolderSynchronization<RedisConnectionHolder, RedisConnectionFactory> {
-
-		private final boolean newRedisConnection;
-
-		public RedisConnectionSynchronization(RedisConnectionHolder connHolder, RedisConnectionFactory connFactory,
-				boolean newRedisConnection) {
-			super(connHolder, connFactory);
-			this.newRedisConnection = newRedisConnection;
-		}
-
-		
-		protected boolean shouldUnbindAtCompletion() {
-			return this.newRedisConnection;
-		}
-
-		
-		protected void releaseResource(RedisConnectionHolder resourceHolder, RedisConnectionFactory resourceKey) {
-			releaseConnection(resourceHolder.getConnection(), resourceKey);
-		}
 	}
 
 	private static class RedisConnectionHolder implements ResourceHolder {

@@ -23,9 +23,9 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;

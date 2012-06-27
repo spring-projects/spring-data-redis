@@ -19,14 +19,11 @@ package org.springframework.data.redis.connection.srp;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
 /**
  * Connection factory creating <a href="http://github.com/spullara/redis-protocol">Redis Protocol</a> based connections.
@@ -34,8 +31,6 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
  * @author Costin Leau
  */
 public class SrpConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
-
-	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 
 	private String hostName = "localhost";
 	private int port = 6379;
