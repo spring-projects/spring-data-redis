@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,13 +39,13 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	Boolean putIfAbsent(HK key, HV value);
 
-	Collection<HV> multiGet(Collection<HK> keys);
+	List<HV> multiGet(Collection<HK> keys);
 
 	void putAll(Map<? extends HK, ? extends HV> m);
 
 	Set<HK> keys();
 
-	Collection<HV> values();
+	List<HV> values();
 
 	Long size();
 

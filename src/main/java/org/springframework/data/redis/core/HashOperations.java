@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public interface HashOperations<H, HK, HV> {
 
 	HV get(H key, Object hashKey);
 
-	Collection<HV> multiGet(H key, Collection<HK> hashKeys);
+	List<HV> multiGet(H key, Collection<HK> hashKeys);
 
 	Long increment(H key, HK hashKey, long delta);
 
@@ -46,7 +47,7 @@ public interface HashOperations<H, HK, HV> {
 
 	Boolean putIfAbsent(H key, HK hashKey, HV value);
 
-	Collection<HV> values(H key);
+	List<HV> values(H key);
 
 	Map<HK, HV> entries(H key);
 

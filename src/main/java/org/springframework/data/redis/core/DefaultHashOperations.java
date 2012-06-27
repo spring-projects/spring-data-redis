@@ -130,7 +130,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 
 	
-	public Collection<HV> multiGet(K key, Collection<HK> fields) {
+	public List<HV> multiGet(K key, Collection<HK> fields) {
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
 		}

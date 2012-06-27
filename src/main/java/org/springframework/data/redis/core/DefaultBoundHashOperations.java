@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,7 +53,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	}
 
 	
-	public Collection<HV> multiGet(Collection<HK> hashKeys) {
+	public List<HV> multiGet(Collection<HK> hashKeys) {
 		return ops.multiGet(getKey(), hashKeys);
 	}
 
@@ -97,7 +98,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	}
 
 	
-	public Collection<HV> values() {
+	public List<HV> values() {
 		return ops.values(getKey());
 	}
 
