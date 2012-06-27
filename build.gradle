@@ -43,7 +43,7 @@ dependencies {
 
     // Redis Drivers
     compile "redis.clients:jedis:$jedisVersion"
-    compile "com.github.spullara.redis:client:$srpVersion"
+    compile("com.github.spullara.redis:client:$srpVersion", optional)
     compile("org.jredis:jredis-anthonylauzon:$jredisVersion", optional)
     compile("org.idevlab:rjc:$rjcVersion", optional)
     
