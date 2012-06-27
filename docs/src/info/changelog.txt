@@ -38,6 +38,7 @@ Package o.s.d.redis.core
 * Expanded ZSetOperations#removeRange* to return the number of elements removed
 * Improved binding of Redis connections to thread
 * Refined handling of pipelined connections to allow potential exceptions to properly propagate
+* Expanded HashOperations#multiGet and #values to return List instead of Collection
 
 Package o.s.d.redis.listener
 * Improved lifecycle of RedisMessageListenerContainer
