@@ -1,17 +1,26 @@
-SPRING DATASTORE KEY-VALUE 1.0.0 M2 (2010 02 10)
-------------------------------------------------
+SPRING DATA REDIS
+-----------------
+http://www.springsource.org/spring-data/redis
 
-Spring Datastore Key-Value is released under the terms of the Apache Software License Version 2.0 (see license.txt).
+1. INTRODUCTION
 
+Spring Data Redis makes it easy to write Spring applications that use the Redis key value store by eliminating the redundant tasks and boiler place code required for interacting with the store through Spring's excellent infrastructure support.
 
-DISTRIBUTION CONTENTS:
+2. RELEASE NOTES
 
-The JARs are available in the 'dist' directory, and the source JARs are in the 'src' directory.
+This release comes with complete reference documentation. For further
+details, consult the provided javadoc for specific packages and classes.
 
-The reference manual and javadoc are located in the 'docs' directory.
+3. DISTRIBUTION JAR FILES
 
+The Spring Data Redis jars files can be found in the 'dist' directory. 
 
-ADDITIONAL RESOURCES:
+4. GETTING STARTED
 
-Spring Data Homepage: http://www.springsource.org/spring-data
+Please see the reference documentation.
+Additionally the blog at http://blog.springsource.com as well as sections of interest in the reference documentation.
+
+ADDITIONAL RESOURCES
+Spring Data Homepage: http://www.springsource.org/spring-data/redis
 Spring Data Forum   : http://forum.springsource.org/forumdisplay.php?f=80
+Redis Homepage      : http://redis.io
