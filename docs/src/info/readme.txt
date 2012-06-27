@@ -4,7 +4,9 @@ http://www.springsource.org/spring-data/redis
 
 1. INTRODUCTION
 
-Spring Data Redis makes it easy to write Spring applications that use the Redis key value store by eliminating the redundant tasks and boiler place code required for interacting with the store through Spring's excellent infrastructure support.
+Spring Data Redis makes it easy to write Spring applications that use the Redis key value store by eliminating the 
+redundant tasks and boiler place code required for interacting with the store through Spring's excellent infrastructure
+support.
 
 2. RELEASE NOTES
 
