@@ -38,6 +38,6 @@ public class DefaultRedisCachePrefix implements RedisCachePrefix {
 	}
 
 	public byte[] prefix(String cacheName) {
-		return serializer.serialize((delimiter != null ? cacheName.concat(":") : cacheName));
+		return serializer.serialize((delimiter != null ? cacheName.concat(delimiter) : cacheName.concat(":")));
 	}
 }
