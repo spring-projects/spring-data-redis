@@ -29,14 +29,14 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
   <id>spring-maven-snapshot</id>
   <snapshots><enabled>true</enabled></snapshots>
   <name>Springframework Maven SNAPSHOT Repository</name>
-  <url>http://maven.springframework.org/snapshot</url>
+  <url>http://repo.springsource.org/libs-release</url>
 </repository> 
 
 <!-- used for milestone/rc releases -->
 <repository>
   <id>spring-maven-milestone</id>
   <name>Springframework Maven Milestone Repository</name>
-  <url>http://maven.springframework.org/milestone</url>
+  <url>http://repo.springsource.org/libs-milestone</url>
 </repository> 
 ~~~~~
 
@@ -44,8 +44,8 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
 
 ~~~~~ groovy
 repositories {
-   mavenRepo name: "spring-snapshot", urls: "http://maven.springframework.org/snapshot"
-   mavenRepo name: "spring-milestone", urls: "http://maven.springframework.org/milestone"
+   maven { url "http://repo.springsource.org/libs-milestone" }
+   maven { url "http://repo.springsource.org/libs-snapshot" }
 }
 
 // used for nightly builds
@@ -54,8 +54,8 @@ dependencies {
 }
 ~~~~~
 
-Latest GA release is _1.0.0.RELEASE_  
-Latest nightly is _1.0.1.BUILD-SNAPSHOT_
+Latest GA release is _1.0.1.RELEASE_  
+Latest nightly is _1.0.2.BUILD-SNAPSHOT_
 
 # Usage (for the impatient)
 

@@ -150,22 +150,18 @@ task schemaZip(type: Zip) {
         it.path.endsWith('META-INF' + File.separator + 'spring.schemas')
     }?.withInputStream { schemas.load(it) }
 
-    ext.paths = [] as Set
-    
     for (def key : schemas.keySet()) {
         def shortName = key.replaceAll(/http.*schema.(.*).spring-.*/, '$1')
+        def alias = key.replaceAll(/http.*schema.(.*).(spring-.*)/, '$2')
         assert shortName != key
         File xsdFile = sourceSets.main.resources.find {
             it.path.replace('\\', '/').endsWith(schemas.get(key))
         }
         assert xsdFile != null
-        def input = xsdFile.path
-
-        if (!paths.contains(input)) {
-            paths.add(input)
-            into (shortName) {
-               from input
-            }
+        
+        into (shortName) {
+           from xsdFile.path
+           rename { String fileName -> alias }
         }
     }
 }
