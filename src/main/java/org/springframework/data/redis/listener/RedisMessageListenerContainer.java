@@ -721,7 +721,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				taskExecutor.execute(new Runnable() {
 					
 					public void run() {
-						processMessage(messageListener, message, null);
+						processMessage(messageListener, message, message.getChannel());
 					}
 				});
 			}
