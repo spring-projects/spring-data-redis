@@ -26,6 +26,9 @@ import org.springframework.data.redis.core.RedisOperations;
  * Base implementation for {@link RedisCollection}.
  * Provides a skeletal implementation.
  * 
+ * Note that the collection support works only with normal, non-pipeline/multi-exec connections as it requires
+ * a reply to be sent right away. 
+ * 
  * @author Costin Leau
  */
 public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisCollection<E> {
@@ -84,11 +87,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return modified;
 	}
 
-	public boolean retainAll(Collection<?> c) {
-		throw new UnsupportedOperationException();
-	}
-
-	
 	public boolean equals(Object o) {
 		if (o == this)
 			return true;

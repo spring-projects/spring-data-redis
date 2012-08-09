@@ -28,6 +28,9 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 /**
  * Default implementation for {@link RedisZSet}.
  * 
+ * Note that the collection support works only with normal, non-pipeline/multi-exec connections as it requires
+ * a reply to be sent right away. 
+ *
  * @author Costin Leau
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {

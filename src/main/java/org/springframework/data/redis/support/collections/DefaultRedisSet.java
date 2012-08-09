@@ -28,6 +28,9 @@ import org.springframework.data.redis.core.RedisOperations;
 /**
  * Default implementation for {@link RedisSet}.
  * 
+ * Note that the collection support works only with normal, non-pipeline/multi-exec connections as it requires
+ * a reply to be sent right away.
+ *  
  * @author Costin Leau
  */
 public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements RedisSet<E> {
