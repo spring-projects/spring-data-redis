@@ -29,7 +29,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	RedisOperations<H, ?> getOperations();
 
-	boolean hasKey(Object key);
+	Boolean hasKey(Object key);
 
 	Long increment(HK key, long delta);
 

@@ -172,11 +172,15 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	
 	public boolean add(E e) {
-		return add(e, getDefaultScore());
+		Boolean result = add(e, getDefaultScore());
+		checkResult(result);
+		return result;
 	}
 
 	public boolean add(E e, double score) {
-		return boundZSetOps.add(e, score);
+		Boolean result = boundZSetOps.add(e, score);
+		checkResult(result);
+		return result;
 	}
 
 	
@@ -191,17 +195,23 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	
 	public Iterator<E> iterator() {
-		return new DefaultRedisSortedSetIterator(boundZSetOps.range(0, -1).iterator());
+		Set<E> members = boundZSetOps.range(0, -1);
+		checkResult(members);
+		return new DefaultRedisSortedSetIterator(members.iterator());
 	}
 
 	
 	public boolean remove(Object o) {
-		return boundZSetOps.remove(o);
+		Boolean result = boundZSetOps.remove(o);
+		checkResult(result);
+		return result;
 	}
 
 	
 	public int size() {
-		return boundZSetOps.size().intValue();
+		Long result = boundZSetOps.size();
+		checkResult(result);
+		return result.intValue();
 	}
 
 	
@@ -211,7 +221,10 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	
 	public E first() {
-		Iterator<E> iterator = boundZSetOps.range(0, 0).iterator();
+		Set<E> members = boundZSetOps.range(0, 0);
+		checkResult(members);
+		Iterator<E> iterator = members.iterator();
+
 		if (iterator.hasNext())
 			return iterator.next();
 		throw new NoSuchElementException();
@@ -219,7 +232,9 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	
 	public E last() {
-		Iterator<E> iterator = boundZSetOps.reverseRange(0, 0).iterator();
+		Set<E> members = boundZSetOps.reverseRange(0, 0);
+		checkResult(members);
+		Iterator<E> iterator = members.iterator();
 		if (iterator.hasNext())
 			return iterator.next();
 		throw new NoSuchElementException();

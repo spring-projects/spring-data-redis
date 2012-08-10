@@ -142,4 +142,10 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		CollectionUtils.rename(key, newKey, operations);
 		key = newKey;
 	}
+
+	protected void checkResult(Object obj) {
+		if (obj == null) {
+			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
+		}
+	}
 }

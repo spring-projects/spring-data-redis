@@ -89,30 +89,29 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
 	}
-
 	
 	public RedisOperations<String, ?> getOperations() {
 		return hashOps.getOperations();
 	}
-
 	
 	public void clear() {
 		getOperations().delete(Collections.singleton(getKey()));
 	}
-
 	
 	public boolean containsKey(Object key) {
-		return hashOps.hasKey(key);
+		Boolean result = hashOps.hasKey(key);
+		checkResult(result);
+		return result;
 	}
 
 	
 	public boolean containsValue(Object value) {
 		throw new UnsupportedOperationException();
 	}
-
 	
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
 		Set<K> keySet = keySet();
+		checkResult(keySet);
 		Collection<V> multiGet = hashOps.multiGet(keySet);
 
 		Iterator<K> keys = keySet.iterator();
@@ -125,51 +124,44 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 		return entries;
 	}
-
 	
 	public V get(Object key) {
 		return hashOps.get(key);
 	}
-
 	
 	public boolean isEmpty() {
 		return size() == 0;
 	}
-
 	
 	public Set<K> keySet() {
 		return hashOps.keys();
 	}
 
-	
 	public V put(K key, V value) {
 		V oldV = get(key);
 		hashOps.put(key, value);
 		return oldV;
 	}
-
 	
 	public void putAll(Map<? extends K, ? extends V> m) {
 		hashOps.putAll(m);
 	}
-
 	
 	public V remove(Object key) {
 		V v = get(key);
 		hashOps.delete(key);
 		return v;
 	}
-
 	
 	public int size() {
-		return hashOps.size().intValue();
+		Long size = hashOps.size();
+		checkResult(size);
+		return size.intValue();
 	}
-
 	
 	public Collection<V> values() {
 		return hashOps.values();
 	}
-
 	
 	public boolean equals(Object o) {
 		if (o == this)
@@ -180,15 +172,12 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		}
 		return false;
 	}
-
 	
 	public int hashCode() {
 		int result = 17 + getClass().hashCode();
 		result = result * 31 + getKey().hashCode();
 		return result;
 	}
-
-
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -331,5 +320,11 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	
 	public DataType getType() {
 		return hashOps.getType();
+	}
+
+	private void checkResult(Object obj) {
+		if (obj == null) {
+			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
+		}
 	}
 }

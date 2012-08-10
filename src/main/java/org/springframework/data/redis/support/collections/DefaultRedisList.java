@@ -120,19 +120,19 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 			listOps.trim(0, maxSize - 1);
 		}
 	}
-
-
 	
 	public Iterator<E> iterator() {
-		return new DefaultRedisListIterator(content().iterator());
+		List<E> list = content();
+		checkResult(list);
+		return new DefaultRedisListIterator(list.iterator());
 	}
 
 	
 	public int size() {
-		return listOps.size().intValue();
+		Long size = listOps.size();
+		checkResult(size);
+		return size.intValue();
 	}
-
-
 	
 	public boolean add(E value) {
 		listOps.rightPush(value);
@@ -150,7 +150,6 @@ public class DefaultRedisList<E> extends AbstractRedisCollection<E> implements R
 		Long result = listOps.remove(1, o);
 		return (result != null && result.longValue() > 0);
 	}
-
 	
 	public void add(int index, E element) {
 		if (index == 0) {

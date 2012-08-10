@@ -63,7 +63,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	}
 
 	
-	public boolean hasKey(Object key) {
+	public Boolean hasKey(Object key) {
 		return ops.hasKey(getKey(), key);
 	}
 
