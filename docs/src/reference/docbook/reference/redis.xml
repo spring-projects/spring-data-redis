@@ -311,7 +311,7 @@
   private RedisTemplate<String, String> template;
 
   // inject the template as ListOperations
-  @Autowired
+  @Resource(name="redisTemplate")
   private ListOperations<String, String> listOps;
 
   public void addLink(String userId, URL url) {
