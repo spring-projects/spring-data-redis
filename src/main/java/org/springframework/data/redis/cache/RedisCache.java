@@ -43,6 +43,7 @@ class RedisCache implements Cache {
 	private final byte[] setName;
 	private final byte[] cacheLockName;
 	private long WAIT_FOR_LOCK = 300;
+    private final long expire;
 
 	/**
 	 * 
@@ -50,22 +51,23 @@ class RedisCache implements Cache {
 	 *
 	 * @param name cache name
 	 * @param prefix
-	 * @param cachePrefix 
-	 */
-	RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template) {
+	 * @param template
+     * @param expire
+     */
+	RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template, long expire) {
 
 		Assert.hasText(name, "non-empty cache name is required");
 		this.name = name;
 		this.template = template;
 		this.prefix = prefix;
+        this.expire = expire;
 
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
 		// name of the set holding the keys
-		String sName = name + "~keys";
-		this.setName = stringSerializer.serialize(sName);
-		this.cacheLockName = stringSerializer.serialize(name + "~lock");
-	}
+		this.setName = stringSerializer.serialize(name + "~keys");
+        this.cacheLockName = stringSerializer.serialize(name + "~lock");
+    }
 
 	public String getName() {
 		return name;
@@ -102,6 +104,9 @@ class RedisCache implements Cache {
 				waitForLock(connection);
 				connection.multi();
 				connection.set(k, template.getValueSerializer().serialize(value));
+                if (expire > 0) {
+                    connection.expire(k, expire);
+                }
 				connection.zAdd(setName, 0, k);
 				connection.exec();
 

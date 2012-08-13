@@ -18,6 +18,8 @@ package org.springframework.data.redis.cache;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -42,6 +44,10 @@ public class RedisCacheManager implements CacheManager {
 	private boolean usePrefix;
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
 
+    // 0 - never expire
+    private long defaultExpireTime = 0;
+    private Map<String, Long>expires = new HashMap<String, Long>();
+
 	public RedisCacheManager(RedisTemplate template) {
 		this.template = template;
 	}
@@ -49,7 +55,8 @@ public class RedisCacheManager implements CacheManager {
 	public Cache getCache(String name) {
 		Cache c = caches.get(name);
 		if (c == null) {
-			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template);
+            long expire = (expires.containsKey(name)) ? expires.get(name) : defaultExpireTime;
+			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template, expire);
 			caches.put(name, c);
 		}
 
@@ -60,7 +67,11 @@ public class RedisCacheManager implements CacheManager {
 		return names;
 	}
 
-	/**
+    public void setUsePrefix(boolean usePrefix) {
+        this.usePrefix = usePrefix;
+    }
+
+    /**
 	 * Sets the cachePrefix.
 	 *
 	 * @param cachePrefix the cachePrefix to set
@@ -68,4 +79,22 @@ public class RedisCacheManager implements CacheManager {
 	public void setCachePrefix(RedisCachePrefix cachePrefix) {
 		this.cachePrefix = cachePrefix;
 	}
+
+    /**
+     * Set default expire time.
+     *
+     * @param defaultExpireTime time in ms
+     */
+    public void setDefaultExpireTime(long defaultExpireTime) {
+        this.defaultExpireTime = defaultExpireTime;
+    }
+
+    /**
+     * Set expire time for caches
+     *
+     * @param expires time in ms
+     */
+    public void setExpires(Map<String, Long> expires) {
+        this.expires = expires;
+    }
 }
