@@ -18,7 +18,6 @@ package org.springframework.data.redis.cache;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -44,9 +43,9 @@ public class RedisCacheManager implements CacheManager {
 	private boolean usePrefix;
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
 
-    // 0 - never expire
-    private long defaultExpireTime = 0;
-    private Map<String, Long>expires = new HashMap<String, Long>();
+	// 0 - never expire
+	private long defaultExpiration = 0;
+	private Map<String, Long> expires = null;
 
 	public RedisCacheManager(RedisTemplate template) {
 		this.template = template;
@@ -55,23 +54,31 @@ public class RedisCacheManager implements CacheManager {
 	public Cache getCache(String name) {
 		Cache c = caches.get(name);
 		if (c == null) {
-            long expire = (expires.containsKey(name)) ? expires.get(name) : defaultExpireTime;
-			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template, expire);
+			long expiration = computeExpiration(name);
+			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template, expiration);
 			caches.put(name, c);
 		}
 
 		return c;
 	}
 
+	private long computeExpiration(String name) {
+		Long expiration = null;
+		if (expires != null) {
+			expiration = expires.get(name);
+		}
+		return (expiration != null ? expiration.longValue() : defaultExpiration);
+	}
+
 	public Collection<String> getCacheNames() {
 		return names;
 	}
 
-    public void setUsePrefix(boolean usePrefix) {
-        this.usePrefix = usePrefix;
-    }
+	public void setUsePrefix(boolean usePrefix) {
+		this.usePrefix = usePrefix;
+	}
 
-    /**
+	/**
 	 * Sets the cachePrefix.
 	 *
 	 * @param cachePrefix the cachePrefix to set
@@ -80,21 +87,21 @@ public class RedisCacheManager implements CacheManager {
 		this.cachePrefix = cachePrefix;
 	}
 
-    /**
-     * Set default expire time.
-     *
-     * @param defaultExpireTime time in ms
-     */
-    public void setDefaultExpireTime(long defaultExpireTime) {
-        this.defaultExpireTime = defaultExpireTime;
-    }
+	/**
+	 * Sets the default expire time (in seconds).
+	 *
+	 * @param defaultExpireTime time in seconds.
+	 */
+	public void setDefaultExpiration(long defaultExpireTime) {
+		this.defaultExpiration = defaultExpireTime;
+	}
 
-    /**
-     * Set expire time for caches
-     *
-     * @param expires time in ms
-     */
-    public void setExpires(Map<String, Long> expires) {
-        this.expires = expires;
-    }
+	/**
+	 * Sets the expire time (in seconds) for cache regions (by key).
+	 *
+	 * @param expires time in seconds
+	 */
+	public void setExpires(Map<String, Long> expires) {
+		this.expires = (expires != null ? new ConcurrentHashMap<String, Long>(expires) : null);
+	}
 }

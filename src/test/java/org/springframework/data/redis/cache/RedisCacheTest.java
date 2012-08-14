@@ -60,7 +60,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	
 	protected Cache createCache(RedisTemplate nativeCache) {
-		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache);
+		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache, TimeUnit.MINUTES.toSeconds(5));
 	}
 
 	

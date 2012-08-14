@@ -43,7 +43,7 @@ class RedisCache implements Cache {
 	private final byte[] setName;
 	private final byte[] cacheLockName;
 	private long WAIT_FOR_LOCK = 300;
-    private final long expire;
+	private final long expiration;
 
 	/**
 	 * 
@@ -52,22 +52,22 @@ class RedisCache implements Cache {
 	 * @param name cache name
 	 * @param prefix
 	 * @param template
-     * @param expire
-     */
-	RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template, long expire) {
+	 * @param expiration
+	 */
+	RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template, long expiration) {
 
 		Assert.hasText(name, "non-empty cache name is required");
 		this.name = name;
 		this.template = template;
 		this.prefix = prefix;
-        this.expire = expire;
+		this.expiration = expiration;
 
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
 		// name of the set holding the keys
 		this.setName = stringSerializer.serialize(name + "~keys");
-        this.cacheLockName = stringSerializer.serialize(name + "~lock");
-    }
+		this.cacheLockName = stringSerializer.serialize(name + "~lock");
+	}
 
 	public String getName() {
 		return name;
@@ -83,10 +83,10 @@ class RedisCache implements Cache {
 		return template;
 	}
 
-	
+
 	public ValueWrapper get(final Object key) {
 		return (ValueWrapper) template.execute(new RedisCallback<ValueWrapper>() {
-			
+
 			public ValueWrapper doInRedis(RedisConnection connection) throws DataAccessException {
 				waitForLock(connection);
 				byte[] bs = connection.get(computeKey(key));
@@ -95,7 +95,7 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-	
+
 	public void put(final Object key, final Object value) {
 		final byte[] k = computeKey(key);
 
@@ -104,10 +104,13 @@ class RedisCache implements Cache {
 				waitForLock(connection);
 				connection.multi();
 				connection.set(k, template.getValueSerializer().serialize(value));
-                if (expire > 0) {
-                    connection.expire(k, expire);
-                }
 				connection.zAdd(setName, 0, k);
+
+				if (expiration > 0) {
+					connection.expire(k, expiration);
+					// update the expiration of the set of keys as well
+					connection.expire(setName, expiration);
+				}
 				connection.exec();
 
 				return null;
@@ -115,7 +118,7 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-	
+
 	public void evict(Object key) {
 		final byte[] k = computeKey(key);
 
@@ -129,7 +132,7 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-	
+
 	public void clear() {
 		// need to del each key individually
 		template.execute(new RedisCallback<Object>() {
