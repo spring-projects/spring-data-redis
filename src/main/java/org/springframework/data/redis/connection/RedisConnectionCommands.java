@@ -23,10 +23,9 @@ package org.springframework.data.redis.connection;
  */
 public interface RedisConnectionCommands {
 
-	public abstract void select(int dbIndex);
+	void select(int dbIndex);
 
-	public abstract byte[] echo(byte[] message);
+	byte[] echo(byte[] message);
 
-	public abstract String ping();
-
+	String ping();
 }

@@ -26,33 +26,32 @@ import java.util.Set;
  */
 public interface RedisKeyCommands {
 
-	public abstract Boolean exists(byte[] key);
+	Boolean exists(byte[] key);
 
-	public abstract Long del(byte[]... keys);
+	Long del(byte[]... keys);
 
-	public abstract DataType type(byte[] key);
+	DataType type(byte[] key);
 
-	public abstract Set<byte[]> keys(byte[] pattern);
+	Set<byte[]> keys(byte[] pattern);
 
-	public abstract byte[] randomKey();
+	byte[] randomKey();
 
-	public abstract void rename(byte[] oldName, byte[] newName);
+	void rename(byte[] oldName, byte[] newName);
 
-	public abstract Boolean renameNX(byte[] oldName, byte[] newName);
+	Boolean renameNX(byte[] oldName, byte[] newName);
 
-	public abstract Boolean expire(byte[] key, long seconds);
+	Boolean expire(byte[] key, long seconds);
 
-	public abstract Boolean expireAt(byte[] key, long unixTime);
+	Boolean expireAt(byte[] key, long unixTime);
 
-	public abstract Boolean persist(byte[] key);
+	Boolean persist(byte[] key);
 
-	public abstract Boolean move(byte[] key, int dbIndex);
+	Boolean move(byte[] key, int dbIndex);
 
-	public abstract Long ttl(byte[] key);
+	Long ttl(byte[] key);
 
 	// sort commands
-	public abstract List<byte[]> sort(byte[] key, SortParameters params);
+	List<byte[]> sort(byte[] key, SortParameters params);
 
-	public abstract Long sort(byte[] key, SortParameters params, byte[] storeKey);
-
+	Long sort(byte[] key, SortParameters params, byte[] storeKey);
 }
