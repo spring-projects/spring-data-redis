@@ -60,7 +60,11 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Boolean expire(String key, long seconds);
 
+	Boolean pExpire(String key, long millis);
+
 	Boolean expireAt(String key, long unixTime);
+
+	Boolean pExpireAt(String key, long unixTimeInMillis);
 
 	Boolean persist(String key);
 
@@ -68,12 +72,20 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long ttl(String key);
 
+	Long pTtl(String key);
+
+	String dump(String key);
+
+	Boolean restore(String key, long ttlInMillis, String serializedValue);
+
 	String echo(String message);
 
 	// sort commands
 	List<String> sort(String key, SortParameters params);
 
 	Long sort(String key, SortParameters params, String storeKey);
+
+
 
 	String get(String key);
 

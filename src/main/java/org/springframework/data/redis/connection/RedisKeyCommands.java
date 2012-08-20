@@ -42,11 +42,11 @@ public interface RedisKeyCommands {
 
 	Boolean expire(byte[] key, long seconds);
 
-	public abstract Boolean pExpire(byte[] key, long millis);
+	Boolean pExpire(byte[] key, long millis);
 
 	Boolean expireAt(byte[] key, long unixTime);
 
-	public abstract Boolean pExpireAt(byte[] key, long unixTimeInMillis);
+	Boolean pExpireAt(byte[] key, long unixTimeInMillis);
 
 	Boolean persist(byte[] key);
 
@@ -54,10 +54,14 @@ public interface RedisKeyCommands {
 
 	Long ttl(byte[] key);
 
-	public abstract Long pTtl(byte[] key);
+	Long pTtl(byte[] key);
 
 	// sort commands
 	List<byte[]> sort(byte[] key, SortParameters params);
 
 	Long sort(byte[] key, SortParameters params, byte[] storeKey);
+
+	byte[] dump(byte[] key);
+
+	Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue);
 }

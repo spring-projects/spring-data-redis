@@ -1165,4 +1165,44 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Object execute(String command, String... args) {
 		return execute(command, serializeMulti(args));
 	}
+
+	public Boolean pExpire(byte[] key, long millis) {
+		return delegate.pExpire(key, millis);
+	}
+
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		return delegate.pExpireAt(key, unixTimeInMillis);
+	}
+
+	public Long pTtl(byte[] key) {
+		return delegate.pTtl(key);
+	}
+
+	public byte[] dump(byte[] key) {
+		return delegate.dump(key);
+	}
+
+	public Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		return delegate.restore(key, ttlInMillis, serializedValue);
+	}
+
+	public Boolean pExpire(String key, long millis) {
+		return pExpire(serialize(key), millis);
+	}
+
+	public Boolean pExpireAt(String key, long unixTimeInMillis) {
+		return pExpireAt(serialize(key), unixTimeInMillis);
+	}
+
+	public Long pTtl(String key) {
+		return pTtl(serialize(key));
+	}
+
+	public String dump(String key) {
+		return deserialize(serialize(key));
+	}
+
+	public Boolean restore(String key, long ttlInMillis, String serializedValue) {
+		return restore(serialize(key), ttlInMillis, serialize(serializedValue));
+	}
 }
