@@ -21,8 +21,6 @@ import java.util.Collection;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -79,63 +77,6 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
 		jsonPersonTemplate.afterPropertiesSet();
 
-		// jredis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setUsePool(false);
-
-		jredisConnFactory.setPort(SettingsUtils.getPort());
-		jredisConnFactory.setHostName(SettingsUtils.getHost());
-
-		jredisConnFactory.afterPropertiesSet();
-
-		RedisTemplate<String, String> stringTemplateJR = new StringRedisTemplate(jredisConnFactory);
-		RedisTemplate<String, Person> personTemplateJR = new RedisTemplate<String, Person>();
-		personTemplateJR.setConnectionFactory(jredisConnFactory);
-		personTemplateJR.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xstreamStringTemplateJR = new RedisTemplate<String, Person>();
-		xstreamStringTemplateJR.setConnectionFactory(jredisConnFactory);
-		xstreamStringTemplateJR.setDefaultSerializer(serializer);
-		xstreamStringTemplateJR.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xstreamPersonTemplateJR = new RedisTemplate<String, Person>();
-		xstreamPersonTemplateJR.setValueSerializer(serializer);
-		xstreamPersonTemplateJR.setConnectionFactory(jredisConnFactory);
-		xstreamPersonTemplateJR.afterPropertiesSet();
-
-		RedisTemplate<String, Person> jsonPersonTemplateJR = new RedisTemplate<String, Person>();
-		jsonPersonTemplateJR.setValueSerializer(jsonSerializer);
-		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
-		jsonPersonTemplateJR.afterPropertiesSet();
-
-
-		// rjc
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setUsePool(false);
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.afterPropertiesSet();
-
-		RedisTemplate<String, String> stringTemplateRJC = new StringRedisTemplate(rjcConnFactory);
-		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>();
-		personTemplateRJC.setConnectionFactory(rjcConnFactory);
-		personTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xstreamStringTemplateRJC = new RedisTemplate<String, Person>();
-		xstreamStringTemplateRJC.setConnectionFactory(rjcConnFactory);
-		xstreamStringTemplateRJC.setDefaultSerializer(serializer);
-		xstreamStringTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xstreamPersonTemplateRJC = new RedisTemplate<String, Person>();
-		xstreamPersonTemplateRJC.setValueSerializer(serializer);
-		xstreamPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
-		xstreamPersonTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> jsonPersonTemplateRJC = new RedisTemplate<String, Person>();
-		jsonPersonTemplateRJC.setValueSerializer(jsonSerializer);
-		jsonPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
-		jsonPersonTemplateRJC.afterPropertiesSet();
-
 		// SRP
 		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
 		srConnFactory.setPort(SettingsUtils.getPort());
@@ -162,8 +103,8 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateSRP.setConnectionFactory(srConnFactory);
 		jsonPersonTemplateSRP.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { stringFactory, stringTemplateRJC },
-				{ personFactory, personTemplateRJC },
+		return Arrays.asList(new Object[][] {
+				{ stringFactory, stringTemplate },
 				//{ stringFactory, stringTemplateJR },
 				//{ personFactory, personTemplateJR }, 
 				{ personFactory, personTemplate },
@@ -172,8 +113,6 @@ public abstract class CollectionTestParams {
 				//{ personFactory, xstreamPersonTemplateJR },
 				{ personFactory, jsonPersonTemplate },
 				//{ personFactory, jsonPersonTemplateJR },
-				{ stringFactory, xstreamStringTemplateRJC }, { personFactory, xstreamPersonTemplateRJC },
-				{ personFactory, jsonPersonTemplateRJC },
 				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
 				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },
 				{ personFactory, jsonPersonTemplateSRP }

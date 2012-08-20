@@ -29,7 +29,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.support.collections.CollectionTestParams;
 import org.springframework.data.redis.support.collections.ObjectFactory;
 
@@ -64,11 +63,6 @@ public class TemplateTest {
 
 	@Test
 	public void testIncrement() throws Exception {
-		// disable in case of Rjc
-		if (isRjc()) {
-			return;
-		}
-
 		StringRedisTemplate sr = new StringRedisTemplate(template.getConnectionFactory());
 		String key = "test.template.inc";
 		ValueOperations<String, String> valueOps = sr.opsForValue();
@@ -77,10 +71,6 @@ public class TemplateTest {
 		assertEquals(0, Integer.valueOf(valueOps.get(key)).intValue());
 		valueOps.increment(key, -10);
 		assertEquals(-10, Integer.valueOf(valueOps.get(key)).intValue());
-	}
-
-	private boolean isRjc() {
-		return (template.getConnectionFactory() instanceof RjcConnectionFactory);
 	}
 
 	//@Test

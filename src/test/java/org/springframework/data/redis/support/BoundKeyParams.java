@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
@@ -42,15 +41,7 @@ public class BoundKeyParams {
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
 		jedisConnFactory.afterPropertiesSet();
 
-		// jredis factory
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setUsePool(true);
-		jredisConnFactory.setPort(SettingsUtils.getPort());
-		jredisConnFactory.setHostName(SettingsUtils.getHost());
-		jredisConnFactory.afterPropertiesSet();
-
 		StringRedisTemplate templateJS = new StringRedisTemplate(jedisConnFactory);
-		StringRedisTemplate templateJR = new StringRedisTemplate(jredisConnFactory);
 
 		StringObjectFactory sof = new StringObjectFactory();
 

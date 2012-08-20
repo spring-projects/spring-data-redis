@@ -14,6 +14,7 @@ group = 'org.springframework.data'
 repositories {
   maven { url "http://repo.springsource.org/libs-snapshot" }
   maven { url "http://repo.springsource.org/plugins-release" }
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots/"}
 }
 
 apply plugin: "java"
@@ -44,8 +45,6 @@ dependencies {
     // Redis Drivers
     compile "redis.clients:jedis:$jedisVersion"
     compile("com.github.spullara.redis:client:$srpVersion", optional)
-    compile("org.jredis:jredis-anthonylauzon:$jredisVersion", optional)
-    compile("org.idevlab:rjc:$rjcVersion", optional)
     
     // Mappers
     compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
@@ -59,8 +58,8 @@ dependencies {
     testCompile("com.thoughtworks.xstream:xstream:1.3", optional)
 }
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7 
 
 javadoc {
   ext.srcDir = file("${projectDir}/docs/src/api")
@@ -79,7 +78,7 @@ javadoc {
       ]
   
      links = [
-        "http://static.springframework.org/spring/docs/3.0.x/javadoc-api",
+        "http://static.springframework.org/spring/docs/3.1.x/javadoc-api",
         "http://download.oracle.com/javase/6/docs/api",
         "http://jackson.codehaus.org/1.8.2/javadoc"
      ]
