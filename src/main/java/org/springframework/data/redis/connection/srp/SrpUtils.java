@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 
 import redis.client.RedisException;
 import redis.reply.BulkReply;
+import redis.reply.IntegerReply;
 import redis.reply.MultiBulkReply;
 import redis.reply.Reply;
 
@@ -155,6 +156,13 @@ abstract class SrpUtils {
 		return map;
 	}
 
+	static Boolean asBoolean(IntegerReply pexpire) {
+		if (pexpire == null) {
+			return null;
+		}
+		return (Long.valueOf(1).equals(pexpire.data()));
+	}
+
 	static byte[] limit(long offset, long count) {
 		return ("LIMIT " + offset + " " + count).getBytes(Charsets.UTF_8);
 	}
@@ -162,6 +170,7 @@ abstract class SrpUtils {
 	static byte[] sort(SortParameters params) {
 		return sort(params, null);
 	}
+
 
 	static byte[] sort(SortParameters params, byte[] sortKey) {
 		List<byte[]> arrays = new ArrayList<byte[]>();
