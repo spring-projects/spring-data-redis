@@ -452,6 +452,22 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.strLen(key);
 	}
 
+	public Long bitCount(byte[] key, long begin, long end) {
+		return delegate.bitCount(key, begin, end);
+	}
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		return delegate.bitOp(op, destination, keys);
+	}
+
+	public void pSetEx(byte[] key, long millis, byte[] value) {
+		delegate.pSetEx(key, millis, value);
+	}
+
+	public Double incrBy(byte[] key, double value) {
+		return delegate.incrBy(key, value);
+	}
+
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		delegate.subscribe(listener, channels);
 	}
@@ -997,13 +1013,27 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sRem(String key, String value) {
 		return delegate.sRem(serialize(key), serialize(value));
 	}
-
 	
 	public Long strLen(String key) {
 		return delegate.strLen(serialize(key));
 	}
 
-	
+	public Long bitCount(String key, long begin, long end) {
+		return delegate.strLen(serialize(key));
+	}
+
+	public Long bitOp(BitOperation op, String destination, String... keys) {
+		return delegate.bitOp(op, serialize(destination), serializeMulti(keys));
+	}
+
+	public void pSetEx(String key, long millis, String value) {
+		delegate.pSetEx(serialize(key), millis, serialize(value));
+	}
+
+	public Double incrBy(String key, double value) {
+		return delegate.incrBy(serialize(key), value);
+	}
+
 	public void subscribe(MessageListener listener, String... channels) {
 		delegate.subscribe(listener, serializeMulti(channels));
 	}
@@ -1018,7 +1048,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
 	}
 
-	
+
 	public Long ttl(String key) {
 		return delegate.ttl(serialize(key));
 	}

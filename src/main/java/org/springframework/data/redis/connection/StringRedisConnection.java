@@ -123,6 +123,14 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long strLen(String key);
 
+	Long bitCount(String key, long begin, long end);
+
+	Long bitOp(BitOperation op, String destination, String... keys);
+
+	void pSetEx(String key, long millis, String value);
+
+	Double incrBy(String key, double value);
+
 	Long rPush(String key, String value);
 
 	Long lPush(String key, String value);

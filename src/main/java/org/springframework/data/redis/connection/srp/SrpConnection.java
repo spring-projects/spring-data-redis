@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.BitOperation;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -899,10 +900,40 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Long bitCount(byte[] key, long begin, long end) {
+		throw new UnsupportedOperationException();
+	}
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
+	public void pSetEx(byte[] key, long millis, byte[] value) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.psetex(key, millis, value));
+			}
+			client.psetex(key, millis, value);
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public Double incrBy(byte[] key, double value) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.incrbyfloat(key, value));
+				return null;
+			}
+			return SrpUtils.toDouble(client.incrbyfloat(key, value).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
 	//
 	// List commands
 	//
-
 
 	public Long lPush(byte[] key, byte[] value) {
 		try {

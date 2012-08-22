@@ -61,4 +61,12 @@ public interface RedisStringCommands {
 	void setBit(byte[] key, long offset, boolean value);
 
 	Long strLen(byte[] key);
+
+	Long bitCount(byte[] key, long begin, long end);
+
+	Long bitOp(BitOperation op, byte[] destination, byte[]... keys);
+
+	void pSetEx(byte[] key, long millis, byte[] value);
+
+	Double incrBy(byte[] key, double value);
 }

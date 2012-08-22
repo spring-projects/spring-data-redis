@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.BitOperation;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -1157,6 +1158,23 @@ public class JedisConnection implements RedisConnection {
 			throw convertJedisAccessException(ex);
 		}
 	}
+
+	public Long bitCount(byte[] key, long begin, long end) {
+		throw new UnsupportedOperationException();
+	}
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
+	public void pSetEx(byte[] key, long millis, byte[] value) {
+		throw new UnsupportedOperationException();
+	}
+
+	public Double incrBy(byte[] key, double value) {
+		throw new UnsupportedOperationException();
+	}
+
 
 	//
 	// List commands
