@@ -931,6 +931,66 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Boolean pExpire(byte[] key, long millis) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.pexpire(key, millis));
+				return null;
+			}
+			return SrpUtils.asBoolean(client.pexpire(key, millis));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.pexpireat(key, unixTimeInMillis));
+				return null;
+			}
+			return SrpUtils.asBoolean(client.pexpireat(key, unixTimeInMillis));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public Long pTtl(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.pttl(key));
+				return null;
+			}
+			return client.pttl(key).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public byte[] dump(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.dump(key));
+				return null;
+			}
+			return client.dump(key).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.restore(key, ttlInMillis, serializedValue));
+				return null;
+			}
+			return SrpUtils.asBoolean(client.restore(key, ttlInMillis, serializedValue));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
 	//
 	// List commands
 	//
@@ -1840,50 +1900,17 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
-	public Boolean pExpire(byte[] key, long millis) {
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.pexpire(key, millis));
+				pipeline(pipeline.hincrbyfloat(key, field, delta));
 				return null;
 			}
-			return SrpUtils.asBoolean(client.pexpire(key, millis));
+			return SrpUtils.toDouble(client.hincrbyfloat(key, field, delta).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
 	}
-
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		try {
-			if (isPipelined()) {
-				pipeline(pipeline.pexpireat(key, unixTimeInMillis));
-				return null;
-			}
-			return SrpUtils.asBoolean(client.pexpireat(key, unixTimeInMillis));
-		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
-		}
-	}
-
-	public Long pTtl(byte[] key) {
-		try {
-			if (isPipelined()) {
-				pipeline(pipeline.pttl(key));
-				return null;
-			}
-			return client.pttl(key).data();
-		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
-		}
-	}
-
-	public byte[] dump(byte[] key) {
-		return null;
-	}
-
-	public Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-		return null;
-	}
-
 
 
 	//

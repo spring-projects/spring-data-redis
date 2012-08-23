@@ -261,6 +261,8 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Map<String, String> hGetAll(String key);
 
+	Double hIncrBy(String key, String field, double delta);
+
 	Long publish(String channel, String message);
 
 	void subscribe(MessageListener listener, String... channels);

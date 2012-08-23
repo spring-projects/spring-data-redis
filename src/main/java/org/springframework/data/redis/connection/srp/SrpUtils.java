@@ -40,6 +40,7 @@ import redis.reply.BulkReply;
 import redis.reply.IntegerReply;
 import redis.reply.MultiBulkReply;
 import redis.reply.Reply;
+import redis.reply.StatusReply;
 
 import com.google.common.base.Charsets;
 
@@ -162,6 +163,13 @@ abstract class SrpUtils {
 			return null;
 		}
 		return (Long.valueOf(1).equals(pexpire.data()));
+	}
+
+	static Boolean asBoolean(StatusReply restore) {
+		if (restore == null) {
+			return null;
+		}
+		return (Boolean.valueOf("OK".equals(restore.data())));
 	}
 
 	static byte[] limit(long offset, long count) {

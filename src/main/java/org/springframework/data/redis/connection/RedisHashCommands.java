@@ -50,4 +50,6 @@ public interface RedisHashCommands {
 	List<byte[]> hVals(byte[] key);
 
 	Map<byte[], byte[]> hGetAll(byte[] key);
+
+	Double hIncrBy(byte[] key, byte[] field, double delta);
 }

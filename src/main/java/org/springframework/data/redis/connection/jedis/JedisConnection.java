@@ -2364,7 +2364,9 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+		throw new UnsupportedOperationException();
+	}
 
 	//
 	// Pub/Sub functionality

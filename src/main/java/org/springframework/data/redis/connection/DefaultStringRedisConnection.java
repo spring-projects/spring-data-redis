@@ -216,6 +216,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.hVals(key);
 	}
 
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+		return delegate.hIncrBy(key, field, delta);
+	}
+
 	public Long incr(byte[] key) {
 		return delegate.incr(key);
 	}
@@ -784,12 +788,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.hSetNX(serialize(key), serialize(field), serialize(value));
 	}
 
-	
 	public List<String> hVals(String key) {
 		return deserialize(delegate.hVals(serialize(key)));
 	}
 
-	
+	public Double hIncrBy(String key, String field, double delta) {
+		return delegate.hIncrBy(serialize(key), serialize(field), delta);
+	}
+
 	public Long incr(String key) {
 		return delegate.incr(serialize(key));
 	}
