@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -373,5 +374,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		System.out.println(result.get(3));
 		assertArrayEquals(value1.getBytes(), (byte[]) result.get(2));
 		assertArrayEquals(value2.getBytes(), (byte[]) result.get(3));
+	}
+
+	@Test
+	public void testDataType() throws Exception {
+		assertSame(DataType.HASH, DataType.fromCode("hash"));
+		assertSame(DataType.HASH, DataType.fromCode("HASH"));
+		assertSame(DataType.LIST, DataType.fromCode("list"));
+		assertSame(DataType.STRING, DataType.fromCode("StrIng"));
+		assertSame(DataType.SET, DataType.fromCode("SeT"));
+	}
+
+	@Test
+	public void testInvalidDataType() throws Exception {
+		DataType.fromCode("se");
 	}
 }
