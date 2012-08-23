@@ -845,11 +845,9 @@ public class SrpConnection implements RedisConnection {
 
 	public Boolean getBit(byte[] key, long offset) {
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.getbit(key, offset));
+				return null;
 			}
 			return SrpUtils.asBoolean(client.getbit(key, offset));
 		} catch (Exception ex) {
@@ -860,11 +858,8 @@ public class SrpConnection implements RedisConnection {
 
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.setbit(key, offset, value));
 			}
 			client.setbit(key, offset, SrpUtils.asBit(value));
 		} catch (Exception ex) {
@@ -875,11 +870,8 @@ public class SrpConnection implements RedisConnection {
 
 	public void setRange(byte[] key, byte[] value, long start) {
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.setrange(key, start, value));
 			}
 			client.setrange(key, start, value);
 		} catch (Exception ex) {
@@ -901,11 +893,19 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	public Long bitCount(byte[] key, long begin, long end) {
-		throw new UnsupportedOperationException();
+		if (isPipelined()) {
+			pipeline(pipeline.bitcount(key, begin, end));
+			return null;
+		}
+		return client.bitcount(key, begin, end).data();
 	}
 
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
-		throw new UnsupportedOperationException();
+		if (isPipelined()) {
+			pipeline(pipeline.bitop(SrpUtils.bitOp(op), destination, keys));
+			return null;
+		}
+		return client.bitop(SrpUtils.bitOp(op), destination, keys).data();
 	}
 
 	public void pSetEx(byte[] key, long millis, byte[] value) {

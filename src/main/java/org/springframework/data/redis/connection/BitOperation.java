@@ -18,5 +18,34 @@ package org.springframework.data.redis.connection;
 
 public enum BitOperation {
 
-	AND, OR, XOR, NOT;
+	AND("AND"), OR("OR"), XOR("XOR"), NOT("NOT");
+
+	private final String code;
+
+	BitOperation(String op) {
+		this.code = op;
+	}
+
+	/**
+	 * Returns the Redis code/keyword for the current operation.
+	 * 
+	 * @return code of this enum
+	 */
+	public String code() {
+		return code;
+	}
+
+	/**
+	 * Utility method for converting an enum String to an actual enum object.
+	 * 
+	 * @param code enum code
+	 * @return actual enum corresponding to the given code
+	 */
+	public static BitOperation fromCode(String code) {
+		try {
+			return BitOperation.valueOf(code.toUpperCase());
+		} catch (Exception ex) {
+			throw new IllegalArgumentException("invalid bit operation");
+		}
+	}
 }

@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.BitOperation;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -224,5 +225,10 @@ abstract class SrpUtils {
 		}
 
 		return result;
+	}
+
+	static byte[] bitOp(BitOperation op) {
+		Assert.notNull(op, "the bit operation is required");
+		return op.code().getBytes(Charsets.UTF_8);
 	}
 }

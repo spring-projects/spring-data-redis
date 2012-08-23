@@ -385,7 +385,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertSame(DataType.SET, DataType.fromCode("SeT"));
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidDataType() throws Exception {
 		DataType.fromCode("se");
 	}
