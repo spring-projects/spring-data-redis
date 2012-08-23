@@ -26,6 +26,10 @@ import java.util.Map;
  */
 public interface RedisStringCommands {
 
+	public enum BitOperation {
+		AND, OR, XOR, NOT;
+	}
+
 	byte[] get(byte[] key);
 
 	byte[] getSet(byte[] key, byte[] value);
