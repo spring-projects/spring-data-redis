@@ -113,7 +113,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		th.run();
 
 		synchronized (monitor) {
-			monitor.wait(TimeUnit.MILLISECONDS.convert(1, TimeUnit.SECONDS));
+			monitor.wait(TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS));
 		}
 
 		final Object key3 = getObject();
