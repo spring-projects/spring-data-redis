@@ -207,10 +207,10 @@ public class SrpConnection implements RedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.sort(key, sort, null, (Object[]) null));
+				pipeline(pipeline.sort_(key, sort, null, (Object[]) null));
 				return null;
 			}
-			return SrpUtils.toBytesList((Reply[]) client.sort(key, sort, null, (Object[]) null).data());
+			return SrpUtils.toBytesList((Reply[]) client.sort_(key, sort, null, (Object[]) null).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -222,10 +222,10 @@ public class SrpConnection implements RedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.sort(key, sort, null, (Object[]) null));
+				pipeline(pipeline.sort_(key, sort, null, (Object[]) null));
 				return null;
 			}
-			return ((Long) client.sort(key, sort, null, (Object[]) null).data());
+			return ((Long) client.sort_(key, sort, null, (Object[]) null).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1419,10 +1419,10 @@ public class SrpConnection implements RedisConnection {
 
 		try {
 			if (isQueueing()) {
-				pipeline(pipeline.zinterstore(args));
+				pipeline(pipeline.zinterstore_(args));
 				return null;
 			}
-			return client.zinterstore(args).data();
+			return client.zinterstore_(args).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1497,10 +1497,10 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				pipeline(pipeline.zrangebyscore(key, min, max, null, limit));
+				pipeline(pipeline.zrangebyscore_(key, min, max, null, limit));
 				return null;
 			}
-			return SrpUtils.toSet(client.zrangebyscore(key, min, max, null, limit).data());
+			return SrpUtils.toSet(client.zrangebyscore_(key, min, max, null, limit).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1511,10 +1511,10 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				pipeline(pipeline.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
+				pipeline(pipeline.zrangebyscore_(key, min, max, SrpUtils.WITHSCORES, limit));
 				return null;
 			}
-			return SrpUtils.convertTuple(client.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
+			return SrpUtils.convertTuple(client.zrangebyscore_(key, min, max, SrpUtils.WITHSCORES, limit));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1525,9 +1525,9 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				client.zrevrangebyscore(key, min, max, null, limit);
+				client.zrevrangebyscore_(key, min, max, null, limit);
 			}
-			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, limit).data());
+			return SrpUtils.toSet(client.zrevrangebyscore_(key, min, max, null, limit).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1550,9 +1550,9 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit);
+				client.zrevrangebyscore_(key, min, max, SrpUtils.WITHSCORES, limit);
 			}
-			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
+			return SrpUtils.convertTuple(client.zrevrangebyscore_(key, min, max, SrpUtils.WITHSCORES, limit));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
