@@ -230,4 +230,12 @@ public abstract class JedisUtils {
 		args.add(Protocol.toByteArray(timeout));
 		return args.toArray(new byte[args.size()][]);
 	}
+
+	static String shasum(byte[] bytes) {
+		return new String(bytes);
+	}
+
+	static byte[] asBytes(int number) {
+		return String.valueOf(number).getBytes();
+	}
 }

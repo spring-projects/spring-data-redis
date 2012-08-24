@@ -978,13 +978,12 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
-	public Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
 		try {
 			if (isPipelined()) {
 				pipeline(pipeline.restore(key, ttlInMillis, serializedValue));
-				return null;
 			}
-			return SrpUtils.asBoolean(client.restore(key, ttlInMillis, serializedValue));
+			client.restore(key, ttlInMillis, serializedValue);
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1987,5 +1986,83 @@ public class SrpConnection implements RedisConnection {
 	// processing method that adds a listener to the future in order to track down the results and close the pipeline
 	private void pipeline(ListenableFuture<? extends Reply> future) {
 		callback.addCommand(future);
+	}
+
+
+	//
+	// Scripting commands
+	//
+
+
+	public void scriptFlush() {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_flush());
+				return;
+			}
+			client.script_flush();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public void scriptKill() {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_kill());
+				return;
+			}
+			client.script_kill();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public String scriptLoad(byte[] script) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_load(script));
+				return null;
+			}
+			return SrpUtils.asShasum(client.script_load(script));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_exists(scriptSha1));
+				return null;
+			}
+			return SrpUtils.asBooleanList(client.script_exists(scriptSha1));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public List<Object> eval(byte[] script, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.eval(script, numKeys, keysAndArgs));
+				return null;
+			}
+			return SrpUtils.asList(client.eval(script, numKeys, keysAndArgs));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public List<Object> evalSha(String scriptSha1, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.evalsha(scriptSha1, numKeys, keysAndArgs));
+				return null;
+			}
+			return SrpUtils.asList(client.evalsha(scriptSha1, numKeys, keysAndArgs));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
 	}
 }

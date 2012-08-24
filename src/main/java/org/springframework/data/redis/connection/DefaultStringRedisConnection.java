@@ -604,6 +604,30 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.zUnionStore(destKey, sets);
 	}
 
+	public void scriptFlush() {
+		delegate.scriptFlush();
+	}
+
+	public void scriptKill() {
+		delegate.scriptKill();
+	}
+
+	public String scriptLoad(byte[] script) {
+		return delegate.scriptLoad(script);
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		return delegate.scriptExists(scriptSha1);
+	}
+
+	public List<Object> eval(byte[] script, int numKeys, byte[]... keysAndArgs) {
+		return delegate.eval(script, numKeys, keysAndArgs);
+	}
+
+	public List<Object> evalSha(String scriptSha1, int numKeys, byte[]... keysAndArgs) {
+		return delegate.evalSha(scriptSha1, numKeys, keysAndArgs);
+	}
+
 	//
 	// String methods
 	//
@@ -1218,8 +1242,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.dump(key);
 	}
 
-	public Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
-		return delegate.restore(key, ttlInMillis, serializedValue);
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		delegate.restore(key, ttlInMillis, serializedValue);
 	}
 
 	public Boolean pExpire(String key, long millis) {
@@ -1238,7 +1262,19 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return deserialize(serialize(key));
 	}
 
-	public Boolean restore(String key, long ttlInMillis, String serializedValue) {
-		return restore(serialize(key), ttlInMillis, serialize(serializedValue));
+	public void restore(String key, long ttlInMillis, String serializedValue) {
+		restore(serialize(key), ttlInMillis, serialize(serializedValue));
+	}
+
+	public String scriptLoad(String script) {
+		return delegate.scriptLoad(serialize(script));
+	}
+
+	public List<Object> eval(String script, int numKeys, String... keysAndArgs) {
+		return delegate.eval(serialize(script), numKeys, serializeMulti(keysAndArgs));
+	}
+
+	public List<Object> evalSha(String scriptSha1, int numKeys, String... keysAndArgs) {
+		return delegate.evalSha(scriptSha1, numKeys, serializeMulti(keysAndArgs));
 	}
 }

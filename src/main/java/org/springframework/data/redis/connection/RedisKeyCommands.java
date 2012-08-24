@@ -63,5 +63,5 @@ public interface RedisKeyCommands {
 
 	byte[] dump(byte[] key);
 
-	Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue);
+	void restore(byte[] key, long ttlInMillis, byte[] serializedValue);
 }

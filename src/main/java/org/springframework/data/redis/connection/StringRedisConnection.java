@@ -76,7 +76,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	String dump(String key);
 
-	Boolean restore(String key, long ttlInMillis, String serializedValue);
+	void restore(String key, long ttlInMillis, String serializedValue);
 
 	String echo(String message);
 
@@ -268,4 +268,11 @@ public interface StringRedisConnection extends RedisConnection {
 	void subscribe(MessageListener listener, String... channels);
 
 	void pSubscribe(MessageListener listener, String... patterns);
+
+
+	String scriptLoad(String script);
+
+	List<Object> eval(String script, int numKeys, String... keysAndArgs);
+
+	List<Object> evalSha(String scriptSha1, int numKeys, String... keysAndArgs);
 }

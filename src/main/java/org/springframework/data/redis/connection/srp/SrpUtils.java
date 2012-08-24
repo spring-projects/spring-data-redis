@@ -239,4 +239,20 @@ abstract class SrpUtils {
 		Assert.notNull(op, "the bit operation is required");
 		return op.name().toUpperCase().getBytes(Charsets.UTF_8);
 	}
+
+	static String asShasum(Reply reply) {
+		Object data = reply.data();
+		return (data instanceof String ? (String) data : new String((byte[]) data));
+	}
+
+	static List<Boolean> asBooleanList(Reply genericReply) {
+		throw new UnsupportedOperationException("reply is " + genericReply.getClass() + " "
+				+ genericReply.data().getClass());
+	}
+
+	static List<Object> asList(Reply genericReply) {
+		throw new UnsupportedOperationException("reply is " + genericReply.getClass() + " "
+				+ genericReply.data().getClass());
+
+	}
 }

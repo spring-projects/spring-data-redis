@@ -24,7 +24,7 @@ package org.springframework.data.redis.connection;
  */
 public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
 		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
-		RedisServerCommands {
+		RedisServerCommands, RedisScriptingCommands {
 
 
 	/**

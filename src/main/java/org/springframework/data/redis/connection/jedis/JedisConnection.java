@@ -797,7 +797,7 @@ public class JedisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
-	public Boolean restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -2449,6 +2449,94 @@ public class JedisConnection implements RedisConnection {
 	private void checkSubscription() {
 		if (isSubscribed()) {
 			throw new RedisSubscribedConnectionException("Cannot execute command - connection is subscribed");
+		}
+	}
+
+	//
+	// Scripting commands
+	//
+
+	public void scriptFlush() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.scriptFlush();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	public void scriptKill() {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			jedis.scriptKill();
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	public String scriptLoad(byte[] script) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			return JedisUtils.shasum(jedis.scriptLoad(script));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			return jedis.scriptExists(scriptSha1);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	public List<Object> eval(byte[] script, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			return Collections.singletonList(jedis.eval(script, JedisUtils.asBytes(numKeys), keysAndArgs));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	public List<Object> evalSha(String scriptSha1, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isQueueing()) {
+				throw new UnsupportedOperationException();
+			}
+			if (isPipelined()) {
+				throw new UnsupportedOperationException();
+			}
+			return Collections.singletonList(jedis.evalsha(scriptSha1, numKeys, JedisUtils.convert(keysAndArgs)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
 		}
 	}
 }
