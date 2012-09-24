@@ -1354,10 +1354,10 @@ public class SrpConnection implements RedisConnection {
 	public byte[] sRandMember(byte[] key) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.srandmember(key));
+				pipeline(pipeline.srandmember_(key));
 				return null;
 			}
-			return client.srandmember(key).data();
+			return client.srandmember_(key).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

@@ -14,7 +14,7 @@ group = 'org.springframework.data'
 repositories {
   maven { url "http://repo.springsource.org/libs-snapshot" }
   maven { url "http://repo.springsource.org/plugins-release" }
-  maven { url "https://oss.sonatype.org/content/repositories/snapshots/"}
+//  maven { url "https://oss.sonatype.org/content/repositories/snapshots/"}
 }
 
 apply plugin: "java"
