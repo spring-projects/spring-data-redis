@@ -53,11 +53,19 @@ public interface ZSetOperations<K, V> {
 
 	Set<V> rangeByScore(K key, double min, double max);
 
+	Set<V> rangeByScore(K key, double min, double max, long offset, long count);
+
 	Set<V> reverseRangeByScore(K key, double min, double max);
+
+	Set<V> reverseRangeByScore(K key, double min, double max, long offset, long count);
 
 	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max);
 
+	Set<TypedTuple<V>> rangeByScoreWithScores(K key, double min, double max, long offset, long count);
+
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max);
+
+	Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, double min, double max, long offset, long count);
 
 	Boolean add(K key, V value, double score);
 
