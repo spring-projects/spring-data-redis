@@ -96,25 +96,17 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		cache.put(key1, value1);
 		cache.put(key2, value2);
 
-		final Object monitor = new Object();
-
 		Thread th = new Thread(new Runnable() {
 
 			public void run() {
-				synchronized (monitor) {
-					monitor.notify();
-				}
 				cache.clear();
 				cache.put(value1, key1);
 				cache.put(value2, key2);
 			}
 		}, "concurrent-cache-access");
 
-		th.run();
-
-		synchronized (monitor) {
-			monitor.wait(TimeUnit.MILLISECONDS.convert(1, TimeUnit.SECONDS));
-		}
+		th.start();
+		th.join();
 
 		final Object key3 = getObject();
 		final Object value3 = getObject();
