@@ -206,7 +206,7 @@ artifacts {
 
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
-    gradleVersion = '1.0'
+    gradleVersion = '1.2'
 }
 
 assemble.dependsOn = ['jar', 'sourcesJar']
