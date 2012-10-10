@@ -6,6 +6,33 @@ Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[versio
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
 
+Changes in version 1.0.2.RELEASE (2012-10-10)
+---------------------------------------------
+
+General
+* Upgraded to Spring Framework 3.1.2
+* Upgraded to SLF4J 1.6.6
+* Upgraded to Log4J 1.2.17
+* Upgraded to Jackson 1.8.8
+
+Package o.s.d.redis.cache
+* Fixed bug causing constructor to ignore cache name prefix
+* Introduced expiration time for cache zones
+
+Package o.s.d.redis.core
+* Fixed incorrect return value (from primitive to Object) on BoundHashOperations#hasKey
+* Added overloaded ZSet methods with offset/count parameters
+
+Package o.s.d.redis.connection
+* Refined RedisConnectionCommands, RedisKeyCommands interface signature
+
+Package o.s.d.redis.listener
+* Fixed bug causing the message channel to not be passed to the listener
+
+Package o.s.d.redis.support.collection
+* Added checks for incorrect pipeline/multi-exec access for better reporting
+
+
 Changes in version 1.0.1.RELEASE (2012-06-27)
 ---------------------------------------------
 
