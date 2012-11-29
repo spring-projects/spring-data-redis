@@ -128,6 +128,7 @@ public class JedisConnection implements RedisConnection {
 			return JedisUtils.convertJedisAccessException((JedisException) ex);
 		}
 		if (ex instanceof IOException) {
+			broken = true;
 			return JedisUtils.convertJedisAccessException((IOException) ex);
 		}
 
@@ -169,38 +170,51 @@ public class JedisConnection implements RedisConnection {
 		// return the connection to the pool
 		try {
 			if (pool != null) {
-				if (broken) {
-					pool.returnBrokenResource(jedis);
-				}
-				else {
+				if (!broken) {
 					// reset the connection 
 					if (dbIndex > 0) {
 						select(0);
 					}
-
 					pool.returnResource(jedis);
+					return;
 				}
 			}
 		} catch (Exception ex) {
-			pool.returnBrokenResource(jedis);
+			// exceptions are handled below
 		}
 
-		if (pool != null) {
+		if (pool != null && broken) {
+			pool.returnBrokenResource(jedis);
 			return;
 		}
 
-		// else close the connection normally
-		try {
-			if (isQueueing()) {
+		// else close the connection normally (doing the try/catch dance)
+		Exception exc = null;
+		if (isQueueing()) {
+			try {
 				client.quit();
-				client.disconnect();
-				return;
+			} catch (Exception ex) {
+				exc = ex;
 			}
+			try {
+				client.disconnect();
+			} catch (Exception ex) {
+				exc = ex;
+			}
+			return;
+		}
+		try {
 			jedis.quit();
+		} catch (Exception ex) {
+			exc = ex;
+		}
+		try {
 			jedis.disconnect();
 		} catch (Exception ex) {
-			throw convertJedisAccessException(ex);
+			exc = ex;
 		}
+		if (exc != null)
+			throw convertJedisAccessException(exc);
 	}
 
 
