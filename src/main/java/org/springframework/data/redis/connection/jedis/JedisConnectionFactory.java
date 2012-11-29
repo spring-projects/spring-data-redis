@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
@@ -98,7 +98,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			jedis.connect();
 			return jedis;
 		} catch (Exception ex) {
-			throw new DataAccessResourceFailureException("Cannot get Jedis connection", ex);
+			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
 		}
 	}
 
@@ -146,11 +146,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	public JedisConnection getConnection() {
 		Jedis jedis = fetchJedisConnector();
-		return postProcessConnection((usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis,
-				null, dbIndex)));
+		return postProcessConnection((usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis, null, dbIndex)));
 	}
 
-	
+
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return JedisUtils.convertJedisAccessException(ex);
 	}

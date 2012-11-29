@@ -114,8 +114,15 @@ public class JedisConnection implements RedisConnection {
 		this.dbIndex = dbIndex;
 
 		// select the db
+		// if this fail, do manual clean-up before propagating the exception
+		// as we're inside the constructor
 		if (dbIndex > 0) {
-			select(dbIndex);
+			try {
+				select(dbIndex);
+			} catch (DataAccessException ex) {
+				close();
+				throw ex;
+			}
 		}
 	}
 
