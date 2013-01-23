@@ -30,8 +30,8 @@ dependencies {
     // Logging
     compile "org.slf4j:slf4j-api:$slf4jVersion"
     compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
-    runtime "log4j:log4j:$log4jVersion"
-    runtime "org.slf4j:slf4j-log4j12:$slf4jVersion"
+    testRuntime "log4j:log4j:$log4jVersion"
+    testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
     
     // Spring Framework
     compile("org.springframework:spring-core:$springVersion") {
