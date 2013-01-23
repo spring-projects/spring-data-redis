@@ -15,9 +15,13 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,8 +32,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
-import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 
 /**
  * @author Costin Leau
@@ -113,5 +115,26 @@ public class RedisAtomicTests {
 		longCounter.set(5);
 		RedisAtomicLong keyCopy = new RedisAtomicLong(longCounter.getKey(), factory);
 		assertEquals(longCounter.get(), keyCopy.get());
+	}
+
+	// DATAREDIS-108
+	@Test
+	public void testCompareSet() throws Exception {
+		final AtomicBoolean flag = new AtomicBoolean(false);
+		for (int i = 0; i < 500; i++) {
+			new Thread(new Runnable() {
+				public void run() {
+					RedisAtomicInteger atomicInteger = new RedisAtomicInteger("key", factory);
+					if (atomicInteger.compareAndSet(0, 1)) {
+						if (flag.get()) {
+							fail("counter already modified");
+						}
+
+						flag.set(true);
+					}
+				}
+
+			}).start();
+		}
 	}
 }
