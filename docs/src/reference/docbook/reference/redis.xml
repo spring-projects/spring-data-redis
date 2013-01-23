@@ -444,7 +444,7 @@
   <cache:annotation-driven />
   
   <!-- declare Redis Cache Manager -->
-  <bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager" c:template-ref="redisTemplate">
+  <bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager" c:template-ref="redisTemplate"/>
 </beans>]]>
   	
   	</programlisting>
