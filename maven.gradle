@@ -53,6 +53,9 @@ def customizePom(pom, gradleProject) {
                     id = 'costin'
                     name = 'Costin Leau'
                     email = 'cleau@vmware.com'
+                    properties {
+                        twitter = 'costinl'
+                    }
                 }
             }
         }
