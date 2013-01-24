@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executor;
@@ -42,6 +43,7 @@ import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.SchedulingAwareRunnable;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
@@ -55,7 +57,11 @@ import org.springframework.util.ErrorHandler;
  * the message dispatch being done through the task executor.
  * 
  * <p/>
- * Note the container uses the connection in a lazy fashion (the connection is used only if at least one listener is configured). 
+ * Note the container uses the connection in a lazy fashion (the connection is used only if at least one listener is configured).
+ * 
+ * <p/>
+ * Adding and removing listeners at the same time has undefined results. It is strongly recommended to synchronize/order these
+ * methods accordingly.
  * 
  * @author Costin Leau
  */
@@ -63,7 +69,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
-
 
 
 	/**
@@ -104,13 +109,15 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private final Map<ByteArrayWrapper, Collection<MessageListener>> patternMapping = new ConcurrentHashMap<ByteArrayWrapper, Collection<MessageListener>>();
 	// lookup map between channels and listeners
 	private final Map<ByteArrayWrapper, Collection<MessageListener>> channelMapping = new ConcurrentHashMap<ByteArrayWrapper, Collection<MessageListener>>();
+	// lookup map between listeners and channels
+	private final Map<MessageListener, Set<Topic>> listenerTopics = new ConcurrentHashMap<MessageListener, Set<Topic>>();
 
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
 
 
-	
+
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
 			manageExecutor = true;
@@ -135,7 +142,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		return new SimpleAsyncTaskExecutor(threadNamePrefix);
 	}
 
-	
+
 	public void destroy() throws Exception {
 		initialized = false;
 
@@ -152,29 +159,29 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	
+
 	public boolean isAutoStartup() {
 		return true;
 	}
 
-	
+
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
 	}
 
-	
+
 	public int getPhase() {
 		// start the latest
 		return Integer.MAX_VALUE;
 	}
 
-	
+
 	public boolean isRunning() {
 		return running;
 	}
 
-	
+
 	public void start() {
 		if (!running) {
 			running = true;
@@ -196,13 +203,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	
+
 	public void stop() {
 		if (isRunning()) {
 			running = false;
 			synchronized (monitor) {
 				boolean shouldWait = listening;
 				subscriptionTask.cancel();
+				listening = false;
 				if (shouldWait) {
 					try {
 						monitor.wait(initWait);
@@ -300,7 +308,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		this.connectionFactory = connectionFactory;
 	}
 
-	
+
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -388,14 +396,56 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		addMessageListener(listener, Collections.singleton(topic));
 	}
 
+	/**
+	 * Removes a message listener from the given topics. If the container is running,
+	 * the listener stops receiving (matching) messages as soon as possible.
+	 * <p/>
+	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
+	 * listener from all channels.
+	 * Similarly a null listener will unsubscribe all listeners from the given topic.
+	 * 
+	 * @param listener message listener
+	 * @param topics message listener topics
+	 */
+	public void removeMessageListener(MessageListener listener, Collection<? extends Topic> topics) {
+		removeListener(listener, topics);
+	}
+
+	/**
+	 * Removes a message listener from the from the given topic. If the container is running,
+	 * the listener stops receiving (matching) messages as soon as possible.
+	 * 
+	 * <p/>
+	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
+	 * listener from all channels. Similarly a null listener will unsubscribe all listeners from the given topic.
+	 *
+	 * @param listener message listener
+	 * @param topic message topic
+	 */
+	public void removeMessageListener(MessageListener listener, Topic topic) {
+		removeMessageListener(listener, Collections.singleton(topic));
+	}
+
+	/**
+	 * Removes the given message listener completely (from all topics). If the container is running,
+	 * the listener stops receiving (matching) messages as soon as possible.
+	 * Similarly a null listener will unsubscribe all listeners from the given topic.
+	 * 
+	 * @param listener message listener
+	 */
+	public void removeMessageListener(MessageListener listener) {
+		removeMessageListener(listener, Collections.<Topic> emptySet());
+	}
+
 	private void initMapping(Map<? extends MessageListener, Collection<? extends Topic>> listeners) {
 		// stop the listener if currently running
 		if (isRunning()) {
-			stop();
+			subscriptionTask.cancel();
 		}
 
 		patternMapping.clear();
 		channelMapping.clear();
+		listenerTopics.clear();
 
 		if (!CollectionUtils.isEmpty(listeners)) {
 			for (Map.Entry<? extends MessageListener, Collection<? extends Topic>> entry : listeners.entrySet()) {
@@ -440,10 +490,21 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	private void addListener(MessageListener listener, Collection<? extends Topic> topics) {
+		Assert.notNull(listener, "a valid listener is required");
+		Assert.notEmpty(topics, "at least one topic is required");
+
 		List<byte[]> channels = new ArrayList<byte[]>(topics.size());
 		List<byte[]> patterns = new ArrayList<byte[]>(topics.size());
 
 		boolean trace = logger.isTraceEnabled();
+
+		// add listener mapping
+		Set<Topic> set = listenerTopics.get(listener);
+		if (set == null) {
+			set = new CopyOnWriteArraySet<Topic>();
+			listenerTopics.put(listener, set);
+		}
+		set.addAll(topics);
 
 		for (Topic topic : topics) {
 
@@ -487,6 +548,85 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
+	private void removeListener(MessageListener listener, Collection<? extends Topic> topics) {
+		boolean trace = logger.isTraceEnabled();
+
+		// check stop listening case
+		if (listener == null && CollectionUtils.isEmpty(topics)) {
+			subscriptionTask.cancel();
+			logger.debug("Stopped listening for Redis messages");
+			return;
+		}
+
+		List<byte[]> channelsToRemove = new ArrayList<byte[]>();
+		List<byte[]> patternsToRemove = new ArrayList<byte[]>();
+
+		// check unsubscribe all topics case
+		if (CollectionUtils.isEmpty(topics)) {
+			Set<Topic> set = listenerTopics.remove(listener);
+			// listener not found, bail out
+			if (set == null) {
+				return;
+			}
+			topics = set;
+		}
+
+		for (Topic topic : topics) {
+			ByteArrayWrapper holder = new ByteArrayWrapper(serializer.serialize(topic.getTopic()));
+
+			if (topic instanceof ChannelTopic) {
+				remove(listener, topic, holder, channelMapping, channelsToRemove);
+
+				if (trace) {
+					String msg = (listener != null ? "listener '" + listener + "'" : "all listeners");
+					logger.trace("Removing " + msg + " from channel '" + topic.getTopic() + "'");
+				}
+			}
+
+			else if (topic instanceof PatternTopic) {
+				remove(listener, topic, holder, patternMapping, patternsToRemove);
+
+				if (trace) {
+					String msg = (listener != null ? "listener '" + listener + "'" : "all listeners");
+					logger.trace("Removing " + msg + " from pattern '" + topic.getTopic() + "'");
+				}
+			}
+		}
+
+		// check the current listening state
+		if (listening) {
+			subscriptionTask.unsubscribeChannel(channelsToRemove.toArray(new byte[channelsToRemove.size()][]));
+			subscriptionTask.unsubscribePattern(patternsToRemove.toArray(new byte[patternsToRemove.size()][]));
+		}
+	}
+
+	private void remove(MessageListener listener, Topic topic, ByteArrayWrapper holder, Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
+
+		Collection<MessageListener> listeners = mapping.get(holder);
+		if (listeners != null) {
+			if (listener != null) {
+				listeners.remove(listener);
+			}
+			// remove all listeners for the given topic
+			else {
+				for (MessageListener messageListener : listeners) {
+					Set<Topic> topics = listenerTopics.get(messageListener);
+					if (topics != null) {
+						topics.remove(topic);
+					}
+					if (topics.isEmpty()) {
+						listenerTopics.remove(messageListener);
+					}
+				}
+			}
+
+			if (listener == null || listeners.isEmpty()) {
+				mapping.remove(holder);
+				topicToRemove.add(holder.getArray());
+			}
+		}
+	}
+
 
 	/**
 	 * Runnable used for Redis subscription. Implemented as a dedicated class to provide as many hints
@@ -509,12 +649,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			private long WAIT = 500;
 			private long ROUNDS = 3;
 
-			
+
 			public boolean isLongLived() {
 				return false;
 			}
 
-			
+
 			public void run() {
 				// wait for subscription to be initialized
 				boolean done = false;
@@ -542,12 +682,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		private volatile RedisConnection connection;
 		private final Object localMonitor = new Object();
 
-		
+
 		public boolean isLongLived() {
 			return true;
 		}
 
-		
+
 		public void run() {
 			connection = connectionFactory.getConnection();
 			try {
@@ -556,7 +696,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 
 				// NB: each Xsubscribe call blocks
-
 				synchronized (monitor) {
 					monitor.notify();
 				}
@@ -613,6 +752,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void cancel() {
+			if (!listening) {
+				return;
+			}
 			if (connection != null) {
 				synchronized (localMonitor) {
 					if (connection != null) {
@@ -694,48 +836,35 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	private class DispatchMessageListener implements MessageListener {
 
-		
 		public void onMessage(Message message, byte[] pattern) {
-			// do channel matching first
-			byte[] channel = message.getChannel();
+			Collection<MessageListener> listeners = null;
 
-			Collection<MessageListener> ch = channelMapping.get(new ByteArrayWrapper(channel));
-			Collection<MessageListener> pt = null;
-
-			// followed by pattern matching
+			// if it's a pattern, disregard channel
 			if (pattern != null && pattern.length > 0) {
-				pt = patternMapping.get(new ByteArrayWrapper(pattern));
+				listeners = patternMapping.get(new ByteArrayWrapper(pattern));
+			}
+			else {
+				pattern = null;
+				// do channel matching first
+				listeners = channelMapping.get(new ByteArrayWrapper(message.getChannel()));
 			}
 
-			if (!CollectionUtils.isEmpty(ch)) {
-				dispatchChannels(ch, message);
-			}
-
-			if (!CollectionUtils.isEmpty(pt)) {
-				dispatchPatterns(pt, message, pattern);
-			}
-		}
-
-		private void dispatchChannels(Collection<MessageListener> ch, final Message message) {
-			for (final MessageListener messageListener : ch) {
-				taskExecutor.execute(new Runnable() {
-					
-					public void run() {
-						processMessage(messageListener, message, message.getChannel());
-					}
-				});
-			}
-		}
-
-		private void dispatchPatterns(Collection<MessageListener> pt, final Message message, final byte[] pattern) {
-			for (final MessageListener messageListener : pt) {
-				taskExecutor.execute(new Runnable() {
-					
-					public void run() {
-						processMessage(messageListener, message, pattern.clone());
-					}
-				});
+			if (!CollectionUtils.isEmpty(listeners)) {
+				dispatchMessage(listeners, message, pattern);
 			}
 		}
 	}
+
+	private void dispatchMessage(Collection<MessageListener> listeners, final Message message, final byte[] pattern) {
+		final byte[] source = (pattern != null ? pattern.clone() : message.getChannel());
+
+		for (final MessageListener messageListener : listeners) {
+			taskExecutor.execute(new Runnable() {
+				public void run() {
+					processMessage(messageListener, message, source);
+				}
+			});
+		}
+	}
+
 }

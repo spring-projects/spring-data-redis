@@ -16,6 +16,7 @@
 package org.springframework.data.redis.listener;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -33,6 +34,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -47,6 +50,9 @@ import org.springframework.data.redis.support.collections.ObjectFactory;
 public class PubSubTests<T> {
 
 	private static final String CHANNEL = "pubsub::test";
+	private final Long ZERO = Long.valueOf(0);
+	private final Long ONE = Long.valueOf(1);
+	private final Long TWO = Long.valueOf(2);
 
 	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
@@ -64,6 +70,8 @@ public class PubSubTests<T> {
 
 	@Before
 	public void setUp() throws Exception {
+		bag.clear();
+
 		adapter.setSerializer(template.getValueSerializer());
 		adapter.afterPropertiesSet();
 
@@ -71,6 +79,8 @@ public class PubSubTests<T> {
 		container.setConnectionFactory(template.getConnectionFactory());
 		container.setBeanName("container");
 		container.addMessageListener(adapter, Arrays.asList(new ChannelTopic(CHANNEL)));
+		container.setTaskExecutor(new SyncTaskExecutor());
+		container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 		container.afterPropertiesSet();
 		container.start();
 
@@ -111,14 +121,12 @@ public class PubSubTests<T> {
 		String payload1 = "do";
 		String payload2 = "re mi";
 
-		template.convertAndSend(CHANNEL, payload1);
-		template.convertAndSend(CHANNEL, payload2);
+		assertEquals(ONE, template.convertAndSend(CHANNEL, payload1));
+		assertEquals(ONE, template.convertAndSend(CHANNEL, payload2));
 
 		Set<String> set = new LinkedHashSet<String>();
 		set.add(bag.poll(1, TimeUnit.SECONDS));
 		set.add(bag.poll(1, TimeUnit.SECONDS));
-
-		System.out.println(set);
 
 		assertTrue(set.contains(payload1));
 		assertTrue(set.contains(payload2));
@@ -134,4 +142,55 @@ public class PubSubTests<T> {
 		Thread.sleep(1000);
 		assertEquals(COUNT, bag.size());
 	}
+
+	@Test
+	public void testContainerUnsubscribe() throws Exception {
+		String payload1 = "do";
+		String payload2 = "re mi";
+
+		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
+		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload1));
+		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload2));
+
+		Set<String> set = new LinkedHashSet<String>();
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+
+		assertFalse(set.contains(payload1));
+		assertFalse(set.contains(payload2));
+	}
+
+	@Test
+	public void testContainerChannelResubscribe() throws Exception {
+		String payload1 = "do";
+		String payload2 = "re mi";
+
+		String anotherPayload1 = "od";
+		String anotherPayload2 = "mi er";
+
+		String ANOTHER_CHANNEL = "pubsub::test::extra";
+
+		// bind listener on another channel
+		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
+		container.removeMessageListener(null, new ChannelTopic(CHANNEL));
+
+		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload1));
+		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload2));
+
+		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1));
+		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2));
+
+		Set<String> set = new LinkedHashSet<String>();
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+
+		System.out.println(set);
+
+		assertFalse(set.contains(payload1));
+		assertFalse(set.contains(payload2));
+
+		assertTrue(set.contains(anotherPayload1));
+		assertTrue(set.contains(anotherPayload2));
+	}
+
 }
