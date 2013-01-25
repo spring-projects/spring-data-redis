@@ -126,8 +126,8 @@ public class PubSubResubscribeTests {
 		anotherListener.afterPropertiesSet();
 
 		// remove adapter from all channels
-		container.removeMessageListener(adapter);
 		container.addMessageListener(anotherListener, new PatternTopic(PATTERN));
+		container.removeMessageListener(adapter);
 
 		// test no messages are sent just to patterns
 		assertEquals(ONE, template.convertAndSend(CHANNEL, payload1));
