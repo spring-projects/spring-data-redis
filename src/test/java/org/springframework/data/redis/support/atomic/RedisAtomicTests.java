@@ -18,7 +18,6 @@ package org.springframework.data.redis.support.atomic;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -121,24 +120,32 @@ public class RedisAtomicTests {
 	// DATAREDIS-108
 	@Test
 	public void testCompareSet() throws Exception {
-		final AtomicBoolean flag = new AtomicBoolean(false);
-		int NUM = 123;
+		final AtomicBoolean alreadySet = new AtomicBoolean(false);
+		final int NUM = 50;
+		final String KEY = getClass().getSimpleName() + ":atomic:counter";
 		final CountDownLatch latch = new CountDownLatch(NUM);
+
+		final AtomicBoolean failed = new AtomicBoolean(false);
 		for (int i = 0; i < NUM; i++) {
 			new Thread(new Runnable() {
 				public void run() {
-					RedisAtomicInteger atomicInteger = new RedisAtomicInteger("key", factory);
-					if (atomicInteger.compareAndSet(0, 1)) {
-						if (flag.get()) {
-							fail("counter already modified");
+					RedisAtomicInteger atomicInteger = new RedisAtomicInteger(KEY, factory);
+					try {
+						if (atomicInteger.compareAndSet(0, 1)) {
+							System.out.println(atomicInteger.get());
+							if (alreadySet.get()) {
+								failed.set(true);
+							}
+							alreadySet.set(true);
 						}
-
-						flag.set(true);
+					} finally {
+						latch.countDown();
 					}
-					latch.countDown();
 				}
 			}).start();
 		}
 		latch.await();
+
+		assertFalse("counter already modified", failed.get());
 	}
 }
