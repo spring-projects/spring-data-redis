@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
@@ -121,7 +122,9 @@ public class RedisAtomicTests {
 	@Test
 	public void testCompareSet() throws Exception {
 		final AtomicBoolean flag = new AtomicBoolean(false);
-		for (int i = 0; i < 500; i++) {
+		int NUM = 123;
+		final CountDownLatch latch = new CountDownLatch(NUM);
+		for (int i = 0; i < NUM; i++) {
 			new Thread(new Runnable() {
 				public void run() {
 					RedisAtomicInteger atomicInteger = new RedisAtomicInteger("key", factory);
@@ -132,9 +135,10 @@ public class RedisAtomicTests {
 
 						flag.set(true);
 					}
+					latch.countDown();
 				}
-
 			}).start();
 		}
+		latch.await();
 	}
 }

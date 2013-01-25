@@ -31,6 +31,7 @@ public abstract class AtomicCountersParam {
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
+		jedisConnFactory.setUsePool(false);
 		jedisConnFactory.afterPropertiesSet();
 
 		// jredis factory
