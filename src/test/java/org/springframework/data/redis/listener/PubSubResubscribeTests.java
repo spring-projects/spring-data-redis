@@ -17,11 +17,14 @@
 package org.springframework.data.redis.listener;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +33,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -104,6 +108,8 @@ public class PubSubResubscribeTests {
 	@After
 	public void tearDown() throws Exception {
 		container.destroy();
+		((DisposableBean) factory).destroy();
+		Thread.sleep(1000);
 	}
 
 
@@ -149,5 +155,38 @@ public class PubSubResubscribeTests {
 
 		assertTrue(msgs.contains(payload1));
 		assertTrue(msgs.contains(payload2));
+	}
+
+	@Test
+	public void testContainerChannelResubscribe() throws Exception {
+		String payload1 = "do";
+		String payload2 = "re mi";
+
+		String anotherPayload1 = "od";
+		String anotherPayload2 = "mi er";
+
+		String ANOTHER_CHANNEL = "pubsub::test::extra";
+
+		// bind listener on another channel
+		container.removeMessageListener(null, new ChannelTopic(CHANNEL));
+		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
+
+		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload1));
+		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload2));
+
+		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1));
+		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2));
+
+		Set<String> set = new LinkedHashSet<String>();
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+
+		System.out.println(set);
+
+		assertFalse(set.contains(payload1));
+		assertFalse(set.contains(payload2));
+
+		assertTrue(set.contains(anotherPayload1));
+		assertTrue(set.contains(anotherPayload2));
 	}
 }

@@ -159,38 +159,4 @@ public class PubSubTests<T> {
 		assertFalse(set.contains(payload1));
 		assertFalse(set.contains(payload2));
 	}
-
-	@Test
-	public void testContainerChannelResubscribe() throws Exception {
-		String payload1 = "do";
-		String payload2 = "re mi";
-
-		String anotherPayload1 = "od";
-		String anotherPayload2 = "mi er";
-
-		String ANOTHER_CHANNEL = "pubsub::test::extra";
-
-		// bind listener on another channel
-		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
-		container.removeMessageListener(null, new ChannelTopic(CHANNEL));
-
-		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload1));
-		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload2));
-
-		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1));
-		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2));
-
-		Set<String> set = new LinkedHashSet<String>();
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-
-		System.out.println(set);
-
-		assertFalse(set.contains(payload1));
-		assertFalse(set.contains(payload2));
-
-		assertTrue(set.contains(anotherPayload1));
-		assertTrue(set.contains(anotherPayload2));
-	}
-
 }

@@ -34,6 +34,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -62,6 +63,7 @@ import org.springframework.util.ErrorHandler;
  * <p/>
  * Adding and removing listeners at the same time has undefined results. It is strongly recommended to synchronize/order these
  * methods accordingly.
+ * 
  * 
  * @author Costin Leau
  */
@@ -207,18 +209,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	public void stop() {
 		if (isRunning()) {
 			running = false;
-			synchronized (monitor) {
-				boolean shouldWait = listening;
-				subscriptionTask.cancel();
-				listening = false;
-				if (shouldWait) {
-					try {
-						monitor.wait(initWait);
-					} catch (InterruptedException ex) {
-						// stop waiting
-					}
-				}
-			}
+			subscriptionTask.cancel();
 		}
 
 		if (logger.isDebugEnabled()) {
@@ -554,7 +545,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		// check stop listening case
 		if (listener == null && CollectionUtils.isEmpty(topics)) {
 			subscriptionTask.cancel();
-			logger.debug("Stopped listening for Redis messages");
 			return;
 		}
 
@@ -593,8 +583,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 		}
 
+		// double check whether there are still subscriptions available otherwise cancel the connection
+		// as most drivers forfeit the connection on unsubscribe
+		if (listenerTopics.isEmpty()) {
+			subscriptionTask.cancel();
+		}
+
 		// check the current listening state
-		if (listening) {
+		else if (listening) {
 			subscriptionTask.unsubscribeChannel(channelsToRemove.toArray(new byte[channelsToRemove.size()][]));
 			subscriptionTask.unsubscribePattern(patternsToRemove.toArray(new byte[patternsToRemove.size()][]));
 		}
@@ -717,22 +713,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				// this block is executed once the subscription has ended
 				// meaning cleanup is required
 
-				listening = false;
-
-				if (connection != null) {
-					synchronized (localMonitor) {
-						if (connection != null) {
-							connection.close();
-							connection = null;
-						}
-					}
-				}
-
 				// done with the thread, app can be destroyed
 				synchronized (monitor) {
 					monitor.notify();
 				}
-
 			}
 		}
 
@@ -755,6 +739,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (!listening) {
 				return;
 			}
+			boolean shouldWait = listening;
+			listening = false;
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("Cancelling Redis subscription...");
+			}
 			if (connection != null) {
 				synchronized (localMonitor) {
 					if (connection != null) {
@@ -762,6 +752,24 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						if (sub != null) {
 							sub.pUnsubscribe();
 							sub.unsubscribe();
+						}
+
+					}
+				}
+			}
+		}
+
+		private void cleanUpConnection() {
+			listening = false;
+			if (connection != null) {
+				synchronized (localMonitor) {
+					if (connection != null) {
+						RedisConnection con = connection;
+						connection = null;
+						try {
+							con.close();
+						} catch (DataAccessException ex) {
+							logger.trace("Closing connection threw", ex);
 						}
 					}
 				}
@@ -866,5 +874,4 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			});
 		}
 	}
-
 }
