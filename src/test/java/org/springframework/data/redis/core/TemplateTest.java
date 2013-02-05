@@ -57,6 +57,13 @@ public class TemplateTest {
 		return CollectionTestParams.testParams();
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testTemplateNotInitialized() throws Exception {
+		RedisTemplate tpl = new RedisTemplate();
+		tpl.setConnectionFactory(template.getConnectionFactory());
+		tpl.exec();
+	}
+
 	@Test
 	public void testKeys() throws Exception {
 		assertTrue(template.keys("*") != null);

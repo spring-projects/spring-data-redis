@@ -66,6 +66,7 @@ import org.springframework.util.ClassUtils;
 public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
 
 	private boolean exposeConnection = false;
+	private boolean initialized = false;
 	private RedisSerializer<?> defaultSerializer = new JdkSerializationRedisSerializer();
 
 	private RedisSerializer keySerializer = null;
@@ -114,6 +115,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		if (defaultUsed) {
 			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
 		}
+
+		initialized = true;
 	}
 
 
@@ -144,6 +147,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @return object returned by the action
 	 */
 	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
+		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
 
 		RedisConnectionFactory factory = getConnectionFactory();
@@ -177,6 +181,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 
 	public <T> T execute(SessionCallback<T> session) {
+		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
+		Assert.notNull(session, "Callback object must not be null");
+
 		RedisConnectionFactory factory = getConnectionFactory();
 		// bind connection
 		RedisConnectionUtils.bindConnection(factory);
