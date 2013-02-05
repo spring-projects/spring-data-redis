@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
@@ -373,5 +374,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		System.out.println(result.get(3));
 		assertArrayEquals(value1.getBytes(), (byte[]) result.get(2));
 		assertArrayEquals(value2.getBytes(), (byte[]) result.get(3));
+	}
+
+	@Test
+	public void testHashMethod() throws Exception {
+		String hash = getClass() + ":hashtest";
+		String key1 = UUID.randomUUID().toString();
+		String key2 = UUID.randomUUID().toString();
+		connection.hSet(hash, key1, UUID.randomUUID().toString());
+		connection.hSet(hash, key2, UUID.randomUUID().toString());
+
+		Map<String, String> hashMap = connection.hGetAll(hash);
+		assertTrue(hashMap.size() >= 2);
+		assertTrue(hashMap.containsKey(key1));
+		assertTrue(hashMap.containsKey(key2));
 	}
 }

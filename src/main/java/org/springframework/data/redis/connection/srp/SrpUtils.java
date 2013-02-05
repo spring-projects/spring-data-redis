@@ -147,10 +147,10 @@ abstract class SrpUtils {
 		return tuples;
 	}
 
-	static Map<byte[], byte[]> toMap(Object[] byteArrays) {
+	static Map<byte[], byte[]> toMap(Reply[] byteArrays) {
 		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>(byteArrays.length / 2);
 		for (int i = 0; i < byteArrays.length; i++) {
-			map.put((byte[]) byteArrays[i++], (byte[]) byteArrays[i]);
+			map.put((byte[]) byteArrays[i++].data(), (byte[]) byteArrays[i].data());
 		}
 		return map;
 	}
