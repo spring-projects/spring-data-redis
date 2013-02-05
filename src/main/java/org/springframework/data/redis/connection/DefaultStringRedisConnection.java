@@ -612,6 +612,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return ret;
 	}
 
+	private Map<String, String> deserialize(Map<byte[], byte[]> hashes) {
+		Map<String, String> ret = new LinkedHashMap<String, String>(hashes.size());
+
+		for (Map.Entry<byte[], byte[]> entry : hashes.entrySet()) {
+			ret.put(serializer.deserialize(entry.getKey()), serializer.deserialize(entry.getValue()));
+		}
+
+		return ret;
+	}
 
 	private List<String> deserialize(List<byte[]> data) {
 		return SerializationUtils.deserialize(data, serializer);
@@ -729,7 +738,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Map<String, String> hGetAll(String key) {
-		throw new UnsupportedOperationException();
+		return deserialize(delegate.hGetAll(serialize(key)));
 	}
 
 	
@@ -751,8 +760,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<String> hMGet(String key, String... fields) {
 		return deserialize(delegate.hMGet(serialize(key), serializeMulti(fields)));
 	}
-
-
 	
 	public void hMSet(String key, Map<String, String> hashes) {
 		delegate.hMSet(serialize(key), serialize(hashes));
