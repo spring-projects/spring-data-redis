@@ -65,7 +65,6 @@ public class LettuceConnection implements RedisConnection {
 
 	private final com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncConn;
 	private final com.lambdaworks.redis.RedisConnection<byte[], byte[]> con;
-	private RedisPubSubConnection<byte[], byte[]> pubsub;
 	private final RedisCodec<byte[], byte[]> codec = LettuceUtils.CODEC;
 	private final long timeout;
 
@@ -157,7 +156,7 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	public RedisAsyncConnection<byte[], byte[]> getNativeConnection() {
-		return (pubsub != null ? pubsub : asyncConn);
+		return (subscription != null ? subscription.pubsub : asyncConn);
 	}
 
 

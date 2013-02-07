@@ -28,7 +28,7 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  */
 class LettuceSubscription extends AbstractSubscription {
 
-	private final RedisPubSubConnection<byte[], byte[]> pubsub;
+	final RedisPubSubConnection<byte[], byte[]> pubsub;
 	private LettuceMessageListener listener;
 
 	LettuceSubscription(MessageListener listener, RedisPubSubConnection<byte[], byte[]> pubsubConnection) {
@@ -43,6 +43,7 @@ class LettuceSubscription extends AbstractSubscription {
 		pubsub.unsubscribe(new byte[0]);
 		pubsub.punsubscribe(new byte[0]);
 		pubsub.removeListener(this.listener);
+		pubsub.close();
 	}
 
 
