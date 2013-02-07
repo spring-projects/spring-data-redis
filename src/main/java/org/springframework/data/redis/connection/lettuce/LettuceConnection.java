@@ -30,6 +30,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.jboss.netty.channel.ChannelException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
@@ -41,6 +42,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
@@ -63,6 +65,7 @@ public class LettuceConnection implements RedisConnection {
 
 	private final com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncConn;
 	private final com.lambdaworks.redis.RedisConnection<byte[], byte[]> con;
+	private RedisPubSubConnection<byte[], byte[]> pubsub;
 	private final RedisCodec<byte[], byte[]> codec = LettuceUtils.CODEC;
 	private final long timeout;
 
@@ -80,7 +83,8 @@ public class LettuceConnection implements RedisConnection {
 	 * @param connection underlying Lettuce async connection
 	 * @param timeout the connection timeout (in milliseconds)
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> connection, long timeout, RedisClient client) {
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> connection, long timeout,
+			RedisClient client) {
 		Assert.notNull(connection, "a valid connection is required");
 
 		this.asyncConn = connection;
@@ -102,9 +106,11 @@ public class LettuceConnection implements RedisConnection {
 		return new RedisSystemException("Unknown Lettuce exception", ex);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Object await(Command cmd) {
-		if (isMulti && cmd.type != MULTI)
+		if (isMulti && cmd.type != MULTI) {
 			return null;
+		}
 		return asyncConn.await(cmd, timeout, TimeUnit.MILLISECONDS);
 	}
 
@@ -113,14 +119,18 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			String name = command.trim().toUpperCase();
 			CommandType cmd = CommandType.valueOf(name);
-			CommandArgs<byte[], byte[]> cmdArg = new CommandArgs<byte[], byte[]>(codec).addKeys(args);
+			CommandArgs<byte[], byte[]> cmdArg = new CommandArgs<byte[], byte[]>(codec);
+
+			if (!ObjectUtils.isEmpty(args)) {
+				cmdArg.addKeys(args);
+			}
 
 			if (isPipelined()) {
-				asyncConn.dispatch(cmd, new ByteArrayOutput(codec), cmdArg);
+				pipeline(asyncConn.dispatch(cmd, new ByteArrayOutput<byte[], byte[]>(codec), cmdArg));
 				return null;
 			}
 			else {
-				return await(asyncConn.dispatch(cmd, new ByteArrayOutput(codec), cmdArg));
+				return await(asyncConn.dispatch(cmd, new ByteArrayOutput<byte[], byte[]>(codec), cmdArg));
 			}
 		} catch (RedisException ex) {
 			throw convertLettuceAccessException(ex);
@@ -142,7 +152,7 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	public RedisAsyncConnection<byte[], byte[]> getNativeConnection() {
-		return asyncConn;
+		return (pubsub != null ? pubsub : asyncConn);
 	}
 
 
@@ -164,16 +174,32 @@ public class LettuceConnection implements RedisConnection {
 
 	public List<Object> closePipeline() {
 		if (isPipelined) {
+			isPipelined = false;
 			boolean done = asyncConn.awaitAll(ppline.toArray(new Command[ppline.size()]));
 			List<Object> results = new ArrayList<Object>(ppline.size());
 
+			Exception problem = null;
+			
 			if (done) {
 				for (Command<?, ?, ?> cmd : ppline) {
-					results.add(cmd.get());
+					if (cmd.getOutput().hasError()) {
+						Exception err = new InvalidDataAccessApiUsageException(cmd.getOutput().getError());
+						// remember only the first error
+						if (problem == null) {
+							problem = err;
+						}
+						results.add(err);
+					}
+					else {
+						results.add(cmd.get());
+					}
 				}
 			}
 			ppline.clear();
 
+			if (problem != null) {
+				throw new RedisPipelineException(problem, results);
+			}
 			if (done) {
 				return results;
 			}
@@ -480,7 +506,7 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.keys(pattern));
 				return null;
 			}
-			return new LinkedHashSet(con.keys(pattern));
+			return new LinkedHashSet<byte[]>(con.keys(pattern));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
