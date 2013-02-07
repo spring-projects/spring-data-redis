@@ -34,7 +34,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -619,7 +618,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				if (topics != null) {
 					topics.remove(topic);
 				}
-				if (topics.isEmpty()) {
+				if (CollectionUtils.isEmpty(topics)) {
 					listenerTopics.remove(messageListener);
 				}
 			}
@@ -747,7 +746,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (!listening) {
 				return;
 			}
-			boolean shouldWait = listening;
 			listening = false;
 
 			if (logger.isTraceEnabled()) {
@@ -762,23 +760,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 							sub.unsubscribe();
 						}
 
-					}
-				}
-			}
-		}
-
-		private void cleanUpConnection() {
-			listening = false;
-			if (connection != null) {
-				synchronized (localMonitor) {
-					if (connection != null) {
-						RedisConnection con = connection;
-						connection = null;
-						try {
-							con.close();
-						} catch (DataAccessException ex) {
-							logger.trace("Closing connection threw", ex);
-						}
 					}
 				}
 			}
