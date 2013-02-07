@@ -193,7 +193,7 @@ public abstract class AbstractSubscription implements Subscription {
 		// shortcut for unsubscribing all channels
 		if (ObjectUtils.isEmpty(chans)) {
 			if (!this.channels.isEmpty()) {
-				chans = getPatterns().toArray(new byte[this.channels.size()][]);
+				chans = getChannels().toArray(new byte[this.channels.size()][]);
 				synchronized (this.channels) {
 					this.channels.clear();
 				}
