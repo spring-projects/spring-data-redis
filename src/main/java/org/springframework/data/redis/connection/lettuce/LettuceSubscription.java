@@ -52,12 +52,8 @@ class LettuceSubscription extends AbstractSubscription {
 	}
 
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
-		if (all) {
-			pubsub.punsubscribe(new byte[0]);
-		}
-		else {
-			pubsub.punsubscribe(patterns);
-		}
+		// lettuce doesn't automatically subscribe from all channels
+		pubsub.punsubscribe(patterns);
 	}
 
 	protected void doSubscribe(byte[]... channels) {
@@ -65,11 +61,7 @@ class LettuceSubscription extends AbstractSubscription {
 	}
 
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
-		if (all) {
-			pubsub.unsubscribe(new byte[0]);
-		}
-		else {
-			pubsub.unsubscribe(channels);
-		}
+		// lettuce doesn't automatically subscribe from all patterns
+		pubsub.unsubscribe(channels);
 	}
 }
