@@ -599,23 +599,31 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private void remove(MessageListener listener, Topic topic, ByteArrayWrapper holder, Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
+		Collection<MessageListener> listenersToRemove = null;
+
 		if (listeners != null) {
+			// remove only one listener
 			if (listener != null) {
 				listeners.remove(listener);
-			}
-			// remove all listeners for the given topic
-			else {
-				for (MessageListener messageListener : listeners) {
-					Set<Topic> topics = listenerTopics.get(messageListener);
-					if (topics != null) {
-						topics.remove(topic);
-					}
-					if (topics.isEmpty()) {
-						listenerTopics.remove(messageListener);
-					}
-				}
+				listenersToRemove = Collections.singletonList(listener);
 			}
 
+			// no listener given - remove all of them
+			else {
+				listenersToRemove = listeners;
+			}
+
+			// start removing listeners
+			for (MessageListener messageListener : listenersToRemove) {
+				Set<Topic> topics = listenerTopics.get(messageListener);
+				if (topics != null) {
+					topics.remove(topic);
+				}
+				if (topics.isEmpty()) {
+					listenerTopics.remove(messageListener);
+				}
+			}
+			// if we removed everything, remove the empty holder collection 
 			if (listener == null || listeners.isEmpty()) {
 				mapping.remove(holder);
 				topicToRemove.add(holder.getArray());
