@@ -22,6 +22,7 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -162,6 +163,32 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateSRP.setConnectionFactory(srConnFactory);
 		jsonPersonTemplateSRP.afterPropertiesSet();
 
+		// Lettuce
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setPort(SettingsUtils.getPort());
+		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(srConnFactory);
+		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<String, Person>();
+		personTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		personTemplateLtc.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xstreamStringTemplateLtc = new RedisTemplate<String, Person>();
+		xstreamStringTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		xstreamStringTemplateLtc.setDefaultSerializer(serializer);
+		xstreamStringTemplateLtc.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xstreamPersonTemplateLtc = new RedisTemplate<String, Person>();
+		xstreamPersonTemplateLtc.setValueSerializer(serializer);
+		xstreamPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		xstreamPersonTemplateLtc.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateLtc = new RedisTemplate<String, Person>();
+		jsonPersonTemplateLtc.setValueSerializer(jsonSerializer);
+		jsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		jsonPersonTemplateLtc.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { stringFactory, stringTemplateRJC },
 				{ personFactory, personTemplateRJC },
 				//{ stringFactory, stringTemplateJR },
@@ -172,11 +199,18 @@ public abstract class CollectionTestParams {
 				//{ personFactory, xstreamPersonTemplateJR },
 				{ personFactory, jsonPersonTemplate },
 				//{ personFactory, jsonPersonTemplateJR },
+				// rjc
 				{ stringFactory, xstreamStringTemplateRJC }, { personFactory, xstreamPersonTemplateRJC },
 				{ personFactory, jsonPersonTemplateRJC },
+				// srp
 				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
 				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },
-				{ personFactory, jsonPersonTemplateSRP }
+				{ personFactory, jsonPersonTemplateSRP },
+				// lettuce
+				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
+				{ stringFactory, xstreamStringTemplateLtc }, { personFactory, xstreamPersonTemplateLtc },
+				{ personFactory, jsonPersonTemplateLtc }
+
 		});
 	}
 }

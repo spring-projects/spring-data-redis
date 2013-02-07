@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -52,7 +53,6 @@ public class PubSubTestParams {
 		personTemplate.afterPropertiesSet();
 
 		// create RJC
-
 		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
 		rjcConnFactory.setUsePool(false);
 		rjcConnFactory.setPort(SettingsUtils.getPort());
@@ -64,9 +64,21 @@ public class PubSubTestParams {
 		personTemplateRJC.setConnectionFactory(rjcConnFactory);
 		personTemplateRJC.afterPropertiesSet();
 
+		// add Lettuce
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setPort(SettingsUtils.getPort());
+		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
+		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<String, Person>();
+		personTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		personTemplateLtc.afterPropertiesSet();
+
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
-				{ stringFactory, stringTemplateRJC }, { personFactory, personTemplateRJC }
+				{ stringFactory, stringTemplateRJC }, { personFactory, personTemplateRJC },
+				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc }
 		});
 	}
 }

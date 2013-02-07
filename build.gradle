@@ -46,6 +46,7 @@ dependencies {
     compile("com.github.spullara.redis:client:$srpVersion", optional)
     compile("org.jredis:jredis-anthonylauzon:$jredisVersion", optional)
     compile("org.idevlab:rjc:$rjcVersion", optional)
+    compile("com.lambdaworks:lettuce:$lettuceVersion", optional)
     
     // Mappers
     compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)

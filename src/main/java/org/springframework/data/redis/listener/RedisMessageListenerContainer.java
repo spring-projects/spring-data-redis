@@ -34,7 +34,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -599,23 +598,31 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private void remove(MessageListener listener, Topic topic, ByteArrayWrapper holder, Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
+		Collection<MessageListener> listenersToRemove = null;
+
 		if (listeners != null) {
+			// remove only one listener
 			if (listener != null) {
 				listeners.remove(listener);
-			}
-			// remove all listeners for the given topic
-			else {
-				for (MessageListener messageListener : listeners) {
-					Set<Topic> topics = listenerTopics.get(messageListener);
-					if (topics != null) {
-						topics.remove(topic);
-					}
-					if (topics.isEmpty()) {
-						listenerTopics.remove(messageListener);
-					}
-				}
+				listenersToRemove = Collections.singletonList(listener);
 			}
 
+			// no listener given - remove all of them
+			else {
+				listenersToRemove = listeners;
+			}
+
+			// start removing listeners
+			for (MessageListener messageListener : listenersToRemove) {
+				Set<Topic> topics = listenerTopics.get(messageListener);
+				if (topics != null) {
+					topics.remove(topic);
+				}
+				if (CollectionUtils.isEmpty(topics)) {
+					listenerTopics.remove(messageListener);
+				}
+			}
+			// if we removed everything, remove the empty holder collection 
 			if (listener == null || listeners.isEmpty()) {
 				mapping.remove(holder);
 				topicToRemove.add(holder.getArray());
@@ -739,7 +746,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (!listening) {
 				return;
 			}
-			boolean shouldWait = listening;
 			listening = false;
 
 			if (logger.isTraceEnabled()) {
@@ -754,23 +760,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 							sub.unsubscribe();
 						}
 
-					}
-				}
-			}
-		}
-
-		private void cleanUpConnection() {
-			listening = false;
-			if (connection != null) {
-				synchronized (localMonitor) {
-					if (connection != null) {
-						RedisConnection con = connection;
-						connection = null;
-						try {
-							con.close();
-						} catch (DataAccessException ex) {
-							logger.trace("Closing connection threw", ex);
-						}
 					}
 				}
 			}
