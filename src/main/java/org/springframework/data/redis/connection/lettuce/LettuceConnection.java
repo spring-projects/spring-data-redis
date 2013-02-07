@@ -145,6 +145,11 @@ public class LettuceConnection implements RedisConnection {
 		} catch (RuntimeException ex) {
 			throw convertLettuceAccessException(ex);
 		}
+
+		if (subscription != null) {
+			subscription.doClose();
+			subscription = null;
+		}
 	}
 
 	public boolean isClosed() {
@@ -179,7 +184,7 @@ public class LettuceConnection implements RedisConnection {
 			List<Object> results = new ArrayList<Object>(ppline.size());
 
 			Exception problem = null;
-			
+
 			if (done) {
 				for (Command<?, ?, ?> cmd : ppline) {
 					if (cmd.getOutput().hasError()) {
