@@ -4,7 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
-        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.5'
+        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.4'
     }
 }
 
@@ -97,8 +97,12 @@ bundlor {
 
 
 jar {
+    manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
     manifest.attributes['Implementation-Title'] = 'spring-data-redis'
     manifest.attributes['Implementation-Version'] = project.version
+    manifest.attributes['Implementation-URL'] = "http://www.springsource.org/spring-data/redis"
+    manifest.attributes['Implementation-Vendor'] = "SpringSource"
+    manifest.attributes['Implementation-Vendor-Id'] = "org.springframework"
 
     from("$rootDir/docs/src/info") {
         include "license.txt"
