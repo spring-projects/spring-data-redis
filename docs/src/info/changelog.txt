@@ -6,6 +6,36 @@ Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[versio
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
 
+Changes in version 1.0.3.RELEASE (2013-02-dd)
+---------------------------------------------
+
+General
+* Introduced support for Lettuce Redis driver
+* Upgraded to Spring Framework 3.1.4
+* Log4J dependency removed
+* Improved reference documentation
+
+Package o.s.d.redis.cache
+* Clarified default of 'useprefix' for RedisCacheManager
+
+Package o.s.d.redis.core
+* Improved RedisTemplate initialization to prevent exceptions caused by invalid serializers
+* Refined convertAndSend() method to return the number of targeted channels
+
+Package o.s.d.redis.connection
+* Fixed unimplemented method (hGetAll) in StringRedisConnection
+
+Package o.s.d.redis.connection.jedis
+* Improved handling of socket exceptions uncaught by the driver at connection time
+
+Package o.s.d.redis.connection.srp
+* Fixed incorrect handling BulkReply affecting hash operations
+
+Package o.s.d.redis.listener
+* Added proper hash/equals/toString method to ChannelTopic and PatternTopic
+* Improved MessageListenerContainer to support dynamic removal of listeners
+
+
 Changes in version 1.0.2.RELEASE (2012-10-10)
 ---------------------------------------------
 
