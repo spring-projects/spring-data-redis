@@ -30,6 +30,7 @@ Package o.s.d.redis.connection.jedis
 
 Package o.s.d.redis.connection.srp
 * Fixed incorrect handling BulkReply affecting hash operations
+* Improved pipelined usage of various operations
 
 Package o.s.d.redis.listener
 * Added proper hash/equals/toString method to ChannelTopic and PatternTopic
