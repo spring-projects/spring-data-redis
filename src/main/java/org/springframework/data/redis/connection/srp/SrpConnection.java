@@ -406,6 +406,7 @@ public class SrpConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(pipeline.ping());
+				return null;
 			}
 			return client.ping().data();
 		} catch (Exception ex) {
@@ -431,7 +432,7 @@ public class SrpConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				client.discard();
+				// use the normal path
 			}
 
 			client.discard();
@@ -593,7 +594,7 @@ public class SrpConnection implements RedisConnection {
 	public void select(int dbIndex) {
 		try {
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.select(dbIndex));
 			}
 			client.select(dbIndex);
 		} catch (Exception ex) {
@@ -630,6 +631,10 @@ public class SrpConnection implements RedisConnection {
 
 	public void unwatch() {
 		try {
+			if (isPipelined()) {
+				pipeline(pipeline.unwatch());
+				return;
+			}
 			client.unwatch();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
@@ -644,6 +649,7 @@ public class SrpConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(pipeline.watch((Object[]) keys));
+				return;
 			}
 			else {
 				client.watch((Object[]) keys);
@@ -844,11 +850,9 @@ public class SrpConnection implements RedisConnection {
 
 	public Boolean getBit(byte[] key, long offset) {
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.getbit(key, offset));
+				return null;
 			}
 			return (client.getbit(key, offset).data() == 1);
 		} catch (Exception ex) {
@@ -859,11 +863,9 @@ public class SrpConnection implements RedisConnection {
 
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.setbit(key, offset, SrpUtils.asBit(value)));
+				return;
 			}
 			client.setbit(key, offset, SrpUtils.asBit(value));
 		} catch (Exception ex) {
@@ -874,11 +876,9 @@ public class SrpConnection implements RedisConnection {
 
 	public void setRange(byte[] key, byte[] value, long start) {
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.setrange(key, start, value));
+				return;
 			}
 			client.setrange(key, start, value);
 		} catch (Exception ex) {
@@ -931,13 +931,14 @@ public class SrpConnection implements RedisConnection {
 
 
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
+		Object[] args = SrpUtils.convert(timeout, keys);
+
 		try {
 			if (isPipelined()) {
-				//				pipeline(pipeline.blpop(timeout, keys));
+				pipeline(pipeline.blpop(args));
 				return null;
 			}
-			//			return SrpUtils.toBytesList(client.blpop(timeout, keys).data());
-			throw new UnsupportedOperationException();
+			return SrpUtils.toBytesList(client.blpop(args).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -945,13 +946,13 @@ public class SrpConnection implements RedisConnection {
 
 
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
+		Object[] args = SrpUtils.convert(timeout, keys);
 		try {
 			if (isPipelined()) {
-				//				pipeline(pipeline.brpop(timeout, keys));
+				pipeline(pipeline.brpop(args));
 				return null;
 			}
-			//			return SrpUtils.toBytesList(client.brpop(timeout, keys).data());
-			throw new UnsupportedOperationException();
+			return SrpUtils.toBytesList(client.brpop(args).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1494,7 +1495,8 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				client.zrevrangebyscore(key, min, max, null, limit);
+				pipeline(pipeline.zrevrangebyscore(key, min, max, null, limit));
+				return null;
 			}
 			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, limit).data());
 		} catch (Exception ex) {
@@ -1506,7 +1508,8 @@ public class SrpConnection implements RedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				client.zrevrangebyscore(key, min, max, null, null);
+				pipeline(pipeline.zrevrangebyscore(key, min, max, null, null));
+				return null;
 			}
 			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, null).data());
 		} catch (Exception ex) {
@@ -1519,7 +1522,8 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit);
+				pipeline(pipeline.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
+				return null;
 			}
 			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
 		} catch (Exception ex) {
@@ -1531,7 +1535,8 @@ public class SrpConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, null);
+				pipeline(pipeline.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
+				return null;
 			}
 			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
 		} catch (Exception ex) {
@@ -1543,9 +1548,8 @@ public class SrpConnection implements RedisConnection {
 	public Long zRank(byte[] key, byte[] value) {
 		try {
 			if (isPipelined()) {
-				//				(Long) pipeline .zrank(key, value).data;
-				//				return null;
-				throw new UnsupportedOperationException();
+				pipeline(pipeline.zrank(key, value));
+				return null;
 			}
 			return (Long) client.zrank(key, value).data();
 		} catch (Exception ex) {

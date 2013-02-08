@@ -17,6 +17,7 @@
 package org.springframework.data.redis.connection.srp;
 
 import java.io.StringReader;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -145,6 +146,23 @@ abstract class SrpUtils {
 		}
 
 		return tuples;
+	}
+
+	static Object[] convert(int timeout, byte[]... keys) {
+		int length = (keys != null ? keys.length : 0);
+		// add the int representation
+		length = 1;
+		Object[] args = new Object[length];
+		if (keys != null) {
+			for (int i = 0; i < args.length - 1; i++) {
+				args[i] = keys[i];
+			}
+		}
+		ByteBuffer bb = ByteBuffer.allocate(4);
+		bb.putInt(timeout);
+		args[args.length - 1] = bb.array();
+
+		return args;
 	}
 
 	static Map<byte[], byte[]> toMap(Reply[] byteArrays) {
