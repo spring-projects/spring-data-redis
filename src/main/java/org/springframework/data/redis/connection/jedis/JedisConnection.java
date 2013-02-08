@@ -584,6 +584,10 @@ public class JedisConnection implements RedisConnection {
 
 	public void discard() {
 		try {
+			if (isPipelined()) {
+				pipeline.discard();
+				return;
+			}
 			client.discard();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
