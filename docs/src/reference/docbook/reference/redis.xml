@@ -16,9 +16,11 @@
   
   <section id="redis:requirements">
     <title>Redis Requirements</title>
-    <para>Spring Redis requires Redis 2.0 or above (Redis 2.2 is recommended) and Java SE 6.0 or above.
+    <para>Spring Redis requires Redis 2.0 or above and Java SE 5.0 or above .
     In terms of language bindings (or connectors), Spring Redis integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink>,  
-    <ulink url="http://github.com/alphazero/jredis">JRedis</ulink> and <ulink url="http://github.com/e-mzungu/rjc">RJC</ulink>, three popular open source Java libraries for Redis. 
+    <ulink url="http://github.com/alphazero/jredis">JRedis</ulink>, <ulink url="http://github.com/e-mzungu/rjc">RJC</ulink>, 
+    <ulink url="http://github.com/spullara/redis-protocol">SRP</ulink> and
+    <ulink url="http://github.com/wg/lettuce">Lettuce</ulink>, five popular open source Java libraries for Redis. 
     If you are aware of any other connector that we should be integrating is, please send us feedback.
     </para>
   </section>
@@ -45,8 +47,8 @@
     <section id="redis:connectors">
       <title>Connecting to Redis</title>
       
-      <para>One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required;
-      currently Spring Redis has support for Jedis and JRedis. No matter the library one chooses, there only one set of Spring Redis API that one needs to use that behaves consistently 
+      <para>One of the first tasks when using Redis and Spring is to connect to the store through the IoC container. To do that, a Java connector (or binding) is required. 
+      No matter the library one chooses, there only one set of Spring Redis API that one needs to use that behaves consistently 
       across all connectors, namely the <literal>org.springframework.data.redis.connection</literal> package and its 
       <interfacename>RedisConnection</interfacename> and <interfacename>RedisConnectionFactory</interfacename> interfaces for working respectively for retrieving active
       <literal>connection</literal> to Redis.</para>
@@ -182,7 +184,7 @@
         <para><ulink url="https://github.com/spullara/redis-protocol">SRP</ulink> (an acronym for Sam's Redis Protocol) is the forth, open-source connector supported by 
         Spring Redis through the <literal>org.springframework.data.redis.connection.srp</literal> package.</para> 
         
-        <para>By now, its configuration is probably easy to guess::</para>
+        <para>By now, its configuration is probably easy to guess:</para>
 
         <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -196,7 +198,28 @@
 </beans>]]></programlisting>
 
       <para>Needless to say,  the configuration is quite similar to that of the other connectors.</para>
-      
+      </section>
+
+      <section id="redis:connectors:lettuce">
+        <title>Configuring Lettuce connector</title>
+        
+        <para><ulink url="https://github.com/wg/lettuce">Lettuce</ulink> is the fifth, open-source connector supported by 
+        Spring Redis through the <literal>org.springframework.data.redis.connection.lettuce</literal> package.</para> 
+        
+        <para>Its configuration is probably easy to guess:</para>
+
+        <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+  <bean id="srpConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"
+        p:host-name="server" p:port="6379"/>
+</beans>]]></programlisting>
+
+      <para>Needless to say,  the configuration is quite similar to that of the other connectors.</para>
       </section>
       
     </section>

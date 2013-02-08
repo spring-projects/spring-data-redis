@@ -5,7 +5,7 @@
       and <ulink url="http://www.springsource.org/documentation">Spring Framework</ulink>
       3.0.x and above.</para>
       <para>
-      In terms of key value stores, <ulink url="http://code.google.com/p/redis/">Redis</ulink> 2.2.x 
-      is required.
+      In terms of key value stores, <ulink url="http://redis.io">Redis</ulink> 2.2.x 
+      is required (though 2.4 or higher is recommended).
       </para>
   </chapter>
