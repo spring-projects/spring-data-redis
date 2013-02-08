@@ -420,6 +420,7 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(asyncConn.ping());
+				return null;
 			}
 			return con.ping();
 		} catch (Exception ex) {
@@ -445,9 +446,9 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				con.discard();
+				pipeline(asyncConn.discard());
+				return;
 			}
-
 			con.discard();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -458,6 +459,9 @@ public class LettuceConnection implements RedisConnection {
 	public List<Object> exec() {
 		isMulti = false;
 		try {
+			if (isPipelined()) {
+				return Collections.singletonList((Object) asyncConn.exec());
+			}
 			return con.exec();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -525,7 +529,7 @@ public class LettuceConnection implements RedisConnection {
 		openPipeline();
 		try {
 			if (isPipelined()) {
-				con.multi();
+				pipeline(asyncConn.multi());
 				return;
 			}
 			con.multi();
@@ -602,7 +606,7 @@ public class LettuceConnection implements RedisConnection {
 	public void select(int dbIndex) {
 		try {
 			if (isPipelined()) {
-				asyncConn.select(dbIndex);
+				throw new UnsupportedOperationException("Lettuce blocks for #select");
 			}
 			con.select(dbIndex);
 		} catch (Exception ex) {
@@ -640,8 +644,8 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(asyncConn.unwatch());
+				return;
 			}
-
 			con.unwatch();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -653,6 +657,7 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(asyncConn.watch(keys));
+				return;
 			}
 			else {
 				con.watch(keys);
@@ -721,7 +726,6 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(asyncConn.mget(keys));
-				;
 				return null;
 			}
 			return con.mget(keys);
@@ -846,7 +850,7 @@ public class LettuceConnection implements RedisConnection {
 	public Boolean getBit(byte[] key, long offset) {
 		try {
 			if (isPipelined()) {
-				asyncConn.getbit(key, offset);
+				pipeline(asyncConn.getbit(key, offset));
 				return null;
 			}
 			return Long.valueOf(1).equals(con.getbit(key, offset));
@@ -859,7 +863,7 @@ public class LettuceConnection implements RedisConnection {
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isPipelined()) {
-				asyncConn.setbit(key, offset, LettuceUtils.asBit(value));
+				pipeline(asyncConn.setbit(key, offset, LettuceUtils.asBit(value)));
 			}
 			con.setbit(key, offset, LettuceUtils.asBit(value));
 		} catch (Exception ex) {
@@ -871,7 +875,7 @@ public class LettuceConnection implements RedisConnection {
 	public void setRange(byte[] key, byte[] value, long start) {
 		try {
 			if (isPipelined()) {
-				asyncConn.setrange(key, start, value);
+				pipeline(asyncConn.setrange(key, start, value));
 			}
 			con.setrange(key, start, value);
 		} catch (Exception ex) {
