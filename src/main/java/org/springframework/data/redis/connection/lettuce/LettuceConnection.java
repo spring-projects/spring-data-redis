@@ -526,7 +526,6 @@ public class LettuceConnection implements RedisConnection {
 			return;
 		}
 		isMulti = true;
-		openPipeline();
 		try {
 			if (isPipelined()) {
 				pipeline(asyncConn.multi());

@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -31,8 +32,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.CollectionTestParams;
 import org.springframework.data.redis.support.collections.ObjectFactory;
@@ -58,12 +61,13 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		return CollectionTestParams.testParams();
 	}
 
-	
+
 	protected Cache createCache(RedisTemplate nativeCache) {
-		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache, TimeUnit.MINUTES.toSeconds(5));
+		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache,
+				TimeUnit.MINUTES.toSeconds(10));
 	}
 
-	
+
 	protected RedisTemplate createNativeCache() throws Exception {
 		return template;
 	}
@@ -80,7 +84,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	
+
 	protected Object getObject() {
 		return objFactory.instance();
 	}
@@ -93,8 +97,19 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		final Object key2 = getObject();
 		final Object value2 = getObject();
 
+		final String prefix = CACHE_NAME.concat(":");
+		final BoundZSetOperations setOps = template.boundZSetOps(CACHE_NAME);
+
+		final AtomicBoolean failed = new AtomicBoolean(true);
+
+		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
+		//		System.out.println("Set keys" + template.keys(prefix));
+
 		cache.put(key1, value1);
 		cache.put(key2, value2);
+
+		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
+		//		System.out.println("Set keys" + template.keys(prefix));
 
 		Thread th = new Thread(new Runnable() {
 
@@ -102,11 +117,25 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 				cache.clear();
 				cache.put(value1, key1);
 				cache.put(value2, key2);
+				failed.set(key1.equals(cache.get(value1)));
+				//				System.out.println("Cache keys" + setOps.range(0, -1).toString());
+				//				System.out.println("Set keys" + template.keys(prefix));
+
 			}
 		}, "concurrent-cache-access");
 
+		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
+		//		System.out.println("Set keys" + template.keys(prefix));
+
 		th.start();
 		th.join();
+
+		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
+		//		System.out.println("Set keys" + template.keys(prefix));
+
+		if (failed.get()) {
+			throw new Exception("Concurrent access failed");
+		}
 
 		final Object key3 = getObject();
 		final Object value3 = getObject();
@@ -116,9 +145,11 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 		assertNull(cache.get(key1));
 		assertNull(cache.get(key2));
-		assertEquals(key1, cache.get(value1).get());
+		ValueWrapper valueWrapper = cache.get(value1);
+		assertNotNull(valueWrapper);
+		assertEquals(key1, valueWrapper.get());
 	}
-	
+
 	@Test
 	public void testCacheName() throws Exception {
 		CacheManager redisCM = new RedisCacheManager(template);
