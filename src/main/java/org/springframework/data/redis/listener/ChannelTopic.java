@@ -72,4 +72,9 @@ public class ChannelTopic implements Topic {
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return channelName;
+	}
 }

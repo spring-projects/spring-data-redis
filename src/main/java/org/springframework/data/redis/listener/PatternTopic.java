@@ -62,4 +62,9 @@ public class PatternTopic implements Topic {
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return channelPattern;
+	}
 }
