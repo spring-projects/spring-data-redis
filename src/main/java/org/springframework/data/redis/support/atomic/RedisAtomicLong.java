@@ -29,6 +29,7 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.Assert;
 
 /**
  * Atomic long backed by Redis.
@@ -45,7 +46,8 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing
+	 * in Redis or 0 if none is found.
 	 *
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
@@ -66,6 +68,9 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	private RedisAtomicLong(String redisCounter, RedisConnectionFactory factory, Long initialValue) {
+		Assert.hasText(redisCounter, "a valid counter name is required");
+		Assert.notNull(factory, "a valid factory is required");
+
 		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
@@ -86,6 +91,47 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 			set(initialValue);
 		}
 	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicLong</code> instance.  Uses the value existing
+	 * in Redis or 0 if none is found.
+	 *
+	 * @param redisCounter the redis counter
+	 * @param template the template
+	 */
+	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template) {
+		this(redisCounter, template, null);
+	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 *
+	 * @param redisCounter the redis counter
+	 * @param template the template
+	 * @param initialValue the initial value
+	 */
+	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template, long initialValue) {
+		this(redisCounter, template, Long.valueOf(initialValue));
+	}
+
+	private RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template, Long initialValue) {
+		Assert.hasText(redisCounter, "a valid counter name is required");
+		Assert.notNull(template, "a valid template is required");
+
+		this.key = redisCounter;
+		this.generalOps = template;
+		this.operations = generalOps.opsForValue();
+
+		if (initialValue == null) {
+			if (this.operations.get(redisCounter) == null) {
+				set(0);
+			}
+		}
+		else {
+			set(initialValue);
+		}
+	}
+
 
 	/**
 	 * Gets the current value.
@@ -128,7 +174,6 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
 			@SuppressWarnings("unchecked")
-			
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {
 					operations.watch(Collections.singleton(key));
@@ -229,38 +274,38 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		return (double) get();
 	}
 
-	
+
 	public String getKey() {
 		return key;
 	}
 
-	
+
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}
 
-	
+
 	public Boolean expireAt(Date date) {
 		return generalOps.expireAt(key, date);
 	}
 
-	
+
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
-	
+
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
-	
+
 	public void rename(String newKey) {
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
 
-	
+
 	public DataType getType() {
 		return DataType.STRING;
 	}

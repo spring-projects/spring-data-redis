@@ -45,7 +45,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance.
+	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing
+	 * in Redis or 0 if none is found.
 	 *
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
@@ -57,12 +58,34 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance.
 	 *
-	 * @param redisCounter
-	 * @param factory
-	 * @param initialValue
+	 * @param redisCounter the redis counter
+	 * @param factory the factory
+	 * @param initialValue the initial value
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, int initialValue) {
 		this(redisCounter, factory, Integer.valueOf(initialValue));
+	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing
+	 * in Redis or 0 if none is found.
+	 *
+	 * @param redisCounter the redis counter
+	 * @param template the template
+	 */
+	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template) {
+		this(redisCounter, template, null);
+	}
+
+	/**
+	 * Constructs a new <code>RedisAtomicInteger</code> instance.
+	 *
+	 * @param redisCounter the redis counter
+	 * @param template the template
+	 * @param initialValue the initial value
+	 */
+	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template, int initialValue) {
+		this(redisCounter, template, Integer.valueOf(initialValue));
 	}
 
 	private RedisAtomicInteger(String redisCounter, RedisConnectionFactory factory, Integer initialValue) {
@@ -87,6 +110,20 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		}
 	}
 
+	private RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template, Integer initialValue) {
+		this.key = redisCounter;
+		this.generalOps = template;
+		this.operations = generalOps.opsForValue();
+
+		if (initialValue == null) {
+			if (this.operations.get(redisCounter) == null) {
+				set(0);
+			}
+		}
+		else {
+			set(initialValue);
+		}
+	}
 	/**
 	 * Get the current value.
 	 *
