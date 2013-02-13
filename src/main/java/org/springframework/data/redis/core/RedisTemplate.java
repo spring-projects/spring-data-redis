@@ -38,6 +38,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Helper class that simplifies Redis data access code. 
@@ -441,6 +442,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 
 	public void delete(Collection<K> keys) {
+		if (CollectionUtils.isEmpty(keys)) {
+			return;
+		}
+
 		final byte[][] rawKeys = rawKeys(keys);
 
 		execute(new RedisCallback<Object>() {
