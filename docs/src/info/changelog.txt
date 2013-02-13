@@ -6,7 +6,7 @@ Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[versio
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
 
-Changes in version 1.0.3.RELEASE (2013-02-dd)
+Changes in version 1.0.3.RELEASE (2013-02-13)
 ---------------------------------------------
 
 General
@@ -20,6 +20,7 @@ Package o.s.d.redis.cache
 
 Package o.s.d.redis.core
 * Improved RedisTemplate initialization to prevent exceptions caused by invalid serializers
+* Refined RedisTemplate#delete call when dealign with empty collection
 * Refined convertAndSend() method to return the number of targeted channels
 
 Package o.s.d.redis.connection
@@ -35,6 +36,9 @@ Package o.s.d.redis.connection.srp
 Package o.s.d.redis.listener
 * Added proper hash/equals/toString method to ChannelTopic and PatternTopic
 * Improved MessageListenerContainer to support dynamic removal of listeners
+
+Package o.s.d.redis.support
+* Added RedisTemplate-based constructor to AtomicInteger/Long for connection/resource reuse
 
 
 Changes in version 1.0.2.RELEASE (2012-10-10)
