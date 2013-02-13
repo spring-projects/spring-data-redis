@@ -31,9 +31,6 @@ import com.lambdaworks.redis.RedisClient;
  * 
  * @author Costin Leau
  */
-/**
- * @author Costin Leau
- */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
 	private String hostName = "localhost";
