@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -58,6 +59,32 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.multi();
 		connection.set(value, key);
 		System.out.println(connection.exec());
+	}
+
+	@Test
+	public void testIncrDecrBy() {
+		String key = "test.count";
+		long largeNumber = 0x123456789L; // > 32bits
+		connection.set(key.getBytes(), "0".getBytes());
+		connection.incrBy(key.getBytes(), largeNumber);
+		assertEquals(largeNumber, Long.valueOf(new String(connection.get(key.getBytes()))).longValue());
+		connection.decrBy(key.getBytes(), largeNumber);
+		assertEquals(0, Long.valueOf(new String(connection.get(key.getBytes()))).longValue());
+		connection.decrBy(key.getBytes(), 2*largeNumber);
+		assertEquals(-2*largeNumber, Long.valueOf(new String(connection.get(key.getBytes()))).longValue());
+	}
+
+	@Test
+	public void testHashIncrDecrBy() {
+		byte[] key = "test.hcount".getBytes();
+		byte[] hkey = "hashkey".getBytes();
+
+		long largeNumber = 0x123456789L; // > 32bits
+		connection.hSet(key, hkey, "0".getBytes());
+		connection.hIncrBy(key, hkey, largeNumber);
+		assertEquals(largeNumber, Long.valueOf(new String(connection.hGet(key, hkey))).longValue());
+		connection.hIncrBy(key, hkey, -2*largeNumber);
+		assertEquals(-largeNumber, Long.valueOf(new String(connection.hGet(key, hkey))).longValue());
 	}
 
 //	@Test
