@@ -2254,14 +2254,14 @@ public class JedisConnection implements RedisConnection {
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		try {
 			if (isQueueing()) {
-				transaction.hincrBy(key, field, (int) delta);
+				transaction.hincrBy(key, field, delta);
 				return null;
 			}
 			if (isPipelined()) {
-				pipeline.hincrBy(key, field, (int) delta);
+				pipeline.hincrBy(key, field, delta);
 				return null;
 			}
-			return jedis.hincrBy(key, field, (int) delta);
+			return jedis.hincrBy(key, field, delta);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

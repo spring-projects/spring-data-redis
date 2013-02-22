@@ -76,7 +76,6 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	public void setUp() throws Exception {
 		ConnectionFactoryTracker.add(template.getConnectionFactory());
 		super.setUp();
-
 	}
 
 	@AfterClass
