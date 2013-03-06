@@ -496,16 +496,17 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 
-	public Long convertAndSend(String channel, Object message) {
+	public void convertAndSend(String channel, Object message) {
 		Assert.hasText(channel, "a non-empty channel is required");
 
 		final byte[] rawChannel = rawString(channel);
 		final byte[] rawMessage = rawValue(message);
 
-		return execute(new RedisCallback<Long>() {
+		execute(new RedisCallback<Object>() {
 
-			public Long doInRedis(RedisConnection connection) {
-				return connection.publish(rawChannel, rawMessage);
+			public Object doInRedis(RedisConnection connection) {
+				connection.publish(rawChannel, rawMessage);
+				return null;
 			}
 		}, true);
 	}

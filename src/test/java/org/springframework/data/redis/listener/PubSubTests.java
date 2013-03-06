@@ -16,8 +16,8 @@
 package org.springframework.data.redis.listener;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,9 +50,6 @@ import org.springframework.data.redis.support.collections.ObjectFactory;
 public class PubSubTests<T> {
 
 	private static final String CHANNEL = "pubsub::test";
-	private final Long ZERO = Long.valueOf(0);
-	private final Long ONE = Long.valueOf(1);
-	private final Long TWO = Long.valueOf(2);
 
 	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
@@ -121,8 +118,8 @@ public class PubSubTests<T> {
 		String payload1 = "do";
 		String payload2 = "re mi";
 
-		assertEquals(ONE, template.convertAndSend(CHANNEL, payload1));
-		assertEquals(ONE, template.convertAndSend(CHANNEL, payload2));
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(CHANNEL, payload2);
 
 		Set<String> set = new LinkedHashSet<String>();
 		set.add(bag.poll(1, TimeUnit.SECONDS));
@@ -149,14 +146,9 @@ public class PubSubTests<T> {
 		String payload2 = "re mi";
 
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
-		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload1));
-		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload2));
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(CHANNEL, payload2);
 
-		Set<String> set = new LinkedHashSet<String>();
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-
-		assertFalse(set.contains(payload1));
-		assertFalse(set.contains(payload2));
+		assertNull(bag.poll(1, TimeUnit.SECONDS));
 	}
 }

@@ -117,7 +117,7 @@ public interface RedisOperations<K, V> {
 	List<Object> exec();
 
 	// pubsub functionality on the template
-	Long convertAndSend(String destination, Object message);
+	void convertAndSend(String destination, Object message);
 
 
 	// operation types

@@ -46,13 +46,11 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class PubSubResubscribeTests {
 
 	private static final String CHANNEL = "pubsub::test";
-	private final Long ZERO = Long.valueOf(0);
-	private final Long ONE = Long.valueOf(1);
-	private final Long TWO = Long.valueOf(2);
 
 	protected RedisMessageListenerContainer container;
 	protected RedisConnectionFactory factory;
@@ -60,12 +58,7 @@ public class PubSubResubscribeTests {
 
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
 
-	private final Object handler = new Object() {
-		public void handleMessage(String message) {
-			System.out.println(message);
-			bag.add(message);
-		}
-	};
+	private final Object handler = new MessageHandler("handler1", bag);
 
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
 
@@ -121,7 +114,8 @@ public class PubSubResubscribeTests {
 		final String PATTERN = "p*";
 		final String ANOTHER_CHANNEL = "pubsub::test::extra";
 
-		MessageListenerAdapter anotherListener = new MessageListenerAdapter(handler);
+		BlockingDeque<String> bag2 = new LinkedBlockingDeque<String>(99);
+		MessageListenerAdapter anotherListener = new MessageListenerAdapter(new MessageHandler("handler2", bag2));
 		anotherListener.setSerializer(template.getValueSerializer());
 		anotherListener.afterPropertiesSet();
 
@@ -130,29 +124,36 @@ public class PubSubResubscribeTests {
 		container.removeMessageListener(adapter);
 
 		// test no messages are sent just to patterns
-		assertEquals(ONE, template.convertAndSend(CHANNEL, payload1));
-		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, payload2));
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
+		// anotherListener receives both messages
 		List<String> msgs = new ArrayList<String>();
-		msgs.add(bag.poll(1, TimeUnit.SECONDS));
-		msgs.add(bag.poll(1, TimeUnit.SECONDS));
+		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
+		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
 
 		assertEquals(2, msgs.size());
+		assertTrue(msgs.contains(payload1));
+		assertTrue(msgs.contains(payload2));
+		msgs.clear();
+
+		// unsubscribed adapter did not receive message
+		assertNull(bag.poll(1, TimeUnit.SECONDS));
+
 		// bind original listener on another channel
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
 
-		assertEquals(ONE, template.convertAndSend(CHANNEL, payload1));
-		assertEquals(TWO, template.convertAndSend(ANOTHER_CHANNEL, payload2));
+		template.convertAndSend(CHANNEL, payload1);
+		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
-		msgs.add(bag.poll(1, TimeUnit.SECONDS));
-		msgs.add(bag.poll(1, TimeUnit.SECONDS));
-		msgs.add(bag.poll(1, TimeUnit.SECONDS));
-		// this message will not arrive on time
+		// original listener received only one message on another channel
+		assertEquals(payload2,bag.poll(1, TimeUnit.SECONDS));
 		assertNull(bag.poll(1, TimeUnit.SECONDS));
 
-		// same message received first per channel subscription, second based on the pattern 
-		assertEquals(5, msgs.size());
-
+		//another listener receives messages on both channels
+		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
+		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
+		assertEquals(2, msgs.size());
 		assertTrue(msgs.contains(payload1));
 		assertTrue(msgs.contains(payload2));
 	}
@@ -171,22 +172,36 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
 		container.removeMessageListener(null, new ChannelTopic(CHANNEL));
 
-		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload1));
-		assertEquals(ZERO, template.convertAndSend(CHANNEL, payload2));
+		// Listener removed from channel
+		template.convertAndSend(CHANNEL, payload1);
+        template.convertAndSend(CHANNEL, payload2);
 
-		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1));
-		assertEquals(ONE, template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2));
+        // Listener receives messages on another channel
+		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
+        template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
 		Set<String> set = new LinkedHashSet<String>();
 		set.add(bag.poll(1, TimeUnit.SECONDS));
 		set.add(bag.poll(1, TimeUnit.SECONDS));
-
-		System.out.println(set);
 
 		assertFalse(set.contains(payload1));
 		assertFalse(set.contains(payload2));
 
 		assertTrue(set.contains(anotherPayload1));
 		assertTrue(set.contains(anotherPayload2));
+	}
+
+	private class MessageHandler {
+		private final BlockingDeque<String> bag;
+		private final String name;
+
+		public MessageHandler(String name, BlockingDeque<String> bag) {
+			this.bag = bag;
+			this.name = name;
+		}
+		public void handleMessage(String message) {
+			System.out.println(name + ": " + message);
+			bag.add(message);
+		}
 	}
 }
