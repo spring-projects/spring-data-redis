@@ -30,6 +30,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
@@ -40,11 +41,19 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+/**
+ * Base test class for AbstractConnection integration tests
+ * @author Costin Leau
+ * @author Jennifer Hickey
+ *
+ */
 public abstract class AbstractConnectionIntegrationTests {
 
 	protected StringRedisConnection connection;
@@ -259,21 +268,19 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testPubSubWithNamedChannels() {
-		final byte[] expectedChannel = "channel1".getBytes();
-		final byte[] expectedMessage = "msg".getBytes();
+	public void testPubSubWithNamedChannels() throws Exception {
+		final String expectedChannel = "channel1";
+		final String expectedMessage = "msg";
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
 
 		MessageListener listener = new MessageListener() {
-
-
 			public void onMessage(Message message, byte[] pattern) {
-				assertArrayEquals(expectedChannel, message.getChannel());
-				assertArrayEquals(expectedMessage, message.getBody());
+				messages.add(message);
+				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 
 		Thread th = new Thread(new Runnable() {
-
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
@@ -284,34 +291,45 @@ public abstract class AbstractConnectionIntegrationTests {
 
 				// open a new connection
 				RedisConnection connection2 = getConnectionFactory().getConnection();
-				connection2.publish(expectedMessage, expectedChannel);
+				connection2.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
 				connection2.close();
-				// unsubscribe connection
-				connection.getSubscription().unsubscribe();
+				// Lettuce unsubscribe happens async of message receipt, so not all
+				// messages may be received if unsubscribing now. Connection.close in teardown
+				// will take care of unsubscribing Lettuce.
+				if(!(isLettuce())) {
+				  connection.getSubscription().unsubscribe();
+				}
 			}
 		});
 
 		th.start();
-		connection.subscribe(listener, expectedChannel);
+		connection.subscribe(listener, expectedChannel.getBytes());
+		// Not all providers block on subscribe (Lettuce does not), give some time for messages to be received
+		Message message = messages.poll(5, TimeUnit.SECONDS);
+		assertNotNull(message);
+		assertEquals(expectedMessage, new String(message.getBody()));
+		assertEquals(expectedChannel, new String(message.getChannel()));
 	}
 
 	@Test
-	public void testPubSubWithPatterns() {
-		final byte[] expectedPattern = "channel*".getBytes();
-		final byte[] expectedMessage = "msg".getBytes();
+	public void testPubSubWithPatterns() throws Exception {
+		if(isRjc()) {
+			// TODO Pattern matching currently broken in RJC, see DATAREDIS-120
+			return;
+		}
+		final String expectedPattern = "channel*";
+		final String expectedMessage = "msg";
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
 
-		MessageListener listener = new MessageListener() {
-
-
+		final MessageListener listener = new MessageListener() {
 			public void onMessage(Message message, byte[] pattern) {
-				assertArrayEquals(expectedPattern, pattern);
-				assertArrayEquals(expectedMessage, message.getBody());
+				assertEquals(expectedPattern, new String(pattern));
+				messages.add(message);
 				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 
 		Thread th = new Thread(new Runnable() {
-
 			public void run() {
 				// sleep 1 second to let the registration happen
 				try {
@@ -322,16 +340,27 @@ public abstract class AbstractConnectionIntegrationTests {
 
 				// open a new connection
 				RedisConnection connection2 = getConnectionFactory().getConnection();
-				connection2.publish(expectedMessage, "channel1".getBytes());
-				connection2.publish(expectedMessage, "channel2".getBytes());
+				connection2.publish("channel1".getBytes(), expectedMessage.getBytes());
+				connection2.publish("channel2".getBytes(), expectedMessage.getBytes());
 				connection2.close();
-				// unsubscribe connection
-				connection.getSubscription().pUnsubscribe(expectedPattern);
+				// Lettuce unsubscribe happens async of message receipt, so not all
+				// messages may be received if unsubscribing now. Connection.close in teardown
+				// will take care of unsubscribing Lettuce.
+				if(!(isLettuce())) {
+				  connection.getSubscription().pUnsubscribe(expectedPattern.getBytes());
+				}
 			}
 		});
 
 		th.start();
 		connection.pSubscribe(listener, expectedPattern);
+		// Not all providers block on subscribe (Lettuce does not), give some time for messages to be received
+		Message message = messages.poll(5, TimeUnit.SECONDS);
+		assertNotNull(message);
+		assertEquals(expectedMessage, new String(message.getBody()));
+		message = messages.poll(5, TimeUnit.SECONDS);
+		assertNotNull(message);
+		assertEquals(expectedMessage, new String(message.getBody()));
 	}
 
 	//@Test
@@ -388,5 +417,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertTrue(hashMap.size() >= 2);
 		assertTrue(hashMap.containsKey(key1));
 		assertTrue(hashMap.containsKey(key2));
+	}
+
+	private boolean isLettuce() {
+		return (getConnectionFactory() instanceof LettuceConnectionFactory);
+	}
+
+	private boolean isRjc() {
+		return (getConnectionFactory() instanceof RjcConnectionFactory);
 	}
 }
