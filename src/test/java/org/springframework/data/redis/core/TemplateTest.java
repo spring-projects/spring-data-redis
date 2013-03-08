@@ -84,6 +84,16 @@ public class TemplateTest {
 		assertEquals(0, Integer.valueOf(valueOps.get(key)).intValue());
 		valueOps.increment(key, -10);
 		assertEquals(-10, Integer.valueOf(valueOps.get(key)).intValue());
+
+		// Redis treats numbers as 64 bits longs internally
+		valueOps.increment(key, 0x70000000);
+		assertEquals(-10L+0x70000000L, Long.valueOf(valueOps.get(key)).longValue());
+		valueOps.increment(key, 0x70000000);
+		assertEquals(-10L+2L*0x70000000L, Long.valueOf(valueOps.get(key)).longValue());
+
+                // Increment by value > 32bits
+		valueOps.increment(key, 0x54321ABCDL);
+		assertEquals(26359212995L, Long.valueOf(valueOps.get(key)).longValue());
 	}
 
 	private boolean isRjc() {
