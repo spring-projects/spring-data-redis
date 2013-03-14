@@ -17,18 +17,29 @@ package org.springframework.data.redis.listener.adapter;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 /**
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class ContainerXmlSetupTest {
 
+	private GenericXmlApplicationContext ctx;
+
+	@After
+	public void tearDown() {
+		if(ctx != null) {
+			ctx.destroy();
+		}
+	}
+
 	@Test
 	public void testContainerSetup() throws Exception {
-		GenericXmlApplicationContext ctx = new GenericXmlApplicationContext(
+		ctx = new GenericXmlApplicationContext(
 				"/org/springframework/data/redis/listener/container.xml");
 		RedisMessageListenerContainer container = ctx.getBean("redisContainer", RedisMessageListenerContainer.class);
 		assertTrue(container.isRunning());
