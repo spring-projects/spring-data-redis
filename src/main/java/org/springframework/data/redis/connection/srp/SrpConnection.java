@@ -52,6 +52,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * {@code RedisConnection} implementation on top of <a href="https://github.com/spullara/redis-protocol">spullara Redis Protocol</a> library.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class SrpConnection implements RedisConnection {
 
@@ -138,6 +139,11 @@ public class SrpConnection implements RedisConnection {
 	public void close() throws DataAccessException {
 		isClosed = true;
 		queue.remove(this);
+
+		if (subscription != null) {
+			subscription.doClose();
+			subscription = null;
+		}
 
 		try {
 			client.close();

@@ -43,6 +43,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -293,10 +294,10 @@ public abstract class AbstractConnectionIntegrationTests {
 				RedisConnection connection2 = getConnectionFactory().getConnection();
 				connection2.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
 				connection2.close();
-				// Lettuce unsubscribe happens async of message receipt, so not all
+				// In some clients, unsubscribe happens async of message receipt, so not all
 				// messages may be received if unsubscribing now. Connection.close in teardown
-				// will take care of unsubscribing Lettuce.
-				if(!(isLettuce())) {
+				// will take care of unsubscribing.
+				if(!(isAsync())) {
 				  connection.getSubscription().unsubscribe();
 				}
 			}
@@ -304,7 +305,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		th.start();
 		connection.subscribe(listener, expectedChannel.getBytes());
-		// Not all providers block on subscribe (Lettuce does not), give some time for messages to be received
+		// Not all providers block on subscribe, give some time for messages to be received
 		Message message = messages.poll(5, TimeUnit.SECONDS);
 		assertNotNull(message);
 		assertEquals(expectedMessage, new String(message.getBody()));
@@ -343,10 +344,10 @@ public abstract class AbstractConnectionIntegrationTests {
 				connection2.publish("channel1".getBytes(), expectedMessage.getBytes());
 				connection2.publish("channel2".getBytes(), expectedMessage.getBytes());
 				connection2.close();
-				// Lettuce unsubscribe happens async of message receipt, so not all
+				// In some clients, unsubscribe happens async of message receipt, so not all
 				// messages may be received if unsubscribing now. Connection.close in teardown
-				// will take care of unsubscribing Lettuce.
-				if(!(isLettuce())) {
+				// will take care of unsubscribing.
+				if(!(isAsync())) {
 				  connection.getSubscription().pUnsubscribe(expectedPattern.getBytes());
 				}
 			}
@@ -419,8 +420,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertTrue(hashMap.containsKey(key2));
 	}
 
-	private boolean isLettuce() {
-		return (getConnectionFactory() instanceof LettuceConnectionFactory);
+	private boolean isAsync() {
+		return (getConnectionFactory() instanceof LettuceConnectionFactory) ||
+				(getConnectionFactory() instanceof SrpConnectionFactory);
 	}
 
 	private boolean isRjc() {
