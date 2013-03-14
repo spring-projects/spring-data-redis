@@ -16,11 +16,11 @@
 package org.springframework.data.redis.connection.rjc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.List;
 import java.util.UUID;
 
-import org.idevlab.rjc.Session;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -48,13 +48,17 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Test
-	public void testRaw() throws Exception {
-		Session jr = (Session) factory.getConnection().getNativeConnection();
+	public void testMulti() throws Exception {
+		byte[] key = "key".getBytes();
+		byte[] value = "value".getBytes();
 
-		System.out.println(jr.dbSize());
-		System.out.println(jr.exists("foobar"));
-		jr.set("foobar", "barfoo");
-		System.out.println(jr.get("foobar"));
+		connection.multi();
+		connection.set(key, value);
+		assertNull(connection.get(key));
+		List<Object> results = connection.exec();
+		assertEquals(2, results.size());
+		assertEquals("OK", (String) results.get(0));
+		assertEquals(new String(value), new String(RjcUtils.encode((String)results.get(1))));
 	}
 
 	// override test to address the encoding issue (the bytes[] in raw format differ)

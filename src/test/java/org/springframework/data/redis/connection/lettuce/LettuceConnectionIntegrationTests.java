@@ -16,12 +16,15 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-
-import com.lambdaworks.redis.RedisAsyncConnection;
 
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -46,24 +49,12 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		byte[] key = "key".getBytes();
 		byte[] value = "value".getBytes();
 
-		RedisAsyncConnection<byte[], byte[]> rc = (RedisAsyncConnection<byte[], byte[]>) connection.getNativeConnection();
-		rc.multi();
-		//connection.set(key, value);
-		rc.set(value, key);
-		System.out.println(rc.exec());
-
 		connection.multi();
-		connection.set(value, key);
-		System.out.println(connection.exec());
-	}
-
-	@Test
-	public void testRaw() throws Exception {
-		RedisAsyncConnection<byte[], byte[]> rc = (RedisAsyncConnection<byte[], byte[]>) factory.getConnection().getNativeConnection();
-
-		System.out.println(rc.dbsize());
-		System.out.println(rc.exists("foobar".getBytes()));
-		rc.set("foobar".getBytes(), "barfoo".getBytes());
-		System.out.println(rc.get("foobar".getBytes()));
+		connection.set(key, value);
+		assertNull(connection.get(key));
+		List<Object> results = connection.exec();
+		assertEquals(2, results.size());
+		assertEquals("OK", results.get(0));
+		assertEquals(new String(value), new String((byte[])results.get(1)));
 	}
 }

@@ -16,7 +16,6 @@
 
 package org.springframework.data.redis.connection.jredis;
 
-import org.jredis.JRedis;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
@@ -39,16 +38,6 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	
 	protected RedisConnectionFactory getConnectionFactory() {
 		return factory;
-	}
-
-	@Test
-	public void testRaw() throws Exception {
-		JRedis jr = (JRedis) factory.getConnection().getNativeConnection();
-
-		System.out.println(jr.dbsize());
-		System.out.println(jr.exists("foobar"));
-		jr.set("foobar", "barfoo");
-		System.out.println(jr.get("foobar"));
 	}
 
 	@Ignore("JRedis does not support pipelining")
@@ -89,6 +78,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	@Ignore
 	public void testBitSet() throws Exception {
+	}
+
+	@Ignore
+	public void testMulti() throws Exception {
 	}
 
 	@Ignore

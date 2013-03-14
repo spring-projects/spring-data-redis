@@ -16,14 +16,9 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.Transaction;
 
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -43,48 +38,4 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	protected RedisConnectionFactory getConnectionFactory() {
 		return factory;
 	}
-
-	@Test
-	public void testMulti() throws Exception {
-		byte[] key = "key".getBytes();
-		byte[] value = "value".getBytes();
-
-		BinaryJedis jedis = (BinaryJedis) connection.getNativeConnection();
-		Transaction multi = jedis.multi();
-		//connection.set(key, value);
-		multi.set(value, key);
-		System.out.println(multi.exec());
-
-		connection.multi();
-		connection.set(value, key);
-		System.out.println(connection.exec());
-	}
-
-//	@Test
-//	public void setAdd() {
-//		connection.sadd("s1", "1");
-//		connection.sadd("s1", "2");
-//		connection.sadd("s1", "3");
-//		connection.sadd("s2", "2");
-//		connection.sadd("s2", "3");
-//		Set<String> intersection = connection.sinter("s1", "s2");
-//		System.out.println(intersection);
-//
-//
-//	}
-//
-//	@Test
-//	public void setIntersectionTests() {
-//		RedisTemplate template = new RedisTemplate(clientFactory);
-//		RedisSet s1 = new RedisSet(template, "s1");
-//		s1.add("1");
-//		s1.add("2");
-//		s1.add("3");
-//		RedisSet s2 = new RedisSet(template, "s2");
-//		s2.add("2");
-//		s2.add("3");
-//		Set s3 = s1.intersection("s3", s1, s2);
-//		for (Object object : s3) {
-//			System.out.println(object);
-//		}
 }

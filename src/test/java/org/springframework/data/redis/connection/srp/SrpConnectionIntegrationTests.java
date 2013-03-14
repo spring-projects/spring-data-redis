@@ -16,12 +16,10 @@
 
 package org.springframework.data.redis.connection.srp;
 
-import org.junit.Test;
+import org.junit.Ignore;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-
-import redis.client.RedisClient;
 
 /**
  * @author Costin Leau
@@ -42,16 +40,12 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		return factory;
 	}
 
-	@Test
-	public void testRaw() throws Exception {
-		RedisClient rc = (RedisClient) factory.getConnection().getNativeConnection();
-
-		System.out.println(rc.dbsize());
-		System.out.println(rc.exists("foobar"));
-		rc.set("foobar", "barfoo");
-		System.out.println(rc.get("foobar"));
+	@Ignore
+	public void testNullCollections() throws Exception {
 	}
 
-	public void testNullCollections() throws Exception {
+	//DATAREDIS-123, exec does not return command results
+	@Ignore
+	public void testMulti() throws Exception {
 	}
 }

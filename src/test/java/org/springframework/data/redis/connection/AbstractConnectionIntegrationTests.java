@@ -19,7 +19,6 @@ package org.springframework.data.redis.connection;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -31,7 +30,6 @@ import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -213,61 +211,6 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.closePipeline();
 	}
 
-	// pub sub test
-	@Test
-	public void testPubSub() throws Exception {
-
-		final BlockingDeque<Message> queue = new LinkedBlockingDeque<Message>();
-
-		final MessageListener ml = new MessageListener() {
-
-			public void onMessage(Message message, byte[] pattern) {
-				queue.add(message);
-				System.out.println("received message");
-			}
-		};
-
-		final byte[] channel = "foo.tv".getBytes();
-		final RedisConnection subConn = getConnectionFactory().getConnection();
-
-		assertNotSame(connection, subConn);
-
-
-		final AtomicBoolean flag = new AtomicBoolean(true);
-
-		Runnable listener = new Runnable() {
-
-			public void run() {
-				subConn.subscribe(ml, channel);
-				System.out.println("Subscribed");
-				while (flag.get()) {
-					try {
-						Thread.currentThread().sleep(2000);
-					} catch (Exception ex) {
-						return;
-					}
-				}
-			}
-		};
-
-		Thread th = new Thread(listener, "listener");
-		th.start();
-
-		try {
-			Thread.sleep(1500);
-			connection.publish(channel, "one".getBytes());
-			connection.publish(channel, "two".getBytes());
-			connection.publish(channel, "I see you".getBytes());
-			System.out.println("Done publishing...");
-			Thread.sleep(5000);
-			System.out.println("Done waiting ...");
-		} finally {
-			flag.set(false);
-		}
-		System.out.println(queue);
-		assertEquals(3, queue.size());
-	}
-
 	@Test
 	public void testPubSubWithNamedChannels() throws Exception {
 		final String expectedChannel = "channel1";
@@ -418,6 +361,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertTrue(hashMap.size() >= 2);
 		assertTrue(hashMap.containsKey(key1));
 		assertTrue(hashMap.containsKey(key2));
+	}
+
+	@Test
+	public void testMulti() throws Exception {
+		byte[] key = "key".getBytes();
+		byte[] value = "value".getBytes();
+
+		connection.multi();
+		connection.set(key, value);
+		assertNull(connection.get(key));
+		List<Object> results = connection.exec();
+		assertEquals(2, results.size());
+		assertEquals("OK", new String((byte[])results.get(0)));
+		assertEquals(new String(value), new String((byte[])results.get(1)));
 	}
 
 	private boolean isAsync() {
