@@ -66,7 +66,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(false);
+		jedisConnFactory.setUsePool(true);
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
 		jedisConnFactory.afterPropertiesSet();

@@ -52,7 +52,7 @@ public abstract class CollectionTestParams {
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(false);
+		jedisConnFactory.setUsePool(true);
 
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
@@ -82,7 +82,7 @@ public abstract class CollectionTestParams {
 
 		// jredis
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setUsePool(false);
+		jredisConnFactory.setUsePool(true);
 
 		jredisConnFactory.setPort(SettingsUtils.getPort());
 		jredisConnFactory.setHostName(SettingsUtils.getHost());
@@ -112,7 +112,7 @@ public abstract class CollectionTestParams {
 
 		// rjc
 		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setUsePool(false);
+		rjcConnFactory.setUsePool(true);
 		rjcConnFactory.setPort(SettingsUtils.getPort());
 		rjcConnFactory.setHostName(SettingsUtils.getHost());
 		rjcConnFactory.afterPropertiesSet();

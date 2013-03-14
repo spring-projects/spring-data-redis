@@ -236,7 +236,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(false);
+		jedisConnFactory.setUsePool(true);
 
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());

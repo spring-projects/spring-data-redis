@@ -70,7 +70,7 @@ public class PubSubResubscribeTests {
 	@Before
 	public void setUp() throws Exception {
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(false);
+		jedisConnFactory.setUsePool(true);
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
 		jedisConnFactory.setDatabase(2);
