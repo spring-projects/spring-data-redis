@@ -45,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
@@ -203,6 +204,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 			System.out.println("Value is " + value);
 		} catch (InvalidDataAccessApiUsageException ex) {
 			// expected
+		} catch (RedisSystemException ex) {
+			// expected for SRP and Lettuce
 		}
 	}
 

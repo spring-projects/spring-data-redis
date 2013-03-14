@@ -20,27 +20,52 @@ import java.util.Collection;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public abstract class AtomicCountersParam {
 
 	public static Collection<Object[]> testParams() {
-		// create Jedis Factory
+		// Jedis
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
 		jedisConnFactory.setUsePool(true);
 		jedisConnFactory.afterPropertiesSet();
 
-		// jredis factory
-		//		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		//		jredisConnFactory.setUsePool(true);
-		//		jredisConnFactory.setPort(SettingsUtils.getPort());
-		//		jredisConnFactory.setHostName(SettingsUtils.getHost());
-		//		jredisConnFactory.afterPropertiesSet();
+		// JRedis
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
+		jredisConnFactory.setUsePool(true);
+		jredisConnFactory.setPort(SettingsUtils.getPort());
+		jredisConnFactory.setHostName(SettingsUtils.getHost());
+		jredisConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { jedisConnFactory } });
+		// Lettuce
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setPort(SettingsUtils.getPort());
+		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnFactory.afterPropertiesSet();
+
+		// SRP
+		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
+		srpConnFactory.setPort(SettingsUtils.getPort());
+		srpConnFactory.setHostName(SettingsUtils.getHost());
+		srpConnFactory.afterPropertiesSet();
+
+		// RJC
+		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
+		rjcConnFactory.setPort(SettingsUtils.getPort());
+		rjcConnFactory.setHostName(SettingsUtils.getHost());
+		rjcConnFactory.afterPropertiesSet();
+
+		return Arrays.asList(new Object[][] { { jedisConnFactory },
+				{ jredisConnFactory}, { lettuceConnFactory },
+				{ srpConnFactory}, { rjcConnFactory } });
 	}
 }

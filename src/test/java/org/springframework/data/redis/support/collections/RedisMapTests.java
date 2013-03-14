@@ -23,7 +23,9 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
@@ -35,6 +37,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * Integration test for RedisMap.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
@@ -111,8 +114,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplateJR.afterPropertiesSet();
 
 		// RJC
-
-		// rjc
 		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
 		rjcConnFactory.setUsePool(true);
 		rjcConnFactory.setPort(SettingsUtils.getPort());
@@ -135,23 +136,81 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplateRJC.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateRJC.afterPropertiesSet();
 
+		// Lettuce
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setPort(SettingsUtils.getPort());
+		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
-				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
+		RedisTemplate genericTemplateLettuce = new RedisTemplate();
+		genericTemplateLettuce.setConnectionFactory(lettuceConnFactory);
+		genericTemplateLettuce.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xGenericTemplateLettuce = new RedisTemplate<String, Person>();
+		xGenericTemplateLettuce.setConnectionFactory(lettuceConnFactory);
+		xGenericTemplateLettuce.setDefaultSerializer(serializer);
+		xGenericTemplateLettuce.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateLettuce = new RedisTemplate<String, Person>();
+		jsonPersonTemplateLettuce.setConnectionFactory(lettuceConnFactory);
+		jsonPersonTemplateLettuce.setDefaultSerializer(jsonSerializer);
+		jsonPersonTemplateLettuce.setHashKeySerializer(jsonSerializer);
+		jsonPersonTemplateLettuce.setHashValueSerializer(jsonStringSerializer);
+		jsonPersonTemplateLettuce.afterPropertiesSet();
+
+		// SRP
+		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
+		srpConnFactory.setPort(SettingsUtils.getPort());
+		srpConnFactory.setHostName(SettingsUtils.getHost());
+		srpConnFactory.afterPropertiesSet();
+
+		RedisTemplate genericTemplateSrp = new RedisTemplate();
+		genericTemplateSrp.setConnectionFactory(srpConnFactory);
+		genericTemplateSrp.afterPropertiesSet();
+
+		RedisTemplate<String, Person> xGenericTemplateSrp = new RedisTemplate<String, Person>();
+		xGenericTemplateSrp.setConnectionFactory(srpConnFactory);
+		xGenericTemplateSrp.setDefaultSerializer(serializer);
+		xGenericTemplateSrp.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateSrp = new RedisTemplate<String, Person>();
+		jsonPersonTemplateSrp.setConnectionFactory(srpConnFactory);
+		jsonPersonTemplateSrp.setDefaultSerializer(jsonSerializer);
+		jsonPersonTemplateSrp.setHashKeySerializer(jsonSerializer);
+		jsonPersonTemplateSrp.setHashValueSerializer(jsonStringSerializer);
+		jsonPersonTemplateSrp.afterPropertiesSet();
+
+
+		return Arrays.asList(new Object[][] {
+				{ stringFactory, stringFactory, genericTemplate },
+				{ personFactory, personFactory, genericTemplate },
+				{ stringFactory, personFactory, genericTemplate },
 				{ personFactory, stringFactory, genericTemplate },
 				{ personFactory, stringFactory, xstreamGenericTemplate },
+				{ personFactory, stringFactory, jsonPersonTemplate },
 				{ stringFactory, stringFactory, genericTemplateJR },
 				{ personFactory, personFactory, genericTemplateJR },
 				{ stringFactory, personFactory, genericTemplateJR },
 				{ personFactory, stringFactory, genericTemplateJR },
 				{ personFactory, stringFactory, xGenericTemplateJR },
-				{ personFactory, stringFactory, jsonPersonTemplate },
 				{ personFactory, stringFactory, jsonPersonTemplateJR },
 				{ stringFactory, stringFactory, genericTemplateRJC },
 				{ personFactory, personFactory, genericTemplateRJC },
 				{ stringFactory, personFactory, genericTemplateRJC },
 				{ personFactory, stringFactory, genericTemplateRJC },
 				{ personFactory, stringFactory, xGenericTemplateRJC },
-				{ personFactory, stringFactory, jsonPersonTemplateRJC } });
+				{ personFactory, stringFactory, jsonPersonTemplateRJC },
+				{ stringFactory, stringFactory, genericTemplateLettuce },
+				{ personFactory, personFactory, genericTemplateLettuce },
+				{ stringFactory, personFactory, genericTemplateLettuce },
+				{ personFactory, stringFactory, genericTemplateLettuce },
+				{ personFactory, stringFactory, xGenericTemplateLettuce },
+				{ personFactory, stringFactory, jsonPersonTemplateLettuce },
+				{ stringFactory, stringFactory, genericTemplateSrp },
+				{ personFactory, personFactory, genericTemplateSrp },
+				{ stringFactory, personFactory, genericTemplateSrp },
+				{ personFactory, stringFactory, genericTemplateSrp },
+				{ personFactory, stringFactory, xGenericTemplateSrp },
+				{ personFactory, stringFactory, jsonPersonTemplateSrp }});
 	}
 }

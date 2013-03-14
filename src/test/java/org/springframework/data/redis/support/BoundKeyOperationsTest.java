@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.support;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -27,12 +30,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.ObjectFactory;
 
 /**
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 @RunWith(Parameterized.class)
 public class BoundKeyOperationsTest {
@@ -72,6 +77,7 @@ public class BoundKeyOperationsTest {
 		keyOps.rename(key);
 		assertEquals(key, keyOps.getKey());
 	}
+
 	@Test
 	public void testExpire() throws Exception {
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
@@ -83,6 +89,7 @@ public class BoundKeyOperationsTest {
 
 	@Test
 	public void testPersist() throws Exception {
+		assumeTrue(!isJredis());
 		keyOps.persist();
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
@@ -90,5 +97,9 @@ public class BoundKeyOperationsTest {
 		}
 		keyOps.persist();
 		assertEquals(-1, keyOps.getExpire().longValue());
+	}
+
+	private boolean isJredis() {
+		return template.getConnectionFactory() instanceof JredisConnectionFactory;
 	}
 }

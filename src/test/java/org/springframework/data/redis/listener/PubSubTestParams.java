@@ -23,6 +23,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.ObjectFactory;
@@ -31,6 +32,7 @@ import org.springframework.data.redis.support.collections.StringObjectFactory;
 
 /**
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class PubSubTestParams {
 
@@ -75,10 +77,23 @@ public class PubSubTestParams {
 		personTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		personTemplateLtc.afterPropertiesSet();
 
+		// SRP
+		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
+		srpConnFactory.setPort(SettingsUtils.getPort());
+		srpConnFactory.setHostName(SettingsUtils.getHost());
+		srpConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> stringTemplateSrp = new StringRedisTemplate(srpConnFactory);
+		RedisTemplate<String, Person> personTemplateSrp = new RedisTemplate<String, Person>();
+		personTemplateSrp.setConnectionFactory(srpConnFactory);
+		personTemplateSrp.afterPropertiesSet();
+
+		// JRedis does not support pub/sub
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
 				{ stringFactory, stringTemplateRJC }, { personFactory, personTemplateRJC },
-				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc }
+				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
+				{ stringFactory, stringTemplateSrp }, { personFactory, personTemplateSrp }
 		});
 	}
 }

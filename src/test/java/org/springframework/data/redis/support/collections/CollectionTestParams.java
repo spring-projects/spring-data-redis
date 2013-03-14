@@ -169,7 +169,7 @@ public abstract class CollectionTestParams {
 		lettuceConnFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(srConnFactory);
+		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
 		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<String, Person>();
 		personTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		personTemplateLtc.afterPropertiesSet();
