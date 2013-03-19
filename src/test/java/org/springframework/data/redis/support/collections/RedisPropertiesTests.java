@@ -39,6 +39,7 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -299,6 +300,25 @@ public class RedisPropertiesTests extends RedisMapTests {
 		jsonPersonTemplateRJC.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateRJC.afterPropertiesSet();
 
+		// Lettuce
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setPort(SettingsUtils.getPort());
+		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnFactory.afterPropertiesSet();
+
+		RedisTemplate<String, String> genericTemplateLtc = new StringRedisTemplate(lettuceConnFactory);
+		RedisTemplate<String, Person> xGenericTemplateLtc = new RedisTemplate<String, Person>();
+		xGenericTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		xGenericTemplateLtc.setDefaultSerializer(serializer);
+		xGenericTemplateLtc.afterPropertiesSet();
+
+		RedisTemplate<String, Person> jsonPersonTemplateLtc = new RedisTemplate<String, Person>();
+		jsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		jsonPersonTemplateLtc.setDefaultSerializer(jsonSerializer);
+		jsonPersonTemplateLtc.setHashKeySerializer(jsonSerializer);
+		jsonPersonTemplateLtc.setHashValueSerializer(jsonStringSerializer);
+		jsonPersonTemplateLtc.afterPropertiesSet();
+
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
 				{ stringFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, genericTemplate },
@@ -316,6 +336,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 				{ stringFactory, stringFactory, genericTemplateRJC },
 				{ stringFactory, stringFactory, genericTemplateRJC },
 				{ stringFactory, stringFactory, xGenericTemplateRJC },
-				{ stringFactory, stringFactory, jsonPersonTemplateRJC } });
+				{ stringFactory, stringFactory, jsonPersonTemplateRJC },
+				{ stringFactory, stringFactory, genericTemplateLtc },
+				{ stringFactory, stringFactory, genericTemplateLtc },
+				{ stringFactory, stringFactory, genericTemplateLtc },
+				{ stringFactory, stringFactory, genericTemplateLtc },
+				{ stringFactory, stringFactory, xGenericTemplateLtc },
+				{ stringFactory, stringFactory, jsonPersonTemplateLtc }});
 	}
 }
