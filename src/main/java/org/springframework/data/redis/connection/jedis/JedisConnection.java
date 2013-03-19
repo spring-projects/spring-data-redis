@@ -1048,14 +1048,14 @@ public class JedisConnection implements RedisConnection {
 	public Long decrBy(byte[] key, long value) {
 		try {
 			if (isQueueing()) {
-				transaction.decrBy(key, (int) value);
+				transaction.decrBy(key, value);
 				return null;
 			}
 			if (isPipelined()) {
-				pipeline.decrBy(key, (int) value);
+				pipeline.decrBy(key, value);
 				return null;
 			}
-			return jedis.decrBy(key, (int) value);
+			return jedis.decrBy(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1082,14 +1082,14 @@ public class JedisConnection implements RedisConnection {
 	public Long incrBy(byte[] key, long value) {
 		try {
 			if (isQueueing()) {
-				transaction.incrBy(key, (int) value);
+				transaction.incrBy(key, value);
 				return null;
 			}
 			if (isPipelined()) {
-				pipeline.incrBy(key, (int) value);
+				pipeline.incrBy(key, value);
 				return null;
 			}
-			return jedis.incrBy(key, (int) value);
+			return jedis.incrBy(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -2254,14 +2254,14 @@ public class JedisConnection implements RedisConnection {
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		try {
 			if (isQueueing()) {
-				transaction.hincrBy(key, field, (int) delta);
+				transaction.hincrBy(key, field, delta);
 				return null;
 			}
 			if (isPipelined()) {
-				pipeline.hincrBy(key, field, (int) delta);
+				pipeline.hincrBy(key, field, delta);
 				return null;
 			}
-			return jedis.hincrBy(key, field, (int) delta);
+			return jedis.hincrBy(key, field, delta);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

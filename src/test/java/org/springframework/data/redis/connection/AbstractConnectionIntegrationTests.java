@@ -149,7 +149,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		try {
 			connection.decr((String) null);
 		} catch (Exception ex) {
-			// excepted
+			// expected
 		}
 	}
 
