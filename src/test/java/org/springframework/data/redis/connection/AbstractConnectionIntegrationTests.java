@@ -32,12 +32,11 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
-import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -63,21 +62,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	private static final String listName = "test-list";
 	private static final byte[] EMPTY_ARRAY = new byte[0];
 
-	protected abstract RedisConnectionFactory getConnectionFactory();
+	@Autowired
+	private RedisConnectionFactory connectionFactory;
 
 
 	@Before
 	public void setUp() {
-		connection = new DefaultStringRedisConnection(getConnectionFactory().getConnection());
-		ConnectionFactoryTracker.add(getConnectionFactory());
-
+		connection = new DefaultStringRedisConnection(connectionFactory.getConnection());
 	}
-
-	@AfterClass
-	public static void cleanUp() {
-		ConnectionFactoryTracker.cleanUp();
-	}
-
 
 	@After
 	public void tearDown() {
@@ -197,7 +189,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertNull(mGet.get(0));
 		assertNull(mGet.get(1));
 
-		StringRedisTemplate stringTemplate = new StringRedisTemplate(getConnectionFactory());
+		StringRedisTemplate stringTemplate = new StringRedisTemplate(connectionFactory);
 		List<String> multiGet = stringTemplate.opsForValue().multiGet(Arrays.asList(keys));
 		assertEquals(2, multiGet.size());
 		assertNull(multiGet.get(0));
@@ -235,7 +227,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				}
 
 				// open a new connection
-				RedisConnection connection2 = getConnectionFactory().getConnection();
+				RedisConnection connection2 = connectionFactory.getConnection();
 				connection2.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
 				connection2.close();
 				// In some clients, unsubscribe happens async of message receipt, so not all
@@ -284,7 +276,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				}
 
 				// open a new connection
-				RedisConnection connection2 = getConnectionFactory().getConnection();
+				RedisConnection connection2 = connectionFactory.getConnection();
 				connection2.publish("channel1".getBytes(), expectedMessage.getBytes());
 				connection2.publish("channel2".getBytes(), expectedMessage.getBytes());
 				connection2.close();
@@ -426,11 +418,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	private boolean isAsync() {
-		return (getConnectionFactory() instanceof LettuceConnectionFactory) ||
-				(getConnectionFactory() instanceof SrpConnectionFactory);
+		return (connectionFactory instanceof LettuceConnectionFactory) ||
+				(connectionFactory instanceof SrpConnectionFactory);
 	}
 
 	private boolean isRjc() {
-		return (getConnectionFactory() instanceof RjcConnectionFactory);
+		return (connectionFactory instanceof RjcConnectionFactory);
 	}
 }

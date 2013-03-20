@@ -16,28 +16,29 @@
 
 package org.springframework.data.redis.connection.jredis;
 
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.data.redis.SettingsUtils;
+import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	JredisConnectionFactory factory;
-
-	public JRedisConnectionIntegrationTests() {
-		factory = new JredisConnectionFactory();
-		factory.setPort(SettingsUtils.getPort());
-		factory.setHostName(SettingsUtils.getHost());
-
-		factory.setUsePool(true);
-		factory.afterPropertiesSet();
-	}
-
 	
-	protected RedisConnectionFactory getConnectionFactory() {
-		return factory;
+	@After
+	public void tearDown() {
+		try {
+			connection.close();
+		}catch(DataAccessException e) {
+			// Jredis closes a connection on Exception (which some tests intentionally throw)
+			// Attempting to close the connection again will result in error
+			System.out.println("Connection already closed");
+		}
+		connection = null;
 	}
 
 	@Ignore("JRedis does not support pipelining")

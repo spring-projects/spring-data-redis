@@ -22,27 +22,15 @@ import static org.junit.Assert.assertNull;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.data.redis.SettingsUtils;
+import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
-	LettuceConnectionFactory factory;
-
-	public LettuceConnectionIntegrationTests() {
-		factory = new LettuceConnectionFactory();
-
-		factory.setPort(SettingsUtils.getPort());
-		factory.setHostName(SettingsUtils.getHost());
-
-		factory.afterPropertiesSet();
-	}
-
-
-	protected RedisConnectionFactory getConnectionFactory() {
-		return factory;
-	}
 
 	@Test
 	public void testMultiExec() throws Exception {

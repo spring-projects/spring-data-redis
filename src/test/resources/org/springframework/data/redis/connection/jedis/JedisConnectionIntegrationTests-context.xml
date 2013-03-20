@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<!-- We can't pool connections for this test because Jedis leaves OutputSteam
+		in compromised state on NullPointerException (which happens if a null key
+		or value is used) but doesn't remove them from the pool or reconnect them
+		on next attempted use -->
+	<bean id="jedisConnectionFactory "
+		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		p:usePool="false">
+		<property name="hostName">
+			<bean class="org.springframework.data.redis.SettingsUtils"
+				factory-method="getHost" />
+		</property>
+		<property name="port">
+			<bean class="org.springframework.data.redis.SettingsUtils"
+				factory-method="getPort" />
+		</property>
+	</bean>
+
+</beans>

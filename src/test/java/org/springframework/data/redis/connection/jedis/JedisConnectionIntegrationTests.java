@@ -17,28 +17,29 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.junit.Assert.assertEquals;
+
+import org.junit.After;
 import org.junit.Test;
-import org.springframework.data.redis.SettingsUtils;
+import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	JedisConnectionFactory factory;
-
-	public JedisConnectionIntegrationTests() {
-		factory = new JedisConnectionFactory();
-		factory.setUsePool(true);
-
-		factory.setPort(SettingsUtils.getPort());
-		factory.setHostName(SettingsUtils.getHost());
-
-		factory.afterPropertiesSet();
-	}
-
 	
-	protected RedisConnectionFactory getConnectionFactory() {
-		return factory;
+	@After
+	public void tearDown() {
+		try {
+			connection.close();
+		}catch(DataAccessException e) {
+			// Jedis leaves some incomplete data in OutputStream on NPE caused by null key/value tests
+			// Attempting to close the connection will result in error on sending QUIT to Redis
+			System.out.println("Connection already closed");
+		}
+		connection = null;
 	}
 
 	@Test

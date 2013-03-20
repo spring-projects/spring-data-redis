@@ -17,28 +17,17 @@
 package org.springframework.data.redis.connection.srp;
 
 import org.junit.Ignore;
-import org.springframework.data.redis.SettingsUtils;
+import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Costin Leau
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class SrpConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-	SrpConnectionFactory factory;
-
-	public SrpConnectionIntegrationTests() {
-		factory = new SrpConnectionFactory();
-		factory.setPort(SettingsUtils.getPort());
-		factory.setHostName(SettingsUtils.getHost());
-
-		factory.afterPropertiesSet();
-	}
-
-
-	protected RedisConnectionFactory getConnectionFactory() {
-		return factory;
-	}
 
 	@Ignore
 	public void testNullCollections() throws Exception {

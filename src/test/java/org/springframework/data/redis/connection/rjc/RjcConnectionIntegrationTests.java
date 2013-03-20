@@ -23,30 +23,17 @@ import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.data.redis.SettingsUtils;
+import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Costin Leau
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class RjcConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	RjcConnectionFactory factory;
-
-	public RjcConnectionIntegrationTests() {
-		factory = new RjcConnectionFactory();
-		factory.setPort(SettingsUtils.getPort());
-		factory.setHostName(SettingsUtils.getHost());
-
-		factory.setUsePool(true);
-		factory.afterPropertiesSet();
-	}
-
-	
-	protected RedisConnectionFactory getConnectionFactory() {
-		return factory;
-	}
 
 	@Test
 	public void testMultiExec() throws Exception {
