@@ -377,6 +377,30 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals(new String(value), new String((byte[])results.get(1)));
 	}
 
+	@Test
+	public void testBlPopTimeout() {
+		assertNull(connection.bLPop(1, "lclist"));
+	}
+
+	@Test
+	public void testBlPop() {
+		connection.lPush("poplist", "foo");
+		connection.lPush("poplist", "bar");
+		assertEquals(Arrays.asList(new String[] {"poplist", "bar"}), connection.bLPop(1, "poplist", "otherlist"));
+	}
+
+	@Test
+	public void testBRPop() {
+		connection.rPush("rpoplist", "bar");
+		connection.rPush("rpoplist", "foo");
+		assertEquals(Arrays.asList(new String[] {"rpoplist", "foo"}), connection.bRPop(1, "rpoplist"));
+	}
+
+	@Test
+	public void testBRPopTimeout() {
+		assertNull(connection.bRPop(1, "rclist"));
+	}
+
 	private boolean isAsync() {
 		return (getConnectionFactory() instanceof LettuceConnectionFactory) ||
 				(getConnectionFactory() instanceof SrpConnectionFactory);

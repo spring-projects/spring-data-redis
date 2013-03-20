@@ -151,6 +151,9 @@ abstract class LettuceUtils {
 	}
 
 	static List<byte[]> toList(KeyValue<byte[], byte[]> blpop) {
+		if(blpop == null) {
+			return null;
+		}
 		List<byte[]> list = new ArrayList<byte[]>(2);
 		list.add(blpop.key);
 		list.add(blpop.value);

@@ -97,4 +97,24 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testExecuteNativeWithPipeline() throws Exception {
 		super.testExecuteNativeWithPipeline();
 	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBlPopTimeout() {
+		super.testBlPopTimeout();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBlPop() {
+		super.testBlPop();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBRPop() {
+		super.testBRPop();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBRPopTimeout() {
+		super.testBRPopTimeout();
+	}
 }
