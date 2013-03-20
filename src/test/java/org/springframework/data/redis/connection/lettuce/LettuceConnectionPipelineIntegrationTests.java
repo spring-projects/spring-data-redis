@@ -16,10 +16,10 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +34,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
@@ -68,6 +69,47 @@ public class LettuceConnectionPipelineIntegrationTests extends
 
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
+
+	@Test
+	public void testBLPop() {
+		// Use a different synchronous connection to add items to the list, else blpop may
+		// execute before items in the list (LettuceConnection uses different underlying conns for blocking ops)
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.lPush("poplist", "foo");
+		conn2.lPush("poplist", "bar");
+		actual.add(connection.bLPop(1, "poplist", "otherlist"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new String[] {"poplist", "bar"})}), actual);
+	}
+
+	@Test
+	public void testBRPop() {
+		// Use a different synchronous connection to add items to the list, else blpop may
+		// execute before items in the list (LettuceConnection uses different underlying conns for blocking ops)
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.rPush("rpoplist", "bar");
+		conn2.rPush("rpoplist", "foo");
+		actual.add(connection.bRPop(1, "rpoplist"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new String[] {"rpoplist", "foo"})}), actual);
+	}
+
+	@Test
+	public void testBRPopLPush() {
+		// Use a different synchronous connection to add items to the list, else blpop may
+		// execute before items in the list (LettuceConnection uses different underlying conns for blocking ops)
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.rPush("PopList", "hello");
+		conn2.rPush("PopList", "world");
+		conn2.rPush("pop2", "hey");
+		assertNull(connection.bRPopLPush(1, "PopList", "pop2"));
+		List<Object> results = convertResults();
+		assertEquals(Arrays.asList(new String[] { "world" }), results);
+		assertEquals(Arrays.asList(new String[] { "hello" }), connection.lRange("PopList", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "world", "hey" }),
+				connection.lRange("pop2", 0, -1));
+	}
 
 	@Test
 	public void testHSetGet() throws Exception {
