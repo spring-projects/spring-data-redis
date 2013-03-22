@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -76,5 +77,9 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection.execute("GET", key2);
 		List<Object> result = connection.closePipeline();
 		assertEquals(4, result.size());
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testSortStore() {
 	}
 }

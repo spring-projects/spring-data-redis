@@ -39,6 +39,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
@@ -399,6 +400,17 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void testBRPopTimeout() {
 		assertNull(connection.bRPop(1, "rclist"));
+	}
+
+	@Test
+	public void testSortStore() {
+		connection.del("sortlist");
+		connection.rPush("sortlist", "foo");
+		connection.rPush("sortlist", "bar");
+		connection.rPush("sortlist", "baz");
+		assertEquals(Long.valueOf(3),
+				connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true), "newlist"));
+		assertEquals(Arrays.asList(new String[] {"bar", "baz", "foo"}), connection.lRange("newlist", 0, 9));
 	}
 
 	private boolean isAsync() {

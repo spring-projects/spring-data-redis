@@ -98,6 +98,10 @@ public class DefaultSortParameters implements SortParameters {
 	public void setGetPattern(byte[][] gPattern) {
 		getPattern.clear();
 
+		if(gPattern == null) {
+			return;
+		}
+
 		for (byte[] bs : gPattern) {
 			getPattern.add(bs);
 		}

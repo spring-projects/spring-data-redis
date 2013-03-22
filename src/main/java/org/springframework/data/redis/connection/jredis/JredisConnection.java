@@ -160,7 +160,7 @@ public class JredisConnection implements RedisConnection {
 
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 		Sort sort = jredis.sort(JredisUtils.decode(key));
-		JredisUtils.applySortingParams(sort, params, null);
+		JredisUtils.applySortingParams(sort, params, storeKey);
 		try {
 			return Support.unpackValue(sort.exec());
 		} catch (Exception ex) {
