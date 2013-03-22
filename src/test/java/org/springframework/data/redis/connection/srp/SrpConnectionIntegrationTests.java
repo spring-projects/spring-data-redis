@@ -45,7 +45,11 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Ignore("DATAREDIS-123, exec does not return command results")
-	public void testMulti() throws Exception {
+	public void testMultiExec() throws Exception {
+	}
+
+	@Ignore("DATAREDIS-123, exec does not return command results")
+	public void testMultiDiscard() {
 	}
 
 	@Ignore("DATAREDIS-130, sort not working")

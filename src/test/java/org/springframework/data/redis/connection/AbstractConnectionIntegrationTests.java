@@ -365,7 +365,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	public void testMulti() throws Exception {
+	public void testMultiExec() throws Exception {
 		byte[] key = "key".getBytes();
 		byte[] value = "value".getBytes();
 
@@ -377,6 +377,18 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals("OK", new String((byte[])results.get(0)));
 		assertEquals(new String(value), new String((byte[])results.get(1)));
 	}
+
+	@Test
+	public void testMultiDiscard() throws Exception {
+		connection.set("testitnow", "willdo");
+		connection.multi();
+		connection.set("testitnow", "notok");
+		connection.discard();
+		assertEquals("willdo", connection.get("testitnow"));
+		// Ensure we can run a new tx after discarding previous one
+		testMultiExec();
+	}
+
 
 	@Test
 	public void testBlPopTimeout() {

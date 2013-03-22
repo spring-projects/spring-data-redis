@@ -45,7 +45,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	}
 
 	@Test
-	public void testMulti() throws Exception {
+	public void testMultiExec() throws Exception {
 		byte[] key = "key".getBytes();
 		byte[] value = "value".getBytes();
 

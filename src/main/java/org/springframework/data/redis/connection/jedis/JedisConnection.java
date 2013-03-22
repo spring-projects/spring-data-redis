@@ -588,7 +588,7 @@ public class JedisConnection implements RedisConnection {
 				pipeline.discard();
 				return;
 			}
-			client.discard();
+			transaction.discard();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

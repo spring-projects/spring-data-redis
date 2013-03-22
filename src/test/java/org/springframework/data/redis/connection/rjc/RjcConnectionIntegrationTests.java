@@ -49,7 +49,7 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Test
-	public void testMulti() throws Exception {
+	public void testMultiExec() throws Exception {
 		byte[] key = "key".getBytes();
 		byte[] value = "value".getBytes();
 

@@ -80,8 +80,14 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testBitSet() throws Exception {
 	}
 
-	@Ignore
-	public void testMulti() throws Exception {
+	@Test(expected = UnsupportedOperationException.class)
+	public void testMultiExec() throws Exception {
+		super.testMultiExec();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testMultiDiscard() throws Exception {
+		super.testMultiDiscard();
 	}
 
 	@Ignore
