@@ -137,7 +137,10 @@ abstract class SrpUtils {
 	}
 
 	static Set<Tuple> convertTuple(MultiBulkReply zrange) {
-		Reply[] byteArrays = zrange.data();
+		return convertTuple(zrange.data());
+	}
+
+	static Set<Tuple> convertTuple(Reply[] byteArrays) {
 		Set<Tuple> tuples = new LinkedHashSet<Tuple>(byteArrays.length / 2 + 1);
 
 		for (int i = 0; i < byteArrays.length; i++) {

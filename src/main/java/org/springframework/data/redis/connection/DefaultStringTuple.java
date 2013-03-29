@@ -79,4 +79,8 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 		}
 		return false;
 	}
+
+	public String toString() {
+		return "DefaultStringTuple[value=" + getValueAsString() + ", score=" + getScore() + "]";
+	}
 }

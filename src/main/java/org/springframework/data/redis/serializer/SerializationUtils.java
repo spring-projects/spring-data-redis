@@ -17,12 +17,14 @@ package org.springframework.data.redis.serializer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Utility class with various serialization-related methods. 
+ * Utility class with various serialization-related methods.
  * 
  * @author Costin Leau
  */
@@ -64,5 +66,18 @@ public abstract class SerializationUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> Collection<T> deserialize(Collection<byte[]> rawValues, RedisSerializer<T> redisSerializer) {
 		return deserializeValues(rawValues, List.class, redisSerializer);
+	}
+
+	public static <T> Map<T, T> deserialize(Map<byte[], byte[]> rawValues,
+			RedisSerializer<T> redisSerializer) {
+		if (rawValues == null) {
+			return null;
+		}
+		Map<T, T> ret = new LinkedHashMap<T, T>(rawValues.size());
+		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
+			ret.put(redisSerializer.deserialize(entry.getKey()),
+					redisSerializer.deserialize(entry.getValue()));
+		}
+		return ret;
 	}
 }

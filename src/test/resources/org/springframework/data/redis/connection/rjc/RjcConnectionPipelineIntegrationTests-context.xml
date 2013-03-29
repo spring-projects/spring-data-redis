@@ -3,12 +3,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- DATAREDIS-154 We can't pool connections for this test because JRedis
-		closes connections on Exception but doesn't remove them from the pool or
-		reconnect them on next attempted use -->
-	<bean id="jredisConnectionFactory "
-		class="org.springframework.data.redis.connection.jredis.JredisConnectionFactory"
-		p:usePool="false">
+	<bean id="rjcConnectionFactory "
+		class="org.springframework.data.redis.connection.rjc.RjcConnectionFactory">
 		<property name="hostName">
 			<bean class="org.springframework.data.redis.SettingsUtils"
 				factory-method="getHost" />

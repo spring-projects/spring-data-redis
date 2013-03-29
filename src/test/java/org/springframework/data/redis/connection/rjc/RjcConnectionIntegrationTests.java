@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2013 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -29,7 +28,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
+ * Integration test of {@link RjcConnection}
+ *
  * @author Costin Leau
+ * @author Jennifer Hickey
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -46,27 +49,66 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 		List<Object> results = connection.exec();
 		assertEquals(2, results.size());
 		assertEquals("OK", (String) results.get(0));
-		assertEquals(new String(value), new String(RjcUtils.encode((String)results.get(1))));
+		assertEquals(new String(value), new String(RjcUtils.encode((String) results.get(1))));
 	}
 
-	// override test to address the encoding issue (the bytes[] in raw format differ)
-	@Test
-	public void testExecuteNativeWithPipeline() throws Exception {
-		String key1 = getClass() + "#ExecuteNativeWithPipeline#1";
-		String value1 = UUID.randomUUID().toString();
-		String key2 = getClass() + "#ExecuteNativeWithPipeline#2";
-		String value2 = UUID.randomUUID().toString();
+	@Ignore("nulls are encoded to empty strings")
+	public void testNullKey() throws Exception {
+	}
 
-		connection.openPipeline();
-		connection.execute("SET", key1, value1);
-		connection.execute("SET", key2, value2);
-		connection.execute("GET", key1);
-		connection.execute("GET", key2);
-		List<Object> result = connection.closePipeline();
-		assertEquals(4, result.size());
+	@Ignore("nulls are encoded to empty strings")
+	public void testNullValue() throws Exception {
+	}
+
+	@Ignore("nulls are encoded to empty strings")
+	public void testHashNullKey() throws Exception {
+	}
+
+	@Ignore("nulls are encoded to empty strings")
+	public void testHashNullValue() throws Exception {
+	}
+
+	@Ignore("DATAREDIS-133 Key search does not work with regex")
+	public void testKeys() throws Exception {
+	}
+
+	@Ignore("DATAREDIS-121 incr/decr does not work with encoded values")
+	public void testDecrByIncrBy() {
+	}
+
+	@Ignore("DATAREDIS-121 incr/decr does not work with encoded values")
+	public void testIncDecr() {
+	}
+
+	@Ignore("DATAREDIS-121 incr/decr does not work with encoded values")
+	public void testHIncrBy() {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testSort() {
 	}
 
 	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
 	public void testSortStore() {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testGetRangeSetRange() {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testStrLen() {
+	}
+
+	@Ignore("DATAREDIS-120 Pattern matching currently broken")
+	public void testPubSubWithPatterns() {
+	}
+
+	@Ignore("DATAREDIS-137 zRevRangeWithScores returns incorrect results")
+	public void testZRevRangeWithScores() {
+	}
+
+	@Ignore("DATAREDIS-148 Syntax error on RJC zUnionStore")
+	public void testZUnionStoreAggWeights() {
 	}
 }

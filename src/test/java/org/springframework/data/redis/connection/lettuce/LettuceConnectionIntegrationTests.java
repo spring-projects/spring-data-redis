@@ -16,33 +16,28 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import java.util.List;
-
-import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * Integration test of {@link LettuceConnection}
+ *
+ * @author Costin Leau
+ * @author Jennifer Hickey
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
+	@Ignore("DATAREDIS-122 exec never returns null")
+	public void testWatch() throws Exception {
+	}
 
-	@Test
-	public void testMultiExec() throws Exception {
-		byte[] key = "key".getBytes();
-		byte[] value = "value".getBytes();
-
-		connection.multi();
-		connection.set(key, value);
-		assertNull(connection.get(key));
-		List<Object> results = connection.exec();
-		assertEquals(2, results.size());
-		assertEquals("OK", results.get(0));
-		assertEquals(new String(value), new String((byte[])results.get(1)));
+	@Ignore("DATAREDIS-122 exec never returns null")
+	public void testUnwatch() throws Exception {
 	}
 }

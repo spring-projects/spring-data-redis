@@ -71,6 +71,16 @@ public class BoundKeyOperationsTest {
 	public void testRename() throws Exception {
 		Object key = keyOps.getKey();
 		assertNotNull(key);
+		// RedisAtomicInteger/Long need to be reset, as they may be created
+		// at start of test run and underlying key wiped out by other tests
+		try {
+			keyOps.getClass().getMethod("set", int.class).invoke(keyOps, 0);
+		}catch(NoSuchMethodException e) {
+		}
+		try {
+			keyOps.getClass().getMethod("set", long.class).invoke(keyOps, 0l);
+		}catch(NoSuchMethodException e) {
+		}
 		Object newName = objFactory.instance();
 		keyOps.rename(newName);
 		assertEquals(newName, keyOps.getKey());

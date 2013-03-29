@@ -16,69 +16,77 @@
 
 package org.springframework.data.redis.connection.jredis;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.DefaultSortParameters;
+import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * Integration test of {@link JredisConnection}
+ *
+ * @author Costin Leau
+ * @author Jennifer Hickey
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-	
+
 	@After
 	public void tearDown() {
 		try {
+			connection.flushDb();
 			connection.close();
-		}catch(DataAccessException e) {
-			// Jredis closes a connection on Exception (which some tests intentionally throw)
+		} catch (DataAccessException e) {
+			// Jredis closes a connection on Exception (which some tests
+			// intentionally throw)
 			// Attempting to close the connection again will result in error
 			System.out.println("Connection already closed");
 		}
 		connection = null;
 	}
 
-	@Ignore("JRedis does not support pipelining")
-	public void testNullCollections() {
-	}
-
-	@Ignore
+	@Ignore("nulls are encoded to empty strings")
 	public void testNullKey() throws Exception {
 	}
 
-	@Ignore
+	@Ignore("nulls are encoded to empty strings")
 	public void testNullValue() throws Exception {
 	}
 
-	@Ignore
+	@Ignore("nulls are encoded to empty strings")
 	public void testHashNullKey() throws Exception {
 	}
 
-	@Ignore
+	@Ignore("nulls are encoded to empty strings")
 	public void testHashNullValue() throws Exception {
 	}
 
-	@Ignore
-	public void testNullSerialization() throws Exception {
-	}
-
-	@Ignore
-	public void testPubSub() throws Exception {
-	}
-
-	@Ignore
+	@Ignore("Pub/Sub not supported")
 	public void testPubSubWithPatterns() {
 	}
 
-	@Ignore
+	@Ignore("Pub/Sub not supported")
 	public void testPubSubWithNamedChannels() {
 	}
 
-	@Ignore
+	@Ignore("DATAREDIS-129 Key search does not work with regex")
+	public void testKeys() throws Exception {
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitSet() throws Exception {
+		super.testBitSet();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -91,28 +99,19 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testMultiDiscard();
 	}
 
-	@Ignore
-	public void exceptionExecuteNativeWithPipeline() throws Exception {
+	@Test(expected = UnsupportedOperationException.class)
+	public void testWatch() throws Exception {
+		super.testWatch();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testExceptionExecuteNativeWithPipeline() throws Exception {
-		super.testExceptionExecuteNativeWithPipeline();
+	public void testUnwatch() throws Exception {
+		super.testUnwatch();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testExecuteNativeWithPipeline() throws Exception {
-		super.testExecuteNativeWithPipeline();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBlPopTimeout() {
-		super.testBlPopTimeout();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBlPop() {
-		super.testBlPop();
+	public void testBLPop() {
+		super.testBLPop();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -121,7 +120,214 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testBRPopTimeout() {
+	public void testLInsert() {
+		super.testLInsert();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBRPopLPush() {
+		super.testBRPopLPush();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testLPushX() {
+		super.testLPushX();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRPushX() {
+		super.testRPushX();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetRangeSetRange() {
+		super.testGetRangeSetRange();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testStrLen() {
+		super.testStrLen();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetConfig() {
+		super.testGetConfig();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZInterStore() {
+		super.testZInterStore();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZInterStoreAggWeights() {
+		super.testZInterStoreAggWeights();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRangeWithScores() {
+		super.testZRangeWithScores();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRangeByScoreOffsetCount() {
+		super.testZRangeByScoreOffsetCount();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRangeByScoreWithScores() {
+		super.testZRangeByScoreWithScores();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRangeByScoreWithScoresOffsetCount() {
+		super.testZRangeByScoreWithScoresOffsetCount();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRevRangeWithScores() {
+		super.testZRevRangeWithScores();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZUnionStore() {
+		super.testZUnionStore();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZUnionStoreAggWeights() {
+		super.testZUnionStoreAggWeights();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testHSetNX() throws Exception {
+		super.testHSetNX();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testHIncrBy() {
+		super.testHIncrBy();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testHMGetSet() {
+		super.testHMGetSet();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testPersist() throws Exception {
+		super.testPersist();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSetEx() throws Exception {
+		super.testSetEx();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBRPopTimeout() throws Exception {
 		super.testBRPopTimeout();
 	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBLPopTimeout() throws Exception {
+		super.testBLPopTimeout();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBRPopLPushTimeout() throws Exception {
+		super.testBRPopLPushTimeout();
+	}
+
+	// Jredis returns null for rPush
+	@Test
+	public void testSort() {
+		connection.rPush("sortlist", "foo");
+		connection.rPush("sortlist", "bar");
+		connection.rPush("sortlist", "baz");
+		assertEquals(Arrays.asList(new String[] { "bar", "baz", "foo" }),
+				connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true)));
+	}
+
+	@Test
+	public void testSortStore() {
+		connection.rPush("sortlist", "foo");
+		connection.rPush("sortlist", "bar");
+		connection.rPush("sortlist", "baz");
+		assertEquals(Long.valueOf(3), connection.sort("sortlist", new DefaultSortParameters(null,
+				Order.ASC, true), "newlist"));
+		assertEquals(Arrays.asList(new String[] { "bar", "baz", "foo" }),
+				connection.lRange("newlist", 0, 9));
+	}
+
+	@Test
+	public void testLPop() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "world");
+		assertEquals("hello", connection.lPop("PopList"));
+	}
+
+	@Test
+	public void testLRem() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "big");
+		connection.rPush("PopList", "world");
+		connection.rPush("PopList", "hello");
+		assertEquals(Long.valueOf(2), connection.lRem("PopList", 2, "hello"));
+		assertEquals(Arrays.asList(new String[] { "big", "world" }),
+				connection.lRange("PopList", 0, -1));
+	}
+
+	@Test
+	public void testLSet() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "big");
+		connection.rPush("PopList", "world");
+		connection.lSet("PopList", 1, "cruel");
+		assertEquals(Arrays.asList(new String[] { "hello", "cruel", "world" }),
+				connection.lRange("PopList", 0, -1));
+	}
+
+	@Test
+	public void testLTrim() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "big");
+		connection.rPush("PopList", "world");
+		connection.lTrim("PopList", 1, -1);
+		assertEquals(Arrays.asList(new String[] { "big", "world" }),
+				connection.lRange("PopList", 0, -1));
+	}
+
+	@Test
+	public void testRPop() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "world");
+		assertEquals("world", connection.rPop("PopList"));
+	}
+
+	@Test
+	public void testRPopLPush() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "world");
+		connection.rPush("pop2", "hey");
+		assertEquals("world", connection.rPopLPush("PopList", "pop2"));
+		assertEquals(Arrays.asList(new String[] { "hello" }), connection.lRange("PopList", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "world", "hey" }),
+				connection.lRange("pop2", 0, -1));
+	}
+
+	@Test
+	public void testLIndex() {
+		connection.lPush("testylist", "foo");
+		assertEquals("foo", connection.lIndex("testylist", 0));
+	}
+
+	@Test
+	public void testLPush() throws Exception {
+		connection.lPush("testlist", "bar");
+		connection.lPush("testlist", "baz");
+		assertEquals(Arrays.asList(new String[] { "baz", "bar" }),
+				connection.lRange("testlist", 0, -1));
+	}
+
 }

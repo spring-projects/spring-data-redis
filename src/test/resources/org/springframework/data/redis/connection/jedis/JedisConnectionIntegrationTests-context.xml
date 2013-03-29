@@ -4,10 +4,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-	<!-- We can't pool connections for this test because Jedis leaves OutputSteam
-		in compromised state on NullPointerException (which happens if a null key
-		or value is used) but doesn't remove them from the pool or reconnect them
-		on next attempted use -->
+	<!-- DATAREDIS-153 We can't pool connections for this test because Jedis
+		leaves OutputSteam in compromised state on NullPointerException (which happens
+		if a null key or value is used) but doesn't remove them from the pool or
+		reconnect them on next attempted use -->
 	<bean id="jedisConnectionFactory "
 		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
 		p:usePool="false">
