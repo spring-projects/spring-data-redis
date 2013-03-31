@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection.srp;
 
+import static org.junit.Assume.assumeTrue;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,6 +24,8 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import redis.client.RedisClientBase;
 
 /**
  * Integration test of {@link SrpConnection}
@@ -96,5 +99,15 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	@Test(expected = UnsupportedOperationException.class)
 	public void testZUnionStoreAggWeights() {
 		super.testZUnionStoreAggWeights();
+	}
+
+	@Test
+	public void testGetRangeSetRange() {
+		assumeTrue(getRedisVersion() >= RedisClientBase.parseVersion("2.4.0"));
+		super.testGetRangeSetRange();
+	}
+
+	private int getRedisVersion() {
+		return RedisClientBase.parseVersion((String)connection.info().get("redis_version"));
 	}
 }

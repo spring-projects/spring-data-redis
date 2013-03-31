@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import redis.client.RedisClientBase;
 import redis.reply.BulkReply;
 import redis.reply.Reply;
 
@@ -183,6 +185,19 @@ public class SrpConnectionPipelineIntegrationTests extends
 		actual.add(connection.zAdd("myset", 3, "Joe"));
 		actual.add(connection.zScore("myset", "Joe"));
 		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, "3" }), actual);
+	}
+
+	@Test
+	public void testGetRangeSetRange() {
+		assumeTrue(getRedisVersion() >= RedisClientBase.parseVersion("2.4.0"));
+		super.testGetRangeSetRange();
+	}
+
+	private int getRedisVersion() {
+		connection.closePipeline();
+		int version = RedisClientBase.parseVersion((String)connection.info().get("redis_version"));
+		connection.openPipeline();
+		return version;
 	}
 
 	protected Object convertResult(Object result) {
