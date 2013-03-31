@@ -179,6 +179,7 @@ public class SrpConnection implements RedisConnection {
 
 	public List<Object> closePipeline() {
 		if (pipeline != null) {
+			pipeline = null;
 			List<Object> execute = new ArrayList<Object>(callback.complete());
 			callback.close();
 			callback = null;
