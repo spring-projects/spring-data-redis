@@ -200,6 +200,10 @@ task distZip(type: Zip, dependsOn: [jar, docsZip, schemaZip, sourcesJar, javadoc
     }
 }
 
+tasks.withType(Test) {
+    systemProperty 'runLongTests', System.getProperty('runLongTests')
+}
+
 artifacts {
     archives sourcesJar
     archives javadocJar

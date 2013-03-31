@@ -28,6 +28,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -236,6 +237,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpireAt() throws Exception {
 		connection.set("exp2", "true");
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
@@ -245,6 +247,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPersist() throws Exception {
 		connection.set("exp3", "true");
 		actual.add(connection.expire("exp3", 1));

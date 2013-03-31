@@ -54,6 +54,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 
 /**
  * Base test class for AbstractConnection integration tests
@@ -62,6 +64,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Jennifer Hickey
  *
  */
+@ProfileValueSourceConfiguration
 public abstract class AbstractConnectionIntegrationTests {
 
 	protected StringRedisConnection connection;
@@ -93,6 +96,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");
 		assertTrue(connection.expire("exp", 1));
@@ -100,13 +104,15 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpireAt() throws Exception {
 		connection.set("exp2", "true");
 		assertTrue(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		assertFalse(exists("exp2", 2000l));
+		assertFalse(exists("exp2", 3000l));
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPersist() throws Exception {
 		connection.set("exp3", "true");
 		actual.add(connection.expire("exp3", 1));
@@ -117,6 +123,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testSetEx() throws Exception {
 		connection.setEx("expy", 1l, "yep");
 		assertEquals("yep", connection.get("expy"));
@@ -124,6 +131,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBRPopTimeout() throws Exception {
 		actual.add(connection.bRPop(1, "alist"));
 		Thread.sleep(1500l);
@@ -131,6 +139,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBLPopTimeout() throws Exception {
 		actual.add(connection.bLPop(1, "alist"));
 		Thread.sleep(1500l);
@@ -138,6 +147,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBRPopLPushTimeout() throws Exception {
 		actual.add(connection.bRPopLPush(1, "alist", "foo"));
 		Thread.sleep(1500l);
@@ -1156,6 +1166,10 @@ public abstract class AbstractConnectionIntegrationTests {
 			if (!connection.exists(key)) {
 				exists = false;
 				break;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
 			}
 		}
 		return exists;

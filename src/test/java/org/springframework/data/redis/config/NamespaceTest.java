@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2013 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,51 +20,50 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.support.GenericXmlApplicationContext;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.annotation.ProfileValueSourceConfiguration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Costin Leau
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("namespace.xml")
+@ProfileValueSourceConfiguration
 public class NamespaceTest {
 
-	private GenericXmlApplicationContext ctx;
+	@Autowired
+	private RedisMessageListenerContainer container;
 
-	@Before
-	public void setUp() {
-		ctx = new GenericXmlApplicationContext("/org/springframework/data/redis/config/namespace.xml");
-	}
+	@Autowired
+	private StringRedisTemplate template;
 
-	@After
-	public void tearDown() {
-		if (ctx != null)
-			ctx.destroy();
-	}
+	@Autowired
+	private StubErrorHandler handler;
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testSanityTest() throws Exception {
-		RedisMessageListenerContainer container = ctx.getBean(RedisMessageListenerContainer.class);
 		assertTrue(container.isRunning());
 		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testWithMessages() throws Exception {
-		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
 		template.convertAndSend("x1", "[X]test");
 		template.convertAndSend("z1", "[Z]test");
 		Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 	}
 
 	public void testErrorHandler() throws Exception {
-		StubErrorHandler handler = ctx.getBean(StubErrorHandler.class);
-		
 		int index = handler.throwables.size();
-		StringRedisTemplate template = ctx.getBean(StringRedisTemplate.class);
 		template.convertAndSend("exception", "test1");
 		handler.throwables.pollLast(3, TimeUnit.SECONDS);
 		assertEquals(index + 1, handler.throwables.size());

@@ -33,6 +33,7 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.serializer.SerializationUtils;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -223,6 +224,7 @@ public class RjcConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBRPopLPushTimeout() throws Exception {
 		connection.bRPopLPush(1, "alist", "foo");
 		Thread.sleep(1500l);

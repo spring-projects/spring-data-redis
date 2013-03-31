@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.serializer.SerializationUtils;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Base test class for integration tests that execute each operation of a
@@ -107,6 +108,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");
 		actual.add(connection.expire("exp", 1));
@@ -116,6 +118,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpireAt() throws Exception {
 		connection.set("exp2", "true");
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
@@ -125,6 +128,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPersist() throws Exception {
 		connection.set("exp3", "true");
 		actual.add(connection.expire("exp3", 1));
@@ -135,6 +139,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testSetEx() throws Exception {
 		connection.setEx("expy", 1l, "yep");
 		actual.add(connection.get("expy"));
