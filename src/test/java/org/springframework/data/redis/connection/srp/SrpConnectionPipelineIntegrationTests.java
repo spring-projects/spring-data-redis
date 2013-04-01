@@ -98,23 +98,6 @@ public class SrpConnectionPipelineIntegrationTests extends
 	public void testZRangeByScoreWithScoresOffsetCount() {
 	}
 
-	@Ignore("DATAREDIS-138 NPE in DefaultStringRedisConnection deserializing a null Map")
-	public void testHSetGet() throws Exception {
-		// String hash = getClass() + ":hashtest";
-		// String key1 = UUID.randomUUID().toString();
-		// String key2 = UUID.randomUUID().toString();
-		// String value1 = "foo";
-		// String value2 = "bar";
-		// actual.add(connection.hSet(hash, key1, value1));
-		// actual.add(connection.hSet(hash, key2, value2));
-		// actual.add(connection.hGet(hash, key1));
-		// actual.add(connection.hGetAll(hash));
-		// List<String> expected = Arrays.asList(new String[] {key1, value1,
-		// key2, value2});
-		// verifyResults(Arrays.asList(new Object[] { 1l, 1l, value1, expected
-		// }), actual);
-	}
-
 	@Test(expected = UnsupportedOperationException.class)
 	public void testZInterStoreAggWeights() {
 		super.testZInterStoreAggWeights();

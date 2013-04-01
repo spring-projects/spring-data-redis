@@ -17,8 +17,11 @@ package org.springframework.data.redis.connection.jedis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Ignore;
@@ -71,24 +74,6 @@ public class JedisConnectionPipelineIntegrationTests extends
 
 	@Ignore("DATAREDIS-141 Jedis dbSize/flush ops execute synchronously while pipelining")
 	public void testFlushDb() {
-	}
-
-	@Ignore("DATAREDIS-138 NPE in DefaultStringRedisConnection deserializing a null Map")
-	public void testHSetGet() throws Exception {
-		// String hash = getClass() + ":hashtest";
-		// String key1 = UUID.randomUUID().toString();
-		// String key2 = UUID.randomUUID().toString();
-		// String value1 = "foo";
-		// String value2 = "bar";
-		// actual.add(connection.hSet(hash, key1, value1));
-		// actual.add(connection.hSet(hash, key2, value2));
-		// actual.add(connection.hGet(hash, key1));
-		// actual.add(connection.hGetAll(hash));
-		// Map<String, String> expected = new HashMap<String, String>();
-		// expected.put(key1, value1);
-		// expected.put(key2, value2);
-		// verifyResults(Arrays.asList(new Object[] { 1l, 1l, value1, expected
-		// }), actual);
 	}
 
 	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
@@ -234,6 +219,23 @@ public class JedisConnectionPipelineIntegrationTests extends
 		actual.add(connection.hDel("test", "foo"));
 		actual.add(connection.hExists("test", "key"));
 		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 0l, false }), actual);
+	}
+
+	@Test
+	public void testHSetGet() throws Exception {
+		String hash = getClass() + ":hashtest";
+		String key1 = UUID.randomUUID().toString();
+		String key2 = UUID.randomUUID().toString();
+		String value1 = "foo";
+		String value2 = "bar";
+		actual.add(connection.hSet(hash, key1, value1));
+		actual.add(connection.hSet(hash, key2, value2));
+		actual.add(connection.hGet(hash, key1));
+		actual.add(connection.hGetAll(hash));
+		Map<String, String> expected = new HashMap<String, String>();
+		expected.put(key1, value1);
+		expected.put(key2, value2);
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, value1, expected }), actual);
 	}
 
 	@Test

@@ -613,13 +613,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private Map<String, String> deserialize(Map<byte[], byte[]> hashes) {
-		Map<String, String> ret = new LinkedHashMap<String, String>(hashes.size());
-
-		for (Map.Entry<byte[], byte[]> entry : hashes.entrySet()) {
-			ret.put(serializer.deserialize(entry.getKey()), serializer.deserialize(entry.getValue()));
-		}
-
-		return ret;
+		return SerializationUtils.deserialize(hashes, serializer);
 	}
 
 	private List<String> deserialize(List<byte[]> data) {

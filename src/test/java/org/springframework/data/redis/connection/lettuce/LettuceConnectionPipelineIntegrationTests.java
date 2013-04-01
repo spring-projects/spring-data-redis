@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -80,26 +81,25 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testZCount() {
 	}
 
-	@Ignore("DATAREDIS-138 NPE in DefaultStringRedisConnection deserializing a null Map")
-	public void testHSetGet() throws Exception {
-		// String hash = getClass() + ":hashtest";
-		// String key1 = UUID.randomUUID().toString();
-		// String key2 = UUID.randomUUID().toString();
-		// String value1 = "foo";
-		// String value2 = "bar";
-		// actual.add(connection.hSet(hash, key1, value1));
-		// actual.add(connection.hSet(hash, key2, value2));
-		// actual.add(connection.hGet(hash, key1));
-		// actual.add(connection.hGetAll(hash));
-		// Map<String, String> expected = new HashMap<String, String>();
-		// expected.put(key1, value1);
-		// expected.put(key2, value2);
-		// verifyResults(Arrays.asList(new Object[] { true, true, value1,
-		// expected }), actual);
-	}
-
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
+
+	@Test
+	public void testHSetGet() throws Exception {
+		String hash = getClass() + ":hashtest";
+		String key1 = UUID.randomUUID().toString();
+		String key2 = UUID.randomUUID().toString();
+		String value1 = "foo";
+		String value2 = "bar";
+		actual.add(connection.hSet(hash, key1, value1));
+		actual.add(connection.hSet(hash, key2, value2));
+		actual.add(connection.hGet(hash, key1));
+		actual.add(connection.hGetAll(hash));
+		Map<String, String> expected = new HashMap<String, String>();
+		expected.put(key1, value1);
+		expected.put(key2, value2);
+		verifyResults(Arrays.asList(new Object[] { true, true, value1, expected }), actual);
+	}
 
 	@Test
 	public void testInfo() throws Exception {

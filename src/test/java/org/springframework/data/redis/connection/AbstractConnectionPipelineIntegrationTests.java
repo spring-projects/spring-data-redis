@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -730,6 +731,21 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 				Arrays.asList(new Object[] { 1l, 1l,
 						new LinkedHashSet<String>(Arrays.asList(new String[] { "key", "key2" })) }),
 				actual);
+	}
+
+	@Test
+	public void testHSetGet() throws Exception {
+		String hash = getClass() + ":hashtest";
+		String key1 = UUID.randomUUID().toString();
+		String key2 = UUID.randomUUID().toString();
+		String value1 = "foo";
+		String value2 = "bar";
+		actual.add(connection.hSet(hash, key1, value1));
+		actual.add(connection.hSet(hash, key2, value2));
+		actual.add(connection.hGet(hash, key1));
+		actual.add(connection.hGetAll(hash));
+		List<String> expected = Arrays.asList(new String[] { key1, value1, key2, value2 });
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, value1, expected }), actual);
 	}
 
 	@Test
