@@ -699,7 +699,7 @@ public class JedisConnection implements RedisConnection {
 	public Boolean persist(byte[] key) {
 		try {
 			if (isQueueing()) {
-				client.persist(key);
+				transaction.persist(key);
 				return null;
 			}
 			if (isPipelined()) {

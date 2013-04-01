@@ -1,8 +1,5 @@
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,7 +7,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -18,10 +14,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisConnectionTransactionIntegrationTests extends
 		JedisConnectionPipelineIntegrationTests {
-
-	@Ignore("DATAREDIS-160 Jedis persist does not execute as part of a transaction")
-	public void testPersist() throws Exception {
-	}
 
 	@Ignore("DATAREDIS-159 brPop executes twice in a transaction")
 	public void testBRPop() {
