@@ -1228,6 +1228,7 @@ public class JedisConnection implements RedisConnection {
 		try {
 			if (isQueueing()) {
 				transaction.brpop(JedisUtils.bXPopArgs(timeout, keys));
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.brpop(JedisUtils.bXPopArgs(timeout, keys));

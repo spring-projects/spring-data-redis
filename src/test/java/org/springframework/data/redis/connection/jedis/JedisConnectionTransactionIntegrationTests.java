@@ -15,14 +15,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class JedisConnectionTransactionIntegrationTests extends
 		JedisConnectionPipelineIntegrationTests {
 
-	@Ignore("DATAREDIS-159 brPop executes twice in a transaction")
-	public void testBRPop() {
-	}
-
-	@Ignore("DATAREDIS-159 brPop executes twice in a transaction")
-	public void testBRPopTimeout() {
-	}
-
 	@Ignore
 	public void testMultiDiscard() {
 	}
