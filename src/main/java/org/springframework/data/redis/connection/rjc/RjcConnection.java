@@ -378,6 +378,7 @@ public class RjcConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline.ping();
+				return null;
 			}
 			return session.ping();
 		} catch (Exception ex) {
