@@ -82,14 +82,6 @@ public class SrpConnectionPipelineIntegrationTests extends
 	public void testGetConfig() {
 	}
 
-	@Ignore("DATAREDIS-142 SRP zCount/zInterStore methods execute synchronously when pipelining")
-	public void testZCount() {
-	}
-
-	@Ignore("DATAREDIS-142 SRP zCount/zInterStore methods execute synchronously when pipelining")
-	public void testZInterStore() {
-	}
-
 	@Ignore("DATAREDIS-152 Syntax error on zRangeByScore and and zRangeByScoreWithScores when using offset and count")
 	public void testZRangeByScoreOffsetCount() {
 	}

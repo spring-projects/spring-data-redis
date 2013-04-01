@@ -1354,7 +1354,7 @@ public class SrpConnection implements RedisConnection {
 
 	public Long zCount(byte[] key, double min, double max) {
 		try {
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline(pipeline.zcount(key, min, max));
 				return null;
 			}
@@ -1395,7 +1395,7 @@ public class SrpConnection implements RedisConnection {
 		}
 
 		try {
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline(pipeline.zinterstore(args));
 				return null;
 			}
