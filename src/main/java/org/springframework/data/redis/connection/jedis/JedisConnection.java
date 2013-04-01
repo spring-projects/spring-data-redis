@@ -150,7 +150,7 @@ public class JedisConnection implements RedisConnection {
 				Collections.addAll(mArgs, args);
 			}
 
-			Object result = ReflectionUtils.invokeMethod(SEND_COMMAND, client,
+			ReflectionUtils.invokeMethod(SEND_COMMAND, client,
 					Command.valueOf(command.trim().toUpperCase()), mArgs.toArray(new byte[mArgs.size()][]));
 			if (isQueueing() || isPipelined()) {
 				Object target = (isPipelined() ? pipeline : transaction);
@@ -163,11 +163,9 @@ public class JedisConnection implements RedisConnection {
 						return "Object";
 					}
 				});
+				return null;
 			}
-			else {
-				client.getOne();
-			}
-			return result;
+			return client.getOne();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

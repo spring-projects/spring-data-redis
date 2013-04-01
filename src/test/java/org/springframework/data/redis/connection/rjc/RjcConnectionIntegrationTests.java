@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.rjc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
@@ -37,20 +38,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class RjcConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	@Test
-	public void testMultiExec() throws Exception {
-		byte[] key = "key".getBytes();
-		byte[] value = "value".getBytes();
-
-		connection.multi();
-		connection.set(key, value);
-		assertNull(connection.get(key));
-		List<Object> results = connection.exec();
-		assertEquals(2, results.size());
-		assertEquals("OK", (String) results.get(0));
-		assertEquals(new String(value), new String(RjcUtils.encode((String) results.get(1))));
-	}
 
 	@Ignore("nulls are encoded to empty strings")
 	public void testNullKey() throws Exception {
@@ -106,5 +93,27 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 
 	@Ignore("DATAREDIS-148 Syntax error on RJC zUnionStore")
 	public void testZUnionStoreAggWeights() {
+	}
+
+	@Test
+	public void testMultiExec() throws Exception {
+		byte[] key = "key".getBytes();
+		byte[] value = "value".getBytes();
+
+		connection.multi();
+		connection.set(key, value);
+		assertNull(connection.get(key));
+		List<Object> results = connection.exec();
+		assertEquals(2, results.size());
+		assertEquals("OK", (String) results.get(0));
+		assertEquals(new String(value), new String(RjcUtils.encode((String) results.get(1))));
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testExecute() {
+		connection.set("foo", "bar");
+		assertEquals(Arrays.asList(new Object[] { RjcUtils.decode("bar".getBytes()) }),
+				(List) connection.execute("GET", RjcUtils.decode("foo".getBytes())));
 	}
 }

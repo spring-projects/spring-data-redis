@@ -100,7 +100,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");
 		assertTrue(connection.expire("exp", 1));
-		assertFalse(exists("exp", 2000l));
+		assertFalse(exists("exp", 3000l));
 	}
 
 	@Test
@@ -127,7 +127,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testSetEx() throws Exception {
 		connection.setEx("expy", 1l, "yep");
 		assertEquals("yep", connection.get("expy"));
-		assertFalse(exists("expy", 2000l));
+		assertFalse(exists("expy", 3000l));
 	}
 
 	@Test
@@ -363,6 +363,12 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test(expected = DataAccessException.class)
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
+	}
+
+	@Test
+	public void testExecute() {
+		connection.set("foo", "bar");
+		assertEquals("bar", stringSerializer.deserialize((byte[])connection.execute("GET", "foo")));
 	}
 
 	@Test

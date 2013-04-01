@@ -109,6 +109,13 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	public void testExecute() {
+		connection.set("foo", "bar");
+		actual.add(connection.execute("GET", "foo"));
+		verifyResults(Arrays.asList(new Object[] { "bar" }), actual);
+	}
+
+	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");

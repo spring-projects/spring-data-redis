@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
+import org.jredis.protocol.BulkResponse;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -328,6 +329,13 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.lPush("testlist", "baz");
 		assertEquals(Arrays.asList(new String[] { "baz", "bar" }),
 				connection.lRange("testlist", 0, -1));
+	}
+
+	@Test
+	public void testExecute() {
+		connection.set("foo", "bar");
+		BulkResponse response = (BulkResponse) connection.execute("GET", JredisUtils.decode("foo".getBytes()));
+		assertEquals("bar", stringSerializer.deserialize(response.getBulkData()));
 	}
 
 }

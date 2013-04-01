@@ -121,7 +121,7 @@ public class RjcConnectionPipelineIntegrationTests extends
 	public void testPingPong() throws Exception {
 	}
 
-	@Ignore("DATAREDIS-150 the results of tye improperly decoded")
+	@Ignore("DATAREDIS-150 the results of type improperly decoded")
 	public void testType() {
 	}
 
@@ -200,6 +200,13 @@ public class RjcConnectionPipelineIntegrationTests extends
 		// "OK" will be decoded to null
 		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new String[] { null,
 				"somethingelse" }) }), convertedResults);
+	}
+
+	@Test
+	public void testExecute() {
+		connection.set("foo", "bar");
+		actual.add(connection.execute("GET", RjcUtils.decode("foo".getBytes())));
+		verifyResults(Arrays.asList(new Object[] { "bar" }), actual);
 	}
 
 	@Test
