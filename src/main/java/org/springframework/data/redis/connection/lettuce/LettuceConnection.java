@@ -1321,7 +1321,7 @@ public class LettuceConnection implements RedisConnection {
 
 	public Long zCount(byte[] key, double min, double max) {
 		try {
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline(asyncConn.zcount(key, min, max));
 				return null;
 			}
@@ -1347,7 +1347,7 @@ public class LettuceConnection implements RedisConnection {
 		ZStoreArgs storeArgs = LettuceUtils.zArgs(aggregate, weights);
 
 		try {
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline(asyncConn.zinterstore(destKey, storeArgs, sets));
 				return null;
 			}
@@ -1360,7 +1360,7 @@ public class LettuceConnection implements RedisConnection {
 
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		try {
-			if (isQueueing()) {
+			if (isPipelined()) {
 				pipeline(asyncConn.zinterstore(destKey, sets));
 				return null;
 			}

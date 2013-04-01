@@ -65,18 +65,6 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testUnwatch() throws Exception {
 	}
 
-	@Ignore("DATAREDIS-140 Lettuce zCount/zInterStore methods execute synchronously when pipelining")
-	public void testZInterStoreAggWeights() {
-	}
-
-	@Ignore("DATAREDIS-140 Lettuce zCount/zInterStore methods execute synchronously when pipelining")
-	public void testZInterStore() {
-	}
-
-	@Ignore("DATAREDIS-140 Lettuce zCount/zInterStore methods execute synchronously when pipelining")
-	public void testZCount() {
-	}
-
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 
