@@ -104,10 +104,6 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 	public void testPubSubWithPatterns() {
 	}
 
-	@Ignore("DATAREDIS-137 zRevRangeWithScores returns incorrect results")
-	public void testZRevRangeWithScores() {
-	}
-
 	@Ignore("DATAREDIS-148 Syntax error on RJC zUnionStore")
 	public void testZUnionStoreAggWeights() {
 	}

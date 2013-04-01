@@ -1670,16 +1670,14 @@ public class RjcConnection implements RedisConnection {
 
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		String stringKey = RjcUtils.decode(key);
-		String minString = Long.toString(start);
-		String maxString = Long.toString(end);
 
 		try {
 
 			if (isPipelined()) {
-				pipeline.zrevrangeByScoreWithScores(stringKey, minString, maxString);
+				pipeline.zrevrangeWithScores(stringKey, (int) start, (int) end);
 				return null;
 			}
-			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, minString, maxString));
+			return RjcUtils.convertElementScore(session.zrevrangeWithScores(stringKey, (int) start, (int) end));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
