@@ -349,9 +349,11 @@ public class JedisConnection implements RedisConnection {
 		try {
 			if (isQueueing()) {
 				transaction.dbSize();
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.dbSize();
+				return null;
 			}
 			return jedis.dbSize();
 		} catch (Exception ex) {
@@ -365,9 +367,11 @@ public class JedisConnection implements RedisConnection {
 		try {
 			if (isQueueing()) {
 				transaction.flushDB();
+				return;
 			}
 			if (isPipelined()) {
 				pipeline.flushDB();
+				return;
 			}
 			jedis.flushDB();
 		} catch (Exception ex) {
@@ -380,9 +384,11 @@ public class JedisConnection implements RedisConnection {
 		try {
 			if (isQueueing()) {
 				transaction.flushAll();
+				return;
 			}
 			if (isPipelined()) {
 				pipeline.flushAll();
+				return;
 			}
 			jedis.flushAll();
 		} catch (Exception ex) {

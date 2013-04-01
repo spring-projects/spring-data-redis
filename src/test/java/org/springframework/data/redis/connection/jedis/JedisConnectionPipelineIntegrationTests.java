@@ -68,14 +68,6 @@ public class JedisConnectionPipelineIntegrationTests extends
 		connection = null;
 	}
 
-	@Ignore("DATAREDIS-141 Jedis dbSize/flush ops execute synchronously while pipelining")
-	public void testDbSize() {
-	}
-
-	@Ignore("DATAREDIS-141 Jedis dbSize/flush ops execute synchronously while pipelining")
-	public void testFlushDb() {
-	}
-
 	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
 	public void testGetConfig() {
 	}
