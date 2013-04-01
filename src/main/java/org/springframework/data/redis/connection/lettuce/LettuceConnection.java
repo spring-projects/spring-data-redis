@@ -460,7 +460,8 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				return Collections.singletonList((Object) asyncConn.exec());
+				 asyncConn.exec();
+				 return null;
 			}
 			return con.exec();
 		} catch (Exception ex) {

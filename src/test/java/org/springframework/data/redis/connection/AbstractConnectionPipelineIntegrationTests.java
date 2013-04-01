@@ -267,8 +267,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		assertNull(connection.get("key"));
 		assertNull(connection.exec());
 		List<Object> convertedResults = convertResults(connection.closePipeline());
-		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new String[] { "OK", "value" }) }),
-				convertedResults);
+		assertEquals(Arrays.asList(new Object[] { "value" }), convertedResults);
 	}
 
 	@Test

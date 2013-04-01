@@ -65,10 +65,6 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testUnwatch() throws Exception {
 	}
 
-	@Ignore("DATAREDIS-139 Lettuce exec while pipelining returns a non-null value")
-	public void testMultiExec() throws Exception {
-	}
-
 	@Ignore("DATAREDIS-140 Lettuce zCount/zInterStore methods execute synchronously when pipelining")
 	public void testZInterStoreAggWeights() {
 	}
