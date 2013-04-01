@@ -161,7 +161,7 @@ public class RjcConnectionPipelineIntegrationTests extends
 		connection.set("key", "value");
 		assertNull(connection.get("key"));
 		assertNull(connection.exec());
-		List<Object> convertedResults = convertResults(connection.closePipeline());
+		List<Object> convertedResults = convertResults();
 		// "OK" will be decoded to null
 		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new String[] { null, "value" }) }),
 				convertedResults);
@@ -179,7 +179,7 @@ public class RjcConnectionPipelineIntegrationTests extends
 		connection.set("testitnow", "somethingelse");
 		actual.add(connection.exec());
 		actual.add(connection.get("testitnow"));
-		List<Object> convertedResults = convertResults(connection.closePipeline());
+		List<Object> convertedResults = convertResults();
 		// The null returned from exec will be filtered out
 		assertEquals(Arrays.asList(new String[] { "something" }), convertedResults);
 	}
@@ -196,7 +196,7 @@ public class RjcConnectionPipelineIntegrationTests extends
 		connection.set("testitnow", "somethingelse");
 		connection.get("testitnow");
 		connection.exec();
-		List<Object> convertedResults = convertResults(connection.closePipeline());
+		List<Object> convertedResults = convertResults();
 		// "OK" will be decoded to null
 		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new String[] { null,
 				"somethingelse" }) }), convertedResults);
@@ -218,8 +218,9 @@ public class RjcConnectionPipelineIntegrationTests extends
 		assertEquals(Arrays.asList(new Object[] { null }), results);
 	}
 
-	protected List<Object> convertResults(List<Object> pipelinedResults) {
+	protected List<Object> convertResults() {
 		List<Object> serializedResults = new ArrayList<Object>();
+		List<Object> pipelinedResults = getResults();
 		for (Object result : pipelinedResults) {
 			Object convertedResult = convertResult(result);
 			// closePipeline attempts to decode "OK" and "QUEUED" which turn

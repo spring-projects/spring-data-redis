@@ -97,7 +97,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 	}
 
 	@Ignore("DATAREDIS-155 Exists returns true after key is supposed to expire")
-	public void testSetEx() {
+	public void testSetEx() throws Exception {
 	}
 
 	// Unsupported Ops
@@ -257,8 +257,8 @@ public class JedisConnectionPipelineIntegrationTests extends
 		if (convertedResult instanceof Set) {
 			if (convertResultToList) {
 				// Other providers represent zSets as Lists, so transform here
-				return new ArrayList((Set) result);
-			} else if (!(((Set) result).isEmpty())
+				return new ArrayList((Set) convertedResult);
+			} else if (!(((Set) convertedResult).isEmpty())
 					&& ((Set) convertedResult).iterator().next() instanceof Tuple) {
 				List<StringTuple> tuples = new ArrayList<StringTuple>();
 				for (Tuple value : ((Set<Tuple>) convertedResult)) {

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +72,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	@Before
 	public void setUp() {
 		super.setUp();
-		connection.openPipeline();
+		initConnection();
 	}
 
 	@Ignore
@@ -102,10 +103,15 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testPubSubWithPatterns() throws Exception {
 	}
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		connection.closePipeline();
+		try {
+			connection.closePipeline();
+			fail("Expected a RedisPipelineException to be thrown");
+		}catch(RedisPipelineException e) {
+			// expected
+		}
 	}
 
 	@Test
@@ -170,7 +176,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testDbSize() {
 		connection.set("dbparam", "foo");
 		assertNull(connection.dbSize());
-		List<Object> results = connection.closePipeline();
+		List<Object> results = getResults();
 		assertEquals(2, results.size());
 		assertTrue((Long) results.get(1) > 0);
 	}
@@ -179,7 +185,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	@Test
 	public void testGetConfig() {
 		assertNull(connection.getConfig("*"));
-		List<Object> results = convertResults(connection.closePipeline());
+		List<Object> results = convertResults();
 		assertEquals(1, results.size());
 		assertTrue(!((List) results.get(0)).isEmpty());
 	}
@@ -190,7 +196,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("keytest", "true");
 		connection.set("keytest2", "true");
 		connection.keys("key*");
-		List<Object> results = convertResults(connection.closePipeline());
+		List<Object> results = convertResults();
 		assertEquals(1, results.size());
 		assertTrue(((List) results.get(0)).contains("keytest"));
 	}
@@ -199,7 +205,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testRandomKey() {
 		connection.set("some", "thing");
 		assertNull(connection.randomKey());
-		List<Object> results = convertResults(connection.closePipeline());
+		List<Object> results = convertResults();
 		assertEquals(1, results.size());
 		assertNotNull(results.get(0));
 	}
@@ -208,7 +214,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testType() {
 		connection.set("something", "yo");
 		assertNull(connection.type("something"));
-		List<Object> results = convertResults(connection.closePipeline());
+		List<Object> results = convertResults();
 		assertEquals(1, results.size());
 		assertEquals("string", results.get(0));
 	}
@@ -260,7 +266,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("testitnow2", "notok");
 		connection.discard();
 		connection.get("testitnow");
-		List<Object> convertedResults = convertResults(connection.closePipeline());
+		List<Object> convertedResults = convertResults();
 		assertEquals(Arrays.asList(new String[] { "willdo" }), convertedResults);
 		connection.openPipeline();
 		// Ensure we can run a new tx after discarding previous one
@@ -273,7 +279,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("key", "value");
 		assertNull(connection.get("key"));
 		assertNull(connection.exec());
-		List<Object> convertedResults = convertResults(connection.closePipeline());
+		List<Object> convertedResults = convertResults();
 		assertEquals(Arrays.asList(new Object[] { "value" }), convertedResults);
 	}
 
@@ -289,7 +295,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("testitnow", "somethingelse");
 		connection.get("testitnow");
 		connection.exec();
-		List<Object> convertedResults = convertResults(connection.closePipeline());
+		List<Object> convertedResults = convertResults();
 		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new String[] { "OK",
 				"somethingelse" }) }), convertedResults);
 	}
@@ -394,7 +400,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.sAdd("myset", "foo");
 		connection.sAdd("myset", "bar");
 		assertNull(connection.sPop("myset"));
-		List<Object> results = convertResults(connection.closePipeline());
+		List<Object> results = convertResults();
 		assertEquals(3, results.size());
 		assertTrue(new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" }))
 				.contains(results.get(2)));
@@ -406,7 +412,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.sAdd("myset", "foo");
 		connection.sAdd("myset", "bar");
 		assertNull(connection.sRandMember("myset"));
-		List<Object> results = convertResults(connection.closePipeline());
+		List<Object> results = convertResults();
 		assertEquals(3, results.size());
 		assertTrue(new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" }))
 				.contains(results.get(2)));
@@ -787,17 +793,25 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 				Arrays.asList(new String[] { "foo", "bar" }) }), actual);
 	}
 
+	protected void initConnection() {
+		connection.openPipeline();
+	}
+
 	protected void verifyResults(List<Object> expected, List<Object> actual) {
 		List<Object> expectedPipeline = new ArrayList<Object>();
 		for (int i = 0; i < actual.size(); i++) {
 			expectedPipeline.add(null);
 		}
 		assertEquals(expectedPipeline, actual);
-		List<Object> pipelinedResults = connection.closePipeline();
-		assertEquals(expected, convertResults(pipelinedResults));
+		assertEquals(expected, convertResults());
 	}
 
-	protected List<Object> convertResults(List<Object> pipelinedResults) {
+	protected List<Object> getResults() {
+		return connection.closePipeline();
+	}
+
+	protected List<Object> convertResults() {
+		List<Object> pipelinedResults = getResults();
 		List<Object> serializedResults = new ArrayList<Object>();
 		for (Object result : pipelinedResults) {
 			Object convertedResult = convertResult(result);
