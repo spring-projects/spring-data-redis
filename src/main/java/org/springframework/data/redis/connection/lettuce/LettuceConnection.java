@@ -47,6 +47,7 @@ import org.springframework.util.ObjectUtils;
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.ScoredValue;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.RedisCodec;
@@ -515,7 +516,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.keys(pattern));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.keys(pattern));
+			final List<byte[]> results = con.keys(pattern);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -633,7 +635,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.type(key));
 				return null;
 			}
-			return DataType.fromCode(con.type(key));
+			final String type = con.type(key);
+			return type != null ? DataType.fromCode(type) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -853,7 +856,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.getbit(key, offset));
 				return null;
 			}
-			return Long.valueOf(1).equals(con.getbit(key, offset));
+			final Long result = con.getbit(key, offset);
+			return result != null ? result == 1 : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1121,7 +1125,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.sadd(key, value));
 				return null;
 			}
-			return con.sadd(key, value) == 1;
+			final Long result = con.sadd(key, value);
+			return result != null ? result == 1 : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1259,7 +1264,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.srem(key, value));
 				return null;
 			}
-			return Long.valueOf(1).equals(con.srem(key, value));
+			final Long result = con.srem(key, value);
+			return result != null ? result == 1 : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1301,7 +1307,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.zadd(key, score, value));
 				return null;
 			}
-			return Long.valueOf(1).equals(con.zadd(key, score, value));
+			final Long result = con.zadd(key, score, value);
+			return result != null ? result == 1 : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1376,7 +1383,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.zrange(key, start, end));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.zrange(key, start, end));
+			final List<byte[]> results = con.zrange(key, start, end);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1402,7 +1410,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.zrangebyscore(key, min, max));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.zrangebyscore(key, min, max));
+			final List<byte[]> results = con.zrangebyscore(key, min, max);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1441,7 +1450,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.zrangebyscore(key, min, max, offset, count));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.zrangebyscore(key, min, max, offset, count));
+			final List<byte[]> results = con.zrangebyscore(key, min, max, offset, count);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1531,7 +1541,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.zrem(key, value));
 				return null;
 			}
-			return Long.valueOf(1).equals(con.zrem(key, value));
+			final Long result = con.zrem(key, value);
+			return result != null ? result == 1 : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1568,7 +1579,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.zrevrange(key, start, end));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.zrevrange(key, start, end));
+			final List<byte[]> results = con.zrevrange(key, start, end);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1663,7 +1675,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.hdel(key, field));
 				return null;
 			}
-			return Long.valueOf(1).equals(con.hdel(key, field));
+			final Long result = con.hdel(key, field);
+			return result != null ? result == 1 : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1726,7 +1739,8 @@ public class LettuceConnection implements RedisConnection {
 				pipeline(asyncConn.hkeys(key));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.hkeys(key));
+			final List<byte[]> result = con.hkeys(key);
+			return result != null ? new LinkedHashSet<byte[]>(result) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

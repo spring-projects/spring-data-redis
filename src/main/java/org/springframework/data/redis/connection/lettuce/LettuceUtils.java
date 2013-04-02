@@ -62,6 +62,9 @@ abstract class LettuceUtils {
 	}
 
 	static Properties info(String reply) {
+		if(reply == null) {
+			return null;
+		}
 		Properties info = new Properties();
 		StringReader stringReader = new StringReader(reply);
 		try {
@@ -84,6 +87,9 @@ abstract class LettuceUtils {
 	}
 
 	static Set<Tuple> convertTuple(List<ScoredValue<byte[]>> zrange) {
+		if(zrange == null) {
+			return null;
+		}
 		Set<Tuple> tuples = new LinkedHashSet<Tuple>(zrange.size());
 
 		for (int i = 0; i < zrange.size(); i++) {
