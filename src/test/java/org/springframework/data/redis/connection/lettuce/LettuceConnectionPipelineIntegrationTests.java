@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,7 +89,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	@Test
 	public void testInfo() throws Exception {
 		assertNull(connection.info());
-		List<Object> results = connection.closePipeline();
+		List<Object> results = getResults();
 		assertEquals(1, results.size());
 		Properties info = LettuceUtils.info((String) results.get(0));
 		assertTrue("at least 5 settings should be present", info.size() >= 5);
@@ -199,9 +200,9 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		connection.set("exp3", "true");
 		actual.add(connection.expire("exp3", 1));
 		actual.add(connection.persist("exp3"));
+		verifyResults(Arrays.asList(new Object[] { true, true }), actual);
 		Thread.sleep(1500);
-		actual.add(connection.exists("exp3"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true }), actual);
+		assertTrue(connection.exists("exp3"));
 	}
 
 	@Test
@@ -209,9 +210,8 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testExpireAt() throws Exception {
 		connection.set("exp2", "true");
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		Thread.sleep(2000);
-		actual.add(connection.exists("exp2"));
-		verifyResults(Arrays.asList(new Object[] { true, false }), actual);
+		verifyResults(Arrays.asList(new Object[] { true}), actual);
+		assertFalse(exists("exp2", 2500l));
 	}
 
 	@Test
@@ -219,19 +219,8 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");
 		actual.add(connection.expire("exp", 1));
-		Thread.sleep(2000);
-		actual.add(connection.exists("exp"));
-		verifyResults(Arrays.asList(new Object[] { true, false }), actual);
-	}
-
-	@Test
-	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testSetEx() throws Exception {
-		connection.setEx("expy", 1l, "yep");
-		actual.add(connection.get("expy"));
-		Thread.sleep(2000);
-		actual.add(connection.exists("expy"));
-		verifyResults(Arrays.asList(new Object[] { "yep", false }), actual);
+		verifyResults(Arrays.asList(new Object[] { true }), actual);
+		assertFalse(exists("exp", 2500));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

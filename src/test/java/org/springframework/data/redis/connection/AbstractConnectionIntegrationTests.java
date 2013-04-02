@@ -1165,7 +1165,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals(expected, actual);
 	}
 
-	private boolean exists(String key, long timeout) {
+	protected boolean exists(String key, long timeout) {
 		boolean exists = true;
 		for (long currentTime = System.currentTimeMillis(); System.currentTimeMillis()
 				- currentTime < timeout;) {

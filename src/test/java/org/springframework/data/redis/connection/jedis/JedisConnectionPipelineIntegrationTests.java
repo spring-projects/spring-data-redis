@@ -31,7 +31,6 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -90,14 +89,6 @@ public class JedisConnectionPipelineIntegrationTests extends
 
 	@Ignore("DATAREDIS-143 Jedis NPE closing pipeline on certain ops")
 	public void testMultiDiscard() {
-	}
-
-	@Ignore("DATAREDIS-155 Exists returns true after key is supposed to expire")
-	public void testExpire() throws Exception {
-	}
-
-	@Ignore("DATAREDIS-155 Exists returns true after key is supposed to expire")
-	public void testSetEx() throws Exception {
 	}
 
 	// Unsupported Ops
@@ -228,27 +219,6 @@ public class JedisConnectionPipelineIntegrationTests extends
 		expected.put(key1, value1);
 		expected.put(key2, value2);
 		verifyResults(Arrays.asList(new Object[] { 1l, 1l, value1, expected }), actual);
-	}
-
-	@Test
-	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testExpireAt() throws Exception {
-		connection.set("exp2", "true");
-		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		Thread.sleep(2000);
-		actual.add(connection.exists("exp2"));
-		verifyResults(Arrays.asList(new Object[] { 1l, false }), actual);
-	}
-
-	@Test
-	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testPersist() throws Exception {
-		connection.set("exp3", "true");
-		actual.add(connection.expire("exp3", 1));
-		actual.add(connection.persist("exp3"));
-		Thread.sleep(1500);
-		actual.add(connection.exists("exp3"));
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, true }), actual);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

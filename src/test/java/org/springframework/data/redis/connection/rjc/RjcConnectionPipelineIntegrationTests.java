@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,11 +46,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 public class RjcConnectionPipelineIntegrationTests extends
 		AbstractConnectionPipelineIntegrationTests {
-
-	@Before
-	public void setUp() {
-		super.setUp();
-	}
 
 	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
 	public void testGetRangeSetRange() {
@@ -123,6 +117,11 @@ public class RjcConnectionPipelineIntegrationTests extends
 
 	@Ignore("DATAREDIS-150 the results of type improperly decoded")
 	public void testType() {
+	}
+
+	@Test
+	@Ignore("DATAREDIS-161 Syntax error in pipelined RJC op causes SocketTimeouts on subsequent calls")
+	public void exceptionExecuteNative() throws Exception {
 	}
 
 	// Overrides, usually due to return values being Long vs Boolean or Set vs

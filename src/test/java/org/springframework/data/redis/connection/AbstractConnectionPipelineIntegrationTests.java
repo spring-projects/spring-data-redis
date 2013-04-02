@@ -17,10 +17,10 @@
 package org.springframework.data.redis.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,15 +103,10 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testPubSubWithPatterns() throws Exception {
 	}
 
-	@Test
+	@Test(expected = RedisPipelineException.class)
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		try {
-			connection.closePipeline();
-			fail("Expected a RedisPipelineException to be thrown");
-		}catch(RedisPipelineException e) {
-			// expected
-		}
+		connection.closePipeline();
 	}
 
 	@Test
@@ -126,9 +121,8 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");
 		actual.add(connection.expire("exp", 1));
-		Thread.sleep(2000);
-		actual.add(connection.exists("exp"));
-		verifyResults(Arrays.asList(new Object[] { 1l, 0l }), actual);
+		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
+		assertFalse(exists("exp", 2500l));
 	}
 
 	@Test
@@ -136,9 +130,8 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testExpireAt() throws Exception {
 		connection.set("exp2", "true");
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		Thread.sleep(2000);
-		actual.add(connection.exists("exp2"));
-		verifyResults(Arrays.asList(new Object[] { 1l, 0l }), actual);
+		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
+		assertFalse(exists("exp2", 2500l));
 	}
 
 	@Test
@@ -147,9 +140,9 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("exp3", "true");
 		actual.add(connection.expire("exp3", 1));
 		actual.add(connection.persist("exp3"));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l }), actual);
 		Thread.sleep(1500);
-		actual.add(connection.exists("exp3"));
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l }), actual);
+		assertTrue(connection.exists("exp3"));
 	}
 
 	@Test
@@ -157,9 +150,8 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testSetEx() throws Exception {
 		connection.setEx("expy", 1l, "yep");
 		actual.add(connection.get("expy"));
-		Thread.sleep(2000);
-		actual.add(connection.exists("expy"));
-		verifyResults(Arrays.asList(new Object[] { "yep", 0l }), actual);
+		verifyResults(Arrays.asList(new Object[] { "yep" }), actual);
+		assertFalse(exists("expy", 2500l));
 	}
 
 	@Test
