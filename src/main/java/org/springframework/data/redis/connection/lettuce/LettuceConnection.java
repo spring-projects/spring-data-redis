@@ -147,7 +147,9 @@ public class LettuceConnection implements RedisConnection {
 		}
 
 		if (subscription != null) {
-			subscription.doClose();
+			if(subscription.isAlive()) {
+				subscription.doClose();
+			}
 			subscription = null;
 		}
 	}

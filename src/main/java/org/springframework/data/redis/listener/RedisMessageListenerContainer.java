@@ -664,17 +664,15 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				// wait 3 rounds for subscription to be initialized
 				for (int i = 0; i < ROUNDS && !done; i++) {
 					if (connection != null) {
-						synchronized (localMonitor) {
-							if (connection != null && connection.isSubscribed()) {
+						if (connection.isSubscribed()) {
+							done = true;
+							connection.getSubscription().pSubscribe(unwrap(patternMapping.keySet()));
+						}
+						else {
+							try {
+								Thread.sleep(WAIT);
+							} catch (InterruptedException ex) {
 								done = true;
-								connection.getSubscription().pSubscribe(unwrap(patternMapping.keySet()));
-							}
-							else {
-								try {
-									Thread.sleep(WAIT);
-								} catch (InterruptedException ex) {
-									done = true;
-								}
 							}
 						}
 					}
@@ -683,8 +681,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		private volatile RedisConnection connection;
+		private boolean subscriptionDone = false;
 		private final Object localMonitor = new Object();
-
+		private long subscriptionWait = TimeUnit.SECONDS.toMillis(5);
 
 		public boolean isLongLived() {
 			return true;
@@ -698,7 +697,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					throw new IllegalStateException("Retrieved connection is already subscribed; aborting listening");
 				}
 
-				// NB: each Xsubscribe call blocks
+				// NB: some drivers' Xsubscribe calls block
 				synchronized (monitor) {
 					monitor.notify();
 				}
@@ -715,14 +714,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				else {
 					connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
 				}
-
 			} finally {
-				// this block is executed once the subscription has ended
-				// meaning cleanup is required
-
-				// done with the thread, app can be destroyed
-				synchronized (monitor) {
-					monitor.notify();
+				// this block is executed once the subscription thread has ended, this may or may not mean
+				// the connection has been unsubscribed, depending on driver
+				synchronized (localMonitor) {
+					subscriptionDone = true;
+					localMonitor.notify();
 				}
 			}
 		}
@@ -752,14 +749,23 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				logger.trace("Cancelling Redis subscription...");
 			}
 			if (connection != null) {
-				synchronized (localMonitor) {
-					if (connection != null) {
-						Subscription sub = connection.getSubscription();
-						if (sub != null) {
-							sub.pUnsubscribe();
-							sub.unsubscribe();
+				Subscription sub = connection.getSubscription();
+				if (sub != null) {
+					logger.trace("Unsubscribing from all channels");
+					sub.pUnsubscribe();
+					sub.unsubscribe();
+					synchronized(localMonitor) {
+						if(!subscriptionDone) {
+							try {
+								localMonitor.wait(subscriptionWait);
+							} catch (InterruptedException e) {
+								// Stop waiting
+							}
 						}
-
+						if(subscriptionDone) {
+							logger.trace("Closing connection");
+							connection.close();
+						}
 					}
 				}
 			}
@@ -768,13 +774,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void subscribeChannel(byte[]... channels) {
 			if (channels != null && channels.length > 0) {
 				if (connection != null) {
-					synchronized (localMonitor) {
-						if (connection != null) {
-							Subscription sub = connection.getSubscription();
-							if (sub != null) {
-								sub.subscribe(channels);
-							}
-						}
+					Subscription sub = connection.getSubscription();
+					if (sub != null) {
+						sub.subscribe(channels);
 					}
 				}
 			}
@@ -783,13 +785,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void subscribePattern(byte[]... patterns) {
 			if (patterns != null && patterns.length > 0) {
 				if (connection != null) {
-					synchronized (localMonitor) {
-						if (connection != null) {
-							Subscription sub = connection.getSubscription();
-							if (sub != null) {
-								sub.pSubscribe(patterns);
-							}
-						}
+					Subscription sub = connection.getSubscription();
+					if (sub != null) {
+						sub.pSubscribe(patterns);
 					}
 				}
 			}
@@ -798,13 +796,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void unsubscribeChannel(byte[]... channels) {
 			if (channels != null && channels.length > 0) {
 				if (connection != null) {
-					synchronized (localMonitor) {
-						if (connection != null) {
-							Subscription sub = connection.getSubscription();
-							if (sub != null) {
-								sub.unsubscribe(channels);
-							}
-						}
+					Subscription sub = connection.getSubscription();
+					if (sub != null) {
+						sub.unsubscribe(channels);
 					}
 				}
 			}
@@ -813,13 +807,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void unsubscribePattern(byte[]... patterns) {
 			if (patterns != null && patterns.length > 0) {
 				if (connection != null) {
-					synchronized (localMonitor) {
-						if (connection != null) {
-							Subscription sub = connection.getSubscription();
-							if (sub != null) {
-								sub.pUnsubscribe(patterns);
-							}
-						}
+					Subscription sub = connection.getSubscription();
+					if (sub != null) {
+						sub.pUnsubscribe(patterns);
 					}
 				}
 			}

@@ -141,7 +141,9 @@ public class SrpConnection implements RedisConnection {
 		queue.remove(this);
 
 		if (subscription != null) {
-			subscription.doClose();
+			if(subscription.isAlive()) {
+				subscription.doClose();
+			}
 			subscription = null;
 		}
 
