@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +56,8 @@ public class PubSubResubscribeTests {
 
 	protected RedisMessageListenerContainer container;
 	protected RedisConnectionFactory factory;
+
+	@SuppressWarnings("rawtypes")
 	protected RedisTemplate template;
 
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
@@ -191,6 +195,28 @@ public class PubSubResubscribeTests {
 		assertTrue(set.contains(anotherPayload2));
 	}
 
+	/**
+	 * Validates the behavior of {@link RedisMessageListenerContainer} when it needs to spin up
+	 * a thread executing its PatternSubscriptionTask
+	 * @throws Exception
+	 */
+	@Test
+	public void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
+		container.removeMessageListener(adapter);
+		container.stop();
+		container.addMessageListener(adapter,
+				Arrays.asList(new Topic[] { new ChannelTopic(CHANNEL), new PatternTopic("s*") }));
+		container.start();
+		template.convertAndSend("somechannel", "HELLO");
+		template.convertAndSend(CHANNEL, "WORLD");
+
+		Set<String> set = new LinkedHashSet<String>();
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(1, TimeUnit.SECONDS));
+
+		assertEquals(new HashSet<String>(Arrays.asList(new String[] { "HELLO", "WORLD" })), set);
+	}
+
 	private class MessageHandler {
 		private final BlockingDeque<String> bag;
 		private final String name;
@@ -199,6 +225,8 @@ public class PubSubResubscribeTests {
 			this.bag = bag;
 			this.name = name;
 		}
+
+		@SuppressWarnings("unused")
 		public void handleMessage(String message) {
 			System.out.println(name + ": " + message);
 			bag.add(message);

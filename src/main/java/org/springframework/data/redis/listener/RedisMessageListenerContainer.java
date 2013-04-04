@@ -662,7 +662,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				// wait for subscription to be initialized
 				boolean done = false;
 				// wait 3 rounds for subscription to be initialized
-				for (int i = 0; i < ROUNDS || done; i++) {
+				for (int i = 0; i < ROUNDS && !done; i++) {
 					if (connection != null) {
 						synchronized (localMonitor) {
 							if (connection != null && connection.isSubscribed()) {
