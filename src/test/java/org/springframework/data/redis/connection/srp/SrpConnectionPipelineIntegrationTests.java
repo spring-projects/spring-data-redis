@@ -114,7 +114,7 @@ public class SrpConnectionPipelineIntegrationTests extends
 	@Test
 	public void testInfo() throws Exception {
 		assertNull(connection.info());
-		List<Object> results = connection.closePipeline();
+		List<Object> results = getResults();
 		assertEquals(1, results.size());
 		Properties info = SrpUtils.info(new BulkReply((byte[]) results.get(0)));
 		assertTrue("at least 5 settings should be present", info.size() >= 5);
@@ -176,7 +176,7 @@ public class SrpConnectionPipelineIntegrationTests extends
 		super.testGetRangeSetRange();
 	}
 
-	private int getRedisVersion() {
+	protected int getRedisVersion() {
 		connection.closePipeline();
 		int version = RedisClientBase.parseVersion((String)connection.info().get("redis_version"));
 		connection.openPipeline();

@@ -106,7 +106,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	@Test(expected = RedisPipelineException.class)
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		connection.closePipeline();
+		getResults();
 	}
 
 	@Test

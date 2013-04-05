@@ -61,6 +61,7 @@ public class SrpConnection implements RedisConnection {
 
 	private boolean isClosed = false;
 	private boolean isMulti = false;
+	private boolean pipelineRequested = false;
 	private Pipeline pipeline;
 	private PipelineTracker callback;
 	private volatile SrpSubscription subscription;
@@ -173,41 +174,13 @@ public class SrpConnection implements RedisConnection {
 
 
 	public void openPipeline() {
-		if (pipeline == null) {
-			callback = new PipelineTracker();
-			pipeline = client.pipeline();
-		}
+		pipelineRequested = true;
+		initPipeline();
 	}
 
 	public List<Object> closePipeline() {
-		if (pipeline != null) {
-			pipeline = null;
-			List<Object> execute = new ArrayList<Object>(callback.complete());
-			callback.close();
-			callback = null;
-			if (execute != null && !execute.isEmpty()) {
-				Exception cause = null;
-				for (int i = 0; i < execute.size(); i++) {
-					Object object = execute.get(i);
-					if (object instanceof Exception) {
-						DataAccessException dataAccessException = convertSrpAccessException((Exception) object);
-						if (cause == null) {
-							cause = dataAccessException;
-						}
-						execute.set(i, dataAccessException);
-					}
-				}
-				if (cause != null) {
-					throw new RedisPipelineException(cause, execute);
-				}
-
-				return execute;
-			}
-		}
-
-		return Collections.emptyList();
+		return closePipeline(true);
 	}
-
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
@@ -440,11 +413,10 @@ public class SrpConnection implements RedisConnection {
 	public void discard() {
 		isMulti = false;
 		try {
-			if (isPipelined()) {
-				// use the normal path
-			}
-
 			client.discard();
+			if (!pipelineRequested) {
+				closePipeline(false);
+			}
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -455,10 +427,12 @@ public class SrpConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			Future<Boolean> exec = client.exec();
-			if (!isPipelined()) {
-				exec.get();
+			// Need to wait on execution or subsequent non-pipelined calls like multi may read exec results
+			exec.get();
+			if (pipelineRequested) {
+				return null;
 			}
-			return Collections.singletonList((Object) exec);
+			return closePipeline();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -522,12 +496,8 @@ public class SrpConnection implements RedisConnection {
 			return;
 		}
 		isMulti = true;
-		openPipeline();
+		initPipeline();
 		try {
-			if (isPipelined()) {
-				client.multi();
-				return;
-			}
 			client.multi();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
@@ -1898,5 +1868,49 @@ public class SrpConnection implements RedisConnection {
 	// processing method that adds a listener to the future in order to track down the results and close the pipeline
 	private void pipeline(ListenableFuture<? extends Reply> future) {
 		callback.addCommand(future);
+	}
+
+	private void initPipeline() {
+		if (pipeline == null) {
+			callback = new PipelineTracker();
+			pipeline = client.pipeline();
+		}
+	}
+
+	private List<Object> closePipeline(boolean getResults) {
+		pipelineRequested = false;
+		List<Object> results = Collections.emptyList();
+		if (pipeline != null) {
+			pipeline = null;
+			if(getResults) {
+				results = getPipelinedResults();
+			}
+			callback.close();
+			callback = null;
+		}
+		return results;
+	}
+
+	private List<Object> getPipelinedResults() {
+		List<Object> execute = new ArrayList<Object>(callback.complete());
+		if (execute != null && !execute.isEmpty()) {
+			Exception cause = null;
+			for (int i = 0; i < execute.size(); i++) {
+				Object object = execute.get(i);
+				if (object instanceof Exception) {
+					DataAccessException dataAccessException = convertSrpAccessException((Exception) object);
+					if (cause == null) {
+						cause = dataAccessException;
+					}
+					execute.set(i, dataAccessException);
+				}
+			}
+			if (cause != null) {
+				throw new RedisPipelineException(cause, execute);
+			}
+
+			return execute;
+		}
+		return Collections.emptyList();
 	}
 }

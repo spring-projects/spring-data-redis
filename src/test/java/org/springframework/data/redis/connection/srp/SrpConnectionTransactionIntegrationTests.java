@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.connection.lettuce;
+package org.springframework.data.redis.connection.srp;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.data.redis.RedisSystemException;
+
+import redis.client.RedisClientBase;
 
 /**
- * Integration test of {@link LettuceConnection} functionality within a
- * transaction
+ * Integration test of {@link SrpConnection} functionality within a transaction
  *
  * @author Jennifer Hickey
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
-public class LettuceConnectionTransactionIntegrationTests extends
-		LettuceConnectionPipelineIntegrationTests {
+public class SrpConnectionTransactionIntegrationTests extends
+		SrpConnectionPipelineIntegrationTests {
 
 	@Ignore
 	public void testMultiDiscard() {
@@ -56,9 +52,7 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	 * Using blocking ops inside a tx does not make a lot of sense as it would
 	 * require blocking the entire server in order to execute the block
 	 * atomically, which in turn does not allow other clients to perform a push
-	 * operation. Also, Lettuce always times out in these scenarios b/c it waits
-	 * for an actual response instead of accepting the null returned by op in tx
-	 * *
+	 * operation.
 	 */
 
 	@Ignore
@@ -85,12 +79,10 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	public void testBRPopLPushTimeout() {
 	}
 
-	@Test
+	@Test(expected = RedisSystemException.class)
 	public void exceptionExecuteNative() throws Exception {
-		actual.add(connection.execute("ZadD", getClass() + "#foo\t0.90\titem"));
-		// Syntax error on queued commands are swallowed and no results are
-		// returned
-		verifyResults(Arrays.asList(new Object[] {}), actual);
+		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
+		getResults();
 	}
 
 	protected void initConnection() {
@@ -99,5 +91,13 @@ public class LettuceConnectionTransactionIntegrationTests extends
 
 	protected List<Object> getResults() {
 		return connection.exec();
+	}
+
+	protected int getRedisVersion() {
+		connection.exec();
+		int version = RedisClientBase.parseVersion((String) connection.info()
+				.get("redis_version"));
+		connection.multi();
+		return version;
 	}
 }

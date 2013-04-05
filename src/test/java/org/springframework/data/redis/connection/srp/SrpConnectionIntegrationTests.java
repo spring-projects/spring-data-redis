@@ -53,20 +53,12 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection = null;
 	}
 
-	@Ignore("DATAREDIS-123, exec does not return command results")
-	public void testMultiExec() throws Exception {
-	}
-
-	@Ignore("DATAREDIS-123, exec does not return command results")
+	@Ignore("DATAREDIS-169 SRP discard does not clear txReplies, results in inconsistent results on next tx exec")
 	public void testMultiDiscard() {
 	}
 
-	@Ignore("DATAREDIS-123, exec does not return command results")
+	@Ignore("DATAREDIS-168 SRP exec throws TransactionFailedException if watched value modified")
 	public void testWatch() {
-	}
-
-	@Ignore("DATAREDIS-123, exec does not return command results")
-	public void testUnwatch() {
 	}
 
 	@Ignore("DATAREDIS-130, sort not working")
