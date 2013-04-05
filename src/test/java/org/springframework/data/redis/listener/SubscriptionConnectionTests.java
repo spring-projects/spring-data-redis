@@ -30,6 +30,8 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
+import redis.clients.jedis.JedisPoolConfig;
+
 /**
  * Integration tests confirming that {@link RedisMessageListenerContainer}
  * closes connections after unsubscribing
@@ -59,6 +61,9 @@ public class SubscriptionConnectionTests {
 		connectionFactory.setPort(SettingsUtils.getPort());
 		connectionFactory.setHostName(SettingsUtils.getHost());
 		connectionFactory.setDatabase(2);
+		JedisPoolConfig config = new JedisPoolConfig();
+		config.setMaxWait(3000l);
+		connectionFactory.setPoolConfig(config);
 		connectionFactory.afterPropertiesSet();
 	}
 
