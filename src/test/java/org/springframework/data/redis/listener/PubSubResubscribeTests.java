@@ -207,6 +207,10 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(adapter,
 				Arrays.asList(new Topic[] { new ChannelTopic(CHANNEL), new PatternTopic("s*") }));
 		container.start();
+
+		// Wait for async subscription tasks to setup
+		Thread.sleep(1000);
+
 		template.convertAndSend("somechannel", "HELLO");
 		template.convertAndSend(CHANNEL, "WORLD");
 
