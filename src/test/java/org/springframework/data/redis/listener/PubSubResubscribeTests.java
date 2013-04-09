@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -200,7 +201,7 @@ public class PubSubResubscribeTests {
 	 * a thread executing its PatternSubscriptionTask
 	 * @throws Exception
 	 */
-	@Test
+	@Ignore("DATAREDIS-166 Intermittent corrupted input/output streams subscribing to both patterns and channels in RMLC")
 	public void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
 		container.removeMessageListener(adapter);
 		container.stop();

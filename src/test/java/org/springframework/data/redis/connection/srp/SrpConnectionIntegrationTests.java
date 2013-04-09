@@ -61,34 +61,6 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	public void testWatch() {
 	}
 
-	@Ignore("DATAREDIS-130, sort not working")
-	public void testSort() {
-	}
-
-	@Ignore("DATAREDIS-130, sort not working")
-	public void testSortStore() {
-	}
-
-	@Ignore("DATAREDIS-132 config get broken in SRP 0.2")
-	public void testGetConfig() {
-	}
-
-	@Ignore("DATAREDIS-152 Syntax error on zRangeByScore when using offset and count")
-	public void testZRangeByScoreOffsetCount() {
-	}
-
-	@Ignore("DATAREDIS-152 Syntax error on zRangeByScoreWithScores when using offset and count")
-	public void testZRangeByScoreWithScoresOffsetCount() {
-	}
-
-	@Ignore("DATAREDIS-152 Syntax error on zRevRangeByScore when using offset and count")
-	public void testZRevRangeByScoreOffsetCount() {
-	}
-
-	@Ignore("DATAREDIS-152 Syntax error on zRevRangeByScoreWithScores when using offset and count")
-	public void testZRevRangeByScoreWithScoresOffsetCount() {
-	}
-
 	@Ignore("DATAREDIS-156 SRP bRPopLPush ClassCastException")
 	public void testBRPopLPushTimeout() {
 	}

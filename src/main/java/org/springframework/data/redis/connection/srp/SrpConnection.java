@@ -56,6 +56,8 @@ import com.google.common.util.concurrent.ListenableFuture;
  */
 public class SrpConnection implements RedisConnection {
 
+	private static final Object[] EMPTY_PARAMS_ARRAY = new Object[0];
+
 	private final RedisClient client;
 	private final BlockingQueue<SrpConnection> queue;
 
@@ -184,14 +186,14 @@ public class SrpConnection implements RedisConnection {
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
-		byte[] sort = SrpUtils.sort(params);
+		Object[] sort = SrpUtils.sortParams(params);
 
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.sort(key, sort, null, (Object[]) null));
+				pipeline(pipeline.sort(key, sort));
 				return null;
 			}
-			return SrpUtils.toBytesList((Reply[]) client.sort(key, sort, null, (Object[]) null).data());
+			return SrpUtils.toBytesList((Reply[]) client.sort(key, sort).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -199,14 +201,14 @@ public class SrpConnection implements RedisConnection {
 
 	public Long sort(byte[] key, SortParameters params, byte[] sortKey) {
 
-		byte[] sort = SrpUtils.sort(params, sortKey);
+		Object[] sort = SrpUtils.sortParams(params, sortKey);
 
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.sort(key, sort, null, (Object[]) null));
+				pipeline(pipeline.sort(key, sort));
 				return null;
 			}
-			return ((Long) client.sort(key, sort, null, (Object[]) null).data());
+			return ((Long) client.sort(key, sort).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -307,10 +309,10 @@ public class SrpConnection implements RedisConnection {
 	public Properties info() {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.info());
+				pipeline(pipeline.info(null));
 				return null;
 			}
-			return SrpUtils.info(client.info());
+			return SrpUtils.info(client.info(null));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1245,10 +1247,10 @@ public class SrpConnection implements RedisConnection {
 	public byte[] sRandMember(byte[] key) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.srandmember(key));
+				pipeline(pipeline.srandmember(key, null));
 				return null;
 			}
-			return client.srandmember(key).data();
+			return (byte[])client.srandmember(key, null).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1356,22 +1358,12 @@ public class SrpConnection implements RedisConnection {
 
 
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
-
-		Object[] args = new Object[2 + sets.length];
-
-		args[0] = destKey;
-		args[1] = sets.length;
-		int i = 2;
-		for (byte[] set : sets) {
-			args[i++] = set;
-		}
-
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zinterstore(args));
+				pipeline(pipeline.zinterstore(destKey, sets.length, sets));
 				return null;
 			}
-			return client.zinterstore(args).data();
+			return client.zinterstore(destKey, sets.length, sets).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1406,10 +1398,10 @@ public class SrpConnection implements RedisConnection {
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zrangebyscore(key, min, max, null, null));
+				pipeline(pipeline.zrangebyscore(key, min, max, null, EMPTY_PARAMS_ARRAY));
 				return null;
 			}
-			return SrpUtils.toSet(client.zrangebyscore(key, min, max, null, null).data());
+			return SrpUtils.toSet(client.zrangebyscore(key, min, max, null, EMPTY_PARAMS_ARRAY).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1419,10 +1411,10 @@ public class SrpConnection implements RedisConnection {
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
+				pipeline(pipeline.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, EMPTY_PARAMS_ARRAY));
 				return null;
 			}
-			return SrpUtils.convertTuple(client.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
+			return SrpUtils.convertTuple(client.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, EMPTY_PARAMS_ARRAY));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1444,7 +1436,7 @@ public class SrpConnection implements RedisConnection {
 
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
-			byte[] limit = SrpUtils.limit(offset, count);
+			Object[] limit = SrpUtils.limitParams(offset, count);
 			if (isPipelined()) {
 				pipeline(pipeline.zrangebyscore(key, min, max, null, limit));
 				return null;
@@ -1458,7 +1450,7 @@ public class SrpConnection implements RedisConnection {
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
-			byte[] limit = SrpUtils.limit(offset, count);
+			Object[] limit = SrpUtils.limitParams(offset, count);
 			if (isPipelined()) {
 				pipeline(pipeline.zrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
 				return null;
@@ -1472,7 +1464,7 @@ public class SrpConnection implements RedisConnection {
 
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
-			byte[] limit = SrpUtils.limit(offset, count);
+			Object[] limit = SrpUtils.limitParams(offset, count);
 			if (isPipelined()) {
 				pipeline(pipeline.zrevrangebyscore(key, max, min, null, limit));
 				return null;
@@ -1487,10 +1479,10 @@ public class SrpConnection implements RedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zrevrangebyscore(key, max, min, null, null));
+				pipeline(pipeline.zrevrangebyscore(key, max, min, null, EMPTY_PARAMS_ARRAY));
 				return null;
 			}
-			return SrpUtils.toSet(client.zrevrangebyscore(key, max, min, null, null).data());
+			return SrpUtils.toSet(client.zrevrangebyscore(key, max, min, null, EMPTY_PARAMS_ARRAY).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1499,7 +1491,7 @@ public class SrpConnection implements RedisConnection {
 
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
-			byte[] limit = SrpUtils.limit(offset, count);
+			Object[] limit = SrpUtils.limitParams(offset, count);
 			if (isPipelined()) {
 				pipeline(pipeline.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, limit));
 				return null;
@@ -1514,10 +1506,10 @@ public class SrpConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, null));
+				pipeline(pipeline.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, EMPTY_PARAMS_ARRAY));
 				return null;
 			}
-			return SrpUtils.convertTuple(client.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, null));
+			return SrpUtils.convertTuple(client.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, EMPTY_PARAMS_ARRAY));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

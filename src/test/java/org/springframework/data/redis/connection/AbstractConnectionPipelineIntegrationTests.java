@@ -288,8 +288,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.get("testitnow");
 		connection.exec();
 		List<Object> convertedResults = convertResults();
-		assertEquals(Arrays.asList(new Object[] { Arrays.asList(new String[] { "OK",
-				"somethingelse" }) }), convertedResults);
+		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), convertedResults);
 	}
 
 	@Test

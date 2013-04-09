@@ -45,6 +45,7 @@ import com.google.common.base.Charsets;
  * Helper class featuring methods for SRedis connection handling, providing support for exception translation.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 abstract class SrpUtils {
 
@@ -53,11 +54,11 @@ abstract class SrpUtils {
 	private static final byte[] BEFORE = "BEFORE".getBytes(Charsets.UTF_8);
 	private static final byte[] AFTER = "AFTER".getBytes(Charsets.UTF_8);
 	static final byte[] WITHSCORES = "WITHSCORES".getBytes(Charsets.UTF_8);
-	private static final byte[] SPACE = "".getBytes(Charsets.UTF_8);
-	private static final byte[] BY = "BY ".getBytes(Charsets.UTF_8);
-	private static final byte[] GET = "GET ".getBytes(Charsets.UTF_8);
-	private static final byte[] ALPHA = "ALPHA ".getBytes(Charsets.UTF_8);
-	private static final byte[] STORE = "STORE ".getBytes(Charsets.UTF_8);
+	private static final byte[] SPACE = " ".getBytes(Charsets.UTF_8);
+	private static final byte[] BY = "BY".getBytes(Charsets.UTF_8);
+	private static final byte[] GET = "GET".getBytes(Charsets.UTF_8);
+	private static final byte[] ALPHA = "ALPHA".getBytes(Charsets.UTF_8);
+	private static final byte[] STORE = "STORE".getBytes(Charsets.UTF_8);
 
 
 	static DataAccessException convertSRedisAccessException(RuntimeException ex) {
@@ -178,6 +179,12 @@ abstract class SrpUtils {
 		return ("LIMIT " + offset + " " + count).getBytes(Charsets.UTF_8);
 	}
 
+	static Object[] limitParams(long offset, long count) {
+		return new Object[] { "LIMIT".getBytes(Charsets.UTF_8),
+				String.valueOf(offset).getBytes(Charsets.UTF_8),
+				String.valueOf(count).getBytes(Charsets.UTF_8)};
+	}
+
 	static byte[] sort(SortParameters params) {
 		return sort(params, null);
 	}
@@ -185,15 +192,44 @@ abstract class SrpUtils {
 	static byte[] sort(SortParameters params, byte[] sortKey) {
 		List<byte[]> arrays = new ArrayList<byte[]>();
 
+		Object[] sortParams = sortParams(params, sortKey);
+		for(Object param: sortParams) {
+			arrays.add((byte[])param);
+			arrays.add(SPACE);
+		}
+		arrays.remove(arrays.size()-1);
+
+		// concatenate array
+		int size = 0;
+
+		for (Object bs : arrays) {
+			size += ((byte[])bs).length;
+		}
+		byte[] result = new byte[size];
+
+		int index = 0;
+		for (byte[] bs : arrays) {
+			System.arraycopy(bs, 0, result, index, bs.length);
+			index += bs.length;
+		}
+
+		return result;
+	}
+
+	static Object[] sortParams(SortParameters params) {
+		return sortParams(params, null);
+	}
+
+	static Object[] sortParams(SortParameters params, byte[] sortKey) {
+		List<byte[]> arrays = new ArrayList<byte[]>();
+
 		if (params.getByPattern() != null) {
 			arrays.add(BY);
 			arrays.add(params.getByPattern());
-			arrays.add(SPACE);
 		}
 
 		if (params.getLimit() != null) {
 			arrays.add(limit(params.getLimit().getStart(), params.getLimit().getCount()));
-			arrays.add(SPACE);
 		}
 
 		if (params.getGetPattern() != null) {
@@ -201,13 +237,11 @@ abstract class SrpUtils {
 			for (byte[] bs : pattern) {
 				arrays.add(GET);
 				arrays.add(bs);
-				arrays.add(SPACE);
 			}
 		}
 
 		if (params.getOrder() != null) {
 			arrays.add(params.getOrder().name().getBytes(Charsets.UTF_8));
-			arrays.add(SPACE);
 		}
 
 		if (params.isAlphabetic()) {
@@ -219,20 +253,6 @@ abstract class SrpUtils {
 			arrays.add(sortKey);
 		}
 
-		// concatenate array
-		int size = 0;
-
-		for (byte[] bs : arrays) {
-			size += bs.length;
-		}
-		byte[] result = new byte[size];
-
-		int index = 0;
-		for (byte[] bs : arrays) {
-			System.arraycopy(bs, 0, result, index, bs.length);
-			index += bs.length;
-		}
-
-		return result;
+		return arrays.toArray();
 	}
 }
