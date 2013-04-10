@@ -82,12 +82,20 @@ public class SrpConnectionPipelineIntegrationTests extends
 	public void testGetConfig() {
 	}
 
-	@Ignore("DATAREDIS-152 Syntax error on zRangeByScore and and zRangeByScoreWithScores when using offset and count")
+	@Ignore("DATAREDIS-152 Syntax error on zRangeByScore when using offset and count")
 	public void testZRangeByScoreOffsetCount() {
 	}
 
-	@Ignore("DATAREDIS-152 Syntax error on zRangeByScore and and zRangeByScoreWithScores when using offset and count")
+	@Ignore("DATAREDIS-152 Syntax error on zRangeByScoreWithScores when using offset and count")
 	public void testZRangeByScoreWithScoresOffsetCount() {
+	}
+
+	@Ignore("DATAREDIS-152 Syntax error on zRevRangeByScore when using offset and count")
+	public void testZRevRangeByScoreOffsetCount() {
+	}
+
+	@Ignore("DATAREDIS-152 Syntax error on zRevRangeByScoreWithScores when using offset and count")
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

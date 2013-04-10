@@ -1504,10 +1504,10 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				pipeline(pipeline.zrevrangebyscore(key, min, max, null, limit));
+				pipeline(pipeline.zrevrangebyscore(key, max, min, null, limit));
 				return null;
 			}
-			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, limit).data());
+			return SrpUtils.toSet(client.zrevrangebyscore(key, max, min, null, limit).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1517,10 +1517,10 @@ public class SrpConnection implements RedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zrevrangebyscore(key, min, max, null, null));
+				pipeline(pipeline.zrevrangebyscore(key, max, min, null, null));
 				return null;
 			}
-			return SrpUtils.toSet(client.zrevrangebyscore(key, min, max, null, null).data());
+			return SrpUtils.toSet(client.zrevrangebyscore(key, max, min, null, null).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1531,10 +1531,10 @@ public class SrpConnection implements RedisConnection {
 		try {
 			byte[] limit = SrpUtils.limit(offset, count);
 			if (isPipelined()) {
-				pipeline(pipeline.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
+				pipeline(pipeline.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, limit));
 				return null;
 			}
-			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, limit));
+			return SrpUtils.convertTuple(client.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, limit));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1544,10 +1544,10 @@ public class SrpConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
+				pipeline(pipeline.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, null));
 				return null;
 			}
-			return SrpUtils.convertTuple(client.zrevrangebyscore(key, min, max, SrpUtils.WITHSCORES, null));
+			return SrpUtils.convertTuple(client.zrevrangebyscore(key, max, min, SrpUtils.WITHSCORES, null));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
