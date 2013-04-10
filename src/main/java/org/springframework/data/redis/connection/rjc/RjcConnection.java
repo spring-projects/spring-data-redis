@@ -1625,10 +1625,10 @@ public class RjcConnection implements RedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline.zrevrangeByScore(stringKey, minString, maxString, (int) offset, (int) count);
+				pipeline.zrevrangeByScore(stringKey, maxString, minString, (int) offset, (int) count);
 				return null;
 			}
-			return RjcUtils.convertToSet(session.zrevrangeByScore(stringKey, minString, maxString, (int) offset,
+			return RjcUtils.convertToSet(session.zrevrangeByScore(stringKey, maxString, minString, (int) offset,
 					(int) count));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
@@ -1643,10 +1643,10 @@ public class RjcConnection implements RedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline.zrevrangeByScore(stringKey, minString, maxString);
+				pipeline.zrevrangeByScore(stringKey, maxString, minString);
 				return null;
 			}
-			return RjcUtils.convertToSet(session.zrevrangeByScore(stringKey, minString, maxString));
+			return RjcUtils.convertToSet(session.zrevrangeByScore(stringKey, maxString, minString));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}
@@ -1713,10 +1713,10 @@ public class RjcConnection implements RedisConnection {
 		try {
 
 			if (isPipelined()) {
-				pipeline.zrevrangeByScoreWithScores(stringKey, minString, maxString, (int) offset, (int) count);
+				pipeline.zrevrangeByScoreWithScores(stringKey, maxString, minString, (int) offset, (int) count);
 				return null;
 			}
-			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, minString, maxString,
+			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, maxString, minString,
 					(int) offset, (int) count));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
@@ -1732,10 +1732,10 @@ public class RjcConnection implements RedisConnection {
 		try {
 
 			if (isPipelined()) {
-				pipeline.zrevrangeByScoreWithScores(stringKey, minString, maxString);
+				pipeline.zrevrangeByScoreWithScores(stringKey, maxString, minString);
 				return null;
 			}
-			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, minString, maxString));
+			return RjcUtils.convertElementScore(session.zrevrangeByScoreWithScores(stringKey, maxString, minString));
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
 		}

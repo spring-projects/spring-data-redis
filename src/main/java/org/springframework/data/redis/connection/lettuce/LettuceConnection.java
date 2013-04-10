@@ -1476,10 +1476,11 @@ public class LettuceConnection implements RedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(asyncConn.zrevrangebyscore(key, min, max, offset, count));
+				pipeline(asyncConn.zrevrangebyscore(key, max, min, offset, count));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.zrevrangebyscore(key, min, max, offset, count));
+			final List<byte[]> results = con.zrevrangebyscore(key, max, min, offset, count);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1489,10 +1490,11 @@ public class LettuceConnection implements RedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(asyncConn.zrevrangebyscore(key, min, max));
+				pipeline(asyncConn.zrevrangebyscore(key, max, min));
 				return null;
 			}
-			return new LinkedHashSet<byte[]>(con.zrevrangebyscore(key, min, max));
+			final List<byte[]> results = con.zrevrangebyscore(key, max, min);
+			return results != null ? new LinkedHashSet<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1502,10 +1504,10 @@ public class LettuceConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(asyncConn.zrevrangebyscoreWithScores(key, min, max));
+				pipeline(asyncConn.zrevrangebyscoreWithScores(key, max, min, offset, count));
 				return null;
 			}
-			return LettuceUtils.convertTuple(con.zrevrangebyscoreWithScores(key, min, max));
+			return LettuceUtils.convertTuple(con.zrevrangebyscoreWithScores(key, max, min, offset, count));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1515,10 +1517,10 @@ public class LettuceConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(asyncConn.zrevrangebyscoreWithScores(key, min, max));
+				pipeline(asyncConn.zrevrangebyscoreWithScores(key, max, min));
 				return null;
 			}
-			return LettuceUtils.convertTuple(con.zrevrangebyscoreWithScores(key, min, max));
+			return LettuceUtils.convertTuple(con.zrevrangebyscoreWithScores(key, max, min));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

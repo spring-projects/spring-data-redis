@@ -618,6 +618,63 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d,
+				0, 5));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l, 1l,
+						Arrays.asList(new String[] { "Bob", "James" }) }),
+				actual);
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l, 1l,
+						Arrays.asList(new String[] { "Bob", "James" }) }),
+				actual);
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		convertResultToTuples = true;
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScoreWithScores(
+				"myset".getBytes(), 0d, 3d, 0, 1));
+		verifyResults(Arrays.asList(new Object[] {
+				1l,
+				1l,
+				Arrays.asList(new StringTuple[] { new DefaultStringTuple("Bob"
+						.getBytes(), "Bob", 2d) }) }), actual);
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScores() {
+		convertResultToTuples = true;
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 3, "Joe".getBytes()));
+		actual.add(byteConnection.zRevRangeByScoreWithScores(
+				"myset".getBytes(), 0d, 2d));
+		verifyResults(
+				Arrays.asList(new Object[] {
+						1l,
+						1l,
+						1l,
+						Arrays.asList(new StringTuple[] {
+								new DefaultStringTuple("Bob".getBytes(), "Bob",
+										2d),
+								new DefaultStringTuple("James".getBytes(),
+										"James", 1d) }) }), actual);
+	}
+
+	@Test
 	public void testZRank() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));

@@ -117,6 +117,26 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testInfo();
 	}
 
+	@Test(expected = RedisSystemException.class)
+	public void testZRevRangeByScore() {
+		super.testZRevRangeByScore();
+	}
+
+	@Test(expected = RedisSystemException.class)
+	public void testZRevRangeByScoreOffsetCount() {
+		super.testZRevRangeByScoreOffsetCount();
+	}
+
+	@Test(expected = RedisSystemException.class)
+	public void testZRevRangeByScoreWithScores() {
+		super.testZRevRangeByScoreWithScores();
+	}
+
+	@Test(expected = RedisSystemException.class)
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		super.testZRevRangeByScoreWithScoresOffsetCount();
+	}
+
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 

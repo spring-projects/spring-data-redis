@@ -240,6 +240,27 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testBRPopLPushTimeout();
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRevRangeByScore() {
+		super.testZRevRangeByScore();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRevRangeByScoreOffsetCount() {
+		super.testZRevRangeByScoreOffsetCount();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRevRangeByScoreWithScores() {
+		super.testZRevRangeByScoreWithScores();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		super.testZRevRangeByScoreWithScoresOffsetCount();
+	}
+
+
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {

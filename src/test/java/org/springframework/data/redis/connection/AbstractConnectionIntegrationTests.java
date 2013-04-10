@@ -46,6 +46,7 @@ import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -53,6 +54,7 @@ import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
@@ -78,9 +80,12 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Autowired
 	protected RedisConnectionFactory connectionFactory;
 
+	protected RedisConnection byteConnection;
+
 	@Before
 	public void setUp() {
-		connection = new DefaultStringRedisConnection(connectionFactory.getConnection());
+		byteConnection = connectionFactory.getConnection();
+		connection = new DefaultStringRedisConnection(byteConnection);
 	}
 
 	@After
@@ -999,6 +1004,53 @@ public abstract class AbstractConnectionIntegrationTests {
 						new DefaultStringTuple("Bob".getBytes(), "Bob", 2d),
 						new DefaultStringTuple("James".getBytes(), "James", 1d) })),
 				connection.zRevRangeWithScores("myset", 0, -1));
+	}
+
+	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes());
+		byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes());
+		assertEquals(
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob",
+						"James" })), SerializationUtils.deserialize(
+						byteConnection.zRevRangeByScore("myset".getBytes(), 0d,
+								3d, 0, 5), stringSerializer));
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes());
+		byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes());
+		assertEquals(
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob",
+						"James" })), SerializationUtils.deserialize(
+						byteConnection.zRevRangeByScore("myset".getBytes(), 0d,
+								3d), stringSerializer));
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes());
+		byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes());
+		assertEquals(
+				new LinkedHashSet<Tuple>(
+						Arrays.asList(new Tuple[] { new DefaultTuple("Bob"
+								.getBytes(), 2d) })),
+				byteConnection.zRevRangeByScoreWithScores("myset".getBytes(),
+						0d, 3d, 0, 1));
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScores() {
+		byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes());
+		byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes());
+		byteConnection.zAdd("myset".getBytes(), 3, "Joe".getBytes());
+		assertEquals(
+				new LinkedHashSet<Tuple>(Arrays.asList(new Tuple[] {
+						new DefaultTuple("Bob".getBytes(), 2d),
+						new DefaultTuple("James".getBytes(), 1d) })),
+				byteConnection.zRevRangeByScoreWithScores("myset".getBytes(),
+						0d, 2d));
 	}
 
 	@Test
