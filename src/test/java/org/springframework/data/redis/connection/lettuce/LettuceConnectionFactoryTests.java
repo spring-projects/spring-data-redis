@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotSame;
 import org.junit.After;
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisException;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
@@ -117,6 +119,26 @@ public class LettuceConnectionFactoryTests {
 			assertEquals(Long.valueOf(0), connection2.dbSize());
 		} finally {
 			factory2.destroy();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testDisableSharedConnection() throws Exception {
+		factory.setShareNativeConnection(false);
+		RedisConnection conn2 = factory.getConnection();
+		assertNotSame(connection.getNativeConnection(), conn2.getNativeConnection());
+		// Give some time for native connection to asynchronously initialize, else close doesn't work
+		Thread.sleep(100);
+		conn2.close();
+		assertTrue(conn2.isClosed());
+		// Give some time for native connection to asynchronously close
+		Thread.sleep(100);
+		try {
+			((RedisAsyncConnection<byte[], byte[]>) conn2.getNativeConnection()).ping();
+			fail("The native connection should be closed");
+		} catch (RedisException e) {
+			// expected
 		}
 	}
 }

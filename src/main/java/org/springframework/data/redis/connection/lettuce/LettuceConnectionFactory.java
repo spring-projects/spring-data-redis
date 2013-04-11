@@ -37,7 +37,7 @@ import com.lambdaworks.redis.RedisException;
  * <p>
  * This factory creates a new {@link LettuceConnection} on each call to
  * {@link #getConnection()}. Multiple {@link LettuceConnection}s share a single
- * thread-safe native connection.
+ * thread-safe native connection by default.
  *
  * <p>
  * The shared native connection is never closed by {@link LettuceConnection},
@@ -57,6 +57,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private RedisClient client;
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
 	private boolean validateConnection = false;
+	private boolean shareNativeConnection = true;
 	private RedisAsyncConnection<byte[], byte[]> connection;
 	private int dbIndex = 0;
 
@@ -79,8 +80,6 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	public void afterPropertiesSet() {
 		client = new RedisClient(hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
-		// open a single connection to be shared for non-blocking and non-tx ops
-		initConnection();
 	}
 
 	public void destroy() {
@@ -88,15 +87,11 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public RedisConnection getConnection() {
-		if (validateConnection) {
-			try {
-				new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(connection).ping();
-			} catch (RedisException e) {
-				log.warn("Validation of shared connection failed. Creating a new connection.");
-				initConnection();
-			}
+		RedisAsyncConnection<byte[], byte[]> nativeConnection = getNativeConnection();
+		if (dbIndex > 0) {
+			nativeConnection.select(dbIndex);
 		}
-		return new LettuceConnection(connection, timeout, client);
+		return new LettuceConnection(nativeConnection, timeout, client, !shareNativeConnection);
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
@@ -175,18 +170,41 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * validation fails.
 	 * <p>
 	 * Lettuce will automatically reconnect until close is called, which should
-	 * never happen through {@link LettuceConnection}, therefore the default is
-	 * false.
+	 * never happen through {@link LettuceConnection} if a shared native
+	 * connection is used, therefore the default is false.
 	 * <p>
 	 * Setting this to true will result in a round-trip call to the server on
-	 * each new connection, so this setting should only be used if there is code
-	 * that is actively closing the native Lettuce connection.
+	 * each new connection, so this setting should only be used if connection
+	 * sharing is enabled and there is code that is actively closing the native
+	 * Lettuce connection.
 	 *
 	 * @param validateConnection
 	 *            enable connection validation
 	 */
 	public void setValidateConnection(boolean validateConnection) {
 		this.validateConnection = validateConnection;
+	}
+
+	/**
+	 * Indicates if multiple {@link LettuceConnection}s should share a single
+	 * native connection.
+	 *
+	 * @return native connection shared
+	 */
+	public boolean getShareNativeConnection() {
+		return shareNativeConnection;
+	}
+
+	/**
+	 * Enables multiple {@link LettuceConnection}s to share a single native
+	 * connection. If set to false, every operation on {@link LettuceConnection}
+	 * will open and close a socket.
+	 *
+	 * @param shareNativeConnection
+	 *            enable connection sharing
+	 */
+	public void setShareNativeConnection(boolean shareNativeConnection) {
+		this.shareNativeConnection = shareNativeConnection;
 	}
 
 	/**
@@ -210,10 +228,22 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.dbIndex = index;
 	}
 
-	protected void initConnection() {
-		connection = client.connectAsync(LettuceUtils.CODEC);
-		if (dbIndex > 0) {
-			connection.select(dbIndex);
+	protected RedisAsyncConnection<byte[], byte[]> getNativeConnection() {
+		if(shareNativeConnection) {
+			if(connection == null) {
+				connection = client.connectAsync(LettuceUtils.CODEC);
+			}
+			if (validateConnection) {
+				try {
+					new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(connection).ping();
+				} catch (RedisException e) {
+					log.warn("Validation of shared connection failed. Creating a new connection.");
+					connection = client.connectAsync(LettuceUtils.CODEC);
+				}
+			}
+			return connection;
+		}else {
+			return client.connectAsync(LettuceUtils.CODEC);
 		}
 	}
 }

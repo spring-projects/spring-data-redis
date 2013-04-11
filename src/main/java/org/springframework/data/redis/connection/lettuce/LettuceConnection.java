@@ -82,6 +82,7 @@ public class LettuceConnection implements RedisConnection {
 	private boolean isClosed = false;
 	private boolean isMulti = false;
 	private boolean isPipelined = false;
+	private boolean closeNativeConnection = true;
 	private List<Command<?, ?, ?>> ppline;
 	private RedisClient client;
 	private volatile LettuceSubscription subscription;
@@ -91,15 +92,31 @@ public class LettuceConnection implements RedisConnection {
 	 *
 	 * @param connection underlying Lettuce async connection
 	 * @param timeout the connection timeout (in milliseconds)
+	 * @param client The Lettuce client
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> connection, long timeout,
 			RedisClient client) {
+		this(connection, timeout, client, true);
+	}
+
+	/**
+	 * Instantiates a new lettuce connection.
+	 *
+	 * @param connection The underlying Lettuce async connection
+	 * @param timeout The connection timeout (in milliseconds)
+	 * @param client The Lettuce client
+	 * @param closeNativeConnection True if native connection should be called on {@link #close()}. This should
+	 * be set to false if the native connection is shared.
+	 */
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> connection, long timeout,
+			RedisClient client, boolean closeNativeConnection) {
 		Assert.notNull(connection, "a valid connection is required");
 
 		this.asyncConn = connection;
 		this.timeout = timeout;
 		this.con = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(asyncConn);
 		this.client = client;
+		this.closeNativeConnection = closeNativeConnection;
 	}
 
 	protected DataAccessException convertLettuceAccessException(Exception ex) {
@@ -159,6 +176,14 @@ public class LettuceConnection implements RedisConnection {
 			asyncTxConn.close();
 			asyncTxConn = null;
 			txConn = null;
+		}
+
+		if(closeNativeConnection) {
+			try {
+				asyncConn.close();
+			} catch (RuntimeException ex) {
+				throw convertLettuceAccessException(ex);
+			}
 		}
 
 		if (subscription != null) {
