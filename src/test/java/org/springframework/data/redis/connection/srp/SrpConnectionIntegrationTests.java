@@ -16,8 +16,9 @@
 
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assume.assumeTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
+
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -26,7 +27,6 @@ import org.springframework.data.redis.connection.AbstractConnectionIntegrationTe
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import redis.client.RedisClientBase;
 import redis.reply.BulkReply;
 
 /**
@@ -77,7 +77,7 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 
 	@Test
 	public void testGetRangeSetRange() {
-		assumeTrue(getRedisVersion() >= RedisClientBase.parseVersion("2.4.0"));
+		assumeTrue(redisVersion.compareTo(parseVersion("2.4.0")) >= 0);
 		super.testGetRangeSetRange();
 	}
 
@@ -86,9 +86,5 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection.set("foo", "bar");
 		BulkReply reply = (BulkReply) connection.execute("GET", "foo");
 		assertEquals("bar", stringSerializer.deserialize(reply.data()));
-	}
-
-	private int getRedisVersion() {
-		return RedisClientBase.parseVersion((String) connection.info().get("redis_version"));
 	}
 }

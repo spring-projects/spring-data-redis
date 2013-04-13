@@ -22,12 +22,14 @@ import java.util.Arrays;
 
 import org.jredis.protocol.BulkResponse;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultSortParameters;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -42,6 +44,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
+
+
+	@Before
+	public void setUp() {
+		byteConnection = connectionFactory.getConnection();
+		connection = new DefaultStringRedisConnection(byteConnection);
+	}
 
 	@After
 	public void tearDown() {
@@ -83,6 +92,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	@Ignore("DATAREDIS-129 Key search does not work with regex")
 	public void testKeys() throws Exception {
+	}
+
+	@Ignore("DATAREDIS-171 JRedis StringIndexOutOfBoundsException in info() method in Redis 2.6")
+	public void testInfo() throws Exception {
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

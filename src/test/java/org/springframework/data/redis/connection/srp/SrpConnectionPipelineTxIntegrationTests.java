@@ -17,7 +17,8 @@ package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-
+import static org.junit.Assume.assumeTrue;
+import static org.junit.Assert.fail;
 import java.util.List;
 
 import org.junit.Test;
@@ -34,10 +35,17 @@ import redis.client.RedisClientBase;
 public class SrpConnectionPipelineTxIntegrationTests extends
 		SrpConnectionTransactionIntegrationTests {
 
-	@Test(expected = RedisPipelineException.class)
+	@Test
 	public void exceptionExecuteNative() throws Exception {
+		// DATAREDIS-172 SRP ClassCastException when exec() returns an
+		// ErrorReply in Redis 2.6
+		assumeTrue(redisVersion.compareTo(parseVersion("2.6.5")) < 0);
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		getResults();
+		try {
+			getResults();
+			fail("Execute failures should result in a RedisPipelineException");
+		} catch (RedisPipelineException e) {
+		}
 	}
 
 	@Test
