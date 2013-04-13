@@ -91,6 +91,9 @@ public class SubscriptionConnectionTests {
 			container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 			container.afterPropertiesSet();
 			container.start();
+			// DATAREDIS-170 Need time for subscription to fully complete or
+			// cancelTask won't close connection b/c subscription is null
+			Thread.sleep(100);
 			container.stop();
 			containers.add(container);
 		}
@@ -100,20 +103,25 @@ public class SubscriptionConnectionTests {
 	}
 
 	@Test
-	public void testRemoveLastListener() {
+	public void testRemoveLastListener() throws Exception {
 		// Grab all 8 connections from the pool
 		MessageListener listener = new MessageListenerAdapter(handler);
 		for (int i = 0; i < 8; i++) {
 			RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 			container.setConnectionFactory(connectionFactory);
 			container.setBeanName("container" + i);
-			container.addMessageListener(listener, Arrays.asList(new ChannelTopic(CHANNEL)));
+			container.addMessageListener(listener,
+					Arrays.asList(new ChannelTopic(CHANNEL)));
 			container.setTaskExecutor(new SyncTaskExecutor());
 			container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 			container.afterPropertiesSet();
 			container.start();
 			containers.add(container);
 		}
+
+		// DATAREDIS-170 Need time for subscription to fully complete or
+		// cancelTask won't close connection b/c subscription is null
+		Thread.sleep(100);
 
 		// Removing the sole listener from the container should free up a
 		// connection
@@ -125,14 +133,15 @@ public class SubscriptionConnectionTests {
 	}
 
 	@Test
-	public void testStopListening() {
+	public void testStopListening() throws InterruptedException {
 		// Grab all 8 connections from the pool.
 		MessageListener listener = new MessageListenerAdapter(handler);
 		for (int i = 0; i < 8; i++) {
 			RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 			container.setConnectionFactory(connectionFactory);
 			container.setBeanName("container" + i);
-			container.addMessageListener(listener, Arrays.asList(new ChannelTopic(CHANNEL)));
+			container.addMessageListener(listener,
+					Arrays.asList(new ChannelTopic(CHANNEL)));
 			container.setTaskExecutor(new SyncTaskExecutor());
 			container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 			container.afterPropertiesSet();
@@ -140,8 +149,13 @@ public class SubscriptionConnectionTests {
 			containers.add(container);
 		}
 
-		// Unsubscribe all listeners from all topics, freeing up a  connection
-		containers.get(0).removeMessageListener(null, Arrays.asList(new Topic[] {}));
+		// DATAREDIS-170 Need time for subscription to fully complete or
+		// cancelTask won't close connection b/c subscription is null
+		Thread.sleep(100);
+
+		// Unsubscribe all listeners from all topics, freeing up a connection
+		containers.get(0).removeMessageListener(null,
+				Arrays.asList(new Topic[] {}));
 
 		// verify we can now get a connection from the pool
 		RedisConnection connection = connectionFactory.getConnection();
