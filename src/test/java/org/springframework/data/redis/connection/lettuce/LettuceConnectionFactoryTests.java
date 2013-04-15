@@ -141,4 +141,32 @@ public class LettuceConnectionFactoryTests {
 			// expected
 		}
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testResetConnection() {
+		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
+				.getNativeConnection();
+		factory.resetConnection();
+		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testInitConnection() {
+		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
+				.getNativeConnection();
+		factory.initConnection();
+		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testResetAndInitConnection() {
+		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
+				.getNativeConnection();
+		factory.resetConnection();
+		factory.initConnection();
+		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+	}
 }
