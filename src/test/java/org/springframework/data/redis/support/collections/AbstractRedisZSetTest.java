@@ -15,9 +15,14 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.junit.matchers.JUnitMatchers.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
+import static org.junit.matchers.JUnitMatchers.hasItem;
+import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -26,10 +31,9 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.support.collections.DefaultRedisZSet;
-import org.springframework.data.redis.support.collections.RedisZSet;
 
 /**
  * Integration test for Redis ZSet.
@@ -190,7 +194,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testIntersectAndStore() {
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		RedisZSet<T> interSet1 = createZSetFor("test:zset:inter1");
 		RedisZSet<T> interSet2 = createZSetFor("test:zset:inter");
 
@@ -312,7 +316,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testUnionAndStore() {
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		RedisZSet<T> unionSet1 = createZSetFor("test:zset:union1");
 		RedisZSet<T> unionSet2 = createZSetFor("test:zset:union2");
 

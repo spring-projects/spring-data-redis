@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -99,7 +100,7 @@ public class BoundKeyOperationsTest {
 
 	@Test
 	public void testPersist() throws Exception {
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		keyOps.persist();
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
@@ -107,9 +108,5 @@ public class BoundKeyOperationsTest {
 		}
 		keyOps.persist();
 		assertEquals(-1, keyOps.getExpire().longValue());
-	}
-
-	private boolean isJredis() {
-		return template.getConnectionFactory() instanceof JredisConnectionFactory;
 	}
 }

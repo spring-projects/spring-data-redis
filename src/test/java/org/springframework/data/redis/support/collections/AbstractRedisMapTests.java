@@ -33,9 +33,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -46,6 +46,7 @@ import org.junit.runners.Parameterized;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
@@ -194,7 +195,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testIncrement() {
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		K k1 = getKey();
 		V v1 = getValue();
 
@@ -252,7 +253,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testPutAll() {
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		Map<K, V> m = new LinkedHashMap<K, V>();
 		K k1 = getKey();
 		K k2 = getKey();
@@ -331,7 +332,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testEntrySet() {
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		Set<Entry<K, V>> entries = map.entrySet();
 		assertTrue(entries.isEmpty());
 
@@ -420,9 +421,5 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(v1, map.replace(k1, v2));
 		assertEquals(v2, map.get(k1));
 
-	}
-
-	private boolean isJredis() {
-		return template.getConnectionFactory().getClass().getSimpleName().startsWith("Jredis");
 	}
 }

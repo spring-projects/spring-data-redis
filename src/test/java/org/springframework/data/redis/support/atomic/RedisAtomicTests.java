@@ -31,12 +31,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
  * @author Costin Leau
@@ -77,7 +74,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testIntCheckAndSet() throws Exception {
 		// Txs not supported in Jredis
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(factory));
 		intCounter.set(0);
 		assertFalse(intCounter.compareAndSet(1, 10));
 		assertTrue(intCounter.compareAndSet(0, 10));
@@ -87,7 +84,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testLongCheckAndSet() throws Exception {
 		// Txs not supported in Jredis
-		assumeTrue(!isJredis());
+		assumeTrue(!ConnectionUtils.isJredis(factory));
 		longCounter.set(0);
 		assertFalse(longCounter.compareAndSet(1, 10));
 		assertTrue(longCounter.compareAndSet(0, 10));
@@ -97,7 +94,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testLongIncrement() throws Exception {
 		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!isRjc());
+		assumeTrue(!ConnectionUtils.isRjc(factory));
 		longCounter.set(0);
 		assertEquals(1, longCounter.incrementAndGet());
 	}
@@ -105,7 +102,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testIntIncrement() throws Exception {
 		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!isRjc());
+		assumeTrue(!ConnectionUtils.isRjc(factory));
 		intCounter.set(0);
 		assertEquals(1, intCounter.incrementAndGet());
 	}
@@ -113,7 +110,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testLongCustomIncrement() throws Exception {
 		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!isRjc());
+		assumeTrue(!ConnectionUtils.isRjc(factory));
 		longCounter.set(0);
 		long delta = 5;
 		assertEquals(delta, longCounter.addAndGet(delta));
@@ -122,7 +119,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testIntCustomIncrement() throws Exception {
 		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!isRjc());
+		assumeTrue(!ConnectionUtils.isRjc(factory));
 		intCounter.set(0);
 		int delta = 5;
 		assertEquals(delta, intCounter.addAndGet(delta));
@@ -131,7 +128,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testLongDecrement() throws Exception {
 		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!isRjc());
+		assumeTrue(!ConnectionUtils.isRjc(factory));
 		longCounter.set(1);
 		assertEquals(0, longCounter.decrementAndGet());
 	}
@@ -139,7 +136,7 @@ public class RedisAtomicTests {
 	@Test
 	public void testIntDecrement() throws Exception {
 		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!isRjc());
+		assumeTrue(!ConnectionUtils.isRjc(factory));
 		intCounter.set(1);
 		assertEquals(0, intCounter.decrementAndGet());
 	}
@@ -156,7 +153,7 @@ public class RedisAtomicTests {
 	public void testCompareSet() throws Exception {
 		// Txs not supported in Jredis, Lettuce checkAndSet not working DATAREDIS-122,
 		// SRP checkAndSet not working DATAREDIS-123
-		assumeTrue(!isJredis() && !isLettuce() && !isSrp());
+		assumeTrue(!ConnectionUtils.isJredis(factory) && !ConnectionUtils.isLettuce(factory) && !ConnectionUtils.isSrp(factory));
 		final AtomicBoolean alreadySet = new AtomicBoolean(false);
 		final int NUM = 50;
 		final String KEY = getClass().getSimpleName() + ":atomic:counter";
@@ -184,21 +181,5 @@ public class RedisAtomicTests {
 		latch.await();
 
 		assertFalse("counter already modified", failed.get());
-	}
-
-	private boolean isRjc() {
-		return factory instanceof RjcConnectionFactory;
-	}
-
-	private boolean isSrp() {
-		return factory instanceof SrpConnectionFactory;
-	}
-
-	private boolean isJredis() {
-		return factory instanceof JredisConnectionFactory;
-	}
-
-	private boolean isLettuce() {
-		return factory instanceof LettuceConnectionFactory;
 	}
 }

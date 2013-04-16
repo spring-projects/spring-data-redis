@@ -24,7 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.RedisVersionUtils;
 
 /**
  * Integration test of {@link JedisConnection} transaction functionality.
@@ -105,7 +105,7 @@ public class JedisConnectionTransactionIntegrationTests extends
 			// Syntax error on queued commands are swallowed and no results are
 			// returned
 			verifyResults(Arrays.asList(new Object[] {}), actual);
-			if(redisVersion.compareTo(parseVersion("2.6.5")) >= 0) {
+			if(RedisVersionUtils.atLeast("2.6.5", connection)) {
 				fail("Redis 2.6 should throw an Exception on exec if commands are invalid");
 			}
 		}catch(InvalidDataAccessApiUsageException e) {

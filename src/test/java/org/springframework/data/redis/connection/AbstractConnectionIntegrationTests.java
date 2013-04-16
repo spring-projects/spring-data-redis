@@ -36,8 +36,6 @@ import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Before;
@@ -46,14 +44,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.Version;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -85,19 +80,10 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected RedisConnection byteConnection;
 
-	protected static Version redisVersion;
-
-	private static final Pattern VERSION_MATCHER = Pattern
-			.compile("([0-9]+)\\.([0-9]+)(\\.([0-9]+))?");
-
 	@Before
 	public void setUp() {
 		byteConnection = connectionFactory.getConnection();
 		connection = new DefaultStringRedisConnection(byteConnection);
-		if (redisVersion == null) {
-			redisVersion = parseVersion((String) connection.info().get(
-					"redis_version"));
-		}
 	}
 
 	@After
@@ -310,7 +296,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				// messages may be received if unsubscribing now.
 				// Connection.close in teardown
 				// will take care of unsubscribing.
-				if (!(isAsync())) {
+				if (!(ConnectionUtils.isAsync(connectionFactory))) {
 					connection.getSubscription().unsubscribe();
 				}
 			}
@@ -359,7 +345,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				// messages may be received if unsubscribing now.
 				// Connection.close in teardown
 				// will take care of unsubscribing.
-				if (!(isAsync())) {
+				if (!(ConnectionUtils.isAsync(connectionFactory))) {
 					connection.getSubscription().pUnsubscribe(expectedPattern.getBytes());
 				}
 			}
@@ -1243,22 +1229,5 @@ public abstract class AbstractConnectionIntegrationTests {
 			}
 		}
 		return exists;
-	}
-
-	protected Version parseVersion(String version) {
-		Matcher matcher = VERSION_MATCHER.matcher(version);
-		if (matcher.matches()) {
-			String major = matcher.group(1);
-			String minor = matcher.group(2);
-			String patch = matcher.group(4);
-			return new Version(Integer.parseInt(major),
-					Integer.parseInt(minor), Integer.parseInt(patch));
-		}
-		throw new IllegalArgumentException("Specified version cannot be parsed");
-	}
-
-	private boolean isAsync() {
-		return (connectionFactory instanceof LettuceConnectionFactory)
-				|| (connectionFactory instanceof SrpConnectionFactory);
 	}
 }

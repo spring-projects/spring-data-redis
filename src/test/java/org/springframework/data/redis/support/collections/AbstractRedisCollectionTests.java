@@ -306,8 +306,4 @@ public abstract class AbstractRedisCollectionTests<T> {
 	public void testGetKey() throws Exception {
 		assertNotNull(collection.getKey());
 	}
-
-	protected boolean isJredis() {
-		return template.getConnectionFactory().getClass().getSimpleName().startsWith("Jredis");
-	}
 }

@@ -31,6 +31,7 @@ import java.util.Set;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -39,7 +40,6 @@ import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import redis.client.RedisClientBase;
 import redis.reply.BulkReply;
 import redis.reply.Reply;
 
@@ -136,15 +136,11 @@ public class SrpConnectionPipelineIntegrationTests extends
 
 	@Test
 	public void testGetRangeSetRange() {
-		assumeTrue(getRedisVersion() >= RedisClientBase.parseVersion("2.4.0"));
-		super.testGetRangeSetRange();
-	}
-
-	protected int getRedisVersion() {
 		connection.closePipeline();
-		int version = RedisClientBase.parseVersion((String)connection.info().get("redis_version"));
+		boolean getRangeSupported = RedisVersionUtils.atLeast("2.4.0", connection);
 		connection.openPipeline();
-		return version;
+		assumeTrue(getRangeSupported);
+		super.testGetRangeSetRange();
 	}
 
 	protected Object convertResult(Object result) {

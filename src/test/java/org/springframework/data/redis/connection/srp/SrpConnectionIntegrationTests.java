@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -77,7 +78,7 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 
 	@Test
 	public void testGetRangeSetRange() {
-		assumeTrue(redisVersion.compareTo(parseVersion("2.4.0")) >= 0);
+		assumeTrue(RedisVersionUtils.atLeast("2.4.0", connection));
 		super.testGetRangeSetRange();
 	}
 

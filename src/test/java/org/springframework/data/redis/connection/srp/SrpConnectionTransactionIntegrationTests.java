@@ -15,13 +15,15 @@
  */
 package org.springframework.data.redis.connection.srp;
 
+import static org.junit.Assume.assumeTrue;
+
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.RedisSystemException;
-
-import redis.client.RedisClientBase;
+import org.springframework.data.redis.RedisVersionUtils;
 
 /**
  * Integration test of {@link SrpConnection} functionality within a transaction
@@ -85,19 +87,24 @@ public class SrpConnectionTransactionIntegrationTests extends
 		getResults();
 	}
 
+	@Test
+	public void testGetRangeSetRange() {
+		connection.exec();
+		boolean getRangeSupported = RedisVersionUtils.atLeast("2.4.0", connection);
+		connection.multi();
+		assumeTrue(getRangeSupported);
+		connection.set("rangekey", "supercalifrag");
+		actual.add(connection.getRange("rangekey", 0l, 2l));
+		connection.setRange("rangekey", "ck", 2);
+		actual.add(connection.get("rangekey"));
+		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }), actual);
+	}
+
 	protected void initConnection() {
 		connection.multi();
 	}
 
 	protected List<Object> getResults() {
 		return connection.exec();
-	}
-
-	protected int getRedisVersion() {
-		connection.exec();
-		int version = RedisClientBase.parseVersion((String) connection.info()
-				.get("redis_version"));
-		connection.multi();
-		return version;
 	}
 }
