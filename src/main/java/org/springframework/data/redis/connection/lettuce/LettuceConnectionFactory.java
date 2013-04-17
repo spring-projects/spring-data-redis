@@ -115,7 +115,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public void resetConnection() {
 		synchronized (this.connectionMonitor) {
-			connection.close();
+			if(this.connection != null) {
+				this.connection.close();
+			}
 			this.connection = null;
 		}
 	}
