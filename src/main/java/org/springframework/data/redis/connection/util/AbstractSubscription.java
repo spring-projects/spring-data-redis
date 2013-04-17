@@ -163,8 +163,9 @@ public abstract class AbstractSubscription implements Subscription {
 		// shortcut for unsubscribing all patterns
 		if (ObjectUtils.isEmpty(patts)) {
 			if (!this.patterns.isEmpty()) {
-				patts = getPatterns().toArray(new byte[this.patterns.size()][]);
 				synchronized (this.patterns) {
+					patts = getPatterns().toArray(new byte[this.patterns.size()][]);
+					doPUnsubscribe(true, patts);
 					this.patterns.clear();
 				}
 			}
@@ -174,14 +175,13 @@ public abstract class AbstractSubscription implements Subscription {
 			}
 		}
 		else {
+			doPUnsubscribe(false, patts);
 			synchronized (this.patterns) {
 				remove(this.patterns, patts);
 			}
 		}
 
-		if (isWorking()) {
-			doPUnsubscribe(this.patterns.isEmpty(), patts);
-		}
+		closeIfUnsubscribed();
 	}
 
 	
@@ -193,8 +193,9 @@ public abstract class AbstractSubscription implements Subscription {
 		// shortcut for unsubscribing all channels
 		if (ObjectUtils.isEmpty(chans)) {
 			if (!this.channels.isEmpty()) {
-				chans = getChannels().toArray(new byte[this.channels.size()][]);
 				synchronized (this.channels) {
+					chans = getChannels().toArray(new byte[this.channels.size()][]);
+					doUnsubscribe(true, chans);
 					this.channels.clear();
 				}
 			}
@@ -204,14 +205,13 @@ public abstract class AbstractSubscription implements Subscription {
 			}
 		}
 		else {
+			doUnsubscribe(false, chans);
 			synchronized (this.channels) {
 				remove(this.channels, chans);
 			}
 		}
 
-		if (isWorking()) {
-			doUnsubscribe(this.channels.isEmpty(), chans);
-		}
+		closeIfUnsubscribed();
 	}
 
 	
@@ -225,12 +225,11 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
-	private boolean isWorking() {
+	private void closeIfUnsubscribed() {
 		if (channels.isEmpty() && patterns.isEmpty()) {
 			alive.set(false);
 			doClose();
 		}
-		return isAlive();
 	}
 
 

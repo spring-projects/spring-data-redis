@@ -2437,10 +2437,4 @@ public class JedisConnection implements RedisConnection {
 			throw convertJedisAccessException(ex);
 		}
 	}
-
-	private void checkSubscription() {
-		if (isSubscribed()) {
-			throw new RedisSubscribedConnectionException("Cannot execute command - connection is subscribed");
-		}
-	}
 }

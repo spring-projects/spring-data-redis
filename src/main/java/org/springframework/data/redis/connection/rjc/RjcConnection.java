@@ -59,11 +59,38 @@ public class RjcConnection implements RedisConnection {
 	private volatile RjcSubscription subscription;
 	private volatile RedisNodeSubscriber subscriber;
 
+	/**
+	 * Constructs a new RjcConnection with a {@link RedisNodeSubscriber} that
+	 * re-uses the passed connection. Not recommended for pooled connections, as
+	 * {@link RedisNodeSubscriber} may leave the Reply InputStream in an
+	 * inconsistent state due to extra unsubscribe calls in close()
+	 *
+	 * @param connection
+	 *            The connection to use
+	 * @param dbIndex
+	 *            The index of the database to use
+	 */
 	public RjcConnection(org.idevlab.rjc.ds.RedisConnection connection, int dbIndex) {
+		this(connection, dbIndex, new RedisNodeSubscriber(new SingleDataSource(
+				new CloseSuppressingRjcConnection(connection))));
+	}
+
+	/**
+	 * Constructs a new RjcConnection with a dedicated
+	 * {@link RedisNodeSubscriber}
+	 *
+	 * @param connection
+	 *            The connection to use
+	 * @param dbIndex
+	 *            The index of the database to use
+	 * @param subscriber
+	 *            The connection to use for subscribe calls
+	 */
+	public RjcConnection(org.idevlab.rjc.ds.RedisConnection connection, int dbIndex,
+			RedisNodeSubscriber subscriber) {
 		SingleDataSource connectionDataSource = new SingleDataSource(connection);
 		session = new SessionFactoryImpl(connectionDataSource).create();
-		subscriber = new RedisNodeSubscriber();
-		subscriber.setDataSource(new SingleDataSource(new CloseSuppressingRjcConnection(connection)));
+		this.subscriber = subscriber;
 		client = new Client(connection);
 		this.connection = connection;
 
@@ -2151,12 +2178,6 @@ public class RjcConnection implements RedisConnection {
 
 		} catch (Exception ex) {
 			throw convertRjcAccessException(ex);
-		}
-	}
-
-	private void checkSubscription() {
-		if (isSubscribed()) {
-			throw new RedisSubscribedConnectionException("Cannot execute command - connection is subscribed");
 		}
 	}
 }

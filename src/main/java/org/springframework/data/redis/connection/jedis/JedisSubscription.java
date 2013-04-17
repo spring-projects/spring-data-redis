@@ -36,8 +36,12 @@ class JedisSubscription extends AbstractSubscription {
 
 	
 	protected void doClose() {
-		jedisPubSub.unsubscribe();
-		jedisPubSub.punsubscribe();
+		if(!getChannels().isEmpty()) {
+			jedisPubSub.unsubscribe();
+		}
+		if(!getPatterns().isEmpty()) {
+			jedisPubSub.punsubscribe();
+		}
 	}
 
 	

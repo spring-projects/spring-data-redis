@@ -37,7 +37,9 @@ class RjcSubscription extends AbstractSubscription {
 
 	
 	protected void doClose() {
-		subscriber.close();
+		if(!getChannels().isEmpty() || !getPatterns().isEmpty()) {
+			subscriber.close();
+		}
 	}
 
 	
@@ -57,6 +59,6 @@ class RjcSubscription extends AbstractSubscription {
 
 	
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
-		subscriber.punsubscribe(RjcUtils.decodeMultiple(channels));
+		subscriber.unsubscribe(RjcUtils.decodeMultiple(channels));
 	}
 }

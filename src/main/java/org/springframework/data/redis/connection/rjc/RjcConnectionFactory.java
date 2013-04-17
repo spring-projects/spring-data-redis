@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.idevlab.rjc.ds.DataSource;
 import org.idevlab.rjc.ds.PoolableDataSource;
 import org.idevlab.rjc.ds.SimpleDataSource;
+import org.idevlab.rjc.message.RedisNodeSubscriber;
 import org.idevlab.rjc.protocol.Protocol;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -45,6 +46,7 @@ public class RjcConnectionFactory implements InitializingBean, DisposableBean, R
 	private boolean usePool = true;
 	private int dbIndex = 0;
 	private DataSource dataSource;
+	private DataSource subscriptionDataSource;
 
 
 	/**
@@ -71,6 +73,7 @@ public class RjcConnectionFactory implements InitializingBean, DisposableBean, R
 		else {
 			dataSource = new SimpleDataSource(hostName, port, timeout, password);
 		}
+		subscriptionDataSource = new SimpleDataSource(hostName, port, timeout, password);
 	}
 
 	public void destroy() {
@@ -86,7 +89,8 @@ public class RjcConnectionFactory implements InitializingBean, DisposableBean, R
 
 	
 	public RedisConnection getConnection() {
-		return postProcessConnection(new RjcConnection(dataSource.getConnection(), dbIndex));
+		return postProcessConnection(new RjcConnection(dataSource.getConnection(), dbIndex,
+				new RedisNodeSubscriber(subscriptionDataSource)));
 	}
 
 	/**
