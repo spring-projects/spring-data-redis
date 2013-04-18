@@ -5,6 +5,60 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.0.4.RELEASE (2013-04-18)
+---------------------------------------------
+
+General
+* Introduced Lettuce connection sharing to greatly reduce number of connections used
+* Upgraded to SRP 0.5
+* Improved reference documentation
+* Added several integration tests of each RedisConnection implementation
+
+Package o.s.d.redis.core
+* Reverted binary backwards incompatibility introduced by fix in 1.0.3.RELEASE to RedisTemplate
+convertAndSend() method to return the number of targeted channels
+
+Package o.s.d.redis.connection
+* Fixed NPE in DefaultStringRedisConnection deserializing a null Map
+
+Package o.s.d.redis.connection.jedis
+* Removed unnecessary cast of Long to Int in increment/decrement ops
+* Fixed incorrect transaction discard
+* Fixed dbSize/flush ops executing synchronously while pipelining
+* Fixed execute method returning incorrect results
+* Fixed brPop executing twice when called in a transaction
+* Fixed persist method not executing as part of a transaction
+* Fixed incorrect closing of pipeline
+
+Package o.s.d.redis.connection.jredis
+* Fixed sort not storing results under given key
+
+Package o.s.d.redis.connection.lettuce
+* Fixed NPE on LettuceConnection blpop/brpop timeout
+* Fixed exec returning a non-null value while pipelining
+* Fixed zCount/zInterStore methods executing synchronously when pipelining
+* Fixed NPEs or incorrect results in several ops within a transaction
+* Fixed zRevRangeByScore methods failing due to incorrect parameter ordering
+
+Package o.s.d.redis.connection.rjc
+* Fixed zRevRangeWithScores returning incorrect results
+* Fixed incorrect closing of pipeline
+* Fixed zRevRangeByScore methods failing due to incorrect parameter ordering
+
+Package o.s.d.redis.connection.srp
+* Fixed exec not returning the results of the commands executed in the tx
+* Fixed brpop/blpop fails with "ERR wrong number of arguments"
+* Fixed sort not working due to NPE/syntax errors
+* Fixed zCount/zInterStore methods executing synchronously when pipelining
+* Fixed syntax error in zRangeByScore/zRevRangeByScore methods when using offset and count
+* Fixed incorrect closing of pipeline
+* Fixed zRevRangeByScore methods failing due to incorrect parameter ordering
+
+Package o.s.d.redis.listener
+* Fixed SubscriptionTask not closing connections
+* Fixed messages not received after adding a message listener to both channel and pattern
+before container start
+
 
 Changes in version 1.0.3.RELEASE (2013-02-13)
 ---------------------------------------------
