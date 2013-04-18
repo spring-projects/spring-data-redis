@@ -3,7 +3,7 @@
     <title>Getting Started</title>
 
     <para>Learning a new framework is not always straight forward. In this section, we (the Spring Data team) 
-    tried to provide, what we think is, an easy to follow guide for starting with Spring Data Key Value module. 
+    tried to provide, what we think is, an easy to follow guide for starting with the Spring Data Redis module.
     Of course, feel free to create your own learning 'path' as you see fit and, if possible, please report back
     any improvements to the documentation that can help others.</para>
 
@@ -22,25 +22,25 @@
 			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/resources.html">resource</ulink> abstract or
 			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/aop.html">AOP</ulink> infrastructure. While it is not important
 			to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar.
-			These being said, the more knowledge one has about the Spring, the faster she will pick Spring Data Key Value.
+			That being said, the more knowledge one has about the Spring, the faster she will pick up Spring Data Redis.
 			Besides the very comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework,
 			there are a lot of articles, blog entries and books on the matter - take a look at the Spring framework
 			<ulink url="http://www.springsource.org/documentation">home page</ulink> for more information. In general, this should be the starting point for 
-			developers wanting to try Spring DKV.</para>
+			developers wanting to try Spring DR.</para>
 		</section>
 		<section id="get-started:first-steps:nosql">
 			<title>Knowing NoSQL and Key Value stores</title>
-			<para>NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worth even the
+			<para>NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worse even the
 			term itself has multiple <ulink url="http://www.google.com/search?q=nosoql+acronym">meanings</ulink>).
-			While some of the principles are common, it is crucial that the user is familiar to some degree with the stores supported by SDKV.
-			The best way to get acquainted to this solutions is to read their documentation and follow their examples - it usually doesn't take more then 5-10 minutes
+			While some of the principles are common, it is crucial that the user is familiar to some degree with the stores supported by SDR.
+			The best way to get acquainted with these solutions is to read their documentation and follow their examples - it usually doesn't take more then 5-10 minutes
 			to go through them and if you are coming from an RDMBS-only background many times these exercises can be an eye opener. 
 			</para>
 		</section>
 		<section id="get-started:first-steps:samples">
 			<title>Trying Out The Samples</title>
 			<para>One can find various samples for key value stores in the dedicated example repo, at 
-			<ulink url="https://github.com/SpringSource/spring-data-keyvalue-examples">http://github.com/SpringSource/spring-data-keyvalue-examples</ulink>. For Spring Redis,
+			<ulink url="https://github.com/SpringSource/spring-data-keyvalue-examples">http://github.com/SpringSource/spring-data-keyvalue-examples</ulink>. For Spring Data Redis,
 			of interest is the <literal>retwisj</literal> sample, a Twitter-clone built on top of Redis which can be run locally or be deployed into the cloud. See its 
 			<ulink url="http://static.springsource.org/spring-data/data-keyvalue/examples/retwisj/current/">documentation</ulink>, the following blog 
 			<ulink url="http://blog.springsource.com/2011/04/27/getting-started-redis-spring-cloud-foundry/">entry</ulink> or the 
@@ -51,11 +51,11 @@
     <section id="get-started:help">
 		<title>Need Help?</title>
 		
-		<para>If you encounter issues or you are just looking for an advice, feel free to use one of the links below:</para>
+		<para>If you encounter issues or you are just looking for advice, feel free to use one of the links below:</para>
 		
 		<section id="get-started:help:community">
   		    <title>Community Support</title>
-			<para>The Spring Data <ulink url="http://forum.springframework.org/forumdisplay.php?f=80">forum</ulink> is a message board for all Spring Data (not just Key Value) users to
+			<para>The Spring Data <ulink url="http://forum.springframework.org/forumdisplay.php?f=80">forum</ulink> is a message board for all Spring Data (not just Redis) users to
 			share information and help each other. Note that registration is needed <emphasis>only</emphasis> for posting.
 			</para>
 		</section>
@@ -76,11 +76,11 @@
 		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the Spring Community 
 		<ulink url="http://forum.springsource.org">forums</ulink>.</para>
 		<para>If you encounter a bug or want to suggest an improvement, 
-		please create a ticket on the Spring Data issue <ulink url="https://jira.springframework.org/browse/DATAKV">tracker</ulink>.</para>
+		please create a ticket on the Spring Data issue <ulink url="https://jira.springsource.org/browse/DATAREDIS">tracker</ulink>.</para>
 		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
 		Spring Community <ulink url="http://www.springframework.org/">Portal</ulink>.</para>
 		<para>Lastly, you can follow the SpringSource Data <ulink url="http://blog.springsource.com/category/data-access/">blog</ulink> or the project team on Twitter 
-		(<ulink url="http://twitter.com/costinl">Costin</ulink>)</para>
+		(<ulink url="http://twitter.com/jencompgeek">Jennifer</ulink>)</para>
 	</section>
     
 </chapter>

@@ -3,7 +3,7 @@
   <title>Redis Messaging/PubSub</title>
     <para>Spring Data provides dedicated messaging integration for Redis, 
     very similar in functionality and naming to the JMS integration in
-    Spring Framework; in fact, users familiar with the JMS support in Spring, should
+    Spring Framework; in fact, users familiar with the JMS support in Spring should
     feel right at home.</para>
 
     <para>Redis messaging can be roughly divided into two areas of functionality, namely
@@ -12,7 +12,7 @@
     <classname>RedisTemplate</classname> class is used for message production.
     For asynchronous reception similar to
     Java EE's message-driven bean style, Spring Data provides a dedicated message
-    listener containers that is used to create Message-Driven POJOs
+    listener container that is used to create Message-Driven POJOs
     (MDPs) and for synchronous reception, the <interfacename>RedisConnection</interfacename> contract.</para>
 
     <para>The package <literal>org.springframework.data.redis.connection</literal> and
@@ -46,7 +46,7 @@ template.convertAndSend("hello!", "world");]]></programlisting>
 
 	  <para>On the receiving side, one can subscribe to one or multiple channels either by naming them directly or by using
 	  pattern matching. The latter approach is quite useful as it not only allows multiple subscriptions to be created with
-	  one command but to also listen on channels not yet created at subscription time (as long as match the pattern).
+	  one command but to also listen on channels not yet created at subscription time (as long as they match the pattern).
 	  </para>
 	  
 	  <para>At the low-level, <interfacename>RedisConnection</interfacename> offers <methodname>subscribe</methodname> and
@@ -55,16 +55,16 @@ template.convertAndSend("hello!", "world");]]></programlisting>
 	  whether it is listening or not, <interfacename>RedisConnection</interfacename>
 	  provides <methodname>getSubscription</methodname> and <methodname>isSubscribed</methodname> method.</para>
 	  
-	  <important>Subscribing commands are synchronized and thus blocking. That is, calling subscribe on a connection will cause
+	  <important>When using Jedis, JRedis or RJC connectors, subscribing commands are synchronous and thus blocking. That is, calling subscribe on a connection will cause
 	  the current thread to block as it will start waiting for messages - the thread will be released only if the subscription
-	  is canceled, that is an additional thread invokes <methodname>unsubscribe</methodname> respectively <methodname>pUnsubscribe</methodname>
+	  is canceled, that is an additional thread invokes <methodname>unsubscribe</methodname> or <methodname>pUnsubscribe</methodname>
 	  on the <emphasis>same</emphasis> connection. See <link linkend="redis:pubsub:subscribe:containers">message listener container</link> below
-	  for a solution to these problem.</important>
+	  for a solution to this problem.</important>
 	  
-	  <para>As mentioned above, one subscribed a connection starts waiting for messages - no other commands can be invoked on it except
-	  for adding new subscriptions or modifying/canceling the existing ones, that is invoking anything else then <methodname>subscribe</methodname>,
-	  <methodname>pSubscribe</methodname>, <methodname>unsubscribe</methodname>, <methodname>pUnsubscribe</methodname> or is illegal and will
-	  through an exception.</para>
+	  <para>As mentioned above, once subscribed a connection starts waiting for messages. No other commands can be invoked on it except
+	  for adding new subscriptions or modifying/canceling the existing ones. That is, invoking anything other then <methodname>subscribe</methodname>,
+	  <methodname>pSubscribe</methodname>, <methodname>unsubscribe</methodname>, or <methodname>pUnsubscribe</methodname> is illegal and will
+	  throw an exception.</para>
 	  
 	  <para>In order to subscribe for messages, one needs to implement the <interfacename>MessageListener</interfacename> callback: each time
 	  a new message arrives, the callback gets invoked and the user code executed through <methodname>onMessage</methodname> method. 
@@ -82,18 +82,18 @@ template.convertAndSend("hello!", "world");]]></programlisting>
       support in Spring Framework and its message-driven POJOs (MDPs)</para> 
       
       <para><classname>RedisMessageListenerContainer</classname> acts as a message listener container; it is used to receive messages from a
-      Redis channel and drive the MessageListener that are injected into
+      Redis channel and drive the MessageListeners that are injected into
       it. The listener container is responsible for all threading of message
       reception and dispatches into the listener for processing. A message
       listener container is the intermediary between an MDP and a messaging
       provider, and takes care of registering to receive messages, resource acquisition and release,
-      exception conversion and suchlike. This allows you as an application
+      exception conversion and the like. This allows you as an application
       developer to write the (possibly complex) business logic associated with
       receiving a message (and reacting to it), and delegates
       boilerplate Redis infrastructure concerns to the framework.
       </para>
 
-	  <para>Further more, to minimize the application footprint, <classname>RedisMessageListenerContainer</classname> performs allows one connection and one thread
+	  <para>Furthermore, to minimize the application footprint, <classname>RedisMessageListenerContainer</classname> allows one connection and one thread
 	  to be shared by multiple listeners even though they do not share a subscription. Thus no matter how many listeners or channels an application tracks,
 	  the runtime cost will remain the same through out its lifetime. Moreover, the container allows runtime configuration changes so one can add or remove
 	  listeners while an application is running without the need for restart. Additionally, the container uses a lazy subscription approach, using a

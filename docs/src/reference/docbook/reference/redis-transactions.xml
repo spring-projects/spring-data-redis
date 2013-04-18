@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="tx">
+  <title>Redis Transactions</title>
+  <para>Redis provides support for <ulink url="http://redis.io/topics/transactions">transactions</ulink> through the <literal>multi</literal>,
+    <literal>exec</literal>, and <literal>discard</literal> commands. These operations are available on <interfacename>RedisTemplate</interfacename>,
+    however <interfacename>RedisTemplate</interfacename> is not guaranteed to execute all operations in the transaction using the same connection.
+  </para>
+
+   <para>Spring Data Redis provides the <interfacename>SessionCallback</interfacename> interface for use when multiple operations need to be performed with the same <literal>connection</literal>,
+   as when using Redis transactions. For example:
+   </para>
+
+   <programlisting lang="java"><![CDATA[ //execute a transaction
+redisTemplate.execute(new SessionCallback<Object>() {
+	public Object execute(RedisOperations operations) throws DataAccessException {
+		operations.multi();
+		operations.opsForValue().set("key", "value");
+		List<Object> results =  operations.exec();
+		return null;
+	}
+});]]></programlisting>
+</section>
