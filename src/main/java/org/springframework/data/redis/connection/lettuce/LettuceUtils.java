@@ -125,7 +125,8 @@ abstract class LettuceUtils {
 			}
 		}
 
-		if (params.isAlphabetic()) {
+		Boolean isAlpha = params.isAlphabetic();
+		if (isAlpha != null && isAlpha) {
 			args.alpha();
 		}
 		return args;
