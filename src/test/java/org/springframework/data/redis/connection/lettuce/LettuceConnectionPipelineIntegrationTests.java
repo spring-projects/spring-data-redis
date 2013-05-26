@@ -59,16 +59,43 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testMultiDiscard() {
 	}
 
-	@Ignore("DATAREDIS-122 exec never returns null")
-	public void testWatch() throws Exception {
-	}
-
-	@Ignore("DATAREDIS-122 exec never returns null")
-	public void testUnwatch() throws Exception {
-	}
-
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
+
+	@Test
+	public void testWatch() throws Exception {
+		connection.set("testitnow", "willdo");
+		connection.watch("testitnow".getBytes());
+		//Give some time for watch to be asynch executed
+		Thread.sleep(500);
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.set("testitnow", "something");
+		conn2.close();
+		connection.multi();
+		connection.set("testitnow", "somethingelse");
+		actual.add(connection.exec());
+		actual.add(connection.get("testitnow"));
+		verifyResults(Arrays.asList(new Object[] { null, "something" }), actual);
+	}
+
+	@Test
+	public void testUnwatch() throws Exception {
+		connection.set("testitnow", "willdo");
+		connection.watch("testitnow".getBytes());
+		connection.unwatch();
+		connection.multi();
+		//Give some time for unwatch to be asynch executed
+		Thread.sleep(500);
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.set("testitnow", "something");
+		connection.set("testitnow", "somethingelse");
+		connection.get("testitnow");
+		connection.exec();
+		List<Object> convertedResults = convertResults();
+		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), convertedResults);
+	}
 
 	@Test
 	public void testBLPop() {

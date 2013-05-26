@@ -31,7 +31,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.ConnectionUtils;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.ObjectFactory;
@@ -70,6 +69,8 @@ public class BoundKeyOperationsTest {
 
 	@Test
 	public void testRename() throws Exception {
+		// DATAREDIS-188 Infinite loop renaming a non-existent Collection when using Lettuce
+		assumeTrue(!ConnectionUtils.isLettuce(template.getConnectionFactory()));
 		Object key = keyOps.getKey();
 		assertNotNull(key);
 		// RedisAtomicInteger/Long need to be reset, as they may be created

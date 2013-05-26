@@ -170,6 +170,8 @@ public class RjcConnectionPipelineIntegrationTests extends
 	public void testWatch() throws Exception {
 		connection.set("testitnow", "willdo");
 		connection.watch("testitnow".getBytes());
+		//Give some time for watch to be asynch executed
+		Thread.sleep(500);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
@@ -188,6 +190,8 @@ public class RjcConnectionPipelineIntegrationTests extends
 		connection.set("testitnow", "willdo");
 		connection.watch("testitnow".getBytes());
 		connection.unwatch();
+		//Give some time for unwatch to be asynch executed
+		Thread.sleep(500);
 		connection.multi();
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());

@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import java.util.Arrays;
+import static org.junit.Assert.assertNull;
+
 import java.util.List;
 
 import org.junit.Ignore;
@@ -87,10 +88,9 @@ public class LettuceConnectionTransactionIntegrationTests extends
 
 	@Test
 	public void exceptionExecuteNative() throws Exception {
-		actual.add(connection.execute("ZadD", getClass() + "#foo\t0.90\titem"));
-		// Syntax error on queued commands are swallowed and no results are
-		// returned
-		verifyResults(Arrays.asList(new Object[] {}), actual);
+		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
+		// Syntax error on queued commands are swallowed and no results are returned
+		assertNull(getResults());
 	}
 
 	protected void initConnection() {

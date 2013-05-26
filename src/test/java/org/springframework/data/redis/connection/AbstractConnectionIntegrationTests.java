@@ -400,7 +400,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testWatch() throws Exception {
 		connection.set("testitnow", "willdo");
 		connection.watch("testitnow".getBytes());
-		connection.get("testitnow");
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());
 		conn2.set("testitnow", "something");

@@ -489,10 +489,10 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				pipeline(asyncTxConn.discard());
+				pipeline(getAsyncTxConnection().discard());
 				return;
 			}
-			txConn.discard();
+			getTxConnection().discard();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -503,10 +503,14 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				 asyncTxConn.exec();
+				 getAsyncTxConnection().exec();
 				 return null;
 			}
-			return txConn.exec();
+			List<Object> results = getTxConnection().exec();
+			if(results.isEmpty()) {
+				return null;
+			}
+			return results;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -572,17 +576,11 @@ public class LettuceConnection implements RedisConnection {
 		}
 		isMulti = true;
 		try {
-			if(asyncTxConn == null) {
-				asyncTxConn = client.connectAsync(LettuceUtils.CODEC);
-			}
-			if(txConn == null) {
-				txConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(asyncTxConn);
-			}
 			if (isPipelined()) {
-				pipeline(asyncTxConn.multi());
+				pipeline(getAsyncTxConnection().multi());
 				return;
 			}
-			txConn.multi();
+			getTxConnection().multi();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -688,10 +686,10 @@ public class LettuceConnection implements RedisConnection {
 	public void unwatch() {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncConnection().unwatch());
+				pipeline(getAsyncTxConnection().unwatch());
 				return;
 			}
-			getConnection().unwatch();
+			getTxConnection().unwatch();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -701,11 +699,11 @@ public class LettuceConnection implements RedisConnection {
 	public void watch(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncConnection().watch(keys));
+				pipeline(getAsyncTxConnection().watch(keys));
 				return;
 			}
 			else {
-				getConnection().watch(keys);
+				getTxConnection().watch(keys);
 			}
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -1922,21 +1920,21 @@ public class LettuceConnection implements RedisConnection {
 
 	private RedisAsyncConnection<byte[], byte[]> getAsyncConnection() {
 		if(isQueueing()) {
-			return asyncTxConn;
+			return getAsyncTxConnection();
 		}
 		return asyncConn;
 	}
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getConnection() {
 		if(isQueueing()) {
-			return txConn;
+			return getTxConnection();
 		}
 		return con;
 	}
 
 	private RedisAsyncConnection<byte[], byte[]> getAsyncBlockingConnection() {
 		if(isQueueing()) {
-			return asyncTxConn;
+			return getAsyncTxConnection();
 		}
 		if(asyncBlockingConn ==  null) {
 			asyncBlockingConn = client.connectAsync(LettuceUtils.CODEC);
@@ -1946,11 +1944,25 @@ public class LettuceConnection implements RedisConnection {
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getBlockingConnection() {
 		if(isQueueing()) {
-			return txConn;
+			return getTxConnection();
 		}
 		if(blockingConn ==  null) {
 			blockingConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(getAsyncBlockingConnection());
 		}
 		return blockingConn;
+	}
+
+	private RedisAsyncConnection<byte[], byte[]> getAsyncTxConnection() {
+		if(asyncTxConn == null) {
+			asyncTxConn = client.connectAsync(LettuceUtils.CODEC);
+		}
+		return asyncTxConn;
+	}
+
+	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getTxConnection() {
+		if(txConn == null) {
+			txConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(getAsyncTxConnection());
+		}
+		return txConn;
 	}
 }

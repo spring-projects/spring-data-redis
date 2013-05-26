@@ -16,6 +16,9 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.List;
 
 import org.junit.Ignore;
@@ -26,8 +29,6 @@ import org.springframework.data.redis.connection.AbstractConnectionIntegrationTe
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * Integration test of {@link LettuceConnection}
@@ -39,14 +40,6 @@ import static org.junit.Assert.fail;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	@Ignore("DATAREDIS-122 exec never returns null")
-	public void testWatch() throws Exception {
-	}
-
-	@Ignore("DATAREDIS-122 exec never returns null")
-	public void testUnwatch() throws Exception {
-	}
 
 	@Test
 	public void testMultiThreadsOneBlocking() throws Exception {
@@ -88,6 +81,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		assertEquals("delay", conn2.get("txs1"));
 	}
 
+	@Ignore("DATAREDIS-189 Lettuce exec without multi times out waiting for a reply instead of throwing Exception")
 	@Test
 	public void testCloseInTransaction() {
 		connection.multi();
