@@ -472,7 +472,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	public Boolean expire(K key, long timeout, TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
-		final long rawTimeout = unit.toSeconds(timeout);
+		final long rawTimeout = TimeoutUtils.toSeconds(timeout, unit);
 
 		return execute(new RedisCallback<Boolean>() {
 

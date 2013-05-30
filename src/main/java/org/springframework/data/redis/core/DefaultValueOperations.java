@@ -185,12 +185,12 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	public void set(K key, V value, long timeout, TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
-		final long rawTimeout = unit.toSeconds(timeout);
+		final long rawTimeout = TimeoutUtils.toSeconds(timeout, unit);
 
 		execute(new RedisCallback<Object>() {
 			
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.setEx(rawKey, (int) rawTimeout, rawValue);
+				connection.setEx(rawKey, rawTimeout, rawValue);
 				return null;
 			}
 		}, true);

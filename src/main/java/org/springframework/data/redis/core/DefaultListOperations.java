@@ -52,11 +52,9 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			}
 		}, true);
 	}
-
 	
 	public V leftPop(K key, long timeout, TimeUnit unit) {
-		final int tm = (int) unit.toSeconds(timeout);
-
+		final int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 		return execute(new ValueDeserializingRedisCallback(key) {
 			
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
@@ -148,7 +146,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 	
 	public V rightPop(K key, long timeout, TimeUnit unit) {
-		final int tm = (int) unit.toSeconds(timeout);
+		final int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 
 		return execute(new ValueDeserializingRedisCallback(key) {
 			
@@ -211,7 +209,7 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 
 	
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit) {
-		final int tm = (int) unit.toSeconds(timeout);
+		final int tm = (int)TimeoutUtils.toSeconds(timeout, unit);
 		final byte[] rawDestKey = rawKey(destinationKey);
 
 		return execute(new ValueDeserializingRedisCallback(sourceKey) {
