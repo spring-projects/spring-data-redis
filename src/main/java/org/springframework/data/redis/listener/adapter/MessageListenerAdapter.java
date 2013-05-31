@@ -105,6 +105,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Juergen Hoeller
  * @author Costin Leau
+ * @author Greg Turnquist
  * @see org.springframework.jms.listener.adapter.MessageListenerAdapter
  */
 public class MessageListenerAdapter implements InitializingBean, MessageListener {
@@ -205,6 +206,19 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 	public MessageListenerAdapter(Object delegate) {
 		initDefaultStrategies();
 		setDelegate(delegate);
+	}
+	
+	/**
+	 * Create a new {@link MessageListenerAdapter} for the given delegate.
+	 * 
+	 * @param delegate the delegate object
+	 * @param defaultListenerMethod method to call when a message comes
+	 * 
+	 * @see #getListenerMethodName
+	 */
+	public MessageListenerAdapter(Object delegate, String defaultListenerMethod) {
+		this(delegate);
+		setDefaultListenerMethod(defaultListenerMethod);
 	}
 
 	/**
