@@ -27,17 +27,17 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Unit test for MessageListenerAdapter.
  * 
  * @author Costin Leau
+ * @author Greg Turnquist
  */
 public class MessageListenerTest {
 
-	private static final RedisSerializer serializer = new StringRedisSerializer();
+	private static final StringRedisSerializer serializer = new StringRedisSerializer();
 	private static final String CHANNEL = "some::test:";
 	private static final byte[] RAW_CHANNEL = serializer.serialize(CHANNEL);
 	private static final String PAYLOAD = "do re mi";
@@ -108,9 +108,29 @@ public class MessageListenerTest {
 	}
 
 	@Test
+	public void testCustomMethodWithAlternateConstructor() throws Exception {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(target, "customMethod");
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(STRING_MSG, null);
+
+		verify(target).customMethod(PAYLOAD);
+	}
+
+	@Test
 	public void testCustomMethodWithChannel() throws Exception {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(target);
 		adapter.setDefaultListenerMethod("customMethodWithChannel");
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(STRING_MSG, RAW_CHANNEL);
+
+		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);
+	}
+
+	@Test
+	public void testCustomMethodWithChannelAndAlternateConstructor() throws Exception {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(target, "customMethodWithChannel");
 		adapter.afterPropertiesSet();
 
 		adapter.onMessage(STRING_MSG, RAW_CHANNEL);
