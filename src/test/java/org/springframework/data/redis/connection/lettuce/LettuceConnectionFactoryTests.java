@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotSame;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
@@ -168,5 +169,45 @@ public class LettuceConnectionFactoryTests {
 		factory.resetConnection();
 		factory.initConnection();
 		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+	}
+
+	@Test(expected=RedisConnectionFailureException.class)
+	public void testInitConnectionException() {
+		factory.setHostName("fakeHost");
+		factory.afterPropertiesSet();
+	}
+
+	@Test(expected=RedisConnectionFailureException.class)
+	public void testGetConnectionNotSharedException() {
+		factory.setShareNativeConnection(false);
+		factory.setHostName("fakeHost");
+		factory.afterPropertiesSet();
+		factory.getConnection();
+	}
+
+	@Test(expected=RedisConnectionFailureException.class)
+	public void testGetConnectionSharedException() {
+		factory.setShareNativeConnection(false);
+		factory.setHostName("fakeHost");
+		factory.afterPropertiesSet();
+		factory.setShareNativeConnection(true);
+		factory.getConnection();
+	}
+
+	@Test(expected=RedisConnectionFailureException.class)
+	public void testGetNativeConnectionNotSharedException() {
+		factory.setShareNativeConnection(false);
+		factory.setHostName("fakeHost");
+		factory.afterPropertiesSet();
+		factory.getNativeConnection();
+	}
+
+	@Test(expected=RedisConnectionFailureException.class)
+	public void testGetNativeConnectionSharedException() {
+		factory.setShareNativeConnection(false);
+		factory.setHostName("fakeHost");
+		factory.afterPropertiesSet();
+		factory.setShareNativeConnection(true);
+		factory.getNativeConnection();
 	}
 }

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
@@ -82,6 +83,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	public void afterPropertiesSet() {
 		client = new RedisClient(hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+		resetConnection();
 		if (shareNativeConnection) {
 			initConnection();
 		}
@@ -105,7 +107,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			if (this.connection != null) {
 				resetConnection();
 			}
-			this.connection = client.connectAsync(LettuceUtils.CODEC);
+			this.connection = createLettuceConnector();
 		}
 	}
 
@@ -282,7 +284,16 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 				return this.connection;
 			}
 		} else {
+			return createLettuceConnector();
+		}
+	}
+
+	private RedisAsyncConnection<byte[], byte[]> createLettuceConnector() {
+		try {
 			return client.connectAsync(LettuceUtils.CODEC);
+		} catch (RedisException e) {
+			throw new RedisConnectionFailureException("Unable to connect to Redis on " +
+					getHostName() + ":" + getPort(), e);
 		}
 	}
 }
