@@ -55,7 +55,7 @@ template.convertAndSend("hello!", "world");]]></programlisting>
 	  whether it is listening or not, <interfacename>RedisConnection</interfacename>
 	  provides <methodname>getSubscription</methodname> and <methodname>isSubscribed</methodname> method.</para>
 	  
-	  <important>When using Jedis, JRedis or RJC connectors, subscribing commands are synchronous and thus blocking. That is, calling subscribe on a connection will cause
+	  <important>When using Jedis or JRedis connectors, subscribing commands are synchronous and thus blocking. That is, calling subscribe on a connection will cause
 	  the current thread to block as it will start waiting for messages - the thread will be released only if the subscription
 	  is canceled, that is an additional thread invokes <methodname>unsubscribe</methodname> or <methodname>pUnsubscribe</methodname>
 	  on the <emphasis>same</emphasis> connection. See <link linkend="redis:pubsub:subscribe:containers">message listener container</link> below

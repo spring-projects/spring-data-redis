@@ -71,11 +71,6 @@ public class TemplateTest {
 
 	@Test
 	public void testIncrement() throws Exception {
-		// disable in case of Rjc
-		if (ConnectionUtils.isRjc(template.getConnectionFactory())) {
-			return;
-		}
-
 		StringRedisTemplate sr = new StringRedisTemplate(template.getConnectionFactory());
 		String key = "test.template.inc";
 		ValueOperations<String, String> valueOps = sr.opsForValue();

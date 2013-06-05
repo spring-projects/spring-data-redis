@@ -22,7 +22,6 @@ import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -54,18 +53,6 @@ public class PubSubTestParams {
 		personTemplate.setConnectionFactory(jedisConnFactory);
 		personTemplate.afterPropertiesSet();
 
-		// create RJC
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setUsePool(true);
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.afterPropertiesSet();
-
-		RedisTemplate<String, String> stringTemplateRJC = new StringRedisTemplate(rjcConnFactory);
-		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>();
-		personTemplateRJC.setConnectionFactory(rjcConnFactory);
-		personTemplateRJC.afterPropertiesSet();
-
 		// add Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
 		lettuceConnFactory.setPort(SettingsUtils.getPort());
@@ -91,7 +78,6 @@ public class PubSubTestParams {
 		// JRedis does not support pub/sub
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
-				{ stringFactory, stringTemplateRJC }, { personFactory, personTemplateRJC },
 				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
 				{ stringFactory, stringTemplateSrp }, { personFactory, personTemplateSrp }
 		});

@@ -45,7 +45,6 @@ dependencies {
     compile "redis.clients:jedis:$jedisVersion"
     compile("com.github.spullara.redis:client:$srpVersion", optional)
     compile("org.jredis:jredis-anthonylauzon:$jredisVersion", optional)
-    compile("org.idevlab:rjc:$rjcVersion", optional)
     compile("com.lambdaworks:lettuce:$lettuceVersion", optional)
     
     // Mappers
@@ -80,7 +79,7 @@ javadoc {
       ]
   
      links = [
-        "http://static.springframework.org/spring/docs/3.0.x/javadoc-api",
+        "http://static.springframework.org/spring/docs/3.1.x/javadoc-api",
         "http://download.oracle.com/javase/6/docs/api",
         "http://jackson.codehaus.org/1.8.2/javadoc"
      ]

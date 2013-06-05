@@ -93,24 +93,18 @@ public class RedisAtomicTests {
 
 	@Test
 	public void testLongIncrement() throws Exception {
-		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!ConnectionUtils.isRjc(factory));
 		longCounter.set(0);
 		assertEquals(1, longCounter.incrementAndGet());
 	}
 
 	@Test
 	public void testIntIncrement() throws Exception {
-		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!ConnectionUtils.isRjc(factory));
 		intCounter.set(0);
 		assertEquals(1, intCounter.incrementAndGet());
 	}
 
 	@Test
 	public void testLongCustomIncrement() throws Exception {
-		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!ConnectionUtils.isRjc(factory));
 		longCounter.set(0);
 		long delta = 5;
 		assertEquals(delta, longCounter.addAndGet(delta));
@@ -118,8 +112,6 @@ public class RedisAtomicTests {
 
 	@Test
 	public void testIntCustomIncrement() throws Exception {
-		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!ConnectionUtils.isRjc(factory));
 		intCounter.set(0);
 		int delta = 5;
 		assertEquals(delta, intCounter.addAndGet(delta));
@@ -127,16 +119,12 @@ public class RedisAtomicTests {
 
 	@Test
 	public void testLongDecrement() throws Exception {
-		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!ConnectionUtils.isRjc(factory));
 		longCounter.set(1);
 		assertEquals(0, longCounter.decrementAndGet());
 	}
 
 	@Test
 	public void testIntDecrement() throws Exception {
-		// DATAREDIS-121 incr/decr broken in RJC
-		assumeTrue(!ConnectionUtils.isRjc(factory));
 		intCounter.set(1);
 		assertEquals(0, intCounter.decrementAndGet());
 	}

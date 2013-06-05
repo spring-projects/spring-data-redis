@@ -35,7 +35,6 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
@@ -104,15 +103,8 @@ public class SubscriptionConnectionTests {
 		srpConnFactory.setHostName(SettingsUtils.getHost());
 		srpConnFactory.afterPropertiesSet();
 
-		// RJC
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.setDatabase(2);
-		rjcConnFactory.afterPropertiesSet();
-
 		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory },
-				{ srpConnFactory }, { rjcConnFactory } });
+				{ srpConnFactory } });
 	}
 
 	@Test

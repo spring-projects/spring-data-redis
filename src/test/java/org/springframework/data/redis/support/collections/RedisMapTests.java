@@ -24,13 +24,10 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
-import org.springframework.data.redis.support.collections.DefaultRedisMap;
-import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -113,29 +110,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplateJR.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateJR.afterPropertiesSet();
 
-		// RJC
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setUsePool(true);
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.afterPropertiesSet();
-
-		RedisTemplate genericTemplateRJC = new RedisTemplate();
-		genericTemplateRJC.setConnectionFactory(rjcConnFactory);
-		genericTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xGenericTemplateRJC = new RedisTemplate<String, Person>();
-		xGenericTemplateRJC.setConnectionFactory(rjcConnFactory);
-		xGenericTemplateRJC.setDefaultSerializer(serializer);
-		xGenericTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> jsonPersonTemplateRJC = new RedisTemplate<String, Person>();
-		jsonPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
-		jsonPersonTemplateRJC.setDefaultSerializer(jsonSerializer);
-		jsonPersonTemplateRJC.setHashKeySerializer(jsonSerializer);
-		jsonPersonTemplateRJC.setHashValueSerializer(jsonStringSerializer);
-		jsonPersonTemplateRJC.afterPropertiesSet();
-
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
 		lettuceConnFactory.setPort(SettingsUtils.getPort());
@@ -194,12 +168,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 				{ personFactory, stringFactory, genericTemplateJR },
 				{ personFactory, stringFactory, xGenericTemplateJR },
 				{ personFactory, stringFactory, jsonPersonTemplateJR },
-				{ stringFactory, stringFactory, genericTemplateRJC },
-				{ personFactory, personFactory, genericTemplateRJC },
-				{ stringFactory, personFactory, genericTemplateRJC },
-				{ personFactory, stringFactory, genericTemplateRJC },
-				{ personFactory, stringFactory, xGenericTemplateRJC },
-				{ personFactory, stringFactory, jsonPersonTemplateRJC },
 				{ stringFactory, stringFactory, genericTemplateLettuce },
 				{ personFactory, personFactory, genericTemplateLettuce },
 				{ stringFactory, personFactory, genericTemplateLettuce },

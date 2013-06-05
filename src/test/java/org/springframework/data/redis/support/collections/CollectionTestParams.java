@@ -23,7 +23,6 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -109,34 +108,6 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
 		jsonPersonTemplateJR.afterPropertiesSet();
 
-
-		// rjc
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setUsePool(true);
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.afterPropertiesSet();
-
-		RedisTemplate<String, String> stringTemplateRJC = new StringRedisTemplate(rjcConnFactory);
-		RedisTemplate<String, Person> personTemplateRJC = new RedisTemplate<String, Person>();
-		personTemplateRJC.setConnectionFactory(rjcConnFactory);
-		personTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xstreamStringTemplateRJC = new RedisTemplate<String, Person>();
-		xstreamStringTemplateRJC.setConnectionFactory(rjcConnFactory);
-		xstreamStringTemplateRJC.setDefaultSerializer(serializer);
-		xstreamStringTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> xstreamPersonTemplateRJC = new RedisTemplate<String, Person>();
-		xstreamPersonTemplateRJC.setValueSerializer(serializer);
-		xstreamPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
-		xstreamPersonTemplateRJC.afterPropertiesSet();
-
-		RedisTemplate<String, Person> jsonPersonTemplateRJC = new RedisTemplate<String, Person>();
-		jsonPersonTemplateRJC.setValueSerializer(jsonSerializer);
-		jsonPersonTemplateRJC.setConnectionFactory(rjcConnFactory);
-		jsonPersonTemplateRJC.afterPropertiesSet();
-
 		// SRP
 		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
 		srConnFactory.setPort(SettingsUtils.getPort());
@@ -189,8 +160,7 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		jsonPersonTemplateLtc.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { stringFactory, stringTemplateRJC },
-				{ personFactory, personTemplateRJC },
+		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate },
 				//{ stringFactory, stringTemplateJR },
 				//{ personFactory, personTemplateJR }, 
 				{ personFactory, personTemplate },
@@ -199,9 +169,6 @@ public abstract class CollectionTestParams {
 				//{ personFactory, xstreamPersonTemplateJR },
 				{ personFactory, jsonPersonTemplate },
 				//{ personFactory, jsonPersonTemplateJR },
-				// rjc
-				{ stringFactory, xstreamStringTemplateRJC }, { personFactory, xstreamPersonTemplateRJC },
-				{ personFactory, jsonPersonTemplateRJC },
 				// srp
 				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
 				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },

@@ -22,7 +22,6 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
@@ -84,17 +83,6 @@ public class BoundKeyParams {
 		RedisList listSRP = new DefaultRedisList("bound:key:listSRP", templateSRP);
 
 
-		// RJC
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.afterPropertiesSet();
-
-		StringRedisTemplate templateRJC = new StringRedisTemplate(rjcConnFactory);
-		DefaultRedisMap mapRJC = new DefaultRedisMap("bound:key:mapRJC", templateRJC);
-		DefaultRedisSet setRJC = new DefaultRedisSet("bound:key:setRJC", templateRJC);
-		RedisList listRJC = new DefaultRedisList("bound:key:listRJC", templateRJC);
-
 		StringObjectFactory sof = new StringObjectFactory();
 
 		return Arrays.asList(new Object[][] {
@@ -109,9 +97,6 @@ public class BoundKeyParams {
 				{ listLT, sof, templateLT }, { setLT, sof, templateLT }, { mapLT, sof, templateLT },
 				{ new RedisAtomicInteger("bound:key:intSrp", srpConnFactory), sof, templateSRP },
 				{ new RedisAtomicLong("bound:key:longSrp", srpConnFactory), sof, templateSRP },
-				{ listSRP, sof, templateSRP }, { setSRP, sof, templateSRP }, { mapSRP, sof, templateSRP },
-				{ new RedisAtomicInteger("bound:key:intRjc", rjcConnFactory), sof, templateRJC },
-				{ new RedisAtomicLong("bound:key:longRjc", rjcConnFactory), sof, templateRJC },
-				{ listRJC, sof, templateRJC }, { setRJC, sof, templateRJC }, { mapRJC, sof, templateRJC }});
+				{ listSRP, sof, templateSRP }, { setSRP, sof, templateSRP }, { mapSRP, sof, templateSRP }});
 	}
 }

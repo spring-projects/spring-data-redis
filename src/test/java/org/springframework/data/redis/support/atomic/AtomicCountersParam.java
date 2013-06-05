@@ -22,7 +22,6 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
@@ -58,14 +57,8 @@ public abstract class AtomicCountersParam {
 		srpConnFactory.setHostName(SettingsUtils.getHost());
 		srpConnFactory.afterPropertiesSet();
 
-		// RJC
-		RjcConnectionFactory rjcConnFactory = new RjcConnectionFactory();
-		rjcConnFactory.setPort(SettingsUtils.getPort());
-		rjcConnFactory.setHostName(SettingsUtils.getHost());
-		rjcConnFactory.afterPropertiesSet();
-
 		return Arrays.asList(new Object[][] { { jedisConnFactory },
 				{ jredisConnFactory}, { lettuceConnFactory },
-				{ srpConnFactory}, { rjcConnFactory } });
+				{ srpConnFactory} });
 	}
 }

@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.rjc.RjcConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
@@ -32,10 +31,6 @@ public abstract class ConnectionUtils {
 	public static boolean isAsync(RedisConnectionFactory connectionFactory) {
 		return (connectionFactory instanceof LettuceConnectionFactory)
 				|| (connectionFactory instanceof SrpConnectionFactory);
-	}
-
-	public static boolean isRjc(RedisConnectionFactory connectionFactory) {
-		return connectionFactory instanceof RjcConnectionFactory;
 	}
 
 	public static boolean isSrp(RedisConnectionFactory connectionFactory) {
