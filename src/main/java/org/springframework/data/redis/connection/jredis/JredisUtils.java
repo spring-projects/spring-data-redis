@@ -16,28 +16,28 @@
 
 package org.springframework.data.redis.connection.jredis;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.jredis.ClientRuntimeException;
 import org.jredis.RedisException;
 import org.jredis.RedisType;
 import org.jredis.Sort;
+import org.jredis.connector.NotConnectedException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
-import org.springframework.data.redis.connection.util.DecodeUtils;
 
 /**
  * Helper class featuring methods for JRedis connection handling, providing support for exception translation. 
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public abstract class JredisUtils {
 
@@ -58,6 +58,9 @@ public abstract class JredisUtils {
 	 * @return converted exception
 	 */
 	public static DataAccessException convertJredisAccessException(ClientRuntimeException ex) {
+		if (ex instanceof NotConnectedException) {
+			return new RedisConnectionFailureException(ex.getMessage(), ex);
+		}
 		return new InvalidDataAccessResourceUsageException(ex.getMessage(), ex);
 	}
 
@@ -80,41 +83,17 @@ public abstract class JredisUtils {
 		return null;
 	}
 
-	static String decode(byte[] bytes) {
-		return DecodeUtils.decode(bytes);
-	}
-
-	static byte[] encode(String string) {
-		return DecodeUtils.encode(string);
-	}
-
-	static String[] decodeMultiple(byte[]... bytes) {
-		return DecodeUtils.decodeMultiple(bytes);
-	}
-
-	static Map<byte[], byte[]> encodeMap(Map<String, byte[]> map) {
-		return DecodeUtils.encodeMap(map);
-	}
-
-	static Map<String, byte[]> decodeMap(Map<byte[], byte[]> tuple) {
-		return DecodeUtils.decodeMap(tuple);
-	}
-
-	static Set<byte[]> convertToSet(Collection<String> keys) {
-		return DecodeUtils.convertToSet(keys);
-	}
-
 	static Sort applySortingParams(Sort jredisSort, SortParameters params, byte[] storeKey) {
 		if (params != null) {
 			byte[] byPattern = params.getByPattern();
 			if (byPattern != null) {
-				jredisSort.BY(decode(byPattern));
+				jredisSort.BY(byPattern);
 			}
 			byte[][] getPattern = params.getGetPattern();
 
 			if (getPattern != null && getPattern.length > 0) {
 				for (byte[] bs : getPattern) {
-					jredisSort.GET(decode(bs));
+					jredisSort.GET(bs);
 				}
 			}
 			Range limit = params.getLimit();
@@ -132,7 +111,7 @@ public abstract class JredisUtils {
 		}
 
 		if (storeKey != null) {
-			jredisSort.STORE(decode(storeKey));
+			jredisSort.STORE(storeKey);
 		}
 
 

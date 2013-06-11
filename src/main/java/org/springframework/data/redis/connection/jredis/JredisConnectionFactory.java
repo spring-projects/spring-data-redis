@@ -17,10 +17,9 @@ package org.springframework.data.redis.connection.jredis;
 
 import org.jredis.ClientRuntimeException;
 import org.jredis.connector.Connection;
-import org.jredis.connector.ConnectionSpec;
 import org.jredis.connector.Connection.Socket.Property;
+import org.jredis.connector.ConnectionSpec;
 import org.jredis.ri.alphazero.JRedisClient;
-import org.jredis.ri.alphazero.JRedisService;
 import org.jredis.ri.alphazero.connection.DefaultConnectionSpec;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,6 +33,7 @@ import org.springframework.util.StringUtils;
  * Connection factory using creating <a href="http://github.com/alphazero/jredis">JRedis</a> based connections. 
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class JredisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -43,13 +43,8 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	private int port = DEFAULT_REDIS_PORT;
 	private String password = null;
 	private int timeout;
-
-	private boolean usePool = true;
 	private int dbIndex = DEFAULT_REDIS_DB;
-
-	private JRedisService pool = null;
-	// taken from JRedis code
-	private int poolSize = 5;
+	private JredisPool pool;
 
 	private static final int DEFAULT_REDIS_PORT = 6379;
 	private static final int DEFAULT_REDIS_DB = 0;
@@ -71,10 +66,13 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	public JredisConnectionFactory(ConnectionSpec connectionSpec) {
 		this.connectionSpec = connectionSpec;
 	}
-
 	
+	public JredisConnectionFactory(JredisPool pool) {
+		this.pool = pool;
+	}
+
 	public void afterPropertiesSet() {
-		if (connectionSpec == null) {
+		if (connectionSpec == null && pool == null) {
 			Assert.hasText(hostName);
 			connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, dbIndex, DEFAULT_REDIS_PASSWORD);
 			connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
@@ -87,28 +85,24 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 				connectionSpec.setSocketProperty(Property.SO_TIMEOUT, timeout);
 			}
 		}
-
-		if (usePool) {
-			int size = getPoolSize();
-			pool = new JRedisService(connectionSpec, size);
-		}
 	}
-
-
 	
-	public void destroy() {
-		if (usePool && pool != null) {
-			pool.quit();
+	public void destroy() throws Exception {
+		if(pool != null) {
+			pool.destroy();
 			pool = null;
 		}
 	}
 
-
-	
 	public RedisConnection getConnection() {
-		return postProcessConnection(new JredisConnection((usePool ? pool : new JRedisClient(connectionSpec))));
+		JredisConnection connection;
+		if(pool != null) {
+			connection = new JredisConnection(pool.getResource(), pool);
+		}else {
+			connection = new JredisConnection(new JRedisClient(connectionSpec), null);
+		}
+		return postProcessConnection(connection);
 	}
-
 
 	/**
 	 * Post process a newly retrieved connection. Useful for decorating or executing
@@ -184,44 +178,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 */
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	/**
-	 * Indicates the use of a connection pool.
-	 *
-	 * @return Returns the use of connection pooling.
-	 */
-	public boolean getUsePool() {
-		return usePool;
-	}
-
-	/**
-	 * Turns on or off the use of connection pooling.
-	 * 
-	 * @param usePool The usePool to set.
-	 */
-	public void setUsePool(boolean usePool) {
-		this.usePool = usePool;
-	}
-
-	/**
-	 * Returns the pool size of this factory.
-	 *
-	 * @return Returns the poolSize
-	 */
-	public int getPoolSize() {
-		return poolSize;
-	}
-
-	/**
-	 * Sets the connection pool size of the underlying factory.
-	 * 
-	 * @param poolSize The poolSize to set.
-	 */
-	public void setPoolSize(int poolSize) {
-		Assert.isTrue(poolSize > 0, "pool size needs to be bigger then zero");
-		this.poolSize = poolSize;
-		usePool = true;
 	}
 
 	/**

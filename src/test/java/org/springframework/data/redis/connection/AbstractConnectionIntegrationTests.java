@@ -206,7 +206,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testNullKey() throws Exception {
-		connection.decr(EMPTY_ARRAY);
 		try {
 			connection.decr((String) null);
 			fail("Decrement should fail with null key");
@@ -230,7 +229,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void testHashNullKey() throws Exception {
 		byte[] key = UUID.randomUUID().toString().getBytes();
-		connection.hExists(key, EMPTY_ARRAY);
 		try {
 			connection.hExists(key, null);
 			fail("hExists should fail with null key");

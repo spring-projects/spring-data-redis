@@ -17,19 +17,19 @@
 package org.springframework.data.redis.connection.jredis;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
 import org.jredis.protocol.BulkResponse;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultSortParameters;
-import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,13 +45,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
-
-	@Before
-	public void setUp() {
-		byteConnection = connectionFactory.getConnection();
-		connection = new DefaultStringRedisConnection(byteConnection);
-	}
-
 	@After
 	public void tearDown() {
 		try {
@@ -66,22 +59,6 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection = null;
 	}
 
-	@Ignore("nulls are encoded to empty strings")
-	public void testNullKey() throws Exception {
-	}
-
-	@Ignore("nulls are encoded to empty strings")
-	public void testNullValue() throws Exception {
-	}
-
-	@Ignore("nulls are encoded to empty strings")
-	public void testHashNullKey() throws Exception {
-	}
-
-	@Ignore("nulls are encoded to empty strings")
-	public void testHashNullValue() throws Exception {
-	}
-
 	@Ignore("Pub/Sub not supported")
 	public void testPubSubWithPatterns() {
 	}
@@ -90,17 +67,22 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testPubSubWithNamedChannels() {
 	}
 
-	@Ignore("DATAREDIS-129 Key search does not work with regex")
-	public void testKeys() throws Exception {
+	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
+	public void testMSet() {
 	}
 
-	@Ignore("DATAREDIS-171 JRedis StringIndexOutOfBoundsException in info() method in Redis 2.6")
-	public void testInfo() throws Exception {
+	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
+	public void testMSetNx() {
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitSet() throws Exception {
-		super.testBitSet();
+	@Test
+	public void testConnectionClosesWhenNotPooled() {
+		connection.close();
+		try {
+			connection.ping();
+			fail("Expected RedisConnectionFailureException trying to use a closed connection");
+		} catch (RedisConnectionFailureException e) {
+		}
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -273,7 +255,6 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
 
-
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {
@@ -289,10 +270,9 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("sortlist", "foo");
 		connection.rPush("sortlist", "bar");
 		connection.rPush("sortlist", "baz");
-		assertEquals(Long.valueOf(3), connection.sort("sortlist", new DefaultSortParameters(null,
-				Order.ASC, true), "newlist"));
-		assertEquals(Arrays.asList(new String[] { "bar", "baz", "foo" }),
-				connection.lRange("newlist", 0, 9));
+		assertEquals(Long.valueOf(3),
+				connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true), "newlist"));
+		assertEquals(Arrays.asList(new String[] { "bar", "baz", "foo" }), connection.lRange("newlist", 0, 9));
 	}
 
 	@Test
@@ -309,8 +289,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "world");
 		connection.rPush("PopList", "hello");
 		assertEquals(Long.valueOf(2), connection.lRem("PopList", 2, "hello"));
-		assertEquals(Arrays.asList(new String[] { "big", "world" }),
-				connection.lRange("PopList", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "big", "world" }), connection.lRange("PopList", 0, -1));
 	}
 
 	@Test
@@ -329,8 +308,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "big");
 		connection.rPush("PopList", "world");
 		connection.lTrim("PopList", 1, -1);
-		assertEquals(Arrays.asList(new String[] { "big", "world" }),
-				connection.lRange("PopList", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "big", "world" }), connection.lRange("PopList", 0, -1));
 	}
 
 	@Test
@@ -347,8 +325,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("pop2", "hey");
 		assertEquals("world", connection.rPopLPush("PopList", "pop2"));
 		assertEquals(Arrays.asList(new String[] { "hello" }), connection.lRange("PopList", 0, -1));
-		assertEquals(Arrays.asList(new String[] { "world", "hey" }),
-				connection.lRange("pop2", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "world", "hey" }), connection.lRange("pop2", 0, -1));
 	}
 
 	@Test
@@ -361,14 +338,13 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testLPush() throws Exception {
 		connection.lPush("testlist", "bar");
 		connection.lPush("testlist", "baz");
-		assertEquals(Arrays.asList(new String[] { "baz", "bar" }),
-				connection.lRange("testlist", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "baz", "bar" }), connection.lRange("testlist", 0, -1));
 	}
 
 	@Test
 	public void testExecute() {
 		connection.set("foo", "bar");
-		BulkResponse response = (BulkResponse) connection.execute("GET", JredisUtils.decode("foo".getBytes()));
+		BulkResponse response = (BulkResponse) connection.execute("GET", "foo".getBytes());
 		assertEquals("bar", stringSerializer.deserialize(response.getBulkData()));
 	}
 

@@ -32,7 +32,7 @@ dependencies {
     compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
     testRuntime "log4j:log4j:$log4jVersion"
     testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
-    
+
     // Spring Framework
     compile("org.springframework:spring-core:$springVersion") {
         exclude module: "commons-logging"
@@ -44,9 +44,10 @@ dependencies {
     // Redis Drivers
     compile "redis.clients:jedis:$jedisVersion"
     compile("com.github.spullara.redis:client:$srpVersion", optional)
-    compile("org.jredis:jredis-anthonylauzon:$jredisVersion", optional)
+    compile("org.jredis:jredis-core-api:$jredisVersion", optional)
+    compile("org.jredis:jredis-core-ri:$jredisVersion", optional)
     compile("com.lambdaworks:lettuce:$lettuceVersion", optional)
-    
+
     // Mappers
     compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
     compile("commons-beanutils:commons-beanutils-core:1.8.3", optional)
@@ -60,13 +61,13 @@ dependencies {
 }
 
 sourceCompatibility = 1.5
-targetCompatibility = 1.5 
+targetCompatibility = 1.5
 
 javadoc {
   ext.srcDir = file("${projectDir}/docs/src/api")
   destinationDir = file("${buildDir}/api")
   ext.tmpDir = file("${buildDir}/api-work")
-  
+
   configure(options) {
       stylesheetFile = file("${srcDir}/spring-javadoc.css")
       overview = "${srcDir}/overview.html"
@@ -77,16 +78,16 @@ javadoc {
       groups = [
         'Spring Data Redis Support' : ['org.springframework.data.redis*'],
       ]
-  
+
      links = [
         "http://static.springframework.org/spring/docs/3.1.x/javadoc-api",
         "http://download.oracle.com/javase/6/docs/api",
         "http://jackson.codehaus.org/1.8.2/javadoc"
      ]
-     
+
      exclude "org/springframework/data/redis/config/**"
   }
-    
+
   title = "${rootProject.description} ${version} API"
 }
 
@@ -149,7 +150,7 @@ task schemaZip(type: Zip) {
     description = "Builds -${classifier} archive containing all XSDs for deployment"
 
     def Properties schemas = new Properties();
-    
+
     sourceSets.main.resources.find {
         it.path.endsWith('META-INF' + File.separator + 'spring.schemas')
     }?.withInputStream { schemas.load(it) }
@@ -162,7 +163,7 @@ task schemaZip(type: Zip) {
             it.path.replace('\\', '/').endsWith(schemas.get(key))
         }
         assert xsdFile != null
-        
+
         into (shortName) {
            from xsdFile.path
            rename { String fileName -> alias }

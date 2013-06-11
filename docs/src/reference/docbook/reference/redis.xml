@@ -120,8 +120,6 @@
         
         <para><ulink url="http://github.com/alphazero/jredis">JRedis</ulink> is another popular, open-source connector supported by Spring Data Redis through the
         <literal>org.springframework.data.redis.connection.jredis</literal> package.</para> 
-        <note>Since JRedis itself did not support Redis 2.x commands at the time of SDR's first release, Spring Data Redis uses a fork available
-        <ulink url="http://github.com/anthonylauzon/jredis">here</ulink>.</note>
         
         <para>A typical JRedis configuration can looks like this:</para>
 
@@ -137,13 +135,6 @@
 </beans>]]></programlisting>
 
       <para>As one can note, the configuration is quite similar to the Jedis one.</para>
-      
-      <important><para>Currently, JRedis does not have support for binary keys. This forces the <classname>JredisConnection</classname> to perform encoding internally
-      (through <ulink url="http://en.wikipedia.org/wiki/Base64">base64</ulink> schema). In practice, this means it's safe to read/write arbitrary data however 
-      the Redis key stored values will differ from the decoded ones, even in the simplest cases, since everything (no matter the format) is encoded. This will not be
-      the case for Redis values.</para>
-      <para>This issue is currently being addressed in the JRedis project and once fixed, will be incorporated by Spring Data Redis.</para>  
-      </important>
       
       </section>
       

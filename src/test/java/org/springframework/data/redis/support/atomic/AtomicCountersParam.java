@@ -40,7 +40,6 @@ public abstract class AtomicCountersParam {
 
 		// JRedis
 		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-		jredisConnFactory.setUsePool(true);
 		jredisConnFactory.setPort(SettingsUtils.getPort());
 		jredisConnFactory.setHostName(SettingsUtils.getHost());
 		jredisConnFactory.afterPropertiesSet();
