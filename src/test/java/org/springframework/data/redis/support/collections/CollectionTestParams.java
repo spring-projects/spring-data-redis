@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jredis.DefaultJredisPool;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
@@ -80,11 +81,8 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplate.afterPropertiesSet();
 
 		// jredis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory();
-
-		jredisConnFactory.setPort(SettingsUtils.getPort());
-		jredisConnFactory.setHostName(SettingsUtils.getHost());
-
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new DefaultJredisPool(
+				SettingsUtils.getHost(), SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateJR = new StringRedisTemplate(jredisConnFactory);

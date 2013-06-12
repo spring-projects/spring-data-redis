@@ -134,7 +134,28 @@
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
 
-      <para>As one can note, the configuration is quite similar to the Jedis one.</para>
+      <para>The configuration is quite similar to Jedis, with one notable exception. By default, the <literal>JedisConnectionFactory</literal> pools connections.
+      In order to use a connection pool with JRedis, configure the <literal>JredisConnectionFactory</literal> with an instance of <literal>JredisPool</literal>. For example:     
+      </para>
+
+      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="jredisConnectionFactory"
+	class="org.springframework.data.redis.connection.jredis.JredisConnectionFactory">
+	<constructor-arg>
+		<bean
+			class="org.springframework.data.redis.connection.jredis.DefaultJredisPool">
+			<constructor-arg value="localhost" />
+			<constructor-arg value="6379" />
+		</bean>
+	</constructor-arg>
+  </bean>
+
+</beans>]]></programlisting>
       
       </section>
       

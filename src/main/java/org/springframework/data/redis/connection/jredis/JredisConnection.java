@@ -109,6 +109,9 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	public void close() throws RedisSystemException {
+		if(isClosed()) {
+			return;
+		}
 		isClosed = true;
 
 		if (pool != null) {

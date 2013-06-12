@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
+import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
 import org.junit.After;
 import org.junit.Ignore;
@@ -28,11 +29,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultSortParameters;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 
 /**
  * Integration test of {@link JredisConnection}
@@ -83,6 +87,35 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 			fail("Expected RedisConnectionFailureException trying to use a closed connection");
 		} catch (RedisConnectionFailureException e) {
 		}
+	}
+
+	@Test
+	public void testConnectionStaysOpenWhenPooled() {
+		JredisConnectionFactory factory2 = new JredisConnectionFactory(new DefaultJredisPool(
+				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		RedisConnection conn2 = factory2.getConnection();
+		conn2.close();
+		conn2.ping();
+	}
+
+	@Test
+	public void testConnectionNotReturnedOnException() {
+		Config config = new Config();
+		config.maxActive = 1;
+		config.maxWait = 1;
+		JredisConnectionFactory factory2 = new JredisConnectionFactory(new DefaultJredisPool(
+				SettingsUtils.getHost(), SettingsUtils.getPort(), config));
+		RedisConnection conn2 = factory2.getConnection();
+		((JRedis) conn2.getNativeConnection()).quit();
+		try {
+			conn2.ping();
+			fail("Expected RedisConnectionFailureException trying to use a closed connection");
+		} catch (RedisConnectionFailureException e) {
+		}
+		conn2.close();
+		// Verify we get a new connection from the pool and not the broken one
+		RedisConnection conn3 = factory2.getConnection();
+		conn3.ping();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
