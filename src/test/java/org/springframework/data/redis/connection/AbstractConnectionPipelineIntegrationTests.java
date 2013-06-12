@@ -17,7 +17,6 @@
 package org.springframework.data.redis.connection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -122,7 +121,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("exp", "true");
 		actual.add(connection.expire("exp", 1));
 		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
-		assertFalse(exists("exp", 2500l));
+		assertTrue(waitFor(new KeyExpired("exp"), 2500l));
 	}
 
 	@Test
@@ -131,7 +130,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("exp2", "true");
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
 		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
-		assertFalse(exists("exp2", 2500l));
+		assertTrue(waitFor(new KeyExpired("exp2"), 2500l));
 	}
 
 	@Test
@@ -151,7 +150,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.setEx("expy", 1l, "yep");
 		actual.add(connection.get("expy"));
 		verifyResults(Arrays.asList(new Object[] { "yep" }), actual);
-		assertFalse(exists("expy", 2500l));
+		assertTrue(waitFor(new KeyExpired("expy"), 2500l));
 	}
 
 	@Test

@@ -280,7 +280,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		connection.set("exp2", "true");
 		actual.add(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
 		verifyResults(Arrays.asList(new Object[] { true}), actual);
-		assertFalse(exists("exp2", 2500l));
+		assertTrue(waitFor(new KeyExpired("exp2"), 2500l));
 	}
 
 	@Test
@@ -289,7 +289,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		connection.set("exp", "true");
 		actual.add(connection.expire("exp", 1));
 		verifyResults(Arrays.asList(new Object[] { true }), actual);
-		assertFalse(exists("exp", 2500));
+		assertTrue(waitFor(new KeyExpired("exp"), 2500));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -103,7 +103,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");
 		assertTrue(connection.expire("exp", 1));
-		assertFalse(exists("exp", 3000l));
+		assertTrue(waitFor(new KeyExpired("exp"), 3000l));
 	}
 
 	@Test
@@ -111,7 +111,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testExpireAt() throws Exception {
 		connection.set("exp2", "true");
 		assertTrue(connection.expireAt("exp2", System.currentTimeMillis() / 1000 + 1));
-		assertFalse(exists("exp2", 3000l));
+		assertTrue(waitFor(new KeyExpired("exp2"), 3000l));
 	}
 
 	@Test
@@ -130,7 +130,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testSetEx() throws Exception {
 		connection.setEx("expy", 1l, "yep");
 		assertEquals("yep", connection.get("expy"));
-		assertFalse(exists("expy", 3000l));
+		assertTrue(waitFor(new KeyExpired("expy"), 3000l));
 	}
 
 	@Test
@@ -1212,12 +1212,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals(expected, actual);
 	}
 
-	protected boolean exists(String key, long timeout) {
-		boolean exists = true;
+	protected boolean waitFor(TestCondition condition, long timeout) {
+		boolean passes = false;
 		for (long currentTime = System.currentTimeMillis(); System.currentTimeMillis()
 				- currentTime < timeout;) {
-			if (!connection.exists(key)) {
-				exists = false;
+			if (condition.passes()) {
+				passes = true;
 				break;
 			}
 			try {
@@ -1225,6 +1225,22 @@ public abstract class AbstractConnectionIntegrationTests {
 			} catch (InterruptedException e) {
 			}
 		}
-		return exists;
+		return passes;
+	}
+
+	protected interface TestCondition {
+		public boolean passes();
+	}
+
+	protected class KeyExpired implements TestCondition {
+		private String key;
+
+		public KeyExpired(String key) {
+			this.key = key;
+		}
+
+		public boolean passes() {
+			return (!connection.exists(key));
+		}
 	}
 }
