@@ -555,6 +555,41 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	public Boolean pExpire(byte[] key, long millis) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().pexpire(key, millis));
+				return null;
+			}
+			return getConnection().pexpire(key, millis);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().pexpireat(key, unixTimeInMillis));
+				return null;
+			}
+			return getConnection().pexpireat(key, unixTimeInMillis);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public Long pTtl(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().pttl(key));
+				return null;
+			}
+			return getConnection().pttl(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
 
 	public Set<byte[]> keys(byte[] pattern) {
 		try {

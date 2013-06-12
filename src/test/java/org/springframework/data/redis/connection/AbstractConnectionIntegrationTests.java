@@ -115,6 +115,30 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testPExpire() {
+		connection.set("exp", "true");
+		assertTrue(connection.pExpire("exp", 100));
+		assertTrue(waitFor(new KeyExpired("exp"), 300l));
+	}
+
+	@Test
+	public void testPExpireKeyNotExists() {
+		assertFalse(connection.pExpire("nonexistent", 100));
+	}
+
+	@Test
+	public void testPExpireAt() {
+		connection.set("exp", "true");
+		assertTrue(connection.pExpireAt("exp", System.currentTimeMillis() + 200));
+		assertTrue(waitFor(new KeyExpired("exp"), 600l));
+	}
+
+	@Test
+	public void testPExpireAtKeyNotExists() {
+		assertFalse(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
+	}
+
+	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPersist() throws Exception {
 		connection.set("exp3", "true");
@@ -515,6 +539,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.set("whatup", "yo");
 		actual.add(connection.ttl("whatup"));
 		verifyResults(Arrays.asList(new Object[] { -1L }), actual);
+	}
+
+	@Test
+	public void testPTtlNoExpire() {
+		connection.set("whatup", "yo");
+		actual.add(connection.pTtl("whatup"));
+		verifyResults(Arrays.asList(new Object[] { -1L }), actual);
+	}
+
+	@Test
+	public void testPTtl() {
+		connection.set("whatup", "yo");
+		connection.pExpire("whatup", 9000l);
+		assertTrue(connection.pTtl("whatup") > -1);
 	}
 
 	@Test

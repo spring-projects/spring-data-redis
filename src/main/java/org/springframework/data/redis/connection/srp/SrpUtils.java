@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 
 import redis.client.RedisException;
 import redis.reply.BulkReply;
+import redis.reply.IntegerReply;
 import redis.reply.MultiBulkReply;
 import redis.reply.Reply;
 
@@ -173,6 +174,13 @@ abstract class SrpUtils {
 			map.put((byte[]) byteArrays[i++].data(), (byte[]) byteArrays[i].data());
 		}
 		return map;
+	}
+
+	static Boolean asBoolean(IntegerReply reply) {
+		if (reply == null) {
+			return null;
+		}
+		return (Long.valueOf(1).equals(reply.data()));
 	}
 
 	static byte[] limit(long offset, long count) {

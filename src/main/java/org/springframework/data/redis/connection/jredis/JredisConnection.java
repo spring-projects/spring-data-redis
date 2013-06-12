@@ -343,6 +343,17 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
+	public Boolean pExpire(byte[] key, long millis) {
+		throw new UnsupportedOperationException();
+	}
+
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		throw new UnsupportedOperationException();
+	}
+
+	public Long pTtl(byte[] key) {
+		throw new UnsupportedOperationException();
+	}
 
 	public Set<byte[]> keys(byte[] pattern) {
 		try {

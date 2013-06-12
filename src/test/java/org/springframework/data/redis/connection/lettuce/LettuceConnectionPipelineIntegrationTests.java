@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -290,6 +289,46 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		actual.add(connection.expire("exp", 1));
 		verifyResults(Arrays.asList(new Object[] { true }), actual);
 		assertTrue(waitFor(new KeyExpired("exp"), 2500));
+	}
+
+	@Test
+	public void testPExpire() {
+		connection.set("exp", "true");
+		actual.add(connection.pExpire("exp", 100));
+		verifyResults(Arrays.asList(new Object[] { true }), actual);
+		assertTrue(waitFor(new KeyExpired("exp"), 1000l));
+	}
+
+	@Test
+	public void testPExpireKeyNotExists() {
+		actual.add(connection.pExpire("nonexistent", 100));
+		verifyResults(Arrays.asList(new Object[] { false }), actual);
+	}
+
+	@Test
+	public void testPExpireAt() {
+		connection.set("exp2", "true");
+		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
+		verifyResults(Arrays.asList(new Object[] { true }), actual);
+		assertTrue(waitFor(new KeyExpired("exp2"), 1000l));
+	}
+
+	@Test
+	public void testPExpireAtKeyNotExists() {
+		actual.add(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
+		verifyResults(Arrays.asList(new Object[] { false }), actual);
+	}
+
+	@Test
+	public void testPTtl() {
+		connection.set("whatup", "yo");
+		actual.add(connection.pExpire("whatup", 9000l));
+		verifyResults(Arrays.asList(new Object[] { true }), actual);
+		assertTrue(waitFor(new TestCondition() {
+			public boolean passes() {
+				return (connection.pTtl("whatup") > -1);
+			}
+		}, 1000l));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

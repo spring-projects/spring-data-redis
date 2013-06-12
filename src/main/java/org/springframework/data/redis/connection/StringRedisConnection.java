@@ -60,13 +60,19 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Boolean expire(String key, long seconds);
 
+	Boolean pExpire(String key, long millis);
+
 	Boolean expireAt(String key, long unixTime);
+
+	Boolean pExpireAt(String key, long unixTimeInMillis);
 
 	Boolean persist(String key);
 
 	Boolean move(String key, int dbIndex);
 
 	Long ttl(String key);
+
+	Long pTtl(String key);
 
 	String echo(String message);
 

@@ -479,6 +479,29 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Boolean pExpire(byte[] key, long millis) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.pexpire(key, millis));
+				return null;
+			}
+			return SrpUtils.asBoolean(client.pexpire(key, millis));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.pexpireat(key, unixTimeInMillis));
+				return null;
+			}
+			return SrpUtils.asBoolean(client.pexpireat(key, unixTimeInMillis));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 
 	public Set<byte[]> keys(byte[] pattern) {
 		try {
@@ -596,6 +619,17 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Long pTtl(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.pttl(key));
+				return null;
+			}
+			return client.pttl(key).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 
 	public DataType type(byte[] key) {
 		try {

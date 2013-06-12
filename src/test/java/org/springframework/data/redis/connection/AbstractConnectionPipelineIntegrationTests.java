@@ -116,6 +116,46 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	public void testPExpire() {
+		connection.set("exp", "true");
+		actual.add(connection.pExpire("exp", 100));
+		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
+		assertTrue(waitFor(new KeyExpired("exp"), 1000l));
+	}
+
+	@Test
+	public void testPExpireKeyNotExists() {
+		actual.add(connection.pExpire("nonexistent", 100));
+		verifyResults(Arrays.asList(new Object[] { 0l }), actual);
+	}
+
+	@Test
+	public void testPExpireAt() {
+		connection.set("exp2", "true");
+		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
+		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
+		assertTrue(waitFor(new KeyExpired("exp2"), 1000l));
+	}
+
+	@Test
+	public void testPExpireAtKeyNotExists() {
+		actual.add(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
+		verifyResults(Arrays.asList(new Object[] { 0l }), actual);
+	}
+
+	@Test
+	public void testPTtl() {
+		connection.set("whatup", "yo");
+		actual.add(connection.pExpire("whatup", 9000l));
+		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
+		assertTrue(waitFor(new TestCondition() {
+			public boolean passes() {
+				return (connection.pTtl("whatup") > -1);
+			}
+		}, 1000l));
+	}
+
+	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");

@@ -42,13 +42,19 @@ public interface RedisKeyCommands {
 
 	Boolean expire(byte[] key, long seconds);
 
+	Boolean pExpire(byte[] key, long millis);
+
 	Boolean expireAt(byte[] key, long unixTime);
+
+	Boolean pExpireAt(byte[] key, long unixTimeInMillis);
 
 	Boolean persist(byte[] key);
 
 	Boolean move(byte[] key, int dbIndex);
 
 	Long ttl(byte[] key);
+
+	Long pTtl(byte[] key);
 
 	// sort commands
 	List<byte[]> sort(byte[] key, SortParameters params);

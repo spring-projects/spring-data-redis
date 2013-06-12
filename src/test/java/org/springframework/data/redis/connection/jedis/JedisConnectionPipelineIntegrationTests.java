@@ -92,6 +92,36 @@ public class JedisConnectionPipelineIntegrationTests extends
 	}
 
 	// Unsupported Ops
+	@Test(expected=UnsupportedOperationException.class)
+	public void testPExpire() {
+		super.testPExpire();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testPExpireKeyNotExists() {
+		super.testPExpireKeyNotExists();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testPExpireAt() {
+		super.testPExpireAt();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testPExpireAtKeyNotExists() {
+		super.testPExpireAtKeyNotExists();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testPTtl() {
+		super.testPTtl();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testPTtlNoExpire() {
+		super.testPTtlNoExpire();
+	}
+
 	@Test(expected = RedisSystemException.class)
 	public void testBitSet() throws Exception {
 		super.testBitSet();
