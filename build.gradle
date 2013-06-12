@@ -42,7 +42,7 @@ dependencies {
     compile("org.springframework:spring-oxm:$springVersion", optional)
 
     // Redis Drivers
-    compile "redis.clients:jedis:$jedisVersion"
+    compile("redis.clients:jedis:$jedisVersion", optional)
     compile("com.github.spullara.redis:client:$srpVersion", optional)
     compile("org.jredis:jredis-core-api:$jredisVersion", optional)
     compile("org.jredis:jredis-core-ri:$jredisVersion", optional)
