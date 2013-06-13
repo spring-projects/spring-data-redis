@@ -55,16 +55,8 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection = null;
 	}
 
-	@Ignore("DATAREDIS-169 SRP discard does not clear txReplies, results in inconsistent results on next tx exec")
-	public void testMultiDiscard() {
-	}
-
 	@Ignore("DATAREDIS-168 SRP exec throws TransactionFailedException if watched value modified")
 	public void testWatch() {
-	}
-
-	@Ignore("DATAREDIS-156 SRP bRPopLPush ClassCastException")
-	public void testBRPopLPushTimeout() {
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

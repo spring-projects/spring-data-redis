@@ -427,17 +427,31 @@ public class SrpConnection implements RedisConnection {
 
 	public List<Object> exec() {
 		isMulti = false;
+		Exception execException = null;
+		List<Object> results = null;
 		try {
 			Future<Boolean> exec = client.exec();
-			// Need to wait on execution or subsequent non-pipelined calls like multi may read exec results
+			// Need to wait on execution or subsequent non-pipelined calls may read exec results
 			exec.get();
-			if (pipelineRequested) {
-				return null;
-			}
-			return closePipeline();
 		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
+			execException = ex;
+		} finally {
+			// ensure pipeline is closed even if error in exec
+			if (!pipelineRequested) {
+				try {
+					results = closePipeline();
+				} catch (RedisPipelineException e) {
+					if(execException == null) {
+						execException = e;
+					}
+				}
+			}
 		}
+		if(execException != null) {
+			// Intentionally convert RedisPipelineException too, it's an impl detail
+			throw convertSrpAccessException(execException);
+		}
+		return results;
 	}
 
 
@@ -1110,7 +1124,7 @@ public class SrpConnection implements RedisConnection {
 				pipeline(pipeline.brpoplpush(srcKey, dstKey, timeout));
 				return null;
 			}
-			return client.brpoplpush(srcKey, dstKey, timeout).data();
+			return (byte[]) client.brpoplpush(srcKey, dstKey, timeout).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1394,10 +1408,10 @@ public class SrpConnection implements RedisConnection {
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.zinterstore(destKey, sets.length, sets));
+				pipeline(pipeline.zinterstore(destKey, sets.length, (Object[]) sets));
 				return null;
 			}
-			return client.zinterstore(destKey, sets.length, sets).data();
+			return client.zinterstore(destKey, sets.length, (Object[]) sets).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1796,10 +1810,10 @@ public class SrpConnection implements RedisConnection {
 	public void hMSet(byte[] key, Map<byte[], byte[]> tuple) {
 		try {
 			if (isPipelined()) {
-				pipeline(pipeline.hmset(key, SrpUtils.convert(tuple)));
+				pipeline(pipeline.hmset(key, (Object[]) SrpUtils.convert(tuple)));
 				return;
 			}
-			client.hmset(key, SrpUtils.convert(tuple));
+			client.hmset(key, (Object[]) SrpUtils.convert(tuple));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
