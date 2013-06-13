@@ -37,6 +37,7 @@ import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.serializer.SerializationUtils;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -135,11 +136,8 @@ public class SrpConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
 	public void testGetRangeSetRange() {
-		connection.closePipeline();
-		boolean getRangeSupported = RedisVersionUtils.atLeast("2.4.0", connection);
-		connection.openPipeline();
-		assumeTrue(getRangeSupported);
 		super.testGetRangeSetRange();
 	}
 

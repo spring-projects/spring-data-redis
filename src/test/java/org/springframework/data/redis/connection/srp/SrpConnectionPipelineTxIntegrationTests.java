@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link SrpConnection} transactions within a pipeline
@@ -83,12 +84,8 @@ public class SrpConnectionPipelineTxIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
 	public void testGetRangeSetRange() {
-		connection.exec();
-		connection.closePipeline();
-		boolean getRangeSupported = RedisVersionUtils.atLeast("2.4.0", connection);
-		initConnection();
-		assumeTrue(getRangeSupported);
 		connection.set("rangekey", "supercalifrag");
 		actual.add(connection.getRange("rangekey", 0l, 2l));
 		connection.setRange("rangekey", "ck", 2);

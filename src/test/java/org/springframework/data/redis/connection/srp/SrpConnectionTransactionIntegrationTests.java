@@ -15,15 +15,13 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assume.assumeTrue;
-
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.RedisVersionUtils;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link SrpConnection} functionality within a transaction
@@ -88,11 +86,8 @@ public class SrpConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
 	public void testGetRangeSetRange() {
-		connection.exec();
-		boolean getRangeSupported = RedisVersionUtils.atLeast("2.4.0", connection);
-		connection.multi();
-		assumeTrue(getRangeSupported);
 		connection.set("rangekey", "supercalifrag");
 		actual.add(connection.getRange("rangekey", 0l, 2l));
 		connection.setRange("rangekey", "ck", 2);

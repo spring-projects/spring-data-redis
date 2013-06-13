@@ -292,6 +292,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpire() {
 		connection.set("exp", "true");
 		actual.add(connection.pExpire("exp", 100));
@@ -300,12 +301,14 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireKeyNotExists() {
 		actual.add(connection.pExpire("nonexistent", 100));
 		verifyResults(Arrays.asList(new Object[] { false }), actual);
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireAt() {
 		connection.set("exp2", "true");
 		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
@@ -314,12 +317,14 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireAtKeyNotExists() {
 		actual.add(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
 		verifyResults(Arrays.asList(new Object[] { false }), actual);
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPTtl() {
 		connection.set("whatup", "yo");
 		actual.add(connection.pExpire("whatup", 9000l));

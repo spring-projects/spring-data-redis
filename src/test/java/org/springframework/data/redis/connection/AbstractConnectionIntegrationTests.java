@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -64,7 +65,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Jennifer Hickey
  *
  */
-@ProfileValueSourceConfiguration
+@ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
 
 	protected StringRedisConnection connection;
@@ -115,6 +116,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpire() {
 		connection.set("exp", "true");
 		assertTrue(connection.pExpire("exp", 100));
@@ -122,11 +124,13 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireKeyNotExists() {
 		assertFalse(connection.pExpire("nonexistent", 100));
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireAt() {
 		connection.set("exp", "true");
 		assertTrue(connection.pExpireAt("exp", System.currentTimeMillis() + 200));
@@ -134,6 +138,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireAtKeyNotExists() {
 		assertFalse(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
 	}
@@ -542,6 +547,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPTtlNoExpire() {
 		connection.set("whatup", "yo");
 		actual.add(connection.pTtl("whatup"));
@@ -549,6 +555,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPTtl() {
 		connection.set("whatup", "yo");
 		connection.pExpire("whatup", 9000l);

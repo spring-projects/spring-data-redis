@@ -115,6 +115,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		verifyResults(Arrays.asList(new Object[] { "bar" }), actual);
 	}
 
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	@Test
 	public void testPExpire() {
 		connection.set("exp", "true");
@@ -123,12 +124,14 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		assertTrue(waitFor(new KeyExpired("exp"), 1000l));
 	}
 
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	@Test
 	public void testPExpireKeyNotExists() {
 		actual.add(connection.pExpire("nonexistent", 100));
 		verifyResults(Arrays.asList(new Object[] { 0l }), actual);
 	}
 
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	@Test
 	public void testPExpireAt() {
 		connection.set("exp2", "true");
@@ -137,12 +140,14 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		assertTrue(waitFor(new KeyExpired("exp2"), 1000l));
 	}
 
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	@Test
 	public void testPExpireAtKeyNotExists() {
 		actual.add(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
 		verifyResults(Arrays.asList(new Object[] { 0l }), actual);
 	}
 
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	@Test
 	public void testPTtl() {
 		connection.set("whatup", "yo");

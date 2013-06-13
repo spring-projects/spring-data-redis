@@ -43,14 +43,14 @@ public abstract class RedisVersionUtils {
 		return getRedisVersion(connection).compareTo(parseVersion(version)) <= 0;
 	}
 
-	private static Version parseVersion(String version) {
+	public static Version parseVersion(String version) {
 		Matcher matcher = VERSION_MATCHER.matcher(version);
 		if (matcher.matches()) {
 			String major = matcher.group(1);
 			String minor = matcher.group(2);
 			String patch = matcher.group(4);
-			return new Version(Integer.parseInt(major), Integer.parseInt(minor),
-					Integer.parseInt(patch));
+			return new Version(Integer.parseInt(major), minor != null ? Integer.parseInt(minor) : 0,
+					patch != null ? Integer.parseInt(patch) : 0);
 		}
 		throw new IllegalArgumentException("Specified version cannot be parsed");
 	}
