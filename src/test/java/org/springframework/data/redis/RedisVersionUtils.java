@@ -49,8 +49,8 @@ public abstract class RedisVersionUtils {
 			String major = matcher.group(1);
 			String minor = matcher.group(2);
 			String patch = matcher.group(4);
-			return new Version(Integer.parseInt(major), Integer.parseInt(minor),
-					Integer.parseInt(patch));
+			return new Version(Integer.parseInt(major), minor != null ? Integer.parseInt(minor) : 0,
+					patch != null ? Integer.parseInt(patch) : 0);
 		}
 		throw new IllegalArgumentException("Specified version cannot be parsed");
 	}

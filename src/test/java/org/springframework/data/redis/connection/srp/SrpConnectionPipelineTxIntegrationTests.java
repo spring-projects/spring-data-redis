@@ -17,13 +17,13 @@ package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
-
+import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.RedisPipelineException;
 
@@ -33,23 +33,30 @@ import org.springframework.data.redis.connection.RedisPipelineException;
  * @author Jennifer Hickey
  *
  */
-public class SrpConnectionPipelineTxIntegrationTests extends
-		SrpConnectionTransactionIntegrationTests {
+public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransactionIntegrationTests {
 
 	@Test
 	public void exceptionExecuteNative() throws Exception {
-		// DATAREDIS-172 SRP ClassCastException when exec() returns an
-		// ErrorReply in Redis 2.6
-		connection.exec();
-		connection.closePipeline();
-		boolean execErrorSupported = RedisVersionUtils.atMost("2.6.4", connection);
-		initConnection();
-		assumeTrue(execErrorSupported);
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
 		try {
 			getResults();
-			fail("Execute failures should result in a RedisPipelineException");
-		} catch (RedisPipelineException e) {
+			fail("Expected an Exception to be thrown executing a command with syntax error");
+		}catch(RedisPipelineException e) {
+			// Redis 2.4, Exception occurs when we get the result of execute on closePipeline
+			if(RedisVersionUtils.atLeast("2.6.4", byteConnection)) {
+				fail("RedisPipelineException should not be thrown in Redis 2.6");
+			}
+		}catch(RedisSystemException e) {
+			try {
+				connection.closePipeline();
+			}catch(Exception ex) {
+				// Gonna get another error on closing the pipeline as results from execute
+			}
+			if(!RedisVersionUtils.atLeast("2.6", byteConnection)) {
+				// Redis 2.6 returns an ErrorReploy on exec, the Exception occurs when we call exec()
+				// b/c it waits on the response
+				fail("RedisSystemException should only be thrown in Redis 2.6");
+			}
 		}
 	}
 

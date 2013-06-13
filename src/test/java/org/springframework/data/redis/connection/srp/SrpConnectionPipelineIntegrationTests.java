@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +34,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -54,8 +57,24 @@ import redis.reply.Reply;
 public class SrpConnectionPipelineIntegrationTests extends
 		AbstractConnectionPipelineIntegrationTests {
 
-	@Ignore("DATAREDIS-169 SRP discard does not clear txReplies, results in inconsistent results on next tx exec")
-	public void testMultiDiscard() {
+	@Test
+	public void testMultiDiscard() throws Exception {
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.set("testitnow", "willdo");
+		connection.multi();
+		connection.set("testitnow2", "notok");
+		connection.discard();
+		// SRP throws Exception on transaction discard, so we expect pipeline exception here
+		try {
+			getResults();
+			fail("Closing the pipeline on a discarded tx should throw a RedisPipelineException");
+		}catch(RedisPipelineException e) {
+		}
+		assertEquals("willdo", connection.get("testitnow"));
+		connection.openPipeline();
+		// Ensure we can run a new tx after discarding previous one
+		testMultiExec();
 	}
 
 	@Ignore("DATAREDIS-168 SRP exec throws TransactionFailedException if watched value modified")
