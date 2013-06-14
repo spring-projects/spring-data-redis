@@ -151,8 +151,8 @@ public class RedisAtomicTests {
 	// DATAREDIS-108
 	@Test
 	public void testCompareSet() throws Exception {
-		// Txs not supported in Jredis, SRP checkAndSet not working DATAREDIS-123
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !ConnectionUtils.isSrp(factory));
+		// Txs not supported in Jredis
+		assumeTrue(!ConnectionUtils.isJredis(factory));
 		final AtomicBoolean alreadySet = new AtomicBoolean(false);
 		final int NUM = 50;
 		final String KEY = getClass().getSimpleName() + ":atomic:counter";

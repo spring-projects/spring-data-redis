@@ -19,8 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisVersionUtils;
@@ -77,8 +76,21 @@ public class SrpConnectionPipelineIntegrationTests extends
 		testMultiExec();
 	}
 
-	@Ignore("DATAREDIS-168 SRP exec throws TransactionFailedException if watched value modified")
-	public void testWatch() {
+	// SRP sets results of all commands in the pipeline to RedisException if exec returns a
+	// null multi-bulk reply
+	@Test(expected=RedisPipelineException.class)
+	public void testWatch() throws Exception {
+		connection.set("testitnow", "willdo");
+		connection.watch("testitnow".getBytes());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.set("testitnow", "something");
+		conn2.close();
+		connection.multi();
+		connection.set("testitnow", "somethingelse");
+		actual.add(connection.exec());
+		actual.add(connection.get("testitnow"));
+		verifyResults(Arrays.asList(new Object[] { null, "something" }), actual);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

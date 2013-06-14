@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisVersionUtils;
@@ -52,10 +51,6 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		}
 		connection.close();
 		connection = null;
-	}
-
-	@Ignore("DATAREDIS-168 SRP exec throws TransactionFailedException if watched value modified")
-	public void testWatch() {
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
