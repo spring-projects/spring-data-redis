@@ -429,10 +429,11 @@ public class SrpConnection implements RedisConnection {
 		isMulti = false;
 		Exception execException = null;
 		List<Object> results = null;
+		boolean resultsSet = true;
 		try {
 			Future<Boolean> exec = client.exec();
 			// Need to wait on execution or subsequent non-pipelined calls may read exec results
-			exec.get();
+			resultsSet = exec.get();
 		} catch (Exception ex) {
 			execException = ex;
 		} finally {
@@ -447,7 +448,8 @@ public class SrpConnection implements RedisConnection {
 				}
 			}
 		}
-		if(execException != null) {
+		// If resultsSet is false, it's b/c of nil Multi-Bulk reply (watch case) and null is returned
+		if(execException != null && resultsSet) {
 			// Intentionally convert RedisPipelineException too, it's an impl detail
 			throw convertSrpAccessException(execException);
 		}

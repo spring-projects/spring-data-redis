@@ -45,6 +45,7 @@ public class SrpConnectionTransactionIntegrationTests extends
 	}
 
 	@Ignore
+	@Test
 	public void testWatch() {
 	}
 
