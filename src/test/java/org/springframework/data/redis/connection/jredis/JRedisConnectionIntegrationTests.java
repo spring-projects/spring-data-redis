@@ -318,6 +318,31 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testPTtlNoExpire();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testDumpAndRestore() {
+		super.testDumpAndRestore();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testDumpNonExistentKey() {
+		super.testDumpNonExistentKey();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRestoreBadData() {
+		super.testRestoreBadData();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRestoreExistingKey() {
+		super.testRestoreExistingKey();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRestoreTtl() {
+		super.testRestoreTtl();
+	}
+
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {

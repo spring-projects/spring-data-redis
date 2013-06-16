@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -158,6 +161,57 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 				return (connection.pTtl("whatup") > -1);
 			}
 		}, 1000l));
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		// Use something other than dump-specific serialization
+		connection.restore("testing".getBytes(), 0, "foo".getBytes());
+		getResults();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		connection.set("testing", "12");
+		connection.dump("testing".getBytes());
+		List<Object> results = getResults();
+		initConnection();
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
+		try {
+			getResults();
+			fail("Expected pipeline exception restoring an existing key");
+		}catch(RedisPipelineException e) {
+		}
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreTtl() {
+		connection.set("testing", "12");
+		connection.dump("testing".getBytes());
+		List<Object> results = getResults();
+		initConnection();
+		actual.add(connection.del("testing"));
+		actual.add(connection.get("testing"));
+		connection.restore("testing".getBytes(), 100l,  (byte[]) results.get(results.size() - 1));
+		verifyResults(Arrays.asList(new Object[] { 1l, null }), actual);
+		assertTrue(waitFor(new KeyExpired("testing"), 300l));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testDumpAndRestore() {
+		connection.set("testing", "12");
+		connection.dump("testing".getBytes());
+		List<Object> results = getResults();
+		initConnection();
+		actual.add(connection.del("testing"));
+		actual.add((connection.get("testing")));
+		connection.restore("testing".getBytes(), 0,  (byte[]) results.get(results.size() - 1));
+		actual.add(connection.get("testing"));
+		verifyResults(Arrays.asList(new Object[] { 1l, null, "12" }), actual);
 	}
 
 	@Test

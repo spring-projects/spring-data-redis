@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +45,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -560,6 +563,53 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.set("whatup", "yo");
 		connection.pExpire("whatup", 9000l);
 		assertTrue(connection.pTtl("whatup") > -1);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testDumpAndRestore() {
+		connection.set("testing", "12");
+		byte[] serializedResults = connection.dump("testing".getBytes());
+		assertNotNull(serializedResults);
+		connection.del("testing");
+		assertNull(connection.get("testing"));
+		connection.restore("testing".getBytes(), 0, serializedResults);
+		assertEquals("12",connection.get("testing"));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testDumpNonExistentKey() {
+		actual.add(connection.dump("fakey".getBytes()));
+		verifyResults(Arrays.asList(new Object[] { null }), actual);
+	}
+
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		// Use something other than dump-specific serialization
+		connection.restore("testing".getBytes(), 0, "foo".getBytes());
+	}
+
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		connection.set("testing", "12");
+		byte[] serializedResults = connection.dump("testing".getBytes());
+		assertNotNull(serializedResults);
+		connection.restore("testing".getBytes(), 0, serializedResults);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreTtl() {
+		connection.set("testing", "12");
+		byte[] serializedResults = connection.dump("testing".getBytes());
+		assertNotNull(serializedResults);
+		connection.del("testing");
+		assertNull(connection.get("testing"));
+		connection.restore("testing".getBytes(), 100l, serializedResults);
+		assertTrue(waitFor(new KeyExpired("testing"), 300l));
 	}
 
 	@Test
@@ -1255,26 +1305,6 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected void verifyResults(List<Object> expected, List<Object> actual) {
 		assertEquals(expected, actual);
-	}
-
-	protected boolean waitFor(TestCondition condition, long timeout) {
-		boolean passes = false;
-		for (long currentTime = System.currentTimeMillis(); System.currentTimeMillis()
-				- currentTime < timeout;) {
-			if (condition.passes()) {
-				passes = true;
-				break;
-			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
-		}
-		return passes;
-	}
-
-	protected interface TestCondition {
-		public boolean passes();
 	}
 
 	protected class KeyExpired implements TestCondition {

@@ -591,6 +591,30 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	public byte[] dump(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().dump(key));
+				return null;
+			}
+			return getConnection().dump(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().restore(key, ttlInMillis, serializedValue));
+				return;
+			}
+			getConnection().restore(key, ttlInMillis, serializedValue);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			if (isPipelined()) {

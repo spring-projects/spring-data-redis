@@ -823,6 +823,14 @@ public class JedisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	public byte[] dump(byte[] key) {
+		throw new UnsupportedOperationException();
+	}
+
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		throw new UnsupportedOperationException();
+	}
+
 	public DataType type(byte[] key) {
 		try {
 			if (isQueueing()) {

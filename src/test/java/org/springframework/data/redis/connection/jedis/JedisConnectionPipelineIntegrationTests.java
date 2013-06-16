@@ -122,6 +122,31 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testPTtlNoExpire();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testDumpAndRestore() {
+		super.testDumpAndRestore();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testDumpNonExistentKey() {
+		super.testDumpNonExistentKey();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRestoreBadData() {
+		super.testRestoreBadData();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRestoreExistingKey() {
+		super.testRestoreExistingKey();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRestoreTtl() {
+		super.testRestoreTtl();
+	}
+
 	@Test(expected = RedisSystemException.class)
 	public void testBitSet() throws Exception {
 		super.testBitSet();

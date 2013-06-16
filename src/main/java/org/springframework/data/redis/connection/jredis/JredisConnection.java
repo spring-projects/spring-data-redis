@@ -355,6 +355,14 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	public byte[] dump(byte[] key) {
+		throw new UnsupportedOperationException();
+	}
+
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		throw new UnsupportedOperationException();
+	}
+
 	public Set<byte[]> keys(byte[] pattern) {
 		try {
 			return new LinkedHashSet<byte[]>(jredis.keys(pattern));

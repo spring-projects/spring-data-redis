@@ -584,6 +584,26 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.zUnionStore(destKey, sets);
 	}
 
+	public Boolean pExpire(byte[] key, long millis) {
+		return delegate.pExpire(key, millis);
+	}
+
+	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		return delegate.pExpireAt(key, unixTimeInMillis);
+	}
+
+	public Long pTtl(byte[] key) {
+		return delegate.pTtl(key);
+	}
+
+	public byte[] dump(byte[] key) {
+		return delegate.dump(key);
+	}
+
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		delegate.restore(key, ttlInMillis, serializedValue);
+	}
+
 	//
 	// String methods
 	//
@@ -1165,18 +1185,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Object execute(String command, String... args) {
 		return execute(command, serializeMulti(args));
-	}
-
-	public Boolean pExpire(byte[] key, long millis) {
-		return delegate.pExpire(key, millis);
-	}
-
-	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		return delegate.pExpireAt(key, unixTimeInMillis);
-	}
-
-	public Long pTtl(byte[] key) {
-		return delegate.pTtl(key);
 	}
 
 	public Boolean pExpire(String key, long millis) {

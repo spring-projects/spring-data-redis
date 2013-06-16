@@ -16,14 +16,18 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.lambdaworks.redis.RedisException;
 
 /**
  * Integration test of {@link LettuceConnection} functionality within a
@@ -91,6 +95,27 @@ public class LettuceConnectionTransactionIntegrationTests extends
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
 		// Syntax error on queued commands are swallowed and no results are returned
 		assertNull(getResults());
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		// Use something other than dump-specific serialization
+		connection.restore("testing".getBytes(), 0, "foo".getBytes());
+		List<Object> results = getResults();
+		assertTrue(results.get(0) instanceof RedisException);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		connection.set("testing", "12");
+		connection.dump("testing".getBytes());
+		List<Object> results = getResults();
+		initConnection();
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
+		List<Object> restoreResults = getResults();
+		assertTrue(restoreResults.get(0) instanceof RedisException);
 	}
 
 	protected void initConnection() {

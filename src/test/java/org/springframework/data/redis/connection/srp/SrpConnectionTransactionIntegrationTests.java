@@ -29,8 +29,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  *
  */
-public class SrpConnectionTransactionIntegrationTests extends
-		SrpConnectionPipelineIntegrationTests {
+public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipelineIntegrationTests {
 
 	@Ignore
 	public void testMultiDiscard() {
@@ -87,13 +86,29 @@ public class SrpConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
+	@IfProfileValue(name = "redisVersion", values = { "2.4", "2.6" })
 	public void testGetRangeSetRange() {
 		connection.set("rangekey", "supercalifrag");
 		actual.add(connection.getRange("rangekey", 0l, 2l));
 		connection.setRange("rangekey", "ck", 2);
 		actual.add(connection.get("rangekey"));
 		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }), actual);
+	}
+
+	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
+		// as Exceptions
+	}
+
+	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
+		// as Exceptions
 	}
 
 	protected void initConnection() {

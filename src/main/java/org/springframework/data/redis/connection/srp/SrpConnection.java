@@ -647,6 +647,30 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public byte[] dump(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.dump(key));
+				return null;
+			}
+			return client.dump(key).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.restore(key, ttlInMillis, serializedValue));
+				return;
+			}
+			client.restore(key, ttlInMillis, serializedValue);
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
 	public DataType type(byte[] key) {
 		try {
 			if (isPipelined()) {

@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -42,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testMultiThreadsOneBlocking() throws Exception {
 		Thread th = new Thread(new Runnable() {
 			public void run() {

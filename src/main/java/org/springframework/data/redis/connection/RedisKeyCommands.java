@@ -60,4 +60,8 @@ public interface RedisKeyCommands {
 	List<byte[]> sort(byte[] key, SortParameters params);
 
 	Long sort(byte[] key, SortParameters params, byte[] storeKey);
+
+	byte[] dump(byte[] key);
+
+	void restore(byte[] key, long ttlInMillis, byte[] serializedValue);
 }
