@@ -99,6 +99,10 @@ public interface RedisOperations<K, V> {
 
 	Boolean move(K key, int dbIndex);
 
+	byte[] dump(K key);
+
+	void restore(K key, byte[] value, long timeToLive, TimeUnit unit);
+
 	Long getExpire(K key);
 
 	void watch(K keys);

@@ -617,6 +617,50 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}, true);
 	}
 
+	/**
+	 * Executes the Redis dump command and returns the results. Redis uses a
+	 * non-standard serialization mechanism and includes checksum information,
+	 * thus the raw bytes are returned as opposed to deserializing with
+	 * valueSerializer. Use the return value of dump as the value argument to restore
+	 *
+	 * @param key The key to dump
+	 * @return results The results of the dump operation
+	 */
+	public byte[] dump(K key) {
+		final byte[] rawKey = rawKey(key);
+
+		return execute(new RedisCallback<byte[]>() {
+			public byte[] doInRedis(RedisConnection connection) {
+				return connection.dump(rawKey);
+			}
+		}, true);
+	}
+
+	/**
+	 * Executes the Redis restore command. The value passed in should be the exact
+	 * serialized data returned from {@link #dump(Object)}, since Redis uses a
+	 * non-standard serialization mechanism.
+	 *
+	 *
+	 * @param key The key to restore
+	 * @param value The value to restore, as returned by {@link #dump(Object)}
+	 * @param timeToLive An expiration for the restored key, or 0 for no expiration
+	 * @param unit The time unit for timeToLive
+	 * @throws RedisSystemException if the key you are attempting to restore already
+	 * exists.
+	 *
+	 */
+	public void restore(K key, final byte[] value, long timeToLive, TimeUnit unit) {
+		final byte[] rawKey = rawKey(key);
+		final long rawTimeout = TimeoutUtils.toMillis(timeToLive, unit);
+
+		execute(new RedisCallback<Object>() {
+			public Boolean doInRedis(RedisConnection connection) {
+				connection.restore(rawKey, rawTimeout, value);
+				return null;
+			}
+		}, true);
+	}
 
 	public void multi() {
 		execute(new RedisCallback<Object>() {
