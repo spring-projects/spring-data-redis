@@ -30,6 +30,8 @@ import org.jredis.JRedis;
 import org.jredis.Query.Support;
 import org.jredis.RedisException;
 import org.jredis.Sort;
+import org.jredis.connector.ConnectionException;
+import org.jredis.connector.NotConnectedException;
 import org.jredis.protocol.Command;
 import org.jredis.ri.alphazero.JRedisSupport;
 import org.springframework.dao.DataAccessException;
@@ -81,12 +83,14 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	protected DataAccessException convertJredisAccessException(Exception ex) {
-		broken = true;
 		if (ex instanceof RedisException) {
 			return JredisUtils.convertJredisAccessException((RedisException) ex);
 		}
 
 		if (ex instanceof ClientRuntimeException) {
+			if(ex instanceof NotConnectedException || ex instanceof ConnectionException) {
+				broken = true;
+			}
 			return JredisUtils.convertJredisAccessException((ClientRuntimeException) ex);
 		}
 
