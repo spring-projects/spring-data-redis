@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -124,5 +125,13 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		connection.select(1);
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpNotMultipleSources() {
+		connection.set("key1", "abcd");
+		connection.set("key2", "efgh");
+		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
 	}
 }

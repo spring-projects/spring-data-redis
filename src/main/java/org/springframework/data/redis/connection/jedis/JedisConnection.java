@@ -1188,10 +1188,24 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+
+	public Long bitCount(byte[] key) {
+		throw new UnsupportedOperationException();
+	}
+
+
+	public Long bitCount(byte[] key, long begin, long end) {
+		throw new UnsupportedOperationException();
+	}
+
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
 	//
 	// List commands
 	//
-
 
 	public Long lPush(byte[] key, byte[] value) {
 		try {

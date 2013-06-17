@@ -343,6 +343,46 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testRestoreTtl();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitCount() {
+		super.testBitCount();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitCountInterval() {
+		super.testBitCountInterval();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitCountNonExistentKey() {
+		super.testBitCountNonExistentKey();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitOpAnd() {
+		super.testBitOpAnd();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitOpOr() {
+		super.testBitOpOr();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitOpXOr() {
+		super.testBitOpXOr();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitOpNot() {
+		super.testBitOpNot();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testBitOpNotMultipleSources() {
+		super.testBitOpNotMultipleSources();
+	}
+
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {

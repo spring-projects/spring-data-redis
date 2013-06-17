@@ -999,6 +999,47 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+
+	public Long bitCount(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().bitcount(key));
+				return null;
+			}
+			return getConnection().bitcount(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+
+	public Long bitCount(byte[] key, long begin, long end) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().bitcount(key, begin, end));
+				return null;
+			}
+			return getConnection().bitcount(key, begin, end);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		try {
+			if (isPipelined()) {
+				pipeline(asyncBitOp(op, destination, keys));
+				return null;
+			}
+			return syncBitOp(op, destination, keys);
+		} catch (UnsupportedOperationException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	//
 	// List commands
 	//
@@ -2023,5 +2064,41 @@ public class LettuceConnection implements RedisConnection {
 			txConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(getAsyncTxConnection());
 		}
 		return txConn;
+	}
+
+	private Future<Long> asyncBitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		switch (op) {
+		case AND:
+			return getAsyncConnection().bitopAnd(destination, keys);
+		case OR:
+			return getAsyncConnection().bitopOr(destination, keys);
+		case XOR:
+			return getAsyncConnection().bitopXor(destination, keys);
+		case NOT:
+			if (keys.length != 1) {
+				throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+			}
+			return getAsyncConnection().bitopNot(destination, keys[0]);
+		default:
+			throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
+		}
+	}
+
+	private Long syncBitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		switch (op) {
+		case AND:
+			return getConnection().bitopAnd(destination, keys);
+		case OR:
+			return getConnection().bitopOr(destination, keys);
+		case XOR:
+			return getConnection().bitopXor(destination, keys);
+		case NOT:
+			if (keys.length != 1) {
+				throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+			}
+			return getConnection().bitopNot(destination, keys[0]);
+		default:
+			throw new UnsupportedOperationException("Bit operation " + op + " is not supported");
+		}
 	}
 }

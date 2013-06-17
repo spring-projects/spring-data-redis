@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -335,6 +337,19 @@ public class LettuceConnectionPipelineIntegrationTests extends
 				return (connection.pTtl("whatup") > -1);
 			}
 		}, 1000l));
+	}
+
+	// LettuceConnection throws an UnsupportedOpException before we close the pipeline
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpNotMultipleSources() {
+		connection.set("key1", "abcd");
+		connection.set("key2", "efgh");
+		try {
+			actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
+		}finally {
+			getResults();
+		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

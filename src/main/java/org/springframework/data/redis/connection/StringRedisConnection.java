@@ -115,6 +115,12 @@ public interface StringRedisConnection extends RedisConnection {
 
 	void setBit(String key, long offset, boolean value);
 
+	Long bitCount(String key);
+
+	Long bitCount(String key, long begin, long end);
+
+	Long bitOp(BitOperation op, String destination, String... keys);
+
 	Long strLen(String key);
 
 	Long rPush(String key, String value);

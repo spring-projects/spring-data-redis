@@ -49,6 +49,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -225,6 +226,77 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.getBit(key, 0));
 		actual.add(connection.getBit(key, 1));
 		verifyResults(Arrays.asList(new Object[] { false, true }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitCount() {
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		connection.setBit(key, 2, true);
+		actual.add(connection.bitCount(key));
+		verifyResults(new ArrayList<Object>(Collections.singletonList(2l)), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitCountInterval() {
+		connection.set("mykey", "foobar");
+		actual.add(connection.bitCount("mykey", 1, 1));
+		verifyResults(new ArrayList<Object>(Collections.singletonList(26l)), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitCountNonExistentKey() {
+		actual.add(connection.bitCount("mykey"));
+		verifyResults(new ArrayList<Object>(Collections.singletonList(0l)), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpAnd() {
+		connection.set("key1", "foo");
+		connection.set("key2", "bar");
+		actual.add(connection.bitOp(BitOperation.AND, "key3", "key1", "key2"));
+		actual.add(connection.get("key3"));
+		verifyResults(Arrays.asList(new Object[] { 3l, "bab" }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpOr() {
+		connection.set("key1", "foo");
+		connection.set("key2", "ugh");
+		actual.add(connection.bitOp(BitOperation.OR, "key3", "key1", "key2"));
+		actual.add(connection.get("key3"));
+		verifyResults(Arrays.asList(new Object[] { 3l, "woo" }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpXOr() {
+		connection.set("key1", "abcd");
+		connection.set("key2", "efgh");
+		actual.add(connection.bitOp(BitOperation.XOR, "key3", "key1", "key2"));
+		verifyResults(Arrays.asList(new Object[] { 4l }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpNot() {
+		connection.set("key1", "abcd");
+		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1"));
+		verifyResults(Arrays.asList(new Object[] { 4l }), actual);
+	}
+
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpNotMultipleSources() {
+		connection.set("key1", "abcd");
+		connection.set("key2", "efgh");
+		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
 	}
 
 	@Test

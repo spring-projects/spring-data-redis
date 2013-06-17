@@ -111,6 +111,14 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 		// as Exceptions
 	}
 
+	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpNotMultipleSources() {
+		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
+		// as Exceptions
+	}
+
 	protected void initConnection() {
 		connection.multi();
 	}

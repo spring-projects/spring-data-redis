@@ -452,6 +452,18 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.strLen(key);
 	}
 
+	public Long bitCount(byte[] key) {
+		return delegate.bitCount(key);
+	}
+
+	public Long bitCount(byte[] key, long begin, long end) {
+		return delegate.bitCount(key, begin, end);
+	}
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		return delegate.bitOp(op, destination, keys);
+	}
+
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		delegate.subscribe(listener, channels);
 	}
@@ -1023,8 +1035,19 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long strLen(String key) {
 		return delegate.strLen(serialize(key));
 	}
-
 	
+	public Long bitCount(String key) {
+		return delegate.bitCount(serialize(key));
+	}
+
+	public Long bitCount(String key, long begin, long end) {
+		return delegate.bitCount(serialize(key));
+	}
+
+	public Long bitOp(BitOperation op, String destination, String... keys) {
+		return delegate.bitOp(op, serialize(destination), serializeMulti(keys));
+	}
+
 	public void subscribe(MessageListener listener, String... channels) {
 		delegate.subscribe(listener, serializeMulti(channels));
 	}

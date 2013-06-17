@@ -609,6 +609,21 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+
+	public Long bitCount(byte[] key) {
+		throw new UnsupportedOperationException();
+	}
+
+
+	public Long bitCount(byte[] key, long begin, long end) {
+		throw new UnsupportedOperationException();
+	}
+
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
 	//
 	// List commands
 	//

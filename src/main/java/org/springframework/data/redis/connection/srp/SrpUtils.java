@@ -30,6 +30,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.util.Assert;
@@ -83,6 +84,7 @@ abstract class SrpUtils {
 		return info;
 	}
 
+	@SuppressWarnings("rawtypes")
 	static List<byte[]> toBytesList(Reply[] replies) {
 		if(replies == null) {
 			return null;
@@ -106,6 +108,7 @@ abstract class SrpUtils {
 		return Arrays.asList(byteArrays);
 	}
 
+	@SuppressWarnings("rawtypes")
 	static Set<byte[]> toSet(Reply[] byteArrays) {
 		return new LinkedHashSet<byte[]>(toBytesList(byteArrays));
 	}
@@ -142,6 +145,7 @@ abstract class SrpUtils {
 		return convertTuple(zrange.data());
 	}
 
+	@SuppressWarnings("rawtypes")
 	static Set<Tuple> convertTuple(Reply[] byteArrays) {
 		Set<Tuple> tuples = new LinkedHashSet<Tuple>(byteArrays.length / 2 + 1);
 
@@ -168,6 +172,7 @@ abstract class SrpUtils {
 		return args;
 	}
 
+	@SuppressWarnings("rawtypes")
 	static Map<byte[], byte[]> toMap(Reply[] byteArrays) {
 		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>(byteArrays.length / 2);
 		for (int i = 0; i < byteArrays.length; i++) {
@@ -262,5 +267,10 @@ abstract class SrpUtils {
 		}
 
 		return arrays.toArray();
+	}
+
+	static byte[] bitOp(BitOperation op) {
+		Assert.notNull(op, "The bit operation is required");
+		return op.name().toUpperCase().getBytes(Charsets.UTF_8);
 	}
 }

@@ -68,6 +68,7 @@ public class SrpConnection implements RedisConnection {
 	private PipelineTracker callback;
 	private volatile SrpSubscription subscription;
 
+	@SuppressWarnings("rawtypes")
 	private static class PipelineTracker implements FutureCallback<Reply> {
 
 		private final List<Object> results = Collections.synchronizedList(new ArrayList<Object>());
@@ -954,10 +955,48 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+
+	public Long bitCount(byte[] key) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.bitcount(key, 0, -1));
+				return null;
+			}
+			return client.bitcount(key, 0, -1).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+
+	public Long bitCount(byte[] key, long begin, long end) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.bitcount(key, begin, end));
+				return null;
+			}
+			return client.bitcount(key, begin, end).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+
+	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.bitop(SrpUtils.bitOp(op), destination, (Object[]) keys));
+				return null;
+			}
+			return client.bitop(SrpUtils.bitOp(op), destination, (Object[])keys).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
 	//
 	// List commands
 	//
-
 
 	public Long lPush(byte[] key, byte[] value) {
 		try {
@@ -1932,6 +1971,7 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	// processing method that adds a listener to the future in order to track down the results and close the pipeline
+	@SuppressWarnings("rawtypes")
 	private void pipeline(ListenableFuture<? extends Reply> future) {
 		callback.addCommand(future);
 	}

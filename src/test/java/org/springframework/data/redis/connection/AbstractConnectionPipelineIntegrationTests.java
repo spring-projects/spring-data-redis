@@ -38,6 +38,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.TestCondition;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -260,6 +261,26 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		actual.add(connection.getBit(key, 0));
 		actual.add(connection.getBit(key, 1));
 		verifyResults(Arrays.asList(new Object[] { 0l, 0l, 0l, 1l }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitCount() {
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		connection.setBit(key, 2, true);
+		actual.add(connection.bitCount(key));
+		verifyResults(Arrays.asList(new Object[] { 0l, 0l, 0l, 2l }), actual);
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitOpNotMultipleSources() {
+		connection.set("key1", "abcd");
+		connection.set("key2", "efgh");
+		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
+		getResults();
 	}
 
 	@Test
