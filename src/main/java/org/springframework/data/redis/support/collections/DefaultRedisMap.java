@@ -89,7 +89,11 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
 	}
-	
+
+	public Double increment(K key, double delta) {
+		return hashOps.increment(key, delta);
+	}
+
 	public RedisOperations<String, ?> getOperations() {
 		return hashOps.getOperations();
 	}

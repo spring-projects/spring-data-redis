@@ -79,7 +79,17 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 	}
 
-	
+	public Double increment(K key, HK hashKey, final double delta) {
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawHashKey = rawHashKey(hashKey);
+
+		return execute(new RedisCallback<Double>() {
+			public Double doInRedis(RedisConnection connection) {
+				return connection.hIncrBy(rawKey, rawHashKey, delta);
+			}
+		}, true);
+	}
+
 	public Set<HK> keys(K key) {
 		final byte[] rawKey = rawKey(key);
 

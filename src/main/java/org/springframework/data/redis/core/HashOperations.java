@@ -37,6 +37,8 @@ public interface HashOperations<H, HK, HV> {
 
 	Long increment(H key, HK hashKey, long delta);
 
+	Double increment(H key, HK hashKey, double delta);
+
 	Set<HK> keys(H key);
 
 	Long size(H key);

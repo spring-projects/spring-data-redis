@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import java.util.concurrent.ConcurrentMap;
-
+import java.util.Random;
 
 /**
- * Map view of a Redis hash.
- * 
- * @author Costin Leau
+ *
+ * Implementation of {@link ObjectFactory that returns random Doubles as Strings
+ * @author Jennifer Hickey
+ *
  */
-public interface RedisMap<K, V> extends RedisStore, ConcurrentMap<K, V> {
+public class DoubleObjectFactory implements ObjectFactory<String> {
 
-	Long increment(K key, long delta);
+	private Random random = new Random(System.currentTimeMillis());
 
-	Double increment(K key, double delta);
+	public String instance() {
+		return String.valueOf(random.nextDouble());
+	}
+
 }

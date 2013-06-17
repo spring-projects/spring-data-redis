@@ -72,7 +72,10 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 		return ops.increment(getKey(), key, delta);
 	}
 
-	
+	public Double increment(HK key, double delta) {
+		return ops.increment(getKey(), key, delta);
+	}
+
 	public Set<HK> keys() {
 		return ops.keys(getKey());
 	}

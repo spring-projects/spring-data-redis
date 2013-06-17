@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -209,8 +208,11 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	public Long increment(Object key, long delta) {
 		return hashOps.increment((String) key, delta);
 	}
-
 	
+	public Double increment(Object key, double delta) {
+		return hashOps.increment((String) key, delta);
+	}
+
 	public RedisOperations<String, ?> getOperations() {
 		return hashOps.getOperations();
 	}

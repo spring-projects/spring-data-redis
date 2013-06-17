@@ -27,8 +27,10 @@ import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -65,6 +67,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
+		ObjectFactory<String> doubleFactory = new DoubleObjectFactory();
+		ObjectFactory<String> longFactory = new LongObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(true);
@@ -131,6 +135,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplateLettuce.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateLettuce.afterPropertiesSet();
 
+		RedisTemplate<String, String> stringTemplateLtc = new StringRedisTemplate();
+		stringTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		stringTemplateLtc.afterPropertiesSet();
+
 		// SRP
 		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
 		srpConnFactory.setPort(SettingsUtils.getPort());
@@ -153,6 +161,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplateSrp.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateSrp.afterPropertiesSet();
 
+		RedisTemplate<String, String> stringTemplateSrp = new StringRedisTemplate();
+		stringTemplateSrp.setConnectionFactory(srpConnFactory);
+		stringTemplateSrp.afterPropertiesSet();
+
 
 		return Arrays.asList(new Object[][] {
 				{ stringFactory, stringFactory, genericTemplate },
@@ -173,11 +185,15 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 				{ personFactory, stringFactory, genericTemplateLettuce },
 				{ personFactory, stringFactory, xGenericTemplateLettuce },
 				{ personFactory, stringFactory, jsonPersonTemplateLettuce },
+				{ stringFactory, doubleFactory, stringTemplateLtc},
+				{ stringFactory, longFactory, stringTemplateLtc},
 				{ stringFactory, stringFactory, genericTemplateSrp },
 				{ personFactory, personFactory, genericTemplateSrp },
 				{ stringFactory, personFactory, genericTemplateSrp },
 				{ personFactory, stringFactory, genericTemplateSrp },
 				{ personFactory, stringFactory, xGenericTemplateSrp },
+				{ stringFactory, doubleFactory, stringTemplateSrp},
+				{ stringFactory, longFactory, stringTemplateSrp},
 				{ personFactory, stringFactory, jsonPersonTemplateSrp }});
 	}
 }

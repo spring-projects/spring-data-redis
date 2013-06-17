@@ -51,6 +51,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis Map.
@@ -194,8 +195,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 	@Test
-	public void testIncrement() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+	public void testIncrementNotNumber() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()) &&
+				!(valueFactory instanceof LongObjectFactory));
 		K k1 = getKey();
 		V v1 = getValue();
 
@@ -208,6 +210,25 @@ public abstract class AbstractRedisMapTests<K, V> {
 		} catch (RedisSystemException ex) {
 			// expected for SRP and Lettuce
 		}
+	}
+
+	@Test
+	public void testIncrement() {
+		assumeTrue(valueFactory instanceof LongObjectFactory);
+		K k1 = getKey();
+		V v1 = getValue();
+		map.put(k1, v1);
+		assertEquals(Long.valueOf(Long.valueOf((String)v1) + 10), map.increment(k1, 10));
+	}
+
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@Test
+	public void testIncrementDouble() {
+		assumeTrue(valueFactory instanceof DoubleObjectFactory);
+		K k1 = getKey();
+		V v1 = getValue();
+		map.put(k1, v1);
+		assertEquals(Double.valueOf(Double.valueOf((String)v1) + 3.4), map.increment(k1, 3.4));
 	}
 
 	@Test

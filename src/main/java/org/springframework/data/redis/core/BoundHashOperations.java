@@ -33,6 +33,8 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	Long increment(HK key, long delta);
 
+	Double increment(HK key, double delta);
+
 	HV get(Object key);
 
 	void put(HK key, HV value);
