@@ -383,6 +383,16 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testBitOpNotMultipleSources();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testHIncrByDouble() {
+		super.testHIncrByDouble();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testIncrByDouble() {
+		super.testIncrByDouble();
+	}
+
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {

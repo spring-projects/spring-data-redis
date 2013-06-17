@@ -949,6 +949,18 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	public Double incrBy(byte[] key, double value) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().incrbyfloat(key, value));
+				return null;
+			}
+			return getConnection().incrbyfloat(key, value);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	public Boolean getBit(byte[] key, long offset) {
 		try {
 			if (isPipelined()) {
@@ -1869,6 +1881,18 @@ public class LettuceConnection implements RedisConnection {
 				return null;
 			}
 			return getConnection().hincrby(key, field, delta);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().hincrbyfloat(key, field, delta));
+				return null;
+			}
+			return getConnection().hincrbyfloat(key, field, delta);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

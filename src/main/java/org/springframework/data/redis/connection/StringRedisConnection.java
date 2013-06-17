@@ -101,6 +101,8 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long incrBy(String key, long value);
 
+	Double incrBy(String key, double value);
+
 	Long decr(String key);
 
 	Long decrBy(String key, long value);
@@ -240,6 +242,8 @@ public interface StringRedisConnection extends RedisConnection {
 	void hMSet(String key, Map<String, String> hashes);
 
 	Long hIncrBy(String key, String field, long delta);
+
+	Double hIncrBy(String key, String field, double delta);
 
 	Boolean hExists(String key, String field);
 

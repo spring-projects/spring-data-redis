@@ -904,6 +904,19 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
+	public Double incrBy(byte[] key, double value) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.incrbyfloat(key, value));
+				return null;
+			}
+			return SrpUtils.toDouble(client.incrbyfloat(key, value).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+
 	public Boolean getBit(byte[] key, long offset) {
 		try {
 			if (isPipelined()) {
@@ -1832,6 +1845,17 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.hincrbyfloat(key, field, delta));
+				return null;
+			}
+			return SrpUtils.toDouble(client.hincrbyfloat(key, field, delta).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 
 	public Set<byte[]> hKeys(byte[] key) {
 		try {

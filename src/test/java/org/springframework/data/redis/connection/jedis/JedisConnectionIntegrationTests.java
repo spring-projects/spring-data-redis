@@ -145,6 +145,16 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		super.testBitOpNotMultipleSources();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testHIncrByDouble() {
+		super.testHIncrByDouble();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testIncrByDouble() {
+		super.testIncrByDouble();
+	}
+
 	@Test
 	public void testIncrDecrByLong() {
 		String key = "test.count";

@@ -188,6 +188,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.hIncrBy(key, field, delta);
 	}
 
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+		return delegate.hIncrBy(key, field, delta);
+	}
+
 	public Set<byte[]> hKeys(byte[] key) {
 		return delegate.hKeys(key);
 	}
@@ -221,6 +225,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Long incrBy(byte[] key, long value) {
+		return delegate.incrBy(key, value);
+	}
+
+	public Double incrBy(byte[] key, double value) {
 		return delegate.incrBy(key, value);
 	}
 
@@ -772,6 +780,9 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.hIncrBy(serialize(key), serialize(field), delta);
 	}
 
+	public Double hIncrBy(String key, String field, double delta) {
+		return delegate.hIncrBy(serialize(key), serialize(field), delta);
+	}
 	
 	public Set<String> hKeys(String key) {
 		return deserialize(delegate.hKeys(serialize(key)));
@@ -816,7 +827,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.incrBy(serialize(key), value);
 	}
 
-	
+	public Double incrBy(String key, double value) {
+		return delegate.incrBy(serialize(key), value);
+	}
+
 	public Collection<String> keys(String pattern) {
 		return deserialize(delegate.keys(serialize(pattern)));
 	}

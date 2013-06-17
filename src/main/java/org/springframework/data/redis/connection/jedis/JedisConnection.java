@@ -1119,6 +1119,9 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	public Double incrBy(byte[] key, double value) {
+		throw new UnsupportedOperationException();
+	}
 
 	public Boolean getBit(byte[] key, long offset) {
 		try {
@@ -2306,6 +2309,9 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	public Double hIncrBy(byte[] key, byte[] field, double delta) {
+		throw new UnsupportedOperationException();
+	}
 
 	public Set<byte[]> hKeys(byte[] key) {
 		try {

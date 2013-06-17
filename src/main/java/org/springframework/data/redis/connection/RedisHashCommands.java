@@ -39,6 +39,8 @@ public interface RedisHashCommands {
 
 	Long hIncrBy(byte[] key, byte[] field, long delta);
 
+	Double hIncrBy(byte[] key, byte[] field, double delta);
+
 	Boolean hExists(byte[] key, byte[] field);
 
 	Boolean hDel(byte[] key, byte[] field);

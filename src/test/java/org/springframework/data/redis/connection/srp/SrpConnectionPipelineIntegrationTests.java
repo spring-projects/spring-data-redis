@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +30,6 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
@@ -170,6 +168,26 @@ public class SrpConnectionPipelineIntegrationTests extends
 	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
 	public void testGetRangeSetRange() {
 		super.testGetRangeSetRange();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testIncrByDouble() {
+		connection.set("tdb", "4.5");
+		actual.add(connection.incrBy("tdb", 7.2));
+		actual.add(connection.get("tdb"));
+		// pipelined incrBy returns value as a byte[] instead of Double
+		verifyResults(Arrays.asList(new Object[] { "11.7" , "11.7" }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testHIncrByDouble() {
+		actual.add(connection.hSet("test", "key", "2.9"));
+		actual.add(connection.hIncrBy("test", "key", 3.5));
+		actual.add(connection.hGet("test", "key"));
+		// pipelined hIncrBy returns value as a byte[] instead of Double
+		verifyResults(Arrays.asList(new Object[] { 1l, "6.4", "6.4" }), actual);
 	}
 
 	protected Object convertResult(Object result) {

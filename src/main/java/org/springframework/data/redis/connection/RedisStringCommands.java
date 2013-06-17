@@ -50,6 +50,8 @@ public interface RedisStringCommands {
 
 	Long incrBy(byte[] key, long value);
 
+	Double incrBy(byte[] key, double value);
+
 	Long decr(byte[] key);
 
 	Long decrBy(byte[] key, long value);

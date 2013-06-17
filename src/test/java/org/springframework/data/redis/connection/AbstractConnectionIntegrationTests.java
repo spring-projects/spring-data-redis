@@ -748,6 +748,15 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testIncrByDouble() {
+		connection.set("tdb", "4.5");
+		actual.add(connection.incrBy("tdb", 7.2));
+		actual.add(connection.get("tdb"));
+		verifyResults(Arrays.asList(new Object[] { 11.7d, "11.7" }), actual);
+	}
+
+	@Test
 	public void testIncDecr() {
 		connection.set("incrtest", "0");
 		actual.add(connection.incr("incrtest"));
@@ -1336,6 +1345,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hIncrBy("test", "key", 3l));
 		actual.add(connection.hGet("test", "key"));
 		verifyResults(Arrays.asList(new Object[] { true, 5l, "5" }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testHIncrByDouble() {
+		actual.add(connection.hSet("test", "key", "2.9"));
+		actual.add(connection.hIncrBy("test", "key", 3.5));
+		actual.add(connection.hGet("test", "key"));
+		verifyResults(Arrays.asList(new Object[] { true, 6.4d, "6.4" }), actual);
 	}
 
 	@Test

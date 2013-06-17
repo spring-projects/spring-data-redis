@@ -232,6 +232,16 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testHIncrByDouble() {
+		super.testHIncrByDouble();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testIncrByDouble() {
+		super.testIncrByDouble();
+	}
+
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 
