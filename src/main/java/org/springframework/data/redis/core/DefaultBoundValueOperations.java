@@ -52,7 +52,10 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 		return ops.increment(getKey(), delta);
 	}
 
-	
+	public Double increment(double delta) {
+		return ops.increment(getKey(), delta);
+	}
+
 	public Integer append(String value) {
 		return ops.append(getKey(), value);
 	}

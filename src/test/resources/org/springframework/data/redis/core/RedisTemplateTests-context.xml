@@ -15,7 +15,7 @@
 		</property>
 	</bean>
 
-	<bean class="org.springframework.data.redis.core.RedisTemplate">
+	<bean class="org.springframework.data.redis.core.StringRedisTemplate">
 		<property name="connectionFactory" ref="lettuceConnectionFactory" />
 	</bean>
 

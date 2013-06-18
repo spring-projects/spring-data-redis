@@ -45,6 +45,8 @@ public interface ValueOperations<K, V> {
 
 	Long increment(K key, long delta);
 
+	Double increment(K key, double delta);
+
 	Integer append(K key, String value);
 
 	String get(K key, long start, long end);

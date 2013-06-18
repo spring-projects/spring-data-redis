@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
+
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -25,10 +29,6 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 /**
  *
@@ -74,6 +74,20 @@ public class RedisTemplateTests {
 				return (!redisTemplate.hasKey("testing"));
 			}
 		}, 400);
+	}
+
+	@Test
+	public void testKeys() throws Exception {
+		redisTemplate.opsForValue().set("foo", "bar");
+		assertNotNull(redisTemplate.keys("*"));
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test(expected = IllegalArgumentException.class)
+	public void testTemplateNotInitialized() throws Exception {
+		RedisTemplate tpl = new RedisTemplate();
+		tpl.setConnectionFactory(redisTemplate.getConnectionFactory());
+		tpl.exec();
 	}
 
 }

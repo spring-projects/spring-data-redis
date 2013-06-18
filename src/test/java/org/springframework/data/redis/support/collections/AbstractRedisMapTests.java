@@ -46,12 +46,12 @@ import org.junit.runners.Parameterized;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis Map.
@@ -221,10 +221,10 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(Long.valueOf(Long.valueOf((String)v1) + 10), map.increment(k1, 10));
 	}
 
-	@IfProfileValue(name = "redisVersion", value = "2.6")
 	@Test
 	public void testIncrementDouble() {
-		assumeTrue(valueFactory instanceof DoubleObjectFactory);
+		assumeTrue(RedisVersionUtils.atLeast("2.6", template.getConnectionFactory().getConnection()) &&
+				valueFactory instanceof DoubleObjectFactory);
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);

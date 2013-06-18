@@ -42,6 +42,8 @@ public interface BoundValueOperations<K, V> extends BoundKeyOperations<K> {
 
 	Long increment(long delta);
 
+	Double increment(double delta);
+
 	Integer append(String value);
 
 	Long size();

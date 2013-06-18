@@ -29,6 +29,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * Default implementation of {@link ValueOperations}.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
@@ -61,24 +62,23 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	
 	public Long increment(K key, final long delta) {
 		final byte[] rawKey = rawKey(key);
-		// TODO add conversion service in here ?
 		return execute(new RedisCallback<Long>() {
 			
 			public Long doInRedis(RedisConnection connection) {
-				if (delta == 1) {
-					return connection.incr(rawKey);
-				}
-
-				if (delta == -1) {
-					return connection.decr(rawKey);
-				}
-
+				return connection.incrBy(rawKey, delta);
+			}
+		}, true);
+	}
+	
+	public Double increment(K key, final double delta) {
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Double>() {
+			public Double doInRedis(RedisConnection connection) {
 				return connection.incrBy(rawKey, delta);
 			}
 		}, true);
 	}
 
-	
 	public Integer append(K key, String value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawString = rawString(value);
