@@ -27,6 +27,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -228,7 +229,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);
-		assertEquals(Double.valueOf(Double.valueOf((String)v1) + 3.4), map.increment(k1, 3.4));
+		DecimalFormat twoDForm = new DecimalFormat("#.##");
+		assertEquals(twoDForm.format(Double.valueOf((String)v1) + 3.4), twoDForm.format(map.increment(k1, 3.4)));
 	}
 
 	@Test
