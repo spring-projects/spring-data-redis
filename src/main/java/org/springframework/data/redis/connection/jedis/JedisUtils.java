@@ -34,6 +34,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
@@ -48,11 +49,13 @@ import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.util.SafeEncoder;
 
 /**
  * Helper class featuring methods for Jedis connection handling, providing support for exception translation. 
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public abstract class JedisUtils {
 
@@ -216,7 +219,7 @@ public abstract class JedisUtils {
 		String[] result = new String[raw.length];
 
 		for (int i = 0; i < raw.length; i++) {
-			result[i] = new String(raw[i]);
+			result[i] = SafeEncoder.encode(raw[i]);
 		}
 
 		return result;
@@ -230,4 +233,45 @@ public abstract class JedisUtils {
 		args.add(Protocol.toByteArray(timeout));
 		return args.toArray(new byte[args.size()][]);
 	}
+
+	static byte[] asBytes(int number) {
+		return String.valueOf(number).getBytes();
+	}
+
+	static String asString(byte[] raw) {
+		return SafeEncoder.encode(raw);
+	}
+
+	@SuppressWarnings("unchecked")
+	static Object convertScriptReturn(ReturnType returnType, Object result) {
+		if(result instanceof String) {
+			//evalsha converts byte[] to String. Convert back for consistency
+			return SafeEncoder.encode((String)result);
+		}
+		if(returnType == ReturnType.STATUS) {
+			return JedisUtils.asString((byte[])result);
+		}
+		if(returnType == ReturnType.BOOLEAN) {
+			// Lua false comes back as a null bulk reply
+			if(result == null) {
+				return Boolean.FALSE;
+			}
+			return ((Long)result == 1);
+		}
+		if(returnType  == ReturnType.MULTI) {
+			List<Object> resultList = (List<Object>) result;
+			List<Object> convertedResults = new ArrayList<Object>();
+			for(Object res: resultList) {
+				if(res instanceof String) {
+					//evalsha converts byte[] to String. Convert back for consistency
+					convertedResults.add(SafeEncoder.encode((String)res));
+				}else {
+					convertedResults.add(res);
+				}
+			}
+			return convertedResults;
+		}
+		return result;
+	}
+
 }

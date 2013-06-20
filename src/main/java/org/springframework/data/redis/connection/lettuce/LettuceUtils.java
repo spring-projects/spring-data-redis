@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
@@ -26,6 +27,7 @@ import java.util.Set;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -37,13 +39,15 @@ import com.lambdaworks.redis.KeyValue;
 import com.lambdaworks.redis.RedisCommandInterruptedException;
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.ScoredValue;
+import com.lambdaworks.redis.ScriptOutputType;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.protocol.Charsets;
 
 /**
- * Helper class featuring methods for Lettuce connection handling, providing support for exception translation.
+ * Helper class featuring methods for Lettuce connection handling, providing
+ * support for exception translation.
  * 
  * @author Costin Leau
  */
@@ -166,4 +170,37 @@ abstract class LettuceUtils {
 		list.add(blpop.value);
 		return list;
 	}
+
+	static ScriptOutputType toScriptOutputType(ReturnType returnType) {
+		switch (returnType) {
+		case BOOLEAN:
+			return ScriptOutputType.BOOLEAN;
+		case MULTI:
+			return ScriptOutputType.MULTI;
+		case VALUE:
+			return ScriptOutputType.VALUE;
+		case INTEGER:
+			return ScriptOutputType.INTEGER;
+		case STATUS:
+			return ScriptOutputType.STATUS;
+		default:
+			throw new IllegalArgumentException("Return type " + returnType
+					+ " is not a supported script output type");
+		}
+	}
+
+	static byte[][] extractScriptKeys(int numKeys, byte[]... keysAndArgs) {
+		if(numKeys > 0) {
+			return Arrays.copyOfRange(keysAndArgs, 0,numKeys);
+		}
+		return new byte[0][0];
+	}
+
+	static byte[][] extractScriptArgs(int numKeys, byte[]... keysAndArgs) {
+		if(keysAndArgs.length > numKeys) {
+			return Arrays.copyOfRange(keysAndArgs, numKeys, keysAndArgs.length);
+		}
+		return new byte[0][0];
+	}
+
 }

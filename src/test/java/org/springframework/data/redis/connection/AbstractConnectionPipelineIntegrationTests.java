@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -42,7 +41,6 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -960,6 +958,79 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 				Arrays.asList(new String[] { "foo", "bar" }) }), actual);
 	}
 
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptLoadEvalSha() {
+		// close the pipeline to get the return value of script load
+		getResults();
+		String sha1 = connection.scriptLoad("return KEYS[1]");
+		initConnection();
+		actual.add(connection.evalSha(sha1, ReturnType.VALUE, 2, "key1", "key2"));
+		verifyResults(Arrays.asList(new Object[] {"key1"}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayStrings() {
+		// close the pipeline to get the return value of script load
+		getResults();
+		String sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}");
+		initConnection();
+		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
+		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] {"key1", "arg1"})}), actual);
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+		getResults();
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+		getResults();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnFalse() {
+		// pipelined results don't get converted to Booleans
+		actual.add(connection.eval("return false", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { null }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnTrue() {
+		// pipelined results don't get converted to Booleans
+		actual.add(connection.eval("return true", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { 1l }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptExists() {
+		getResults();
+		String sha1 = connection.scriptLoad("return 'foo'");
+		initConnection();
+		actual.add(connection.scriptExists(sha1, "98777234"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {true, false})}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptFlush() {
+		getResults();
+		String sha1 = connection.scriptLoad("return KEYS[1]");
+		connection.scriptFlush();
+		initConnection();
+		actual.add(connection.scriptExists(sha1));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 0l })}), actual);
+	}
+
 	protected void initConnection() {
 		connection.openPipeline();
 	}
@@ -975,34 +1046,5 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 
 	protected List<Object> getResults() {
 		return connection.closePipeline();
-	}
-
-	protected List<Object> convertResults() {
-		List<Object> pipelinedResults = getResults();
-		List<Object> serializedResults = new ArrayList<Object>();
-		for (Object result : pipelinedResults) {
-			Object convertedResult = convertResult(result);
-			if (!"OK".equals(convertedResult) && !"QUEUED".equals(convertedResult)) {
-				serializedResults.add(convertedResult);
-			}
-		}
-		return serializedResults;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object convertResult(Object result) {
-		if (result instanceof List && !(((List) result).isEmpty())
-				&& ((List) result).get(0) instanceof byte[]) {
-			return (SerializationUtils.deserialize((List<byte[]>) result, stringSerializer));
-		} else if (result instanceof byte[]) {
-			return (stringSerializer.deserialize((byte[]) result));
-		} else if (result instanceof Map
-				&& ((Map) result).keySet().iterator().next() instanceof byte[]) {
-			return (SerializationUtils.deserialize((Map) result, stringSerializer));
-		} else if (result instanceof Set && !(((Set) result).isEmpty())
-				&& ((Set) result).iterator().next() instanceof byte[]) {
-			return (SerializationUtils.deserialize((Set) result, stringSerializer));
-		}
-		return result;
 	}
 }

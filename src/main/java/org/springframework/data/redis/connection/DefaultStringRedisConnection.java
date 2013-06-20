@@ -624,6 +624,30 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.restore(key, ttlInMillis, serializedValue);
 	}
 
+	public void scriptFlush() {
+		delegate.scriptFlush();
+	}
+
+	public void scriptKill() {
+		delegate.scriptKill();
+	}
+
+	public String scriptLoad(byte[] script) {
+		return delegate.scriptLoad(script);
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		return delegate.scriptExists(scriptSha1);
+	}
+
+	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return delegate.eval(script, returnType, numKeys, keysAndArgs);
+	}
+
+	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
+	}
+
 	//
 	// String methods
 	//
@@ -1234,5 +1258,27 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Long pTtl(String key) {
 		return pTtl(serialize(key));
+	}
+
+	public String scriptLoad(String script) {
+		return delegate.scriptLoad(serialize(script));
+	}
+
+	/**
+	 * NOTE: This method will not deserialize Strings returned by Lua scripts, as
+	 * they may not be encoded with the same serializer used here. They will
+	 * be returned as byte[]s
+	 */
+	public <T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs) {
+		return delegate.eval(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
+	}
+
+	/**
+	 * NOTE: This method will not deserialize Strings returned by Lua scripts, as
+	 * they may not be encoded with the same serializer used here. They will
+	 * be returned as byte[]s
+	 */
+	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs) {
+		return delegate.evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
 	}
 }

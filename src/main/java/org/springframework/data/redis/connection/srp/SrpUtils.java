@@ -29,9 +29,11 @@ import java.util.Set;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.jedis.JedisUtils;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.util.Assert;
 
@@ -40,6 +42,7 @@ import redis.reply.BulkReply;
 import redis.reply.IntegerReply;
 import redis.reply.MultiBulkReply;
 import redis.reply.Reply;
+import redis.reply.StatusReply;
 
 import com.google.common.base.Charsets;
 
@@ -102,6 +105,14 @@ abstract class SrpUtils {
 		}
 
 		return list;
+	}
+
+	static List<String> asStatusList(Reply[] replies) {
+		List<String> statuses = new ArrayList<String>();
+		for(Reply reply: replies) {
+			statuses.add(((StatusReply)reply).data());
+		}
+		return statuses;
 	}
 
 	static <T> List<T> toList(T[] byteArrays) {
@@ -272,5 +283,52 @@ abstract class SrpUtils {
 	static byte[] bitOp(BitOperation op) {
 		Assert.notNull(op, "The bit operation is required");
 		return op.name().toUpperCase().getBytes(Charsets.UTF_8);
+	}
+
+	static String asShasum(Reply reply) {
+		Object data = reply.data();
+		return (data instanceof String ? (String) data : new String((byte[]) data, Charsets.UTF_8));
+	}
+
+	static List<Boolean> asBooleanList(Reply reply) {
+		if(!(reply instanceof MultiBulkReply)) {
+			throw new IllegalArgumentException();
+		}
+		List<Boolean> results = new ArrayList<Boolean>();
+		for(Reply r: ((MultiBulkReply)reply).data()) {
+			results.add(SrpUtils.asBoolean((IntegerReply)r));
+		}
+		return results;
+	}
+
+	static List<Long> asIntegerList(Reply[] replies) {
+		List<Long> results = new ArrayList<Long>();
+		for(Reply reply: replies) {
+			results.add(((IntegerReply)reply).data());
+		}
+		return results;
+	}
+
+	static List<Object> asList(MultiBulkReply genericReply) {
+		Reply[] replies = genericReply.data();
+		List<Object> results = new ArrayList<Object>();
+		for(Reply reply: replies) {
+			results.add(reply.data());
+		}
+		return results;
+	}
+
+	static Object convertScriptReturn(ReturnType returnType, Reply reply) {
+		if(reply instanceof MultiBulkReply) {
+			return SrpUtils.asList((MultiBulkReply)reply);
+		}
+		if(returnType == ReturnType.BOOLEAN) {
+			// Lua false comes back as a null bulk reply
+			if(reply.data() == null) {
+				return Boolean.FALSE;
+			}
+			return ((Long)reply.data() == 1);
+		}
+		return reply.data();
 	}
 }

@@ -23,6 +23,7 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -116,6 +117,30 @@ public class LettuceConnectionTransactionIntegrationTests extends
 		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
 		List<Object> restoreResults = getResults();
 		assertTrue(restoreResults.get(0) instanceof RedisException);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+		List<Object> results = getResults();
+		assertTrue(results.get(0) instanceof RedisException);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+		List<Object> results = getResults();
+		assertTrue(results.get(0) instanceof RedisException);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptKill() {
+		// Impossible to call script kill in a tx because you can't issue the
+		// exec command while Redis is running a script
+		connection.scriptKill();
 	}
 
 	protected void initConnection() {

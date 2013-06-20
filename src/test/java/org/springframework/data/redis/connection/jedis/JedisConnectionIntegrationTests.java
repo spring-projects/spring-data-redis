@@ -21,7 +21,10 @@ import static org.junit.Assert.assertEquals;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -179,5 +182,17 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertEquals(largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
 		connection.hIncrBy(key, hkey, -2 * largeNumber);
 		assertEquals(-largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
 	}
 }

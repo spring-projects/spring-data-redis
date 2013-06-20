@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
@@ -42,7 +43,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import redis.reply.BulkReply;
+import redis.reply.IntegerReply;
 import redis.reply.Reply;
+import redis.reply.StatusReply;
 
 /**
  * Integration test of {@link SrpConnection} pipeline functionality
@@ -190,6 +193,11 @@ public class SrpConnectionPipelineIntegrationTests extends
 		verifyResults(Arrays.asList(new Object[] { 1l, "6.4", "6.4" }), actual);
 	}
 
+	@Ignore("https://github.com/spullara/redis-protocol/issues/25")
+	public void testScriptExists() {
+		// script_exists only returns one result and it's false
+	}
+
 	protected Object convertResult(Object result) {
 		Object convertedResult = super.convertResult(result);
 		if (convertedResult instanceof Reply[]) {
@@ -203,7 +211,11 @@ public class SrpConnectionPipelineIntegrationTests extends
 					stringTuples.add(new DefaultStringTuple(tuple, new String(tuple.getValue())));
 				}
 				return stringTuples;
-			} else {
+			} else if(((Reply[]) convertedResult).length > 0 && ((Reply[])convertedResult)[0] instanceof IntegerReply) {
+				return SrpUtils.asIntegerList((Reply[])convertedResult);
+			} else if(((Reply[]) convertedResult).length > 0 && ((Reply[])convertedResult)[0] instanceof StatusReply) {
+				return SrpUtils.asStatusList((Reply[])convertedResult);
+			}  else {
 				return SerializationUtils.deserialize(
 						SrpUtils.toBytesList((Reply[]) convertedResult), stringSerializer);
 			}

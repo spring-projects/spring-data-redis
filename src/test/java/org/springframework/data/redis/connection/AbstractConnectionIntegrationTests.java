@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.ArrayList;
@@ -33,10 +34,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +50,7 @@ import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -145,6 +149,152 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testPExpireAtKeyNotExists() {
 		assertFalse(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptLoadEvalSha() {
+		String sha1 = connection.scriptLoad("return KEYS[1]");
+		actual.add(connection.evalSha(sha1, ReturnType.VALUE, 2, "key1", "key2"));
+		verifyResults(Arrays.asList(new Object[] {"key1"}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayStrings() {
+		String sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}");
+		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"key1", "arg1"} )}), actual);
+	}
+
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnString() {
+		actual.add(connection.eval("return KEYS[1]", ReturnType.VALUE, 1, "foo"));
+		verifyResults(Arrays.asList(new Object[] {"foo"}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnNumber() {
+		actual.add(connection.eval("return 10", ReturnType.INTEGER, 0));
+		verifyResults(Arrays.asList(new Object[] {10l}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleOK() {
+		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
+		assertEquals(Arrays.asList(new Object[] { "OK" }), convertResults(false));
+	}
+
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnFalse() {
+		actual.add(connection.eval("return false", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { false }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnTrue() {
+		actual.add(connection.eval("return true", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { true }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayStrings() {
+		actual.add(connection.eval("return {KEYS[1],ARGV[1]}", ReturnType.MULTI, 1, "foo", "bar"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"foo", "bar"} )}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayNumbers() {
+		actual.add(connection.eval("return {1,2}", ReturnType.MULTI, 1, "foo", "bar"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, 2l} )}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayOKs() {
+		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+				ReturnType.MULTI, 0));
+		assertEquals(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}), convertResults(false));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayFalses() {
+		actual.add(connection.eval("return { false, false}", ReturnType.MULTI, 0));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {null, null} )}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayTrues() {
+		actual.add(connection.eval("return { true, true}", ReturnType.MULTI,0));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, 1l} )}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptExists() {
+		String sha1 = connection.scriptLoad("return 'foo'");
+		actual.add(connection.scriptExists(sha1, "98777234"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {true, false})}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
+	public void testScriptKill() throws Exception{
+		getResults();
+		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
+		initConnection();
+		final AtomicBoolean scriptDead = new AtomicBoolean(false);
+		Thread th = new Thread(new Runnable() {
+			public void run() {
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+						connectionFactory.getConnection());
+				try {
+					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
+				}catch(DataAccessException e) {
+					scriptDead.set(true);
+				}
+				conn2.close();
+			}
+		});
+		th.start();
+		Thread.sleep(1000);
+		connection.scriptKill();
+		getResults();
+		assertTrue(waitFor(new TestCondition() {
+			public boolean passes() {
+				return scriptDead.get();
+			}
+		}, 3000l));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptFlush() {
+		String sha1 = connection.scriptLoad("return KEYS[1]");
+		connection.scriptFlush();
+		actual.add(connection.scriptExists(sha1));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] { false })}), actual);
 	}
 
 	@Test
@@ -1394,7 +1544,51 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	protected void verifyResults(List<Object> expected, List<Object> actual) {
-		assertEquals(expected, actual);
+		assertEquals(expected, convertResults(true));
+	}
+
+	protected List<Object> convertResults() {
+		return convertResults(true);
+	}
+
+	protected List<Object> convertResults(boolean filterStatus) {
+		List<Object> actual = getResults();
+		List<Object> serializedResults = new ArrayList<Object>();
+		for (Object result : actual) {
+			Object convertedResult = convertResult(result);
+			if (filterStatus) {
+				if(!"OK".equals(convertedResult) && !"QUEUED".equals(convertedResult)) {
+					serializedResults.add(convertedResult);
+				}
+			}else {
+				serializedResults.add(convertedResult);
+			}
+		}
+		return serializedResults;
+	}
+
+	protected List<Object> getResults() {
+		return actual;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected Object convertResult(Object result) {
+		if (result instanceof List && !(((List) result).isEmpty())
+				&& ((List) result).get(0) instanceof byte[]) {
+			return (SerializationUtils.deserialize((List<byte[]>) result, stringSerializer));
+		} else if (result instanceof byte[]) {
+			return (stringSerializer.deserialize((byte[]) result));
+		} else if (result instanceof Map
+				&& ((Map) result).keySet().iterator().next() instanceof byte[]) {
+			return (SerializationUtils.deserialize((Map) result, stringSerializer));
+		} else if (result instanceof Set && !(((Set) result).isEmpty())
+				&& ((Set) result).iterator().next() instanceof byte[]) {
+			return (SerializationUtils.deserialize((Set) result, stringSerializer));
+		}
+		return result;
+	}
+
+	protected void initConnection() {
 	}
 
 	protected class KeyExpired implements TestCondition {

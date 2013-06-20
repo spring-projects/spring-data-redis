@@ -16,17 +16,26 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.RedisVersionUtils;
+import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -133,5 +142,36 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		connection.set("key1", "abcd");
 		connection.set("key2", "efgh");
 		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
+	}
+
+	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
+	public void testScriptKill() throws Exception{
+		getResults();
+		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
+		final AtomicBoolean scriptDead = new AtomicBoolean(false);
+		Thread th = new Thread(new Runnable() {
+			public void run() {
+				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
+						SettingsUtils.getPort());
+				factory2.afterPropertiesSet();
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+						factory2.getConnection());
+				try {
+					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
+				}catch(DataAccessException e) {
+					scriptDead.set(true);
+				}
+				conn2.close();
+			}
+		});
+		th.start();
+		Thread.sleep(1000);
+		connection.scriptKill();
+		assertTrue(waitFor(new TestCondition() {
+			public boolean passes() {
+				return scriptDead.get();
+			}
+		}, 3000l));
 	}
 }

@@ -262,4 +262,10 @@ public interface StringRedisConnection extends RedisConnection {
 	void subscribe(MessageListener listener, String... channels);
 
 	void pSubscribe(MessageListener listener, String... patterns);
+
+	String scriptLoad(String script);
+
+	<T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs);
+
+	<T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs);
 }

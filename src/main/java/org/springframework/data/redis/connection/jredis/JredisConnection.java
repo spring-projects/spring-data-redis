@@ -39,6 +39,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.util.Assert;
@@ -1223,7 +1224,36 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
+	 //
+	 // Scripting commands
+	 //
+
+
 	public void subscribe(MessageListener listener, byte[]... channels) {
+		throw new UnsupportedOperationException();
+	}
+
+	public void scriptFlush() {
+		throw new UnsupportedOperationException();
+	}
+
+	public void scriptKill() {
+		throw new UnsupportedOperationException();
+	}
+
+	public String scriptLoad(byte[] script) {
+		throw new UnsupportedOperationException();
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		throw new UnsupportedOperationException();
 	}
 }

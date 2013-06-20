@@ -10,7 +10,7 @@
 		reconnect them on next attempted use -->
 	<bean id="jedisConnectionFactory "
 		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
-		p:usePool="false">
+		p:usePool="false" p:timeout="60000">
 		<property name="hostName">
 			<bean class="org.springframework.data.redis.SettingsUtils"
 				factory-method="getHost" />

@@ -6,11 +6,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -69,6 +71,37 @@ public class LettuceConnectionPipelineTxIntegrationTests extends
 			fail("Expected RedisPipelineException restoring existing key");
 		}catch(RedisPipelineException e) {
 		}
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+		getResults();
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+		getResults();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleOK() {
+		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
+		// We pipeline the result of multi, so add an extra OK here
+		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }), convertResults(false));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayOKs() {
+		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+				ReturnType.MULTI, 0));
+		// We pipeline the result of multi, so add an extra OK here
+		assertEquals(Arrays.asList(new Object[] {"OK", Arrays.asList(new Object[] {"OK", "OK"} )}), convertResults(false));
 	}
 
 	protected void initConnection() {

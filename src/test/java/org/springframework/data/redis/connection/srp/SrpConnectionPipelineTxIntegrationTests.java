@@ -17,8 +17,8 @@ package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.List;
 

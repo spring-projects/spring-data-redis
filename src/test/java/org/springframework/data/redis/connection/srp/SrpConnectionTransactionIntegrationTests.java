@@ -98,6 +98,22 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
+		// as Exceptions
+	}
+
+	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
+		// as Exceptions
+	}
+
+	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {
 		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
 		// as Exceptions
@@ -117,6 +133,14 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 	public void testBitOpNotMultipleSources() {
 		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
 		// as Exceptions
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptKill() {
+		// Impossible to call script kill in a tx because you can't issue the
+		// exec command while Redis is running a script
+		connection.scriptKill();
 	}
 
 	protected void initConnection() {

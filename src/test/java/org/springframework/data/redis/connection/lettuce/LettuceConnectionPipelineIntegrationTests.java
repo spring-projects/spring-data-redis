@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.ArrayList;
@@ -29,14 +30,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisVersionUtils;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
@@ -350,6 +356,67 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		}finally {
 			getResults();
 		}
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnFalse() {
+		// Lettuce actually returns booleans, it's not an SDR conversion
+		actual.add(connection.eval("return false", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { false }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnTrue() {
+		// Lettuce actually returns booleans, it's not an SDR conversion
+		actual.add(connection.eval("return true", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { true }), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptFlush() {
+		getResults();
+		String sha1 = connection.scriptLoad("return KEYS[1]");
+		connection.scriptFlush();
+		initConnection();
+		actual.add(connection.scriptExists(sha1));
+		// Lettuce actually returns booleans, it's not an SDR conversion
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] { false })}), actual);
+	}
+
+	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
+	public void testScriptKill() throws Exception{
+		getResults();
+		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
+		initConnection();
+		final AtomicBoolean scriptDead = new AtomicBoolean(false);
+		Thread th = new Thread(new Runnable() {
+			public void run() {
+				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
+						SettingsUtils.getPort());
+				factory2.afterPropertiesSet();
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+						factory2.getConnection());
+				try {
+					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
+				}catch(DataAccessException e) {
+					scriptDead.set(true);
+				}
+				conn2.close();
+			}
+		});
+		th.start();
+		Thread.sleep(1000);
+		getResults();
+		connection.scriptKill();
+		assertTrue(waitFor(new TestCondition() {
+			public boolean passes() {
+				return scriptDead.get();
+			}
+		}, 3000l));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

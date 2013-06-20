@@ -33,6 +33,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.util.Assert;
@@ -1916,6 +1917,90 @@ public class SrpConnection implements RedisConnection {
 				return null;
 			}
 			return SrpUtils.toBytesList(client.hvals(key).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	 //
+	 // Scripting commands
+	 //
+
+
+	public void scriptFlush() {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_flush());
+				return;
+			}
+			client.script_flush();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public void scriptKill() {
+		if(isQueueing()) {
+			throw new UnsupportedOperationException("Script kill not permitted in a transaction");
+		}
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_kill());
+				return;
+			}
+			client.script_kill();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public String scriptLoad(byte[] script) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_load(script));
+				return null;
+			}
+			return SrpUtils.asShasum(client.script_load(script));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.script_exists((Object[])scriptSha1));
+				return null;
+			}
+			return SrpUtils.asBooleanList(client.script_exists_((Object[])scriptSha1));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.eval(script, numKeys, (Object[])keysAndArgs));
+				return null;
+			}
+			return (T) SrpUtils.convertScriptReturn(returnType, client.eval(script, numKeys,
+					(Object[])keysAndArgs));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.evalsha(scriptSha1, numKeys,  (Object[])keysAndArgs));
+				return null;
+			}
+			return (T) SrpUtils.convertScriptReturn(returnType,
+					client.evalsha(scriptSha1, numKeys,  (Object[])keysAndArgs));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

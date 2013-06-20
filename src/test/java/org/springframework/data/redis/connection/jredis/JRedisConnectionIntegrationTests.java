@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
 import org.junit.After;
@@ -34,9 +35,9 @@ import org.springframework.data.redis.connection.AbstractConnectionIntegrationTe
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
 
 /**
  * Integration test of {@link JredisConnection}
@@ -391,6 +392,107 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Test(expected=UnsupportedOperationException.class)
 	public void testIncrByDouble() {
 		super.testIncrByDouble();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptLoadEvalSha() {
+		super.testScriptLoadEvalSha();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayStrings() {
+		super.testEvalShaArrayStrings();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaNotFound() {
+		super.testEvalShaNotFound();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnString() {
+		super.testEvalReturnString();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnNumber() {
+		super.testEvalReturnNumber();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleOK() {
+		super.testEvalReturnSingleOK();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleError() {
+		super.testEvalReturnSingleError();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnFalse() {
+		super.testEvalReturnFalse();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnTrue() {
+		super.testEvalReturnTrue();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayStrings() {
+		super.testEvalReturnArrayStrings();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayNumbers() {
+		super.testEvalReturnArrayNumbers();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayOKs() {
+		super.testEvalReturnArrayOKs();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayFalses() {
+		super.testEvalReturnArrayFalses();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayTrues() {
+		super.testEvalReturnArrayTrues();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptExists() {
+		super.testScriptExists();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testScriptKill() throws Exception{
+		connection.scriptKill();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptFlush() {
+		super.testScriptFlush();
 	}
 
 	// Jredis returns null for rPush

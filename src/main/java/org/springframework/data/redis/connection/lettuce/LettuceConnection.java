@@ -39,6 +39,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.util.Assert;
@@ -1962,6 +1963,92 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+
+	 //
+	 // Scripting commands
+	 //
+
+	public void scriptFlush() {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().scriptFlush());
+				return;
+			}
+			getConnection().scriptFlush();
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public void scriptKill() {
+		if(isQueueing()) {
+			throw new UnsupportedOperationException("Script kill not permitted in a transaction");
+		}
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().scriptKill());
+				return;
+			}
+			getConnection().scriptKill();
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public String scriptLoad(byte[] script) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().scriptLoad(script));
+				return null;
+			}
+			return getConnection().scriptLoad(script);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public List<Boolean> scriptExists(String... scriptSha1) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().scriptExists(scriptSha1));
+				return null;
+			}
+			return getConnection().scriptExists(scriptSha1);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		try {
+			byte[][] keys = LettuceUtils.extractScriptKeys(numKeys, keysAndArgs);
+			byte[][] args = LettuceUtils.extractScriptArgs(numKeys, keysAndArgs);
+
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().eval(script, LettuceUtils.toScriptOutputType(returnType), keys, args));
+				return null;
+			}
+			return getConnection().eval(script, LettuceUtils.toScriptOutputType(returnType), keys, args);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		try {
+			byte[][] keys = LettuceUtils.extractScriptKeys(numKeys, keysAndArgs);
+			byte[][] args = LettuceUtils.extractScriptArgs(numKeys, keysAndArgs);
+
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().evalsha(scriptSha1, LettuceUtils.toScriptOutputType(returnType),
+						keys, args));
+				return null;
+			}
+			return getConnection().evalsha(scriptSha1, LettuceUtils.toScriptOutputType(returnType), keys, args);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
 
 	//
 	// Pub/Sub functionality

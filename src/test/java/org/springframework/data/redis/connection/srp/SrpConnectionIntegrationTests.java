@@ -18,10 +18,14 @@ package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
+
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -73,5 +77,19 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection.set("foo", "bar");
 		BulkReply reply = (BulkReply) connection.execute("GET", "foo");
 		assertEquals("bar", stringSerializer.deserialize(reply.data()));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayOKs() {
+		// SRP returns the Strings from individual StatusReplys in a MultiBulkReply, while other clients return as byte[]
+		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+				ReturnType.MULTI, 0));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}), actual);
+	}
+
+	@Ignore("https://github.com/spullara/redis-protocol/issues/25")
+	public void testScriptExists() {
+		//script_exists only returns one result and it's false
 	}
 }
