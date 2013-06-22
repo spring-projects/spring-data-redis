@@ -10,13 +10,13 @@
    as when using Redis transactions. For example:
    </para>
 
-   <programlisting lang="java"><![CDATA[ //execute a transaction
+   <programlisting language="java"><![CDATA[ //execute a transaction
 redisTemplate.execute(new SessionCallback<Object>() {
-	public Object execute(RedisOperations operations) throws DataAccessException {
-		operations.multi();
-		operations.opsForValue().set("key", "value");
-		List<Object> results =  operations.exec();
-		return null;
-	}
+    public Object execute(RedisOperations operations) throws DataAccessException {
+        operations.multi();
+        operations.opsForValue().set("key", "value");
+        List<Object> results =  operations.exec();
+        return null;
+    }
 });]]></programlisting>
 </section>

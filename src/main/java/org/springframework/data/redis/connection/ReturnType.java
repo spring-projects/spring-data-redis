@@ -23,5 +23,19 @@ package org.springframework.data.redis.connection;
  * 
  */
 public enum ReturnType {
-	BOOLEAN, INTEGER, MULTI, STATUS, VALUE
+
+	/** Returned as Boolean **/
+	BOOLEAN,
+
+	/** Returned as Long **/
+	INTEGER,
+
+	/** Returned as List<Object> **/
+	MULTI,
+
+	/** Returned as byte[] **/
+	STATUS,
+
+	/** Returned as byte[] **/
+	VALUE
 }

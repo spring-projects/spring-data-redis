@@ -395,6 +395,8 @@
     
     <xi:include href="redis-transactions.xml"/>
 
+    <xi:include href="redis-scripting.xml"/>
+
     <section id="redis:support">
       <title>Support Classes</title>
       

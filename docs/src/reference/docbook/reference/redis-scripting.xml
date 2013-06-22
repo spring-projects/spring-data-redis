@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="scripting">
+  <title>Redis Scripting</title>
+  <para>Redis versions 2.6 and higher provide support for execution of Lua scripts through the <ulink url="http://redis.io/commands/eval">eval</ulink> and
+    <ulink url="http://redis.io/commands/evalsha">evalsha</ulink> commands. These operations as well as other script management operations are available on the 
+    <interfacename>RedisConnection</interfacename> implementations.
+  </para>
+
+   <para>Future SDR versions may offer support for these scripting commands on a higher-level API, such as <literal>RedisTemplate</literal>.</para>
+   
+   <para>Here's an example script execution:</para>
+
+   <programlisting language="java"><![CDATA[// execute script
+Long magicNumber = redisTemplate.execute(new RedisCallback<Long>() {
+    public Long doInRedis(RedisConnection connection) throws DataAccessException {
+        return connection.eval("return 10", ReturnType.INTEGER, 0);
+    }
+});]]></programlisting>	
+
+    <para>The return values of <literal>eval</literal> and <literal>evalsha</literal> can be assigned to any type. However, they should
+    match the expected <literal>ReturnType</literal> passed to these methods. In the above example, we passed ReturnType.Integer, therefore
+    the return type of <literal>eval</literal> was a Long. Similarly, using ReturnType.VALUE will yield a byte[]. See the ReturnType javadoc
+    for details.</para>
+    
+</section>
