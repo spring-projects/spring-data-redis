@@ -22,7 +22,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.DefaultJredisPool;
+import org.springframework.data.redis.connection.jredis.JredisPool;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
@@ -93,7 +93,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplate.afterPropertiesSet();
 
 		// JRedis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new DefaultJredisPool(
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(
 				SettingsUtils.getHost(), SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 

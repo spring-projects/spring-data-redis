@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jredis;
 
 import org.jredis.ClientRuntimeException;
+import org.jredis.JRedis;
 import org.jredis.connector.Connection;
 import org.jredis.connector.Connection.Socket.Property;
 import org.jredis.connector.ConnectionSpec;
@@ -24,6 +25,7 @@ import org.jredis.ri.alphazero.connection.DefaultConnectionSpec;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
@@ -44,7 +46,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	private String password = null;
 	private int timeout;
 	private int dbIndex = DEFAULT_REDIS_DB;
-	private JredisPool pool;
+	private Pool<JRedis> pool;
 
 	private static final int DEFAULT_REDIS_PORT = 6379;
 	private static final int DEFAULT_REDIS_DB = 0;
@@ -67,7 +69,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		this.connectionSpec = connectionSpec;
 	}
 	
-	public JredisConnectionFactory(JredisPool pool) {
+	public JredisConnectionFactory(Pool<JRedis> pool) {
 		this.pool = pool;
 	}
 

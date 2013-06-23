@@ -15,7 +15,11 @@
  */
 package org.springframework.data.redis.connection.jredis;
 
-import org.jredis.ClientRuntimeException;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.fail;
+
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.jredis.JRedis;
 import org.jredis.RedisException;
 import org.jredis.connector.ConnectionSpec;
@@ -25,19 +29,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertNotSame;
-
-import static org.junit.Assert.assertNotNull;
+import org.springframework.data.redis.connection.PoolException;
 
 /**
- * Integration test of {@link DefaultJredisPool}
+ * Integration test of {@link JredisPool}
  * 
  * @author Jennifer Hickey
  * 
  */
-public class DefaultJredisPoolTests {
+public class JredisPoolTests {
 
 	private ConnectionSpec connectionSpec;
 
@@ -58,7 +58,7 @@ public class DefaultJredisPoolTests {
 
 	@Test
 	public void testGetResource() throws RedisException {
-		this.pool = new DefaultJredisPool(connectionSpec);
+		this.pool = new JredisPool(connectionSpec);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
 		client.ping();
@@ -69,13 +69,13 @@ public class DefaultJredisPoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new DefaultJredisPool(connectionSpec, poolConfig);
+		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
 		try {
 			pool.getResource();
-			fail("ClientRuntimeException should be thrown when pool exhausted");
-		} catch (ClientRuntimeException e) {
+			fail("PoolException should be thrown when pool exhausted");
+		} catch (PoolException e) {
 
 		}
 	}
@@ -84,16 +84,16 @@ public class DefaultJredisPoolTests {
 	public void testGetResourceValidate() {
 		Config poolConfig = new Config();
 		poolConfig.testOnBorrow = true;
-		this.pool = new DefaultJredisPool(connectionSpec, poolConfig);
+		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
 	}
 
-	@Test(expected = ClientRuntimeException.class)
+	@Test(expected = PoolException.class)
 	public void testGetResourceCreationUnsuccessful() {
 		// Config poolConfig = new Config();
 		// poolConfig.testOnBorrow = true;
-		this.pool = new DefaultJredisPool(DefaultConnectionSpec.newSpec(SettingsUtils.getHost(), 3333, 0,
+		this.pool = new JredisPool(DefaultConnectionSpec.newSpec(SettingsUtils.getHost(), 3333, 0,
 				null));
 		pool.getResource();
 	}
@@ -103,7 +103,7 @@ public class DefaultJredisPoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new DefaultJredisPool(connectionSpec);
+		this.pool = new JredisPool(connectionSpec);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
 		pool.returnResource(client);
@@ -115,7 +115,7 @@ public class DefaultJredisPoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new DefaultJredisPool(connectionSpec, poolConfig);
+		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
 		pool.returnBrokenResource(client);
@@ -130,13 +130,13 @@ public class DefaultJredisPoolTests {
 
 	@Test
 	public void testCreateWithHostAndPort() {
-		this.pool = new DefaultJredisPool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		this.pool = new JredisPool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		assertNotNull(pool.getResource());
 	}
 
 	@Test
 	public void testCreateWithHostPortAndDbIndex() {
-		this.pool = new DefaultJredisPool(SettingsUtils.getHost(), SettingsUtils.getPort(), 1, null, 0);
+		this.pool = new JredisPool(SettingsUtils.getHost(), SettingsUtils.getPort(), 1, null, 0);
 		assertNotNull(pool.getResource());
 	}
 

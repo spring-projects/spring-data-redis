@@ -92,7 +92,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	@Test
 	public void testConnectionStaysOpenWhenPooled() {
-		JredisConnectionFactory factory2 = new JredisConnectionFactory(new DefaultJredisPool(
+		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(
 				SettingsUtils.getHost(), SettingsUtils.getPort()));
 		RedisConnection conn2 = factory2.getConnection();
 		conn2.close();
@@ -104,7 +104,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		Config config = new Config();
 		config.maxActive = 1;
 		config.maxWait = 1;
-		JredisConnectionFactory factory2 = new JredisConnectionFactory(new DefaultJredisPool(
+		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(
 				SettingsUtils.getHost(), SettingsUtils.getPort(), config));
 		RedisConnection conn2 = factory2.getConnection();
 		((JRedis) conn2.getNativeConnection()).quit();

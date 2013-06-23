@@ -15,42 +15,200 @@
  */
 package org.springframework.data.redis.connection.jredis;
 
-import org.jredis.ClientRuntimeException;
+import org.apache.commons.pool.BasePoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.jredis.JRedis;
+import org.jredis.connector.Connection;
+import org.jredis.connector.Connection.Socket.Property;
+import org.jredis.connector.ConnectionSpec;
+import org.jredis.ri.alphazero.JRedisClient;
+import org.jredis.ri.alphazero.connection.DefaultConnectionSpec;
+import org.springframework.data.redis.connection.Pool;
+import org.springframework.data.redis.connection.PoolException;
+import org.springframework.util.StringUtils;
 
 /**
- * Pool of {@link JRedis} connection objects.
+ * JRedis implementation of {@link Pool}
  * 
  * @author Jennifer Hickey
  * 
  */
-public interface JredisPool {
+public class JredisPool implements Pool<JRedis> {
+
+	private final GenericObjectPool internalPool;
+
+	/**
+	 * Uses the {@link Config} and {@link ConnectionSpec} defaults for
+	 * configuring the connection pool
+	 *
+	 * @param hostName
+	 *            The Redis host
+	 * @param port
+	 *            The Redis port
+	 */
+	public JredisPool(String hostName, int port) {
+		this(hostName, port, 0, null, 0, new Config());
+	}
+
+	/**
+	 * Uses the {@link ConnectionSpec} defaults for configuring the connection
+	 * pool
+	 * 
+	 * @param hostName
+	 *            The Redis host
+	 * @param port
+	 *            The Redis port
+	 * @param poolConfig
+	 *            The pool {@link Config}
+	 */
+	public JredisPool(String hostName, int port, Config poolConfig) {
+		this(hostName, port, 0, null, 0, poolConfig);
+	}
 
 	/**
 	 * 
-	 * @return A {@link JRedis} connection, if available. Throws a
-	 *         {@link ClientRuntimeException} if a connection cannot be borrowed
-	 *         from the pool
+	 * Uses the {@link Config} defaults for configuring the connection pool
+	 *
+	 * @param connectionSpec
+	 *            The {@link ConnectionSpec} for connecting to Redis
+	 *
 	 */
-	JRedis getResource();
+	public JredisPool(ConnectionSpec connectionSpec) {
+		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), new Config());
+	}
 
 	/**
-	 * 
-	 * @param resource
-	 *            A broken {@link JRedis} connection that should be invalidated
+	 *
+	 * @param connectionSpec
+	 *            The {@link ConnectionSpec} for connecting to Redis
+	 *
+	 * @param poolConfig
+	 *            The pool {@link Config}
 	 */
-	void returnBrokenResource(final JRedis resource);
+	public JredisPool(ConnectionSpec connectionSpec, Config poolConfig) {
+		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), poolConfig);
+	}
 
 	/**
-	 * 
-	 * @param resource
-	 *            A {@link JRedis} connection to return to the pool
+	 * Uses the {@link Config} defaults for configuring the connection pool
+	 *
+	 * @param hostName
+	 *            The Redis host
+	 * @param port
+	 *            The Redis port
+	 * @param dbIndex
+	 *            The index of the database all connections should use. The
+	 *            database will only be selected on initial creation of the
+	 *            pooled {@link JRedis} instances. Since calling select directly
+	 *            on {@link JRedis} is not supported, it is assumed that
+	 *            connections can be re-used without subsequent selects.
+	 * @param password
+	 *            The password used for authenticating with the Redis server or
+	 *            null if no password required
+	 * @param timeout
+	 *            The socket timeout or 0 to use the default socket timeout
 	 */
-	void returnResource(final JRedis resource);
+	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout) {
+		this(hostName, port, dbIndex, password, timeout, new Config());
+	}
 
 	/**
-	 * Destroys the connection pool
+	 *
+	 * @param hostName
+	 *            The Redis host
+	 * @param port
+	 *            The Redis port
+	 * @param dbIndex
+	 *            The index of the database all connections should use
+	 * @param password
+	 *            The password used for authenticating with the Redis server or
+	 *            null if no password required
+	 * @param timeout
+	 *            The socket timeout or 0 to use the default socket timeout
+	 * @param poolConfig
+	 *            The pool {@link COnfig}
 	 */
-	void destroy();
+	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout,
+			Config poolConfig) {
+		ConnectionSpec connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, dbIndex, null);
+		connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
+		if (StringUtils.hasLength(password)) {
+			connectionSpec.setCredentials(password);
+		}
+		if (timeout > 0) {
+			connectionSpec.setSocketProperty(Property.SO_TIMEOUT, timeout);
+		}
+		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), poolConfig);
+	}
+
+	public JRedis getResource() {
+		try {
+			return (JRedis) internalPool.borrowObject();
+		} catch (Exception e) {
+			throw new PoolException("Could not get a resource from the pool", e);
+		}
+	}
+
+	public void returnBrokenResource(final JRedis resource) {
+		try {
+			internalPool.invalidateObject(resource);
+		} catch (Exception e) {
+			throw new PoolException("Could not invalidate the broken resource", e);
+		}
+	}
+
+	public void returnResource(final JRedis resource) {
+		try {
+			internalPool.returnObject(resource);
+		} catch (Exception e) {
+			throw new PoolException("Could not return the resource to the pool", e);
+		}
+	}
+
+	public void destroy() {
+		try {
+			internalPool.close();
+		} catch (Exception e) {
+			throw new PoolException("Could not destroy the pool", e);
+		}
+	}
+
+	private static class JredisFactory extends BasePoolableObjectFactory {
+
+		private final ConnectionSpec connectionSpec;
+
+		public JredisFactory(ConnectionSpec connectionSpec) {
+			super();
+			this.connectionSpec = connectionSpec;
+		}
+
+		public Object makeObject() throws Exception {
+			return new JRedisClient(connectionSpec);
+		}
+
+		public void destroyObject(final Object obj) throws Exception {
+			if (obj instanceof JRedis) {
+				try {
+					((JRedis) obj).quit();
+				}catch(Exception e) {
+					// Errors may happen if returning a broken resource
+				}
+			}
+		}
+
+		public boolean validateObject(final Object obj) {
+			if (obj instanceof JRedis) {
+				try {
+					((JRedis) obj).ping();
+					return true;
+				} catch (Exception e) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+	}
 
 }

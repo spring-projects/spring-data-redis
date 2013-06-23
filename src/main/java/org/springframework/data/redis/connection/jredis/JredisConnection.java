@@ -38,6 +38,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
@@ -57,7 +58,7 @@ public class JredisConnection implements RedisConnection {
 	private static final Method SERVICE_REQUEST;
 
 	private final JRedis jredis;
-	private final JredisPool pool;
+	private final Pool<JRedis> pool;
 	private boolean isClosed = false;
 	/** flag indicating whether the connection needs to be dropped or not */
 	private boolean broken = false;
@@ -77,7 +78,7 @@ public class JredisConnection implements RedisConnection {
 		this(jredis, null);
 	}
 
-	public JredisConnection(JRedis jredis, JredisPool pool) {
+	public JredisConnection(JRedis jredis, Pool<JRedis> pool) {
 		Assert.notNull(jredis, "a not-null instance required");
 		this.jredis = jredis;
 		this.pool = pool;
