@@ -883,6 +883,11 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
+	public Set<byte[]> sRandMember(byte[] key, long count) {
+		throw new UnsupportedOperationException();
+	}
+
+
 	public Boolean sRem(byte[] key, byte[] value) {
 		try {
 			return jredis.srem(key, value);

@@ -42,6 +42,7 @@ import redis.Command;
 import redis.client.RedisClient;
 import redis.client.RedisClient.Pipeline;
 import redis.client.RedisException;
+import redis.reply.MultiBulkReply;
 import redis.reply.Reply;
 
 import com.google.common.base.Charsets;
@@ -1383,6 +1384,17 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Set<byte[]> sRandMember(byte[] key, long count) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.srandmember(key, count));
+				return null;
+			}
+			return SrpUtils.toSet(((MultiBulkReply)client.srandmember(key, count)).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 
 	public Boolean sRem(byte[] key, byte[] value) {
 		try {

@@ -1167,6 +1167,41 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testSRandMemberKeyNotExists() {
+		actual.add(connection.sRandMember("notexist"));
+		assertNull(convertResults().get(0));
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCount() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sAdd("myset", "baz"));
+		actual.add(connection.sRandMember("myset", 2));
+		assertTrue(((Set)convertResults().get(3)).size() == 2);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountNegative() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sRandMember("myset", -2));
+		// APIs filter out duplicates so the negative has no effect
+		assertTrue(((Set)convertResults().get(1)).size() == 1);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountKeyNotExists() {
+		actual.add(connection.sRandMember("notexist", 2));
+		assertTrue(((Set)convertResults().get(0)).isEmpty());
+	}
+
+	@Test
 	public void testSRem() {
 		connection.sAdd("myset", "foo");
 		connection.sAdd("myset", "bar");

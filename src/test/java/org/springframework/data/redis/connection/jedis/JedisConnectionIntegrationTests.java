@@ -158,6 +158,24 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		super.testIncrByDouble();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCount() {
+		super.testSRandMemberCount();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountKeyNotExists() {
+		super.testSRandMemberCountKeyNotExists();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountNegative() {
+		super.testSRandMemberCountNegative();
+	}
+
 	@Test
 	public void testIncrDecrByLong() {
 		String key = "test.count";

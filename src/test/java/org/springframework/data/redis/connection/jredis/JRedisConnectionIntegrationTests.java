@@ -495,6 +495,24 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testScriptFlush();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCount() {
+		super.testSRandMemberCount();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountKeyNotExists() {
+		super.testSRandMemberCountKeyNotExists();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountNegative() {
+		super.testSRandMemberCountNegative();
+	}
+
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {

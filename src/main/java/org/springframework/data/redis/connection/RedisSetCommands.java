@@ -52,4 +52,6 @@ public interface RedisSetCommands {
 	Set<byte[]> sMembers(byte[] key);
 
 	byte[] sRandMember(byte[] key);
+
+	Set<byte[]> sRandMember(byte[] key, long count);
 }

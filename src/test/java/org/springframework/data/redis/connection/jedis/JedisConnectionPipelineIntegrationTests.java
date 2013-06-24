@@ -345,6 +345,24 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testScriptFlush();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCount() {
+		super.testSRandMemberCount();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountKeyNotExists() {
+		super.testSRandMemberCountKeyNotExists();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountNegative() {
+		super.testSRandMemberCountNegative();
+	}
+
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 

@@ -1432,6 +1432,18 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	public Set<byte[]> sRandMember(byte[] key, long count) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().srandmember(key, count));
+				return null;
+			}
+			return getConnection().srandmember(key, count);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	public Boolean sRem(byte[] key, byte[] value) {
 		try {
 			if (isPipelined()) {
