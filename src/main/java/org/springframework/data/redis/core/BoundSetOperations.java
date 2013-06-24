@@ -62,6 +62,8 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	V randomMember();
 
+	Set<V> randomMembers(long count);
+
 	Boolean remove(Object o);
 
 	V pop();

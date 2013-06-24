@@ -162,6 +162,18 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		}, true);
 	}
 
+
+	public Set<V> randomMembers(K key, final long count) {
+		final byte[] rawKey = rawKey(key);
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.sRandMember(rawKey, count);
+			}
+		}, true);
+
+		return deserializeValues(rawValues);
+	}
+
 	
 	public Boolean remove(K key, Object o) {
 		final byte[] rawKey = rawKey(key);

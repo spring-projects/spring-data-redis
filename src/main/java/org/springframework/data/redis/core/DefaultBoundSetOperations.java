@@ -113,12 +113,17 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 		return ops.randomMember(getKey());
 	}
 
+
+	public Set<V> randomMembers(long count) {
+		return ops.randomMembers(getKey(), count);
+	}
+
 	
 	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}
-
 	
+
 	public V pop() {
 		return ops.pop(getKey());
 	}

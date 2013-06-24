@@ -60,6 +60,8 @@ public interface SetOperations<K, V> {
 
 	V randomMember(K key);
 
+	Set<V> randomMembers(K key, long count);
+
 	Boolean remove(K key, Object o);
 
 	V pop(K key);
