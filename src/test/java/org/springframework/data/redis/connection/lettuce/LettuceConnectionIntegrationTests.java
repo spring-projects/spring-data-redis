@@ -16,13 +16,12 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Ignore;
@@ -35,11 +34,14 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.lambdaworks.redis.RedisAsyncConnection;
 
 /**
  * Integration test of {@link LettuceConnection}
@@ -104,14 +106,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		} catch (RedisSystemException e) {
 			// expected, can't resume tx after closing conn
 		}
-		// can do normal ops after closing
-		connection.get("txclose");
-
-		// can complete a new tx after closing
-		connection.multi();
-		connection.set("txclose", "bar");
-		List<Object> results = connection.exec();
-		assertEquals("OK", results.get(0));
 	}
 
 	@Test
@@ -120,20 +114,101 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		connection.bLPop(1, "what".getBytes());
 		connection.close();
 
-		// can do blocking ops after closing
+		// can still operate on shared conn
 		connection.lPush("what", "boo");
-		connection.bLPop(1, "what".getBytes());
 
-		// we can do regular ops
-		connection.get("somekey");
+		try {
+			// can't do blocking ops after closing
+			connection.bLPop(1, "what".getBytes());
+			fail("Expected exception using a closed conn for dedicated ops");
+		}catch(RedisSystemException e) {
+		}
+	}
 
-		// we can start a tx
+	@Test
+	public void testClosePooledConnectionWithShared() {
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort(),
+				new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
+		factory2.afterPropertiesSet();
+		RedisConnection connection = factory2.getConnection();
+		// Use the connection to make sure the channel is initialized, else nothing happens on close
+		connection.ping();
+		connection.close();
+		// The shared connection should not be closed
+		connection.ping();
+
+		// The dedicated connection should not be closed b/c it's part of a pool
 		connection.multi();
+		factory2.destroy();
+	}
+
+	@Test
+	public void testClosePooledConnectionNotShared() {
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort(),
+				new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
+		factory2.setShareNativeConnection(false);
+		factory2.afterPropertiesSet();
+		RedisConnection connection = factory2.getConnection();
+		// Use the connection to make sure the channel is initialized, else nothing happens on close
+		connection.ping();
+		connection.close();
+		// The dedicated connection should not be closed
+		connection.ping();
+		factory2.destroy();
+	}
+
+	@Test
+	public void testCloseNonPooledConnectionNotShared()  {
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		factory2.setShareNativeConnection(false);
+		factory2.afterPropertiesSet();
+		RedisConnection connection = factory2.getConnection();
+		// Use the connection to make sure the channel is initialized, else nothing happens on close
+		connection.ping();
+		connection.close();
+		// The dedicated connection should be closed
+		try {
+			connection.set("foo".getBytes(), "bar".getBytes());
+			fail("Exception should be thrown trying to use a closed connection");
+		}catch(RedisSystemException e) {
+		}
+		factory2.destroy();
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testCloseReturnBrokenResourceToPool() {
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort(),
+				new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
+		factory2.setShareNativeConnection(false);
+		factory2.afterPropertiesSet();
+		RedisConnection connection = factory2.getConnection();
+		// Use the connection to make sure the channel is initialized, else nothing happens on close
+		connection.ping();
+		((RedisAsyncConnection)connection.getNativeConnection()).close();
+		try {
+			connection.ping();
+			fail("Exception should be thrown trying to use a closed connection");
+		}catch(RedisSystemException e) {
+		}
+		connection.close();
+		factory2.destroy();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		connection.select(1);
+	}
+
+	@Test
+	public void testSelectNotShared() {
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort(),
+				new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
+		factory2.setShareNativeConnection(false);
+		factory2.afterPropertiesSet();
+		RedisConnection connection = factory2.getConnection();
+		connection.select(2);
+		factory2.destroy();
 	}
 
 	@Test(expected=UnsupportedOperationException.class)

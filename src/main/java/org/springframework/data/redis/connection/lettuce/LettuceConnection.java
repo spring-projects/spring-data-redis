@@ -36,6 +36,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
@@ -47,6 +48,7 @@ import org.springframework.util.ObjectUtils;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisCommandInterruptedException;
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.ZStoreArgs;
@@ -65,16 +67,10 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  */
 public class LettuceConnection implements RedisConnection {
 
-	private final com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncConn;
-	private final com.lambdaworks.redis.RedisConnection<byte[], byte[]> con;
-
-	// Connection to do tx operations - not shared among threads like asyncConn
-	private com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncTxConn;
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> txConn;
-
-	// Connection to do blocking operations - not shared among threads like asyncConn
-	private com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncBlockingConn;
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> blockingConn;
+	private final com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncSharedConn;
+	private final com.lambdaworks.redis.RedisConnection<byte[], byte[]> sharedConn;
+	private com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncDedicatedConn;
+	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> dedicatedConn;
 
 	private final RedisCodec<byte[], byte[]> codec = LettuceUtils.CODEC;
 	private final long timeout;
@@ -83,10 +79,22 @@ public class LettuceConnection implements RedisConnection {
 	private boolean isClosed = false;
 	private boolean isMulti = false;
 	private boolean isPipelined = false;
-	private boolean closeNativeConnection = true;
 	private List<Command<?, ?, ?>> ppline;
 	private RedisClient client;
 	private volatile LettuceSubscription subscription;
+	private Pool<RedisAsyncConnection<byte[], byte[]>> pool;
+	/** flag indicating whether the connection needs to be dropped or not */
+	private boolean broken = false;
+
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
+			RedisClient client) {
+		this(null, dedicatedConnection, timeout, client, null);
+	}
+
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
+			RedisClient client, Pool<RedisAsyncConnection<byte[], byte[]>> pool) {
+		this(null, dedicatedConnection, timeout, client, pool);
+	}
 
 	/**
 	 * Instantiates a new lettuce connection.
@@ -95,9 +103,10 @@ public class LettuceConnection implements RedisConnection {
 	 * @param timeout the connection timeout (in milliseconds)
 	 * @param client The Lettuce client
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> connection, long timeout,
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
+			com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
 			RedisClient client) {
-		this(connection, timeout, client, true);
+		this(sharedConnection, dedicatedConnection, timeout, client, null);
 	}
 
 	/**
@@ -109,22 +118,30 @@ public class LettuceConnection implements RedisConnection {
 	 * @param closeNativeConnection True if native connection should be called on {@link #close()}. This should
 	 * be set to false if the native connection is shared.
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> connection, long timeout,
-			RedisClient client, boolean closeNativeConnection) {
-		Assert.notNull(connection, "a valid connection is required");
-
-		this.asyncConn = connection;
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
+			com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
+			RedisClient client, Pool<RedisAsyncConnection<byte[], byte[]>> pool) {
+		Assert.notNull(dedicatedConnection, "a valid dedicated connection is required");
+		this.asyncSharedConn = sharedConnection;
+		this.asyncDedicatedConn = dedicatedConnection;
 		this.timeout = timeout;
-		this.con = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(asyncConn);
+		this.sharedConn = sharedConnection != null ?
+				new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(asyncSharedConn) : null;
+		this.dedicatedConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(dedicatedConnection);
 		this.client = client;
-		this.closeNativeConnection = closeNativeConnection;
+		this.pool = pool;
 	}
 
 	protected DataAccessException convertLettuceAccessException(Exception ex) {
 		if (ex instanceof RedisException) {
+			if(!(ex instanceof RedisCommandInterruptedException)) {
+				// Some connection issues (i.e. connection is closed) are thrown as RedisExceptions
+				broken = true;
+			}
 			return LettuceUtils.convertRedisAccessException((RedisException) ex);
 		}
 		if (ex instanceof ChannelException) {
+			broken = true;
 			return new RedisConnectionFailureException("Redis connection failed", ex);
 		}
 		if (ex instanceof TimeoutException) {
@@ -167,24 +184,19 @@ public class LettuceConnection implements RedisConnection {
 	public void close() throws DataAccessException {
 		isClosed = true;
 
-		if(asyncBlockingConn != null) {
-			asyncBlockingConn.close();
-			asyncBlockingConn = null;
-			blockingConn = null;
-		}
-
-		if(asyncTxConn != null) {
-			asyncTxConn.close();
-			asyncTxConn = null;
-			txConn = null;
-		}
-
-		if(closeNativeConnection) {
-			try {
-				asyncConn.close();
-			} catch (RuntimeException ex) {
-				throw convertLettuceAccessException(ex);
+		if(pool != null) {
+			if (!broken) {
+				pool.returnResource(asyncDedicatedConn);
+			}else {
+				pool.returnBrokenResource(asyncDedicatedConn);
 			}
+			return;
+		}
+
+		try {
+			asyncDedicatedConn.close();
+		} catch (RuntimeException ex) {
+			throw convertLettuceAccessException(ex);
 		}
 
 		if (subscription != null) {
@@ -712,8 +724,18 @@ public class LettuceConnection implements RedisConnection {
 
 
 	public void select(int dbIndex) {
-		throw new UnsupportedOperationException("Selecting a new database not supported due to shared connection. " +
+		if(asyncSharedConn != null) {
+			throw new UnsupportedOperationException("Selecting a new database not supported due to shared connection. " +
 				"Use separate ConnectionFactorys to work with multiple databases");
+		}
+		try {
+			if (isPipelined()) {
+				throw new UnsupportedOperationException("Lettuce blocks for #select");
+			}
+			getConnection().select(dbIndex);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 
@@ -2133,48 +2155,37 @@ public class LettuceConnection implements RedisConnection {
 		if(isQueueing()) {
 			return getAsyncTxConnection();
 		}
-		return asyncConn;
+		if(asyncSharedConn != null) {
+			return asyncSharedConn;
+		}
+		return asyncDedicatedConn;
 	}
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getConnection() {
 		if(isQueueing()) {
 			return getTxConnection();
 		}
-		return con;
+		if(sharedConn != null) {
+			return sharedConn;
+		}
+		return dedicatedConn;
 	}
 
 	private RedisAsyncConnection<byte[], byte[]> getAsyncBlockingConnection() {
-		if(isQueueing()) {
-			return getAsyncTxConnection();
-		}
-		if(asyncBlockingConn ==  null) {
-			asyncBlockingConn = client.connectAsync(LettuceUtils.CODEC);
-		}
-		return asyncBlockingConn;
+		return asyncDedicatedConn;
 	}
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getBlockingConnection() {
-		if(isQueueing()) {
-			return getTxConnection();
-		}
-		if(blockingConn ==  null) {
-			blockingConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(getAsyncBlockingConnection());
-		}
-		return blockingConn;
+		return dedicatedConn;
 	}
 
 	private RedisAsyncConnection<byte[], byte[]> getAsyncTxConnection() {
-		if(asyncTxConn == null) {
-			asyncTxConn = client.connectAsync(LettuceUtils.CODEC);
-		}
-		return asyncTxConn;
+		return asyncDedicatedConn;
 	}
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getTxConnection() {
-		if(txConn == null) {
-			txConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(getAsyncTxConnection());
-		}
-		return txConn;
+		return dedicatedConn;
+
 	}
 
 	private Future<Long> asyncBitOp(BitOperation op, byte[] destination, byte[]... keys) {

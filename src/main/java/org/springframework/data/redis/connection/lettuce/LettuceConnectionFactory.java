@@ -24,6 +24,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
@@ -45,6 +46,11 @@ import com.lambdaworks.redis.RedisException;
  * therefore it is not validated by default on {@link #getConnection()}. Use
  * {@link #setValidateConnection(boolean)} to change this behavior if necessary.
  *
+ * Inject a {@link Pool} to pool dedicated connections. If shareNativeConnection is
+ * true, the pool will be used to select a connection for blocking and tx operations only,
+ * which should not share a connection. If native connection sharing is disabled,
+ * the selected connection will be used for all operations.
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  */
@@ -60,6 +66,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
 	private RedisAsyncConnection<byte[], byte[]> connection;
+	private Pool<RedisAsyncConnection<byte[], byte[]>> pool;
 	private int dbIndex = 0;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
@@ -80,6 +87,12 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.port = port;
 	}
 
+	public LettuceConnectionFactory(String host, int port, Pool<RedisAsyncConnection<byte[], byte[]>> pool) {
+		this.hostName = host;
+		this.port = port;
+		this.pool = pool;
+	}
+
 	public void afterPropertiesSet() {
 		client = new RedisClient(hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
@@ -95,11 +108,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public RedisConnection getConnection() {
-		RedisAsyncConnection<byte[], byte[]> nativeConnection = getNativeConnection();
-		if (dbIndex > 0) {
-			nativeConnection.select(dbIndex);
-		}
-		return new LettuceConnection(nativeConnection, timeout, client, !shareNativeConnection);
+		return new LettuceConnection(getSharedConnection(), createLettuceConnector(false), timeout, client, pool);
 	}
 
 	public void initConnection() {
@@ -107,7 +116,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			if (this.connection != null) {
 				resetConnection();
 			}
-			this.connection = createLettuceConnector();
+			this.connection = createLettuceConnector(true);
 		}
 	}
 
@@ -272,7 +281,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.dbIndex = index;
 	}
 
-	protected RedisAsyncConnection<byte[], byte[]> getNativeConnection() {
+	protected RedisAsyncConnection<byte[], byte[]> getSharedConnection() {
 		if (shareNativeConnection) {
 			synchronized (this.connectionMonitor) {
 				if (this.connection == null) {
@@ -284,13 +293,20 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 				return this.connection;
 			}
 		} else {
-			return createLettuceConnector();
+			return null;
 		}
 	}
 
-	private RedisAsyncConnection<byte[], byte[]> createLettuceConnector() {
+	protected RedisAsyncConnection<byte[], byte[]> createLettuceConnector(boolean shared) {
+		if(pool != null && !shared) {
+			return pool.getResource();
+		}
 		try {
-			return client.connectAsync(LettuceUtils.CODEC);
+			RedisAsyncConnection<byte[], byte[]> dedicatedConnection = client.connectAsync(LettuceUtils.CODEC);
+			if(dbIndex > 0) {
+				dedicatedConnection.select(dbIndex);
+			}
+			return dedicatedConnection;
 		} catch (RedisException e) {
 			throw new RedisConnectionFailureException("Unable to connect to Redis on " +
 					getHostName() + ":" + getPort(), e);
