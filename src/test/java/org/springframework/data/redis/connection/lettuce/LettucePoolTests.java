@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.PoolConfig;
 import org.springframework.data.redis.connection.PoolException;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
@@ -79,8 +80,8 @@ public class LettucePoolTests {
 
 	@Test
 	public void testGetResourceValidate() {
-		Config poolConfig = new Config();
-		poolConfig.testOnBorrow = true;
+		PoolConfig poolConfig = new PoolConfig();
+		poolConfig.setTestOnBorrow(true);
 		this.pool = new LettucePool(client, poolConfig, 0);
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
