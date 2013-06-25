@@ -517,6 +517,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testSRandMemberCountNegative();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		super.testInfoBySection();
+	}
+
 	// Jredis returns null for rPush
 	@Test
 	public void testSort() {

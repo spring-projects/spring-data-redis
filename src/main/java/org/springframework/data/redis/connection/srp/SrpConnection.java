@@ -322,6 +322,19 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
+	public Properties info(String section) {
+		try {
+			if (isPipelined()) {
+				pipeline(pipeline.info(section));
+				return null;
+			}
+			return SrpUtils.info(client.info(section));
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+
 	public Long lastSave() {
 		try {
 			if (isPipelined()) {

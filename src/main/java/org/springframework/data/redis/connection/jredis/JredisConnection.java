@@ -276,6 +276,11 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
+	public Properties info(String section) {
+		throw new UnsupportedOperationException();
+	}
+
+
 	public Long lastSave() {
 		try {
 			return (Long)jredis.lastsave();

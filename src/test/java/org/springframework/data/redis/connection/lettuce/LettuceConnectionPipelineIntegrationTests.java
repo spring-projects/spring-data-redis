@@ -175,6 +175,18 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		assertNull(connection.info("server"));
+		List<Object> results = getResults();
+		assertEquals(1, results.size());
+		Properties info = LettuceUtils.info((String) results.get(0));
+		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		String version = info.getProperty("redis_version");
+		assertNotNull(version);
+	}
+
+	@Test
 	public void testMSetNx() {
 		Map<String, String> vals = new HashMap<String, String>();
 		vals.put("height", "5");

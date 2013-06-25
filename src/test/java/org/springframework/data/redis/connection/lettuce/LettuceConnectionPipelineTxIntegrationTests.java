@@ -50,6 +50,18 @@ public class LettuceConnectionPipelineTxIntegrationTests extends
 		assertNotNull(version);
 	}
 
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		assertNull(connection.info("server"));
+		List<Object> results = getResults();
+		assertEquals(2, results.size());
+		Properties info = LettuceUtils.info((String) results.get(1));
+		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		String version = info.getProperty("redis_version");
+		assertNotNull(version);
+	}
+
 	@Test(expected=RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {

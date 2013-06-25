@@ -236,6 +236,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.info();
 	}
 
+	public Properties info(String section) {
+		return delegate.info(section);
+	}
+
 	public boolean isClosed() {
 		return delegate.isClosed();
 	}

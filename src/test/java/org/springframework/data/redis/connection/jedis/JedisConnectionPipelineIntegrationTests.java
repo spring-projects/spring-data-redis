@@ -363,6 +363,12 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testSRandMemberCountNegative();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		super.testInfoBySection();
+	}
+
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 

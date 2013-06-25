@@ -406,6 +406,19 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 
+	public Properties info(String section) {
+		try {
+			if (isPipelined()) {
+				pipeline(getAsyncConnection().info(section));
+				return null;
+			}
+			return LettuceUtils.info(getConnection().info(section));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+
 	public Long lastSave() {
 		try {
 			if (isPipelined()) {

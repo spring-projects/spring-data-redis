@@ -176,6 +176,12 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		super.testSRandMemberCountNegative();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		super.testInfoBySection();
+	}
+
 	@Test
 	public void testIncrDecrByLong() {
 		String key = "test.count";

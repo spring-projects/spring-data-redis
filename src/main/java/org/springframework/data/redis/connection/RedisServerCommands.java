@@ -41,6 +41,8 @@ public interface RedisServerCommands {
 
 	Properties info();
 
+	Properties info(String section);
+
 	void shutdown();
 
 	List<String> getConfig(String pattern);

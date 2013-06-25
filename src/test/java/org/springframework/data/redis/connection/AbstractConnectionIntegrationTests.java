@@ -459,6 +459,16 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		Properties info = connection.info("server");
+		assertNotNull(info);
+		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		String version = info.getProperty("redis_version");
+		assertNotNull(version);
+	}
+
+	@Test
 	public void testNullKey() throws Exception {
 		try {
 			connection.decr((String) null);

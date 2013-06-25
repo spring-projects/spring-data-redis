@@ -120,6 +120,18 @@ public class SrpConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testInfoBySection() throws Exception {
+		assertNull(connection.info("server"));
+		List<Object> results = getResults();
+		assertEquals(1, results.size());
+		Properties info = SrpUtils.info(new BulkReply((byte[]) results.get(0)));
+		assertTrue("at least 5 settings should be present", info.size() >= 5);
+		String version = info.getProperty("redis_version");
+		assertNotNull(version);
+	}
+
+	@Test
 	public void testExists() {
 		connection.set("existent", "true");
 		actual.add(connection.exists("existent"));

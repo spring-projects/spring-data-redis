@@ -476,6 +476,11 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
+	public Properties info(String section) {
+		throw new UnsupportedOperationException();
+	}
+
+
 	public Long lastSave() {
 		try {
 			if (isQueueing()) {
