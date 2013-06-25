@@ -80,6 +80,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testMSetNx() {
 	}
 
+	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
+	public void testMSetNxFailure() {
+	}
+
 	@Test
 	public void testConnectionClosesWhenNotPooled() {
 		connection.close();

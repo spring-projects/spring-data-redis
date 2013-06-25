@@ -516,9 +516,9 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
-	public void mSetNX(Map<byte[], byte[]> tuple) {
+	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
 		try {
-			jredis.msetnx(tuple);
+			return jredis.msetnx(tuple);
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}

@@ -873,13 +873,13 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 
-	public void mSetNX(Map<byte[], byte[]> tuples) {
+	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isPipelined()) {
 				pipeline(getAsyncConnection().msetnx(tuples));
-				return;
+				return null;
 			}
-			getConnection().msetnx(tuples);
+			return getConnection().msetnx(tuples);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

@@ -149,9 +149,9 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 	}
 
 	
-	public void multiSetIfAbsent(Map<? extends K, ? extends V> m) {
+	public Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m) {
 		if (m.isEmpty()) {
-			return;
+			return true;
 		}
 
 		final Map<byte[], byte[]> rawKeys = new LinkedHashMap<byte[], byte[]>(m.size());
@@ -160,11 +160,10 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			rawKeys.put(rawKey(entry.getKey()), rawValue(entry.getValue()));
 		}
 
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Boolean>() {
 			
-			public Object doInRedis(RedisConnection connection) {
-				connection.mSetNX(rawKeys);
-				return null;
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.mSetNX(rawKeys);
 			}
 		}, true);
 	}

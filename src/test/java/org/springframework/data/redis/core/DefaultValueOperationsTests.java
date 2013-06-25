@@ -16,6 +16,11 @@
 package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
@@ -70,5 +75,24 @@ public class DefaultValueOperationsTests {
 		assertEquals("11.9", valueOps.get(key));
 		valueOps.increment(key, -10d);
 		assertEquals("1.9", valueOps.get(key));
+	}
+
+	@Test
+	public void testMultiSetIfAbsent() {
+		Map<String,String> keysAndValues = new HashMap<String,String>();
+		keysAndValues.put("foo", "bar");
+		keysAndValues.put("baz", "test");
+		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
+		assertEquals(new HashSet<String>(keysAndValues.values()),
+				new HashSet<String>(valueOps.multiGet(keysAndValues.keySet())));
+	}
+
+	@Test
+	public void testMultiSetIfAbsentFailure() {
+		valueOps.set("foo", "alreadyset");
+		Map<String,String> keysAndValues = new HashMap<String,String>();
+		keysAndValues.put("foo", "bar");
+		keysAndValues.put("baz", "test");
+		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
 	}
 }

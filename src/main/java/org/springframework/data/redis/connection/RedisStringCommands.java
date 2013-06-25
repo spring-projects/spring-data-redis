@@ -44,7 +44,7 @@ public interface RedisStringCommands {
 
 	void mSet(Map<byte[], byte[]> tuple);
 
-	void mSetNX(Map<byte[], byte[]> tuple);
+	Boolean mSetNX(Map<byte[], byte[]> tuple);
 
 	Long incr(byte[] key);
 

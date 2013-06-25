@@ -304,8 +304,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.mSet(tuple);
 	}
 
-	public void mSetNX(Map<byte[], byte[]> tuple) {
-		delegate.mSetNX(tuple);
+	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
+		return delegate.mSetNX(tuple);
 	}
 
 	public void multi() {
@@ -919,8 +919,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public void mSetNXString(Map<String, String> tuple) {
-		delegate.mSetNX(serialize(tuple));
+	public Boolean mSetNXString(Map<String, String> tuple) {
+		return delegate.mSetNX(serialize(tuple));
 	}
 
 	

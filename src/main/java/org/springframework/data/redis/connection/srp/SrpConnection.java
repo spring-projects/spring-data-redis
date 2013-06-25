@@ -802,13 +802,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
-	public void mSetNX(Map<byte[], byte[]> tuples) {
+	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isPipelined()) {
 				pipeline(pipeline.msetnx((Object[]) SrpUtils.convert(tuples)));
-				return;
+				return null;
 			}
-			client.msetnx((Object[]) SrpUtils.convert(tuples));
+			return SrpUtils.asBoolean(client.msetnx((Object[]) SrpUtils.convert(tuples)));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

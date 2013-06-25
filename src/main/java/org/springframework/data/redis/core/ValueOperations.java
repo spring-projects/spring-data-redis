@@ -35,7 +35,7 @@ public interface ValueOperations<K, V> {
 
 	void multiSet(Map<? extends K, ? extends V> m);
 
-	void multiSetIfAbsent(Map<? extends K, ? extends V> m);
+	Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m);
 
 	V get(Object key);
 

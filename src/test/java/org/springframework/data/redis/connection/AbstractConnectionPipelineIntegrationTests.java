@@ -340,6 +340,18 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	public void testMSetNxFailure() {
+		connection.set("height", "2");
+		Map<String, String> vals = new HashMap<String, String>();
+		vals.put("height", "5");
+		vals.put("width", "1");
+		actual.add(connection.mSetNXString(vals));
+		actual.add(connection.mGet("height", "width"));
+		verifyResults(Arrays.asList(new Object[] { 0l, Arrays.asList(new String[] { "2", null }) }),
+				actual);
+	}
+
+	@Test
 	public void testSetNx() {
 		actual.add(connection.setNX("notaround", "54"));
 		actual.add(connection.get("notaround"));

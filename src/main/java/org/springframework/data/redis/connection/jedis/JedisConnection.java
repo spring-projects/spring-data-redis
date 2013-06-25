@@ -985,17 +985,17 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	public void mSetNX(Map<byte[], byte[]> tuples) {
+	public Boolean mSetNX(Map<byte[], byte[]> tuples) {
 		try {
 			if (isQueueing()) {
 				transaction.msetnx(JedisUtils.convert(tuples));
-				return;
+				return null;
 			}
 			if (isPipelined()) {
 				pipeline.msetnx(JedisUtils.convert(tuples));
-				return;
+				return null;
 			}
-			jedis.msetnx(JedisUtils.convert(tuples));
+			return JedisUtils.convertCodeReply(jedis.msetnx(JedisUtils.convert(tuples)));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

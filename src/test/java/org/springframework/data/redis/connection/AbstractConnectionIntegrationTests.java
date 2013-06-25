@@ -865,9 +865,21 @@ public abstract class AbstractConnectionIntegrationTests {
 		Map<String, String> vals = new HashMap<String, String>();
 		vals.put("height", "5");
 		vals.put("width", "1");
-		connection.mSetNXString(vals);
+		actual.add(connection.mSetNXString(vals));
 		actual.add(connection.mGet("height", "width"));
-		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new String[] { "5", "1" }) }),
+		verifyResults(Arrays.asList(new Object[] { true, Arrays.asList(new String[] { "5", "1" }) }),
+				actual);
+	}
+
+	@Test
+	public void testMSetNxFailure() {
+		connection.set("height", "2");
+		Map<String, String> vals = new HashMap<String, String>();
+		vals.put("height", "5");
+		vals.put("width", "1");
+		actual.add(connection.mSetNXString(vals));
+		actual.add(connection.mGet("height", "width"));
+		verifyResults(Arrays.asList(new Object[] { false, Arrays.asList(new String[] { "2", null }) }),
 				actual);
 	}
 

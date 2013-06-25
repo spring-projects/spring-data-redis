@@ -95,7 +95,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	void mSetString(Map<String, String> tuple);
 
-	void mSetNXString(Map<String, String> tuple);
+	Boolean mSetNXString(Map<String, String> tuple);
 
 	Long incr(String key);
 
