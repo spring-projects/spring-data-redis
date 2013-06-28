@@ -32,16 +32,16 @@ import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
 
 /**
- * Unit test of {@link LettucePool}
- * 
+ * Unit test of {@link DefaultLettucePool}
+ *
  * @author Jennifer Hickey
- * 
+ *
  */
-public class LettucePoolTests {
+public class DefaultLettucePoolTests {
 
 	private RedisClient client;
 
-	private LettucePool pool;
+	private DefaultLettucePool pool;
 
 	@Before
 	public void setUp() {
@@ -57,7 +57,7 @@ public class LettucePoolTests {
 
 	@Test
 	public void testGetResource() {
-		this.pool = new LettucePool(client);
+		this.pool = new DefaultLettucePool(client);
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		client.ping();
@@ -68,7 +68,7 @@ public class LettucePoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new LettucePool(client, poolConfig, 0);
+		this.pool = new DefaultLettucePool(client, poolConfig, 0);
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		try {
@@ -82,14 +82,14 @@ public class LettucePoolTests {
 	public void testGetResourceValidate() {
 		PoolConfig poolConfig = new PoolConfig();
 		poolConfig.setTestOnBorrow(true);
-		this.pool = new LettucePool(client, poolConfig, 0);
+		this.pool = new DefaultLettucePool(client, poolConfig, 0);
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 	}
 
 	@Test(expected = PoolException.class)
 	public void testGetResourceCreationUnsuccessful() {
-		this.pool = new LettucePool(new RedisClient(SettingsUtils.getHost(), 3333));
+		this.pool = new DefaultLettucePool(new RedisClient(SettingsUtils.getHost(), 3333));
 		pool.getResource();
 	}
 
@@ -98,7 +98,7 @@ public class LettucePoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new LettucePool(client);
+		this.pool = new DefaultLettucePool(client);
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		pool.returnResource(client);
@@ -110,7 +110,7 @@ public class LettucePoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new LettucePool(client, poolConfig, 0);
+		this.pool = new DefaultLettucePool(client, poolConfig, 0);
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		pool.returnBrokenResource(client);
@@ -125,19 +125,19 @@ public class LettucePoolTests {
 
 	@Test
 	public void testCreateWithHostAndPort() {
-		this.pool = new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		assertNotNull(pool.getResource());
 	}
 
 	@Test
 	public void testCreateWithDbIndex() {
-		this.pool = new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), 1, 65000);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), 1, 65000);
 		assertNotNull(pool.getResource());
 	}
 
 	@Test(expected = PoolException.class)
 	public void testCreateWithDbIndexInvalid() {
-		this.pool = new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), 17, 65000);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), 17, 65000);
 		pool.getResource();
 	}
 }

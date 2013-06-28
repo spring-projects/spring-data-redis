@@ -221,8 +221,7 @@ public class LettuceConnectionFactoryTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
-				SettingsUtils.getPort(), new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(),
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(),
 						poolConfig));
 		factory2.afterPropertiesSet();
 		factory2.createLettuceConnector(false);
@@ -239,8 +238,7 @@ public class LettuceConnectionFactoryTests {
 	@Test
 	public void testLotsOfConnections() throws InterruptedException {
 		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2 afterPropertiesSet for shared conn)
-		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
-				SettingsUtils.getPort(), new LettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
+		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
 		factory2.afterPropertiesSet();
 		for(int i=1;i< 1000;i++) {
 			Thread th = new Thread(new Runnable() {

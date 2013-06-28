@@ -36,7 +36,6 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
@@ -82,26 +81,57 @@ public class LettuceConnection implements RedisConnection {
 	private List<Command<?, ?, ?>> ppline;
 	private RedisClient client;
 	private volatile LettuceSubscription subscription;
-	private Pool<RedisAsyncConnection<byte[], byte[]>> pool;
+	private LettucePool pool;
 	/** flag indicating whether the connection needs to be dropped or not */
 	private boolean broken = false;
 
+	/**
+	 * Instantiates a new lettuce connection.
+	 *
+	 * @param dedicatedConnection
+	 *            A dedicated native connection. Can be used for any operation.
+	 * @param timeout
+	 *            The connection timeout (in milliseconds)
+	 * @param client
+	 * 			 The {@link RedisClient} to use when making pub/sub connections
+	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
 			RedisClient client) {
 		this(null, dedicatedConnection, timeout, client, null);
 	}
 
+	/**
+	 * Instantiates a new lettuce connection.
+	 *
+	 * @param dedicatedConnection
+	 *            A dedicated native connection. Can be used for any operation.
+	 * @param timeout
+	 *            The connection timeout (in milliseconds)
+	 * @param client
+	 * 			 The {@link RedisClient} to use when making pub/sub connections
+	 * @param pool
+	 *            An optional connection pool, from which the dedicated
+	 *            connection came. If pool is set, the dedicated connection will
+	 *            be returned to the pool on close
+	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
-			RedisClient client, Pool<RedisAsyncConnection<byte[], byte[]>> pool) {
+			RedisClient client, LettucePool pool) {
 		this(null, dedicatedConnection, timeout, client, pool);
 	}
 
 	/**
 	 * Instantiates a new lettuce connection.
 	 *
-	 * @param connection underlying Lettuce async connection
-	 * @param timeout the connection timeout (in milliseconds)
-	 * @param client The Lettuce client
+	 * @param sharedConnection
+	 *            A native connection that is shared with other
+	 *            {@link LettuceConnection}s. Should not be used for
+	 *            transactions or blocking operations
+	 * @param dedicatedConnection
+	 *            A dedicated native connection. Can be used for any operation.
+	 * @param timeout
+	 *            The connection timeout (in milliseconds)
+	 * @param client
+	 * 			 The {@link RedisClient} to use when making pub/sub connections
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
 			com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
@@ -112,15 +142,24 @@ public class LettuceConnection implements RedisConnection {
 	/**
 	 * Instantiates a new lettuce connection.
 	 *
-	 * @param connection The underlying Lettuce async connection
-	 * @param timeout The connection timeout (in milliseconds)
-	 * @param client The Lettuce client
-	 * @param closeNativeConnection True if native connection should be called on {@link #close()}. This should
-	 * be set to false if the native connection is shared.
+	 * @param sharedConnection
+	 *            A native connection that is shared with other
+	 *            {@link LettuceConnection}s. Should not be used for
+	 *            transactions or blocking operations
+	 * @param dedicatedConnection
+	 *            A dedicated native connection. Can be used for any operation.
+	 * @param timeout
+	 *            The connection timeout (in milliseconds)
+	 * @param client
+	 * 			 The {@link RedisClient} to use when making pub/sub connections
+	 * @param pool
+	 *            An optional connection pool, from which the dedicated
+	 *            connection came. If pool is set, the dedicated connection will
+	 *            be returned to the pool on close
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
 			com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
-			RedisClient client, Pool<RedisAsyncConnection<byte[], byte[]>> pool) {
+			RedisClient client, LettucePool pool) {
 		Assert.notNull(dedicatedConnection, "a valid dedicated connection is required");
 		this.asyncSharedConn = sharedConnection;
 		this.asyncDedicatedConn = dedicatedConnection;

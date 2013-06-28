@@ -66,7 +66,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
 	private RedisAsyncConnection<byte[], byte[]> connection;
-	private Pool<RedisAsyncConnection<byte[], byte[]>> pool;
+	private LettucePool pool;
 	private int dbIndex = 0;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
@@ -87,15 +87,12 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.port = port;
 	}
 
-	public LettuceConnectionFactory(String host, int port, Pool<RedisAsyncConnection<byte[], byte[]>> pool) {
-		this.hostName = host;
-		this.port = port;
+	public LettuceConnectionFactory(LettucePool pool) {
 		this.pool = pool;
 	}
 
 	public void afterPropertiesSet() {
-		client = new RedisClient(hostName, port);
-		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+		this.client = createRedisClient();
 		resetConnection();
 		if (shareNativeConnection) {
 			initConnection();
@@ -311,5 +308,14 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			throw new RedisConnectionFailureException("Unable to connect to Redis on " +
 					getHostName() + ":" + getPort(), e);
 		}
+	}
+
+	private RedisClient createRedisClient() {
+		if(pool != null) {
+			return pool.getClient();
+		}
+		RedisClient client = new RedisClient(hostName, port);
+		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+		return client;
 	}
 }
