@@ -20,7 +20,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.PoolException;
+import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
@@ -31,10 +33,22 @@ import com.lambdaworks.redis.RedisClient;
  * @author Jennifer Hickey
  * 
  */
-public class DefaultLettucePool implements LettucePool {
-	private final GenericObjectPool internalPool;
-	private static final int DEFAULT_TIMEOUT = (int) TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+public class DefaultLettucePool implements LettucePool, InitializingBean {
+	private GenericObjectPool internalPool;
 	private RedisClient client;
+	private int dbIndex = 0;
+	private Config poolConfig = new Config();
+	private String hostName = "localhost";
+	private int port = 6379;
+	private String password;
+	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+
+	/**
+	 * Constructs a new <code>DefaultLettucePool</code> instance with
+	 * default settings.
+	 */
+	public DefaultLettucePool() {
+	}
 
 	/**
 	 * Uses the {@link Config} and {@link RedisClient} defaults for configuring
@@ -46,7 +60,8 @@ public class DefaultLettucePool implements LettucePool {
 	 *            The Redis port
 	 */
 	public DefaultLettucePool(String hostName, int port) {
-		this(hostName, port, 0, DEFAULT_TIMEOUT, new Config());
+		this.hostName = hostName;
+		this.port = port;
 	}
 
 	/**
@@ -60,83 +75,16 @@ public class DefaultLettucePool implements LettucePool {
 	 *            The pool {@link Config}
 	 */
 	public DefaultLettucePool(String hostName, int port, Config poolConfig) {
-		this(hostName, port, 0, DEFAULT_TIMEOUT, poolConfig);
+		this.hostName = hostName;
+		this.port = port;
+		this.poolConfig = poolConfig;
 	}
 
-	/**
-	 * 
-	 * Uses the {@link Config} defaults for configuring the connection pool
-	 * 
-	 * @param client
-	 *            The {@link RedisClient} for connecting to Redis
-	 * 
-	 */
-	public DefaultLettucePool(RedisClient client) {
-		this.client = client;
-		this.internalPool = new GenericObjectPool(new LettuceFactory(client, 0), new Config());
-	}
-
-	/**
-	 * 
-	 * @param client
-	 *            The {@link RedisClient} for connecting to Redis
-	 * 
-	 * @param poolConfig
-	 *            The pool {@link Config}
-	 * @param dbIndex
-	 *            The index of the database all connections should use. The
-	 *            database will be selected when connections are activated.
-	 */
-	public DefaultLettucePool(RedisClient client, Config poolConfig, int dbIndex) {
-		this.client = client;
-		this.internalPool = new GenericObjectPool(new LettuceFactory(client, dbIndex), poolConfig);
-	}
-
-	/**
-	 * Uses the {@link Config} defaults for configuring the connection pool
-	 * 
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
-	 * @param dbIndex
-	 *            The index of the database all connections should use. The
-	 *            database will be selected when connections are activated.
-	 * @param password
-	 *            The password used for authenticating with the Redis server or
-	 *            null if no password required
-	 * @param timeout
-	 *            The socket timeout or 0 to use the default socket timeout
-	 */
-	public DefaultLettucePool(String hostName, int port, int dbIndex, int timeout) {
-		this(hostName, port, dbIndex, timeout, new Config());
-	}
-
-	/**
-	 * 
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
-	 * @param dbIndex
-	 *            The index of the database all connections should use. The
-	 *            database will be selected when connections are activated.
-	 * @param password
-	 *            The password used for authenticating with the Redis server or
-	 *            null if no password required
-	 * @param timeout
-	 *            The socket timeout or 0 to use the default socket timeout
-	 * @param poolConfig
-	 *            The pool {@link COnfig}
-	 */
-	public DefaultLettucePool(String hostName, int port, int dbIndex, int timeout, Config poolConfig) {
-		this.client = new RedisClient(hostName, port);
+	public void afterPropertiesSet() {
+		this.client = password != null ? new AuthenticatingRedisClient(hostName, port, password) :
+			new RedisClient(hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		this.internalPool = new GenericObjectPool(new LettuceFactory(client, dbIndex), poolConfig);
-	}
-	
-	public RedisClient getClient() {
-		return client;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -170,6 +118,122 @@ public class DefaultLettucePool implements LettucePool {
 		} catch (Exception e) {
 			throw new PoolException("Could not destroy the pool", e);
 		}
+	}
+
+	public RedisClient getClient() {
+		return client;
+	}
+
+	/**
+	 *
+	 * @return The pool configuration
+	 */
+	public Config getPoolConfig() {
+		return poolConfig;
+	}
+
+	/**
+	 *
+	 * @param poolConfig The pool configuration to use
+	 */
+	public void setPoolConfig(Config poolConfig) {
+		this.poolConfig = poolConfig;
+	}
+
+	/**
+	 * Returns the index of the database.
+	 *
+	 * @return Returns the database index
+	 */
+	public int getDatabase() {
+		return dbIndex;
+	}
+
+	/**
+	 * Sets the index of the database used by this connection pool. Default
+	 * is 0.
+	 *
+	 * @param index
+	 *            database index
+	 */
+	public void setDatabase(int index) {
+		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+		this.dbIndex = index;
+	}
+
+	/**
+	 * Returns the password used for authenticating with the Redis server.
+	 *
+	 * @return password for authentication
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * Sets the password used for authenticating with the Redis server.
+	 *
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * Returns the current host.
+	 *
+	 * @return the host
+	 */
+	public String getHostName() {
+		return hostName;
+	}
+
+	/**
+	 * Sets the host.
+	 *
+	 * @param host
+	 *            the host to set
+	 */
+	public void setHostName(String host) {
+		this.hostName = host;
+	}
+
+	/**
+	 * Returns the current port.
+	 *
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	/**
+	 * Sets the port.
+	 *
+	 * @param port
+	 *            the port to set
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	/**
+	 * Returns the connection timeout (in milliseconds).
+	 *
+	 * @return connection timeout
+	 */
+	public long getTimeout() {
+		return timeout;
+	}
+
+	/**
+	 * Sets the connection timeout (in milliseconds).
+	 *
+	 * @param timeout
+	 *            connection timeout
+	 */
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
 	}
 
 	private static class LettuceFactory extends BasePoolableObjectFactory {

@@ -221,8 +221,9 @@ public class LettuceConnectionFactoryTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(),
-						poolConfig));
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
+		pool.afterPropertiesSet();
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
 		factory2.createLettuceConnector(false);
 		try {
@@ -249,5 +250,16 @@ public class LettuceConnectionFactoryTests {
 			th.start();
 		}
 		Thread.sleep(234234234);
+	}
+
+	@Ignore("Redis must have requirepass set to run this test")
+	@Test
+	public void testConnectWithPassword() {
+		factory.setPassword("foo");
+		factory.afterPropertiesSet();
+		RedisConnection conn = factory.getConnection();
+		// Test shared and dedicated conns
+		conn.ping();
+		conn.bLPop(1, "key".getBytes());
 	}
 }

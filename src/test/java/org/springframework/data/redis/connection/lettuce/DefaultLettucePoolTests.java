@@ -21,14 +21,13 @@ import static org.junit.Assert.fail;
 
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolConfig;
 import org.springframework.data.redis.connection.PoolException;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
 
 /**
@@ -39,25 +38,19 @@ import com.lambdaworks.redis.RedisException;
  */
 public class DefaultLettucePoolTests {
 
-	private RedisClient client;
-
 	private DefaultLettucePool pool;
-
-	@Before
-	public void setUp() {
-		this.client = new RedisClient(SettingsUtils.getHost(), SettingsUtils.getPort());
-	}
 
 	@After
 	public void tearDown() {
-		if (this.pool != null) {
+		if(this.pool != null) {
 			this.pool.destroy();
 		}
 	}
 
 	@Test
 	public void testGetResource() {
-		this.pool = new DefaultLettucePool(client);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		client.ping();
@@ -68,7 +61,8 @@ public class DefaultLettucePoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new DefaultLettucePool(client, poolConfig, 0);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
+		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		try {
@@ -82,14 +76,16 @@ public class DefaultLettucePoolTests {
 	public void testGetResourceValidate() {
 		PoolConfig poolConfig = new PoolConfig();
 		poolConfig.setTestOnBorrow(true);
-		this.pool = new DefaultLettucePool(client, poolConfig, 0);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
+		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 	}
 
 	@Test(expected = PoolException.class)
-	public void testGetResourceCreationUnsuccessful() {
-		this.pool = new DefaultLettucePool(new RedisClient(SettingsUtils.getHost(), 3333));
+	public void testGetResourceCreationUnsuccessful() throws Exception {
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), 3333);
+		pool.afterPropertiesSet();
 		pool.getResource();
 	}
 
@@ -98,7 +94,8 @@ public class DefaultLettucePoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new DefaultLettucePool(client);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
+		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		pool.returnResource(client);
@@ -110,7 +107,8 @@ public class DefaultLettucePoolTests {
 		Config poolConfig = new Config();
 		poolConfig.maxActive = 1;
 		poolConfig.maxWait = 1;
-		this.pool = new DefaultLettucePool(client, poolConfig, 0);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
+		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		pool.returnBrokenResource(client);
@@ -124,20 +122,45 @@ public class DefaultLettucePoolTests {
 	}
 
 	@Test
-	public void testCreateWithHostAndPort() {
-		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		assertNotNull(pool.getResource());
-	}
-
-	@Test
 	public void testCreateWithDbIndex() {
-		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), 1, 65000);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.setDatabase(1);
+		pool.afterPropertiesSet();
 		assertNotNull(pool.getResource());
 	}
 
 	@Test(expected = PoolException.class)
 	public void testCreateWithDbIndexInvalid() {
-		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), 17, 65000);
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.setDatabase(17);
+		pool.afterPropertiesSet();
+		pool.getResource();
+	}
+
+	@Test(expected = PoolException.class)
+	public void testCreateWithPasswordNoPassword() {
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.setPassword("notthepassword");
+		pool.afterPropertiesSet();
+		pool.getResource();
+	}
+
+	@Ignore("Redis must have requirepass set to run this test")
+	@Test
+	public void testCreatePassword() {
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.setPassword("foo");
+		pool.afterPropertiesSet();
+		RedisAsyncConnection<byte[], byte[]> conn = pool.getResource();
+		conn.ping();
+	}
+
+	@Ignore("Redis must have requirepass set to run this test")
+	@Test(expected = PoolException.class)
+	public void testCreateInvalidPassword() {
+		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.setPassword("bad");
+		pool.afterPropertiesSet();
 		pool.getResource();
 	}
 }

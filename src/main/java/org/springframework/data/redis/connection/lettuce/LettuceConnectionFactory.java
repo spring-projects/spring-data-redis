@@ -70,6 +70,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private int dbIndex = 0;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
+	private String password;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with
@@ -278,6 +279,24 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.dbIndex = index;
 	}
 
+	/**
+	 * Returns the password used for authenticating with the Redis server.
+	 *
+	 * @return password for authentication
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * Sets the password used for authenticating with the Redis server.
+	 *
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	protected RedisAsyncConnection<byte[], byte[]> getSharedConnection() {
 		if (shareNativeConnection) {
 			synchronized (this.connectionMonitor) {
@@ -314,7 +333,8 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		if(pool != null) {
 			return pool.getClient();
 		}
-		RedisClient client = new RedisClient(hostName, port);
+		RedisClient client = password != null ? new AuthenticatingRedisClient(hostName, port, password) :
+			new RedisClient(hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		return client;
 	}

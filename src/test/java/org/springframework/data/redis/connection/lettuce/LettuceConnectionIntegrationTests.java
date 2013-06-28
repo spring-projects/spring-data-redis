@@ -127,8 +127,10 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 	@Test
 	public void testClosePooledConnectionWithShared() {
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort()));
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+		pool.afterPropertiesSet();
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
 		// Use the connection to make sure the channel is initialized, else nothing happens on close
@@ -144,8 +146,10 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 	@Test
 	public void testClosePooledConnectionNotShared() {
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort()));
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+		pool.afterPropertiesSet();
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
@@ -178,8 +182,10 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testCloseReturnBrokenResourceToPool() {
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort()));
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+		pool.afterPropertiesSet();
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
@@ -202,8 +208,10 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 	@Test
 	public void testSelectNotShared() {
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort()));
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+		pool.afterPropertiesSet();
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
