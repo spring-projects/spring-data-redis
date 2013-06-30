@@ -24,7 +24,6 @@ import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
@@ -95,7 +94,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		assertEquals("delay", conn2.get("txs1"));
 	}
 
-	@Ignore("DATAREDIS-189 Lettuce exec without multi times out waiting for a reply instead of throwing Exception")
 	@Test
 	public void testCloseInTransaction() {
 		connection.multi();
