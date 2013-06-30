@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -86,10 +85,5 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}), actual);
-	}
-
-	@Ignore("https://github.com/spullara/redis-protocol/issues/25")
-	public void testScriptExists() {
-		//script_exists only returns one result and it's false
 	}
 }

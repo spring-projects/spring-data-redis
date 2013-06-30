@@ -15,12 +15,16 @@
  */
 package org.springframework.data.redis.connection.srp;
 
+import static org.junit.Assert.fail;
+
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -95,44 +99,50 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }), actual);
 	}
 
-	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
-	@Test
+	@Test(expected=RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {
-		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
-		// as Exceptions
+		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
+		getResults();
 	}
 
-	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
-	@Test
+	@Test(expected=RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
-		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
-		// as Exceptions
+		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+		getResults();
 	}
 
-	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
-	@Test
+	@Test(expected=RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {
-		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
-		// as Exceptions
+		// Use something other than dump-specific serialization
+		connection.restore("testing".getBytes(), 0, "foo".getBytes());
+		getResults();
 	}
 
-	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreExistingKey() {
-		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
-		// as Exceptions
+		connection.set("testing", "12");
+		connection.dump("testing".getBytes());
+		List<Object> results = getResults();
+		initConnection();
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
+		try {
+			getResults();
+			fail("Expected pipeline exception restoring an existing key");
+		}catch(RedisSystemException e) {
+		}
 	}
 
-	@Ignore("https://github.com/spullara/redis-protocol/issues/24")
-	@Test
+	@Test(expected=RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testBitOpNotMultipleSources() {
-		// SRP issue exec does not report individual ErrorReplys in a MultiBulkReply
-		// as Exceptions
+		connection.set("key1", "abcd");
+		connection.set("key2", "efgh");
+		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
+		getResults();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

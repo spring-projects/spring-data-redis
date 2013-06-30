@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
@@ -226,9 +225,14 @@ public class SrpConnectionPipelineIntegrationTests extends
 		verifyResults(Arrays.asList(new Object[] { 1l, "6.4", "6.4" }), actual);
 	}
 
-	@Ignore("https://github.com/spullara/redis-protocol/issues/25")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptExists() {
-		// script_exists only returns one result and it's false
+		getResults();
+		String sha1 = connection.scriptLoad("return 'foo'");
+		initConnection();
+		actual.add(connection.scriptExists(sha1, "98777234"));
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, 0l})}), actual);
 	}
 
 	protected Object convertResult(Object result) {
