@@ -5,6 +5,26 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.0.5.RELEASE (2013-07-02)
+---------------------------------------------
+General
+* Upgraded to SRP 0.7
+* Upgraded to Lettuce 2.3.3
+
+Package o.s.d.redis.core
+* Fixed left/right pop timeouts converting to 0 seconds (blocking indefinitely)
+
+Package o.s.d.redis.connection.lettuce
+* Fixed exec returning empty list instead of null if watched variable modified
+
+Package o.s.d.redis.connection.srp
+* Fixed exec throwing TransactionFailedException instead of returning null if watched
+variable modified
+
+Package o.s.d.redis.listener.adapter
+* Added MessageListenerAdapter constructor with delegate and listener method
+
+
 Changes in version 1.0.4.RELEASE (2013-04-18)
 ---------------------------------------------
 
