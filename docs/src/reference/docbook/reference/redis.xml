@@ -162,7 +162,7 @@
       <section id="redis:connectors:srp">
         <title>Configuring SRP connector</title>
         
-        <para><ulink url="https://github.com/spullara/redis-protocol">SRP</ulink> (an acronym for Sam's Redis Protocol) is the forth, open-source connector supported by 
+        <para><ulink url="https://github.com/spullara/redis-protocol">SRP</ulink> (an acronym for Sam's Redis Protocol) is the third open-source connector supported by
         Spring Data Redis through the <literal>org.springframework.data.redis.connection.srp</literal> package.</para>
         
         <para>By now, its configuration is probably easy to guess:</para>
@@ -184,7 +184,7 @@
       <section id="redis:connectors:lettuce">
         <title>Configuring Lettuce connector</title>
         
-        <para><ulink url="https://github.com/wg/lettuce">Lettuce</ulink> is the fifth open-source connector supported by
+        <para><ulink url="https://github.com/wg/lettuce">Lettuce</ulink> is the fourth open-source connector supported by
         Spring Data Redis through the <literal>org.springframework.data.redis.connection.lettuce</literal> package.</para>
         
         <para>Its configuration is probably easy to guess:</para>
@@ -196,11 +196,15 @@
   xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-  <bean id="srpConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"
+  <bean id="lettuceConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
 
-      <para>Needless to say,  the configuration is quite similar to that of the other connectors.</para>
+      <para>There are also a few Lettuce-specific connection parameters that can be tweaked.
+      By default, all <literal>LettuceConnections</literal> created by the <literal>LettuceConnectionFactory</literal> share the same
+      thread-safe native connection for all non-blocking and non-transactional operations. Set <literal>shareNativeConnection</literal> to false to use a dedicated
+      connection each time. <literal>LettuceConnectionFactory</literal> can also be configured with a <literal>LettucePool</literal> to use for pooling
+      blocking and transactional connections, or all connections if <literal>shareNativeConnection</literal> is set to false.</para>
       </section>
       
     </section>

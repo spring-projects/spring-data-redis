@@ -127,7 +127,7 @@ public class JredisPool implements Pool<JRedis> {
 	 * @param timeout
 	 *            The socket timeout or 0 to use the default socket timeout
 	 * @param poolConfig
-	 *            The pool {@link COnfig}
+	 *            The pool {@link Config}
 	 */
 	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout,
 			Config poolConfig) {

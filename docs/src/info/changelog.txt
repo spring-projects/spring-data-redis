@@ -5,6 +5,62 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.1.0.M1 (2013-07-02)
+----------------------------------------
+
+General
+* Added Redis 2.6 millisecond expiration commands (pexpire, pttl, etc)
+* Added Redis 2.6 bit commands (bitop, bitcount)
+* Added support for Redis 2.6 scripting
+* Added Redis 2.6 incrbyfloat and hincrbyfloat commands
+* Added Redis 2.6 dump and restore commands
+* Added Redis 2.6 info by section
+* Added Redis 2.6 srandmember with count
+* Removed RJC due to lack of Redis 2.6 support
+* Upgraded JRedis from older fork (https://github.com/anthonylauzon/jredis) to
+latest original master (https://github.com/alphazero/jredis)
+* Made Jedis dependency optional in the build
+
+Package o.s.d.redis.core
+* Changed ValueOperations.multiSetIfAbsent return type from void to Boolean
+
+Package o.s.d.redis.connection
+* Changed StringRedisCommands.mSetNX return type from void to Boolean
+
+Package o.s.d.redis.connection.jredis
+* Removed base64 key encoding, since binary keys are supported in JRedis upgrade.
+Fixes issue where keys method with patterns was not working due to encoding.
+* Added JredisPool, since pool impl was removed from JRedis. Also fixes
+issue with previous pool where failed connections were not removed.
+
+Package o.s.d.redis.connection.lettuce
+* Added LettucePool for optional pooling of blocking/tx Lettuce connections
+* Added optional Redis password to LettuceConnectionFactory
+* Modified LettuceConnectionFactory to throw RedisConnectionFailureExceptions instead
+of native Exceptions
+
+
+Changes in version 1.0.5.RELEASE (2013-07-02)
+---------------------------------------------
+
+General
+* Upgraded to SRP 0.7
+* Upgraded to Lettuce 2.3.3
+
+Package o.s.d.redis.core
+* Fixed left/right pop timeouts converting to 0 seconds (blocking indefinitely)
+
+Package o.s.d.redis.connection.lettuce
+* Fixed exec returning empty list instead of null if watched variable modified
+
+Package o.s.d.redis.connection.srp
+* Fixed exec throwing TransactionFailedException instead of returning null if watched
+variable modified
+
+Package o.s.d.redis.listener.adapter
+* Added MessageListenerAdapter constructor with delegate and listener method
+
+
 Changes in version 1.0.4.RELEASE (2013-04-18)
 ---------------------------------------------
 
