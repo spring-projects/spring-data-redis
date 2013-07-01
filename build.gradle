@@ -5,6 +5,7 @@ buildscript {
     dependencies {
         classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
         classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.4'
+        classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
     }
 }
 
@@ -22,6 +23,7 @@ apply plugin: 'idea'
 apply from: "$rootDir/maven.gradle"
 apply plugin: 'docbook-reference'
 apply plugin: 'bundlor'
+apply plugin: 'javadocHotfix'
 
 [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 
