@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -53,5 +54,5 @@ public interface RedisSetCommands {
 
 	byte[] sRandMember(byte[] key);
 
-	Set<byte[]> sRandMember(byte[] key, long count);
+	List<byte[]> sRandMember(byte[] key, long count);
 }

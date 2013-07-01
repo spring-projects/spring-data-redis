@@ -382,6 +382,12 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		}
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountNegative() {
+		super.testSRandMemberCountNegative();
+	}
+
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnFalse() {

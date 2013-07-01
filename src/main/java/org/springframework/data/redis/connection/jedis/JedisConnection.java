@@ -1696,7 +1696,7 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	public Set<byte[]> sRandMember(byte[] key, long count) {
+	public List<byte[]> sRandMember(byte[] key, long count) {
 		throw new UnsupportedOperationException();
 	}
 

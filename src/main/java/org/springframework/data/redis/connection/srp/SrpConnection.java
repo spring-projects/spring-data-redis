@@ -1397,13 +1397,13 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
-	public Set<byte[]> sRandMember(byte[] key, long count) {
+	public List<byte[]> sRandMember(byte[] key, long count) {
 		try {
 			if (isPipelined()) {
 				pipeline(pipeline.srandmember(key, count));
 				return null;
 			}
-			return SrpUtils.toSet(((MultiBulkReply)client.srandmember(key, count)).data());
+			return SrpUtils.toBytesList(((MultiBulkReply)client.srandmember(key, count)).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

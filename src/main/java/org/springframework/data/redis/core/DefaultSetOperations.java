@@ -17,6 +17,8 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnection;
@@ -163,18 +165,38 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 
-	public Set<V> randomMembers(K key, final long count) {
+	public Set<V> distinctRandomMembers(K key, final long count) {
+		if(count < 0) {
+			throw new IllegalArgumentException("Negative count not supported. " +
+					"Use randomMembers to allow duplicate elements.");
+		}
 		final byte[] rawKey = rawKey(key);
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
 			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.sRandMember(rawKey, count);
+				return new HashSet<byte[]>(connection.sRandMember(rawKey, count));
+			}
+		}, true);
+
+		return deserializeValues(rawValues);
+	}
+	
+
+	public List<V> randomMembers(K key, final long count) {
+		if(count < 0) {
+			throw new IllegalArgumentException("Use a positive number for count. " +
+					"This method is already allowing duplicate elements.");
+		}
+		final byte[] rawKey = rawKey(key);
+		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
+			public List<byte[]> doInRedis(RedisConnection connection) {
+				return connection.sRandMember(rawKey, - count);
 			}
 		}, true);
 
 		return deserializeValues(rawValues);
 	}
 
-	
+
 	public Boolean remove(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(o);

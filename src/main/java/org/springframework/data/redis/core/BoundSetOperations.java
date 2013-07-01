@@ -17,6 +17,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -62,7 +63,9 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	V randomMember();
 
-	Set<V> randomMembers(long count);
+	Set<V> distinctRandomMembers(long count);
+
+	List<V> randomMembers(long count);
 
 	Boolean remove(Object o);
 

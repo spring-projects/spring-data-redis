@@ -17,6 +17,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
@@ -114,11 +115,16 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 	}
 
 
-	public Set<V> randomMembers(long count) {
-		return ops.randomMembers(getKey(), count);
+	public Set<V> distinctRandomMembers(long count) {
+		return ops.distinctRandomMembers(getKey(), count);
 	}
 
 	
+	public List<V> randomMembers(long count) {
+		return ops.randomMembers(getKey(), count);
+	}
+
+
 	public Boolean remove(Object o) {
 		return ops.remove(getKey(), o);
 	}

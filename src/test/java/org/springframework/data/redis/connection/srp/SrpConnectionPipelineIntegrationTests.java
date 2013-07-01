@@ -158,27 +158,6 @@ public class SrpConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCount() {
-		convertResultToSet = true;
-		super.testSRandMemberCount();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCountKeyNotExists() {
-		convertResultToSet = true;
-		super.testSRandMemberCountKeyNotExists();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCountNegative() {
-		convertResultToSet = true;
-		super.testSRandMemberCountNegative();
-	}
-
-	@Test
 	public void testZIncrBy() {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));

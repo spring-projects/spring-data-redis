@@ -1484,13 +1484,17 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-	public Set<byte[]> sRandMember(byte[] key, long count) {
+	public List<byte[]> sRandMember(byte[] key, long count) {
+		if(count < 0) {
+			throw new UnsupportedOperationException("sRandMember with a negative count is not supported");
+		}
 		try {
 			if (isPipelined()) {
 				pipeline(getAsyncConnection().srandmember(key, count));
 				return null;
 			}
-			return getConnection().srandmember(key, count);
+			Set<byte[]> results = getConnection().srandmember(key, count);
+			return results != null ? new ArrayList<byte[]>(results) : null;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

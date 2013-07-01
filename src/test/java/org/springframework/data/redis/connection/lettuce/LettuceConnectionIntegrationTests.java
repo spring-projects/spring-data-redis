@@ -225,6 +225,12 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testSRandMemberCountNegative() {
+		super.testSRandMemberCountNegative();
+	}
+
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testScriptKill() throws Exception{

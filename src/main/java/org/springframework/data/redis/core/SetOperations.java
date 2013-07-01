@@ -17,6 +17,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -60,7 +61,9 @@ public interface SetOperations<K, V> {
 
 	V randomMember(K key);
 
-	Set<V> randomMembers(K key, long count);
+	Set<V> distinctRandomMembers(K key, long count);
+
+	List<V> randomMembers(K key, long count);
 
 	Boolean remove(K key, Object o);
 

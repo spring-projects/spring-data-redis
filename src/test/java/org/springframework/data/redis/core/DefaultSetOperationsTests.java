@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -24,7 +25,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -36,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("RedisTemplateTests-context.xml")
+@ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public class DefaultSetOperationsTests {
 	
 	@Autowired
@@ -55,12 +59,32 @@ public class DefaultSetOperationsTests {
 	
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRandomMembers() {
+	public void testDistinctRandomMembers() {
 		setOps.add("test", "foo");
 		setOps.add("test", "bar");
 		setOps.add("test", "baz");
-		Set<String> members = setOps.randomMembers("test", 2);
+		Set<String> members = setOps.distinctRandomMembers("test", 2);
 		assertEquals(2, members.size());
 		assertTrue(Arrays.asList(new String[] {"foo", "bar", "baz"}).containsAll(members));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRandomMembersWithDuplicates() {
+		setOps.add("test", "foo");
+		List<String> members = setOps.randomMembers("test", 2);
+		assertEquals(Arrays.asList(new String[] {"foo", "foo"}), members);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRandomMembersNegative() {
+		setOps.randomMembers("test", -1);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testDistinctRandomMembersNegative() {
+		setOps.distinctRandomMembers("test", -2);
 	}
 }

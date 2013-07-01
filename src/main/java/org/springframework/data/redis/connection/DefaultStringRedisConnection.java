@@ -456,7 +456,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.sRandMember(key);
 	}
 
-	public Set<byte[]> sRandMember(byte[] key, long count) {
+	public List<byte[]> sRandMember(byte[] key, long count) {
 		return delegate.sRandMember(key, count);
 	}
 
@@ -1072,14 +1072,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return deserialize(delegate.sRandMember(serialize(key)));
 	}
 
-	public Set<String> sRandMember(String key, long count) {
+	public List<String> sRandMember(String key, long count) {
 		return deserialize(delegate.sRandMember(serialize(key), count));
 	}
 	
 	public Boolean sRem(String key, String value) {
 		return delegate.sRem(serialize(key), serialize(value));
 	}
-
 	
 	public Long strLen(String key) {
 		return delegate.strLen(serialize(key));

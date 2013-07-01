@@ -187,7 +187,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	String sRandMember(String key);
 
-	Set<String> sRandMember(String key, long count);
+	List<String> sRandMember(String key, long count);
 
 	Boolean zAdd(String key, double score, String value);
 

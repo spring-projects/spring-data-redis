@@ -3,8 +3,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="lettuceConnectionFactory"
-		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+	<bean id="srpConnectionFactory"
+		class="org.springframework.data.redis.connection.srp.SrpConnectionFactory">
 		<property name="hostName">
 			<bean class="org.springframework.data.redis.SettingsUtils"
 				factory-method="getHost" />
@@ -16,7 +16,7 @@
 	</bean>
 
 	<bean class="org.springframework.data.redis.core.StringRedisTemplate">
-		<property name="connectionFactory" ref="lettuceConnectionFactory" />
+		<property name="connectionFactory" ref="srpConnectionFactory" />
 	</bean>
 
 </beans>
