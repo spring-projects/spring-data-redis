@@ -16,13 +16,12 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -31,7 +30,6 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
@@ -183,14 +181,6 @@ public class LettuceConnectionFactoryTests {
 	}
 
 	@Test(expected=RedisConnectionFailureException.class)
-	public void testGetConnectionNotSharedException() {
-		factory.setShareNativeConnection(false);
-		factory.setHostName("fakeHost");
-		factory.afterPropertiesSet();
-		factory.getConnection();
-	}
-
-	@Test(expected=RedisConnectionFailureException.class)
 	public void testGetConnectionSharedException() {
 		factory.setShareNativeConnection(false);
 		factory.setHostName("fakeHost");
@@ -217,29 +207,22 @@ public class LettuceConnectionFactoryTests {
 	}
 
 	@Test
-	public void testCreateLettuceConnectorWithPool() {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
+	public void testCreateFactoryWithPool() {
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
-		factory2.createLettuceConnector(false);
-		try {
-			// We know we are using the pool if we try to get another connection
-			// when maxActive is set to 1
-			factory2.createLettuceConnector(false);
-			fail("Expected Exception retrieving connection from pool");
-		} catch (PoolException e) {
-		}
+		factory2.getConnection();
 	}
 
 	@Ignore("Uncomment this test to manually check connection reuse in a pool scenario")
 	@Test
 	public void testLotsOfConnections() throws InterruptedException {
 		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2 afterPropertiesSet for shared conn)
-		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort()));
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.afterPropertiesSet();
+		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
 		for(int i=1;i< 1000;i++) {
 			Thread th = new Thread(new Runnable() {

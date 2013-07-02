@@ -88,35 +88,46 @@ public class LettuceConnection implements RedisConnection {
 	/**
 	 * Instantiates a new lettuce connection.
 	 *
-	 * @param dedicatedConnection
-	 *            A dedicated native connection. Can be used for any operation.
 	 * @param timeout
 	 *            The connection timeout (in milliseconds)
 	 * @param client
-	 * 			 The {@link RedisClient} to use when making pub/sub connections
+	 *            The {@link RedisClient} to use when instantiating a native
+	 *            connection
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
-			RedisClient client) {
-		this(null, dedicatedConnection, timeout, client, null);
+	public LettuceConnection(long timeout, RedisClient client) {
+		this(null, timeout, client, null);
 	}
 
 	/**
 	 * Instantiates a new lettuce connection.
 	 *
-	 * @param dedicatedConnection
-	 *            A dedicated native connection. Can be used for any operation.
+	 * @param timeout
+	 *            The connection timeout (in milliseconds) * @param client The
+	 *            {@link RedisClient} to use when instantiating a pub/sub
+	 *            connection
+	 * @param pool
+	 *            The connection pool to use for all other native connections
+	 */
+	public LettuceConnection(long timeout, RedisClient client, LettucePool pool) {
+		this(null, timeout, client, pool);
+	}
+
+	/**
+	 * Instantiates a new lettuce connection.
+	 *
+	 * @param sharedConnection
+	 *            A native connection that is shared with other
+	 *            {@link LettuceConnection}s. Will not be used for transactions
+	 *            or blocking operations
 	 * @param timeout
 	 *            The connection timeout (in milliseconds)
 	 * @param client
-	 * 			 The {@link RedisClient} to use when making pub/sub connections
-	 * @param pool
-	 *            An optional connection pool, from which the dedicated
-	 *            connection came. If pool is set, the dedicated connection will
-	 *            be returned to the pool on close
+	 *            The {@link RedisClient} to use when making pub/sub, blocking,
+	 *            and tx connections
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
-			RedisClient client, LettucePool pool) {
-		this(null, dedicatedConnection, timeout, client, pool);
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
+			long timeout, RedisClient client) {
+		this(sharedConnection, timeout, client, null);
 	}
 
 	/**
@@ -126,47 +137,19 @@ public class LettuceConnection implements RedisConnection {
 	 *            A native connection that is shared with other
 	 *            {@link LettuceConnection}s. Should not be used for
 	 *            transactions or blocking operations
-	 * @param dedicatedConnection
-	 *            A dedicated native connection. Can be used for any operation.
 	 * @param timeout
 	 *            The connection timeout (in milliseconds)
 	 * @param client
-	 * 			 The {@link RedisClient} to use when making pub/sub connections
-	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
-			com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
-			RedisClient client) {
-		this(sharedConnection, dedicatedConnection, timeout, client, null);
-	}
-
-	/**
-	 * Instantiates a new lettuce connection.
-	 *
-	 * @param sharedConnection
-	 *            A native connection that is shared with other
-	 *            {@link LettuceConnection}s. Should not be used for
-	 *            transactions or blocking operations
-	 * @param dedicatedConnection
-	 *            A dedicated native connection. Can be used for any operation.
-	 * @param timeout
-	 *            The connection timeout (in milliseconds)
-	 * @param client
-	 * 			 The {@link RedisClient} to use when making pub/sub connections
+	 *            The {@link RedisClient} to use when making pub/sub connections
 	 * @param pool
-	 *            An optional connection pool, from which the dedicated
-	 *            connection came. If pool is set, the dedicated connection will
-	 *            be returned to the pool on close
+	 *            The connection pool to use for blocking and tx operations
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection,
-			com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> dedicatedConnection, long timeout,
-			RedisClient client, LettucePool pool) {
-		Assert.notNull(dedicatedConnection, "a valid dedicated connection is required");
+			long timeout, RedisClient client, LettucePool pool) {
 		this.asyncSharedConn = sharedConnection;
-		this.asyncDedicatedConn = dedicatedConnection;
 		this.timeout = timeout;
-		this.sharedConn = sharedConnection != null ?
-				new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(asyncSharedConn) : null;
-		this.dedicatedConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(dedicatedConnection);
+		this.sharedConn = sharedConnection != null ? new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(
+				asyncSharedConn) : null;
 		this.client = client;
 		this.pool = pool;
 	}
@@ -223,19 +206,20 @@ public class LettuceConnection implements RedisConnection {
 	public void close() throws DataAccessException {
 		isClosed = true;
 
-		if(pool != null) {
-			if (!broken) {
-				pool.returnResource(asyncDedicatedConn);
-			}else {
-				pool.returnBrokenResource(asyncDedicatedConn);
+		if(asyncDedicatedConn != null) {
+			if(pool != null) {
+				if (!broken) {
+					pool.returnResource(asyncDedicatedConn);
+				}else {
+					pool.returnBrokenResource(asyncDedicatedConn);
+				}
+			} else {
+				try {
+					asyncDedicatedConn.close();
+				} catch (RuntimeException ex) {
+					throw convertLettuceAccessException(ex);
+				}
 			}
-			return;
-		}
-
-		try {
-			asyncDedicatedConn.close();
-		} catch (RuntimeException ex) {
-			throw convertLettuceAccessException(ex);
 		}
 
 		if (subscription != null) {
@@ -549,30 +533,28 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-
 	public void discard() {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncTxConnection().discard());
+				pipeline(getAsyncDedicatedConnection().discard());
 				return;
 			}
-			getTxConnection().discard();
+			getDedicatedConnection().discard();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
-
 	public List<Object> exec() {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				 getAsyncTxConnection().exec();
-				 return null;
+				getAsyncDedicatedConnection().exec();
+				return null;
 			}
-			List<Object> results = getTxConnection().exec();
-			if(results.isEmpty()) {
+			List<Object> results = getDedicatedConnection().exec();
+			if (results.isEmpty()) {
 				return null;
 			}
 			return results;
@@ -701,15 +683,14 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = true;
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncTxConnection().multi());
+				pipeline(getAsyncDedicatedConnection().multi());
 				return;
 			}
-			getTxConnection().multi();
+			getDedicatedConnection().multi();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
-
 
 	public Boolean persist(byte[] key) {
 		try {
@@ -816,28 +797,25 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-
 	public void unwatch() {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncTxConnection().unwatch());
+				pipeline(getAsyncDedicatedConnection().unwatch());
 				return;
 			}
-			getTxConnection().unwatch();
+			getDedicatedConnection().unwatch();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
-
 	public void watch(byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncTxConnection().watch(keys));
+				pipeline(getAsyncDedicatedConnection().watch(keys));
 				return;
-			}
-			else {
-				getTxConnection().watch(keys);
+			} else {
+				getDedicatedConnection().watch(keys);
 			}
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -1159,10 +1137,10 @@ public class LettuceConnection implements RedisConnection {
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncBlockingConnection().blpop(timeout, keys));
+				pipeline(getAsyncDedicatedConnection().blpop(timeout, keys));
 				return null;
 			}
-			return LettuceUtils.toList(getBlockingConnection().blpop(timeout, keys));
+			return LettuceUtils.toList(getDedicatedConnection().blpop(timeout, keys));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1171,15 +1149,14 @@ public class LettuceConnection implements RedisConnection {
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncBlockingConnection().brpop(timeout, keys));
+				pipeline(getAsyncDedicatedConnection().brpop(timeout, keys));
 				return null;
 			}
-			return LettuceUtils.toList(getBlockingConnection().brpop(timeout, keys));
+			return LettuceUtils.toList(getDedicatedConnection().brpop(timeout, keys));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
-
 
 	public byte[] lIndex(byte[] key, long index) {
 		try {
@@ -1307,10 +1284,10 @@ public class LettuceConnection implements RedisConnection {
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		try {
 			if (isPipelined()) {
-				pipeline(getAsyncBlockingConnection().brpoplpush(timeout, srcKey, dstKey));
+				pipeline(getAsyncDedicatedConnection().brpoplpush(timeout, srcKey, dstKey));
 				return null;
 			}
-			return getBlockingConnection().brpoplpush(timeout, srcKey, dstKey);
+			return getDedicatedConnection().brpoplpush(timeout, srcKey, dstKey);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -2220,40 +2197,41 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	private RedisAsyncConnection<byte[], byte[]> getAsyncConnection() {
-		if(isQueueing()) {
-			return getAsyncTxConnection();
+		if (isQueueing()) {
+			return getAsyncDedicatedConnection();
 		}
-		if(asyncSharedConn != null) {
+		if (asyncSharedConn != null) {
 			return asyncSharedConn;
 		}
-		return asyncDedicatedConn;
+		return getAsyncDedicatedConnection();
 	}
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getConnection() {
-		if(isQueueing()) {
-			return getTxConnection();
+		if (isQueueing()) {
+			return getDedicatedConnection();
 		}
-		if(sharedConn != null) {
+		if (sharedConn != null) {
 			return sharedConn;
 		}
-		return dedicatedConn;
+		return getDedicatedConnection();
 	}
 
-	private RedisAsyncConnection<byte[], byte[]> getAsyncBlockingConnection() {
+	private RedisAsyncConnection<byte[], byte[]> getAsyncDedicatedConnection() {
+		if(asyncDedicatedConn == null) {
+			if(this.pool != null) {
+				this.asyncDedicatedConn = pool.getResource();
+			} else {
+				this.asyncDedicatedConn = client.connectAsync(LettuceUtils.CODEC);
+			}
+		}
 		return asyncDedicatedConn;
 	}
 
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getBlockingConnection() {
+	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getDedicatedConnection() {
+		if(dedicatedConn == null) {
+			this.dedicatedConn = new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(getAsyncDedicatedConnection());
+		}
 		return dedicatedConn;
-	}
-
-	private RedisAsyncConnection<byte[], byte[]> getAsyncTxConnection() {
-		return asyncDedicatedConn;
-	}
-
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getTxConnection() {
-		return dedicatedConn;
-
 	}
 
 	private Future<Long> asyncBitOp(BitOperation op, byte[] destination, byte[]... keys) {

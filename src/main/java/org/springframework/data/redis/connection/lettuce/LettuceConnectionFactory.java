@@ -106,7 +106,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public RedisConnection getConnection() {
-		return new LettuceConnection(getSharedConnection(), createLettuceConnector(false), timeout, client, pool);
+		return new LettuceConnection(getSharedConnection(), timeout, client, pool);
 	}
 
 	public void initConnection() {
@@ -114,7 +114,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			if (this.connection != null) {
 				resetConnection();
 			}
-			this.connection = createLettuceConnector(true);
+			this.connection = createLettuceConnector();
 		}
 	}
 
@@ -313,16 +313,13 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		}
 	}
 
-	protected RedisAsyncConnection<byte[], byte[]> createLettuceConnector(boolean shared) {
-		if(pool != null && !shared) {
-			return pool.getResource();
-		}
+	protected RedisAsyncConnection<byte[], byte[]> createLettuceConnector() {
 		try {
-			RedisAsyncConnection<byte[], byte[]> dedicatedConnection = client.connectAsync(LettuceUtils.CODEC);
+			RedisAsyncConnection<byte[], byte[]> connection = client.connectAsync(LettuceUtils.CODEC);
 			if(dbIndex > 0) {
-				dedicatedConnection.select(dbIndex);
+				connection.select(dbIndex);
 			}
-			return dedicatedConnection;
+			return connection;
 		} catch (RedisException e) {
 			throw new RedisConnectionFailureException("Unable to connect to Redis on " +
 					getHostName() + ":" + getPort(), e);
