@@ -761,10 +761,10 @@ public class LettuceConnection implements RedisConnection {
 			throw new UnsupportedOperationException("Selecting a new database not supported due to shared connection. " +
 				"Use separate ConnectionFactorys to work with multiple databases");
 		}
+		if (isPipelined()) {
+			throw new UnsupportedOperationException("Lettuce blocks for #select");
+		}
 		try {
-			if (isPipelined()) {
-				throw new UnsupportedOperationException("Lettuce blocks for #select");
-			}
 			getConnection().select(dbIndex);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -2146,14 +2146,13 @@ public class LettuceConnection implements RedisConnection {
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		checkSubscription();
 
+		if (isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
+		if (isPipelined()) {
+			throw new UnsupportedOperationException();
+		}
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
-			if (isPipelined()) {
-				throw new UnsupportedOperationException();
-			}
-
 			subscription = new LettuceSubscription(listener, switchToPubSub());
 			subscription.pSubscribe(patterns);
 		} catch (Exception ex) {
@@ -2165,10 +2164,10 @@ public class LettuceConnection implements RedisConnection {
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		checkSubscription();
 
+		if (isPipelined()) {
+			throw new UnsupportedOperationException();
+		}
 		try {
-			if (isPipelined()) {
-				throw new UnsupportedOperationException();
-			}
 			subscription = new LettuceSubscription(listener, switchToPubSub());
 			subscription.subscribe(channels);
 

@@ -23,7 +23,6 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
 
 /**
@@ -88,12 +87,12 @@ public class JedisConnectionTransactionIntegrationTests extends
 
 	// Unsupported Ops
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testGetConfig() {
 		connection.getConfig("*");
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testEcho() {
 		super.testEcho();
 	}

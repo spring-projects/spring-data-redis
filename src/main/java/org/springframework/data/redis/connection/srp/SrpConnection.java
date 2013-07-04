@@ -2037,10 +2037,10 @@ public class SrpConnection implements RedisConnection {
 	//
 
 	public Long publish(byte[] channel, byte[] message) {
+		if (isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
 			if (isPipelined()) {
 				pipeline(pipeline.publish(channel, message));
 				return null;
@@ -2065,14 +2065,13 @@ public class SrpConnection implements RedisConnection {
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		checkSubscription();
 
+		if (isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
+		if (isPipelined()) {
+			throw new UnsupportedOperationException();
+		}
 		try {
-			if (isQueueing()) {
-				throw new UnsupportedOperationException();
-			}
-			if (isPipelined()) {
-				throw new UnsupportedOperationException();
-			}
-
 			subscription = new SrpSubscription(listener, client);
 			subscription.pSubscribe(patterns);
 		} catch (Exception ex) {
@@ -2084,11 +2083,10 @@ public class SrpConnection implements RedisConnection {
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		checkSubscription();
 
+		if (isPipelined()) {
+			throw new UnsupportedOperationException();
+		}
 		try {
-			if (isPipelined()) {
-				throw new UnsupportedOperationException();
-			}
-
 			subscription = new SrpSubscription(listener, client);
 			subscription.subscribe(channels);
 

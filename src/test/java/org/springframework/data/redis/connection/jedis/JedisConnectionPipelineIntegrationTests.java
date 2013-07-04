@@ -27,7 +27,6 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -148,7 +147,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testRestoreTtl();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitSet() throws Exception {
 		super.testBitSet();
 	}
@@ -193,42 +192,42 @@ public class JedisConnectionPipelineIntegrationTests extends
 		super.testBitOpNotMultipleSources();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRandomKey() {
 		super.testRandomKey();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testGetRangeSetRange() {
 		super.testGetRangeSetRange();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPingPong() throws Exception {
 		super.testPingPong();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testInfo() throws Exception {
 		super.testInfo();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZRevRangeByScore() {
 		super.testZRevRangeByScore();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZRevRangeByScoreOffsetCount() {
 		super.testZRevRangeByScoreOffsetCount();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZRevRangeByScoreWithScores() {
 		super.testZRevRangeByScoreWithScores();
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZRevRangeByScoreWithScoresOffsetCount() {
 		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
