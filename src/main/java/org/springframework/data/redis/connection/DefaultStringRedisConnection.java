@@ -998,8 +998,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public void sDiffStore(String destKey, String... keys) {
-		delegate.sDiffStore(serialize(destKey), serializeMulti(keys));
+	public Long sDiffStore(String destKey, String... keys) {
+		return delegate.sDiffStore(serialize(destKey), serializeMulti(keys));
 	}
 
 	
@@ -1033,8 +1033,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public void sInterStore(String destKey, String... keys) {
-		delegate.sInterStore(serialize(destKey), serializeMulti(keys));
+	public Long sInterStore(String destKey, String... keys) {
+		return delegate.sInterStore(serialize(destKey), serializeMulti(keys));
 	}
 
 	
@@ -1106,8 +1106,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public void sUnionStore(String destKey, String... keys) {
-		delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
+	public Long sUnionStore(String destKey, String... keys) {
+		return delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
 	}
 
 	

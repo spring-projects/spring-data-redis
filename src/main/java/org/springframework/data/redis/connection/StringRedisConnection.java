@@ -173,15 +173,15 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Set<String> sInter(String... keys);
 
-	void sInterStore(String destKey, String... keys);
+	Long sInterStore(String destKey, String... keys);
 
 	Set<String> sUnion(String... keys);
 
-	void sUnionStore(String destKey, String... keys);
+	Long sUnionStore(String destKey, String... keys);
 
 	Set<String> sDiff(String... keys);
 
-	void sDiffStore(String destKey, String... keys);
+	Long sDiffStore(String destKey, String... keys);
 
 	Set<String> sMembers(String key);
 
