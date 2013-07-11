@@ -17,11 +17,13 @@
 package org.springframework.data.redis.cache;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,14 +37,15 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.CollectionTestParams;
 import org.springframework.data.redis.support.collections.ObjectFactory;
 
 /**
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
+@SuppressWarnings("rawtypes")
 @RunWith(Parameterized.class)
 public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
@@ -62,6 +65,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	protected Cache createCache(RedisTemplate nativeCache) {
 		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache,
 				TimeUnit.MINUTES.toSeconds(10));
@@ -96,45 +100,23 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		final Object key2 = getObject();
 		final Object value2 = getObject();
 
-		final String prefix = CACHE_NAME.concat(":");
-		final BoundZSetOperations setOps = template.boundZSetOps(CACHE_NAME);
-
 		final AtomicBoolean failed = new AtomicBoolean(true);
-
-		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
-		//		System.out.println("Set keys" + template.keys(prefix));
-
 		cache.put(key1, value1);
 		cache.put(key2, value2);
 
-		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
-		//		System.out.println("Set keys" + template.keys(prefix));
-
 		Thread th = new Thread(new Runnable() {
-
 			public void run() {
 				cache.clear();
 				cache.put(value1, key1);
 				cache.put(value2, key2);
 				failed.set(key1.equals(cache.get(value1)));
-				//				System.out.println("Cache keys" + setOps.range(0, -1).toString());
-				//				System.out.println("Set keys" + template.keys(prefix));
 
 			}
 		}, "concurrent-cache-access");
-
-		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
-		//		System.out.println("Set keys" + template.keys(prefix));
-
 		th.start();
 		th.join();
 
-		//		System.out.println("Cache keys" + setOps.range(0, -1).toString());
-		//		System.out.println("Set keys" + template.keys(prefix));
-
-		if (failed.get()) {
-			throw new Exception("Concurrent access failed");
-		}
+		assertFalse(failed.get());
 
 		final Object key3 = getObject();
 		final Object value3 = getObject();
@@ -145,11 +127,8 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertNull(cache.get(key1));
 		assertNull(cache.get(key2));
 		ValueWrapper valueWrapper = cache.get(value1);
-		// test keeps failing on the CI server for some reason...
-		if (valueWrapper != null) {
-			assertNotNull(valueWrapper);
-			assertEquals(key1, valueWrapper.get());
-		}
+		assertNotNull(valueWrapper);
+		assertEquals(key1, valueWrapper.get());
 	}
 
 	@Test
@@ -159,5 +138,34 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		Cache cache = redisCM.getCache(cacheName);
 		assertNotNull(cache);
 		assertTrue(redisCM.getCacheNames().contains(cacheName));
+	}
+
+	@Test
+	public void testGetWhileClear() throws InterruptedException {
+		int numTries = 10;
+		final AtomicBoolean monitorStateException = new AtomicBoolean(false);
+		final CountDownLatch latch = new CountDownLatch(numTries);
+		Runnable clearCache = new Runnable() {
+			public void run() {
+				cache.clear();
+			}
+		};
+		Runnable putCache = new Runnable() {
+			public void run() {
+				try {
+					cache.put("foo", "bar");
+				}catch(IllegalMonitorStateException e) {
+					monitorStateException.set(true);
+				} finally {
+					latch.countDown();
+				}
+			}
+		};
+		for (int i = 0; i < numTries; i++) {
+			new Thread(clearCache).start();
+			new Thread(putCache).start();
+		}
+		latch.await();
+		assertFalse(monitorStateException.get());
 	}
 }

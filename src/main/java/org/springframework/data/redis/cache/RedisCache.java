@@ -38,6 +38,7 @@ class RedisCache implements Cache {
 
 	private static final int PAGE_SIZE = 128;
 	private final String name;
+	@SuppressWarnings("rawtypes")
 	private final RedisTemplate template;
 	private final byte[] prefix;
 	private final byte[] setName;
@@ -188,7 +189,7 @@ class RedisCache implements Cache {
 			if (connection.exists(cacheLockName)) {
 				foundLock = true;
 				try {
-					Thread.currentThread().wait(WAIT_FOR_LOCK);
+					Thread.sleep(WAIT_FOR_LOCK);
 				} catch (InterruptedException ex) {
 					// ignore
 				}
