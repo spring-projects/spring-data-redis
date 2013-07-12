@@ -1089,7 +1089,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Long bitCount(String key, long begin, long end) {
-		return delegate.bitCount(serialize(key));
+		return delegate.bitCount(serialize(key), begin, end);
 	}
 
 	public Long bitOp(BitOperation op, String destination, String... keys) {

@@ -395,7 +395,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testBitCountInterval() {
 		connection.set("mykey", "foobar");
 		actual.add(connection.bitCount("mykey", 1, 1));
-		verifyResults(new ArrayList<Object>(Collections.singletonList(26l)), actual);
+		verifyResults(new ArrayList<Object>(Collections.singletonList(6l)), actual);
 	}
 
 	@Test
