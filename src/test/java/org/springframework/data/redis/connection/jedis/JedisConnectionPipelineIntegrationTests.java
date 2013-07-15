@@ -83,6 +83,10 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testSortStore() {
 	}
 
+	@Ignore("DATAREDIS-143 Pipeline tries to return Long instead of List<String> on sort with no params")
+	public void testSortNullParams() {
+	}
+
 	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
 	public void testMultiExec() {
 	}

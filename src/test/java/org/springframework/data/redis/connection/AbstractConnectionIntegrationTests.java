@@ -713,6 +713,17 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testSortNullParams() {
+		actual.add(connection.rPush("sortlist", "5"));
+		actual.add(connection.rPush("sortlist", "2"));
+		actual.add(connection.rPush("sortlist", "3"));
+		actual.add(connection.sort("sortlist", null));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l, 2l, 3l,
+						Arrays.asList(new String[] { "2", "3", "5" }) }), actual);
+	}
+
+	@Test
 	public void testDbSize() {
 		connection.set("dbparam", "foo");
 		assertTrue(connection.dbSize() > 0);

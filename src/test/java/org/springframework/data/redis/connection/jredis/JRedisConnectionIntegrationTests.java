@@ -544,6 +544,16 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test
+	public void testSortNullParams() {
+		connection.rPush("sortlist", "5");
+		connection.rPush("sortlist", "2");
+		connection.rPush("sortlist", "3");
+		actual.add(connection.sort("sortlist", null));
+		verifyResults(
+			Arrays.asList(new Object[] { Arrays.asList(new String[] { "2", "3", "5" }) }), actual);
+	}
+
+	@Test
 	public void testLPop() {
 		connection.rPush("PopList", "hello");
 		connection.rPush("PopList", "world");
