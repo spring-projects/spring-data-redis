@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -110,5 +111,39 @@ public class StringRedisTemplateTests {
 			}
 		});
 		assertEquals(value,"it");
+	}
+
+	@Test
+	public void testStringTemplateExecutePipelineResultsConverted() {
+		String result = redisTemplate.execute(new RedisCallback<String>() {
+			public String doInRedis(RedisConnection connection) {
+				StringRedisConnection stringConn = (StringRedisConnection) connection;
+				stringConn.openPipeline();
+				stringConn.set("foo", "bar");
+				stringConn.get("foo");
+				List<Object> results = stringConn.closePipeline();
+				return (String) results.get(0);
+			}
+		});
+		assertEquals("bar",result);
+	}
+
+	@Test
+	public void testStringTemplateExecutePipelineResultsNotConverted() {
+		final StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
+		template2.setDeserializePipelineResults(false);
+		template2.afterPropertiesSet();
+		String result = template2.execute(new RedisCallback<String>() {
+			public String doInRedis(RedisConnection connection) {
+				StringRedisConnection stringConn = (StringRedisConnection) connection;
+				stringConn.openPipeline();
+				stringConn.set("foo", "bar");
+				stringConn.get("foo");
+				List<Object> results = stringConn.closePipeline();
+				// Results should be in byte[], not deserialized to String
+				return template2.getStringSerializer().deserialize((byte[]) results.get(0));
+			}
+		});
+		assertEquals("bar",result);
 	}
 }

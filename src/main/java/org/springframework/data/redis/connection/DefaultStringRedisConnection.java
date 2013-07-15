@@ -15,17 +15,25 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.convert.IdentityConverter;
+import org.springframework.data.redis.connection.convert.ListConverter;
+import org.springframework.data.redis.connection.convert.MapConverter;
+import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
@@ -33,11 +41,33 @@ import org.springframework.util.Assert;
  * Default implementation of {@link StringRedisConnection}.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class DefaultStringRedisConnection implements StringRedisConnection {
 
+	private final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
 	private final RedisConnection delegate;
 	private final RedisSerializer<String> serializer;
+	private Converter<byte[],String> bytesToString = new DeserializingConverter();
+	private SetConverter<Tuple,StringTuple> tupleToStringTuple = new SetConverter<Tuple,StringTuple>(new TupleConverter());
+	private ListConverter<byte[], String> byteListToStringList = new ListConverter<byte[],String>(bytesToString);
+	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<byte[],String>(bytesToString);
+	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<byte[],String>(bytesToString);
+	@SuppressWarnings("rawtypes")
+	private Queue<Converter> pipelineConverters = new LinkedList<Converter>();
+	private boolean deserializePipelineResults = true;
+
+	private class DeserializingConverter implements Converter<byte[],String> {
+		public String convert(byte[] source) {
+			return serializer.deserialize(source);
+		}
+	}
+
+	private class TupleConverter implements Converter<Tuple,StringTuple> {
+		public StringTuple convert(Tuple source) {
+			return new DefaultStringTuple(source, serializer.deserialize(source.getValue()));
+		}
+	}
 
 	/**
 	 * Constructs a new <code>DefaultStringRedisConnection</code> instance.
@@ -65,7 +95,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Long append(byte[] key, byte[] value) {
-		return delegate.append(key, value);
+		Long result = delegate.append(key,value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void bgSave() {
@@ -77,15 +111,27 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
-		return delegate.bLPop(timeout, keys);
+		List<byte[]> results = delegate.bLPop(timeout, keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
-		return delegate.bRPop(timeout, keys);
+		List<byte[]> results = delegate.bRPop(timeout, keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
-		return delegate.bRPopLPush(timeout, srcKey, dstKey);
+		byte[] result = delegate.bRPopLPush(timeout, srcKey, dstKey);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void close() throws RedisSystemException {
@@ -93,19 +139,35 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Long dbSize() {
-		return delegate.dbSize();
+		Long result = delegate.dbSize();
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long decr(byte[] key) {
-		return delegate.decr(key);
+		Long result = delegate.decr(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long decrBy(byte[] key, long value) {
-		return delegate.decrBy(key, value);
+		Long result = delegate.decrBy(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long del(byte[]... keys) {
-		return delegate.del(keys);
+		Long result = delegate.del(keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void discard() {
@@ -113,23 +175,43 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public byte[] echo(byte[] message) {
-		return delegate.echo(message);
+		byte[] result = delegate.echo(message);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<Object> exec() {
-		return delegate.exec();
+		List<Object> results = delegate.exec();
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Boolean exists(byte[] key) {
-		return delegate.exists(key);
+		Boolean result =  delegate.exists(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean expire(byte[] key, long seconds) {
-		return delegate.expire(key, seconds);
+		Boolean result = delegate.expire(key, seconds);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean expireAt(byte[] key, long unixTime) {
-		return delegate.expireAt(key, unixTime);
+		Boolean result = delegate.expireAt(key, unixTime);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void flushAll() {
@@ -141,27 +223,51 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public byte[] get(byte[] key) {
-		return delegate.get(key);
+		byte[] result = delegate.get(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean getBit(byte[] key, long offset) {
-		return delegate.getBit(key, offset);
+		Boolean result = delegate.getBit(key, offset);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<String> getConfig(String pattern) {
-		return delegate.getConfig(pattern);
+		List<String> results = delegate.getConfig(pattern);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Object getNativeConnection() {
-		return delegate.getNativeConnection();
+		Object result = delegate.getNativeConnection();
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] getRange(byte[] key, long start, long end) {
-		return delegate.getRange(key, start, end);
+		byte[] result = delegate.getRange(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] getSet(byte[] key, byte[] value) {
-		return delegate.getSet(key, value);
+		byte[] result = delegate.getSet(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Subscription getSubscription() {
@@ -169,39 +275,75 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean hDel(byte[] key, byte[] field) {
-		return delegate.hDel(key, field);
+		Boolean result = delegate.hDel(key, field);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean hExists(byte[] key, byte[] field) {
-		return delegate.hExists(key, field);
+		Boolean result = delegate.hExists(key, field);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] hGet(byte[] key, byte[] field) {
-		return delegate.hGet(key, field);
+		byte[] result = delegate.hGet(key, field);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
-		return delegate.hGetAll(key);
+		Map<byte[],byte[]> results = delegate.hGetAll(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
-		return delegate.hIncrBy(key, field, delta);
+		Long result = delegate.hIncrBy(key, field, delta);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
-		return delegate.hIncrBy(key, field, delta);
+		Double result = delegate.hIncrBy(key, field, delta);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Set<byte[]> hKeys(byte[] key) {
-		return delegate.hKeys(key);
+		Set<byte[]> results = delegate.hKeys(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long hLen(byte[] key) {
-		return delegate.hLen(key);
+		Long result = delegate.hLen(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
-		return delegate.hMGet(key, fields);
+		List<byte[]> results = delegate.hMGet(key, fields);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
@@ -209,35 +351,67 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
-		return delegate.hSet(key, field, value);
+		Boolean result = delegate.hSet(key, field, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
-		return delegate.hSetNX(key, field, value);
+		Boolean result = delegate.hSetNX(key, field, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<byte[]> hVals(byte[] key) {
-		return delegate.hVals(key);
+		List<byte[]> results = delegate.hVals(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long incr(byte[] key) {
-		return delegate.incr(key);
+		Long result = delegate.incr(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long incrBy(byte[] key, long value) {
-		return delegate.incrBy(key, value);
+		Long result = delegate.incrBy(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Double incrBy(byte[] key, double value) {
-		return delegate.incrBy(key, value);
+		Double result = delegate.incrBy(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Properties info() {
-		return delegate.info();
+		Properties result = delegate.info();
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Properties info(String section) {
-		return delegate.info(section);
+		Properties result = delegate.info(section);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public boolean isClosed() {
@@ -253,43 +427,83 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Set<byte[]> keys(byte[] pattern) {
-		return delegate.keys(pattern);
+		Set<byte[]> results = delegate.keys(pattern);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long lastSave() {
-		return delegate.lastSave();
+		Long result = delegate.lastSave();
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] lIndex(byte[] key, long index) {
-		return delegate.lIndex(key, index);
+		byte[] result = delegate.lIndex(key, index);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
-		return delegate.lInsert(key, where, pivot, value);
+		Long result = delegate.lInsert(key, where, pivot, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long lLen(byte[] key) {
-		return delegate.lLen(key);
+		Long result = delegate.lLen(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] lPop(byte[] key) {
-		return delegate.lPop(key);
+		byte[] result = delegate.lPop(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long lPush(byte[] key, byte[] value) {
-		return delegate.lPush(key, value);
+		Long result = delegate.lPush(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long lPushX(byte[] key, byte[] value) {
-		return delegate.lPushX(key, value);
+		Long result = delegate.lPushX(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<byte[]> lRange(byte[] key, long start, long end) {
-		return delegate.lRange(key, start, end);
+		List<byte[]> results = delegate.lRange(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long lRem(byte[] key, long count, byte[] value) {
-		return delegate.lRem(key, count, value);
+		Long result = delegate.lRem(key, count, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void lSet(byte[] key, long index, byte[] value) {
@@ -301,7 +515,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public List<byte[]> mGet(byte[]... keys) {
-		return delegate.mGet(keys);
+		List<byte[]> results = delegate.mGet(keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public void mSet(Map<byte[], byte[]> tuple) {
@@ -309,7 +527,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
-		return delegate.mSetNX(tuple);
+		Boolean result = delegate.mSetNX(tuple);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void multi() {
@@ -317,15 +539,27 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean persist(byte[] key) {
-		return delegate.persist(key);
+		Boolean result = delegate.persist(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean move(byte[] key, int dbIndex) {
-		return delegate.move(key, dbIndex);
+		Boolean result = delegate.move(key, dbIndex);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public String ping() {
-		return delegate.ping();
+		String result = delegate.ping();
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
@@ -333,11 +567,19 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Long publish(byte[] channel, byte[] message) {
-		return delegate.publish(channel, message);
+		Long result = delegate.publish(channel, message);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] randomKey() {
-		return delegate.randomKey();
+		byte[] result = delegate.randomKey();
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void rename(byte[] oldName, byte[] newName) {
@@ -345,7 +587,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
-		return delegate.renameNX(oldName, newName);
+		Boolean result = delegate.renameNX(oldName, newName);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void resetConfigStats() {
@@ -353,23 +599,43 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public byte[] rPop(byte[] key) {
-		return delegate.rPop(key);
+		byte[] result = delegate.rPop(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
-		return delegate.rPopLPush(srcKey, dstKey);
+		byte[] result = delegate.rPopLPush(srcKey, dstKey);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long rPush(byte[] key, byte[] value) {
-		return delegate.rPush(key, value);
+		Long result = delegate.rPush(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long rPushX(byte[] key, byte[] value) {
-		return delegate.rPushX(key, value);
+		Long result = delegate.rPushX(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean sAdd(byte[] key, byte[] value) {
-		return delegate.sAdd(key, value);
+		Boolean result = delegate.sAdd(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void save() {
@@ -377,15 +643,27 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Long sCard(byte[] key) {
-		return delegate.sCard(key);
+		Long result = delegate.sCard(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Set<byte[]> sDiff(byte[]... keys) {
-		return delegate.sDiff(keys);
+		Set<byte[]> results = delegate.sDiff(keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
-		return delegate.sDiffStore(destKey, keys);
+		Long result = delegate.sDiffStore(destKey, keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void select(int dbIndex) {
@@ -409,7 +687,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean setNX(byte[] key, byte[] value) {
-		return delegate.setNX(key, value);
+		Boolean result = delegate.setNX(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void setRange(byte[] key, byte[] value, long start) {
@@ -421,63 +703,123 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Set<byte[]> sInter(byte[]... keys) {
-		return delegate.sInter(keys);
+		Set<byte[]> results = delegate.sInter(keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
-		return delegate.sInterStore(destKey, keys);
+		Long result = delegate.sInterStore(destKey, keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean sIsMember(byte[] key, byte[] value) {
-		return delegate.sIsMember(key, value);
+		Boolean result = delegate.sIsMember(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Set<byte[]> sMembers(byte[] key) {
-		return delegate.sMembers(key);
+		Set<byte[]> results = delegate.sMembers(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
-		return delegate.sMove(srcKey, destKey, value);
+		Boolean result = delegate.sMove(srcKey, destKey, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
-		return delegate.sort(key, params, storeKey);
+		Long result = delegate.sort(key, params, storeKey);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
-		return delegate.sort(key, params);
+		List<byte[]> results = delegate.sort(key, params);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public byte[] sPop(byte[] key) {
-		return delegate.sPop(key);
+		byte[] result = delegate.sPop(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] sRandMember(byte[] key) {
-		return delegate.sRandMember(key);
+		byte[] result = delegate.sRandMember(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<byte[]> sRandMember(byte[] key, long count) {
-		return delegate.sRandMember(key, count);
+		List<byte[]> results = delegate.sRandMember(key, count);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Boolean sRem(byte[] key, byte[] value) {
-		return delegate.sRem(key, value);
+		Boolean result = delegate.sRem(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long strLen(byte[] key) {
-		return delegate.strLen(key);
+		Long result = delegate.strLen(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long bitCount(byte[] key) {
-		return delegate.bitCount(key);
+		Long result = delegate.bitCount(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long bitCount(byte[] key, long begin, long end) {
-		return delegate.bitCount(key, begin, end);
+		Long result = delegate.bitCount(key, begin, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
-		return delegate.bitOp(op, destination, keys);
+		Long result = delegate.bitOp(op, destination, keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void subscribe(MessageListener listener, byte[]... channels) {
@@ -485,19 +827,35 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Set<byte[]> sUnion(byte[]... keys) {
-		return delegate.sUnion(keys);
+		Set<byte[]> results = delegate.sUnion(keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
-		return delegate.sUnionStore(destKey, keys);
+		Long result = delegate.sUnionStore(destKey, keys);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long ttl(byte[] key) {
-		return delegate.ttl(key);
+		Long result = delegate.ttl(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public DataType type(byte[] key) {
-		return delegate.type(key);
+		DataType result = delegate.type(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void unwatch() {
@@ -509,123 +867,243 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
-		return delegate.zAdd(key, score, value);
+		Boolean result = delegate.zAdd(key, score, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zCard(byte[] key) {
-		return delegate.zCard(key);
+		Long result = delegate.zCard(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zCount(byte[] key, double min, double max) {
-		return delegate.zCount(key, min, max);
+		Long result = delegate.zCount(key, min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
-		return delegate.zIncrBy(key, increment, value);
+		Double result = delegate.zIncrBy(key, increment, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return delegate.zInterStore(destKey, aggregate, weights, sets);
+		Long result = delegate.zInterStore(destKey, aggregate, weights, sets);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
-		return delegate.zInterStore(destKey, sets);
+		Long result = delegate.zInterStore(destKey, sets);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
-		return delegate.zRange(key, start, end);
+		Set<byte[]> results = delegate.zRange(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		return delegate.zRangeByScore(key, min, max, offset, count);
+		Set<byte[]> results = delegate.zRangeByScore(key, min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
-		return delegate.zRangeByScore(key, min, max);
+		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		return delegate.zRangeByScoreWithScores(key, min, max, offset, count);
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
-		return delegate.zRangeByScoreWithScores(key, min, max);
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
-		return delegate.zRangeWithScores(key, start, end);
+		Set<Tuple> results = delegate.zRangeWithScores(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		return delegate.zRevRangeByScore(key, min, max, offset, count);
+		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
-		return delegate.zRevRangeByScore(key, min, max);
+		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		return delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
-		return delegate.zRevRangeByScoreWithScores(key, min, max);
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long zRank(byte[] key, byte[] value) {
-		return delegate.zRank(key, value);
+		Long result = delegate.zRank(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean zRem(byte[] key, byte[] value) {
-		return delegate.zRem(key, value);
+		Boolean result = delegate.zRem(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zRemRange(byte[] key, long start, long end) {
-		return delegate.zRemRange(key, start, end);
+		Long result = delegate.zRemRange(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
-		return delegate.zRemRangeByScore(key, min, max);
+		Long result = delegate.zRemRangeByScore(key, min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
-		return delegate.zRevRange(key, start, end);
+		Set<byte[]> results = delegate.zRevRange(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
-		return delegate.zRevRangeWithScores(key, start, end);
+		Set<Tuple> results = delegate.zRevRangeWithScores(key, start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public Long zRevRank(byte[] key, byte[] value) {
-		return delegate.zRevRank(key, value);
+		Long result = delegate.zRevRank(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Double zScore(byte[] key, byte[] value) {
-		return delegate.zScore(key, value);
+		Double result = delegate.zScore(key, value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		return delegate.zUnionStore(destKey, aggregate, weights, sets);
+		Long result = delegate.zUnionStore(destKey, aggregate, weights, sets);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
-		return delegate.zUnionStore(destKey, sets);
+		Long result = delegate.zUnionStore(destKey, sets);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean pExpire(byte[] key, long millis) {
-		return delegate.pExpire(key, millis);
+		Boolean result = delegate.pExpire(key, millis);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		return delegate.pExpireAt(key, unixTimeInMillis);
+		Boolean result = delegate.pExpireAt(key, unixTimeInMillis);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long pTtl(byte[] key) {
-		return delegate.pTtl(key);
+		Long result = delegate.pTtl(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public byte[] dump(byte[] key) {
-		return delegate.dump(key);
+		byte[] result = delegate.dump(key);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
@@ -641,19 +1119,35 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public String scriptLoad(byte[] script) {
-		return delegate.scriptLoad(script);
+		String result = delegate.scriptLoad(script);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public List<Boolean> scriptExists(String... scriptSha1) {
-		return delegate.scriptExists(scriptSha1);
+		List<Boolean> results = delegate.scriptExists(scriptSha1);
+		if(isPipelined()) {
+			pipeline(identityConverter(results));
+		}
+		return results;
 	}
 
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return delegate.eval(script, returnType, numKeys, keysAndArgs);
+		T result = delegate.eval(script, returnType, numKeys, keysAndArgs);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		return delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
+		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	//
@@ -684,150 +1178,218 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return ret;
 	}
 
-	private Map<String, String> deserialize(Map<byte[], byte[]> hashes) {
-		return SerializationUtils.deserialize(hashes, serializer);
-	}
-
-	private List<String> deserialize(List<byte[]> data) {
-		return SerializationUtils.deserialize(data, serializer);
-	}
-
-	private Set<String> deserialize(Set<byte[]> data) {
-		return SerializationUtils.deserialize(data, serializer);
-	}
-
-	private String deserialize(byte[] data) {
-		return serializer.deserialize(data);
-	}
-
-	private Set<StringTuple> deserializeTuple(Set<Tuple> data) {
-		if (data == null) {
-			return null;
+	
+	public Long append(String key, String value) {
+		Long result = delegate.append(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
 		}
-		Set<StringTuple> result = new LinkedHashSet<StringTuple>(data.size());
-		for (Tuple raw : data) {
-			result.add(new DefaultStringTuple(raw, serializer.deserialize(raw.getValue())));
-		}
-
 		return result;
 	}
 
 	
-	public Long append(String key, String value) {
-		return delegate.append(serialize(key), serialize(value));
-	}
-
-	
 	public List<String> bLPop(int timeout, String... keys) {
-		return deserialize(delegate.bLPop(timeout, serializeMulti(keys)));
+		List<byte[]> results = delegate.bLPop(timeout, serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 
 	
 	public List<String> bRPop(int timeout, String... keys) {
-		return deserialize(delegate.bRPop(timeout, serializeMulti(keys)));
+		List<byte[]> results = delegate.bRPop(timeout, serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 
 	
 	public String bRPopLPush(int timeout, String srcKey, String dstKey) {
-		return deserialize(delegate.bRPopLPush(timeout, serialize(srcKey), serialize(dstKey)));
+		byte[] result = delegate.bRPopLPush(timeout, serialize(srcKey), serialize(dstKey));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Long decr(String key) {
-		return delegate.decr(serialize(key));
+		Long result = delegate.decr(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long decrBy(String key, long value) {
-		return delegate.decrBy(serialize(key), value);
+		Long result = delegate.decrBy(serialize(key), value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long del(String... keys) {
-		return delegate.del(serializeMulti(keys));
+		Long result = delegate.del(serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public String echo(String message) {
-		return deserialize(delegate.echo(serialize(message)));
+		byte[] result = delegate.echo(serialize(message));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Boolean exists(String key) {
-		return delegate.exists(serialize(key));
+		Boolean result = delegate.exists(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean expire(String key, long seconds) {
-		return delegate.expire(serialize(key), seconds);
+		Boolean result = delegate.expire(serialize(key), seconds);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean expireAt(String key, long unixTime) {
-		return delegate.expireAt(serialize(key), unixTime);
+		Boolean result = delegate.expireAt(serialize(key), unixTime);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public String get(String key) {
-		return deserialize(delegate.get(serialize(key)));
+		byte[] result = delegate.get(serialize(key));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Boolean getBit(String key, long offset) {
-		return delegate.getBit(serialize(key), offset);
+		Boolean result = delegate.getBit(serialize(key), offset);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public String getRange(String key, long start, long end) {
-		return deserialize(delegate.getRange(serialize(key), start, end));
+		byte[] result = delegate.getRange(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public String getSet(String key, String value) {
-		return deserialize(delegate.getSet(serialize(key), serialize(value)));
+		byte[] result = delegate.getSet(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Boolean hDel(String key, String field) {
-		return delegate.hDel(serialize(key), serialize(field));
+		Boolean result = delegate.hDel(serialize(key), serialize(field));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean hExists(String key, String field) {
-		return delegate.hExists(serialize(key), serialize(field));
+		Boolean result = delegate.hExists(serialize(key), serialize(field));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public String hGet(String key, String field) {
-		return deserialize(delegate.hGet(serialize(key), serialize(field)));
+		byte[] result = delegate.hGet(serialize(key), serialize(field));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Map<String, String> hGetAll(String key) {
-		return deserialize(delegate.hGetAll(serialize(key)));
+		Map<byte[],byte[]> results = delegate.hGetAll(serialize(key));
+		if(isPipelined()) {
+			pipeline(byteMapToStringMap);
+		}
+		return byteMapToStringMap.convert(results);
 	}
 
 	
 	public Long hIncrBy(String key, String field, long delta) {
-		return delegate.hIncrBy(serialize(key), serialize(field), delta);
+		Long result = delegate.hIncrBy(serialize(key), serialize(field), delta);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Double hIncrBy(String key, String field, double delta) {
-		return delegate.hIncrBy(serialize(key), serialize(field), delta);
+		Double result = delegate.hIncrBy(serialize(key), serialize(field), delta);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 	
 	public Set<String> hKeys(String key) {
-		return deserialize(delegate.hKeys(serialize(key)));
+		Set<byte[]> results = delegate.hKeys(serialize(key));
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Long hLen(String key) {
-		return delegate.hLen(serialize(key));
+		Long result = delegate.hLen(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public List<String> hMGet(String key, String... fields) {
-		return deserialize(delegate.hMGet(serialize(key), serializeMulti(fields)));
+		List<byte[]> results = delegate.hMGet(serialize(key), serializeMulti(fields));
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 	
 	public void hMSet(String key, Map<String, String> hashes) {
@@ -836,75 +1398,135 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Boolean hSet(String key, String field, String value) {
-		return delegate.hSet(serialize(key), serialize(field), serialize(value));
+		Boolean result = delegate.hSet(serialize(key), serialize(field), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean hSetNX(String key, String field, String value) {
-		return delegate.hSetNX(serialize(key), serialize(field), serialize(value));
+		Boolean result = delegate.hSetNX(serialize(key), serialize(field), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public List<String> hVals(String key) {
-		return deserialize(delegate.hVals(serialize(key)));
+		List<byte[]> results = delegate.hVals(serialize(key));
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 
 	
 	public Long incr(String key) {
-		return delegate.incr(serialize(key));
+		Long result = delegate.incr(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long incrBy(String key, long value) {
-		return delegate.incrBy(serialize(key), value);
+		Long result = delegate.incrBy(serialize(key), value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Double incrBy(String key, double value) {
-		return delegate.incrBy(serialize(key), value);
+		Double result = delegate.incrBy(serialize(key), value);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Collection<String> keys(String pattern) {
-		return deserialize(delegate.keys(serialize(pattern)));
+		Set<byte[]> results = delegate.keys(serialize(pattern));
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public String lIndex(String key, long index) {
-		return deserialize(delegate.lIndex(serialize(key), index));
+		byte[] result = delegate.lIndex(serialize(key), index);
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Long lInsert(String key, Position where, String pivot, String value) {
-		return delegate.lInsert(serialize(key), where, serialize(pivot), serialize(value));
+		Long result = delegate.lInsert(serialize(key), where, serialize(pivot), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long lLen(String key) {
-		return delegate.lLen(serialize(key));
+		Long result = delegate.lLen(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public String lPop(String key) {
-		return deserialize(delegate.lPop(serialize(key)));
+		byte[] result = delegate.lPop(serialize(key));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Long lPush(String key, String value) {
-		return delegate.lPush(serialize(key), serialize(value));
+		Long result = delegate.lPush(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long lPushX(String key, String value) {
-		return delegate.lPushX(serialize(key), serialize(value));
+		Long result = delegate.lPushX(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public List<String> lRange(String key, long start, long end) {
-		return deserialize(delegate.lRange(serialize(key), start, end));
+		List<byte[]> results = delegate.lRange(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 
 	
 	public Long lRem(String key, long count, String value) {
-		return delegate.lRem(serialize(key), count, serialize(value));
+		Long result = delegate.lRem(serialize(key), count, serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
@@ -919,12 +1541,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public List<String> mGet(String... keys) {
-		return deserialize(delegate.mGet(serializeMulti(keys)));
+		List<byte[]> results = delegate.mGet(serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 
 	
 	public Boolean mSetNXString(Map<String, String> tuple) {
-		return delegate.mSetNX(serialize(tuple));
+		Boolean result = delegate.mSetNX(serialize(tuple));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
@@ -934,12 +1564,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Boolean persist(String key) {
-		return delegate.persist(serialize(key));
+		Boolean result = delegate.persist(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean move(String key, int dbIndex) {
-		return delegate.move(serialize(key), dbIndex);
+		Boolean result = delegate.move(serialize(key), dbIndex);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
@@ -949,7 +1587,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Long publish(String channel, String message) {
-		return delegate.publish(serialize(channel), serialize(message));
+		Long result = delegate.publish(serialize(channel), serialize(message));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
@@ -959,47 +1601,83 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Boolean renameNX(String oldName, String newName) {
-		return delegate.renameNX(serialize(oldName), serialize(newName));
+		Boolean result = delegate.renameNX(serialize(oldName), serialize(newName));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public String rPop(String key) {
-		return deserialize(delegate.rPop(serialize(key)));
+		byte[] result = delegate.rPop(serialize(key));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public String rPopLPush(String srcKey, String dstKey) {
-		return deserialize(delegate.rPopLPush(serialize(srcKey), serialize(dstKey)));
+		byte[] result = delegate.rPopLPush(serialize(srcKey), serialize(dstKey));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public Long rPush(String key, String value) {
-		return delegate.rPush(serialize(key), serialize(value));
+		Long result = delegate.rPush(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long rPushX(String key, String value) {
-		return delegate.rPushX(serialize(key), serialize(value));
+		Long result = delegate.rPushX(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean sAdd(String key, String value) {
-		return delegate.sAdd(serialize(key), serialize(value));
+		Boolean result = delegate.sAdd(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long sCard(String key) {
-		return delegate.sCard(serialize(key));
+		Long result = delegate.sCard(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Set<String> sDiff(String... keys) {
-		return deserialize(delegate.sDiff(serializeMulti(keys)));
+		Set<byte[]> results = delegate.sDiff(serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Long sDiffStore(String destKey, String... keys) {
-		return delegate.sDiffStore(serialize(destKey), serializeMulti(keys));
+		Long result = delegate.sDiffStore(serialize(destKey), serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
@@ -1019,7 +1697,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Boolean setNX(String key, String value) {
-		return delegate.setNX(serialize(key), serialize(value));
+		Boolean result = delegate.setNX(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
@@ -1029,71 +1711,131 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Set<String> sInter(String... keys) {
-		return deserialize(delegate.sInter(serializeMulti(keys)));
+		Set<byte[]> results = delegate.sInter(serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Long sInterStore(String destKey, String... keys) {
-		return delegate.sInterStore(serialize(destKey), serializeMulti(keys));
+		Long result = delegate.sInterStore(serialize(destKey), serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean sIsMember(String key, String value) {
-		return delegate.sIsMember(serialize(key), serialize(value));
+		Boolean result = delegate.sIsMember(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Set<String> sMembers(String key) {
-		return deserialize(delegate.sMembers(serialize(key)));
+		Set<byte[]> results = delegate.sMembers(serialize(key));
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Boolean sMove(String srcKey, String destKey, String value) {
-		return delegate.sMove(serialize(srcKey), serialize(destKey), serialize(value));
+		Boolean result = delegate.sMove(serialize(srcKey), serialize(destKey), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long sort(String key, SortParameters params, String storeKey) {
-		return delegate.sort(serialize(key), params, serialize(storeKey));
+		Long result = delegate.sort(serialize(key), params, serialize(storeKey));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public List<String> sort(String key, SortParameters params) {
-		return deserialize(delegate.sort(serialize(key), params));
+		List<byte[]> results = delegate.sort(serialize(key), params);
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 
 	
 	public String sPop(String key) {
-		return deserialize(delegate.sPop(serialize(key)));
+		byte[] result = delegate.sPop(serialize(key));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	
 	public String sRandMember(String key) {
-		return deserialize(delegate.sRandMember(serialize(key)));
+		byte[] result = delegate.sRandMember(serialize(key));
+		if(isPipelined()) {
+			pipeline(bytesToString);
+		}
+		return bytesToString.convert(result);
 	}
 
 	public List<String> sRandMember(String key, long count) {
-		return deserialize(delegate.sRandMember(serialize(key), count));
+		List<byte[]> results = delegate.sRandMember(serialize(key), count);
+		if(isPipelined()) {
+			pipeline(byteListToStringList);
+		}
+		return byteListToStringList.convert(results);
 	}
 	
 	public Boolean sRem(String key, String value) {
-		return delegate.sRem(serialize(key), serialize(value));
+		Boolean result = delegate.sRem(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 	
 	public Long strLen(String key) {
-		return delegate.strLen(serialize(key));
+		Long result = delegate.strLen(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 	
 	public Long bitCount(String key) {
-		return delegate.bitCount(serialize(key));
+		Long result = delegate.bitCount(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long bitCount(String key, long begin, long end) {
-		return delegate.bitCount(serialize(key), begin, end);
+		Long result = delegate.bitCount(serialize(key), begin, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Long bitOp(BitOperation op, String destination, String... keys) {
-		return delegate.bitOp(op, serialize(destination), serializeMulti(keys));
+		Long result = delegate.bitOp(op, serialize(destination), serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public void subscribe(MessageListener listener, String... channels) {
@@ -1102,137 +1844,259 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	
 	public Set<String> sUnion(String... keys) {
-		return deserialize(delegate.sUnion(serializeMulti(keys)));
+		Set<byte[]> results = delegate.sUnion(serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Long sUnionStore(String destKey, String... keys) {
-		return delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
+		Long result = delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long ttl(String key) {
-		return delegate.ttl(serialize(key));
+		Long result = delegate.ttl(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public DataType type(String key) {
-		return delegate.type(serialize(key));
+		DataType result = delegate.type(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean zAdd(String key, double score, String value) {
-		return delegate.zAdd(serialize(key), score, serialize(value));
+		Boolean result = delegate.zAdd(serialize(key), score, serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zCard(String key) {
-		return delegate.zCard(serialize(key));
+		Long result = delegate.zCard(serialize(key));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zCount(String key, double min, double max) {
-		return delegate.zCount(serialize(key), min, max);
+		Long result = delegate.zCount(serialize(key), min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Double zIncrBy(String key, double increment, String value) {
-		return delegate.zIncrBy(serialize(key), increment, serialize(value));
+		Double result = delegate.zIncrBy(serialize(key), increment, serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
-		return delegate.zInterStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
+		Long result = delegate.zInterStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zInterStore(String destKey, String... sets) {
-		return delegate.zInterStore(serialize(destKey), serializeMulti(sets));
+		Long result = delegate.zInterStore(serialize(destKey), serializeMulti(sets));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Set<String> zRange(String key, long start, long end) {
-		return deserialize(delegate.zRange(serialize(key), start, end));
+		Set<byte[]> results = delegate.zRange(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Set<String> zRangeByScore(String key, double min, double max, long offset, long count) {
-		return deserialize(delegate.zRangeByScore(serialize(key), min, max, offset, count));
+		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Set<String> zRangeByScore(String key, double min, double max) {
-		return deserialize(delegate.zRangeByScore(serialize(key), min, max));
+		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max);
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max, long offset, long count) {
-		return deserializeTuple(delegate.zRangeByScoreWithScores(serialize(key), min, max, offset, count));
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(serialize(key), min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(tupleToStringTuple);
+		}
+		return tupleToStringTuple.convert(results);
 	}
 
 	
 	public Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max) {
-		return deserializeTuple(delegate.zRangeByScoreWithScores(serialize(key), min, max));
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(serialize(key), min, max);
+		if(isPipelined()) {
+			pipeline(tupleToStringTuple);
+		}
+		return tupleToStringTuple.convert(results);
 	}
 
 	
 	public Set<StringTuple> zRangeWithScores(String key, long start, long end) {
-		return deserializeTuple(delegate.zRangeWithScores(serialize(key), start, end));
+		Set<Tuple> results = delegate.zRangeWithScores(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(tupleToStringTuple);
+		}
+		return tupleToStringTuple.convert(results);
 	}
 
 	
 	public Long zRank(String key, String value) {
-		return delegate.zRank(serialize(key), serialize(value));
+		Long result = delegate.zRank(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Boolean zRem(String key, String value) {
-		return delegate.zRem(serialize(key), serialize(value));
+		Boolean result = delegate.zRem(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zRemRange(String key, long start, long end) {
-		return delegate.zRemRange(serialize(key), start, end);
+		Long result = delegate.zRemRange(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zRemRangeByScore(String key, double min, double max) {
-		return delegate.zRemRangeByScore(serialize(key), min, max);
+		Long result = delegate.zRemRangeByScore(serialize(key), min, max);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Set<String> zRevRange(String key, long start, long end) {
-		return deserialize(delegate.zRevRange(serialize(key), start, end));
+		Set<byte[]> results = delegate.zRevRange(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 	
 	public Set<StringTuple> zRevRangeWithScores(String key, long start, long end) {
-		return deserializeTuple(delegate.zRevRangeWithScores(serialize(key), start, end));
+		Set<Tuple> results = delegate.zRevRangeWithScores(serialize(key), start, end);
+		if(isPipelined()) {
+			pipeline(tupleToStringTuple);
+		}
+		return tupleToStringTuple.convert(results);
 	}
 
 	
 	public Long zRevRank(String key, String value) {
-		return delegate.zRevRank(serialize(key), serialize(value));
+		Long result = delegate.zRevRank(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Double zScore(String key, String value) {
-		return delegate.zScore(serialize(key), serialize(value));
+		Double result = delegate.zScore(serialize(key), serialize(value));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
-		return delegate.zUnionStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
+		Long result = delegate.zUnionStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
 	public Long zUnionStore(String destKey, String... sets) {
-		return delegate.zUnionStore(serialize(destKey), serializeMulti(sets));
+		Long result = delegate.zUnionStore(serialize(destKey), serializeMulti(sets));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	public List<Object> closePipeline() {
-		return delegate.closePipeline();
+		try {
+			List<Object> results = delegate.closePipeline();
+			if(!deserializePipelineResults) {
+				return results;
+			}
+			if(results.size() != pipelineConverters.size()) {
+				// Some of the pipelined commands were done directly on the delegate, don't attempt to convert
+				log.warn("Delegate returned an unexpected number of results on closePipeline. Abandoning type conversion.");
+				return results;
+			}
+			List<Object> convertedResults = new ArrayList<Object>();
+			for(Object result: results) {
+				convertedResults.add(pipelineConverters.remove().convert(result));
+			}
+			return convertedResults;
+		}finally {
+			pipelineConverters.clear();
+		}
 	}
 
 	
@@ -1251,7 +2115,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public Object execute(String command, byte[]... args) {
-		return delegate.execute(command, args);
+		Object result = delegate.execute(command, args);
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	public Object execute(String command, String... args) {
@@ -1271,7 +2139,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	public String scriptLoad(String script) {
-		return delegate.scriptLoad(serialize(script));
+		String result = delegate.scriptLoad(serialize(script));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	/**
@@ -1280,7 +2152,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	 * be returned as byte[]s
 	 */
 	public <T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs) {
-		return delegate.eval(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
+		T result = delegate.eval(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
 	}
 
 	/**
@@ -1289,6 +2165,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	 * be returned as byte[]s
 	 */
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs) {
-		return delegate.evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
+		T result = delegate.evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
+		if(isPipelined()) {
+			pipeline(identityConverter(result));
+		}
+		return result;
+	}
+
+	/**
+	 * Specifies if pipelined results should be deserialized to Strings.
+	 * If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the underlying connection
+	 *
+	 * @param deserializePipelineResults Whether or not to deserialize pipeline results
+	 */
+	public void setDeserializePipelineResults(boolean deserializePipelineResults) {
+		this.deserializePipelineResults = deserializePipelineResults;
+	}
+
+	private <T> IdentityConverter<T> identityConverter(T foo) {
+		return new IdentityConverter<T>();
+	}
+
+	private void pipeline(Converter<?,?> converter) {
+		pipelineConverters.add(converter);
 	}
 }

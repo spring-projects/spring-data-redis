@@ -34,6 +34,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 public class StringRedisTemplate extends RedisTemplate<String, String> {
 
+	private boolean deserializePipelineResults = true;
+
 	/**
 	 * Constructs a new <code>StringRedisTemplate</code> instance.
 	 * {@link #setConnectionFactory(RedisConnectionFactory)} and {@link #afterPropertiesSet()} still need to be called.
@@ -58,8 +60,20 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 		afterPropertiesSet();
 	}
 
-	
+	/**
+	 * Specifies if pipelined results should be deserialized to Strings.
+	 * If false, results of {@link StringRedisConnection#closePipeline()} will be of the
+	 * type returned by the underlying connection
+	 *
+	 * @param deserializePipelineResults Whether or not to deserialize pipeline results
+	 */
+	public void setDeserializePipelineResults(boolean deserializePipelineResults) {
+		this.deserializePipelineResults = deserializePipelineResults;
+	}
+
 	protected RedisConnection preProcessConnection(RedisConnection connection, boolean existingConnection) {
-		return new DefaultStringRedisConnection(connection);
+		DefaultStringRedisConnection stringConn =  new DefaultStringRedisConnection(connection);
+		stringConn.setDeserializePipelineResults(deserializePipelineResults);
+		return stringConn;
 	}
 }
