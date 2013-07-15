@@ -33,8 +33,10 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultSortParameters;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -624,6 +626,26 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.set("foo", "bar");
 		BulkResponse response = (BulkResponse) connection.execute("GET", "foo".getBytes());
 		assertEquals("bar", stringSerializer.deserialize(response.getBulkData()));
+	}
+
+	@Test
+	public void testMove() {
+		connection.set("foo", "bar");
+		actual.add(connection.move("foo", 1));
+		verifyResults(Arrays.asList(new Object[] { true}), actual);
+		// JRedis does not support select() on existing conn, create new one
+		JredisConnectionFactory factory2 = new JredisConnectionFactory();
+		factory2.setDatabase(1);
+		factory2.afterPropertiesSet();
+		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
+		try {
+			assertEquals("bar",conn2.get("foo"));
+		} finally {
+			if(conn2.exists("foo")) {
+				conn2.del("foo");
+			}
+			conn2.close();
+		}
 	}
 
 }

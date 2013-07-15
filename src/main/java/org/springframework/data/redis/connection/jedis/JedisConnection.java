@@ -723,11 +723,11 @@ public class JedisConnection implements RedisConnection {
 	public Boolean move(byte[] key, int dbIndex) {
 		try {
 			if (isQueueing()) {
-				client.move(key, dbIndex);
+				transaction.move(key, dbIndex);
 				return null;
 			}
 			if (isPipelined()) {
-				client.move(key, dbIndex);
+				pipeline.move(key, dbIndex);
 				return null;
 			}
 			return (jedis.move(key, dbIndex) == 1);
