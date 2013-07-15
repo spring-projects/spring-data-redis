@@ -223,34 +223,36 @@ abstract class SrpUtils {
 	static Object[] sortParams(SortParameters params, byte[] sortKey) {
 		List<byte[]> arrays = new ArrayList<byte[]>();
 
-		if (params.getByPattern() != null) {
-			arrays.add(BY);
-			arrays.add(params.getByPattern());
-		}
-
-		if (params.getLimit() != null) {
-			arrays.add(limit(params.getLimit().getStart(), params.getLimit().getCount()));
-		}
-
-		if (params.getGetPattern() != null) {
-			byte[][] pattern = params.getGetPattern();
-			for (byte[] bs : pattern) {
-				arrays.add(GET);
-				arrays.add(bs);
+		if(params != null) {
+			if (params.getByPattern() != null) {
+				arrays.add(BY);
+				arrays.add(params.getByPattern());
 			}
-		}
 
-		if (params.getOrder() != null) {
-			arrays.add(params.getOrder().name().getBytes(Charsets.UTF_8));
-		}
+			if (params.getLimit() != null) {
+				arrays.add(limit(params.getLimit().getStart(), params.getLimit().getCount()));
+			}
 
-		if (params.isAlphabetic()) {
-			arrays.add(ALPHA);
-		}
+			if (params.getGetPattern() != null) {
+				byte[][] pattern = params.getGetPattern();
+				for (byte[] bs : pattern) {
+					arrays.add(GET);
+					arrays.add(bs);
+				}
+			}
 
-		if (sortKey != null) {
-			arrays.add(STORE);
-			arrays.add(sortKey);
+			if (params.getOrder() != null) {
+				arrays.add(params.getOrder().name().getBytes(Charsets.UTF_8));
+			}
+
+			if (params.isAlphabetic()) {
+				arrays.add(ALPHA);
+			}
+
+			if (sortKey != null) {
+				arrays.add(STORE);
+				arrays.add(sortKey);
+			}
 		}
 
 		return arrays.toArray();

@@ -80,6 +80,10 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testSortNullParams() {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
 	public void testGetRangeSetRange() {
 	}
 

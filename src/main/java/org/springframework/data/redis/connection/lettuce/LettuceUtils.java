@@ -101,6 +101,10 @@ abstract class LettuceUtils {
 	static SortArgs sort(SortParameters params) {
 		SortArgs args = new SortArgs();
 
+		if(params == null) {
+			return args;
+		}
+
 		if (params.getByPattern() != null) {
 			args.by(new String(params.getByPattern(), Charsets.ASCII));
 		}
