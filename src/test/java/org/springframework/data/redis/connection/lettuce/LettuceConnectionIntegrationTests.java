@@ -19,6 +19,7 @@ package org.springframework.data.redis.connection.lettuce;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -122,5 +124,26 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		connection.select(1);
+	}
+
+	@Test
+	public void testMove() {
+		connection.set("foo", "bar");
+		actual.add(connection.move("foo", 1));
+		verifyResults(
+				Arrays.asList(new Object[] { true}), actual);
+		// Lettuce does not support select when using shared conn, use a new conn factory
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
+		factory2.setDatabase(1);
+		factory2.afterPropertiesSet();
+		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
+		try {
+			assertEquals("bar",conn2.get("foo"));
+		} finally {
+			if(conn2.exists("foo")) {
+				conn2.del("foo");
+			}
+			conn2.close();
+		}
 	}
 }

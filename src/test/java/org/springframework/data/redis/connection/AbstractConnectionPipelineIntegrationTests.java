@@ -841,6 +841,22 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 				Arrays.asList(new String[] { "foo", "bar" }) }), actual);
 	}
 
+	@Test
+	public void testMove() {
+		connection.set("foo", "bar");
+		actual.add(connection.move("foo", 1));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l }), actual);
+		connection.select(1);
+		try {
+			assertEquals("bar",connection.get("foo"));
+		} finally {
+			if(connection.exists("foo")) {
+				connection.del("foo");
+			}
+		}
+	}
+
 	protected void initConnection() {
 		connection.openPipeline();
 	}

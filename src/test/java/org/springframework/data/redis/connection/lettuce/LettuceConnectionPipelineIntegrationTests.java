@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -290,6 +291,27 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		actual.add(connection.expire("exp", 1));
 		verifyResults(Arrays.asList(new Object[] { true }), actual);
 		assertFalse(exists("exp", 2500));
+	}
+
+	@Test
+	public void testMove() {
+		connection.set("foo", "bar");
+		actual.add(connection.move("foo", 1));
+		verifyResults(
+				Arrays.asList(new Object[] { true}), actual);
+		// Lettuce does not support select when using shared conn, use a new conn factory
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
+		factory2.setDatabase(1);
+		factory2.afterPropertiesSet();
+		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
+		try {
+			assertEquals("bar",conn2.get("foo"));
+		} finally {
+			if(conn2.exists("foo")) {
+				conn2.del("foo");
+			}
+			conn2.close();
+		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
