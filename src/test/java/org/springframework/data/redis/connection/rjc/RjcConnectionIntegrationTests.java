@@ -99,6 +99,10 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 	public void testZUnionStoreAggWeights() {
 	}
 
+	@Ignore("DATAREDIS-221 database not reset on pooled connections")
+	public void testSelect() {
+	}
+
 	@Test
 	public void testMultiExec() throws Exception {
 		byte[] key = "key".getBytes();

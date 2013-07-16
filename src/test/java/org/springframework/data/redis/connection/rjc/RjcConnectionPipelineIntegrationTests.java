@@ -128,6 +128,10 @@ public class RjcConnectionPipelineIntegrationTests extends
 	public void exceptionExecuteNative() throws Exception {
 	}
 
+	@Ignore("DATAREDIS-221 database not reset on pooled connections")
+	public void testSelect() {
+	}
+
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 
