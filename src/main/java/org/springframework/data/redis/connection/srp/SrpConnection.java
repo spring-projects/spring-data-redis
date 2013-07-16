@@ -592,6 +592,7 @@ public class SrpConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(pipeline.select(dbIndex));
+				return;
 			}
 			client.select(dbIndex);
 		} catch (Exception ex) {

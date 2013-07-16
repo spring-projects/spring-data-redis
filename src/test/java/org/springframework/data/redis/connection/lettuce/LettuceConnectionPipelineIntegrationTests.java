@@ -60,6 +60,11 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testMultiDiscard() {
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testSelect() {
+		super.testSelect();
+	}
+
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List
 

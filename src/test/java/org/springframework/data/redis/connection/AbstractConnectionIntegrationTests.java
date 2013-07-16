@@ -99,6 +99,12 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testSelect() {
+		// Make sure this doesn't throw Exception
+		connection.select(1);
+	}
+
+	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testExpire() throws Exception {
 		connection.set("exp", "true");

@@ -274,6 +274,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSelect() {
+		super.testSelect();
+	}
 
 	// Jredis returns null for rPush
 	@Test
