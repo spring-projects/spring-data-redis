@@ -30,6 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import redis.reply.BulkReply;
+import redis.reply.StatusReply;
 
 /**
  * Integration test of {@link SrpConnection}
@@ -76,6 +77,12 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection.set("foo", "bar");
 		BulkReply reply = (BulkReply) connection.execute("GET", "foo");
 		assertEquals("bar", stringSerializer.deserialize(reply.data()));
+	}
+
+	@Test
+	public void testExecuteNoArgs() {
+		StatusReply reply = (StatusReply) connection.execute("PING");
+		assertEquals("PONG", reply.data());
 	}
 
 	@Test

@@ -214,6 +214,14 @@ public class SrpConnectionPipelineIntegrationTests extends
 		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, 0l})}), actual);
 	}
 
+	@Test
+	public void testDel() {
+		connection.set("testing","123");
+		actual.add(connection.del("testing"));
+		actual.add(connection.exists("testing"));
+		verifyResults(Arrays.asList(new Object[] { 1l, 0l }), actual);
+	}
+
 	protected Object convertResult(Object result) {
 		Object convertedResult = super.convertResult(result);
 		if (convertedResult instanceof Reply[]) {

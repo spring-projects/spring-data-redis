@@ -208,6 +208,23 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertEquals(-largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
 	}
 
+	@Test
+	public void testCreateConnectionWithDb() {
+		JedisConnectionFactory factory2 = new JedisConnectionFactory();
+		factory2.setDatabase(1);
+		factory2.afterPropertiesSet();
+		// No way to really verify we are in the selected DB
+		factory2.getConnection().ping();
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	public void testCreateConnectionWithDbFailure() {
+		JedisConnectionFactory factory2 = new JedisConnectionFactory();
+		factory2.setDatabase(77);
+		factory2.afterPropertiesSet();
+		factory2.getConnection();
+	}
+
 	@Test(expected=InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {

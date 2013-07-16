@@ -85,6 +85,10 @@ public class JedisConnectionTransactionIntegrationTests extends
 	public void testBRPopLPushTimeout() {
 	}
 
+	@Ignore
+	public void testOpenPipelineTwice() {
+	}
+
 	// Unsupported Ops
 
 	@Test(expected = UnsupportedOperationException.class)

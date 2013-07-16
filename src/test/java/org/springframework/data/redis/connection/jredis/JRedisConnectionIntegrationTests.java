@@ -86,6 +86,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testMSetNxFailure() {
 	}
 
+	@Ignore("Ping returns status response instead of value response")
+	public void testExecuteNoArgs() {
+	}
+
 	@Test
 	public void testConnectionClosesWhenNotPooled() {
 		connection.close();
@@ -128,6 +132,11 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Test(expected = UnsupportedOperationException.class)
 	public void testMultiExec() throws Exception {
 		super.testMultiExec();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testMultiAlreadyInTx() throws Exception {
+		super.testMultiAlreadyInTx();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -561,6 +570,17 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test
+	public void testSortStoreNullParams() {
+		connection.rPush("sortlist", "9");
+		connection.rPush("sortlist", "3");
+		connection.rPush("sortlist", "5");
+		actual.add(connection.sort("sortlist", null, "newlist"));
+		actual.add(connection.lRange("newlist", 0, 9));
+		verifyResults(Arrays.asList(new Object[] { 3l,
+					Arrays.asList(new String[] { "3", "5", "9" }) }), actual);
+	}
+
+	@Test
 	public void testLPop() {
 		connection.rPush("PopList", "hello");
 		connection.rPush("PopList", "world");
@@ -624,6 +644,16 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.lPush("testlist", "bar");
 		connection.lPush("testlist", "baz");
 		assertEquals(Arrays.asList(new String[] { "baz", "bar" }), connection.lRange("testlist", 0, -1));
+	}
+
+	@Test
+	public void testLLen() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "big");
+		connection.rPush("PopList", "world");
+		connection.rPush("PopList", "hello");
+		actual.add(connection.lLen("PopList"));
+		verifyResults(Arrays.asList(new Object[] { 4l }), actual);
 	}
 
 	@Test

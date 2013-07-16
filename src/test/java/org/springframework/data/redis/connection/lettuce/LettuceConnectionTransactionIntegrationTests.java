@@ -91,6 +91,10 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	public void testBRPopLPushTimeout() {
 	}
 
+	@Ignore
+	public void testOpenPipelineTwice() {
+	}
+
 	@Test
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");

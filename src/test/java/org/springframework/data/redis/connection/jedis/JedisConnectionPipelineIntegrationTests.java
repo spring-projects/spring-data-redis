@@ -87,6 +87,10 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testSortNullParams() {
 	}
 
+	@Ignore("DATAREDIS-143 Pipeline tries to return Long instead of List<String> on sort with no params")
+	public void testSortStoreNullParams() {
+	}
+
 	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
 	public void testMultiExec() {
 	}
@@ -154,6 +158,11 @@ public class JedisConnectionPipelineIntegrationTests extends
 	@Test(expected = UnsupportedOperationException.class)
 	public void testBitSet() throws Exception {
 		super.testBitSet();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBitGet() {
+		connection.getBit("foo", 1l);
 	}
 
 	@Test(expected=UnsupportedOperationException.class)

@@ -643,6 +643,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testExecuteNoArgs() {
+		assertEquals("PONG", stringSerializer.deserialize((byte[])connection.execute("PING")));
+	}
+
+	@Test
 	public void testMultiExec() throws Exception {
 		connection.multi();
 		connection.set("key", "value");
@@ -651,6 +656,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertEquals(2, results.size());
 		assertEquals("value", new String((byte[]) results.get(1)));
 		assertEquals("value", connection.get("key"));
+	}
+
+	@Test
+	public void testMultiAlreadyInTx() throws Exception {
+		connection.multi();
+		// Ensure it's OK to call multi twice
+		testMultiExec();
 	}
 
 	@Test
@@ -729,9 +741,48 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testSortStoreNullParams() {
+		actual.add(connection.rPush("sortlist", "9"));
+		actual.add(connection.rPush("sortlist", "3"));
+		actual.add(connection.rPush("sortlist", "5"));
+		actual.add(connection.sort("sortlist", null, "newlist"));
+		actual.add(connection.lRange("newlist", 0, 9));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l, 2l, 3l, 3l,
+						Arrays.asList(new String[] { "3", "5", "9" }) }), actual);
+	}
+
+	@Test
 	public void testDbSize() {
 		connection.set("dbparam", "foo");
 		assertTrue(connection.dbSize() > 0);
+	}
+
+	@Test
+	public void testLLen() {
+		actual.add(connection.rPush("PopList", "hello"));
+		actual.add(connection.rPush("PopList", "big"));
+		actual.add(connection.rPush("PopList", "world"));
+		actual.add(connection.rPush("PopList", "hello"));
+		actual.add(connection.lLen("PopList"));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l, 2l, 3l, 4l, 4l }), actual);
+	}
+
+	@Test
+	public void testDel() {
+		connection.set("testing","123");
+		actual.add(connection.del("testing"));
+		actual.add(connection.exists("testing"));
+		verifyResults(Arrays.asList(new Object[] { 1l, false }), actual);
+	}
+
+	@Test
+	public void testAppend() {
+		connection.set("a", "b");
+		actual.add(connection.append("a", "c"));
+		actual.add(connection.get("a"));
+		verifyResults(Arrays.asList(new Object[] { 2l, "bc" }), actual);
 	}
 
 	@Test
