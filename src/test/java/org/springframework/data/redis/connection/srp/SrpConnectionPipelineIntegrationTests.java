@@ -83,6 +83,8 @@ public class SrpConnectionPipelineIntegrationTests extends
 	public void testWatch() throws Exception {
 		connection.set("testitnow", "willdo");
 		connection.watch("testitnow".getBytes());
+		//Give some time for watch to be asynch executed
+		Thread.sleep(500);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
