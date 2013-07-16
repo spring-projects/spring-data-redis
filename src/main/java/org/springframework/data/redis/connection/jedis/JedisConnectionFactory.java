@@ -47,12 +47,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private int port = Protocol.DEFAULT_PORT;
 	private int timeout = Protocol.DEFAULT_TIMEOUT;
 	private String password;
-
 	private boolean usePool = true;
 	private JedisPool pool = null;
 	private JedisPoolConfig poolConfig = new JedisPoolConfig();
-
 	private int dbIndex = 0;
+	private boolean convertPipelineResults = true;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance
@@ -146,7 +145,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	public JedisConnection getConnection() {
 		Jedis jedis = fetchJedisConnector();
-		return postProcessConnection((usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis, null, dbIndex)));
+		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex) :
+			new JedisConnection(jedis, null, dbIndex));
+		connection.setConvertPipelineResults(convertPipelineResults);
+		return postProcessConnection(connection);
 	}
 
 
@@ -298,5 +300,27 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setDatabase(int index) {
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 		this.dbIndex = index;
+	}
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the Jedis driver
+	 *
+	 * @return Whether or not to convert pipeline results
+	 */
+	public boolean getConvertPipelineResults() {
+		return convertPipelineResults;
+	}
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the Jedis driver
+	 *
+	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 */
+	public void setConvertPipelineResults(boolean convertPipelineResults) {
+		this.convertPipelineResults = convertPipelineResults;
 	}
 }
