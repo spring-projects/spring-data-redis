@@ -149,7 +149,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return LettuceUtils.convertRedisAccessException(ex);
+		return LettuceConverters.toDataAccessException(ex);
 	}
 
 	/**
@@ -340,7 +340,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	protected RedisAsyncConnection<byte[], byte[]> createLettuceConnector() {
 		try {
-			RedisAsyncConnection<byte[], byte[]> connection = client.connectAsync(LettuceUtils.CODEC);
+			RedisAsyncConnection<byte[], byte[]> connection = client.connectAsync(LettuceConnection.CODEC);
 			if(dbIndex > 0) {
 				connection.select(dbIndex);
 			}

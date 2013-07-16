@@ -78,7 +78,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return SrpUtils.convertSRedisAccessException(ex);
+		return SrpConverters.toDataAccessException(ex);
 	}
 
 	/**

@@ -52,11 +52,14 @@ import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.SafeEncoder;
 
 /**
- * Helper class featuring methods for Jedis connection handling, providing support for exception translation. 
+ * Helper class featuring methods for Jedis connection handling, providing support for exception translation.
+ *
+ * Deprecated in favor of {@link JedisConverters}
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
  */
+@Deprecated
 public abstract class JedisUtils {
 
 	private static final String OK_CODE = "OK";
@@ -111,10 +114,18 @@ public abstract class JedisUtils {
 		return status != null && (OK_CODE.equals(status) || OK_MULTI_CODE.equals(status));
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toBoolean(Long)}
+	 */
+	@Deprecated
 	static Boolean convertCodeReply(Number code) {
 		return (code != null ? code.intValue() == 1 : null);
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toTupleSet(Set)}
+	 */
+	@Deprecated
 	static Set<Tuple> convertJedisTuple(Set<redis.clients.jedis.Tuple> tuples) {
 		Set<Tuple> value = new LinkedHashSet<Tuple>(tuples.size());
 		for (redis.clients.jedis.Tuple tuple : tuples) {
@@ -135,6 +146,10 @@ public abstract class JedisUtils {
 		return result;
 	}
 
+	/**
+	 * Deprecated. Implement a method in {@link JedisConverters} instead
+	 */
+	@Deprecated
 	static Map<String, String> convert(String[] fields, String[] values) {
 		Map<String, String> result = new LinkedHashMap<String, String>(fields.length);
 
@@ -144,6 +159,10 @@ public abstract class JedisUtils {
 		return result;
 	}
 
+	/**
+	 * Deprecated. Implement a method in {@link JedisConverters} instead
+	 */
+	@Deprecated
 	static String[] arrange(String[] keys, String[] values) {
 		String[] result = new String[keys.length * 2];
 
@@ -189,6 +208,10 @@ public abstract class JedisUtils {
 		return jedisParams;
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toBit(Boolean)}
+	 */
+	@Deprecated
 	static byte[] asBit(boolean value) {
 		return (value ? ONE : ZERO);
 	}
@@ -198,6 +221,10 @@ public abstract class JedisUtils {
 		return (Position.AFTER.equals(where) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toProperties(String)}
+	 */
+	@Deprecated
 	static Properties info(String string) {
 		Properties info = new Properties();
 		StringReader stringReader = new StringReader(string);
@@ -215,6 +242,10 @@ public abstract class JedisUtils {
 		return new JedisMessageListener(listener);
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toStrings(byte[][])}
+	 */
+	@Deprecated
 	static String[] convert(byte[]... raw) {
 		String[] result = new String[raw.length];
 
@@ -234,10 +265,18 @@ public abstract class JedisUtils {
 		return args.toArray(new byte[args.size()][]);
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toBytes(Integer)}
+	 */
+	@Deprecated
 	static byte[] asBytes(int number) {
 		return String.valueOf(number).getBytes();
 	}
 
+	/**
+	 * Deprecated. Use #{@link JedisConverters#toString(byte[])}
+	 */
+	@Deprecated
 	static String asString(byte[] raw) {
 		return SafeEncoder.encode(raw);
 	}

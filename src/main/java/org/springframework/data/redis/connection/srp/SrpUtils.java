@@ -49,9 +49,12 @@ import com.google.common.base.Charsets;
 /**
  * Helper class featuring methods for SRedis connection handling, providing support for exception translation.
  * 
+ * Deprecated. Use {@link SrpConverters} instead.
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  */
+@Deprecated
 abstract class SrpUtils {
 
 	private static final byte[] ONE = new byte[] { '1' };

@@ -153,7 +153,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return JedisUtils.convertJedisAccessException(ex);
+		return JedisConverters.toDataAccessException(ex);
 	}
 
 	/**

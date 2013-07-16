@@ -49,8 +49,10 @@ import com.lambdaworks.redis.protocol.Charsets;
  * Helper class featuring methods for Lettuce connection handling, providing
  * support for exception translation.
  * 
+ * Deprecated in favor of {@link LettuceConverters}
  * @author Costin Leau
  */
+@Deprecated
 abstract class LettuceUtils {
 
 	static final RedisCodec<byte[], byte[]> CODEC = new BytesRedisCodec();

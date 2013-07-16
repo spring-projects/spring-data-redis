@@ -249,7 +249,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		}
 
 		public Object makeObject() throws Exception {
-			return client.connectAsync(LettuceUtils.CODEC);
+			return client.connectAsync(LettuceConnection.CODEC);
 		}
 
 		@SuppressWarnings("rawtypes")
