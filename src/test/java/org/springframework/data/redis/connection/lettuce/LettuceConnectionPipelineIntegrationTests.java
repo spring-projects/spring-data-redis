@@ -446,8 +446,8 @@ public class LettuceConnectionPipelineIntegrationTests extends
 		});
 		th.start();
 		Thread.sleep(1000);
-		getResults();
 		connection.scriptKill();
+		getResults();
 		assertTrue(waitFor(new TestCondition() {
 			public boolean passes() {
 				return scriptDead.get();

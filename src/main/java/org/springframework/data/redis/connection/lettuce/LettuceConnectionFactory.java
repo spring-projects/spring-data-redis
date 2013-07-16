@@ -71,6 +71,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
 	private String password;
+	private boolean convertPipelineResults = true;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with
@@ -106,7 +107,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public RedisConnection getConnection() {
-		return new LettuceConnection(getSharedConnection(), timeout, client, pool);
+		LettuceConnection connection = new LettuceConnection(getSharedConnection(), timeout, client, pool);
+		connection.setConvertPipelineResults(convertPipelineResults);
+		return connection;
 	}
 
 	public void initConnection() {
@@ -295,6 +298,28 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the Jedis driver
+	 *
+	 * @return Whether or not to convert pipeline results
+	 */
+	public boolean getConvertPipelineResults() {
+		return convertPipelineResults;
+	}
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the Jedis driver
+	 *
+	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 */
+	public void setConvertPipelineResults(boolean convertPipelineResults) {
+		this.convertPipelineResults = convertPipelineResults;
 	}
 
 	protected RedisAsyncConnection<byte[], byte[]> getSharedConnection() {
