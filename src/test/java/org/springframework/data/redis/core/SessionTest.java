@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,18 +37,19 @@ public class SessionTest {
 	@Test
 	public void testSession() throws Exception {
 		final RedisConnection conn = mock(RedisConnection.class);
+		final StringRedisConnection stringConn = mock(StringRedisConnection.class);
 		RedisConnectionFactory factory = mock(RedisConnectionFactory.class);
-
+		final StringRedisTemplate template = spy(new StringRedisTemplate(factory));
 		when(factory.getConnection()).thenReturn(conn);
-		final StringRedisTemplate template = new StringRedisTemplate(factory);
+		doReturn(stringConn).when(template).preProcessConnection(eq(conn), anyBoolean());
 
 		template.execute(new SessionCallback<Object>() {
-			
+			@SuppressWarnings("rawtypes")
 			public Object execute(RedisOperations operations) {
-				checkConnection(template, conn);
+				checkConnection(template, stringConn);
 				template.discard();
 				assertSame(template, operations);
-				checkConnection(template, conn);
+				checkConnection(template, stringConn);
 				return null;
 			}
 		});
@@ -55,8 +57,6 @@ public class SessionTest {
 
 	private void checkConnection(RedisTemplate<?, ?> template, final RedisConnection expectedConnection) {
 		template.execute(new RedisCallback<Object>() {
-
-			
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				assertSame(expectedConnection, connection);
 				return null;

@@ -157,23 +157,24 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			conn = RedisConnectionUtils.getConnection(factory);
 
 			boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
-			preProcessConnection(conn, existingConnection);
 
-			boolean pipelineStatus = conn.isPipelined();
+			RedisConnection connToUse = preProcessConnection(conn, existingConnection);
+
+			boolean pipelineStatus = connToUse.isPipelined();
 			if (pipeline && !pipelineStatus) {
-				conn.openPipeline();
+				connToUse.openPipeline();
 			}
 
-			RedisConnection connToExpose = (exposeConnection ? conn : createRedisConnectionProxy(conn));
+			RedisConnection connToExpose = (exposeConnection ? connToUse : createRedisConnectionProxy(connToUse));
 			T result = action.doInRedis(connToExpose);
 
 			// close pipeline
 			if (pipeline && !pipelineStatus) {
-				conn.closePipeline();
+				connToUse.closePipeline();
 			}
 
 			// TODO: any other connection processing?
-			return postProcessResult(result, conn, existingConnection);
+			return postProcessResult(result, connToUse, existingConnection);
 		} finally {
 			RedisConnectionUtils.releaseConnection(conn, factory);
 		}

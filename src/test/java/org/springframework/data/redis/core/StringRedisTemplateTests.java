@@ -25,28 +25,38 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.TestCondition;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  *
- * Integration test of {@link RedisTemplate}
- * 
+ * Integration test of {@link StringRedisTemplate}
+ *
  * @author Jennifer Hickey
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class RedisTemplateTests {
+@ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
+public class StringRedisTemplateTests {
 
 	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
+	private StringRedisTemplate redisTemplate;
 
 	@After
 	public void tearDown() {
-		redisTemplate.getConnectionFactory().getConnection().flushDb();
+		redisTemplate.execute(new RedisCallback<Object>() {
+			public Object doInRedis(RedisConnection connection) {
+				connection.flushDb();
+				return null;
+			}
+		});
 	}
 
 	@Test
@@ -90,4 +100,15 @@ public class RedisTemplateTests {
 		tpl.exec();
 	}
 
+	@Test
+	public void testStringTemplateExecutesWithStringConn() {
+		String value = redisTemplate.execute(new RedisCallback<String>() {
+			public String doInRedis(RedisConnection connection) {
+				StringRedisConnection stringConn = (StringRedisConnection) connection;
+				stringConn.set("test", "it");
+				return stringConn.get("test");
+			}
+		});
+		assertEquals(value,"it");
+	}
 }
