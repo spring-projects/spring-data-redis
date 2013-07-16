@@ -84,11 +84,19 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testSortStoreNullParams() {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
 	public void testGetRangeSetRange() {
 	}
 
 	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
 	public void testStrLen() {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testAppend() {
 	}
 
 	@Ignore("DATAREDIS-120 Pattern matching currently broken")
@@ -97,6 +105,10 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 
 	@Ignore("DATAREDIS-148 Syntax error on RJC zUnionStore")
 	public void testZUnionStoreAggWeights() {
+	}
+
+	@Ignore("DATAREDIS-219 isQueueing always returns false")
+	public void testMultiAlreadyInTx() {
 	}
 
 	@Ignore("DATAREDIS-221 database not reset on pooled connections")
@@ -123,5 +135,12 @@ public class RjcConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection.set("foo", "bar");
 		assertEquals(Arrays.asList(new Object[] { RjcUtils.decode("bar".getBytes()) }),
 				(List) connection.execute("GET", RjcUtils.decode("foo".getBytes())));
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testExecuteNoArgs() {
+		assertEquals(Arrays.asList(new Object[] { "PONG" }),
+				(List) connection.execute("PING"));
 	}
 }

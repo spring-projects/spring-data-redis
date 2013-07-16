@@ -249,10 +249,11 @@ abstract class SrpUtils {
 				arrays.add(ALPHA);
 			}
 
-			if (sortKey != null) {
-				arrays.add(STORE);
-				arrays.add(sortKey);
-			}
+		}
+
+		if (sortKey != null) {
+			arrays.add(STORE);
+			arrays.add(sortKey);
 		}
 
 		return arrays.toArray();

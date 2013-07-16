@@ -86,6 +86,10 @@ public class JedisConnectionPipelineIntegrationTests extends
 	@Ignore("DATAREDIS-143 Pipeline tries to return Long instead of List<String> on sort with no params")
 	public void testSortNullParams() {
 	}
+	
+	@Ignore("DATAREDIS-143 Pipeline tries to return Long instead of List<String> on sort with no params")
+	public void testSortStoreNullParams() {
+	}
 
 	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
 	public void testMultiExec() {
@@ -99,6 +103,11 @@ public class JedisConnectionPipelineIntegrationTests extends
 	@Test(expected = RedisSystemException.class)
 	public void testBitSet() throws Exception {
 		super.testBitSet();
+	}
+	
+	@Test(expected = RedisSystemException.class)
+	public void testBitGet() {
+		connection.getBit("foo", 1l);
 	}
 
 	@Test(expected = RedisSystemException.class)

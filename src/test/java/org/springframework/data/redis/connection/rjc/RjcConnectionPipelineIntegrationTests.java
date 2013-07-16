@@ -83,6 +83,10 @@ public class RjcConnectionPipelineIntegrationTests extends
 	public void testStrLen() {
 	}
 
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testAppend() {
+	}
+
 	@Ignore("DATAREDIS-148 Syntax error on RJC zUnionStore")
 	public void testZUnionStoreAggWeights() {
 	}
@@ -126,6 +130,10 @@ public class RjcConnectionPipelineIntegrationTests extends
 	@Test
 	@Ignore("DATAREDIS-161 Syntax error in pipelined RJC op causes SocketTimeouts on subsequent calls")
 	public void exceptionExecuteNative() throws Exception {
+	}
+
+	@Ignore("DATAREDIS-134 string ops do not work with encoded values")
+	public void testSortStoreNullParams() {
 	}
 
 	@Ignore("DATAREDIS-221 database not reset on pooled connections")
@@ -221,12 +229,27 @@ public class RjcConnectionPipelineIntegrationTests extends
 	}
 
 	@Test
+	public void testExecuteNoArgs() {
+		actual.add(connection.execute("PING"));
+		List<Object> results = getResults();
+		assertEquals("PONG", RjcUtils.decode((byte[])results.get(0)));
+	}
+
+	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBRPopLPushTimeout() throws Exception {
 		connection.bRPopLPush(1, "alist", "foo");
 		Thread.sleep(1500l);
 		List<Object> results = connection.closePipeline();
 		assertEquals(Arrays.asList(new Object[] { null }), results);
+	}
+
+	@Test
+	public void testDel() {
+		connection.set("testing","123");
+		actual.add(connection.del("testing"));
+		actual.add(connection.exists("testing"));
+		verifyResults(Arrays.asList(new Object[] { 1l, 0l }), actual);
 	}
 
 	protected List<Object> convertResults() {

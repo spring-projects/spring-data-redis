@@ -105,8 +105,23 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 
 	@Test(expected = RedisPipelineException.class)
 	public void exceptionExecuteNative() throws Exception {
+		connection.execute("set", "foo");
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
 		getResults();
+	}
+
+	@Test
+	public void testOpenPipelineTwice()  {
+		connection.openPipeline();
+		// ensure things still proceed normally with an extra openPipeline
+		testGetSet();
+	}
+
+	@Test
+	public void testClosePipelineNotOpen() {
+		getResults();
+		List<Object> results = connection.closePipeline();
+		assertTrue(results.isEmpty());
 	}
 
 	@Test
@@ -114,6 +129,12 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		connection.set("foo", "bar");
 		actual.add(connection.execute("GET", "foo"));
 		verifyResults(Arrays.asList(new Object[] { "bar" }), actual);
+	}
+
+	@Test
+	public void testExecuteNoArgs() {
+		actual.add(connection.execute("PING"));
+		verifyResults(Arrays.asList(new Object[] { "PONG" }), actual);
 	}
 
 	@Test
