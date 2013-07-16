@@ -203,7 +203,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
-		connection.select(1);
+		super.testSelect();
 	}
 
 	@Test

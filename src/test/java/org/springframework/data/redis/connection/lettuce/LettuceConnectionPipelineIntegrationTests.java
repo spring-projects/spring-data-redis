@@ -67,6 +67,11 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	@Ignore("DATAREDIS-144 Lettuce closePipeline hangs with discarded transaction")
 	public void testMultiDiscard() {
 	}
+	
+	@Test(expected=UnsupportedOperationException.class)
+	public void testSelect() {
+		super.testSelect();
+	}
 
 	// Overrides, usually due to return values being Long vs Boolean or Set vs
 	// List

@@ -107,6 +107,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.close();
 		connection = null;
 	}
+	
+	public void testSelect() {
+		// Make sure this doesn't throw Exception
+		connection.select(1);
+	}
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
