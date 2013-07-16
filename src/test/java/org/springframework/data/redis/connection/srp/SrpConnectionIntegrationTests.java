@@ -29,9 +29,6 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import redis.reply.BulkReply;
-import redis.reply.StatusReply;
-
 /**
  * Integration test of {@link SrpConnection}
  *
@@ -75,14 +72,12 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	@Test
 	public void testExecute() {
 		connection.set("foo", "bar");
-		BulkReply reply = (BulkReply) connection.execute("GET", "foo");
-		assertEquals("bar", stringSerializer.deserialize(reply.data()));
+		assertEquals("bar", stringSerializer.deserialize((byte[])connection.execute("GET", "foo")));
 	}
 
 	@Test
 	public void testExecuteNoArgs() {
-		StatusReply reply = (StatusReply) connection.execute("PING");
-		assertEquals("PONG", reply.data());
+		assertEquals("PONG", connection.execute("PING"));
 	}
 
 	@Test

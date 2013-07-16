@@ -35,6 +35,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	private String hostName = "localhost";
 	private int port = 6379;
 	private BlockingQueue<SrpConnection> trackedConnections = new ArrayBlockingQueue<SrpConnection>(50);
+	private boolean convertPipelineResults = true;
 		
 
 	/**
@@ -71,7 +72,9 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	public RedisConnection getConnection() {
-		return new SrpConnection(hostName, port, trackedConnections);
+		SrpConnection connection = new SrpConnection(hostName, port, trackedConnections);
+		connection.setConvertPipelineResults(convertPipelineResults);
+		return connection;
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
@@ -112,5 +115,27 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the Jedis driver
+	 *
+	 * @return Whether or not to convert pipeline results
+	 */
+	public boolean getConvertPipelineResults() {
+		return convertPipelineResults;
+	}
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type returned by the Jedis driver
+	 *
+	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 */
+	public void setConvertPipelineResults(boolean convertPipelineResults) {
+		this.convertPipelineResults = convertPipelineResults;
 	}
 }
