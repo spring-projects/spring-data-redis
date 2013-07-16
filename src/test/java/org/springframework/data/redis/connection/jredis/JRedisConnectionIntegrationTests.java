@@ -512,7 +512,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@Test(expected=UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptFlush() {
-		super.testScriptFlush();
+		connection.scriptFlush();
 	}
 
 	@Test(expected=UnsupportedOperationException.class)

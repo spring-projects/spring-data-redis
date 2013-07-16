@@ -994,9 +994,9 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptLoadEvalSha() {
-		// close the pipeline to get the return value of script load
-		getResults();
-		String sha1 = connection.scriptLoad("return KEYS[1]");
+		connection.scriptLoad("return KEYS[1]");
+		List<Object> results = convertResults();
+		String sha1 = (String)results.get(0);
 		initConnection();
 		actual.add(connection.evalSha(sha1, ReturnType.VALUE, 2, "key1", "key2"));
 		verifyResults(Arrays.asList(new Object[] {"key1"}), actual);
@@ -1058,8 +1058,8 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	public void testScriptFlush() {
 		getResults();
 		String sha1 = connection.scriptLoad("return KEYS[1]");
-		connection.scriptFlush();
 		initConnection();
+		connection.scriptFlush();
 		actual.add(connection.scriptExists(sha1));
 		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 0l })}), actual);
 	}

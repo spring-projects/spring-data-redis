@@ -415,8 +415,8 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testScriptFlush() {
 		getResults();
 		String sha1 = connection.scriptLoad("return KEYS[1]");
-		connection.scriptFlush();
 		initConnection();
+		connection.scriptFlush();
 		actual.add(connection.scriptExists(sha1));
 		// Lettuce actually returns booleans, it's not an SDR conversion
 		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] { false })}), actual);
