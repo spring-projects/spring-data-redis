@@ -15,20 +15,34 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.KeyValue;
+import com.lambdaworks.redis.ScoredValue;
 
 /**
  * Integration test of {@link LettuceConnection} functionality within a
@@ -40,118 +54,313 @@ import com.lambdaworks.redis.RedisException;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionTransactionIntegrationTests extends
-		LettuceConnectionPipelineIntegrationTests {
+		AbstractConnectionTransactionIntegrationTests {
+
+	private boolean convertListToSet;
+
+	private boolean convertToStringTuple=true;
 
 	@Ignore
-	public void testMultiDiscard() {
+	public void testMultiConnectionsOneInTx() {
 	}
 
 	@Ignore
-	public void testMultiExec() {
+	public void testCloseBlockingOps() {
 	}
 
-	@Ignore
-	public void testUnwatch() {
+	// Native Lettuce returns ZSets as Lists
+	@Test
+	public void testZAddAndZRange() {
+		convertListToSet = true;
+		super.testZAddAndZRange();
 	}
 
-	@Ignore
-	public void testWatch() {
+	@Test
+	public void testZIncrBy() {
+		convertListToSet = true;
+		super.testZIncrBy();
 	}
 
-	/*
-	 * Using blocking ops inside a tx does not make a lot of sense as it would
-	 * require blocking the entire server in order to execute the block
-	 * atomically, which in turn does not allow other clients to perform a push
-	 * operation. Also, Lettuce always times out in these scenarios b/c it waits
-	 * for an actual response instead of accepting the null returned by op in tx
-	 * *
-	 */
-
-	@Ignore
-	public void testBLPop() {
+	@Test
+	public void testZInterStore() {
+		convertListToSet = true;
+		super.testZInterStore();
 	}
 
-	@Ignore
-	public void testBRPop() {
+	@Test
+	public void testZInterStoreAggWeights() {
+		convertListToSet = true;
+		super.testZInterStoreAggWeights();
 	}
 
-	@Ignore
-	public void testBRPopLPush() {
+	@Test
+	public void testZRangeWithScores() {
+		convertListToSet = true;
+		super.testZRangeWithScores();
 	}
 
-	@Ignore
-	public void testBLPopTimeout() {
+	@Test
+	public void testZRangeByScore() {
+		convertListToSet = true;
+		super.testZRangeByScore();
 	}
 
-	@Ignore
-	public void testBRPopTimeout() {
+	@Test
+	public void testZRangeByScoreOffsetCount() {
+		convertListToSet = true;
+		super.testZRangeByScoreOffsetCount();
 	}
 
-	@Ignore
-	public void testBRPopLPushTimeout() {
+	@Test
+	public void testZRangeByScoreWithScores() {
+		convertListToSet = true;
+		super.testZRangeByScoreWithScores();
 	}
 
-	@Ignore
-	public void testOpenPipelineTwice() {
+	@Test
+	public void testZRangeByScoreWithScoresOffsetCount() {
+		convertListToSet = true;
+		super.testZRangeByScoreWithScoresOffsetCount();
+	}
+
+	@Test
+	public void testZRevRange() {
+		convertListToSet = true;
+		super.testZRevRange();
+	}
+
+	@Test
+	public void testZRevRangeWithScores() {
+		convertListToSet = true;
+		super.testZRevRangeWithScores();
+	}
+
+	@Test
+	public void testZRem() {
+		convertListToSet = true;
+		super.testZRem();
+	}
+
+	@Test
+	public void testZRemRangeByRank() {
+		convertListToSet = true;
+		super.testZRemRangeByRank();
+	}
+
+	@Test
+	public void testZRemRangeByScore() {
+		convertListToSet = true;
+		super.testZRemRangeByScore();
+	}
+
+	@Test
+	public void testZUnionStore() {
+		convertListToSet = true;
+		super.testZUnionStore();
+	}
+
+	@Test
+	public void testZUnionStoreAggWeights() {
+		convertListToSet = true;
+		super.testZUnionStoreAggWeights();
+	}
+
+	@Test
+	public void testBitSet() throws Exception {
+		convertLongToBoolean = false;
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		actual.add(connection.getBit(key, 0));
+		actual.add(connection.getBit(key, 1));
+		// Lettuce setBit returns Long instead of void
+		verifyResults(Arrays.asList(new Object[] { 0l, 0l, 0l, 1l }));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitCount() {
+		convertLongToBoolean = false;
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		connection.setBit(key, 2, true);
+		actual.add(connection.bitCount(key));
+		// Lettuce setBit returns Long instead of void
+		verifyResults(new ArrayList<Object>(Arrays.asList(0l, 0l, 0l, 2l)));
+	}
+
+	@Test
+	public void testHKeys() {
+		convertListToSet = true;
+		super.testHKeys();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testBitOpNotMultipleSources() {
+		super.testBitOpNotMultipleSources();
 	}
 
 	@Test
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		// Syntax error on queued commands are swallowed and no results are returned
+		// Syntax error on queued commands are swallowed and no results are
+		// returned
 		assertNull(getResults());
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRestoreBadData() {
-		// Use something other than dump-specific serialization
-		connection.restore("testing".getBytes(), 0, "foo".getBytes());
-		List<Object> results = getResults();
-		assertTrue(results.get(0) instanceof RedisException);
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRestoreExistingKey() {
-		connection.set("testing", "12");
-		connection.dump("testing".getBytes());
-		List<Object> results = getResults();
-		initConnection();
-		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
-		List<Object> restoreResults = getResults();
-		assertTrue(restoreResults.get(0) instanceof RedisException);
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalShaNotFound() {
-		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
-		List<Object> results = getResults();
-		assertTrue(results.get(0) instanceof RedisException);
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalReturnSingleError() {
-		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
-		List<Object> results = getResults();
-		assertTrue(results.get(0) instanceof RedisException);
+	public void testGetRangeSetRange() {
+		connection.set("rangekey", "supercalifrag");
+		actual.add(connection.getRange("rangekey", 0l, 2l));
+		connection.setRange("rangekey", "ck", 2);
+		actual.add(connection.get("rangekey"));
+		// Lettuce returns a value for setRange
+		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testScriptKill() {
-		// Impossible to call script kill in a tx because you can't issue the
-		// exec command while Redis is running a script
-		connection.scriptKill();
+	public void testSRandMemberCountNegative() {
+		super.testSRandMemberCountNegative();
 	}
 
-	protected void initConnection() {
-		connection.multi();
+	@Test
+	public void testSortStoreNullParams() {
+		convertLongToBoolean = false;
+		super.testSortStoreNullParams();
 	}
 
-	protected List<Object> getResults() {
-		return connection.exec();
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
+		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),(List<String>) getResults().get(2));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testZRevRangeByScore() {
+		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d));
+		assertEquals(Arrays.asList(new String[] { "Bob", "James" }), (List<String>) getResults().get(2));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
+		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),
+				(List<byte[]>) getResults().get(2));
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScores() {
+		convertToStringTuple = false;
+		super.testZRevRangeByScoreWithScores();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleOK() {
+		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
+		assertEquals(Arrays.asList(new Object[] { "OK" }), connection.exec());
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testDumpAndRestore() {
+		convert = false;
+		connection.set("testing", "12");
+		actual.add(connection.dump("testing".getBytes()));
+		List<Object> results = getResults();
+		initConnection();
+		actual.add(connection.del("testing"));
+		actual.add((connection.get("testing")));
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(results.size() - 1));
+		actual.add(connection.get("testing"));
+		results = getResults();
+		assertEquals(3,results.size());
+		assertEquals(1l, results.get(0));
+		assertNull(results.get(1));
+		assertEquals("12", new String((byte[])results.get(2)));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayOKs() {
+		actual.add(connection.eval(
+				"return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+				ReturnType.MULTI, 0));
+		List<String> result = (List<String>) getResults().get(0);
+		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }), result);
+	}
+
+	@Test
+	public void testMove() {
+		connection.set("foo", "bar");
+		actual.add(connection.move("foo", 1));
+		verifyResults(Arrays.asList(new Object[] { true}));
+		// Lettuce does not support select when using shared conn, use a new conn factory
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
+		factory2.setDatabase(1);
+		factory2.afterPropertiesSet();
+		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
+		try {
+			assertEquals("bar",conn2.get("foo"));
+		} finally {
+			if(conn2.exists("foo")) {
+				conn2.del("foo");
+			}
+			conn2.close();
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	protected Object convertResult(Object result) {
+		if (!convert) {
+			return result;
+		}
+		Object convertedResult = super.convertResult(result);
+		if (convertedResult instanceof KeyValue) {
+			List<String> keyValue = new ArrayList<String>();
+			keyValue.add((String) super.convertResult(((KeyValue) convertedResult).key));
+			keyValue.add((String) super.convertResult(((KeyValue) convertedResult).value));
+			return keyValue;
+		}
+		if (convertedResult instanceof List && !(((List) result).isEmpty())
+				&& ((List) convertedResult).get(0) instanceof ScoredValue) {
+			Set<Tuple> tuples = LettuceConverters.toTupleSet((List) convertedResult);
+			if(convertToStringTuple) {
+				return new SetConverter<Tuple, StringTuple>(new TupleConverter())
+					.convert(tuples);
+			}
+			return tuples;
+		}
+		if (convertListToSet && convertedResult instanceof List) {
+			return new LinkedHashSet((List) convertedResult);
+		}
+		if (convertStringToProps && convertedResult instanceof String) {
+			return LettuceConverters.toProperties((String) convertedResult);
+		}
+		return convertedResult;
+	}
+
+	private class TupleConverter implements Converter<Tuple, StringTuple> {
+		public StringTuple convert(Tuple source) {
+			return new DefaultStringTuple(source, stringSerializer.deserialize(source.getValue()));
+		}
+	}
+
+	@Override
+	protected DataAccessException convertException(Exception ex) {
+		return LettuceConverters.toDataAccessException(ex);
 	}
 }

@@ -17,13 +17,16 @@
 package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,18 +69,15 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	@Test
 	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
 	public void testGetRangeSetRange() {
+		// SRP throws an Exception if you try to execute on version lower than 2.4
 		super.testGetRangeSetRange();
 	}
 
 	@Test
-	public void testExecute() {
-		connection.set("foo", "bar");
-		assertEquals("bar", stringSerializer.deserialize((byte[])connection.execute("GET", "foo")));
-	}
-
-	@Test
 	public void testExecuteNoArgs() {
-		assertEquals("PONG", connection.execute("PING"));
+		// SRP returns this as String while other drivers return as byte[]
+		actual.add(connection.execute("PING"));
+		verifyResults(Arrays.asList(new Object[] { "PONG" }));
 	}
 
 	@Test
@@ -86,6 +86,43 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		// SRP returns the Strings from individual StatusReplys in a MultiBulkReply, while other clients return as byte[]
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
-		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}), actual);
+		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMultiExec() throws Exception {
+		connection.multi();
+		connection.set("key", "value");
+		actual.add(connection.get("key"));
+		actual.add(connection.exec());
+		List<Object> results = getResults();
+		assertNull(results.get(0));
+		List<Object> execResults = (List<Object>) results.get(1);
+		// SRP is already filtering out the void types since tx uses pipeline, so result size here is only 1
+		assertEquals(1, execResults.size());
+		// However, since DefaultStringRedisConnection doesn't yet convert tx results, the data is still in raw bytes
+		assertEquals("value", new String((byte[]) execResults.get(0)));
+		assertEquals("value", connection.get("key"));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testUnwatch() throws Exception {
+		connection.set("testitnow", "willdo");
+		connection.watch("testitnow".getBytes());
+		connection.unwatch();
+		connection.multi();
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+			connectionFactory.getConnection());
+		conn2.set("testitnow", "something");
+		connection.set("testitnow", "somethingelse");
+		actual.add(connection.get("testitnow"));
+		actual.add(connection.exec());
+		List<Object> results = getResults();
+		assertNull(results.get(0));
+		List<Object> execResults = (List<Object>) results.get(1);
+		// SRP is already filtering out the void types since tx uses pipeline, so result size here is only 1
+		assertEquals("somethingelse", new String((byte[]) execResults.get(0)));
 	}
 }

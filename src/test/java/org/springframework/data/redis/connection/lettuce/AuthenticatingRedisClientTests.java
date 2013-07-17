@@ -56,7 +56,7 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void codecConnect() {
-		RedisConnection<byte[], byte[]> conn = client.connect(LettuceUtils.CODEC);
+		RedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
 		conn.ping();
 	}
 
@@ -68,7 +68,7 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void codecConnectAsync() {
-		RedisAsyncConnection<byte[], byte[]> conn = client.connectAsync(LettuceUtils.CODEC);
+		RedisAsyncConnection<byte[], byte[]> conn = client.connectAsync(LettuceConnection.CODEC);
 		conn.ping();
 	}
 
@@ -80,7 +80,7 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void codecConnectPubSub() {
-		RedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceUtils.CODEC);
+		RedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
 		conn.ping();
 	}
 

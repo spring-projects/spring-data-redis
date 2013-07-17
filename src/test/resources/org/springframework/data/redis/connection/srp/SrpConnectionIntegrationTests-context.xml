@@ -13,7 +13,6 @@
 			<bean class="org.springframework.data.redis.SettingsUtils"
 				factory-method="getPort" />
 		</property>
-		<property name="convertPipelineResults" value="false"/>
 	</bean>
 
 </beans>

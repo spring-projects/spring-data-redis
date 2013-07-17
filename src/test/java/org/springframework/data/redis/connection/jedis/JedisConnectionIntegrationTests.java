@@ -16,8 +16,6 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -180,32 +178,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
-	}
-
-	@Test
-	public void testIncrDecrByLong() {
-		String key = "test.count";
-		long largeNumber = 0x123456789L; // > 32bits
-		connection.set(key, "0");
-		connection.incrBy(key, largeNumber);
-		assertEquals(largeNumber, Long.valueOf(connection.get(key)).longValue());
-		connection.decrBy(key, largeNumber);
-		assertEquals(0, Long.valueOf(connection.get(key)).longValue());
-		connection.decrBy(key, 2 * largeNumber);
-		assertEquals(-2 * largeNumber, Long.valueOf(connection.get(key)).longValue());
-	}
-
-	@Test
-	public void testHashIncrDecrByLong() {
-		String key = "test.hcount";
-		String hkey = "hashkey";
-
-		long largeNumber = 0x123456789L; // > 32bits
-		connection.hSet(key, hkey, "0");
-		connection.hIncrBy(key, hkey, largeNumber);
-		assertEquals(largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
-		connection.hIncrBy(key, hkey, -2 * largeNumber);
-		assertEquals(-largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
 	}
 
 	@Test

@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.jredis.JRedis;
@@ -84,6 +86,10 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
 	public void testMSetNxFailure() {
+	}
+
+	@Ignore("JRedis casts to int")
+	public void testIncrDecrByLong() {
 	}
 
 	@Ignore("Ping returns status response instead of value response")
@@ -410,6 +416,11 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
+	public void testHashIncrDecrByLong() {
+		super.testHashIncrDecrByLong();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
 	public void testIncrByDouble() {
 		super.testIncrByDouble();
 	}
@@ -539,7 +550,17 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testInfoBySection();
 	}
 
-	// Jredis returns null for rPush
+	// Jredis returns null for rPush and lPush
+	@Test
+	public void testLLen() {
+		connection.rPush("PopList", "hello");
+		connection.rPush("PopList", "big");
+		connection.rPush("PopList", "world");
+		connection.rPush("PopList", "hello");
+		actual.add(connection.lLen("PopList"));
+		verifyResults(Arrays.asList(new Object[] { 4l }));
+	}
+
 	@Test
 	public void testSort() {
 		connection.rPush("sortlist", "foo");
@@ -565,8 +586,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("sortlist", "2");
 		connection.rPush("sortlist", "3");
 		actual.add(connection.sort("sortlist", null));
-		verifyResults(
-			Arrays.asList(new Object[] { Arrays.asList(new String[] { "2", "3", "5" }) }), actual);
+		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new String[] { "2", "3", "5" }) }));
 	}
 
 	@Test
@@ -576,8 +596,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("sortlist", "5");
 		actual.add(connection.sort("sortlist", null, "newlist"));
 		actual.add(connection.lRange("newlist", 0, 9));
-		verifyResults(Arrays.asList(new Object[] { 3l,
-					Arrays.asList(new String[] { "3", "5", "9" }) }), actual);
+		verifyResults(Arrays.asList(new Object[] { 3l, Arrays.asList(new String[] { "3", "5", "9" }) }));
 	}
 
 	@Test
@@ -647,16 +666,6 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test
-	public void testLLen() {
-		connection.rPush("PopList", "hello");
-		connection.rPush("PopList", "big");
-		connection.rPush("PopList", "world");
-		connection.rPush("PopList", "hello");
-		actual.add(connection.lLen("PopList"));
-		verifyResults(Arrays.asList(new Object[] { 4l }), actual);
-	}
-
-	@Test
 	public void testExecute() {
 		connection.set("foo", "bar");
 		BulkResponse response = (BulkResponse) connection.execute("GET", "foo".getBytes());
@@ -664,10 +673,47 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test
+	public void testSDiffStore() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sAdd("otherset", "bar"));
+		actual.add(connection.sDiffStore("thirdset", "myset", "otherset"));
+		actual.add(connection.sMembers("thirdset"));
+		// JRedis returns void for sDiffStore, so we always return -1
+		verifyResults(Arrays.asList(new Object[] { true, true, true, -1l,
+						new HashSet<String>(Collections.singletonList("foo")) }));
+	}
+
+	@Test
+	public void testSInterStore() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sAdd("otherset", "bar"));
+		actual.add(connection.sInterStore("thirdset", "myset", "otherset"));
+		actual.add(connection.sMembers("thirdset"));
+		// JRedis returns void for sInterStore, so we always return -1
+		verifyResults(Arrays.asList(new Object[] { true, true, true, -1l,
+						new HashSet<String>(Collections.singletonList("bar")) }));
+	}
+
+	@Test
+	public void testSUnionStore() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sAdd("otherset", "bar"));
+		actual.add(connection.sAdd("otherset", "baz"));
+		actual.add(connection.sUnionStore("thirdset", "myset", "otherset"));
+		actual.add(connection.sMembers("thirdset"));
+		// JRedis returns void for sUnionStore, so we always return -1
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, -1l,
+						new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
+	}
+
+	@Test
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}), actual);
+		verifyResults(Arrays.asList(new Object[] { true}));
 		// JRedis does not support select() on existing conn, create new one
 		JredisConnectionFactory factory2 = new JredisConnectionFactory();
 		factory2.setDatabase(1);

@@ -19,15 +19,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.RedisPipelineException;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -69,9 +67,8 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		assertNull(connection.get("foo"));
 		List<Object> results = connection.closePipeline();
-		assertEquals(2, results.size());
-		assertEquals("OK", results.get(0));
-		assertEquals("bar", new String((byte[]) results.get(1)));
+		assertEquals(1, results.size());
+		assertEquals("bar", new String((byte[]) results.get(0)));
 		assertEquals("bar", connection.get("foo"));
 	}
 
@@ -85,67 +82,39 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.get("foo"));
 		assertNull(connection.exec());
 		List<Object> results = connection.closePipeline();
-		assertEquals(4, results.size());
-		assertEquals("OK", results.get(0));
-		assertEquals("bar", new String((byte[]) results.get(1)));
-		assertEquals("OK", results.get(2));
-		assertEquals("baz", new String((byte[]) results.get(3)));
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
-	public void testGetRangeSetRange() {
-		connection.set("rangekey", "supercalifrag");
-		actual.add(connection.getRange("rangekey", 0l, 2l));
-		connection.setRange("rangekey", "ck", 2);
-		actual.add(connection.get("rangekey"));
-		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }), actual);
+		assertEquals(2, results.size());
+		assertEquals("bar", new String((byte[]) results.get(0)));
+		assertEquals("baz", new String((byte[]) results.get(1)));
 	}
 
 	@Test(expected=RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
-		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
-		getResults();
+		super.testEvalShaNotFound();
 	}
 
 	@Test(expected=RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {
-		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
-		getResults();
+		super.testEvalReturnSingleError();
 	}
 
-	@Test(expected=RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRestoreBadData() {
-		// Use something other than dump-specific serialization
-		connection.restore("testing".getBytes(), 0, "foo".getBytes());
-		getResults();
-	}
-
-	@Test
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreExistingKey() {
-		connection.set("testing", "12");
-		connection.dump("testing".getBytes());
-		List<Object> results = getResults();
-		initConnection();
-		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
-		try {
-			getResults();
-			fail("Expected pipeline exception restoring an existing key");
-		}catch(RedisPipelineException e) {
-		}
+		super.testRestoreExistingKey();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testBitOpNotMultipleSources() {
-		connection.set("key1", "abcd");
-		connection.set("key2", "efgh");
-		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
-		getResults();
+		super.testBitOpNotMultipleSources();
+	}
+
+	@Test(expected = RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		super.testRestoreBadData();
 	}
 
 	protected void initConnection() {
@@ -155,6 +124,12 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 
 	protected List<Object> getResults() {
 		assertNull(connection.exec());
-		return connection.closePipeline();
+		List<Object> actual =  connection.closePipeline();
+		List<Object> serializedResults = new ArrayList<Object>();
+		for (Object result : actual) {
+			Object convertedResult = convertResult(result);
+			serializedResults.add(convertedResult);
+		}
+		return serializedResults;
 	}
 }

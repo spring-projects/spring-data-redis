@@ -15,17 +15,25 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.test.annotation.IfProfileValue;
+
+
 
 /**
  * Integration test of {@link SrpConnection} functionality within a transaction
@@ -33,7 +41,9 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  *
  */
-public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipelineIntegrationTests {
+public class SrpConnectionTransactionIntegrationTests extends SrpConnectionIntegrationTests {
+
+	private boolean convert = true;
 
 	@Ignore
 	public void testMultiDiscard() {
@@ -48,7 +58,6 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 	}
 
 	@Ignore
-	@Test
 	public void testWatch() {
 	}
 
@@ -56,7 +65,7 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 	 * Using blocking ops inside a tx does not make a lot of sense as it would
 	 * require blocking the entire server in order to execute the block
 	 * atomically, which in turn does not allow other clients to perform a push
-	 * operation.
+	 * operation. *
 	 */
 
 	@Ignore
@@ -83,70 +92,132 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 	public void testBRPopLPushTimeout() {
 	}
 
+	@Ignore("Pub/Sub not supported with transactions")
+	public void testPubSubWithNamedChannels() throws Exception {
+	}
+
+	@Ignore("Pub/Sub not supported with transactions")
+	public void testPubSubWithPatterns() throws Exception {
+	}
+
 	@Ignore
-	public void testOpenPipelineTwice() {
+	public void testNullKey() throws Exception {
+	}
+
+	@Ignore
+	public void testNullValue() throws Exception {
+	}
+
+	@Ignore
+	public void testHashNullKey() throws Exception {
+	}
+
+	@Ignore
+	public void testHashNullValue() throws Exception {
 	}
 
 	@Test(expected = RedisSystemException.class)
 	public void exceptionExecuteNative() throws Exception {
-		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		getResults();
+		super.exceptionExecuteNative();
+	}
+
+	// SRP tx.exec() is now returning converted data types b/c it uses pipeline, but
+	// DefaultStringRedisConnection isn't converting byte[]s from exec() yet.
+	// We implement the conversion in convertResult(), but convertResult's a bit over-eager in certain scenarios, hence these overrides
+
+	@Test
+	public void testExecute() {
+		convert = false;
+		super.testExecute();
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", values = { "2.4", "2.6" })
-	public void testGetRangeSetRange() {
-		connection.set("rangekey", "supercalifrag");
-		actual.add(connection.getRange("rangekey", 0l, 2l));
-		connection.setRange("rangekey", "ck", 2);
-		actual.add(connection.get("rangekey"));
-		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }), actual);
-	}
-
-	@Test(expected=RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalReturnSingleError() {
-		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
-		getResults();
-	}
-
-	@Test(expected=RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalShaNotFound() {
-		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
-		getResults();
-	}
-
-	@Test(expected=RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRestoreBadData() {
-		// Use something other than dump-specific serialization
-		connection.restore("testing".getBytes(), 0, "foo".getBytes());
-		getResults();
+	public void testScriptLoadEvalSha() {
+		convert = false;
+		super.testScriptLoadEvalSha();
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayStrings() {
+		convert = false;
+		super.testEvalShaArrayStrings();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnString() {
+		convert = false;
+		super.testEvalReturnString();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayStrings() {
+		convert = false;
+		super.testEvalReturnArrayStrings();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testDumpAndRestore() {
+		convert = false;
+		connection.set("testing", "12");
+		actual.add(connection.dump("testing".getBytes()));
+		List<Object> results = getResults();
+		initConnection();
+		actual.add(connection.del("testing"));
+		actual.add((connection.get("testing")));
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(results.size() - 1));
+		actual.add(connection.get("testing"));
+		results = getResults();
+		assertEquals(3,results.size());
+		assertEquals(1l, results.get(0));
+		assertNull(results.get(1));
+		assertEquals("12", new String((byte[])results.get(2)));
+	}
+
+	@Test(expected = RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreExistingKey() {
 		connection.set("testing", "12");
-		connection.dump("testing".getBytes());
+		actual.add(connection.dump("testing".getBytes()));
 		List<Object> results = getResults();
 		initConnection();
-		connection.restore("testing".getBytes(), 0, (byte[]) results.get(1));
-		try {
-			getResults();
-			fail("Expected pipeline exception restoring an existing key");
-		}catch(RedisSystemException e) {
-		}
+		connection.restore("testing".getBytes(), 0, ((String)results.get(0)).getBytes());
+		getResults();
 	}
 
-	@Test(expected=RedisSystemException.class)
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testBitOpNotMultipleSources() {
-		connection.set("key1", "abcd");
-		connection.set("key2", "efgh");
-		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
-		getResults();
+	public void testRestoreTtl() {
+		convert = false;
+		super.testRestoreTtl();
+	}
+
+	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		convert = false;
+		super.testZRevRangeByScoreOffsetCount();
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		convert = false;
+		super.testZRevRangeByScore();
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		convert = false;
+		super.testZRevRangeByScoreWithScoresOffsetCount();
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScores() {
+		convert = false;
+		super.testZRevRangeByScoreWithScores();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -162,6 +233,52 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionPipel
 	}
 
 	protected List<Object> getResults() {
-		return connection.exec();
+		List<Object> actual = connection.exec();
+		List<Object> serializedResults = new ArrayList<Object>();
+		for (Object result : actual) {
+			Object convertedResult = convertResult(result);
+			serializedResults.add(convertedResult);
+		}
+		return serializedResults;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected Object convertResult(Object result) {
+		if(! convert) {
+			return result;
+		}
+		if (result instanceof List && !(((List) result).isEmpty())
+				&& ((List) result).get(0) instanceof byte[]) {
+			return (SerializationUtils.deserialize((List<byte[]>) result, stringSerializer));
+		} else if (result instanceof byte[]) {
+			return (stringSerializer.deserialize((byte[]) result));
+		} else if (result instanceof Map
+				&& ((Map) result).keySet().iterator().next() instanceof byte[]) {
+			return (SerializationUtils.deserialize((Map) result, stringSerializer));
+		} else if (result instanceof Set && !(((Set) result).isEmpty())) {
+			Object firstResult = ((Set) result).iterator().next();
+			if(firstResult instanceof byte[]) {
+				return (SerializationUtils.deserialize((Set) result, stringSerializer));
+			}
+			if(firstResult instanceof Tuple) {
+				Set<StringTuple> tuples = new LinkedHashSet<StringTuple>();
+				for (Tuple value : ((Set<Tuple>) result)) {
+					DefaultStringTuple tuple = new DefaultStringTuple(value,stringSerializer.deserialize(value.getValue()));
+					tuples.add(tuple);
+				}
+				return tuples;
+			}
+		}
+		return result;
+	}
+
+	protected void verifyResults(List<Object> expected) {
+		List<Object> expectedTx = new ArrayList<Object>();
+		for (int i = 0; i < actual.size(); i++) {
+			expectedTx.add(null);
+		}
+		assertEquals(expectedTx, actual);
+		List<Object> results = getResults();
+		assertEquals(expected, results);
 	}
 }

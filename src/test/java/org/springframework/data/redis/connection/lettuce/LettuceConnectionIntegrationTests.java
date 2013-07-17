@@ -201,11 +201,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		factory2.destroy();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testSelect() {
-		super.testSelect();
-	}
-
 	@Test
 	public void testSelectNotShared() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
@@ -217,6 +212,11 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		RedisConnection connection = factory2.getConnection();
 		connection.select(2);
 		factory2.destroy();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSelect() {
+		super.testSelect();
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
@@ -241,6 +241,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		final AtomicBoolean scriptDead = new AtomicBoolean(false);
 		Thread th = new Thread(new Runnable() {
 			public void run() {
+				// Use a different factory to get a non-shared native conn for blocking script
 				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
 						SettingsUtils.getPort());
 				factory2.afterPropertiesSet();
@@ -268,7 +269,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}), actual);
+		verifyResults(Arrays.asList(new Object[] { true}));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
 		factory2.setDatabase(1);

@@ -15,26 +15,14 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
-import org.springframework.data.redis.connection.DefaultStringTuple;
-import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import redis.clients.jedis.Tuple;
 
 /**
  * Integration test of {@link JedisConnection} pipeline functionality
@@ -46,12 +34,6 @@ import redis.clients.jedis.Tuple;
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisConnectionPipelineIntegrationTests extends
 		AbstractConnectionPipelineIntegrationTests {
-
-	/**
-	 * Individual results from closePipeline should be converted from
-	 * LinkedHashSet to List
-	 **/
-	private boolean convertResultToList;
 
 	@After
 	public void tearDown() {
@@ -67,19 +49,19 @@ public class JedisConnectionPipelineIntegrationTests extends
 		connection = null;
 	}
 
-	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
+	@Ignore("DATAREDIS-143 Pipeline tries to return String instead of List<String>")
 	public void testGetConfig() {
 	}
 
-	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
+	@Ignore("DATAREDIS-143 MultiResponseBuilder trying to cast QUEUED to a List")
 	public void testWatch() {
 	}
 
-	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
+	@Ignore("DATAREDIS-143  MultiResponseBuilder trying to cast QUEUED to a List")
 	public void testUnwatch() {
 	}
 
-	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
+	@Ignore("DATAREDIS-143 Pipeline tries to return List<String> instead of Long on sort")
 	public void testSortStore() {
 	}
 
@@ -162,7 +144,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testBitGet() {
-		connection.getBit("foo", 1l);
+		connection.getBit("bitly", 1l);
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
@@ -359,7 +341,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 	@Test(expected=UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptFlush() {
-		super.testScriptFlush();
+		connection.scriptFlush();
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
@@ -384,130 +366,5 @@ public class JedisConnectionPipelineIntegrationTests extends
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
-	}
-
-	// Overrides, usually due to return values being Long vs Boolean or Set vs
-	// List
-
-	@Test
-	public void testRenameNx() {
-		connection.set("nxtest", "testit");
-		actual.add(connection.renameNX("nxtest", "newnxtest"));
-		actual.add(connection.get("newnxtest"));
-		actual.add(connection.exists("nxtest"));
-		verifyResults(Arrays.asList(new Object[] { 1l, "testit", false }), actual);
-	}
-
-	@Test
-	public void testKeys() throws Exception {
-		convertResultToList = true;
-		super.testKeys();
-	}
-
-	@Test
-	public void testZAddAndZRange() {
-		convertResultToList = true;
-		super.testZAddAndZRange();
-	}
-
-	@Test
-	public void testZIncrBy() {
-		convertResultToList = true;
-		super.testZIncrBy();
-	}
-
-	@Test
-	public void testZInterStore() {
-		convertResultToList = true;
-		super.testZInterStore();
-	}
-
-	@Test
-	public void testZRangeByScore() {
-		convertResultToList = true;
-		super.testZRangeByScore();
-	}
-
-	@Test
-	public void testZRangeByScoreOffsetCount() {
-		convertResultToList = true;
-		super.testZRangeByScoreOffsetCount();
-	}
-
-	@Test
-	public void testZRevRange() {
-		convertResultToList = true;
-		super.testZRevRange();
-	}
-
-	@Test
-	public void testZRem() {
-		convertResultToList = true;
-		super.testZRem();
-	}
-
-	@Test
-	public void testZRemRangeByScore() {
-		convertResultToList = true;
-		super.testZRemRangeByScore();
-	}
-
-	@Test
-	public void testZUnionStore() {
-		convertResultToList = true;
-		super.testZUnionStore();
-	}
-
-	@Test
-	public void testZRemRangeByRank() {
-		convertResultToList = true;
-		super.testZRemRangeByRank();
-	}
-
-	@Test
-	public void testHDel() throws Exception {
-		actual.add(connection.hSet("test", "key", "val"));
-		actual.add(connection.hDel("test", "key"));
-		actual.add(connection.hDel("test", "foo"));
-		actual.add(connection.hExists("test", "key"));
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 0l, false }), actual);
-	}
-
-	@Test
-	public void testHSetGet() throws Exception {
-		String hash = getClass() + ":hashtest";
-		String key1 = UUID.randomUUID().toString();
-		String key2 = UUID.randomUUID().toString();
-		String value1 = "foo";
-		String value2 = "bar";
-		actual.add(connection.hSet(hash, key1, value1));
-		actual.add(connection.hSet(hash, key2, value2));
-		actual.add(connection.hGet(hash, key1));
-		actual.add(connection.hGetAll(hash));
-		Map<String, String> expected = new HashMap<String, String>();
-		expected.put(key1, value1);
-		expected.put(key2, value2);
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, value1, expected }), actual);
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object convertResult(Object result) {
-		Object convertedResult = super.convertResult(result);
-		if (convertedResult instanceof Set) {
-			if (convertResultToList) {
-				// Other providers represent zSets as Lists, so transform here
-				return new ArrayList((Set) convertedResult);
-			} else if (!(((Set) convertedResult).isEmpty())
-					&& ((Set) convertedResult).iterator().next() instanceof Tuple) {
-				List<StringTuple> tuples = new ArrayList<StringTuple>();
-				for (Tuple value : ((Set<Tuple>) convertedResult)) {
-					DefaultStringTuple tuple = new DefaultStringTuple(
-							(byte[]) value.getBinaryElement(), value.getElement(), value.getScore());
-					tuples.add(tuple);
-				}
-				return tuples;
-			}
-		}
-		return convertedResult;
 	}
 }
