@@ -2040,8 +2040,40 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		}
 		return tupleToStringTuple.convert(results);
 	}
-
 	
+	public Set<String> zRevRangeByScore(String key, double min, double max) {
+		Set<byte[]> results = delegate.zRevRangeByScore(serialize(key), min, max);
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
+	}
+
+	public Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max) {
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(serialize(key), min, max);
+		if(isPipelined()) {
+			pipeline(tupleToStringTuple);
+		}
+		return tupleToStringTuple.convert(results);
+	}
+
+	public Set<String> zRevRangeByScore(String key, double min, double max, long offset, long count) {
+		Set<byte[]> results = delegate.zRevRangeByScore(serialize(key), min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
+	}
+
+	public Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max,
+			long offset, long count) {
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(serialize(key), min, max, offset, count);
+		if(isPipelined()) {
+			pipeline(tupleToStringTuple);
+		}
+		return tupleToStringTuple.convert(results);
+	}
+
 	public Long zRevRank(String key, String value) {
 		Long result = delegate.zRevRank(serialize(key), serialize(value));
 		if(isPipelined()) {

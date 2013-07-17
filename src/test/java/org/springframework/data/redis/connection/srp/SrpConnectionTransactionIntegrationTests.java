@@ -58,8 +58,6 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 
 	protected boolean convertResultToStringTuples=false;
 
-	protected boolean convertResultToTuples=false;
-
 	protected boolean convertBooleanToLong=false;
 
 	protected boolean convertResultsToMap=false;
@@ -254,8 +252,28 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 
 	@Test
 	public void testZRevRangeByScoreWithScores() {
-		convertResultToTuples = true;
+		convertResultToStringTuples = true;
+		convertResultToSet = true;
 		super.testZRevRangeByScoreWithScores();
+	}
+
+	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		convertResultToSet = true;
+		super.testZRevRangeByScoreOffsetCount();
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		convertResultToSet = true;
+		super.testZRevRangeByScore();
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		convertResultToStringTuples = true;
+		convertResultToSet = true;
+		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
 
 	@Test
@@ -367,10 +385,7 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 					stringTuples.add(new DefaultStringTuple(tuple, new String(tuple.getValue())));
 				}
 				return stringTuples;
-			} else if(convertResultToTuples) {
-				return SrpConverters.toTupleSet((Reply[])convertedResult);
-			}
-			else if (convertResultToSet) {
+			} else if (convertResultToSet) {
 				return SerializationUtils.deserialize(SrpConverters.toBytesSet((Reply[])convertedResult),
 						stringSerializer);
 			} else if(((Reply[]) convertedResult).length > 0 && ((Reply[])convertedResult)[0] instanceof IntegerReply) {

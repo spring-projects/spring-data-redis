@@ -459,34 +459,6 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }));
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testZRevRangeByScoreOffsetCount() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
-		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),(List<String>) getResults().get(2));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testZRevRangeByScore() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d));
-		assertEquals(Arrays.asList(new String[] { "Bob", "James" }), (List<String>) getResults().get(2));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
-		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),
-				(List<byte[]>) getResults().get(2));
-	}
-
 	protected void initConnection() {
 		connection.multi();
 	}

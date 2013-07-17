@@ -56,7 +56,6 @@ public class LettuceConnectionTransactionIntegrationTests extends
 
 	private boolean convertListToSet;
 
-	private boolean convertToStringTuple=true;
 
 	@Test
 	@Ignore("Exceptions on native execute are swallowed in tx")
@@ -116,6 +115,18 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	public void testZRangeByScoreWithScoresOffsetCount() {
 		convertListToSet = true;
 		super.testZRangeByScoreWithScoresOffsetCount();
+	}
+
+	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		convertListToSet = true;
+		super.testZRevRangeByScoreOffsetCount();
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		convertListToSet = true;
+		super.testZRevRangeByScore();
 	}
 
 	@Test
@@ -196,12 +207,6 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
-	public void testZRevRangeByScoreWithScores() {
-		convertToStringTuple = false;
-		super.testZRevRangeByScoreWithScores();
-	}
-
-	@Test
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
@@ -242,11 +247,8 @@ public class LettuceConnectionTransactionIntegrationTests extends
 		if (convertedResult instanceof List && !(((List) result).isEmpty())
 				&& ((List) convertedResult).get(0) instanceof ScoredValue) {
 			Set<Tuple> tuples = LettuceConverters.toTupleSet((List) convertedResult);
-			if(convertToStringTuple) {
-				return new SetConverter<Tuple, StringTuple>(new TupleConverter())
+			return new SetConverter<Tuple, StringTuple>(new TupleConverter())
 					.convert(tuples);
-			}
-			return tuples;
 		}
 		if (convertListToSet && convertedResult instanceof List) {
 			return new LinkedHashSet((List) convertedResult);

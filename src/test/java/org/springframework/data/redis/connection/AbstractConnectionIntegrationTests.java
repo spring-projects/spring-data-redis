@@ -34,7 +34,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -53,13 +52,11 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
-import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
@@ -1589,46 +1586,44 @@ public abstract class AbstractConnectionIntegrationTests {
 								new DefaultStringTuple("James".getBytes(), "James", 1d) })) }));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testZRevRangeByScoreOffsetCount() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
-		assertEquals(new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" })),
-				SerializationUtils.deserialize((Set<byte[]>) getResults().get(2), stringSerializer));
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(connection.zRevRangeByScore("myset", 0d, 3d, 0, 5));
+		verifyResults(Arrays.asList(new Object[] {true, true,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" }))}));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testZRevRangeByScore() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d));
-		assertEquals(new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" })),
-				SerializationUtils.deserialize((Set<byte[]>) getResults().get(2), stringSerializer));
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(connection.zRevRangeByScore("myset", 0d, 3d));
+		verifyResults(Arrays.asList(new Object[] {true, true,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" }))}));
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScoreWithScores("myset".getBytes(), 0d, 3d, 0, 1));
-		assertEquals(
-				new LinkedHashSet<Tuple>(Arrays.asList(new Tuple[] { new DefaultTuple("Bob"
-						.getBytes(), 2d) })), getResults().get(2));
+		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(connection.zRevRangeByScoreWithScores("myset", 0d, 3d, 0, 1));
+		verifyResults(Arrays.asList(new Object[] {true, true,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] { new DefaultStringTuple("Bob"
+						.getBytes(), "Bob", 2d) }))}));
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScores() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 3, "Joe".getBytes()));
-		actual.add(byteConnection.zRevRangeByScoreWithScores("myset".getBytes(), 0d, 2d));
-		assertEquals(
-				new LinkedHashSet<Tuple>(Arrays.asList(new Tuple[] {
-						new DefaultTuple("Bob".getBytes(), 2d),
-						new DefaultTuple("James".getBytes(), 1d) })), getResults().get(3));
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 3, "Joe"));
+		actual.add(connection.zRevRangeByScoreWithScores("myset", 0d, 2d));
+		verifyResults(Arrays.asList(new Object[] {true, true, true,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
+						new DefaultStringTuple("Bob".getBytes(), "Bob", 2d),
+						new DefaultStringTuple("James".getBytes(), "James", 1d) }))}));
 	}
 
 	@Test

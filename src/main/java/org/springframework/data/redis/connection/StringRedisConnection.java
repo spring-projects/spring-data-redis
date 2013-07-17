@@ -207,6 +207,14 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Set<StringTuple> zRevRangeWithScores(String key, long start, long end);
 
+	Set<String> zRevRangeByScore(String key, double min, double max);
+
+	Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max);
+
+	Set<String> zRevRangeByScore(String key, double min, double max, long offset, long count);
+
+	Set<StringTuple> zRevRangeByScoreWithScores(String key, double min, double max, long offset, long count);
+
 	Set<String> zRangeByScore(String key, double min, double max);
 
 	Set<StringTuple> zRangeByScoreWithScores(String key, double min, double max);

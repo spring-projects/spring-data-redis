@@ -1362,10 +1362,24 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		doReturn(bytesSet).when(nativeConnection).zRevRangeByScore(fooBytes, 1d, 3d, 5l, 7l);
+		actual.add(connection.zRevRangeByScore(foo, 1d, 3d, 5l, 7l));
+		verifyResults(Arrays.asList(new Object[] { stringSet }));
+	}
+
+	@Test
 	public void testZRevRangeByScoreBytes() {
 		doReturn(bytesSet).when(nativeConnection).zRevRangeByScore(fooBytes, 1d, 3d);
 		actual.add(connection.zRevRangeByScore(fooBytes, 1d, 3d));
 		verifyResults(Arrays.asList(new Object[] { bytesSet }));
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		doReturn(bytesSet).when(nativeConnection).zRevRangeByScore(fooBytes, 1d, 3d);
+		actual.add(connection.zRevRangeByScore(foo, 1d, 3d));
+		verifyResults(Arrays.asList(new Object[] { stringSet }));
 	}
 
 	@Test
@@ -1377,10 +1391,25 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d, 5l,
+				7l);
+		actual.add(connection.zRevRangeByScoreWithScores(foo, 1d, 3d, 5l, 7l));
+		verifyResults(Arrays.asList(new Object[] { stringTupleSet }));
+	}
+
+	@Test
 	public void testZRevRangeByScoreWithScoresBytes() {
 		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d);
 		actual.add(connection.zRevRangeByScoreWithScores(fooBytes, 1d, 3d));
 		verifyResults(Arrays.asList(new Object[] { tupleSet }));
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScores() {
+		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d);
+		actual.add(connection.zRevRangeByScoreWithScores(foo, 1d, 3d));
+		verifyResults(Arrays.asList(new Object[] { stringTupleSet }));
 	}
 
 	@Test

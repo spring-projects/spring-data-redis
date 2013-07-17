@@ -1142,9 +1142,21 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		doReturn(Arrays.asList(new Object[] { bytesSet })).when(nativeConnection).closePipeline();
+		super.testZRevRangeByScoreOffsetCount();
+	}
+
+	@Test
 	public void testZRevRangeByScoreBytes() {
 		doReturn(Arrays.asList(new Object[] { bytesSet })).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreBytes();
+	}
+
+	@Test
+	public void testZRevRangeByScore() {
+		doReturn(Arrays.asList(new Object[] { bytesSet })).when(nativeConnection).closePipeline();
+		super.testZRevRangeByScore();
 	}
 
 	@Test
@@ -1154,9 +1166,21 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		doReturn(Arrays.asList(new Object[] { tupleSet })).when(nativeConnection).closePipeline();
+		super.testZRevRangeByScoreWithScoresOffsetCount();
+	}
+
+	@Test
 	public void testZRevRangeByScoreWithScoresBytes() {
 		doReturn(Arrays.asList(new Object[] { tupleSet })).when(nativeConnection).closePipeline();
 		super.testZRevRangeByScoreWithScoresBytes();
+	}
+
+	@Test
+	public void testZRevRangeByScoreWithScores() {
+		doReturn(Arrays.asList(new Object[] { tupleSet })).when(nativeConnection).closePipeline();
+		super.testZRevRangeByScoreWithScores();
 	}
 
 	@Test
