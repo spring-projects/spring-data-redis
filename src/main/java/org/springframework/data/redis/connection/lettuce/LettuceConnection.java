@@ -908,6 +908,7 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(getAsyncConnection().setbit(key, offset, LettuceUtils.asBit(value)));
+				return;
 			}
 			getConnection().setbit(key, offset, LettuceUtils.asBit(value));
 		} catch (Exception ex) {
@@ -920,6 +921,7 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(getAsyncConnection().setrange(key, start, value));
+				return;
 			}
 			getConnection().setrange(key, start, value);
 		} catch (Exception ex) {
