@@ -1051,6 +1051,7 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceStatusResult(getAsyncConnection().setbit(key, offset, LettuceConverters.toInt(value))));
+				return;
 			}
 			getConnection().setbit(key, offset, LettuceConverters.toInt(value));
 		} catch (Exception ex) {
@@ -1063,6 +1064,7 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceStatusResult(getAsyncConnection().setrange(key, start, value)));
+				return;
 			}
 			getConnection().setrange(key, start, value);
 		} catch (Exception ex) {
