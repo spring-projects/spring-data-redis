@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
@@ -40,6 +39,8 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.lambdaworks.redis.RedisException;
+
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
  *
@@ -50,10 +51,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionPipelineIntegrationTests extends
 		AbstractConnectionPipelineIntegrationTests {
-
-	@Ignore("DATAREDIS-144 Lettuce closePipeline hangs with discarded transaction")
-	public void testMultiDiscard() {
-	}
 	
 	@Test(expected=UnsupportedOperationException.class)
 	public void testSelect() {
@@ -77,47 +74,6 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
-	}
-
-	@Test
-	public void testWatch() throws Exception {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		//Give some time for watch to be asynch executed
-		Thread.sleep(500);
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		conn2.close();
-		connection.multi();
-		connection.set("testitnow", "somethingelse");
-		actual.add(connection.exec());
-		actual.add(connection.get("testitnow"));
-		// Exec results lost on flatten in closePipeline and also won't get converted
-		// by DefaultStringRedisConnection yet
-		List<Object> results = getResults();
-		assertEquals("something", new String((byte[])results.get(0)));
-	}
-
-	@Test
-	public void testUnwatch() throws Exception {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		connection.unwatch();
-		connection.multi();
-		//Give some time for unwatch to be asynch executed
-		Thread.sleep(500);
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		connection.set("testitnow", "somethingelse");
-		connection.get("testitnow");
-		connection.exec();
-		// Exec results lost on flatten in closePipeline and also won't get converted
-				// by DefaultStringRedisConnection yet
-		List<Object> results = getResults();
-		assertEquals(1,results.size());
-		assertEquals("somethingelse",new String((byte[])results.get(0)));;
 	}
 
 	@Test
@@ -172,5 +128,20 @@ public class LettuceConnectionPipelineIntegrationTests extends
 			}
 			conn2.close();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testErrorInTx() {
+		connection.multi();
+		connection.set("foo","bar");
+		// Try to do a list op on a value
+		connection.lPop("foo");
+		connection.exec();
+		List<Object> results = getResults();
+		List<Object> execResults = (List<Object>)results.get(0);
+		// Lettuce puts the Exception in the exec results instead of throwing an Exception on exec
+		// This should be fixed in DATAREDIS-208 when we convert results of tx.exec()
+		assertTrue(execResults.get(1) instanceof RedisException);
 	}
 }

@@ -49,7 +49,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 		connection = null;
 	}
 
-	@Ignore("DATAREDIS-143 Pipeline tries to return String instead of List<String>")
+	@Ignore("Jedis issue: Pipeline tries to return String instead of List<String>")
 	public void testGetConfig() {
 	}
 
@@ -61,15 +61,15 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testUnwatch() {
 	}
 
-	@Ignore("DATAREDIS-143 Pipeline tries to return List<String> instead of Long on sort")
+	@Ignore("https://github.com/xetorthio/jedis/pull/389 Pipeline tries to return List<String> instead of Long on sort")
 	public void testSortStore() {
 	}
 
-	@Ignore("DATAREDIS-143 Pipeline tries to return Long instead of List<String> on sort with no params")
+	@Ignore("Jedis issue: Pipeline tries to return Long instead of List<String> on sort with no params")
 	public void testSortNullParams() {
 	}
 
-	@Ignore("DATAREDIS-143 Pipeline tries to return Long instead of List<String> on sort with no params")
+	@Ignore("https://github.com/xetorthio/jedis/pull/389 Pipeline tries to return Long instead of List<String> on sort with no params")
 	public void testSortStoreNullParams() {
 	}
 
@@ -79,6 +79,11 @@ public class JedisConnectionPipelineIntegrationTests extends
 
 	@Ignore("DATAREDIS-143 Jedis NPE closing pipeline on certain ops")
 	public void testMultiDiscard() {
+	}
+
+	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
+	@Test
+	public void testErrorInTx() {
 	}
 
 	// Unsupported Ops

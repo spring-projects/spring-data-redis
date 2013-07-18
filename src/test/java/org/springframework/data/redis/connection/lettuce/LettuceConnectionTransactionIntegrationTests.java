@@ -60,12 +60,9 @@ public class LettuceConnectionTransactionIntegrationTests extends
 
 	private boolean convertToStringTuple=true;
 
-	@Ignore
-	public void testMultiConnectionsOneInTx() {
-	}
-
-	@Ignore
-	public void testCloseBlockingOps() {
+	@Test
+	@Ignore("Exceptions on native execute are swallowed in tx")
+	public void exceptionExecuteNative() throws Exception {
 	}
 
 	// Native Lettuce returns ZSets as Lists
@@ -202,14 +199,6 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
-	public void exceptionExecuteNative() throws Exception {
-		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		// Syntax error on queued commands are swallowed and no results are
-		// returned
-		assertNull(getResults());
-	}
-
-	@Test
 	public void testGetRangeSetRange() {
 		connection.set("rangekey", "supercalifrag");
 		actual.add(connection.getRange("rangekey", 0l, 2l));
@@ -269,7 +258,7 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleOK() {
 		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
-		assertEquals(Arrays.asList(new Object[] { "OK" }), connection.exec());
+		assertEquals(Arrays.asList(new Object[] { "OK" }), getResultsNoConversion());
 	}
 
 	@Test

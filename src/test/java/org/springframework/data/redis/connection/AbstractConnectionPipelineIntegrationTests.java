@@ -17,7 +17,6 @@
 package org.springframework.data.redis.connection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -64,6 +63,16 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 
 	@Ignore("Pub/Sub not supported while pipelining")
 	public void testPubSubWithPatterns() throws Exception {
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	public void testExecWithoutMulti() {
+		super.testExecWithoutMulti();
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	public void testErrorInTx() {
+		super.testErrorInTx();
 	}
 
 	@Test(expected = RedisPipelineException.class)
@@ -113,36 +122,6 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		getResults();
 		List<Object> results = connection.closePipeline();
 		assertTrue(results.isEmpty());
-	}
-
-	@Test
-	public void testMultiExec() throws Exception {
-		connection.multi();
-		connection.set("key", "value");
-		assertNull(connection.get("key"));
-		assertNull(connection.exec());
-		// We expect pipelined exec results to be flattened into results of closePipeline
-		List<Object> results = getResults();
-		assertEquals(1,results.size());
-		assertEquals("value",new String((byte[])results.get(0)));
-	}
-
-	@Test
-	public void testUnwatch() throws Exception {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		connection.unwatch();
-		connection.multi();
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		connection.set("testitnow", "somethingelse");
-		connection.get("testitnow");
-		connection.exec();
-		// We expect pipelined exec results to be flattened into results of closePipeline
-		List<Object> results = getResults();
-		assertEquals(1,results.size());
-		assertEquals("somethingelse",new String((byte[])results.get(0)));
 	}
 
 	protected void initConnection() {

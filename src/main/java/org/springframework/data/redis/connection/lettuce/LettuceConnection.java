@@ -572,14 +572,10 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				getAsyncDedicatedConnection().exec();
+				pipeline(new LettuceResult(getAsyncDedicatedConnection().exec(), LettuceConverters.execResultsConverter()));
 				return null;
 			}
-			List<Object> results = getDedicatedConnection().exec();
-			if (results.isEmpty()) {
-				return null;
-			}
-			return results;
+			return LettuceConverters.toExecResults(getDedicatedConnection().exec());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -704,7 +700,7 @@ public class LettuceConnection implements RedisConnection {
 		isMulti = true;
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncDedicatedConnection().multi()));
+				getAsyncDedicatedConnection().multi();
 				return;
 			}
 			getDedicatedConnection().multi();
@@ -2219,8 +2215,10 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	private void pipeline(LettuceResult result) {
-		// the future will always be a command plus it throws no exception on #get
-		ppline.add(result);
+		if(!isQueueing()) {
+			// Don't add individual tx op results to pipeline
+			ppline.add(result);
+		}
 	}
 
 	private RedisAsyncConnection<byte[], byte[]> getAsyncConnection() {

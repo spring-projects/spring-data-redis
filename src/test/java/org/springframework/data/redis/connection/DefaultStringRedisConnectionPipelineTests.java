@@ -150,6 +150,18 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
+	public void testTxResultsNotPipelined() {
+		doReturn(true).when(nativeConnection).isQueueing();
+		List<Object> results = Arrays.asList(new Object[] { bar, 8l });
+		doReturn(Arrays.asList(new Object[] { results })).when(nativeConnection).closePipeline();
+		doReturn(8l).when(nativeConnection).lLen(fooBytes);
+		connection.lLen(fooBytes);
+		connection.exec();
+		// closePipeline should only return the results of exec, not of llen
+		verifyResults(Arrays.asList(new Object[] {results}));
+	}
+
+	@Test
 	public void testExistsBytes() {
 		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).closePipeline();
 		super.testExistsBytes();

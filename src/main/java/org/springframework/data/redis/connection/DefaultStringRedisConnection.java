@@ -185,7 +185,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<Object> exec() {
 		List<Object> results = delegate.exec();
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			// Ensure exec converter gets added
+			pipelineConverters.add(identityConverter(results));
 		}
 		return results;
 	}
@@ -2188,6 +2189,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private void pipeline(Converter<?,?> converter) {
-		pipelineConverters.add(converter);
+		if(!isQueueing()) {
+			pipelineConverters.add(converter);
+		}
 	}
 }

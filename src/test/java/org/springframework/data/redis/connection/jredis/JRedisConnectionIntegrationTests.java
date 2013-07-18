@@ -160,6 +160,16 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testUnwatch();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testErrorInTx() {
+		super.testErrorInTx();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testExecWithoutMulti() {
+		super.testExecWithoutMulti();
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testBLPop() {
 		super.testBLPop();

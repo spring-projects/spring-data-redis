@@ -16,6 +16,10 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +29,8 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import redis.clients.jedis.exceptions.JedisDataException;
 
 /**
  * Integration test of {@link JedisConnection}
@@ -49,6 +55,18 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 			// error on sending QUIT to Redis
 		}
 		connection = null;
+	}
+
+	@Test
+	public void testErrorInTx() {
+		connection.multi();
+		connection.set("foo","bar");
+		// Try to do a list op on a value
+		connection.lPop("foo");
+		List<Object> results = connection.exec();
+		// Jedis puts the Exception in the exec results instead of throwing an Exception on exec
+		// This should be fixed in DATAREDIS-208 when we convert results of tx.exec()
+		assertTrue(results.get(1) instanceof JedisDataException);
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
@@ -207,5 +225,10 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
 		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	public void testExecWithoutMulti() {
+		super.testExecWithoutMulti();
 	}
 }

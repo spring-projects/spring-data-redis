@@ -59,6 +59,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<KeyValue<byte[], byte[]>, List<byte[]>> KEY_VALUE_TO_BYTES_LIST;
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
 	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
+	private static final Converter<List<Object>, List<Object>> EXEC_RESULTS_CONVERTER;
 
 	static {
 		DATE_TO_LONG = new Converter<Date, Long>() {
@@ -107,6 +108,16 @@ abstract public class LettuceConverters extends Converters {
 			}
 
 		};
+
+		EXEC_RESULTS_CONVERTER = new Converter<List<Object>, List<Object>>() {
+			public List<Object> convert(List<Object> source) {
+				// Lettuce Empty list means null (watched variable modified)
+				if(source.isEmpty()) {
+					return null;
+				}
+				return source;
+			}
+		};
 	}
 
 	public static Converter<Date, Long> dateToLong() {
@@ -131,6 +142,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<ScoredValue<byte[]>, Tuple> scoredValueToTuple() {
 		return SCORED_VALUE_TO_TUPLE;
+	}
+
+	public static Converter<List<Object>, List<Object>> execResultsConverter() {
+		return EXEC_RESULTS_CONVERTER;
 	}
 
 	public static Long toLong(Date source) {
@@ -229,5 +244,9 @@ abstract public class LettuceConverters extends Converters {
 			args.alpha();
 		}
 		return args;
+	}
+
+	public static List<Object> toExecResults(List<Object> source) {
+		return EXEC_RESULTS_CONVERTER.convert(source);
 	}
 }

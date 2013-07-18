@@ -61,6 +61,16 @@ public class SrpConnectionTransactionIntegrationTests extends SrpConnectionInteg
 	public void testWatch() {
 	}
 
+	@Ignore
+	@Test
+	public void testExecWithoutMulti() {
+	}
+
+	@Ignore
+	@Test
+	public void testErrorInTx() {
+	}
+
 	/*
 	 * Using blocking ops inside a tx does not make a lot of sense as it would
 	 * require blocking the entire server in order to execute the block

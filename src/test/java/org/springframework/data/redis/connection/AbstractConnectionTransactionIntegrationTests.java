@@ -44,6 +44,16 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 	public void testWatch() {
 	}
 
+	@Ignore
+	@Test
+	public void testExecWithoutMulti() {
+	}
+
+	@Ignore
+	@Test
+	public void testErrorInTx() {
+	}
+
 	/*
 	 * Using blocking ops inside a tx does not make a lot of sense as it would require blocking the
 	 * entire server in order to execute the block atomically, which in turn does not allow other
@@ -399,8 +409,19 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 		if (actual == null) {
 			return null;
 		}
+		return convertResults(actual);
+	}
+
+	protected List<Object> getResultsNoConversion() {
+		return connection.exec();
+	}
+
+	protected List<Object> convertResults(List<Object> results) {
+		if(results == null) {
+			return null;
+		}
 		List<Object> serializedResults = new ArrayList<Object>();
-		for (Object result : actual) {
+		for (Object result : results) {
 			Object convertedResult = convertResult(result);
 			if (convertedResult instanceof Exception) {
 				throw convertException((Exception) convertedResult);

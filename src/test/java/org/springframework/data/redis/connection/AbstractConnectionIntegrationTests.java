@@ -683,11 +683,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testMultiExec() throws Exception {
 		connection.multi();
 		connection.set("key", "value");
-		actual.add(connection.get("key"));
+		connection.get("key");
 		actual.add(connection.exec());
 		List<Object> results = getResults();
-		assertNull(results.get(0));
-		List<Object> execResults = (List<Object>) results.get(1);
+		List<Object> execResults = (List<Object>) results.get(0);
 		assertEquals(2, execResults.size());
 		assertEquals("value", new String((byte[]) execResults.get(1)));
 		assertEquals("value", connection.get("key"));
@@ -698,6 +697,22 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.multi();
 		// Ensure it's OK to call multi twice
 		testMultiExec();
+	}
+
+	@Test(expected=RedisSystemException.class)
+	public void testExecWithoutMulti() {
+		connection.exec();
+		getResults();
+	}
+
+	@Test(expected=RedisSystemException.class)
+	public void testErrorInTx() {
+		connection.multi();
+		connection.set("foo","bar");
+		// Try to do a list op on a value
+		connection.lPop("foo");
+		connection.exec();
+		getResults();
 	}
 
 	@Test
@@ -720,6 +735,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testWatch() throws Exception {
 		connection.set("testitnow", "willdo");
 		connection.watch("testitnow".getBytes());
+		//Give some time for watch to be asynch executed in extending tests
+		Thread.sleep(500);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
@@ -738,15 +755,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.watch("testitnow".getBytes());
 		connection.unwatch();
 		connection.multi();
+		//Give some time for unwatch to be asynch executed
+		Thread.sleep(500);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		connection.set("testitnow", "somethingelse");
-		actual.add(connection.get("testitnow"));
+		connection.get("testitnow");
 		actual.add(connection.exec());
 		List<Object> results = getResults();
-		assertNull(results.get(0));
-		List<Object> execResults = (List<Object>) results.get(1);
+		List<Object> execResults = (List<Object>) results.get(0);
 		assertEquals("somethingelse", new String((byte[]) execResults.get(1)));
 	}
 
