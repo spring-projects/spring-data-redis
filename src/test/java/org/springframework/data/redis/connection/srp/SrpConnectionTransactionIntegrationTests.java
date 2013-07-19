@@ -16,22 +16,31 @@
 package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.data.redis.RedisSystemException;
+import org.junit.runner.RunWith;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import redis.reply.IntegerReply;
+import redis.reply.Reply;
+import redis.reply.StatusReply;
 
 
 
@@ -41,254 +50,359 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Jennifer Hickey
  *
  */
-public class SrpConnectionTransactionIntegrationTests extends SrpConnectionIntegrationTests {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("SrpConnectionIntegrationTests-context.xml")
+public class SrpConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
-	private boolean convert = true;
+	protected boolean convertResultToSet=false;
 
-	@Ignore
-	public void testMultiDiscard() {
-	}
+	protected boolean convertResultToStringTuples=false;
 
-	@Ignore
-	public void testMultiExec() {
-	}
+	protected boolean convertResultToTuples=false;
 
-	@Ignore
-	public void testUnwatch() {
-	}
+	protected boolean convertBooleanToLong=false;
 
-	@Ignore
-	public void testWatch() {
-	}
-
-	@Ignore
-	@Test
-	public void testExecWithoutMulti() {
-	}
-
-	@Ignore
-	@Test
-	public void testErrorInTx() {
-	}
-
-	/*
-	 * Using blocking ops inside a tx does not make a lot of sense as it would
-	 * require blocking the entire server in order to execute the block
-	 * atomically, which in turn does not allow other clients to perform a push
-	 * operation. *
-	 */
-
-	@Ignore
-	public void testBLPop() {
-	}
-
-	@Ignore
-	public void testBRPop() {
-	}
-
-	@Ignore
-	public void testBRPopLPush() {
-	}
-
-	@Ignore
-	public void testBLPopTimeout() {
-	}
-
-	@Ignore
-	public void testBRPopTimeout() {
-	}
-
-	@Ignore
-	public void testBRPopLPushTimeout() {
-	}
-
-	@Ignore("Pub/Sub not supported with transactions")
-	public void testPubSubWithNamedChannels() throws Exception {
-	}
-
-	@Ignore("Pub/Sub not supported with transactions")
-	public void testPubSubWithPatterns() throws Exception {
-	}
-
-	@Ignore
-	public void testNullKey() throws Exception {
-	}
-
-	@Ignore
-	public void testNullValue() throws Exception {
-	}
-
-	@Ignore
-	public void testHashNullKey() throws Exception {
-	}
-
-	@Ignore
-	public void testHashNullValue() throws Exception {
-	}
-
-	@Test(expected = RedisSystemException.class)
-	public void exceptionExecuteNative() throws Exception {
-		super.exceptionExecuteNative();
-	}
-
-	// SRP tx.exec() is now returning converted data types b/c it uses pipeline, but
-	// DefaultStringRedisConnection isn't converting byte[]s from exec() yet.
-	// We implement the conversion in convertResult(), but convertResult's a bit over-eager in certain scenarios, hence these overrides
+	protected boolean convertResultsToMap=false;
 
 	@Test
-	public void testExecute() {
-		convert = false;
-		super.testExecute();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testScriptLoadEvalSha() {
-		convert = false;
-		super.testScriptLoadEvalSha();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalShaArrayStrings() {
-		convert = false;
-		super.testEvalShaArrayStrings();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalReturnString() {
-		convert = false;
-		super.testEvalReturnString();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalReturnArrayStrings() {
-		convert = false;
-		super.testEvalReturnArrayStrings();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testDumpAndRestore() {
-		convert = false;
-		connection.set("testing", "12");
-		actual.add(connection.dump("testing".getBytes()));
-		List<Object> results = getResults();
-		initConnection();
+	public void testDel() {
+		connection.set("testing","123");
 		actual.add(connection.del("testing"));
-		actual.add((connection.get("testing")));
-		connection.restore("testing".getBytes(), 0, (byte[]) results.get(results.size() - 1));
-		actual.add(connection.get("testing"));
-		results = getResults();
-		assertEquals(3,results.size());
-		assertEquals(1l, results.get(0));
-		assertNull(results.get(1));
-		assertEquals("12", new String((byte[])results.get(2)));
+		actual.add(connection.exists("testing"));
+		verifyResults(Arrays.asList(new Object[] { true, false }));
 	}
 
-	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRestoreExistingKey() {
-		connection.set("testing", "12");
-		actual.add(connection.dump("testing".getBytes()));
-		List<Object> results = getResults();
-		initConnection();
-		connection.restore("testing".getBytes(), 0, ((String)results.get(0)).getBytes());
-		getResults();
+	@Test
+	public void testSAdd() {
+		convertResultToSet  = true;
+		super.testSAdd();
+	}
+
+	@Test
+	public void testSDiff() {
+		convertResultToSet  = true;
+		super.testSDiff();
+	}
+
+	@Test
+	public void testSInter() {
+		convertResultToSet  = true;
+		super.testSInter();
+	}
+
+	@Test
+	public void testSRem() {
+		convertResultToSet  = true;
+		super.testSRem();
+	}
+
+	@Test
+	public void testSUnion() {
+		convertResultToSet  = true;
+		super.testSUnion();
+	}
+
+	@Test
+	public void testSUnionStore() {
+		convertResultToSet  = true;
+		super.testSUnionStore();
+	}
+
+	@Test
+	public void testSDiffStore() {
+		convertResultToSet = true;
+		super.testSDiffStore();
+	}
+
+	@Test
+	public void testSInterStore() {
+		convertResultToSet = true;
+		super.testSInterStore();
+	}
+
+	@Test
+	public void testZRemRangeByScore() {
+		convertResultToSet = true;
+		super.testZRemRangeByScore();
+	}
+
+	@Test
+	public void testZAddAndZRange() {
+		convertResultToSet = true;
+		super.testZAddAndZRange();
+	}
+
+	@Test
+	public void testZIncrBy() {
+		convertResultToSet  = true;
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 4, "Joe"));
+		actual.add(connection.zIncrBy("myset", 2, "Joe"));
+		actual.add(connection.zRangeByScore("myset", 6, 6));
+		verifyResults(
+				Arrays.asList(new Object[] { true, true, true, "6",
+						new LinkedHashSet<String>(Collections.singletonList("Joe")) }));
+	}
+
+	@Test
+	public void testZInterStore() {
+		convertResultToSet  = true;
+		super.testZInterStore();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testZInterStoreAggWeights() {
+		super.testZInterStoreAggWeights();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testZUnionStoreAggWeights() {
+		super.testZUnionStoreAggWeights();
+	}
+
+	@Test
+	public void testHIncrByDouble() {
+		actual.add(connection.hSet("test", "key", "2.9"));
+		actual.add(connection.hIncrBy("test", "key", 3.5));
+		actual.add(connection.hGet("test", "key"));
+		// SRP returns byte[] from hIncrBy
+		verifyResults(Arrays.asList(new Object[] { true, "6.4", "6.4" }));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testRestoreTtl() {
-		convert = false;
-		super.testRestoreTtl();
+	public void testIncrByDouble() {
+		connection.set("tdb", "4.5");
+		actual.add(connection.incrBy("tdb", 7.2));
+		actual.add(connection.get("tdb"));
+		// SRP returns byte[] fro incrBy
+		verifyResults(Arrays.asList(new Object[] { "11.7", "11.7" }));
 	}
 
 	@Test
-	public void testZRevRangeByScoreOffsetCount() {
-		convert = false;
-		super.testZRevRangeByScoreOffsetCount();
+	public void testBitSet() throws Exception {
+		convertLongToBoolean = false;
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		actual.add(connection.getBit(key, 0));
+		actual.add(connection.getBit(key, 1));
+		// Lettuce setBit returns Long instead of void
+		verifyResults(Arrays.asList(new Object[] { 0l, 0l, 0l, 1l }));
 	}
 
 	@Test
-	public void testZRevRangeByScore() {
-		convert = false;
-		super.testZRevRangeByScore();
+	public void testBitCount() {
+		convertBooleanToLong = true;
+		super.testBitCount();
 	}
 
 	@Test
-	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		convert = false;
-		super.testZRevRangeByScoreWithScoresOffsetCount();
+	public void testSortStoreNullParams() {
+		convertBooleanToLong = true;
+		super.testSortNullParams();
+	}
+
+	@Test
+	public void testZRangeWithScores() {
+		convertResultToStringTuples = true;
+		convertResultToSet = true;
+		super.testZRangeWithScores();
+	}
+
+	@Test
+	public void testZRangeByScore() {
+		convertResultToSet = true;
+		super.testZRangeByScore();
+	}
+
+	@Test
+	public void testZRangeByScoreOffsetCount() {
+		convertResultToSet = true;
+		super.testZRangeByScoreOffsetCount();
+	}
+
+	@Test
+	public void testZRangeByScoreWithScores() {
+		convertResultToStringTuples = true;
+		convertResultToSet = true;
+		super.testZRangeByScoreWithScores();
+	}
+
+	@Test
+	public void testZRangeByScoreWithScoresOffsetCount() {
+		convertResultToStringTuples = true;
+		convertResultToSet = true;
+		super.testZRangeByScoreWithScoresOffsetCount();
+	}
+
+	@Test
+	public void testZRevRange() {
+		convertResultToSet = true;
+		super.testZRevRange();
+	}
+
+	@Test
+	public void testZRevRangeWithScores() {
+		convertResultToStringTuples = true;
+		convertResultToSet = true;
+		super.testZRevRangeWithScores();
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScores() {
-		convert = false;
+		convertResultToTuples = true;
 		super.testZRevRangeByScoreWithScores();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	public void testZRem() {
+		convertResultToSet = true;
+		super.testZRem();
+	}
+
+	@Test
+	public void testZRemRangeByRank() {
+		convertResultToSet = true;
+		super.testZRemRangeByRank();
+	}
+
+	@Test
+	public void testZScore() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 3, "Joe"));
+		actual.add(connection.zScore("myset", "Joe"));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, "3" }));
+	}
+
+	@Test
+	public void testZUnionStore() {
+		convertResultToSet = true;
+		super.testZUnionStore();
+	}
+
+	@Test
+	public void testHSetGet() throws Exception {
+		convertResultsToMap = true;
+		super.testHSetGet();
+	}
+
+	@Test
+	public void testHKeys() {
+		convertResultToSet = true;
+		super.testHKeys();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testScriptKill() {
-		// Impossible to call script kill in a tx because you can't issue the
-		// exec command while Redis is running a script
-		connection.scriptKill();
+	public void testEvalShaArrayStrings() {
+		getResults();
+		String sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}");
+		initConnection();
+		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
+		List<Object> results = getResults();
+		List<String> scriptResults = (List<String>) results.get(0);
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				scriptResults);
 	}
 
-	protected void initConnection() {
-		connection.multi();
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayStrings() {
+		actual.add(connection.eval("return {KEYS[1],ARGV[1]}", ReturnType.MULTI, 1, "foo", "bar"));
+		List<String> result = (List<String>) getResults().get(0);
+		assertEquals(Arrays.asList(new Object[] { "foo", "bar" }), result);
 	}
 
-	protected List<Object> getResults() {
-		List<Object> actual = connection.exec();
-		List<Object> serializedResults = new ArrayList<Object>();
-		for (Object result : actual) {
-			Object convertedResult = convertResult(result);
-			serializedResults.add(convertedResult);
-		}
-		return serializedResults;
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnFalse() {
+		actual.add(connection.eval("return false", ReturnType.BOOLEAN, 0));
+		verifyResults(Arrays.asList(new Object[] { null }));
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayNumbers() {
+		convertLongToBoolean = false;
+		super.testEvalReturnArrayNumbers();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayTrues() {
+		convertLongToBoolean = false;
+		super.testEvalReturnArrayTrues();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected Object convertResult(Object result) {
-		if(! convert) {
-			return result;
-		}
-		if (result instanceof List && !(((List) result).isEmpty())
-				&& ((List) result).get(0) instanceof byte[]) {
-			return (SerializationUtils.deserialize((List<byte[]>) result, stringSerializer));
-		} else if (result instanceof byte[]) {
-			return (stringSerializer.deserialize((byte[]) result));
-		} else if (result instanceof Map
-				&& ((Map) result).keySet().iterator().next() instanceof byte[]) {
-			return (SerializationUtils.deserialize((Map) result, stringSerializer));
-		} else if (result instanceof Set && !(((Set) result).isEmpty())) {
-			Object firstResult = ((Set) result).iterator().next();
-			if(firstResult instanceof byte[]) {
-				return (SerializationUtils.deserialize((Set) result, stringSerializer));
-			}
+		Object convertedResult = super.convertResult(result);
+		if (convertedResult instanceof Set && !(((Set) convertedResult).isEmpty())) {
+			Object firstResult = ((Set) convertedResult).iterator().next();
 			if(firstResult instanceof Tuple) {
 				Set<StringTuple> tuples = new LinkedHashSet<StringTuple>();
-				for (Tuple value : ((Set<Tuple>) result)) {
+				for (Tuple value : ((Set<Tuple>) convertedResult)) {
 					DefaultStringTuple tuple = new DefaultStringTuple(value,stringSerializer.deserialize(value.getValue()));
 					tuples.add(tuple);
 				}
 				return tuples;
 			}
+		}else if (convertedResult instanceof Reply[]) {
+			if (convertResultToStringTuples) {
+				Set<Tuple> tuples = SrpConverters.toTupleSet((Reply[])convertedResult);
+				Collection<StringTuple> stringTuples;
+				if(convertResultToSet) {
+					stringTuples = new LinkedHashSet<StringTuple>();
+				}else {
+					stringTuples = new ArrayList<StringTuple>();
+				}
+				for (Tuple tuple : tuples) {
+					stringTuples.add(new DefaultStringTuple(tuple, new String(tuple.getValue())));
+				}
+				return stringTuples;
+			} else if(convertResultToTuples) {
+				return SrpConverters.toTupleSet((Reply[])convertedResult);
+			}
+			else if (convertResultToSet) {
+				return SerializationUtils.deserialize(SrpConverters.toBytesSet((Reply[])convertedResult),
+						stringSerializer);
+			} else if(((Reply[]) convertedResult).length > 0 && ((Reply[])convertedResult)[0] instanceof IntegerReply) {
+				if(convertLongToBoolean) {
+					return SrpConverters.toBooleanList((Reply[])convertedResult);
+				}
+				List<Long> results = new ArrayList<Long>();
+				for(Reply reply: (Reply[])convertedResult) {
+					results.add(((IntegerReply)reply).data());
+				}
+				return results;
+			} else if(((Reply[]) convertedResult).length > 0 && ((Reply[])convertedResult)[0] instanceof StatusReply) {
+				List<String> statuses = new ArrayList<String>();
+				for(Reply reply: (Reply[])convertedResult) {
+					statuses.add(((StatusReply)reply).data());
+				}
+				return statuses;
+			} else if(convertResultsToMap) {
+				return (SerializationUtils.deserialize(SrpConverters.toBytesMap((Reply[])convertedResult), stringSerializer));
+			} else {
+				return SerializationUtils.deserialize(
+						SrpConverters.toBytesList((Reply[]) convertedResult), stringSerializer);
+			}
+		} else if(convertBooleanToLong && result instanceof Boolean) {
+			if((Boolean)result) {
+				return 1l;
+			}
+			return 0l;
 		}
-		return result;
+		return convertedResult;
 	}
 
-	protected void verifyResults(List<Object> expected) {
-		List<Object> expectedTx = new ArrayList<Object>();
-		for (int i = 0; i < actual.size(); i++) {
-			expectedTx.add(null);
-		}
-		assertEquals(expectedTx, actual);
-		List<Object> results = getResults();
-		assertEquals(expected, results);
+	@Override
+	protected DataAccessException convertException(Exception ex) {
+		return SrpConverters.toDataAccessException(ex);
 	}
 }

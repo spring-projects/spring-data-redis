@@ -15,18 +15,12 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
-import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,67 +36,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration("SrpConnectionIntegrationTests-context.xml")
 public class SrpConnectionPipelineIntegrationTests extends
 		AbstractConnectionPipelineIntegrationTests {
-
-	@Test
-	public void testMultiDiscard() throws Exception {
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
-		conn2.set("testitnow", "willdo");
-		connection.multi();
-		connection.set("testitnow2", "notok");
-		connection.discard();
-		// SRP throws Exception on transaction discard, so we expect pipeline
-		// exception here
-		try {
-			getResults();
-			fail("Closing the pipeline on a discarded tx should throw a RedisPipelineException");
-		} catch (RedisPipelineException e) {
-		}
-		assertEquals("willdo", connection.get("testitnow"));
-		connection.openPipeline();
-		// Ensure we can run a new tx after discarding previous one
-		testMultiExec();
-	}
-
-	@Test
-	public void testMultiExec() throws Exception {
-		connection.multi();
-		connection.set("key", "value");
-		connection.get("key");
-		actual.add(connection.exec());
-		List<Object> results = getResults();
-		// For the moment, SRP exec results are flattened into pipeline
-		assertEquals(1, results.size());
-		assertEquals("value", new String((byte[]) results.get(0)));
-		assertEquals("value", connection.get("key"));
-	}
-
-	@Test
-	public void testUnwatch() throws Exception {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		connection.unwatch();
-		connection.multi();
-		//Give some time for unwatch to be asynch executed
-		Thread.sleep(500);
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		connection.set("testitnow", "somethingelse");
-		connection.get("testitnow");
-		actual.add(connection.exec());
-		List<Object> results = getResults();
-		// For the moment, SRP exec results are flattened into pipeline
-		assertEquals("somethingelse", new String((byte[]) results.get(0)));
-	}
-
-	// SRP sets results of all commands in the pipeline to RedisException if
-	// exec returns a
-	// null multi-bulk reply
-	@Test(expected = RedisPipelineException.class)
-	public void testWatch() throws Exception {
-		super.testWatch();
-	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")

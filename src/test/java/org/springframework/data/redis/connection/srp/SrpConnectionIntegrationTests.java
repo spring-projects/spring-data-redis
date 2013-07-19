@@ -16,17 +16,12 @@
 
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
-import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,42 +82,5 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testMultiExec() throws Exception {
-		connection.multi();
-		connection.set("key", "value");
-		actual.add(connection.get("key"));
-		actual.add(connection.exec());
-		List<Object> results = getResults();
-		assertNull(results.get(0));
-		List<Object> execResults = (List<Object>) results.get(1);
-		// SRP is already filtering out the void types since tx uses pipeline, so result size here is only 1
-		assertEquals(1, execResults.size());
-		// However, since DefaultStringRedisConnection doesn't yet convert tx results, the data is still in raw bytes
-		assertEquals("value", new String((byte[]) execResults.get(0)));
-		assertEquals("value", connection.get("key"));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testUnwatch() throws Exception {
-		connection.set("testitnow", "willdo");
-		connection.watch("testitnow".getBytes());
-		connection.unwatch();
-		connection.multi();
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-			connectionFactory.getConnection());
-		conn2.set("testitnow", "something");
-		connection.set("testitnow", "somethingelse");
-		actual.add(connection.get("testitnow"));
-		actual.add(connection.exec());
-		List<Object> results = getResults();
-		assertNull(results.get(0));
-		List<Object> execResults = (List<Object>) results.get(1);
-		// SRP is already filtering out the void types since tx uses pipeline, so result size here is only 1
-		assertEquals("somethingelse", new String((byte[]) execResults.get(0)));
 	}
 }

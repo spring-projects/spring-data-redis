@@ -1,6 +1,7 @@
 package org.springframework.data.redis.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -344,9 +345,22 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testDumpAndRestore() {
 		convert = false;
-		super.testDumpAndRestore();
+		connection.set("testing", "12");
+		actual.add(connection.dump("testing".getBytes()));
+		List<Object> results = getResults();
+		initConnection();
+		actual.add(connection.del("testing"));
+		actual.add((connection.get("testing")));
+		connection.restore("testing".getBytes(), 0, (byte[]) results.get(results.size() - 1));
+		actual.add(connection.get("testing"));
+		results = getResults();
+		assertEquals(3,results.size());
+		assertEquals(1l, results.get(0));
+		assertNull(results.get(1));
+		assertEquals("12", new String((byte[])results.get(2)));
 	}
 
 	@Test
@@ -385,6 +399,24 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnSingleOK() {
+		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
+		assertEquals(Arrays.asList(new Object[] { "OK" }), getResultsNoConversion());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalReturnArrayOKs() {
+		actual.add(connection.eval(
+				"return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+				ReturnType.MULTI, 0));
+		List<String> result = (List<String>) getResults().get(0);
+		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }), result);
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreTtl() {
 		convert = false;
 		super.testRestoreTtl();
@@ -396,6 +428,57 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 		// Impossible to call script kill in a tx because you can't issue the
 		// exec command while Redis is running a script
 		connection.scriptKill();
+	}
+
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testBitCount() {
+		convertLongToBoolean = false;
+		String key = "bitset-test";
+		connection.setBit(key, 0, false);
+		connection.setBit(key, 1, true);
+		connection.setBit(key, 2, true);
+		actual.add(connection.bitCount(key));
+		// Lettuce setBit returns Long instead of void
+		verifyResults(new ArrayList<Object>(Arrays.asList(0l, 0l, 0l, 2l)));
+	}
+
+	@Test
+	public void testGetRangeSetRange() {
+		connection.set("rangekey", "supercalifrag");
+		actual.add(connection.getRange("rangekey", 0l, 2l));
+		connection.setRange("rangekey", "ck", 2);
+		actual.add(connection.get("rangekey"));
+		// Lettuce returns a value for setRange
+		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testZRevRangeByScoreOffsetCount() {
+		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
+		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),(List<String>) getResults().get(2));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testZRevRangeByScore() {
+		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d));
+		assertEquals(Arrays.asList(new String[] { "Bob", "James" }), (List<String>) getResults().get(2));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testZRevRangeByScoreWithScoresOffsetCount() {
+		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
+		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
+		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
+		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),
+				(List<byte[]>) getResults().get(2));
 	}
 
 	protected void initConnection() {
@@ -442,6 +525,9 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 				&& ((List) result).get(0) instanceof byte[]) {
 			return (SerializationUtils.deserialize((List<byte[]>) result, stringSerializer));
 		} else if (result instanceof byte[]) {
+			if(convertStringToProps) {
+				return Converters.toProperties(stringSerializer.deserialize((byte[]) result));
+			}
 			return (stringSerializer.deserialize((byte[]) result));
 		} else if (result instanceof Map
 				&& ((Map) result).keySet().iterator().next() instanceof byte[]) {

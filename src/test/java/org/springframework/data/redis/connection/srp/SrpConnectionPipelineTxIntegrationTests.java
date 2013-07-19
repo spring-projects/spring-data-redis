@@ -17,14 +17,12 @@ package org.springframework.data.redis.connection.srp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -36,30 +34,6 @@ import org.springframework.test.annotation.IfProfileValue;
  */
 public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransactionIntegrationTests {
 
-	@Test
-	public void exceptionExecuteNative() throws Exception {
-		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
-		try {
-			getResults();
-			fail("Expected an Exception to be thrown executing a command with syntax error");
-		}catch(RedisPipelineException e) {
-			// Redis 2.4, Exception occurs when we get the result of execute on closePipeline
-			if(RedisVersionUtils.atLeast("2.6.4", byteConnection)) {
-				fail("RedisPipelineException should not be thrown in Redis 2.6");
-			}
-		}catch(RedisSystemException e) {
-			try {
-				connection.closePipeline();
-			}catch(Exception ex) {
-				// Gonna get another error on closing the pipeline as results from execute
-			}
-			if(!RedisVersionUtils.atLeast("2.6", byteConnection)) {
-				// Redis 2.6 returns an ErrorReploy on exec, the Exception occurs when we call exec()
-				// b/c it waits on the response
-				fail("RedisSystemException should only be thrown in Redis 2.6");
-			}
-		}
-	}
 
 	@Test
 	public void testUsePipelineAfterTxExec() {
@@ -67,11 +41,11 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		assertNull(connection.get("foo"));
 		List<Object> results = connection.closePipeline();
-		assertEquals(1, results.size());
-		assertEquals("bar", new String((byte[]) results.get(0)));
+		assertEquals(Arrays.asList(new Object[] {Collections.singletonList("OK"), "bar"}), results);
 		assertEquals("bar", connection.get("foo"));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testExec2TransactionsInPipeline() {
 		connection.set("foo", "bar");
@@ -83,8 +57,9 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		List<Object> results = connection.closePipeline();
 		assertEquals(2, results.size());
-		assertEquals("bar", new String((byte[]) results.get(0)));
-		assertEquals("baz", new String((byte[]) results.get(1)));
+		// First element of each list is "OK"
+		assertEquals("bar", new String((byte[])((List<Object>)results.get(0)).get(1)));
+		assertEquals("baz", new String((byte[])((List<Object>)results.get(1)).get(1)));
 	}
 
 	@Test(expected=RedisPipelineException.class)
@@ -122,14 +97,25 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		connection.multi();
 	}
 
+	@SuppressWarnings("unchecked")
 	protected List<Object> getResults() {
 		assertNull(connection.exec());
-		List<Object> actual =  connection.closePipeline();
-		List<Object> serializedResults = new ArrayList<Object>();
-		for (Object result : actual) {
-			Object convertedResult = convertResult(result);
-			serializedResults.add(convertedResult);
-		}
-		return serializedResults;
+		List<Object> pipelined = connection.closePipeline();
+		// We expect only the results of exec to be in the closed pipeline
+		assertEquals(1,pipelined.size());
+		List<Object> txResults = (List<Object>)pipelined.get(0);
+		// Return exec results and this test should behave exactly like its superclass
+		return convertResults(txResults);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected List<Object> getResultsNoConversion() {
+		assertNull(connection.exec());
+		List<Object> pipelined = connection.closePipeline();
+		// We expect only the results of exec to be in the closed pipeline
+		assertEquals(1,pipelined.size());
+		List<Object> txResults = (List<Object>)pipelined.get(0);
+		// Return exec results and this test should behave exactly like its superclass
+		return txResults;
 	}
 }

@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,9 +31,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
-import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.test.annotation.IfProfileValue;
@@ -175,19 +173,6 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testBitCount() {
-		convertLongToBoolean = false;
-		String key = "bitset-test";
-		connection.setBit(key, 0, false);
-		connection.setBit(key, 1, true);
-		connection.setBit(key, 2, true);
-		actual.add(connection.bitCount(key));
-		// Lettuce setBit returns Long instead of void
-		verifyResults(new ArrayList<Object>(Arrays.asList(0l, 0l, 0l, 2l)));
-	}
-
-	@Test
 	public void testHKeys() {
 		convertListToSet = true;
 		super.testHKeys();
@@ -196,16 +181,6 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	@Test(expected = UnsupportedOperationException.class)
 	public void testBitOpNotMultipleSources() {
 		super.testBitOpNotMultipleSources();
-	}
-
-	@Test
-	public void testGetRangeSetRange() {
-		connection.set("rangekey", "supercalifrag");
-		actual.add(connection.getRange("rangekey", 0l, 2l));
-		connection.setRange("rangekey", "ck", 2);
-		actual.add(connection.get("rangekey"));
-		// Lettuce returns a value for setRange
-		verifyResults(Arrays.asList(new Object[] { "sup", 13l, "suckrcalifrag" }));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -220,75 +195,10 @@ public class LettuceConnectionTransactionIntegrationTests extends
 		super.testSortStoreNullParams();
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testZRevRangeByScoreOffsetCount() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
-		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),(List<String>) getResults().get(2));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testZRevRangeByScore() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d));
-		assertEquals(Arrays.asList(new String[] { "Bob", "James" }), (List<String>) getResults().get(2));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		actual.add(byteConnection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
-		actual.add(byteConnection.zAdd("myset".getBytes(), 1, "James".getBytes()));
-		actual.add(byteConnection.zRevRangeByScore("myset".getBytes(), 0d, 3d, 0, 5));
-		assertEquals(Arrays.asList(new String[] { "Bob", "James" }),
-				(List<byte[]>) getResults().get(2));
-	}
-
 	@Test
 	public void testZRevRangeByScoreWithScores() {
 		convertToStringTuple = false;
 		super.testZRevRangeByScoreWithScores();
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalReturnSingleOK() {
-		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
-		assertEquals(Arrays.asList(new Object[] { "OK" }), getResultsNoConversion());
-	}
-
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testDumpAndRestore() {
-		convert = false;
-		connection.set("testing", "12");
-		actual.add(connection.dump("testing".getBytes()));
-		List<Object> results = getResults();
-		initConnection();
-		actual.add(connection.del("testing"));
-		actual.add((connection.get("testing")));
-		connection.restore("testing".getBytes(), 0, (byte[]) results.get(results.size() - 1));
-		actual.add(connection.get("testing"));
-		results = getResults();
-		assertEquals(3,results.size());
-		assertEquals(1l, results.get(0));
-		assertNull(results.get(1));
-		assertEquals("12", new String((byte[])results.get(2)));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testEvalReturnArrayOKs() {
-		actual.add(connection.eval(
-				"return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
-				ReturnType.MULTI, 0));
-		List<String> result = (List<String>) getResults().get(0);
-		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }), result);
 	}
 
 	@Test

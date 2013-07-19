@@ -76,6 +76,7 @@ public class SrpConnection implements RedisConnection {
 	private boolean pipelineRequested = false;
 	private Pipeline pipeline;
 	private PipelineTracker callback;
+	private PipelineTracker txTracker;
 	private volatile SrpSubscription subscription;
 	private boolean convertPipelineResults=true;
 
@@ -84,7 +85,12 @@ public class SrpConnection implements RedisConnection {
 	private class PipelineTracker implements FutureCallback<Reply> {
 
 		private final List<Object> results = Collections.synchronizedList(new ArrayList<Object>());
-		private final Queue<SrpGenericResult> futureResults = new LinkedList<SrpGenericResult>();
+		private final Queue<FutureResult> futureResults = new LinkedList<FutureResult>();
+		private boolean convertResults;
+
+		public PipelineTracker(boolean convertResults) {
+			this.convertResults = convertResults;
+		}
 
 		public void onSuccess(Reply result) {
 			results.add(result.data());
@@ -94,35 +100,56 @@ public class SrpConnection implements RedisConnection {
 			results.add(t);
 		}
 
+		@SuppressWarnings("unchecked")
 		public List<Object> complete() {
+			int txResults = 0;
 			List<ListenableFuture<? extends Reply>> futures = new ArrayList<ListenableFuture<? extends Reply>>();
-			for(SrpGenericResult future: futureResults) {
-				futures.add(future.getResultHolder());
+			for(FutureResult future: futureResults) {
+				if(future instanceof SrpTxResult) {
+					txResults++;
+				} else {
+					ListenableFuture<? extends Reply> f = (ListenableFuture<? extends Reply>) future.getResultHolder();
+					futures.add(f);
+				}
 			}
 			try {
 				Futures.successfulAsList(futures).get();
 			} catch (Exception ex) {
 				// ignore
 			}
-			if(futureResults.size() != results.size()) {
+			if(futureResults.size() != results.size() + txResults) {
 				throw new RedisPipelineException("Received a different number of results than expected. Expected: " +
 						futureResults.size(), results);
 			}
 			List<Object> convertedResults = new ArrayList<Object>();
-			for(Object result: results) {
-				SrpGenericResult futureResult = futureResults.remove();
-				if(result instanceof Exception || !convertPipelineResults) {
-					convertedResults.add(result);
-				}else if(!(futureResult instanceof SrpStatusResult)) {
-					convertedResults.add(futureResult.convert(result));
+
+			int i = 0;
+			for(FutureResult future: futureResults) {
+				if(future instanceof SrpTxResult) {
+					PipelineTracker txTracker = ((SrpTxResult)future).getResultHolder();
+					if(txTracker != null) {
+						convertedResults.add(getPipelinedResults(txTracker, true));
+					}else {
+						convertedResults.add(null);
+					}
+				}else {
+					Object result = results.get(i);
+					if(result instanceof Exception || !convertResults) {
+						convertedResults.add(result);
+					}else if(!(future instanceof SrpStatusResult)) {
+						convertedResults.add(future.convert(result));
+					}
+					i++;
 				}
 			}
 			return convertedResults;
 		}
 
-		public void addCommand(SrpGenericResult result) {
+		public void addCommand(FutureResult result) {
 			futureResults.add(result);
-			Futures.addCallback(result.getResultHolder(), this);
+			if(!(result instanceof SrpTxResult)) {
+				Futures.addCallback(((SrpGenericResult)result).getResultHolder(), this);
+			}
 		}
 
 		public void close() {
@@ -161,6 +188,18 @@ public class SrpConnection implements RedisConnection {
 		@SuppressWarnings("rawtypes")
 		public SrpStatusResult(ListenableFuture<? extends Reply> resultHolder) {
 			super(resultHolder);
+		}
+	}
+
+	private class SrpTxResult extends FutureResult<PipelineTracker> {
+		public SrpTxResult(PipelineTracker txTracker) {
+			super(txTracker);
+		}
+		public List<Object> get() {
+			if(resultHolder == null) {
+				return null;
+			}
+			return resultHolder.complete();
 		}
 	}
 
@@ -224,17 +263,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	public boolean isPipelined() {
-		return (pipeline != null);
+		return pipelineRequested || (txTracker != null);
 	}
 
 
 	public void openPipeline() {
 		pipelineRequested = true;
 		initPipeline();
-	}
-
-	public List<Object> closePipeline() {
-		return closePipeline(true);
 	}
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
@@ -481,10 +516,9 @@ public class SrpConnection implements RedisConnection {
 	public void discard() {
 		isMulti = false;
 		try {
+			// discard tracked futures
+			txTracker = null;
 			client.discard();
-			if (!pipelineRequested) {
-				closePipeline(false);
-			}
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -493,33 +527,27 @@ public class SrpConnection implements RedisConnection {
 
 	public List<Object> exec() {
 		isMulti = false;
-		Exception execException = null;
-		List<Object> results = null;
-		boolean resultsSet = true;
 		try {
 			Future<Boolean> exec = client.exec();
 			// Need to wait on execution or subsequent non-pipelined calls may read exec results
-			resultsSet = exec.get();
-		} catch (Exception ex) {
-			execException = ex;
-		} finally {
-			// ensure pipeline is closed even if error in exec
-			if (!pipelineRequested) {
-				try {
-					results = closePipeline();
-				} catch (RedisPipelineException e) {
-					if(execException == null) {
-						execException = e;
-					}
+			boolean resultsSet = exec.get();
+			if(!resultsSet) {
+				// This is the case where a nil MultiBulk Reply was returned b/c watched variable modified
+				if(pipelineRequested) {
+					pipeline(new SrpTxResult(null));
 				}
+				return null;
 			}
+			if(pipelineRequested) {
+				pipeline(new SrpTxResult(txTracker));
+				return null;
+			}
+			return closeTransaction();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		} finally {
+			txTracker = null;
 		}
-		// If resultsSet is false, it's b/c of nil Multi-Bulk reply (watch case) and null is returned
-		if(execException != null && resultsSet) {
-			// Intentionally convert RedisPipelineException too, it's an impl detail
-			throw convertSrpAccessException(execException);
-		}
-		return results;
 	}
 
 
@@ -603,7 +631,7 @@ public class SrpConnection implements RedisConnection {
 			return;
 		}
 		isMulti = true;
-		initPipeline();
+		initTxTracker();
 		try {
 			client.multi();
 		} catch (Exception ex) {
@@ -2168,33 +2196,52 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	// processing method that adds a listener to the future in order to track down the results and close the pipeline
-	private void pipeline(SrpGenericResult future) {
-		callback.addCommand(future);
+	private void pipeline(FutureResult<?> future) {
+		if(isQueueing()) {
+			txTracker.addCommand(future);
+		}else {
+			callback.addCommand(future);
+		}
 	}
 
 	private void initPipeline() {
 		if (pipeline == null) {
-			callback = new PipelineTracker();
+			callback = new PipelineTracker(convertPipelineResults);
 			pipeline = client.pipeline();
 		}
 	}
 
-	private List<Object> closePipeline(boolean getResults) {
+	private void initTxTracker() {
+		if(txTracker == null) {
+			txTracker = new PipelineTracker(false);
+		}
+		initPipeline();
+	}
+
+	public List<Object> closePipeline() {
 		pipelineRequested = false;
 		List<Object> results = Collections.emptyList();
 		if (pipeline != null) {
 			pipeline = null;
-			if(getResults) {
-				results = getPipelinedResults();
-			}
+			results = getPipelinedResults(callback, true);
 			callback.close();
 			callback = null;
 		}
 		return results;
 	}
 
-	private List<Object> getPipelinedResults() {
-		List<Object> execute = new ArrayList<Object>(callback.complete());
+	private List<Object> closeTransaction() {
+		List<Object> results = Collections.emptyList();
+		if (txTracker != null) {
+			results = getPipelinedResults(txTracker, false);
+			txTracker.close();
+			txTracker = null;
+		}
+		return results;
+	}
+
+	private List<Object> getPipelinedResults(PipelineTracker tracker, boolean throwPipelineException) {
+		List<Object> execute = new ArrayList<Object>(tracker.complete());
 		if (execute != null && !execute.isEmpty()) {
 			Exception cause = null;
 			for (int i = 0; i < execute.size(); i++) {
@@ -2208,7 +2255,11 @@ public class SrpConnection implements RedisConnection {
 				}
 			}
 			if (cause != null) {
-				throw new RedisPipelineException(cause, execute);
+				if(throwPipelineException) {
+					throw new RedisPipelineException(cause, execute);
+				}else {
+					throw convertSrpAccessException(cause);
+				}
 			}
 
 			return execute;
