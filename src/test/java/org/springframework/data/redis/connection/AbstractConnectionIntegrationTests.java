@@ -106,6 +106,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection = null;
 	}
 	
+	@Test
 	public void testSelect() {
 		// Make sure this doesn't throw Exception
 		connection.select(1);
@@ -1836,6 +1837,13 @@ public abstract class AbstractConnectionIntegrationTests {
 				connection.del("foo");
 			}
 		}
+	}
+
+	@Test
+	public void testLastSave() {
+		actual.add(connection.lastSave());
+		List<Object> results = getResults();
+		assertNotNull(results.get(0));
 	}
 
 	protected void verifyResults(List<Object> expected) {

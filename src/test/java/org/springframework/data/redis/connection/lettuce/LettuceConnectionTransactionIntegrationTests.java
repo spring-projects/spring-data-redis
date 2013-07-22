@@ -221,6 +221,11 @@ public class LettuceConnectionTransactionIntegrationTests extends
 		}
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testSelect() {
+		super.testSelect();
+	}
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	protected Object convertResult(Object result) {

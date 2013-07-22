@@ -15,11 +15,17 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,14 +59,6 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testGetConfig() {
 	}
 
-	@Ignore("DATAREDIS-143 MultiResponseBuilder trying to cast QUEUED to a List")
-	public void testWatch() {
-	}
-
-	@Ignore("DATAREDIS-143  MultiResponseBuilder trying to cast QUEUED to a List")
-	public void testUnwatch() {
-	}
-
 	@Ignore("https://github.com/xetorthio/jedis/pull/389 Pipeline tries to return List<String> instead of Long on sort")
 	public void testSortStore() {
 	}
@@ -73,17 +71,51 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testSortStoreNullParams() {
 	}
 
-	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
-	public void testMultiExec() {
-	}
-
-	@Ignore("DATAREDIS-143 Jedis NPE closing pipeline on certain ops")
+	@Ignore("https://github.com/xetorthio/jedis/issues/438 Cannot get results from Pipeline after tx discard called")
 	public void testMultiDiscard() {
 	}
 
-	@Ignore("DATAREDIS-143 Jedis ClassCastExceptions closing pipeline on certain ops")
 	@Test
-	public void testErrorInTx() {
+	public void testWatch() {
+		connection.set("testitnow", "willdo");
+		connection.watch("testitnow".getBytes());
+		// Jedis doesn't actually send commands until you close the pipeline
+		getResults();
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.set("testitnow", "something");
+		conn2.close();
+		// Reopen the pipeline
+		initConnection();
+		connection.multi();
+		connection.set("testitnow", "somethingelse");
+		actual.add(connection.exec());
+		actual.add(connection.get("testitnow"));
+		verifyResults(Arrays.asList(new Object[] { null, "something" }));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testUnwatch() throws Exception {
+		connection.set("testitnow", "willdo");
+		connection.watch("testitnow".getBytes());
+		// Jedis doesn't actually send commands until you close the pipeline
+		getResults();
+		initConnection();
+		connection.unwatch();
+		// Jedis doesn't actually send commands until you close the pipeline
+		getResults();
+		initConnection();
+		connection.multi();
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
+				connectionFactory.getConnection());
+		conn2.set("testitnow", "something");
+		connection.set("testitnow", "somethingelse");
+		connection.get("testitnow");
+		actual.add(connection.exec());
+		List<Object> results = getResults();
+		List<Object> execResults = (List<Object>) results.get(0);
+		assertEquals("somethingelse", new String((byte[]) execResults.get(1)));
 	}
 
 	// Unsupported Ops

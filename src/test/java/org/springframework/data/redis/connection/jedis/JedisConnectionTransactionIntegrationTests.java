@@ -136,6 +136,11 @@ public class JedisConnectionTransactionIntegrationTests extends
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
+	public void testBitGet() {
+		connection.getBit("bitly", 1l);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitCount() {
 		connection.bitCount("foo");
 	}
@@ -212,7 +217,7 @@ public class JedisConnectionTransactionIntegrationTests extends
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		super.testZRevRangeByScoreWithScoresOffsetCount();
+		byteConnection.zRevRangeByScoreWithScores("myset".getBytes(), 0d, 3d, 0, 1);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -361,11 +366,21 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testEcho();
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSelect() {
+		super.testSelect();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testLastSave() {
+		super.testLastSave();
+	}
+
 	@Test
 	public void exceptionExecuteNative() throws Exception {
 		actual.add(connection.execute("ZadD", getClass() + "#foo\t0.90\titem"));
 		try {
-			// Syntax error on queued commands are swallowed and no results are
+			// In Redis 2.4, syntax error on queued commands are swallowed and no results are
 			// returned
 			verifyResults(Arrays.asList(new Object[] {}));
 			if (RedisVersionUtils.atLeast("2.6.5", connection)) {
