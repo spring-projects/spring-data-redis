@@ -162,6 +162,7 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testHIncrByDouble() {
 		actual.add(connection.hSet("test", "key", "2.9"));
 		actual.add(connection.hIncrBy("test", "key", 3.5));
@@ -193,6 +194,7 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testBitCount() {
 		convertBooleanToLong = true;
 		super.testBitCount();

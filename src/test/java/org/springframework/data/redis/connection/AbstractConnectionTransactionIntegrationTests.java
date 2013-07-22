@@ -369,6 +369,7 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptLoadEvalSha() {
 		convert = false;
 		super.testScriptLoadEvalSha();
