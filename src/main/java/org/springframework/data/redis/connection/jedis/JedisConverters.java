@@ -70,7 +70,7 @@ abstract public class JedisConverters extends Converters {
 		TUPLE_SET_TO_TUPLE_SET = new SetConverter<redis.clients.jedis.Tuple, Tuple>(
 				new Converter<redis.clients.jedis.Tuple, Tuple>() {
 					public Tuple convert(redis.clients.jedis.Tuple source) {
-						return new DefaultTuple(source.getBinaryElement(), source.getScore());
+						return source != null ? new DefaultTuple(source.getBinaryElement(), source.getScore()) : null;
 					}
 
 				});

@@ -85,12 +85,12 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_BYTES_SET = new Converter<Reply[], Set<byte[]>>() {
 			public Set<byte[]> convert(Reply[] source) {
-				return new LinkedHashSet<byte[]>(SrpConverters.toBytesList(source));
+				return source != null ? new LinkedHashSet<byte[]>(SrpConverters.toBytesList(source)) : null;
 			}
 		};
 		BYTES_TO_PROPERTIES = new Converter<byte[], Properties>() {
 			public Properties convert(byte[] source) {
-				return SrpConverters.toProperties(new String(source, Charsets.UTF_8));
+				return source != null ? SrpConverters.toProperties(new String(source, Charsets.UTF_8)) : null;
 			}
 		};
 		BYTES_TO_DOUBLE = new Converter<byte[], Double>() {
@@ -101,6 +101,9 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_TUPLE_SET = new Converter<Reply[], Set<Tuple>>() {
 			public Set<Tuple> convert(Reply[] byteArrays) {
+				if(byteArrays == null) {
+					return null;
+				}
 				Set<Tuple> tuples = new LinkedHashSet<Tuple>(byteArrays.length / 2 + 1);
 				for (int i = 0; i < byteArrays.length; i++) {
 					byte[] value = (byte[]) byteArrays[i].data();
@@ -113,6 +116,9 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_BYTES_MAP = new Converter<Reply[], Map<byte[], byte[]>>() {
 			public Map<byte[], byte[]> convert(Reply[] byteArrays) {
+				if(byteArrays == null) {
+					return null;
+				}
 				Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>(byteArrays.length / 2);
 				for (int i = 0; i < byteArrays.length; i++) {
 					map.put((byte[]) byteArrays[i++].data(), (byte[]) byteArrays[i].data());
@@ -122,11 +128,14 @@ abstract public class SrpConverters extends Converters {
 		};
 		BYTES_TO_STRING = new Converter<byte[], String>() {
 			public String convert(byte[] data) {
-				return new String((byte[]) data, Charsets.UTF_8);
+				return data != null ? new String((byte[]) data, Charsets.UTF_8) : null;
 			}
 		};
 		REPLIES_TO_BOOLEAN_LIST = new Converter<Reply[], List<Boolean>>() {
 			public List<Boolean> convert(Reply[] source) {
+				if(source == null) {
+					return null;
+				}
 				List<Boolean> results = new ArrayList<Boolean>();
 				for (Reply r : source) {
 					results.add(SrpConverters.toBoolean(((IntegerReply) r).data()));
@@ -136,6 +145,9 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_STRING_LIST = new Converter<Reply[], List<String>>() {
 			public List<String> convert(Reply[] source) {
+				if(source == null) {
+					return null;
+				}
 				List<String> results = new ArrayList<String>();
 				for (Reply r : source) {
 					results.add(SrpConverters.toString((byte[]) r.data()));

@@ -64,7 +64,7 @@ abstract public class LettuceConverters extends Converters {
 	static {
 		DATE_TO_LONG = new Converter<Date, Long>() {
 			public Long convert(Date source) {
-				return source.getTime();
+				return source != null ? source.getTime() : null;
 			}
 
 		};
@@ -104,7 +104,7 @@ abstract public class LettuceConverters extends Converters {
 		};
 		SCORED_VALUE_TO_TUPLE = new Converter<ScoredValue<byte[]>, Tuple>() {
 			public Tuple convert(ScoredValue<byte[]> source) {
-				return new DefaultTuple(source.value, Double.valueOf(source.score));
+				return source != null ? new DefaultTuple(source.value, Double.valueOf(source.score)) : null;
 			}
 
 		};
