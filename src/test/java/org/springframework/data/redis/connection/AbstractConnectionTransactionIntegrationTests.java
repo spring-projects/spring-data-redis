@@ -109,6 +109,11 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 	public void testHashNullValue() throws Exception {
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testWatchWhileInTx() {
+		connection.watch("foo".getBytes());
+	}
+
 	// Type conversion overrides
 
 	@Test

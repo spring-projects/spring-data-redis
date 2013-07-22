@@ -826,13 +826,15 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	public void watch(byte[]... keys) {
+		if(isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceStatusResult(getAsyncDedicatedConnection().watch(keys)));
 				return;
-			} else {
-				getDedicatedConnection().watch(keys);
 			}
+			getDedicatedConnection().watch(keys);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
