@@ -34,7 +34,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 public class StringRedisTemplate extends RedisTemplate<String, String> {
 
-	private boolean deserializePipelineResults = true;
+	private boolean deserializePipelineAndTxResults = true;
 
 	/**
 	 * Constructs a new <code>StringRedisTemplate</code> instance.
@@ -61,19 +61,19 @@ public class StringRedisTemplate extends RedisTemplate<String, String> {
 	}
 
 	/**
-	 * Specifies if pipelined results should be deserialized to Strings.
-	 * If false, results of {@link StringRedisConnection#closePipeline()} will be of the
-	 * type returned by the underlying connection
+	 * Specifies if pipelined and tx results should be deserialized to Strings.
+	 * If false, results of {@link StringRedisConnection#closePipeline()} and {@link StringRedisConnection#exec()}
+	 * will be of the type returned by the underlying connection
 	 *
-	 * @param deserializePipelineResults Whether or not to deserialize pipeline results
+	 * @param deserializePipelineAndTxResults Whether or not to deserialize pipeline and tx results
 	 */
-	public void setDeserializePipelineResults(boolean deserializePipelineResults) {
-		this.deserializePipelineResults = deserializePipelineResults;
+	public void setDeserializePipelineAndTxResults(boolean deserializePipelineAndTxResults) {
+		this.deserializePipelineAndTxResults = deserializePipelineAndTxResults;
 	}
 
 	protected RedisConnection preProcessConnection(RedisConnection connection, boolean existingConnection) {
 		DefaultStringRedisConnection stringConn =  new DefaultStringRedisConnection(connection);
-		stringConn.setDeserializePipelineResults(deserializePipelineResults);
+		stringConn.setDeserializePipelineAndTxResults(deserializePipelineAndTxResults);
 		return stringConn;
 	}
 }

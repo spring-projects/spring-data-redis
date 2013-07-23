@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
@@ -28,6 +29,12 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 	protected boolean convertLongToBoolean = true;
 
 	protected boolean convertStringToProps = false;
+
+	@Before
+	public void setUp() {
+		super.setUp();
+		((DefaultStringRedisConnection)connection).setDeserializePipelineAndTxResults(false);
+	}
 
 	@Ignore
 	public void testMultiDiscard() {

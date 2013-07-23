@@ -131,7 +131,7 @@ public class StringRedisTemplateTests {
 	@Test
 	public void testStringTemplateExecutePipelineResultsNotConverted() {
 		final StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
-		template2.setDeserializePipelineResults(false);
+		template2.setDeserializePipelineAndTxResults(false);
 		template2.afterPropertiesSet();
 		String result = template2.execute(new RedisCallback<String>() {
 			public String doInRedis(RedisConnection connection) {

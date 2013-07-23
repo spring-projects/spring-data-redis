@@ -212,14 +212,6 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
-	public void testExec() {
-		List<Object> results = Arrays.asList(new Object[] { barBytes });
-		doReturn(results).when(nativeConnection).exec();
-		actual.add(connection.exec());
-		verifyResults(Arrays.asList(new Object[] { results }));
-	}
-
-	@Test
 	public void testExistsBytes() {
 		doReturn(true).when(nativeConnection).exists(fooBytes);
 		actual.add(connection.exists(fooBytes));

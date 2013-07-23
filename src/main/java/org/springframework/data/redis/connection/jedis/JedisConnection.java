@@ -19,9 +19,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -36,6 +38,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -62,6 +65,7 @@ import redis.clients.util.Pool;
  * {@code RedisConnection} implementation on top of <a href="http://github.com/xetorthio/jedis">Jedis</a> library.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public class JedisConnection implements RedisConnection {
 
@@ -88,8 +92,9 @@ public class JedisConnection implements RedisConnection {
 	private volatile JedisSubscription subscription;
 	private volatile Pipeline pipeline;
 	private final int dbIndex;
-	private boolean convertPipelineResults=true;
+	private boolean convertPipelineAndTxResults=true;
 	private List<FutureResult<Response<?>>> pipelinedResults = new ArrayList<FutureResult<Response<?>>>();
+	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<FutureResult<Response<?>>>();
 
 	private class JedisResult extends FutureResult<Response<?>> {
 		public <T> JedisResult(Response<T> resultHolder, Converter<T,?> converter) {
@@ -102,7 +107,7 @@ public class JedisConnection implements RedisConnection {
 
 		@SuppressWarnings("unchecked")
 		public Object get() {
-			if(convertPipelineResults && converter != null) {
+			if(convertPipelineAndTxResults && converter != null) {
 				return converter.convert(resultHolder.get());
 			}
 			return resultHolder.get();
@@ -187,6 +192,9 @@ public class JedisConnection implements RedisConnection {
 				});
 				if(isPipelined()) {
 					pipeline(new JedisResult(result));
+				}
+				if(isQueueing()) {
+					transaction(new JedisResult(result));
 				}
 				return null;
 			}
@@ -297,7 +305,7 @@ public class JedisConnection implements RedisConnection {
 		for(FutureResult<Response<?>> result: pipelinedResults) {
 			try {
 				Object data = result.get();
-				if(!convertPipelineResults || !(result.isStatus())) {
+				if(!convertPipelineAndTxResults || !(result.isStatus())) {
 					results.add(data);
 				}
 			}catch(JedisDataException e) {
@@ -315,9 +323,15 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	private void pipeline(FutureResult<Response<?>> result) {
-		if(!isQueueing()) {
+		if(isQueueing()) {
+			transaction(result);
+		} else {
 			pipelinedResults.add(result);
 		}
+	}
+
+	private void transaction(FutureResult<Response<?>> result) {
+		txResults.add(result);
 	}
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
@@ -339,10 +353,10 @@ public class JedisConnection implements RedisConnection {
 			}
 			if (isQueueing()) {
 				if (sortParams != null) {
-					transaction.sort(key, sortParams);
+					transaction(new JedisResult(transaction.sort(key, sortParams)));
 				}
 				else {
-					transaction.sort(key);
+					transaction(new JedisResult(transaction.sort(key)));
 				}
 
 				return null;
@@ -371,10 +385,10 @@ public class JedisConnection implements RedisConnection {
 			}
 			if (isQueueing()) {
 				if (sortParams != null) {
-					transaction.sort(key, sortParams, storeKey);
+					transaction(new JedisResult(transaction.sort(key, sortParams, storeKey)));
 				}
 				else {
-					transaction.sort(key, storeKey);
+					transaction(new JedisResult(transaction.sort(key, storeKey)));
 				}
 
 				return null;
@@ -393,7 +407,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.dbSize();
+				transaction(new JedisResult(transaction.dbSize()));
 				return null;
 			}
 			return jedis.dbSize();
@@ -411,7 +425,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.flushDB();
+				transaction(new JedisResult(transaction.flushDB()));
 				return;
 			}
 			jedis.flushDB();
@@ -428,7 +442,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.flushAll();
+				transaction(new JedisResult(transaction.flushAll()));
 				return;
 			}
 			jedis.flushAll();
@@ -656,7 +670,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.del(keys);
+				transaction(new JedisResult(transaction.del(keys)));
 				return null;
 			}
 			return jedis.del(keys);
@@ -675,6 +689,8 @@ public class JedisConnection implements RedisConnection {
 			transaction.discard();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
+		} finally {
+			txResults.clear();
 		}
 	}
 
@@ -682,15 +698,18 @@ public class JedisConnection implements RedisConnection {
 	public List<Object> exec() {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.exec()));
+				pipeline(new JedisResult(pipeline.exec(),
+						new TransactionResultConverter<Response<?>>(new LinkedList<FutureResult<Response<?>>>(txResults))));
 				return null;
 			}
-			return transaction.exec();
+			List<Object> results = transaction.exec();
+			return convertPipelineAndTxResults ? new TransactionResultConverter<Response<?>>(txResults).convert(results) : results;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
+		} finally {
+			txResults.clear();
 		}
 	}
-
 
 	public Boolean exists(byte[] key) {
 		try {
@@ -699,7 +718,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.exists(key);
+				transaction(new JedisResult(transaction.exists(key)));
 				return null;
 			}
 			return jedis.exists(key);
@@ -716,7 +735,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.expire(key, (int) seconds);
+				transaction(new JedisResult(transaction.expire(key, (int) seconds), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.expire(key, (int) seconds));
@@ -733,7 +752,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.expireAt(key, unixTime);
+				transaction(new JedisResult(transaction.expireAt(key, unixTime), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.expireAt(key, unixTime));
@@ -750,7 +769,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.keys(pattern);
+				transaction(new JedisResult(transaction.keys(pattern)));
 				return null;
 			}
 			return (jedis.keys(pattern));
@@ -783,7 +802,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.persist(key);
+				transaction(new JedisResult(transaction.persist(key), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.persist(key));
@@ -800,7 +819,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.move(key, dbIndex);
+				transaction(new JedisResult(transaction.move(key, dbIndex), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.move(key, dbIndex));
@@ -832,7 +851,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.rename(oldName, newName);
+				transaction(new JedisStatusResult(transaction.rename(oldName, newName)));
 				return;
 			}
 			jedis.rename(oldName, newName);
@@ -849,7 +868,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.renamenx(oldName, newName);
+				transaction(new JedisResult(transaction.renamenx(oldName, newName), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.renamenx(oldName, newName));
@@ -881,7 +900,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.ttl(key);
+				transaction(new JedisResult(transaction.ttl(key)));
 				return null;
 			}
 			return jedis.ttl(key);
@@ -917,7 +936,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.type(key);
+				transaction(new JedisResult(transaction.type(key), JedisConverters.stringToDataType()));
 				return null;
 			}
 			return JedisConverters.toDataType(jedis.type(key));
@@ -966,7 +985,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.get(key);
+				transaction(new JedisResult(transaction.get(key)));
 				return null;
 			}
 
@@ -984,7 +1003,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.set(key, value);
+				transaction(new JedisStatusResult(transaction.set(key, value)));
 				return;
 			}
 			jedis.set(key, value);
@@ -1002,7 +1021,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.getSet(key, value);
+				transaction(new JedisResult(transaction.getSet(key, value), JedisConverters.stringToBytes()));
 				return null;
 			}
 			return jedis.getSet(key, value);
@@ -1019,7 +1038,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.append(key, value);
+				transaction(new JedisResult(transaction.append(key, value)));
 				return null;
 			}
 			return jedis.append(key, value);
@@ -1036,7 +1055,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.mget(keys);
+				transaction(new JedisResult(transaction.mget(keys)));
 				return null;
 			}
 			return jedis.mget(keys);
@@ -1053,7 +1072,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.mset(JedisConverters.toByteArrays(tuples));
+				transaction(new JedisStatusResult(transaction.mset(JedisConverters.toByteArrays(tuples))));
 				return;
 			}
 			jedis.mset(JedisConverters.toByteArrays(tuples));
@@ -1070,7 +1089,8 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.msetnx(JedisConverters.toByteArrays(tuples));
+				transaction(new JedisResult(transaction.msetnx(JedisConverters.toByteArrays(tuples)),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.msetnx(JedisConverters.toByteArrays(tuples)));
@@ -1087,7 +1107,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.setex(key, (int) time, value);
+				transaction(new JedisStatusResult(transaction.setex(key, (int) time, value)));
 				return;
 			}
 			jedis.setex(key, (int) time, value);
@@ -1100,11 +1120,13 @@ public class JedisConnection implements RedisConnection {
 	public Boolean setNX(byte[] key, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.setnx(key, value), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.setnx(key, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.setnx(key, value);
+				transaction(new JedisResult(transaction.setnx(key, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.setnx(key, value));
@@ -1117,11 +1139,13 @@ public class JedisConnection implements RedisConnection {
 	public byte[] getRange(byte[] key, long start, long end) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.substr(key, (int) start, (int) end), JedisConverters.stringToBytes()));
+				pipeline(new JedisResult(pipeline.substr(key, (int) start, (int) end),
+						JedisConverters.stringToBytes()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.substr(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.substr(key, (int) start, (int) end),
+						JedisConverters.stringToBytes()));
 				return null;
 			}
 			return jedis.substr(key, (int) start, (int) end);
@@ -1138,7 +1162,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.decr(key);
+				transaction(new JedisResult(transaction.decr(key)));
 				return null;
 			}
 			return jedis.decr(key);
@@ -1155,7 +1179,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.decrBy(key, value);
+				transaction(new JedisResult(transaction.decrBy(key, value)));
 				return null;
 			}
 			return jedis.decrBy(key, value);
@@ -1172,7 +1196,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.incr(key);
+				transaction(new JedisResult(transaction.incr(key)));
 				return null;
 			}
 			return jedis.incr(key);
@@ -1189,7 +1213,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.incrBy(key, value);
+				transaction(new JedisResult(transaction.incrBy(key, value)));
 				return null;
 			}
 			return jedis.incrBy(key, value);
@@ -1261,7 +1285,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.strlen(key);
+				transaction(new JedisResult(transaction.strlen(key)));
 				return null;
 			}
 			return jedis.strlen(key);
@@ -1296,7 +1320,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.lpush(key, value);
+				transaction(new JedisResult(transaction.lpush(key, value)));
 				return null;
 			}
 			return jedis.lpush(key, value);
@@ -1313,7 +1337,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.rpush(key, value);
+				transaction(new JedisResult(transaction.rpush(key, value)));
 				return null;
 			}
 			return jedis.rpush(key, value);
@@ -1326,11 +1350,13 @@ public class JedisConnection implements RedisConnection {
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.blpop(bXPopArgs(timeout, keys)), JedisConverters.stringListToByteList()));
+				pipeline(new JedisResult(pipeline.blpop(bXPopArgs(timeout, keys)),
+						JedisConverters.stringListToByteList()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.blpop(bXPopArgs(timeout, keys));
+				transaction(new JedisResult(transaction.blpop(bXPopArgs(timeout, keys)),
+						JedisConverters.stringListToByteList()));
 				return null;
 			}
 			return jedis.blpop(timeout, keys);
@@ -1343,11 +1369,13 @@ public class JedisConnection implements RedisConnection {
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.brpop(bXPopArgs(timeout, keys)), JedisConverters.stringListToByteList()));
+				pipeline(new JedisResult(pipeline.brpop(bXPopArgs(timeout, keys)),
+						JedisConverters.stringListToByteList()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.brpop(bXPopArgs(timeout, keys));
+				transaction(new JedisResult(transaction.brpop(bXPopArgs(timeout, keys)),
+						JedisConverters.stringListToByteList()));
 				return null;
 			}
 			return jedis.brpop(timeout, keys);
@@ -1364,7 +1392,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.lindex(key, (int) index);
+				transaction(new JedisResult(transaction.lindex(key, (int) index)));
 				return null;
 			}
 			return jedis.lindex(key, (int) index);
@@ -1377,11 +1405,13 @@ public class JedisConnection implements RedisConnection {
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.linsert(key, JedisConverters.toListPosition(where), pivot, value)));
+				pipeline(new JedisResult(pipeline.linsert(key, JedisConverters.toListPosition(where),
+						pivot, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.linsert(key, JedisConverters.toListPosition(where), pivot, value);
+				transaction(new JedisResult(transaction.linsert(key, JedisConverters.toListPosition(where),
+						pivot, value)));
 				return null;
 			}
 			return jedis.linsert(key, JedisConverters.toListPosition(where), pivot, value);
@@ -1398,7 +1428,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.llen(key);
+				transaction(new JedisResult(transaction.llen(key)));
 				return null;
 			}
 			return jedis.llen(key);
@@ -1415,7 +1445,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.lpop(key);
+				transaction(new JedisResult(transaction.lpop(key)));
 				return null;
 			}
 			return jedis.lpop(key);
@@ -1428,11 +1458,12 @@ public class JedisConnection implements RedisConnection {
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.lrange(key, (int) start, (int) end), JedisConverters.stringListToByteList()));
+				pipeline(new JedisResult(pipeline.lrange(key, (int) start, (int) end),
+						JedisConverters.stringListToByteList()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.lrange(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.lrange(key, (int) start, (int) end)));
 				return null;
 			}
 			return jedis.lrange(key, (int) start, (int) end);
@@ -1449,7 +1480,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.lrem(key, (int) count, value);
+				transaction(new JedisResult(transaction.lrem(key, (int) count, value)));
 				return null;
 			}
 			return jedis.lrem(key, (int) count, value);
@@ -1466,7 +1497,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.lset(key, (int) index, value);
+				transaction(new JedisStatusResult(transaction.lset(key, (int) index, value)));
 				return;
 			}
 			jedis.lset(key, (int) index, value);
@@ -1483,7 +1514,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.ltrim(key, (int) start, (int) end);
+				transaction(new JedisStatusResult(transaction.ltrim(key, (int) start, (int) end)));
 				return;
 			}
 			jedis.ltrim(key, (int) start, (int) end);
@@ -1500,7 +1531,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.rpop(key);
+				transaction(new JedisResult(transaction.rpop(key)));
 				return null;
 			}
 			return jedis.rpop(key);
@@ -1517,7 +1548,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.rpoplpush(srcKey, dstKey);
+				transaction(new JedisResult(transaction.rpoplpush(srcKey, dstKey)));
 				return null;
 			}
 			return jedis.rpoplpush(srcKey, dstKey);
@@ -1534,7 +1565,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.brpoplpush(srcKey, dstKey, timeout);
+				transaction(new JedisResult(transaction.brpoplpush(srcKey, dstKey, timeout)));
 				return null;
 			}
 			return jedis.brpoplpush(srcKey, dstKey, timeout);
@@ -1551,7 +1582,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.lpushx(key, value);
+				transaction(new JedisResult(transaction.lpushx(key, value)));
 				return null;
 			}
 			return jedis.lpushx(key, value);
@@ -1568,7 +1599,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.rpushx(key, value);
+				transaction(new JedisResult(transaction.rpushx(key, value)));
 				return null;
 			}
 			return jedis.rpushx(key, value);
@@ -1586,11 +1617,13 @@ public class JedisConnection implements RedisConnection {
 	public Boolean sAdd(byte[] key, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.sadd(key, value), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.sadd(key, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sadd(key, value);
+				transaction(new JedisResult(transaction.sadd(key, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.sadd(key, value));
@@ -1607,7 +1640,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.scard(key);
+				transaction(new JedisResult(transaction.scard(key)));
 				return null;
 			}
 			return jedis.scard(key);
@@ -1624,7 +1657,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sdiff(keys);
+				transaction(new JedisResult(transaction.sdiff(keys)));
 				return null;
 			}
 			return jedis.sdiff(keys);
@@ -1641,7 +1674,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sdiffstore(destKey, keys);
+				transaction(new JedisResult(transaction.sdiffstore(destKey, keys)));
 				return null;
 			}
 			return jedis.sdiffstore(destKey, keys);
@@ -1658,7 +1691,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sinter(keys);
+				transaction(new JedisResult(transaction.sinter(keys)));
 				return null;
 			}
 			return jedis.sinter(keys);
@@ -1675,7 +1708,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sinterstore(destKey, keys);
+				transaction(new JedisResult(transaction.sinterstore(destKey, keys)));
 				return null;
 			}
 			return jedis.sinterstore(destKey, keys);
@@ -1692,7 +1725,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sismember(key, value);
+				transaction(new JedisResult(transaction.sismember(key, value)));
 				return null;
 			}
 			return jedis.sismember(key, value);
@@ -1709,7 +1742,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.smembers(key);
+				transaction(new JedisResult(transaction.smembers(key)));
 				return null;
 			}
 			return jedis.smembers(key);
@@ -1726,7 +1759,8 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.smove(srcKey, destKey, value);
+				transaction(new JedisResult(transaction.smove(srcKey, destKey, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.smove(srcKey, destKey, value));
@@ -1743,7 +1777,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.spop(key);
+				transaction(new JedisResult(transaction.spop(key)));
 				return null;
 			}
 			return jedis.spop(key);
@@ -1760,7 +1794,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.srandmember(key);
+				transaction(new JedisResult(transaction.srandmember(key)));
 				return null;
 			}
 			return jedis.srandmember(key);
@@ -1780,7 +1814,8 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.srem(key, value);
+				transaction(new JedisResult(transaction.srem(key, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.srem(key, value));
@@ -1797,7 +1832,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sunion(keys);
+				transaction(new JedisResult(transaction.sunion(keys)));
 				return null;
 			}
 			return jedis.sunion(keys);
@@ -1814,7 +1849,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.sunionstore(destKey, keys);
+				transaction(new JedisResult(transaction.sunionstore(destKey, keys)));
 				return null;
 			}
 			return jedis.sunionstore(destKey, keys);
@@ -1835,7 +1870,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zadd(key, score, value);
+				transaction(new JedisResult(transaction.zadd(key, score, value), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.zadd(key, score, value));
@@ -1852,7 +1887,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zcard(key);
+				transaction(new JedisResult(transaction.zcard(key)));
 				return null;
 			}
 			return jedis.zcard(key);
@@ -1869,7 +1904,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zcount(key, min, max);
+				transaction(new JedisResult(transaction.zcount(key, min, max)));
 				return null;
 			}
 			return jedis.zcount(key, min, max);
@@ -1886,7 +1921,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zincrby(key, increment, value);
+				transaction(new JedisResult(transaction.zincrby(key, increment, value)));
 				return null;
 			}
 			return jedis.zincrby(key, increment, value);
@@ -1906,7 +1941,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zinterstore(destKey, zparams, sets);
+				transaction(new JedisResult(transaction.zinterstore(destKey, zparams, sets)));
 				return null;
 			}
 			return jedis.zinterstore(destKey, zparams, sets);
@@ -1923,7 +1958,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zinterstore(destKey, sets);
+				transaction(new JedisResult(transaction.zinterstore(destKey, sets)));
 				return null;
 			}
 			return jedis.zinterstore(destKey, sets);
@@ -1940,7 +1975,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrange(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.zrange(key, (int) start, (int) end)));
 				return null;
 			}
 			return jedis.zrange(key, (int) start, (int) end);
@@ -1953,11 +1988,13 @@ public class JedisConnection implements RedisConnection {
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrangeWithScores(key, (int) start, (int) end), JedisConverters.tupleSetToTupleSet()));
+				pipeline(new JedisResult(pipeline.zrangeWithScores(key, (int) start, (int) end),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrangeWithScores(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.zrangeWithScores(key, (int) start, (int) end),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			return JedisConverters.toTupleSet(jedis.zrangeWithScores(key, (int) start, (int) end));
@@ -1974,7 +2011,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrangeByScore(key, min, max);
+				transaction(new JedisResult(transaction.zrangeByScore(key, min, max)));
 				return null;
 			}
 			return jedis.zrangeByScore(key, min, max);
@@ -1987,11 +2024,13 @@ public class JedisConnection implements RedisConnection {
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrangeByScoreWithScores(key, min, max), JedisConverters.tupleSetToTupleSet()));
+				pipeline(new JedisResult(pipeline.zrangeByScoreWithScores(key, min, max),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrangeByScoreWithScores(key, min, max);
+				transaction(new JedisResult(transaction.zrangeByScoreWithScores(key, min, max),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			return JedisConverters.toTupleSet(jedis.zrangeByScoreWithScores(key, min, max));
@@ -2004,11 +2043,13 @@ public class JedisConnection implements RedisConnection {
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrevrangeWithScores(key, (int) start, (int) end), JedisConverters.tupleSetToTupleSet()));
+				pipeline(new JedisResult(pipeline.zrevrangeWithScores(key, (int) start, (int) end),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrevrangeWithScores(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.zrevrangeWithScores(key, (int) start, (int) end),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			return JedisConverters.toTupleSet(jedis.zrevrangeWithScores(key, (int) start, (int) end));
@@ -2021,11 +2062,12 @@ public class JedisConnection implements RedisConnection {
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrangeByScore(key, min, max, (int) offset, (int) count), JedisConverters.stringSetToByteSet()));
+				pipeline(new JedisResult(pipeline.zrangeByScore(key, min, max, (int) offset, (int) count),
+						JedisConverters.stringSetToByteSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrangeByScore(key, min, max, (int) offset, (int) count);
+				transaction(new JedisResult(transaction.zrangeByScore(key, min, max, (int) offset, (int) count)));
 				return null;
 			}
 			return jedis.zrangeByScore(key, min, max, (int) offset, (int) count);
@@ -2038,11 +2080,13 @@ public class JedisConnection implements RedisConnection {
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrangeByScoreWithScores(key, min, max, (int) offset, (int) count), JedisConverters.tupleSetToTupleSet()));
+				pipeline(new JedisResult(pipeline.zrangeByScoreWithScores(key, min, max, (int) offset, (int) count),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrangeByScoreWithScores(key, min, max, (int) offset, (int) count);
+				transaction(new JedisResult(transaction.zrangeByScoreWithScores(key, min, max, (int) offset, (int) count),
+						JedisConverters.tupleSetToTupleSet()));
 				return null;
 			}
 			return JedisConverters.toTupleSet(jedis.zrangeByScoreWithScores(key, min, max, (int) offset, (int) count));
@@ -2120,7 +2164,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrank(key, value);
+				transaction(new JedisResult(transaction.zrank(key, value)));
 				return null;
 			}
 			return jedis.zrank(key, value);
@@ -2137,7 +2181,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrem(key, value);
+				transaction(new JedisResult(transaction.zrem(key, value), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.zrem(key, value));
@@ -2154,7 +2198,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zremrangeByRank(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.zremrangeByRank(key, (int) start, (int) end)));
 				return null;
 			}
 			return jedis.zremrangeByRank(key, (int) start, (int) end);
@@ -2171,7 +2215,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zremrangeByScore(key, min, max);
+				transaction(new JedisResult(transaction.zremrangeByScore(key, min, max)));
 				return null;
 			}
 			return jedis.zremrangeByScore(key, min, max);
@@ -2184,11 +2228,12 @@ public class JedisConnection implements RedisConnection {
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrevrange(key, (int) start, (int) end), JedisConverters.stringSetToByteSet()));
+				pipeline(new JedisResult(pipeline.zrevrange(key, (int) start, (int) end),
+						JedisConverters.stringSetToByteSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrevrange(key, (int) start, (int) end);
+				transaction(new JedisResult(transaction.zrevrange(key, (int) start, (int) end)));
 				return null;
 			}
 			return jedis.zrevrange(key, (int) start, (int) end);
@@ -2205,7 +2250,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zrevrank(key, value);
+				transaction(new JedisResult(transaction.zrevrank(key, value)));
 				return null;
 			}
 			return jedis.zrevrank(key, value);
@@ -2222,7 +2267,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zscore(key, value);
+				transaction(new JedisResult(transaction.zscore(key, value)));
 				return null;
 			}
 			return jedis.zscore(key, value);
@@ -2242,7 +2287,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zunionstore(destKey, zparams, sets);
+				transaction(new JedisResult(transaction.zunionstore(destKey, zparams, sets)));
 				return null;
 			}
 			return jedis.zunionstore(destKey, zparams, sets);
@@ -2259,7 +2304,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.zunionstore(destKey, sets);
+				transaction(new JedisResult(transaction.zunionstore(destKey, sets)));
 				return null;
 			}
 			return jedis.zunionstore(destKey, sets);
@@ -2280,7 +2325,8 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hset(key, field, value);
+				transaction(new JedisResult(transaction.hset(key, field, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.hset(key, field, value));
@@ -2293,11 +2339,13 @@ public class JedisConnection implements RedisConnection {
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.hsetnx(key, field, value), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.hsetnx(key, field, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hsetnx(key, field, value);
+				transaction(new JedisResult(transaction.hsetnx(key, field, value),
+						JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.hsetnx(key, field, value));
@@ -2314,7 +2362,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hdel(key, field);
+				transaction(new JedisResult(transaction.hdel(key, field), JedisConverters.longToBoolean()));
 				return null;
 			}
 			return JedisConverters.toBoolean(jedis.hdel(key, field));
@@ -2331,7 +2379,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hexists(key, field);
+				transaction(new JedisResult(transaction.hexists(key, field)));
 				return null;
 			}
 			return jedis.hexists(key, field);
@@ -2348,7 +2396,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hget(key, field);
+				transaction(new JedisResult(transaction.hget(key, field)));
 				return null;
 			}
 			return jedis.hget(key, field);
@@ -2365,7 +2413,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hgetAll(key);
+				transaction(new JedisResult(transaction.hgetAll(key), JedisConverters.stringMapToByteMap()));
 				return null;
 			}
 			return jedis.hgetAll(key);
@@ -2382,7 +2430,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hincrBy(key, field, delta);
+				transaction(new JedisResult(transaction.hincrBy(key, field, delta)));
 				return null;
 			}
 			return jedis.hincrBy(key, field, delta);
@@ -2402,7 +2450,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hkeys(key);
+				transaction(new JedisResult(transaction.hkeys(key)));
 				return null;
 			}
 			return jedis.hkeys(key);
@@ -2419,7 +2467,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hlen(key);
+				transaction(new JedisResult(transaction.hlen(key)));
 				return null;
 			}
 			return jedis.hlen(key);
@@ -2436,7 +2484,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hmget(key, fields);
+				transaction(new JedisResult(transaction.hmget(key, fields)));
 				return null;
 			}
 			return jedis.hmget(key, fields);
@@ -2453,7 +2501,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction.hmset(key, tuple);
+				transaction(new JedisStatusResult(transaction.hmset(key, tuple)));
 				return;
 			}
 			jedis.hmset(key, tuple);
@@ -2470,7 +2518,7 @@ public class JedisConnection implements RedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction.hvals(key);
+				transaction(new JedisResult(transaction.hvals(key)));
 				return null;
 			}
 			return jedis.hvals(key);
@@ -2656,13 +2704,13 @@ public class JedisConnection implements RedisConnection {
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type. If false, results of {@link #closePipeline()} and {@link #exec()} will be of the
 	 * type returned by the Jedis driver
 	 *
-	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
-	public void setConvertPipelineResults(boolean convertPipelineResults) {
-		this.convertPipelineResults = convertPipelineResults;
+	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
+		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
 	private byte[][] bXPopArgs(int timeout, byte[]... keys) {

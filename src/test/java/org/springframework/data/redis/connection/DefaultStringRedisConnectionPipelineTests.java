@@ -143,13 +143,6 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	}
 
 	@Test
-	public void testExec() {
-		List<Object> results = Arrays.asList(new Object[] { barBytes });
-		doReturn(Arrays.asList(new Object[] { results })).when(nativeConnection).closePipeline();
-		super.testExec();
-	}
-
-	@Test
 	public void testTxResultsNotPipelined() {
 		doReturn(true).when(nativeConnection).isQueueing();
 		List<Object> results = Arrays.asList(new Object[] { bar, 8l });
@@ -1408,7 +1401,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 	@Test
 	public void testDisablePipelineDeserialize() {
-		connection.setDeserializePipelineResults(false);
+		connection.setDeserializePipelineAndTxResults(false);
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).closePipeline();
 		doReturn(barBytes).when(nativeConnection).get(fooBytes);
 		connection.get(foo);
