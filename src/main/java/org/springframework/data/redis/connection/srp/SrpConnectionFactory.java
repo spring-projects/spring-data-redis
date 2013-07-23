@@ -35,7 +35,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	private String hostName = "localhost";
 	private int port = 6379;
 	private BlockingQueue<SrpConnection> trackedConnections = new ArrayBlockingQueue<SrpConnection>(50);
-	private boolean convertPipelineResults = true;
+	private boolean convertPipelineAndTxResults = true;
 		
 
 	/**
@@ -73,7 +73,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	public RedisConnection getConnection() {
 		SrpConnection connection = new SrpConnection(hostName, port, trackedConnections);
-		connection.setConvertPipelineResults(convertPipelineResults);
+		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
 
@@ -119,23 +119,23 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
-	 * type returned by the Jedis driver
+	 * type. If false, results of {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()}
+	 * will be of the type returned by the SRP driver
 	 *
-	 * @return Whether or not to convert pipeline results
+	 * @return Whether or not to convert pipeline and tx results
 	 */
-	public boolean getConvertPipelineResults() {
-		return convertPipelineResults;
+	public boolean getConvertPipelineAndTxResults() {
+		return convertPipelineAndTxResults;
 	}
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
-	 * type returned by the Jedis driver
+	 * type. If false, results of {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()}
+	 * will be of the type returned by the SRP driver
 	 *
-	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 * @param convertPipelineResults Whether or not to convert pipeline and tx results
 	 */
-	public void setConvertPipelineResults(boolean convertPipelineResults) {
-		this.convertPipelineResults = convertPipelineResults;
+	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
+		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 }

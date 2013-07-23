@@ -62,13 +62,6 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", values = {"2.4", "2.6"})
-	public void testGetRangeSetRange() {
-		// SRP throws an Exception if you try to execute on version lower than 2.4
-		super.testGetRangeSetRange();
-	}
-
-	@Test
 	public void testExecuteNoArgs() {
 		// SRP returns this as String while other drivers return as byte[]
 		actual.add(connection.execute("PING"));

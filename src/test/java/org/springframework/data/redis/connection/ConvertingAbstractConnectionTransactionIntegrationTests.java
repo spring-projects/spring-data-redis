@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.test.annotation.IfProfileValue;
 
 public class ConvertingAbstractConnectionTransactionIntegrationTests extends
 		AbstractConnectionIntegrationTests {
@@ -94,6 +95,14 @@ public class ConvertingAbstractConnectionTransactionIntegrationTests extends
 	@Test(expected = UnsupportedOperationException.class)
 	public void testWatchWhileInTx() {
 		connection.watch("foo".getBytes());
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testScriptKill() {
+		// Impossible to call script kill in a tx because you can't issue the
+		// exec command while Redis is running a script
+		connection.scriptKill();
 	}
 
 	protected void initConnection() {

@@ -34,18 +34,16 @@ import org.springframework.test.annotation.IfProfileValue;
  */
 public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransactionIntegrationTests {
 
-
 	@Test
 	public void testUsePipelineAfterTxExec() {
 		connection.set("foo", "bar");
 		assertNull(connection.exec());
 		assertNull(connection.get("foo"));
 		List<Object> results = connection.closePipeline();
-		assertEquals(Arrays.asList(new Object[] {Collections.singletonList("OK"), "bar"}), results);
+		assertEquals(Arrays.asList(new Object[] {Collections.emptyList(), "bar"}), results);
 		assertEquals("bar", connection.get("foo"));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testExec2TransactionsInPipeline() {
 		connection.set("foo", "bar");
@@ -57,9 +55,8 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		List<Object> results = connection.closePipeline();
 		assertEquals(2, results.size());
-		// First element of each list is "OK"
-		assertEquals("bar", new String((byte[])((List<Object>)results.get(0)).get(1)));
-		assertEquals("baz", new String((byte[])((List<Object>)results.get(1)).get(1)));
+		assertEquals(Arrays.asList(new Object[] {"bar"}), results.get(0));
+		assertEquals(Arrays.asList(new Object[] {"baz"}), results.get(1));
 	}
 
 	@Test(expected=RedisPipelineException.class)
@@ -99,17 +96,6 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 
 	@SuppressWarnings("unchecked")
 	protected List<Object> getResults() {
-		assertNull(connection.exec());
-		List<Object> pipelined = connection.closePipeline();
-		// We expect only the results of exec to be in the closed pipeline
-		assertEquals(1,pipelined.size());
-		List<Object> txResults = (List<Object>)pipelined.get(0);
-		// Return exec results and this test should behave exactly like its superclass
-		return convertResults(txResults);
-	}
-
-	@SuppressWarnings("unchecked")
-	protected List<Object> getResultsNoConversion() {
 		assertNull(connection.exec());
 		List<Object> pipelined = connection.closePipeline();
 		// We expect only the results of exec to be in the closed pipeline

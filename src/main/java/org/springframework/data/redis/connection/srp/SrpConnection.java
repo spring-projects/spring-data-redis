@@ -78,7 +78,7 @@ public class SrpConnection implements RedisConnection {
 	private PipelineTracker callback;
 	private PipelineTracker txTracker;
 	private volatile SrpSubscription subscription;
-	private boolean convertPipelineResults=true;
+	private boolean convertPipelineAndTxResults=true;
 
 
 	@SuppressWarnings("rawtypes")
@@ -2180,13 +2180,13 @@ public class SrpConnection implements RedisConnection {
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
+	 * type. If false, results of {@link #closePipeline()} and {@link #exec()} will be of the
 	 * type returned by the Lettuce driver
 	 *
 	 * @param convertPipelineResults Whether or not to convert pipeline results
 	 */
-	public void setConvertPipelineResults(boolean convertPipelineResults) {
-		this.convertPipelineResults = convertPipelineResults;
+	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
+		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
 	private void checkSubscription() {
@@ -2207,14 +2207,14 @@ public class SrpConnection implements RedisConnection {
 
 	private void initPipeline() {
 		if (pipeline == null) {
-			callback = new PipelineTracker(convertPipelineResults);
+			callback = new PipelineTracker(convertPipelineAndTxResults);
 			pipeline = client.pipeline();
 		}
 	}
 
 	private void initTxTracker() {
 		if(txTracker == null) {
-			txTracker = new PipelineTracker(false);
+			txTracker = new PipelineTracker(convertPipelineAndTxResults);
 		}
 		initPipeline();
 	}
