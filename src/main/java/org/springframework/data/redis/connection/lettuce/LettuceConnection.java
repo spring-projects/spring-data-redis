@@ -110,6 +110,7 @@ public class LettuceConnection implements RedisConnection {
 		@SuppressWarnings("rawtypes")
 		public LettuceStatusResult(Future resultHolder) {
 			super(resultHolder);
+			setStatus(true);
 		}
 	}
 
@@ -295,7 +296,7 @@ public class LettuceConnection implements RedisConnection {
 						}
 						results.add(err);
 					}
-					else if(!convertPipelineResults || !(result instanceof LettuceStatusResult)) {
+					else if(!convertPipelineResults || !(result.isStatus())) {
 						results.add(result.get());
 					}
 				}

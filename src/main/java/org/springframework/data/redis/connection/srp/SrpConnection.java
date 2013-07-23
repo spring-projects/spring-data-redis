@@ -136,7 +136,7 @@ public class SrpConnection implements RedisConnection {
 					Object result = results.get(i);
 					if(result instanceof Exception || !convertResults) {
 						convertedResults.add(result);
-					}else if(!(future instanceof SrpStatusResult)) {
+					}else if(!(future.isStatus())) {
 						convertedResults.add(future.convert(result));
 					}
 					i++;
@@ -188,6 +188,7 @@ public class SrpConnection implements RedisConnection {
 		@SuppressWarnings("rawtypes")
 		public SrpStatusResult(ListenableFuture<? extends Reply> resultHolder) {
 			super(resultHolder);
+			setStatus(true);
 		}
 	}
 

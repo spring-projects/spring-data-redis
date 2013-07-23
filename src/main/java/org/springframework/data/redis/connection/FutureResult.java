@@ -23,12 +23,13 @@ import org.springframework.core.convert.converter.Converter;
  * @author Jennifer Hickey
  *
  * @param <T>
- *            The data type of the object that holds the future result (usually
- *            of type Future)
+ *            The data type of the object that holds the future result (usually of type Future)
  */
 abstract public class FutureResult<T> {
 
 	protected T resultHolder;
+
+	protected boolean status = false;
 
 	@SuppressWarnings("rawtypes")
 	protected Converter converter;
@@ -48,8 +49,7 @@ abstract public class FutureResult<T> {
 	}
 
 	/**
-	 * Converts the given result if a converter is specified, else returns the
-	 * result
+	 * Converts the given result if a converter is specified, else returns the result
 	 *
 	 * @param result
 	 *            The result to convert
@@ -66,6 +66,26 @@ abstract public class FutureResult<T> {
 	@SuppressWarnings("rawtypes")
 	public Converter getConverter() {
 		return converter;
+	}
+
+	/**
+	 * Indicates if this result is the status of an operation. Typically status results will be
+	 * discarded on conversion.
+	 *
+	 * @return true if this is a status result (i.e. OK)
+	 */
+	public boolean isStatus() {
+		return status;
+	}
+
+	/**
+	 * Indicates if this result is the status of an operation. Typically status results will be
+	 * discarded on conversion.
+	 *
+	 * @status true if this is a status result (i.e. OK)
+	 */
+	public void setStatus(boolean status) {
+		this.status = status;
 	}
 
 	/**

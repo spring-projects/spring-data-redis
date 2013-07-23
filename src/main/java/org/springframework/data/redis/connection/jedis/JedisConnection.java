@@ -112,6 +112,7 @@ public class JedisConnection implements RedisConnection {
 	private class JedisStatusResult extends JedisResult {
 		public JedisStatusResult(Response<?> resultHolder) {
 			super(resultHolder);
+			setStatus(true);
 		}
 	}
 
@@ -296,7 +297,7 @@ public class JedisConnection implements RedisConnection {
 		for(FutureResult<Response<?>> result: pipelinedResults) {
 			try {
 				Object data = result.get();
-				if(!convertPipelineResults || !(result instanceof JedisStatusResult)) {
+				if(!convertPipelineResults || !(result.isStatus())) {
 					results.add(data);
 				}
 			}catch(JedisDataException e) {
