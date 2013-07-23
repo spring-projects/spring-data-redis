@@ -29,7 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.convert.IdentityConverter;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
@@ -56,6 +55,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@SuppressWarnings("rawtypes")
 	private Queue<Converter> pipelineConverters = new LinkedList<Converter>();
 	private boolean deserializePipelineResults = true;
+	private IdentityConverter identityConverter = new IdentityConverter();
 
 	private class DeserializingConverter implements Converter<byte[],String> {
 		public String convert(byte[] source) {
@@ -66,6 +66,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	private class TupleConverter implements Converter<Tuple,StringTuple> {
 		public StringTuple convert(Tuple source) {
 			return new DefaultStringTuple(source, serializer.deserialize(source.getValue()));
+		}
+	}
+
+	private class IdentityConverter implements Converter<Object, Object> {
+		public Object convert(Object source) {
+			return source;
 		}
 	}
 
@@ -97,7 +103,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long append(byte[] key, byte[] value) {
 		Long result = delegate.append(key,value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -113,7 +119,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		List<byte[]> results = delegate.bLPop(timeout, keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -121,7 +127,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		List<byte[]> results = delegate.bRPop(timeout, keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -129,7 +135,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		byte[] result = delegate.bRPopLPush(timeout, srcKey, dstKey);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -141,7 +147,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long dbSize() {
 		Long result = delegate.dbSize();
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -149,7 +155,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long decr(byte[] key) {
 		Long result = delegate.decr(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -157,7 +163,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long decrBy(byte[] key, long value) {
 		Long result = delegate.decrBy(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -165,7 +171,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long del(byte[]... keys) {
 		Long result = delegate.del(keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -177,7 +183,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] echo(byte[] message) {
 		byte[] result = delegate.echo(message);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -186,7 +192,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		List<Object> results = delegate.exec();
 		if(isPipelined()) {
 			// Ensure exec converter gets added
-			pipelineConverters.add(identityConverter(results));
+			pipelineConverters.add(identityConverter);
 		}
 		return results;
 	}
@@ -194,7 +200,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean exists(byte[] key) {
 		Boolean result =  delegate.exists(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -202,7 +208,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean expire(byte[] key, long seconds) {
 		Boolean result = delegate.expire(key, seconds);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -210,7 +216,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean expireAt(byte[] key, long unixTime) {
 		Boolean result = delegate.expireAt(key, unixTime);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -226,7 +232,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] get(byte[] key) {
 		byte[] result = delegate.get(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -234,7 +240,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean getBit(byte[] key, long offset) {
 		Boolean result = delegate.getBit(key, offset);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -242,7 +248,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<String> getConfig(String pattern) {
 		List<String> results = delegate.getConfig(pattern);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -250,7 +256,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Object getNativeConnection() {
 		Object result = delegate.getNativeConnection();
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -258,7 +264,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] getRange(byte[] key, long start, long end) {
 		byte[] result = delegate.getRange(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -266,7 +272,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] getSet(byte[] key, byte[] value) {
 		byte[] result = delegate.getSet(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -278,7 +284,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hDel(byte[] key, byte[] field) {
 		Boolean result = delegate.hDel(key, field);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -286,7 +292,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hExists(byte[] key, byte[] field) {
 		Boolean result = delegate.hExists(key, field);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -294,7 +300,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] hGet(byte[] key, byte[] field) {
 		byte[] result = delegate.hGet(key, field);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -302,7 +308,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		Map<byte[],byte[]> results = delegate.hGetAll(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -310,7 +316,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		Long result = delegate.hIncrBy(key, field, delta);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -318,7 +324,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
 		Double result = delegate.hIncrBy(key, field, delta);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -326,7 +332,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> hKeys(byte[] key) {
 		Set<byte[]> results = delegate.hKeys(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -334,7 +340,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long hLen(byte[] key) {
 		Long result = delegate.hLen(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -342,7 +348,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		List<byte[]> results = delegate.hMGet(key, fields);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -354,7 +360,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		Boolean result = delegate.hSet(key, field, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -362,7 +368,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		Boolean result = delegate.hSetNX(key, field, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -370,7 +376,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> hVals(byte[] key) {
 		List<byte[]> results = delegate.hVals(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -378,7 +384,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long incr(byte[] key) {
 		Long result = delegate.incr(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -386,7 +392,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long incrBy(byte[] key, long value) {
 		Long result = delegate.incrBy(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -394,7 +400,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double incrBy(byte[] key, double value) {
 		Double result = delegate.incrBy(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -402,7 +408,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Properties info() {
 		Properties result = delegate.info();
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -410,7 +416,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Properties info(String section) {
 		Properties result = delegate.info(section);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -430,7 +436,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> keys(byte[] pattern) {
 		Set<byte[]> results = delegate.keys(pattern);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -438,7 +444,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lastSave() {
 		Long result = delegate.lastSave();
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -446,7 +452,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] lIndex(byte[] key, long index) {
 		byte[] result = delegate.lIndex(key, index);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -454,7 +460,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		Long result = delegate.lInsert(key, where, pivot, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -462,7 +468,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lLen(byte[] key) {
 		Long result = delegate.lLen(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -470,7 +476,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] lPop(byte[] key) {
 		byte[] result = delegate.lPop(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -478,7 +484,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lPush(byte[] key, byte[] value) {
 		Long result = delegate.lPush(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -486,7 +492,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lPushX(byte[] key, byte[] value) {
 		Long result = delegate.lPushX(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -494,7 +500,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 		List<byte[]> results = delegate.lRange(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -502,7 +508,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lRem(byte[] key, long count, byte[] value) {
 		Long result = delegate.lRem(key, count, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -518,7 +524,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> mGet(byte[]... keys) {
 		List<byte[]> results = delegate.mGet(keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -530,7 +536,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
 		Boolean result = delegate.mSetNX(tuple);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -542,7 +548,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean persist(byte[] key) {
 		Boolean result = delegate.persist(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -550,7 +556,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean move(byte[] key, int dbIndex) {
 		Boolean result = delegate.move(key, dbIndex);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -558,7 +564,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public String ping() {
 		String result = delegate.ping();
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -570,7 +576,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long publish(byte[] channel, byte[] message) {
 		Long result = delegate.publish(channel, message);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -578,7 +584,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] randomKey() {
 		byte[] result = delegate.randomKey();
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -590,7 +596,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		Boolean result = delegate.renameNX(oldName, newName);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -602,7 +608,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] rPop(byte[] key) {
 		byte[] result = delegate.rPop(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -610,7 +616,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		byte[] result = delegate.rPopLPush(srcKey, dstKey);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -618,7 +624,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long rPush(byte[] key, byte[] value) {
 		Long result = delegate.rPush(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -626,7 +632,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long rPushX(byte[] key, byte[] value) {
 		Long result = delegate.rPushX(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -634,7 +640,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sAdd(byte[] key, byte[] value) {
 		Boolean result = delegate.sAdd(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -646,7 +652,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sCard(byte[] key) {
 		Long result = delegate.sCard(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -654,7 +660,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> sDiff(byte[]... keys) {
 		Set<byte[]> results = delegate.sDiff(keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -662,7 +668,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		Long result = delegate.sDiffStore(destKey, keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -690,7 +696,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean setNX(byte[] key, byte[] value) {
 		Boolean result = delegate.setNX(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -706,7 +712,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> sInter(byte[]... keys) {
 		Set<byte[]> results = delegate.sInter(keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -714,7 +720,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		Long result = delegate.sInterStore(destKey, keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -722,7 +728,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sIsMember(byte[] key, byte[] value) {
 		Boolean result = delegate.sIsMember(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -730,7 +736,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> sMembers(byte[] key) {
 		Set<byte[]> results = delegate.sMembers(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -738,7 +744,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		Boolean result = delegate.sMove(srcKey, destKey, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -746,7 +752,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 		Long result = delegate.sort(key, params, storeKey);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -754,7 +760,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 		List<byte[]> results = delegate.sort(key, params);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -762,7 +768,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] sPop(byte[] key) {
 		byte[] result = delegate.sPop(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -770,7 +776,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] sRandMember(byte[] key) {
 		byte[] result = delegate.sRandMember(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -778,7 +784,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<byte[]> sRandMember(byte[] key, long count) {
 		List<byte[]> results = delegate.sRandMember(key, count);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -786,7 +792,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sRem(byte[] key, byte[] value) {
 		Boolean result = delegate.sRem(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -794,7 +800,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long strLen(byte[] key) {
 		Long result = delegate.strLen(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -802,7 +808,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long bitCount(byte[] key) {
 		Long result = delegate.bitCount(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -810,7 +816,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long bitCount(byte[] key, long begin, long end) {
 		Long result = delegate.bitCount(key, begin, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -818,7 +824,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 		Long result = delegate.bitOp(op, destination, keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -830,7 +836,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> sUnion(byte[]... keys) {
 		Set<byte[]> results = delegate.sUnion(keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -838,7 +844,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		Long result = delegate.sUnionStore(destKey, keys);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -846,7 +852,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long ttl(byte[] key) {
 		Long result = delegate.ttl(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -854,7 +860,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public DataType type(byte[] key) {
 		DataType result = delegate.type(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -870,7 +876,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		Boolean result = delegate.zAdd(key, score, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -878,7 +884,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zCard(byte[] key) {
 		Long result = delegate.zCard(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -886,7 +892,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zCount(byte[] key, double min, double max) {
 		Long result = delegate.zCount(key, min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -894,7 +900,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		Double result = delegate.zIncrBy(key, increment, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -902,7 +908,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		Long result = delegate.zInterStore(destKey, aggregate, weights, sets);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -910,7 +916,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		Long result = delegate.zInterStore(destKey, sets);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -918,7 +924,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		Set<byte[]> results = delegate.zRange(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -926,7 +932,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		Set<byte[]> results = delegate.zRangeByScore(key, min, max, offset, count);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -934,7 +940,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -942,7 +948,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max, offset, count);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -950,7 +956,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -958,7 +964,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		Set<Tuple> results = delegate.zRangeWithScores(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -966,7 +972,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max, offset, count);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -974,7 +980,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -982,7 +988,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -990,7 +996,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -998,7 +1004,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRank(byte[] key, byte[] value) {
 		Long result = delegate.zRank(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1006,7 +1012,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean zRem(byte[] key, byte[] value) {
 		Boolean result = delegate.zRem(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1014,7 +1020,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRemRange(byte[] key, long start, long end) {
 		Long result = delegate.zRemRange(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1022,7 +1028,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		Long result = delegate.zRemRangeByScore(key, min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1030,7 +1036,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 		Set<byte[]> results = delegate.zRevRange(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -1038,7 +1044,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		Set<Tuple> results = delegate.zRevRangeWithScores(key, start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -1046,7 +1052,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRevRank(byte[] key, byte[] value) {
 		Long result = delegate.zRevRank(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1054,7 +1060,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double zScore(byte[] key, byte[] value) {
 		Double result = delegate.zScore(key, value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1062,7 +1068,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		Long result = delegate.zUnionStore(destKey, aggregate, weights, sets);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1070,7 +1076,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 		Long result = delegate.zUnionStore(destKey, sets);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1078,7 +1084,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean pExpire(byte[] key, long millis) {
 		Boolean result = delegate.pExpire(key, millis);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1086,7 +1092,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
 		Boolean result = delegate.pExpireAt(key, unixTimeInMillis);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1094,7 +1100,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long pTtl(byte[] key) {
 		Long result = delegate.pTtl(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1102,7 +1108,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public byte[] dump(byte[] key) {
 		byte[] result = delegate.dump(key);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1122,7 +1128,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public String scriptLoad(byte[] script) {
 		String result = delegate.scriptLoad(script);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1130,7 +1136,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public List<Boolean> scriptExists(String... scriptSha1) {
 		List<Boolean> results = delegate.scriptExists(scriptSha1);
 		if(isPipelined()) {
-			pipeline(identityConverter(results));
+			pipeline(identityConverter);
 		}
 		return results;
 	}
@@ -1138,7 +1144,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		T result = delegate.eval(script, returnType, numKeys, keysAndArgs);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1146,7 +1152,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1183,7 +1189,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long append(String key, String value) {
 		Long result = delegate.append(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1219,7 +1225,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long decr(String key) {
 		Long result = delegate.decr(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1228,7 +1234,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long decrBy(String key, long value) {
 		Long result = delegate.decrBy(serialize(key), value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1237,7 +1243,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long del(String... keys) {
 		Long result = delegate.del(serializeMulti(keys));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1255,7 +1261,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean exists(String key) {
 		Boolean result = delegate.exists(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1264,7 +1270,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean expire(String key, long seconds) {
 		Boolean result = delegate.expire(serialize(key), seconds);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1273,7 +1279,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean expireAt(String key, long unixTime) {
 		Boolean result = delegate.expireAt(serialize(key), unixTime);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1291,7 +1297,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean getBit(String key, long offset) {
 		Boolean result = delegate.getBit(serialize(key), offset);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1318,7 +1324,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hDel(String key, String field) {
 		Boolean result = delegate.hDel(serialize(key), serialize(field));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1327,7 +1333,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hExists(String key, String field) {
 		Boolean result = delegate.hExists(serialize(key), serialize(field));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1354,7 +1360,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long hIncrBy(String key, String field, long delta) {
 		Long result = delegate.hIncrBy(serialize(key), serialize(field), delta);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1362,7 +1368,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double hIncrBy(String key, String field, double delta) {
 		Double result = delegate.hIncrBy(serialize(key), serialize(field), delta);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1379,7 +1385,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long hLen(String key) {
 		Long result = delegate.hLen(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1401,7 +1407,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hSet(String key, String field, String value) {
 		Boolean result = delegate.hSet(serialize(key), serialize(field), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1410,7 +1416,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean hSetNX(String key, String field, String value) {
 		Boolean result = delegate.hSetNX(serialize(key), serialize(field), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1428,7 +1434,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long incr(String key) {
 		Long result = delegate.incr(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1437,7 +1443,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long incrBy(String key, long value) {
 		Long result = delegate.incrBy(serialize(key), value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1445,7 +1451,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double incrBy(String key, double value) {
 		Double result = delegate.incrBy(serialize(key), value);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1471,7 +1477,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lInsert(String key, Position where, String pivot, String value) {
 		Long result = delegate.lInsert(serialize(key), where, serialize(pivot), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1480,7 +1486,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lLen(String key) {
 		Long result = delegate.lLen(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1498,7 +1504,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lPush(String key, String value) {
 		Long result = delegate.lPush(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1507,7 +1513,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lPushX(String key, String value) {
 		Long result = delegate.lPushX(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1525,7 +1531,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long lRem(String key, long count, String value) {
 		Long result = delegate.lRem(serialize(key), count, serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1553,7 +1559,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean mSetNXString(Map<String, String> tuple) {
 		Boolean result = delegate.mSetNX(serialize(tuple));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1567,7 +1573,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean persist(String key) {
 		Boolean result = delegate.persist(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1576,7 +1582,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean move(String key, int dbIndex) {
 		Boolean result = delegate.move(serialize(key), dbIndex);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1590,7 +1596,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long publish(String channel, String message) {
 		Long result = delegate.publish(serialize(channel), serialize(message));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1604,7 +1610,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean renameNX(String oldName, String newName) {
 		Boolean result = delegate.renameNX(serialize(oldName), serialize(newName));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1631,7 +1637,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long rPush(String key, String value) {
 		Long result = delegate.rPush(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1640,7 +1646,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long rPushX(String key, String value) {
 		Long result = delegate.rPushX(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1649,7 +1655,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sAdd(String key, String value) {
 		Boolean result = delegate.sAdd(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1658,7 +1664,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sCard(String key) {
 		Long result = delegate.sCard(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1676,7 +1682,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sDiffStore(String destKey, String... keys) {
 		Long result = delegate.sDiffStore(serialize(destKey), serializeMulti(keys));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1700,7 +1706,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean setNX(String key, String value) {
 		Boolean result = delegate.setNX(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1723,7 +1729,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sInterStore(String destKey, String... keys) {
 		Long result = delegate.sInterStore(serialize(destKey), serializeMulti(keys));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1732,7 +1738,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sIsMember(String key, String value) {
 		Boolean result = delegate.sIsMember(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1750,7 +1756,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sMove(String srcKey, String destKey, String value) {
 		Boolean result = delegate.sMove(serialize(srcKey), serialize(destKey), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1759,7 +1765,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sort(String key, SortParameters params, String storeKey) {
 		Long result = delegate.sort(serialize(key), params, serialize(storeKey));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1802,7 +1808,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean sRem(String key, String value) {
 		Boolean result = delegate.sRem(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1810,7 +1816,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long strLen(String key) {
 		Long result = delegate.strLen(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1818,7 +1824,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long bitCount(String key) {
 		Long result = delegate.bitCount(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1826,7 +1832,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long bitCount(String key, long begin, long end) {
 		Long result = delegate.bitCount(serialize(key), begin, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1834,7 +1840,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long bitOp(BitOperation op, String destination, String... keys) {
 		Long result = delegate.bitOp(op, serialize(destination), serializeMulti(keys));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1856,7 +1862,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long sUnionStore(String destKey, String... keys) {
 		Long result = delegate.sUnionStore(serialize(destKey), serializeMulti(keys));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1865,7 +1871,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long ttl(String key) {
 		Long result = delegate.ttl(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1874,7 +1880,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public DataType type(String key) {
 		DataType result = delegate.type(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1883,7 +1889,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean zAdd(String key, double score, String value) {
 		Boolean result = delegate.zAdd(serialize(key), score, serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1892,7 +1898,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zCard(String key) {
 		Long result = delegate.zCard(serialize(key));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1901,7 +1907,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zCount(String key, double min, double max) {
 		Long result = delegate.zCount(serialize(key), min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1910,7 +1916,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double zIncrBy(String key, double increment, String value) {
 		Double result = delegate.zIncrBy(serialize(key), increment, serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1919,7 +1925,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
 		Long result = delegate.zInterStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1928,7 +1934,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zInterStore(String destKey, String... sets) {
 		Long result = delegate.zInterStore(serialize(destKey), serializeMulti(sets));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -1991,7 +1997,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRank(String key, String value) {
 		Long result = delegate.zRank(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2000,7 +2006,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Boolean zRem(String key, String value) {
 		Boolean result = delegate.zRem(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2009,7 +2015,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRemRange(String key, long start, long end) {
 		Long result = delegate.zRemRange(serialize(key), start, end);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2018,7 +2024,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRemRangeByScore(String key, double min, double max) {
 		Long result = delegate.zRemRangeByScore(serialize(key), min, max);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2077,7 +2083,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zRevRank(String key, String value) {
 		Long result = delegate.zRevRank(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2086,7 +2092,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Double zScore(String key, String value) {
 		Double result = delegate.zScore(serialize(key), serialize(value));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2095,7 +2101,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
 		Long result = delegate.zUnionStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2104,7 +2110,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Long zUnionStore(String destKey, String... sets) {
 		Long result = delegate.zUnionStore(serialize(destKey), serializeMulti(sets));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2150,7 +2156,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public Object execute(String command, byte[]... args) {
 		Object result = delegate.execute(command, args);
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2174,7 +2180,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public String scriptLoad(String script) {
 		String result = delegate.scriptLoad(serialize(script));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2187,7 +2193,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public <T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs) {
 		T result = delegate.eval(serialize(script), returnType, numKeys, serializeMulti(keysAndArgs));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2200,7 +2206,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs) {
 		T result = delegate.evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
 		if(isPipelined()) {
-			pipeline(identityConverter(result));
+			pipeline(identityConverter);
 		}
 		return result;
 	}
@@ -2214,10 +2220,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	 */
 	public void setDeserializePipelineResults(boolean deserializePipelineResults) {
 		this.deserializePipelineResults = deserializePipelineResults;
-	}
-
-	private <T> IdentityConverter<T> identityConverter(T foo) {
-		return new IdentityConverter<T>();
 	}
 
 	private void pipeline(Converter<?,?> converter) {
