@@ -15,27 +15,14 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.RedisVersionUtils;
-import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
-import org.springframework.data.redis.connection.DefaultStringTuple;
-import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.connection.ConvertingAbstractConnectionTransactionIntegrationTests;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import redis.clients.jedis.Tuple;
 
 /**
  * Integration test of {@link JedisConnection} transaction functionality.
@@ -50,7 +37,7 @@ import redis.clients.jedis.Tuple;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisConnectionTransactionIntegrationTests extends
-		AbstractConnectionTransactionIntegrationTests {
+		ConvertingAbstractConnectionTransactionIntegrationTests {
 
 	@After
 	public void tearDown() {
@@ -374,42 +361,5 @@ public class JedisConnectionTransactionIntegrationTests extends
 	@Test(expected = UnsupportedOperationException.class)
 	public void testLastSave() {
 		super.testLastSave();
-	}
-
-	@Test
-	public void exceptionExecuteNative() throws Exception {
-		actual.add(connection.execute("ZadD", getClass() + "#foo\t0.90\titem"));
-		try {
-			// In Redis 2.4, syntax error on queued commands are swallowed and no results are
-			// returned
-			verifyResults(Arrays.asList(new Object[] {}));
-			if (RedisVersionUtils.atLeast("2.6.5", connection)) {
-				fail("Redis 2.6 should throw an Exception on exec if commands are invalid");
-			}
-		} catch (InvalidDataAccessApiUsageException e) {
-		}
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object convertResult(Object result) {
-		Object convertedResult = super.convertResult(result);
-		if (convertedResult instanceof Set) {
-		    if (!(((Set) convertedResult).isEmpty())
-					&& ((Set) convertedResult).iterator().next() instanceof Tuple) {
-				Set<StringTuple> tuples = new LinkedHashSet<StringTuple>();
-				for (Tuple value : ((Set<Tuple>) convertedResult)) {
-					DefaultStringTuple tuple = new DefaultStringTuple(
-							(byte[]) value.getBinaryElement(), value.getElement(), value.getScore());
-					tuples.add(tuple);
-				}
-				return tuples;
-			}
-		}
-		return convertedResult;
-	}
-
-	@Override
-	protected DataAccessException convertException(Exception ex) {
-		return JedisConverters.toDataAccessException(ex);
 	}
 }

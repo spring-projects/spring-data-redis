@@ -63,18 +63,6 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 		assertEquals(1,pipelined.size());
 		List<Object> txResults = (List<Object>)pipelined.get(0);
 		// Return exec results and this test should behave exactly like its superclass
-		return convertResults(txResults);
-	}
-
-	@SuppressWarnings("unchecked")
-	protected List<Object> getResultsNoConversion() {
-		assertNull(connection.exec());
-		List<Object> pipelined = connection.closePipeline();
-		// We expect only the results of exec to be in the closed pipeline
-		assertEquals(1,pipelined.size());
-		List<Object> txResults = (List<Object>)pipelined.get(0);
-		// Return exec results and this test should behave exactly like its superclass
 		return txResults;
 	}
-
 }

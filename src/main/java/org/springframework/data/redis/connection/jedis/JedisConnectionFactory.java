@@ -51,7 +51,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private JedisPool pool = null;
 	private JedisPoolConfig poolConfig = new JedisPoolConfig();
 	private int dbIndex = 0;
-	private boolean convertPipelineResults = true;
+	private boolean convertPipelineAndTxResults = true;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance
@@ -147,7 +147,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		Jedis jedis = fetchJedisConnector();
 		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex) :
 			new JedisConnection(jedis, null, dbIndex));
-		connection.setConvertPipelineResults(convertPipelineResults);
+		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
 
@@ -304,23 +304,23 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
-	 * type returned by the Jedis driver
+	 * type. If false, results of {@link JedisConnection#closePipeline()} and
+	 * {@link JedisConnection#exec()} will be of the type returned by the Jedis driver
 	 *
-	 * @return Whether or not to convert pipeline results
+	 * @return Whether or not to convert pipeline and tx results
 	 */
-	public boolean getConvertPipelineResults() {
-		return convertPipelineResults;
+	public boolean getConvertPipelineAndTxResults() {
+		return convertPipelineAndTxResults;
 	}
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
-	 * type returned by the Jedis driver
+	 * type. If false, results of {@link JedisConnection#closePipeline()} and
+	 * {@link JedisConnection#exec()} will be of the type returned by the Jedis driver
 	 *
-	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
-	public void setConvertPipelineResults(boolean convertPipelineResults) {
-		this.convertPipelineResults = convertPipelineResults;
+	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
+		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 }

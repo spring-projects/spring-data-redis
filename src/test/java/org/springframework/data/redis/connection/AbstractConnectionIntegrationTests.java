@@ -685,8 +685,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(2, execResults.size());
-		assertEquals("value", new String((byte[]) execResults.get(1)));
+		assertEquals(Arrays.asList(new Object[] {"value"}), execResults);
 		assertEquals("value", connection.get("key"));
 	}
 
@@ -763,7 +762,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals("somethingelse", new String((byte[]) execResults.get(1)));
+		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), execResults);
 	}
 
 	@Test

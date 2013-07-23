@@ -115,7 +115,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals("somethingelse", new String((byte[]) execResults.get(1)));
+		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), execResults);
 	}
 
 	// Unsupported Ops

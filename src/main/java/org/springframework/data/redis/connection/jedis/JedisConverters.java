@@ -15,22 +15,17 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
@@ -38,9 +33,6 @@ import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.util.Assert;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
-import redis.clients.jedis.exceptions.JedisConnectionException;
-import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.SortingParams;
 import redis.clients.util.SafeEncoder;
 
@@ -57,6 +49,7 @@ abstract public class JedisConverters extends Converters {
 	private static final SetConverter<String, byte[]> STRING_SET_TO_BYTE_SET;
 	private static final MapConverter<String, byte[]> STRING_MAP_TO_BYTE_MAP;
 	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_TO_TUPLE_SET;
+	private static final Converter<Exception,DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
 
 	static {
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
@@ -96,6 +89,10 @@ abstract public class JedisConverters extends Converters {
 		return TUPLE_SET_TO_TUPLE_SET;
 	}
 
+	public static Converter<Exception,DataAccessException> exceptionConverter() {
+		return EXCEPTION_CONVERTER;
+	}
+
 	public static String[] toStrings(byte[][] source) {
 		String[] result = new String[source.length];
 		for (int i = 0; i < source.length; i++) {
@@ -117,22 +114,7 @@ abstract public class JedisConverters extends Converters {
 	}
 
 	public static DataAccessException toDataAccessException(Exception ex) {
-		if (ex instanceof JedisDataException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
-		if (ex instanceof JedisConnectionException) {
-			return new RedisConnectionFailureException(ex.getMessage(), ex);
-		}
-		if (ex instanceof JedisException) {
-			return new InvalidDataAccessApiUsageException(ex.getMessage(), ex);
-		}
-		if (ex instanceof UnknownHostException) {
-			return new RedisConnectionFailureException("Unknown host " + ex.getMessage(), ex);
-		}
-		if (ex instanceof IOException) {
-			return new RedisConnectionFailureException("Could not connect to Redis server", ex);
-		}
-		return new RedisSystemException("Unknown jedis exception", ex);
+		return EXCEPTION_CONVERTER.convert(ex);
 	}
 
 	public static LIST_POSITION toListPosition(Position source) {

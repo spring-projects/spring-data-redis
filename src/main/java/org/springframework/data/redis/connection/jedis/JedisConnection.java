@@ -192,8 +192,7 @@ public class JedisConnection implements RedisConnection {
 				});
 				if(isPipelined()) {
 					pipeline(new JedisResult(result));
-				}
-				if(isQueueing()) {
+				}else {
 					transaction(new JedisResult(result));
 				}
 				return null;
@@ -314,6 +313,11 @@ public class JedisConnection implements RedisConnection {
 					cause = dataAccessException;
 				}
 				results.add(dataAccessException);
+			}catch(DataAccessException e) {
+				if (cause == null) {
+					cause = e;
+				}
+				results.add(e);
 			}
 		}
 		if (cause != null) {
@@ -425,7 +429,7 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.flushDB()));
+				transaction(new JedisStatusResult(transaction.flushDB()));
 				return;
 			}
 			jedis.flushDB();
@@ -699,11 +703,13 @@ public class JedisConnection implements RedisConnection {
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.exec(),
-						new TransactionResultConverter<Response<?>>(new LinkedList<FutureResult<Response<?>>>(txResults))));
+						new TransactionResultConverter<Response<?>>(new LinkedList<FutureResult<Response<?>>>(txResults),
+								JedisConverters.exceptionConverter())));
 				return null;
 			}
 			List<Object> results = transaction.exec();
-			return convertPipelineAndTxResults ? new TransactionResultConverter<Response<?>>(txResults).convert(results) : results;
+			return convertPipelineAndTxResults ? new TransactionResultConverter<Response<?>>(txResults,
+					JedisConverters.exceptionConverter()).convert(results) : results;
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		} finally {
