@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.redis.connection.ConvertingAbstractConnectionTransactionIntegrationTests;
+import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,7 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("SrpConnectionIntegrationTests-context.xml")
-public class SrpConnectionTransactionIntegrationTests extends ConvertingAbstractConnectionTransactionIntegrationTests {
+public class SrpConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")

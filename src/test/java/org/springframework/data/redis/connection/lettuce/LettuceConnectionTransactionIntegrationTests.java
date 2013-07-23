@@ -17,30 +17,17 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.DefaultStringTuple;
-import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.lambdaworks.redis.KeyValue;
-import com.lambdaworks.redis.ScoredValue;
 
 /**
  * Integration test of {@link LettuceConnection} functionality within a
@@ -54,139 +41,9 @@ import com.lambdaworks.redis.ScoredValue;
 public class LettuceConnectionTransactionIntegrationTests extends
 		AbstractConnectionTransactionIntegrationTests {
 
-	private boolean convertListToSet;
-
-
 	@Test
-	@Ignore("Exceptions on native execute are swallowed in tx")
+	@Ignore("DATAREDIS-226 Exceptions on native execute are swallowed in tx")
 	public void exceptionExecuteNative() throws Exception {
-	}
-
-	// Native Lettuce returns ZSets as Lists
-	@Test
-	public void testZAddAndZRange() {
-		convertListToSet = true;
-		super.testZAddAndZRange();
-	}
-
-	@Test
-	public void testZIncrBy() {
-		convertListToSet = true;
-		super.testZIncrBy();
-	}
-
-	@Test
-	public void testZInterStore() {
-		convertListToSet = true;
-		super.testZInterStore();
-	}
-
-	@Test
-	public void testZInterStoreAggWeights() {
-		convertListToSet = true;
-		super.testZInterStoreAggWeights();
-	}
-
-	@Test
-	public void testZRangeWithScores() {
-		convertListToSet = true;
-		super.testZRangeWithScores();
-	}
-
-	@Test
-	public void testZRangeByScore() {
-		convertListToSet = true;
-		super.testZRangeByScore();
-	}
-
-	@Test
-	public void testZRangeByScoreOffsetCount() {
-		convertListToSet = true;
-		super.testZRangeByScoreOffsetCount();
-	}
-
-	@Test
-	public void testZRangeByScoreWithScores() {
-		convertListToSet = true;
-		super.testZRangeByScoreWithScores();
-	}
-
-	@Test
-	public void testZRangeByScoreWithScoresOffsetCount() {
-		convertListToSet = true;
-		super.testZRangeByScoreWithScoresOffsetCount();
-	}
-
-	@Test
-	public void testZRevRangeByScoreOffsetCount() {
-		convertListToSet = true;
-		super.testZRevRangeByScoreOffsetCount();
-	}
-
-	@Test
-	public void testZRevRangeByScore() {
-		convertListToSet = true;
-		super.testZRevRangeByScore();
-	}
-
-	@Test
-	public void testZRevRange() {
-		convertListToSet = true;
-		super.testZRevRange();
-	}
-
-	@Test
-	public void testZRevRangeWithScores() {
-		convertListToSet = true;
-		super.testZRevRangeWithScores();
-	}
-
-	@Test
-	public void testZRem() {
-		convertListToSet = true;
-		super.testZRem();
-	}
-
-	@Test
-	public void testZRemRangeByRank() {
-		convertListToSet = true;
-		super.testZRemRangeByRank();
-	}
-
-	@Test
-	public void testZRemRangeByScore() {
-		convertListToSet = true;
-		super.testZRemRangeByScore();
-	}
-
-	@Test
-	public void testZUnionStore() {
-		convertListToSet = true;
-		super.testZUnionStore();
-	}
-
-	@Test
-	public void testZUnionStoreAggWeights() {
-		convertListToSet = true;
-		super.testZUnionStoreAggWeights();
-	}
-
-	@Test
-	public void testBitSet() throws Exception {
-		convertLongToBoolean = false;
-		String key = "bitset-test";
-		connection.setBit(key, 0, false);
-		connection.setBit(key, 1, true);
-		actual.add(connection.getBit(key, 0));
-		actual.add(connection.getBit(key, 1));
-		// Lettuce setBit returns Long instead of void
-		verifyResults(Arrays.asList(new Object[] { 0l, 0l, 0l, 1l }));
-	}
-
-	@Test
-	public void testHKeys() {
-		convertListToSet = true;
-		super.testHKeys();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -198,12 +55,6 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
-	}
-
-	@Test
-	public void testSortStoreNullParams() {
-		convertLongToBoolean = false;
-		super.testSortStoreNullParams();
 	}
 
 	@Test
@@ -229,44 +80,5 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	@Test(expected=UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Override
-	protected Object convertResult(Object result) {
-		if (!convert) {
-			return result;
-		}
-		Object convertedResult = super.convertResult(result);
-		if (convertedResult instanceof KeyValue) {
-			List<String> keyValue = new ArrayList<String>();
-			keyValue.add((String) super.convertResult(((KeyValue) convertedResult).key));
-			keyValue.add((String) super.convertResult(((KeyValue) convertedResult).value));
-			return keyValue;
-		}
-		if (convertedResult instanceof List && !(((List) result).isEmpty())
-				&& ((List) convertedResult).get(0) instanceof ScoredValue) {
-			Set<Tuple> tuples = LettuceConverters.toTupleSet((List) convertedResult);
-			return new SetConverter<Tuple, StringTuple>(new TupleConverter())
-					.convert(tuples);
-		}
-		if (convertListToSet && convertedResult instanceof List) {
-			return new LinkedHashSet((List) convertedResult);
-		}
-		if (convertStringToProps && convertedResult instanceof String) {
-			return LettuceConverters.toProperties((String) convertedResult);
-		}
-		return convertedResult;
-	}
-
-	private class TupleConverter implements Converter<Tuple, StringTuple> {
-		public StringTuple convert(Tuple source) {
-			return new DefaultStringTuple(source, stringSerializer.deserialize(source.getValue()));
-		}
-	}
-
-	@Override
-	protected DataAccessException convertException(Exception ex) {
-		return LettuceConverters.toDataAccessException(ex);
 	}
 }

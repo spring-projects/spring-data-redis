@@ -19,7 +19,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.redis.connection.ConvertingAbstractConnectionTransactionIntegrationTests;
+import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,7 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisConnectionTransactionIntegrationTests extends
-		ConvertingAbstractConnectionTransactionIntegrationTests {
+		AbstractConnectionTransactionIntegrationTests {
 
 	@After
 	public void tearDown() {

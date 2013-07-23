@@ -21,7 +21,6 @@ import static org.junit.Assume.assumeTrue;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -38,8 +37,6 @@ import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.lambdaworks.redis.RedisException;
 
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
@@ -128,20 +125,5 @@ public class LettuceConnectionPipelineIntegrationTests extends
 			}
 			conn2.close();
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testErrorInTx() {
-		connection.multi();
-		connection.set("foo","bar");
-		// Try to do a list op on a value
-		connection.lPop("foo");
-		connection.exec();
-		List<Object> results = getResults();
-		List<Object> execResults = (List<Object>)results.get(0);
-		// Lettuce puts the Exception in the exec results instead of throwing an Exception on exec
-		// This should be fixed in DATAREDIS-208 when we convert results of tx.exec()
-		assertTrue(execResults.get(1) instanceof RedisException);
 	}
 }

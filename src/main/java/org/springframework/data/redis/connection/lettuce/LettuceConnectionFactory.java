@@ -71,7 +71,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
 	private String password;
-	private boolean convertPipelineResults = true;
+	private boolean convertPipelineAndTxResults = true;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with
@@ -108,7 +108,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	public RedisConnection getConnection() {
 		LettuceConnection connection = new LettuceConnection(getSharedConnection(), timeout, client, pool);
-		connection.setConvertPipelineResults(convertPipelineResults);
+		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
 
@@ -302,24 +302,24 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
-	 * type returned by the Jedis driver
+	 * type. If false, results of {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()}
+	 * will be of the type returned by the Lettuce driver
 	 *
-	 * @return Whether or not to convert pipeline results
+	 * @return Whether or not to convert pipeline and tx results
 	 */
-	public boolean getConvertPipelineResults() {
-		return convertPipelineResults;
+	public boolean getConvertPipelineAndTxResults() {
+		return convertPipelineAndTxResults;
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link #closePipeline()} will be of the
-	 * type returned by the Jedis driver
+	 * Specifies if pipelined and transaction results should be converted to the expected data
+	 * type. If false, results of {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()}
+	 * will be of the type returned by the Lettuce driver
 	 *
-	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
-	public void setConvertPipelineResults(boolean convertPipelineResults) {
-		this.convertPipelineResults = convertPipelineResults;
+	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
+		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
 	protected RedisAsyncConnection<byte[], byte[]> getSharedConnection() {
