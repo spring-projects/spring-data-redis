@@ -56,7 +56,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	private Queue<Converter> pipelineConverters = new LinkedList<Converter>();
 	@SuppressWarnings("rawtypes")
 	private Queue<Converter> txConverters = new LinkedList<Converter>();
-	private boolean deserializePipelineAndTxResults = true;
+	private boolean deserializePipelineAndTxResults = false;
 	private IdentityConverter identityConverter = new IdentityConverter();
 
 	private class DeserializingConverter implements Converter<byte[],String> {

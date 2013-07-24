@@ -88,6 +88,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setUp() {
 		byteConnection = connectionFactory.getConnection();
 		connection = new DefaultStringRedisConnection(byteConnection);
+		((DefaultStringRedisConnection)connection).setDeserializePipelineAndTxResults(true);
 		initConnection();
 	}
 

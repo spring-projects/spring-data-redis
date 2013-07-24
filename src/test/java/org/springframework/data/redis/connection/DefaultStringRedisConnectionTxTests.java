@@ -16,6 +16,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	@Before
 	public void setUp() {
 		super.setUp();
+		connection.setDeserializePipelineAndTxResults(true);
 		when(nativeConnection.isQueueing()).thenReturn(true);
 	}
 

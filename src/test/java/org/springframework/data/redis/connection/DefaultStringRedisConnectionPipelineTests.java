@@ -37,6 +37,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 	@Before
 	public void setUp() {
 		super.setUp();
+		connection.setDeserializePipelineAndTxResults(true);
 		when(nativeConnection.isPipelined()).thenReturn(true);
 	}
 
