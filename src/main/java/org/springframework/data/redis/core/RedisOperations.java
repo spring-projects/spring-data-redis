@@ -120,6 +120,19 @@ public interface RedisOperations<K, V> {
 
 	List<Object> exec();
 
+	/**
+	 * Execute a transaction, using the provided {@link RedisSerializer} to deserialize
+	 * any results that are byte[]s or Collections of byte[]s. If a result is a Map, the
+	 * provided {@link RedisSerializer} will be used for both the keys and values. Other result
+	 * types (Long, Boolean, etc) are left as-is in the converted results. Tuple results are
+	 * automatically converted to TypedTuples.
+	 *
+	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results
+	 * of transaction exec
+	 * @return The deserialized results of transaction exec
+	 */
+	List<Object> exec(RedisSerializer<?> valueSerializer);
+
 	// pubsub functionality on the template
 	void convertAndSend(String destination, Object message);
 

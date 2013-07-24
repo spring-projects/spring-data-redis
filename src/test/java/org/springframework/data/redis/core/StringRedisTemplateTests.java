@@ -19,16 +19,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
@@ -110,5 +123,96 @@ public class StringRedisTemplateTests {
 			}
 		});
 		assertEquals(value,"it");
+	}
+
+	@Test
+	public void testExecDeserializes() {
+		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+				operations.multi();
+				operations.opsForValue().set("foo", "bar");
+				// byte[]
+				operations.opsForValue().get("foo");
+				operations.opsForList().leftPush("foolist", "something");
+				// List<byte[]>
+				operations.opsForList().range("foolist", 0l, 1l);
+				operations.opsForSet().add("fooset", "a");
+				// Set<byte[]>
+				operations.opsForSet().members("fooset");
+				operations.opsForZSet().add("foozset", "Joe", 1d);
+				// Set<TypedTuple>
+				operations.opsForZSet().rangeWithScores("foozset", 0l, -1l);
+				operations.opsForHash().put("foomap", "test", "passed");
+				// Map<byte[],byte[]>
+				operations.opsForHash().entries("foomap");
+				return operations.exec();
+			}
+		});
+		List<String> list = Collections.singletonList("something");
+		Set<String> stringSet = new HashSet<String>(Collections.singletonList("a"));
+		Set<TypedTuple<String>> tupleSet = new LinkedHashSet<TypedTuple<String>>(
+				Collections.singletonList(new DefaultTypedTuple<String>("Joe", 1d)));
+		Map<String,String> map = new LinkedHashMap<String,String>();
+		map.put("test", "passed");
+		assertEquals(Arrays.asList(new Object[] {"bar", 1l, list, true, stringSet, true, tupleSet, true, map}),
+				results);
+	}
+
+	@Test
+	public void testExecCustomSerializer() {
+		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+				operations.multi();
+				operations.opsForValue().set("foo", "5");
+				// byte[]
+				operations.opsForValue().get("foo");
+				operations.opsForList().leftPush("foolist", "6");
+				// List<byte[]>
+				operations.opsForList().range("foolist", 0l, 1l);
+				operations.opsForSet().add("fooset", "7");
+				// Set<byte[]>
+				operations.opsForSet().members("fooset");
+				operations.opsForZSet().add("foozset", "9", 1d);
+				// Set<TypedTuple>
+				operations.opsForZSet().rangeWithScores("foozset", 0l, -1l);
+				operations.opsForZSet().range("foozset", 0, -1);
+				operations.opsForHash().put("foomap", "10", "11");
+				// Map<byte[],byte[]>
+				operations.opsForHash().entries("foomap");
+				return operations.exec(new GenericToStringSerializer<Long>(Long.class));
+			}
+		});
+		// Everything should be converted to Longs
+		List<Long> list = Collections.singletonList(6l);
+		Set<Long> longSet = new HashSet<Long>(Collections.singletonList(7l));
+		Set<TypedTuple<Long>> tupleSet = new LinkedHashSet<TypedTuple<Long>>(
+				Collections.singletonList(new DefaultTypedTuple<Long>(9l, 1d)));
+		Set<Long> zSet = new LinkedHashSet<Long>(Collections.singletonList(9l));
+		Map<Long, Long> map = new LinkedHashMap<Long,Long>();
+		map.put(10l, 11l);
+		assertEquals(Arrays.asList(new Object[] {5l, 1l, list, true, longSet, true, tupleSet, zSet, true, map}),
+				results);
+	}
+
+	@Test
+	public void testExecConversionDisabled() {
+		SrpConnectionFactory factory2 = new SrpConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		factory2.setConvertPipelineAndTxResults(false);
+		factory2.afterPropertiesSet();
+		StringRedisTemplate template = new StringRedisTemplate(factory2);
+		template.afterPropertiesSet();
+		List<Object> results = template.execute(new SessionCallback<List<Object>>() {
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+				operations.multi();
+				operations.opsForValue().set("foo","bar");
+				operations.opsForValue().get("foo");
+				return operations.exec();
+			}
+		});
+		// first value is "OK" from set call, results should still be in byte[]
+		assertEquals("bar", new String((byte[])results.get(1)));
 	}
 }

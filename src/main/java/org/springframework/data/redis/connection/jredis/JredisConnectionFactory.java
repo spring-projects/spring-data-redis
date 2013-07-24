@@ -201,4 +201,11 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 		this.dbIndex = index;
 	}
+
+	/**
+	 * {@link JredisConnection} does not support pipeline or transactions
+	 */
+	public boolean getConvertPipelineAndTxResults() {
+		return false;
+	}
 }

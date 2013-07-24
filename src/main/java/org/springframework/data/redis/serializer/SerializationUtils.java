@@ -80,4 +80,17 @@ public abstract class SerializationUtils {
 		}
 		return ret;
 	}
+
+	public static <HK,HV> Map<HK, HV> deserialize(Map<byte[], byte[]> rawValues,
+			RedisSerializer<HK> hashKeySerializer, RedisSerializer<HV> hashValueSerializer) {
+		if (rawValues == null) {
+			return null;
+		}
+		Map<HK, HV> map = new LinkedHashMap<HK, HV>(rawValues.size());
+		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
+			map.put((HK) hashKeySerializer.deserialize(entry.getKey()),
+					(HV) hashValueSerializer.deserialize(entry.getValue()));
+		}
+		return map;
+	}
 }

@@ -31,4 +31,17 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * @return connection for interacting with Redis.
 	 */
 	RedisConnection getConnection();
+
+	/**
+	 * Specifies if pipelined results should be converted to the expected data
+	 * type. If false, results of {@link RedisConnection#closePipeline()} and {RedisConnection#exec()}
+	 * will be of the type returned by the underlying driver
+	 *
+	 * This method is mostly for backwards compatibility with 1.0. It is generally
+	 * always a good idea to allow results to be converted and deserialized.
+	 * In fact, this is now the default behavior.
+	 *
+	 * @return Whether or not to convert pipeline and tx results
+	 */
+	boolean getConvertPipelineAndTxResults();
 }

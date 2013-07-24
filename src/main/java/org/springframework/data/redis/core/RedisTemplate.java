@@ -20,15 +20,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.QueryUtils;
 import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -414,14 +419,87 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return (K) keySerializer.deserialize(value);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private List<Object> deserializeMixedResults(List<Object> rawValues, RedisSerializer valueSerializer,
+			RedisSerializer hashKeySerializer, RedisSerializer hashValueSerializer) {
+		if(rawValues == null) {
+			return null;
+		}
+		List<Object> values = new ArrayList<Object>();
+		for(Object rawValue: rawValues) {
+			if(rawValue instanceof byte[]) {
+				values.add(valueSerializer.deserialize((byte[])rawValue));
+			} else if(rawValue instanceof List) {
+				// Lists are the only potential Collections of mixed values....
+				values.add(deserializeMixedResults((List)rawValue, valueSerializer, hashKeySerializer, hashValueSerializer));
+			} else if(rawValue instanceof Set && !(((Set)rawValue).isEmpty())) {
+				values.add(deserializeSet((Set)rawValue, valueSerializer));
+			} else if(rawValue instanceof Map && !(((Map)rawValue).isEmpty()) &&
+					((Map)rawValue).values().iterator().next() instanceof byte[]) {
+				values.add(SerializationUtils.deserialize((Map)rawValue, hashKeySerializer, hashValueSerializer));
+			} else {
+				values.add(rawValue);
+			}
+		}
+		return values;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private Set<?> deserializeSet(Set rawSet, RedisSerializer valueSerializer) {
+		if(rawSet.isEmpty()) {
+			return rawSet;
+		}
+		Object setValue = rawSet.iterator().next();
+		if(setValue instanceof byte[]) {
+			return (SerializationUtils.deserialize((Set)rawSet, valueSerializer));
+		}else if(setValue instanceof Tuple) {
+			return deserializeTupleValues(rawSet, valueSerializer);
+		} else {
+			return rawSet;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues, RedisSerializer valueSerializer) {
+		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
+		for (Tuple rawValue : rawValues) {
+			set.add(new DefaultTypedTuple(valueSerializer.deserialize(rawValue.getValue()), rawValue.getScore()));
+		}
+		return set;
+	}
+
 	//
 	// RedisOperations
 	//
 
+	/**
+	 * Execute a transaction, using the default {@link RedisSerializer}s to deserialize
+	 * any results that are byte[]s or Collections or Maps of byte[]s or Tuples. Other result
+	 * types (Long, Boolean, etc) are left as-is in the converted results.
+	 *
+	 * If conversion of tx results has been disabled in the {@link ConnectionFactory},
+	 * the results of exec will be returned without deserialization. This check is mostly for
+	 * backwards compatibility with 1.0.
+	 *
+	 * @return The (possibly deserialized) results of transaction exec
+	 */
 	public List<Object> exec() {
+		List<Object> results = execRaw();
+		if(getConnectionFactory().getConvertPipelineAndTxResults()) {
+			return deserializeMixedResults(results, valueSerializer,
+					hashKeySerializer, hashValueSerializer);
+		} else {
+			return results;
+		}
+	}
+
+	public List<Object> exec(RedisSerializer<?> valueSerializer) {
+		return deserializeMixedResults(execRaw(), valueSerializer, valueSerializer,
+				valueSerializer);
+	}
+
+	protected List<Object> execRaw() {
 		return execute(new RedisCallback<List<Object>>() {
-
-
 			public List<Object> doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.exec();
 			}
