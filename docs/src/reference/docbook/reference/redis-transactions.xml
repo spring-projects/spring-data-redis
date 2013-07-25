@@ -10,7 +10,7 @@
    as when using Redis transactions. For example:
    </para>
 
-   <programlisting lang="java"><![CDATA[ //execute a transaction
+   <programlisting language="java"><![CDATA[ //execute a transaction
 redisTemplate.execute(new SessionCallback<Object>() {
 	public Object execute(RedisOperations operations) throws DataAccessException {
 		operations.multi();

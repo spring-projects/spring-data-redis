@@ -29,7 +29,7 @@
 	requires raw-data (array of bytes), the <classname>RedisTemplate</classname> allow arbitrary objects to be passed
 	in as messages:</para>
 	
-	<programlisting lang="java"><![CDATA[// send message through connection
+	<programlisting language="java">// send message through connection
 RedisConnection con = ...
 byte[] msg = ...
 byte[] channel = ...
@@ -38,7 +38,8 @@ con.publish(msg, channel);
 
 // send message through RedisTemplate
 RedisTemplate template = ...
-template.convertAndSend("hello!", "world");]]></programlisting>	
+template.convertAndSend("hello!", "world");
+</programlisting>
   </section>
   	
   <section id="redis:pubsub:subscribe">
