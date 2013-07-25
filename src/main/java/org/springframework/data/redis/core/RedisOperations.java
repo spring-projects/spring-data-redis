@@ -64,16 +64,45 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(SessionCallback<T> session);
 
-	//	/**
-	//	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback <b>cannot</b>
-	//	 * return a non-null value as it gets overwritten by the pipeline.
-	//	 * 
-	//	 * @param <T> list element return type
-	//	 * @param action callback object to execute 
-	//	 * @return list of objects returned by the pipeline
-	//	 */
-	//	List<V> executePipelined(RedisCallback<?> action);
+	/**
+	* Executes the given action object on a pipelined connection, returning the results. Note that the callback <b>cannot</b>
+	* return a non-null value as it gets overwritten by the pipeline.
+	*
+	* This method will use the default serializers to deserialize results
+	*
+	* @param action callback object to execute
+	* @return list of objects returned by the pipeline
+	*/
+	List<Object> executePipelined(RedisCallback<?> action);
 
+	/**
+	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
+	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 *
+	 * @param action callback object to execute
+	 * @param resultSerializer The Serializer to use for individual values or Collections of values. If any
+	 * returned values are hashes, this serializer will be used to deserialize both the key and value
+	 * @return list of objects returned by the pipeline
+	 */
+	List<Object> executePipelined(final RedisCallback<?> action, final RedisSerializer<?> resultSerializer);
+
+	/**
+	 * Executes the given Redis session on a pipelined connection. Allows transactions to be pipelined.
+	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 * @param session Session callback
+	 * @return list of objects returned by the pipeline
+	 */
+	List<Object> executePipelined(final SessionCallback<?> session);
+
+	/**
+	 * Executes the given Redis session on a pipelined connection, returning the results using a dedicated serializer.
+	 * Allows transactions to be pipelined.
+	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 * @param session Session callback
+	 * @param resultSerializer
+	 * @return list of objects returned by the pipeline
+	 */
+	List<Object> executePipelined(final SessionCallback<?> session, final RedisSerializer<?> resultSerializer);
 
 	Boolean hasKey(K key);
 

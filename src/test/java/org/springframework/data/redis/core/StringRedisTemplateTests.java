@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
@@ -214,5 +215,96 @@ public class StringRedisTemplateTests {
 		});
 		// first value is "OK" from set call, results should still be in byte[]
 		assertEquals("bar", new String((byte[])results.get(1)));
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testExecutePipelined() {
+		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
+				stringRedisConn.set("foo", "bar");
+				stringRedisConn.get("foo");
+				stringRedisConn.rPush("foolist", "a");
+				stringRedisConn.rPush("foolist", "b");
+				stringRedisConn.lRange("foolist", 0, -1);
+				return null;
+			}
+		});
+		assertEquals(Arrays.asList(new Object[] {"bar", 1l, 2l, Arrays.asList(new String[] {"a", "b"})}), results);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testExecutePipelinedCustomSerializer() {
+		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
+				stringRedisConn.set("foo", "5");
+				stringRedisConn.get("foo");
+				stringRedisConn.rPush("foolist", "10");
+				stringRedisConn.rPush("foolist", "11");
+				stringRedisConn.lRange("foolist", 0, -1);
+				return null;
+			}
+		}, new GenericToStringSerializer<Long>(Long.class));
+		assertEquals(Arrays.asList(new Object[] {5l, 1l, 2l, Arrays.asList(new Long[] {10l, 11l})}), results);
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	public void testExecutePipelinedNonNullRedisCallback() {
+		redisTemplate.executePipelined(new RedisCallback<String>() {
+			public String doInRedis(RedisConnection connection) throws DataAccessException {
+				return "Hey There";
+			}
+		});
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	@Test
+	public void testExecutePipelinedTx() {
+		List<Object> pipelinedResults = redisTemplate.executePipelined(new SessionCallback() {
+			public Object execute(RedisOperations operations) throws DataAccessException {
+				operations.multi();
+				operations.opsForList().leftPush("foo", "bar");
+				operations.opsForList().rightPop("foo");
+				operations.opsForList().size("foo");
+				operations.exec();
+				operations.opsForValue().set("foo", "bar");
+				operations.opsForValue().get("foo");
+				return null;
+			}
+		});
+		// Should contain the List of deserialized exec results and the result of the last call to get()
+		assertEquals(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, "bar", 0l}), "bar"}), pipelinedResults);
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	@Test
+	public void testExecutePipelinedTxCustomSerializer() {
+		List<Object> pipelinedResults = redisTemplate.executePipelined(new SessionCallback() {
+			public Object execute(RedisOperations operations) throws DataAccessException {
+				operations.multi();
+				operations.opsForList().leftPush("fooList", "5");
+				operations.opsForList().rightPop("fooList");
+				operations.opsForList().size("fooList");
+				operations.exec();
+				operations.opsForValue().set("foo", "2");
+				operations.opsForValue().get("foo");
+				return null;
+			}
+		},new GenericToStringSerializer<Long>(Long.class));
+		// Should contain the List of deserialized exec results and the result of the last call to get()
+		assertEquals(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, 5l, 0l}), 2l}), pipelinedResults);
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	public void testExecutePipelinedNonNullSessionCallback() {
+		redisTemplate.executePipelined(new SessionCallback<String>() {
+			@SuppressWarnings("rawtypes")
+			public String execute(RedisOperations operations) throws DataAccessException {
+				return "Whatup";
+			}
+		});
 	}
 }
