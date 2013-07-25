@@ -150,6 +150,9 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues) {
+		if(rawValues == null) {
+			return null;
+		}
 		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
 			set.add(new DefaultTypedTuple(valueSerializer().deserialize(rawValue.getValue()), rawValue.getScore()));
