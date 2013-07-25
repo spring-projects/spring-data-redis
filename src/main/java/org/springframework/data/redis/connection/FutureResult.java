@@ -82,7 +82,7 @@ abstract public class FutureResult<T> {
 	 * Indicates if this result is the status of an operation. Typically status results will be
 	 * discarded on conversion.
 	 *
-	 * @status true if this is a status result (i.e. OK)
+	 * @return true if this is a status result (i.e. OK)
 	 */
 	public void setStatus(boolean status) {
 		this.status = status;

@@ -511,7 +511,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * any results that are byte[]s or Collections or Maps of byte[]s or Tuples. Other result
 	 * types (Long, Boolean, etc) are left as-is in the converted results.
 	 *
-	 * If conversion of tx results has been disabled in the {@link ConnectionFactory},
+	 * If conversion of tx results has been disabled in the {@link RedisConnectionFactory},
 	 * the results of exec will be returned without deserialization. This check is mostly for
 	 * backwards compatibility with 1.0.
 	 *

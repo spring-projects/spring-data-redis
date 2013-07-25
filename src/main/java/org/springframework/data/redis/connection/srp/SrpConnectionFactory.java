@@ -133,7 +133,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	 * type. If false, results of {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()}
 	 * will be of the type returned by the SRP driver
 	 *
-	 * @param convertPipelineResults Whether or not to convert pipeline and tx results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;

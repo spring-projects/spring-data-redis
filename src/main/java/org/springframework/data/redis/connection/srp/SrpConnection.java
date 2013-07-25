@@ -2183,7 +2183,7 @@ public class SrpConnection implements RedisConnection {
 	 * type. If false, results of {@link #closePipeline()} and {@link #exec()} will be of the
 	 * type returned by the Lettuce driver
 	 *
-	 * @param convertPipelineResults Whether or not to convert pipeline results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
