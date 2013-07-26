@@ -190,11 +190,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			// technically speaking we can only be notified right before the subscription starts
 			synchronized (monitor) {
 				lazyListen();
-				try {
-					// wait up to 5 seconds
-					monitor.wait(initWait);
-				} catch (InterruptedException e) {
-					// stop waiting
+				if(listening) {
+					try {
+						// wait up to 5 seconds for Subscription thread
+						monitor.wait(initWait);
+					} catch (InterruptedException e) {
+						// stop waiting
+					}
 				}
 			}
 

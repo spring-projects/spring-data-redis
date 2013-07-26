@@ -45,6 +45,7 @@ import org.springframework.data.redis.support.collections.ObjectFactory;
  * Base test class for PubSub integration tests
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 @RunWith(Parameterized.class)
 public class PubSubTests<T> {
@@ -53,11 +54,13 @@ public class PubSubTests<T> {
 
 	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
+	@SuppressWarnings("rawtypes")
 	protected RedisTemplate template;
 
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
 
 	private final Object handler = new Object() {
+		@SuppressWarnings("unused")
 		public void handleMessage(String message) {
 			bag.add(message);
 		}
@@ -89,6 +92,7 @@ public class PubSubTests<T> {
 		container.destroy();
 	}
 
+	@SuppressWarnings("rawtypes")
 	public PubSubTests(ObjectFactory<T> factory, RedisTemplate template) {
 		this.factory = factory;
 		this.template = template;
@@ -150,5 +154,13 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload2);
 
 		assertNull(bag.poll(1, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void testStartNoListeners() {
+		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
+		container.stop();
+		// DATREDIS-207 This test previously took 5 seconds on start due to monitor wait
+		container.start();
 	}
 }
