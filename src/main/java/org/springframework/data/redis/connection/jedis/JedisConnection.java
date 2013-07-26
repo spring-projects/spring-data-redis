@@ -138,7 +138,6 @@ public class JedisConnection implements RedisConnection {
 			broken = true;
 			return JedisUtils.convertJedisAccessException((IOException) ex);
 		}
-
 		return new RedisSystemException("Unknown jedis exception", ex);
 	}
 
@@ -173,24 +172,28 @@ public class JedisConnection implements RedisConnection {
 
 	public void close() throws DataAccessException {
 		// return the connection to the pool
-		try {
-			if (pool != null) {
-				if (!broken) {
-					// reset the connection 
+		if (pool != null) {
+			if (!broken) {
+				// reset the connection
+				try {
 					if (dbIndex > 0) {
-						select(0);
+						jedis.select(0);
 					}
 					pool.returnResource(jedis);
 					return;
+				}catch(Exception ex) {
+					DataAccessException dae = convertJedisAccessException(ex);
+					if(broken) {
+						pool.returnBrokenResource(jedis);
+					}else {
+						pool.returnResource(jedis);
+					}
+					throw dae;
 				}
+			}else {
+				pool.returnBrokenResource(jedis);
+				return;
 			}
-		} catch (Exception ex) {
-			// exceptions are handled below
-		}
-
-		if (pool != null && broken) {
-			pool.returnBrokenResource(jedis);
-			return;
 		}
 
 		// else close the connection normally (doing the try/catch dance)

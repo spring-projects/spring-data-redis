@@ -90,6 +90,10 @@ public class JedisConnectionTransactionIntegrationTests extends
 	public void testOpenPipelineTwice() {
 	}
 
+	@Ignore
+	public void testClosePoolPipelinedDbSelect() {
+	}
+
 	// Unsupported Ops
 
 	@Test(expected = RedisSystemException.class)
