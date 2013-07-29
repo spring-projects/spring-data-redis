@@ -24,11 +24,15 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * Integration test of {@link JedisConnection} pipeline functionality
@@ -116,6 +120,24 @@ public class JedisConnectionPipelineIntegrationTests extends
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
 		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), execResults);
+	}
+
+	@Test
+	//DATAREDIS-213 - Verify connection returns to pool after select
+	public void testClosePoolPipelinedDbSelect() {
+		JedisPoolConfig config = new JedisPoolConfig();
+		config.setMaxActive(1);
+		config.setMaxWait(1l);
+		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
+		factory2.setHostName(SettingsUtils.getHost());
+		factory2.setPort(SettingsUtils.getPort());
+		factory2.setDatabase(1);
+		factory2.afterPropertiesSet();
+		RedisConnection conn2 = factory2.getConnection();
+		conn2.openPipeline();
+		conn2.close();
+		factory2.getConnection();
+		factory2.destroy();
 	}
 
 	// Unsupported Ops

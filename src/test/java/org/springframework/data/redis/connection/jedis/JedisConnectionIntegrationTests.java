@@ -20,11 +20,15 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * Integration test of {@link JedisConnection}
@@ -187,6 +191,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.afterPropertiesSet();
 		// No way to really verify we are in the selected DB
 		factory2.getConnection().ping();
+		factory2.destroy();
 	}
 
 	@Test(expected=InvalidDataAccessApiUsageException.class)
@@ -195,6 +200,22 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.setDatabase(77);
 		factory2.afterPropertiesSet();
 		factory2.getConnection();
+		factory2.destroy();
+	}
+
+	@Test
+	public void testClosePool() {
+		JedisPoolConfig config = new JedisPoolConfig();
+		config.setMaxActive(1);
+		config.setMaxWait(1l);
+		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
+		factory2.setHostName(SettingsUtils.getHost());
+		factory2.setPort(SettingsUtils.getPort());
+		factory2.afterPropertiesSet();
+		RedisConnection conn2 = factory2.getConnection();
+		conn2.close();
+		factory2.getConnection();
+		factory2.destroy();
 	}
 
 	@Test(expected=InvalidDataAccessApiUsageException.class)
