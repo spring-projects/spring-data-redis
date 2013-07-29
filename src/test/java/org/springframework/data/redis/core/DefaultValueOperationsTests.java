@@ -19,13 +19,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +42,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -165,5 +169,114 @@ public class DefaultValueOperationsTests<K,V> {
 		keysAndValues.put(key1, value2);
 		keysAndValues.put(key2, value3);
 		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
+	}
+
+	@Test
+	public void testMultiSet() {
+		Map<K,V> keysAndValues = new HashMap<K,V>();
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		keysAndValues.put(key1, value1);
+		keysAndValues.put(key2, value2);
+		valueOps.multiSet(keysAndValues);
+		assertEquals(new ArrayList<V>(keysAndValues.values()), valueOps.multiGet(keysAndValues.keySet()));
+	}
+
+	@Test
+	public void testGetSet() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		valueOps.set(key1,value1);
+		assertEquals(value1, valueOps.get(key1));
+	}
+
+	@Test
+	public void testGetAndSet() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		valueOps.set(key1, value1);
+		assertEquals(value1, valueOps.getAndSet(key1, value2));
+	}
+
+	@Test
+	public void testSetWithExpiration() {
+		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		valueOps.set(key1, value1, 1, TimeUnit.MILLISECONDS);
+		waitFor(new TestCondition() {
+			public boolean passes() {
+				return (!redisTemplate.hasKey(key1));
+			}
+		}, 1000);
+	}
+
+	@Test
+	public void testAppend() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		assumeTrue(value1 instanceof String);
+		valueOps.set(key1, value1);
+		assertEquals(Integer.valueOf(((String)value1).length() + 3), valueOps.append(key1, "aaa"));
+		assertEquals((String)value1 + "aaa",valueOps.get(key1));
+	}
+
+	@Test
+	public void testGetRange() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		assumeTrue(value1 instanceof String);
+		valueOps.set(key1, value1);
+		assertEquals(2,valueOps.get(key1, 0, 1).length());
+	}
+
+	@Test
+	public void testSetRange() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		assumeTrue(value1 instanceof String);
+		valueOps.set(key1, value1);
+		valueOps.set(key1, value2, 0);
+		assertEquals(value2, valueOps.get(key1));
+	}
+
+	@Test
+	public void testSetIfAbsent() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		assertTrue(valueOps.setIfAbsent(key1, value1));
+		assertFalse(valueOps.setIfAbsent(key1, value2));
+	}
+
+	@Test
+	public void testSize() {
+		K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		valueOps.set(key1, value1);
+		assertTrue(valueOps.size(key1) > 0);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRawKeys() {
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		byte[][] rawKeys = ((DefaultValueOperations)valueOps).rawKeys(key1, key2);
+		assertEquals(2, rawKeys.length);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
+	public void testRawKeysCollection() {
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		byte[][] rawKeys = ((DefaultValueOperations)valueOps).rawKeys(Arrays.asList(new Object[] {key1, key2}));
+		assertEquals(2, rawKeys.length);
 	}
 }

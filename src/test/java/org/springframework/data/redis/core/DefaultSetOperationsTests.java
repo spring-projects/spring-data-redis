@@ -22,6 +22,8 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -122,5 +124,42 @@ public class DefaultSetOperationsTests<K,V> {
 			fail("IllegalArgumentException should be thrown");
 		}catch(IllegalArgumentException e) {
 		}
+	}
+
+	@Test
+	public void testMove() {
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		setOps.add(key1, v1);
+		setOps.add(key1, v2);
+		setOps.move(key1, v1, key2);
+		assertEquals(new HashSet<V>(Collections.singletonList(v2)),
+				setOps.members(key1));
+		assertEquals(new HashSet<V>(Collections.singletonList(v1)),
+				setOps.members(key2));
+	}
+
+	@Test
+	public void testPop() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		setOps.add(key, v1);
+		assertEquals(v1, setOps.pop(key));
+		assertTrue(setOps.members(key).isEmpty());
+	}
+
+	@Test
+	public void testRandomMember() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		setOps.add(key, v1);
+		setOps.add(key, v2);
+		HashSet<V> expected = new HashSet<V>();
+		expected.add(v1);
+		expected.add(v2);
+		assertTrue(expected.contains(setOps.randomMember(key)));
 	}
 }

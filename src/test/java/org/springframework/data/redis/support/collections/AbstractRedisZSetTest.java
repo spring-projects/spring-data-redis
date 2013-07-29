@@ -35,11 +35,13 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * Integration test for Redis ZSet.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTests<T> {
 
@@ -51,6 +53,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	 * @param factory
 	 * @param template
 	 */
+	@SuppressWarnings("rawtypes")
 	public AbstractRedisZSetTest(ObjectFactory<T> factory, RedisTemplate template) {
 		super(factory, template);
 	}
@@ -189,10 +192,12 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertEquals(1, zSet.getDefaultScore(), 0);
 	}
 
+	@SuppressWarnings("unchecked")
 	private RedisZSet<T> createZSetFor(String key) {
 		return new DefaultRedisZSet<T>((BoundZSetOperations<String, T>) zSet.getOperations().boundZSetOps(key));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testIntersectAndStore() {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
@@ -240,6 +245,29 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	}
 
 	@Test
+	public void testRangeWithScores() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		Set<TypedTuple<T>> range = zSet.rangeWithScores(1, 2);
+		assertEquals(2, range.size());
+
+		Iterator<TypedTuple<T>> iterator = range.iterator();
+		TypedTuple<T> tuple1 = iterator.next();
+		assertEquals(t2, tuple1.getValue());
+		assertEquals(Double.valueOf(2), tuple1.getScore());
+
+		TypedTuple<T> tuple2 = iterator.next();
+		assertEquals(t3, tuple2.getValue());
+		assertEquals(Double.valueOf(3), tuple2.getScore());
+	}
+
+	@Test
 	public void testReverseRange() {
 		T t1 = getT();
 		T t2 = getT();
@@ -256,6 +284,71 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertEquals(t1, iterator.next());
 	}
 
+	@Test
+	public void testReverseRangeWithScores() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		Set<TypedTuple<T>> range = zSet.reverseRangeWithScores(1, 2);
+		assertEquals(2, range.size());
+
+		Iterator<TypedTuple<T>> iterator = range.iterator();
+		TypedTuple<T> tuple1 = iterator.next();
+		assertEquals(t2, tuple1.getValue());
+		assertEquals(Double.valueOf(2), tuple1.getScore());
+
+		TypedTuple<T> tuple2 = iterator.next();
+		assertEquals(t1, tuple2.getValue());
+		assertEquals(Double.valueOf(1), tuple2.getScore());
+	}
+
+	@Test
+	public void testReverseRangeByScore() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		Set<T> range = zSet.reverseRangeByScore(1.5, 3.5);
+		assertEquals(2, range.size());
+		Iterator<T> iterator = range.iterator();
+		assertEquals(t3, iterator.next());
+		assertEquals(t2, iterator.next());
+	}
+
+	@Test
+	public void testReverseRangeByScoreWithScores() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		Set<TypedTuple<T>> range = zSet.reverseRangeByScoreWithScores(1.5, 3.5);
+		assertEquals(2, range.size());
+
+		Iterator<TypedTuple<T>> iterator = range.iterator();
+		TypedTuple<T> tuple1 = iterator.next();
+		assertEquals(t3, tuple1.getValue());
+		assertEquals(Double.valueOf(3), tuple1.getScore());
+
+		TypedTuple<T> tuple2 = iterator.next();
+		assertEquals(t2, tuple2.getValue());
+		assertEquals(Double.valueOf(2), tuple2.getScore());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
 	public void testRangeByScore() {
 		T t1 = getT();
 		T t2 = getT();
@@ -272,6 +365,29 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		Iterator<T> iterator = range.iterator();
 		assertEquals(t2, iterator.next());
 		assertEquals(t3, iterator.next());
+	}
+
+	@Test
+	public void testRangeByScoreWithScores() {
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+
+		Set<TypedTuple<T>> range = zSet.rangeByScoreWithScores(1.5, 3.5);
+		assertEquals(2, range.size());
+
+		Iterator<TypedTuple<T>> iterator = range.iterator();
+		TypedTuple<T> tuple1 = iterator.next();
+		assertEquals(t2, tuple1.getValue());
+		assertEquals(Double.valueOf(2), tuple1.getScore());
+
+		TypedTuple<T> tuple2 = iterator.next();
+		assertEquals(t3, tuple2.getValue());
+		assertEquals(Double.valueOf(3), tuple2.getScore());
 	}
 
 	@Test
@@ -315,6 +431,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertEquals(t4, iterator.next());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnionAndStore() {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
@@ -366,7 +483,6 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertFalse(iterator.hasNext());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testToArray() {
 		T t1 = getT();
@@ -383,7 +499,6 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertArrayEquals(new Object[] { t1, t2, t3, t4 }, array);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testToArrayWithGenerics() {
 		T t1 = getT();

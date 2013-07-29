@@ -17,16 +17,19 @@ package org.springframework.data.redis.support.collections;
 
 import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.*;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -35,6 +38,7 @@ import org.springframework.data.redis.support.collections.RedisList;
  * Integration test for RedisList
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionTests<T> {
 
@@ -46,6 +50,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	 * @param factory
 	 * @param template
 	 */
+	@SuppressWarnings("rawtypes")
 	public AbstractRedisListTests(ObjectFactory<T> factory, RedisTemplate template) {
 		super(factory, template);
 	}
@@ -98,6 +103,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(1, t3);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void addAllIndexCollectionHead() {
 		T t1 = getT();
@@ -117,6 +123,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertEquals(t4, list.get(1));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void addAllIndexCollectionTail() {
 		T t1 = getT();
@@ -137,6 +144,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertEquals(t4, list.get(3));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expected = IllegalArgumentException.class)
 	public void addAllIndexCollectionMiddle() {
 		T t1 = getT();
@@ -221,6 +229,16 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	}
 
 	@Test
+	public void testPollTimeout() throws InterruptedException {
+		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		T t1 = getT();
+		list.add(t1);
+		assertEquals(t1, list.poll(1, TimeUnit.MILLISECONDS));
+		assertNull(list.poll(1, TimeUnit.MILLISECONDS));
+	}
+
+	@Test
 	public void testRemove() {
 		try {
 			list.remove();
@@ -267,6 +285,16 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	}
 
 	@Test
+	public void testSet() {
+		T t1 = getT();
+		T t2 = getT();
+		list.add(t1);
+		list.set(0, t1);
+		assertEquals(t1, list.set(0, t2));
+		assertEquals(t2, list.get(0));
+	}
+
+	@Test
 	public void testTrim() {
 		T t1 = getT();
 		T t2 = getT();
@@ -280,6 +308,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertEquals(t1, list.get(0));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testCappedCollection() throws Exception {
 		RedisList<T> cappedList = new DefaultRedisList<T>(template.boundListOps(collection.getKey() + ":capped"), 1);
@@ -332,6 +361,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDrainToCollectionWithMaxElements() {
 		T t1 = getT();
@@ -351,6 +381,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertThat(c, hasItems(t1, t2));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDrainToCollection() {
 		T t1 = getT();
@@ -426,6 +457,22 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(t2);
 
 		T last = list.pollLast();
+		assertEquals(t2, last);
+		assertEquals(1, list.size());
+		assertThat(list, hasItem(t1));
+	}
+
+	@Test
+	public void testPollLastTimeout() throws InterruptedException {
+		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		T t1 = getT();
+		T t2 = getT();
+
+		list.add(t1);
+		list.add(t2);
+
+		T last = list.pollLast(1, TimeUnit.MILLISECONDS);
 		assertEquals(t2, last);
 		assertEquals(1, list.size());
 		assertThat(list, hasItem(t1));

@@ -61,6 +61,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * Integration test for Redis Map.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractRedisMapTests<K, V> {
@@ -68,6 +69,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	protected RedisMap<K, V> map;
 	protected ObjectFactory<K> keyFactory;
 	protected ObjectFactory<V> valueFactory;
+	@SuppressWarnings("rawtypes")
 	protected RedisTemplate template;
 
 	abstract RedisMap<K, V> createMap();
@@ -77,6 +79,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map = createMap();
 	}
 
+	@SuppressWarnings("rawtypes")
 	public AbstractRedisMapTests(ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisTemplate template) {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
@@ -97,10 +100,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		return valueFactory.instance();
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected RedisStore copyStore(RedisStore store) {
 		return new DefaultRedisMap(store.getKey(), store.getOperations());
 	}
 
+	@SuppressWarnings("unchecked")
 	@After
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
@@ -246,6 +251,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertTrue(map.isEmpty());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testKeySet() {
 		map.clear();
@@ -337,6 +343,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertEquals(0, map.size());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testValues() {
 		V v1 = getValue();
@@ -356,6 +363,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(values, hasItems(v1, v2, v3));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntrySet() {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
@@ -388,9 +396,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(values, not(hasItem(v2)));
 	}
 
-
-	//@Test(expected = UnsupportedOperationException.class)
-	public void testConcurrentPutIfAbsent() {
+	@Test
+	public void testPutIfAbsent() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		K k1 = getKey();
 		K k2 = getKey();
 
@@ -412,7 +420,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 	public void testConcurrentRemove() {
 		K k1 = getKey();
 		V v1 = getValue();
-		V v2 = getValue();
 
 		map.put(k1, v1);
 		assertFalse(map.remove(k1, v1));
