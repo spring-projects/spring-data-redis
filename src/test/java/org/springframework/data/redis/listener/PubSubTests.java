@@ -37,9 +37,9 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.support.collections.ObjectFactory;
 
 /**
  * Base test class for PubSub integration tests

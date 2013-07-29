@@ -36,6 +36,7 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	private static final String REDIS_26 = "2.6";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
 	private static Version redisVersion;
+	private static final RedisTestProfileValueSource INSTANCE = new RedisTestProfileValueSource();
 
 	public RedisTestProfileValueSource() {
 		if (redisVersion == null) {
@@ -59,5 +60,9 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 			throw new UnsupportedOperationException("Only Redis 2.4 and higher are supported");
 		}
 		return System.getProperty(key);
+	}
+
+	public static boolean matches(String key, String value) {
+		return INSTANCE.get(key) != null ? INSTANCE.get(key).equals(value) : value == null;
 	}
 }

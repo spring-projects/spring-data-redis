@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.support.collections;
+package org.springframework.data.redis;
 
 import java.util.Random;
 
@@ -23,7 +23,7 @@ import java.util.Random;
  * @author Jennifer Hickey
  *
  */
-public class DoubleObjectFactory implements ObjectFactory<String> {
+public class DoubleAsStringObjectFactory implements ObjectFactory<String> {
 
 	private Random random = new Random(System.currentTimeMillis());
 

@@ -46,6 +46,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.DoubleAsStringObjectFactory;
+import org.springframework.data.redis.LongAsStringObjectFactory;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.ConnectionUtils;
@@ -198,7 +201,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testIncrementNotNumber() {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()) &&
-				!(valueFactory instanceof LongObjectFactory));
+				!(valueFactory instanceof LongAsStringObjectFactory));
 		K k1 = getKey();
 		V v1 = getValue();
 
@@ -215,7 +218,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testIncrement() {
-		assumeTrue(valueFactory instanceof LongObjectFactory);
+		assumeTrue(valueFactory instanceof LongAsStringObjectFactory);
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);
@@ -225,7 +228,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testIncrementDouble() {
 		assumeTrue(RedisVersionUtils.atLeast("2.6", template.getConnectionFactory().getConnection()) &&
-				valueFactory instanceof DoubleObjectFactory);
+				valueFactory instanceof DoubleAsStringObjectFactory);
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);

@@ -18,8 +18,11 @@ package org.springframework.data.redis.support.collections;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisPool;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;

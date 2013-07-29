@@ -30,10 +30,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.support.collections.ObjectFactory;
 
 /**
  * @author Costin Leau

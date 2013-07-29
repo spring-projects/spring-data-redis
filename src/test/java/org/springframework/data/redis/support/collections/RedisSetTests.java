@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.AbstractRedisCollection;
 import org.springframework.data.redis.support.collections.DefaultRedisSet;

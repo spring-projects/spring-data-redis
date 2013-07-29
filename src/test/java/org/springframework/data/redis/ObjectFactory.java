@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.support.collections;
-
-import java.util.UUID;
-
-import org.springframework.data.redis.Address;
-import org.springframework.data.redis.Person;
+package org.springframework.data.redis;
 
 /**
+ * Simple object factory. 
+ * 
  * @author Costin Leau
  */
-public class PersonObjectFactory implements ObjectFactory<Person> {
+public interface ObjectFactory<T> {
 
-	private int counter = 0;
-
-	
-	public Person instance() {
-		String uuid = UUID.randomUUID().toString();
-		return new Person(uuid, uuid, ++counter, new Address(uuid, counter));
-	}
+	T instance();
 }

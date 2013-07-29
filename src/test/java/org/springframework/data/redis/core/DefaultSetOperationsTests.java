@@ -15,21 +15,25 @@
  */
 package org.springframework.data.redis.core;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.test.annotation.IfProfileValue;
-import org.springframework.test.annotation.ProfileValueSourceConfiguration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Integration test of {@link DefaultSetOperations}
@@ -37,15 +41,28 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Jennifer Hickey
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("StringRedisTemplateTests-context.xml")
-@ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
-public class DefaultSetOperationsTests {
+@RunWith(Parameterized.class)
+public class DefaultSetOperationsTests<K,V> {
 	
-	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
-	
-	private SetOperations<String, String> setOps;
+	private RedisTemplate<K,V> redisTemplate;
+
+	private ObjectFactory<K> keyFactory;
+
+	private ObjectFactory<V> valueFactory;
+
+	private SetOperations<K,V> setOps;
+
+	public DefaultSetOperationsTests(RedisTemplate<K,V> redisTemplate, ObjectFactory<K> keyFactory,
+			ObjectFactory<V> valueFactory) {
+		this.redisTemplate = redisTemplate;
+		this.keyFactory = keyFactory;
+		this.valueFactory = valueFactory;
+	}
+
+	@Parameters
+	public static Collection<Object[]> testParams() {
+		return AbstractOperationsTestParams.testParams();
+	}
 	
 	@Before
 	public void setUp() {
@@ -54,37 +71,56 @@ public class DefaultSetOperationsTests {
 
 	@After
 	public void tearDown() {
-		redisTemplate.getConnectionFactory().getConnection().flushDb();
+		redisTemplate.execute(new RedisCallback<Object>() {
+			public Object doInRedis(RedisConnection connection) {
+				connection.flushDb();
+				return null;
+			}
+		});
 	}
 	
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testDistinctRandomMembers() {
-		setOps.add("test", "foo");
-		setOps.add("test", "bar");
-		setOps.add("test", "baz");
-		Set<String> members = setOps.distinctRandomMembers("test", 2);
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+		K setKey = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		setOps.add(setKey, v1);
+		setOps.add(setKey, v2);
+		setOps.add(setKey, v3);
+		Set<V> members = setOps.distinctRandomMembers(setKey, 2);
 		assertEquals(2, members.size());
-		assertTrue(Arrays.asList(new String[] {"foo", "bar", "baz"}).containsAll(members));
+		assertTrue(Arrays.asList(new Object[] {v1, v2, v3}).containsAll(members));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRandomMembersWithDuplicates() {
-		setOps.add("test", "foo");
-		List<String> members = setOps.randomMembers("test", 2);
-		assertEquals(Arrays.asList(new String[] {"foo", "foo"}), members);
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+		K setKey = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		setOps.add(setKey, v1);
+		List<V> members = setOps.randomMembers(setKey, 2);
+		assertEquals(Arrays.asList(new Object[] {v1, v1}), members);
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@Test
 	public void testRandomMembersNegative() {
-		setOps.randomMembers("test", -1);
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+		try {
+			setOps.randomMembers(keyFactory.instance(), -1);
+			fail("IllegalArgumentException should be thrown");
+		}catch(IllegalArgumentException e) {
+		}
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@Test
 	public void testDistinctRandomMembersNegative() {
-		setOps.distinctRandomMembers("test", -2);
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+		try {
+			setOps.distinctRandomMembers(keyFactory.instance(), -2);
+			fail("IllegalArgumentException should be thrown");
+		}catch(IllegalArgumentException e) {
+		}
 	}
 }

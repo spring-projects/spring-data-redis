@@ -19,8 +19,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.DoubleAsStringObjectFactory;
+import org.springframework.data.redis.LongAsStringObjectFactory;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisPool;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
@@ -67,8 +72,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
-		ObjectFactory<String> doubleFactory = new DoubleObjectFactory();
-		ObjectFactory<String> longFactory = new LongObjectFactory();
+		ObjectFactory<String> doubleFactory = new DoubleAsStringObjectFactory();
+		ObjectFactory<String> longFactory = new LongAsStringObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(true);

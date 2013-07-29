@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;

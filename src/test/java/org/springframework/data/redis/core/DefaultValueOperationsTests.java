@@ -16,8 +16,13 @@
 package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,12 +31,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.DoubleObjectFactory;
+import org.springframework.data.redis.LongObjectFactory;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.test.annotation.IfProfileValue;
-import org.springframework.test.annotation.ProfileValueSourceConfiguration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -39,15 +50,50 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Jennifer Hickey
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("StringRedisTemplateTests-context.xml")
-@ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
-public class DefaultValueOperationsTests {
+@RunWith(Parameterized.class)
+public class DefaultValueOperationsTests<K,V> {
 
-	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
+	private RedisTemplate<K,V> redisTemplate;
 
-	private ValueOperations<String, String> valueOps;
+	private ObjectFactory<K> keyFactory;
+
+	private ObjectFactory<V> valueFactory;
+
+	private ValueOperations<K, V> valueOps;
+
+	public DefaultValueOperationsTests(RedisTemplate<K,V> redisTemplate, ObjectFactory<K> keyFactory,
+			ObjectFactory<V> valueFactory) {
+		this.redisTemplate = redisTemplate;
+		this.keyFactory = keyFactory;
+		this.valueFactory = valueFactory;
+	}
+
+	@Parameters
+	public static Collection<Object[]> testParams() {
+		ObjectFactory<String> stringFactory = new StringObjectFactory();
+		ObjectFactory<Long> longFactory = new LongObjectFactory();
+		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
+		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
+		srConnFactory.setPort(SettingsUtils.getPort());
+		srConnFactory.setHostName(SettingsUtils.getHost());
+		srConnFactory.afterPropertiesSet();
+		RedisTemplate<String,String> stringTemplate = new StringRedisTemplate();
+		stringTemplate.setConnectionFactory(srConnFactory);
+		stringTemplate.afterPropertiesSet();
+		RedisTemplate<String,Long> longTemplate = new RedisTemplate<String,Long>();
+		longTemplate.setKeySerializer(new StringRedisSerializer());
+		longTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		longTemplate.setConnectionFactory(srConnFactory);
+		longTemplate.afterPropertiesSet();
+		RedisTemplate<String,Double> doubleTemplate = new RedisTemplate<String,Double>();
+		doubleTemplate.setKeySerializer(new StringRedisSerializer());
+		doubleTemplate.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
+		doubleTemplate.setConnectionFactory(srConnFactory);
+		doubleTemplate.afterPropertiesSet();
+		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory },
+			{ longTemplate, stringFactory, longFactory }, { doubleTemplate, stringFactory, doubleFactory }
+		});
+	}
 
 	@Before
 	public void setUp() {
@@ -56,46 +102,68 @@ public class DefaultValueOperationsTests {
 
 	@After
 	public void tearDown() {
-		redisTemplate.getConnectionFactory().getConnection().flushDb();
+		redisTemplate.execute(new RedisCallback<Object>() {
+			public Object doInRedis(RedisConnection connection) {
+				connection.flushDb();
+				return null;
+			}
+		});
 	}
 
 	@Test
 	public void testIncrementLong() throws Exception {
-		String key = "test.template.inc";
-		valueOps.set(key, "10");
-		assertEquals(Long.valueOf(0), valueOps.increment(key, -10));
-		assertEquals(0, Integer.valueOf(valueOps.get(key)).intValue());
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		assumeTrue(v1 instanceof Long);
+		valueOps.set(key, v1);
+		assertEquals(Long.valueOf((Long)v1 - 10), valueOps.increment(key, -10));
+		assertEquals(Long.valueOf((Long)v1 - 10), (Long)valueOps.get(key));
 		valueOps.increment(key, -10);
-		assertEquals(-10, Integer.valueOf(valueOps.get(key)).intValue());
+		assertEquals(Long.valueOf((Long)v1 - 20), (Long)valueOps.get(key));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testIncrementDouble() {
-		String key = "test.template.inc";
-		valueOps.set(key, "10.5");
-		assertEquals(Double.valueOf(11.9), valueOps.increment(key, 1.4));
-		assertEquals("11.9", valueOps.get(key));
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		assumeTrue(v1 instanceof Double);
+		valueOps.set(key, v1);
+		DecimalFormat twoDForm = new DecimalFormat("#.##");
+		assertEquals(twoDForm.format(Double.valueOf((Double)v1 + 1.4)),
+				twoDForm.format(valueOps.increment(key, 1.4)));
+		assertEquals(twoDForm.format(Double.valueOf((Double)v1 + 1.4)),
+				twoDForm.format((Double) valueOps.get(key)));
 		valueOps.increment(key, -10d);
-		assertEquals("1.9", valueOps.get(key));
+		assertEquals(twoDForm.format(Double.valueOf((Double)v1 + 1.4 - 10d)),
+				twoDForm.format((Double) valueOps.get(key)));
 	}
 
 	@Test
 	public void testMultiSetIfAbsent() {
-		Map<String,String> keysAndValues = new HashMap<String,String>();
-		keysAndValues.put("foo", "bar");
-		keysAndValues.put("baz", "test");
+		Map<K,V> keysAndValues = new HashMap<K,V>();
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		keysAndValues.put(key1, value1);
+		keysAndValues.put(key2, value2);
 		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
-		assertEquals(new HashSet<String>(keysAndValues.values()),
-				new HashSet<String>(valueOps.multiGet(keysAndValues.keySet())));
+		assertEquals(new HashSet<V>(keysAndValues.values()),
+				new HashSet<V>(valueOps.multiGet(keysAndValues.keySet())));
 	}
 
 	@Test
 	public void testMultiSetIfAbsentFailure() {
-		valueOps.set("foo", "alreadyset");
-		Map<String,String> keysAndValues = new HashMap<String,String>();
-		keysAndValues.put("foo", "bar");
-		keysAndValues.put("baz", "test");
+		K key1 = keyFactory.instance();
+		K key2 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		valueOps.set(key1, value1);
+		Map<K,V> keysAndValues = new HashMap<K,V>();
+		keysAndValues.put(key1, value2);
+		keysAndValues.put(key2, value3);
 		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
 	}
 }

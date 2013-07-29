@@ -37,9 +37,9 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.CollectionTestParams;
-import org.springframework.data.redis.support.collections.ObjectFactory;
 
 /**
  * @author Costin Leau

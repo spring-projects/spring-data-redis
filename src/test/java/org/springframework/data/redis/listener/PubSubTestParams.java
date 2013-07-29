@@ -18,16 +18,16 @@ package org.springframework.data.redis.listener;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
+import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.support.collections.ObjectFactory;
-import org.springframework.data.redis.support.collections.PersonObjectFactory;
-import org.springframework.data.redis.support.collections.StringObjectFactory;
 
 /**
  * @author Costin Leau
