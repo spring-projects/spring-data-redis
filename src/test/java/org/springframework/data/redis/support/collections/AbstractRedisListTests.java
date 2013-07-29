@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -231,7 +232,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	@Test
 	public void testPollTimeout() throws InterruptedException {
 		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true") &&
+				!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		list.add(t1);
 		assertEquals(t1, list.poll(1, TimeUnit.MILLISECONDS));
@@ -465,7 +467,8 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 	@Test
 	public void testPollLastTimeout() throws InterruptedException {
 		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true") &&
+				!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 

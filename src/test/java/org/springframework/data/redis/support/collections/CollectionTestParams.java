@@ -161,14 +161,14 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateLtc.afterPropertiesSet();
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate },
-				//{ stringFactory, stringTemplateJR },
-				//{ personFactory, personTemplateJR }, 
+				{ stringFactory, stringTemplateJR },
+				{ personFactory, personTemplateJR },
 				{ personFactory, personTemplate },
 				{ stringFactory, xstreamStringTemplate }, { personFactory, xstreamPersonTemplate },
-				//{ stringFactory, xstreamStringTemplateJR }, 
-				//{ personFactory, xstreamPersonTemplateJR },
+				{ stringFactory, xstreamStringTemplateJR },
+				{ personFactory, xstreamPersonTemplateJR },
 				{ personFactory, jsonPersonTemplate },
-				//{ personFactory, jsonPersonTemplateJR },
+				{ personFactory, jsonPersonTemplateJR },
 				// srp
 				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
 				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },

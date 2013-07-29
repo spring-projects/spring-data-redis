@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -38,6 +39,7 @@ import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.CollectionTestParams;
 
@@ -78,6 +80,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Before
 	public void setUp() throws Exception {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		ConnectionFactoryTracker.add(template.getConnectionFactory());
 		super.setUp();
 	}

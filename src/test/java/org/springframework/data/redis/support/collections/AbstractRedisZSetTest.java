@@ -246,6 +246,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testRangeWithScores() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -286,6 +287,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testReverseRangeWithScores() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -309,6 +311,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testReverseRangeByScore() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -326,6 +329,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testReverseRangeByScoreWithScores() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
@@ -369,6 +373,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	@Test
 	public void testRangeByScoreWithScores() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 		T t3 = getT();
