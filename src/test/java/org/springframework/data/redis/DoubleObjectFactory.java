@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis;
 
+import java.text.DecimalFormat;
 import java.util.Random;
 
 /**
@@ -27,8 +28,10 @@ public class DoubleObjectFactory implements ObjectFactory<Double> {
 
 	private Random random = new Random(System.currentTimeMillis());
 
+	private static final DecimalFormat TWO_D_FORM = new DecimalFormat("#.##");
+
 	public Double instance() {
-		return random.nextDouble();
+		return Double.valueOf(TWO_D_FORM.format(random.nextDouble()));
 	}
 
 }

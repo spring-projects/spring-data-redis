@@ -74,29 +74,7 @@ public class DefaultValueOperationsTests<K,V> {
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
-		ObjectFactory<String> stringFactory = new StringObjectFactory();
-		ObjectFactory<Long> longFactory = new LongObjectFactory();
-		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
-		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
-		srConnFactory.setPort(SettingsUtils.getPort());
-		srConnFactory.setHostName(SettingsUtils.getHost());
-		srConnFactory.afterPropertiesSet();
-		RedisTemplate<String,String> stringTemplate = new StringRedisTemplate();
-		stringTemplate.setConnectionFactory(srConnFactory);
-		stringTemplate.afterPropertiesSet();
-		RedisTemplate<String,Long> longTemplate = new RedisTemplate<String,Long>();
-		longTemplate.setKeySerializer(new StringRedisSerializer());
-		longTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		longTemplate.setConnectionFactory(srConnFactory);
-		longTemplate.afterPropertiesSet();
-		RedisTemplate<String,Double> doubleTemplate = new RedisTemplate<String,Double>();
-		doubleTemplate.setKeySerializer(new StringRedisSerializer());
-		doubleTemplate.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
-		doubleTemplate.setConnectionFactory(srConnFactory);
-		doubleTemplate.afterPropertiesSet();
-		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory },
-			{ longTemplate, stringFactory, longFactory }, { doubleTemplate, stringFactory, doubleFactory }
-		});
+		return AbstractOperationsTestParams.testParams();
 	}
 
 	@Before
@@ -134,13 +112,10 @@ public class DefaultValueOperationsTests<K,V> {
 		assumeTrue(v1 instanceof Double);
 		valueOps.set(key, v1);
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
-		assertEquals(twoDForm.format(Double.valueOf((Double)v1 + 1.4)),
-				twoDForm.format(valueOps.increment(key, 1.4)));
-		assertEquals(twoDForm.format(Double.valueOf((Double)v1 + 1.4)),
-				twoDForm.format((Double) valueOps.get(key)));
+		assertEquals(Double.valueOf(twoDForm.format((Double)v1 + 1.4)), valueOps.increment(key, 1.4));
+		assertEquals(Double.valueOf(twoDForm.format((Double)v1 + 1.4)), valueOps.get(key));
 		valueOps.increment(key, -10d);
-		assertEquals(twoDForm.format(Double.valueOf((Double)v1 + 1.4 - 10d)),
-				twoDForm.format((Double) valueOps.get(key)));
+		assertEquals(Double.valueOf(twoDForm.format((Double)v1 + 1.4 - 10d)), valueOps.get(key));
 	}
 
 	@Test
