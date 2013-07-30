@@ -2314,7 +2314,8 @@ public class SrpConnection implements RedisConnection {
 			if (params.getOrder() != null) {
 				arrays.add(params.getOrder().name().getBytes(Charsets.UTF_8));
 			}
-			if (params.isAlphabetic()) {
+			Boolean isAlpha = params.isAlphabetic();
+			if (isAlpha != null && isAlpha) {
 				arrays.add(ALPHA);
 			}
 		}
