@@ -452,17 +452,16 @@ public class RedisTemplateTests<K,V> {
 
 	@Test
 	public void testExpireAt() {
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6") &&
-				RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 1000l));
+		redisTemplate.expireAt(key1, new Date(System.currentTimeMillis() + 5l));
 		waitFor(new TestCondition() {
 			public boolean passes() {
 				return (!redisTemplate.hasKey(key1));
 			}
-		}, 1500l);
+		}, 5l);
 	}
 
 	@Test

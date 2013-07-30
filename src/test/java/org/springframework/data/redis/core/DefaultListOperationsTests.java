@@ -84,6 +84,9 @@ public class DefaultListOperationsTests<K,V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
+		System.out.println("Value1" + v1);
+		System.out.println("Value2" + v2);
+		System.out.println("Value3" + v3);
 		assertEquals(Long.valueOf(1),listOps.leftPush(key, v1));
 		assertEquals(Long.valueOf(2),listOps.leftPush(key, v2));
 		assertEquals(Long.valueOf(3), listOps.leftPush(key, v1, v3));

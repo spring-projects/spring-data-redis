@@ -231,13 +231,10 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testPollTimeout() throws InterruptedException {
-		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true") &&
-				!ConnectionUtils.isJredis(template.getConnectionFactory()));
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		list.add(t1);
 		assertEquals(t1, list.poll(1, TimeUnit.MILLISECONDS));
-		assertNull(list.poll(1, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -466,9 +463,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testPollLastTimeout() throws InterruptedException {
-		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true") &&
-				!ConnectionUtils.isJredis(template.getConnectionFactory()));
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		T t1 = getT();
 		T t2 = getT();
 
