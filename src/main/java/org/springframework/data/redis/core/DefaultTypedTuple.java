@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Arrays;
+
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -76,7 +78,12 @@ class DefaultTypedTuple<V> implements TypedTuple<V> {
 			if (other.value != null)
 				return false;
 		}
-		else if (!value.equals(other.value))
+		else if(value instanceof byte[]) {
+			if(!(other.value instanceof byte[])) {
+				return false;
+			}
+			return Arrays.equals((byte[])value, (byte[])other.value);
+		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}

@@ -74,6 +74,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	private boolean exposeConnection = false;
 	private boolean initialized = false;
+	private boolean enableDefaultSerializer = true;
 	private RedisSerializer<?> defaultSerializer = new JdkSerializationRedisSerializer();
 
 	private RedisSerializer keySerializer = null;
@@ -100,26 +101,26 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		super.afterPropertiesSet();
 		boolean defaultUsed = false;
 
-		if (keySerializer == null) {
-			keySerializer = defaultSerializer;
-			defaultUsed = true;
-		}
-		if (valueSerializer == null) {
-			valueSerializer = defaultSerializer;
-			defaultUsed = true;
+		if(enableDefaultSerializer) {
+			if (keySerializer == null) {
+				keySerializer = defaultSerializer;
+				defaultUsed = true;
+			}
+			if (valueSerializer == null) {
+				valueSerializer = defaultSerializer;
+				defaultUsed = true;
+			}
+			if (hashKeySerializer == null) {
+				hashKeySerializer = defaultSerializer;
+				defaultUsed = true;
+			}
+			if (hashValueSerializer == null) {
+				hashValueSerializer = defaultSerializer;
+				defaultUsed = true;
+			}
 		}
 
-		if (hashKeySerializer == null) {
-			hashKeySerializer = defaultSerializer;
-			defaultUsed = true;
-		}
-
-		if (hashValueSerializer == null) {
-			hashValueSerializer = defaultSerializer;
-			defaultUsed = true;
-		}
-
-		if (defaultUsed) {
+		if (enableDefaultSerializer && defaultUsed) {
 			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
 		}
 
@@ -312,6 +313,24 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 	/**
+	 *
+	 * @return Whether or not the default serializer should be used. If not, any serializers not explicilty set
+	 * will remain null and values will not be serialized or deserialized.
+	 */
+	public boolean isEnableDefaultSerializer() {
+		return enableDefaultSerializer;
+	}
+
+	/**
+	 *
+	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not,
+	 * any serializers not explicilty set will remain null and values will not be serialized or deserialized.
+	 */
+	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
+		this.enableDefaultSerializer = enableDefaultSerializer;
+	}
+
+	/**
 	 * Returns the default serializer used by this template.
 	 * 
 	 * @return template default serializer
@@ -425,6 +444,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	@SuppressWarnings("unchecked")
 	private byte[] rawKey(Object key) {
 		Assert.notNull(key, "non null key required");
+		if(keySerializer == null && key instanceof byte[]) {
+			return (byte[]) key;
+		}
 		return keySerializer.serialize(key);
 	}
 
@@ -434,6 +456,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private byte[] rawValue(Object value) {
+		if(valueSerializer == null && value instanceof byte[]) {
+			return (byte[]) value;
+		}
 		return valueSerializer.serialize(value);
 	}
 
@@ -450,7 +475,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@SuppressWarnings("unchecked")
 	private K deserializeKey(byte[] value) {
-		return (K) keySerializer.deserialize(value);
+		return keySerializer != null ? (K) keySerializer.deserialize(value) : (K) value;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -461,7 +486,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		}
 		List<Object> values = new ArrayList<Object>();
 		for(Object rawValue: rawValues) {
-			if(rawValue instanceof byte[]) {
+			if(rawValue instanceof byte[] && valueSerializer != null) {
 				values.add(valueSerializer.deserialize((byte[])rawValue));
 			} else if(rawValue instanceof List) {
 				// Lists are the only potential Collections of mixed values....
@@ -484,20 +509,24 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			return rawSet;
 		}
 		Object setValue = rawSet.iterator().next();
-		if(setValue instanceof byte[]) {
+		if(setValue instanceof byte[] && valueSerializer != null) {
 			return (SerializationUtils.deserialize((Set)rawSet, valueSerializer));
 		}else if(setValue instanceof Tuple) {
-			return deserializeTupleValues(rawSet, valueSerializer);
+			return convertTupleValues(rawSet, valueSerializer);
 		} else {
 			return rawSet;
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues, RedisSerializer valueSerializer) {
+	private Set<TypedTuple<V>> convertTupleValues(Set<Tuple> rawValues, RedisSerializer valueSerializer) {
 		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
-			set.add(new DefaultTypedTuple(valueSerializer.deserialize(rawValue.getValue()), rawValue.getScore()));
+			Object value = rawValue.getValue();
+			if(valueSerializer != null) {
+				value = valueSerializer.deserialize(rawValue.getValue());
+			}
+			set.add(new DefaultTypedTuple(value, rawValue.getScore()));
 		}
 		return set;
 	}
@@ -652,7 +681,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		}, true);
 
-		return SerializationUtils.deserialize(rawKeys, keySerializer);
+		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) :
+			rawKeys;
 	}
 
 

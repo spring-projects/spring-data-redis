@@ -81,6 +81,7 @@ public abstract class SerializationUtils {
 		return ret;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <HK,HV> Map<HK, HV> deserialize(Map<byte[], byte[]> rawValues,
 			RedisSerializer<HK> hashKeySerializer, RedisSerializer<HV> hashValueSerializer) {
 		if (rawValues == null) {
@@ -88,8 +89,12 @@ public abstract class SerializationUtils {
 		}
 		Map<HK, HV> map = new LinkedHashMap<HK, HV>(rawValues.size());
 		for (Map.Entry<byte[], byte[]> entry : rawValues.entrySet()) {
-			map.put((HK) hashKeySerializer.deserialize(entry.getKey()),
-					(HV) hashValueSerializer.deserialize(entry.getValue()));
+			// May want to deserialize only key or value
+			HK key = hashKeySerializer != null ? (HK) hashKeySerializer.deserialize(entry.getKey()) :
+				(HK) entry.getKey();
+			HV value = hashValueSerializer != null ? (HV) hashValueSerializer.deserialize(entry.getValue()) :
+				(HV) entry.getValue();
+			map.put(key, value);
 		}
 		return map;
 	}

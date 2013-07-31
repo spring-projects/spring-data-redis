@@ -91,6 +91,9 @@ abstract class AbstractOperations<K, V> {
 	@SuppressWarnings("unchecked")
 	byte[] rawKey(Object key) {
 		Assert.notNull(key, "non null key required");
+		if(keySerializer() == null && key instanceof byte[]) {
+			return (byte[])key;
+		}
 		return keySerializer().serialize(key);
 	}
 
@@ -100,17 +103,26 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	byte[] rawValue(Object value) {
+		if(valueSerializer() == null && value instanceof byte[]) {
+			return (byte[])value;
+		}
 		return valueSerializer().serialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HK> byte[] rawHashKey(HK hashKey) {
 		Assert.notNull(hashKey, "non null hash key required");
+		if(hashKeySerializer() == null && hashKey instanceof byte[]) {
+			return (byte[])hashKey;
+		}
 		return hashKeySerializer().serialize(hashKey);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HV> byte[] rawHashValue(HV value) {
+		if(hashValueSerializer() == null & value instanceof byte[]) {
+			return (byte[])value;
+		}
 		return hashValueSerializer().serialize(value);
 	}
 
@@ -145,6 +157,9 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	Set<V> deserializeValues(Set<byte[]> rawValues) {
+		if(valueSerializer() == null) {
+			return (Set<V>)rawValues;
+		}
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
@@ -155,23 +170,36 @@ abstract class AbstractOperations<K, V> {
 		}
 		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
-			set.add(new DefaultTypedTuple(valueSerializer().deserialize(rawValue.getValue()), rawValue.getScore()));
+			Object value = rawValue.getValue();
+			if(valueSerializer() != null) {
+				value = valueSerializer().deserialize(rawValue.getValue());
+			}
+			set.add(new DefaultTypedTuple(value, rawValue.getScore()));
 		}
 		return set;
 	}
 
 	@SuppressWarnings("unchecked")
 	List<V> deserializeValues(List<byte[]> rawValues) {
+		if(valueSerializer() == null) {
+			return (List<V>)rawValues;
+		}
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
 	@SuppressWarnings("unchecked")
 	<T> Set<T> deserializeHashKeys(Set<byte[]> rawKeys) {
+		if(hashKeySerializer() == null) {
+			return (Set<T>)rawKeys;
+		}
 		return SerializationUtils.deserialize(rawKeys, hashKeySerializer());
 	}
 
 	@SuppressWarnings("unchecked")
 	<T> List<T> deserializeHashValues(List<byte[]> rawValues) {
+		if(hashValueSerializer() == null) {
+			return (List<T>)rawValues;
+		}
 		return SerializationUtils.deserialize(rawValues, hashValueSerializer());
 	}
 
@@ -193,11 +221,17 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings("unchecked")
 	K deserializeKey(byte[] value) {
+		if(keySerializer() == null) {
+			return (K) value;
+		}
 		return (K) keySerializer().deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	V deserializeValue(byte[] value) {
+		if(valueSerializer() == null) {
+			return (V)value;
+		}
 		return (V) valueSerializer().deserialize(value);
 	}
 
@@ -207,11 +241,17 @@ abstract class AbstractOperations<K, V> {
 
 	@SuppressWarnings( { "unchecked" })
 	<HK> HK deserializeHashKey(byte[] value) {
+		if(hashKeySerializer() == null) {
+			return (HK)value;
+		}
 		return (HK) hashKeySerializer().deserialize(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	<HV> HV deserializeHashValue(byte[] value) {
+		if(hashValueSerializer() == null) {
+			return (HV)value;
+		}
 		return (HV) hashValueSerializer().deserialize(value);
 	}
 }

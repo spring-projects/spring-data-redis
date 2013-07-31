@@ -91,7 +91,8 @@ class RedisCache implements Cache {
 			public ValueWrapper doInRedis(RedisConnection connection) throws DataAccessException {
 				waitForLock(connection);
 				byte[] bs = connection.get(computeKey(key));
-				return (bs == null ? null : new SimpleValueWrapper(template.getValueSerializer().deserialize(bs)));
+				Object value = template.getValueSerializer() != null ? template.getValueSerializer().deserialize(bs) : bs;
+				return (bs == null ? null : new SimpleValueWrapper(value));
 			}
 		}, true);
 	}
@@ -104,7 +105,13 @@ class RedisCache implements Cache {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				waitForLock(connection);
 				connection.multi();
-				connection.set(k, template.getValueSerializer().serialize(value));
+				byte[] v;
+				if(template.getValueSerializer() == null && value instanceof byte[]) {
+					v = (byte[])value;
+				} else {
+					v = template.getValueSerializer().serialize(value);
+				}
+				connection.set(k, v);
 				connection.zAdd(setName, 0, k);
 
 				if (expiration > 0) {
@@ -171,6 +178,9 @@ class RedisCache implements Cache {
 	}
 
 	private byte[] computeKey(Object key) {
+		if(template.getKeySerializer() == null && key instanceof byte[]) {
+			return (byte[])key;
+		}
 		byte[] k = template.getKeySerializer().serialize(key);
 
 		if (prefix == null || prefix.length == 0)
