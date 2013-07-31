@@ -1762,7 +1762,17 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hDel("test", "key"));
 		actual.add(connection.hDel("test", "foo"));
 		actual.add(connection.hExists("test", "key"));
-		verifyResults(Arrays.asList(new Object[] { true, true, false, false }));
+		verifyResults(Arrays.asList(new Object[] { true, 1l, 0l, false }));
+	}
+
+	@Test
+	public void testHDelMultiple() {
+		actual.add(connection.hSet("test", "key", "val"));
+		actual.add(connection.hSet("test", "foo", "bar"));
+		actual.add(connection.hDel("test", "key", "foo"));
+		actual.add(connection.hExists("test", "key"));
+		actual.add(connection.hExists("test", "foo"));
+		verifyResults(Arrays.asList(new Object[] { true, true, 2l, false, false }));
 	}
 
 	@Test

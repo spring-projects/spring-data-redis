@@ -222,13 +222,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends
 
 	@Test
 	public void testHDelBytes() {
-		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { true })})).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 1l })})).when(nativeConnection).closePipeline();
 		super.testHDelBytes();
 	}
 
 	@Test
 	public void testHDel() {
-		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { true })})).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 1l })})).when(nativeConnection).closePipeline();
 		super.testHDel();
 	}
 

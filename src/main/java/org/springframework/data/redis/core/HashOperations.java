@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public interface HashOperations<H, HK, HV> {
 
-	void delete(H key, Object hashKey);
+	void delete(H key, Object... hashKeys);
 
 	Boolean hasKey(H key, Object hashKey);
 

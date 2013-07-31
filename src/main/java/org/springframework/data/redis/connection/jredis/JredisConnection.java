@@ -1116,9 +1116,12 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
-	public Boolean hDel(byte[] key, byte[] field) {
+	public Long hDel(byte[] key, byte[]... fields) {
+		if(fields.length > 1) {
+			throw new UnsupportedOperationException("hDel of multiple fields not supported");
+		}
 		try {
-			return jredis.hdel(key, field);
+			return JredisUtils.toLong(jredis.hdel(key, fields[0]));
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}

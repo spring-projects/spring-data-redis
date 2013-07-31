@@ -43,8 +43,8 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	}
 
 	
-	public void delete(Object key) {
-		ops.delete(getKey(), key);
+	public void delete(Object... keys) {
+		ops.delete(getKey(), keys);
 	}
 
 	

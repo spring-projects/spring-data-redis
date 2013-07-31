@@ -2460,17 +2460,17 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 
-	public Boolean hDel(byte[] key, byte[] field) {
+	public Long hDel(byte[] key, byte[]... fields) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().hdel(key, field), LettuceConverters.longToBoolean()));
+				pipeline(new LettuceResult(getAsyncConnection().hdel(key, fields)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().hdel(key, field), LettuceConverters.longToBoolean()));
+				transaction(new LettuceTxResult(getConnection().hdel(key, fields)));
 				return null;
 			}
-			return LettuceConverters.toBoolean(getConnection().hdel(key, field));
+			return getConnection().hdel(key, fields);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

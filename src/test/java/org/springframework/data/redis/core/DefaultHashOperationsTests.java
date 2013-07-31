@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Arrays;
@@ -116,5 +117,18 @@ public class DefaultHashOperationsTests<K,HK,HV> {
 		expected.put(key1, val1);
 		expected.put(key2, val2);
 		assertThat(hashOps.entries(key), isEqual(expected));
+	}
+
+	@Test
+	public void testDelete() {
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+		hashOps.delete(key, key1, key2);
+		assertTrue(hashOps.keys(key).isEmpty());
 	}
 }

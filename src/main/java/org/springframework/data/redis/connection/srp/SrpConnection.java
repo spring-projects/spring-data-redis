@@ -1887,13 +1887,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
-	public Boolean hDel(byte[] key, byte[] field) {
+	public Long hDel(byte[] key, byte[]... fields) {
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.hdel(key, new Object[] { field }), SrpConverters.longToBoolean()));
+				pipeline(new SrpResult(pipeline.hdel(key, (Object[])fields)));
 				return null;
 			}
-			return SrpConverters.toBoolean(client.hdel(key, new Object[] { field }).data());
+			return client.hdel(key, (Object[])fields).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

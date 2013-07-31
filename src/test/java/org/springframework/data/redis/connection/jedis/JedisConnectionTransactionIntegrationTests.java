@@ -362,4 +362,9 @@ public class JedisConnectionTransactionIntegrationTests extends
 	public void testLastSave() {
 		super.testLastSave();
 	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testHDelMultiple() {
+		super.testHDelMultiple();
+	}
 }

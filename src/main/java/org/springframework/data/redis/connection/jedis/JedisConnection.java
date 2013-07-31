@@ -2364,17 +2364,21 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	public Boolean hDel(byte[] key, byte[] field) {
+	public Long hDel(byte[] key, byte[]... fields) {
+		if((isPipelined() || isQueueing()) && fields.length > 1) {
+			throw new UnsupportedOperationException("hDel of multiple fields not supported " +
+					"in pipeline or transaction");
+		}
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.hdel(key, field), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.hdel(key, fields[0])));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.hdel(key, field), JedisConverters.longToBoolean()));
+				transaction(new JedisResult(transaction.hdel(key, fields[0])));
 				return null;
 			}
-			return JedisConverters.toBoolean(jedis.hdel(key, field));
+			return jedis.hdel(key, fields);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

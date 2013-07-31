@@ -51,7 +51,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	Long size();
 
-	void delete(Object key);
+	void delete(Object... keys);
 
 	Map<HK, HV> entries();
 }

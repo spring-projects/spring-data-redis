@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * Internal base class used by various RedisTemplate XXXOperations implementations.
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  */
 abstract class AbstractOperations<K, V> {
 
@@ -97,6 +98,7 @@ abstract class AbstractOperations<K, V> {
 		return keySerializer().serialize(key);
 	}
 
+	@SuppressWarnings("unchecked")
 	byte[] rawString(String key) {
 		return stringSerializer().serialize(key);
 	}
@@ -116,6 +118,15 @@ abstract class AbstractOperations<K, V> {
 			return (byte[])hashKey;
 		}
 		return hashKeySerializer().serialize(hashKey);
+	}
+
+	<HK> byte[][] rawHashKeys(HK... hashKeys) {
+		final byte[][] rawHashKeys = new byte[hashKeys.length][];
+		int i = 0;
+		for (HK hashKey : hashKeys) {
+			rawHashKeys[i++] = rawHashKey(hashKey);
+		}
+		return rawHashKeys;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -163,7 +174,7 @@ abstract class AbstractOperations<K, V> {
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues) {
 		if(rawValues == null) {
 			return null;

@@ -305,8 +305,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.getSubscription();
 	}
 
-	public Boolean hDel(byte[] key, byte[] field) {
-		Boolean result = delegate.hDel(key, field);
+	public Long hDel(byte[] key, byte[]... fields) {
+		Long result = delegate.hDel(key, fields);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1345,8 +1345,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public Boolean hDel(String key, String field) {
-		Boolean result = delegate.hDel(serialize(key), serialize(field));
+	public Long hDel(String key, String... fields) {
+		Long result = delegate.hDel(serialize(key), serializeMulti(fields));
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

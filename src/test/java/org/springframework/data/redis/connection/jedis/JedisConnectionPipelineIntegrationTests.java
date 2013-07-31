@@ -426,4 +426,9 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
 	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testHDelMultiple() {
+		super.testHDelMultiple();
+	}
 }

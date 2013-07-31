@@ -326,16 +326,16 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testHDelBytes() {
-		doReturn(true).when(nativeConnection).hDel(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).hDel(fooBytes, barBytes);
 		actual.add(connection.hDel(fooBytes, barBytes));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test
 	public void testHDel() {
-		doReturn(true).when(nativeConnection).hDel(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).hDel(fooBytes, barBytes);
 		actual.add(connection.hDel(foo, bar));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test

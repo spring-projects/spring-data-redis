@@ -257,7 +257,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Boolean hExists(String key, String field);
 
-	Boolean hDel(String key, String field);
+	Long hDel(String key, String... fields);
 
 	Long hLen(String key);
 

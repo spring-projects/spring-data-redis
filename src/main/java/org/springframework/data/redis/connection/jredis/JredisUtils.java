@@ -123,4 +123,8 @@ public abstract class JredisUtils {
 		info.putAll(map);
 		return info;
 	}
+
+	static Long toLong(Boolean source) {
+		return source ? 1l : 0l;
+	}
 }

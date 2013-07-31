@@ -43,7 +43,7 @@ public interface RedisHashCommands {
 
 	Boolean hExists(byte[] key, byte[] field);
 
-	Boolean hDel(byte[] key, byte[] field);
+	Long hDel(byte[] key, byte[]... fields);
 
 	Long hLen(byte[] key);
 
