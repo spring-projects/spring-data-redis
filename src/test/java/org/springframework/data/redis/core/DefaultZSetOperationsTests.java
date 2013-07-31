@@ -106,6 +106,7 @@ public class DefaultZSetOperationsTests<K,V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
+		System.out.println(value1 + "*" + value2 + "*" + value3);
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);

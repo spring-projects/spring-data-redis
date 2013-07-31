@@ -108,7 +108,7 @@ public class RedisTemplateTests<K,V> {
 		assertNotNull(serializedValue);
 		redisTemplate.delete(key1);
 		redisTemplate.restore(key1, serializedValue, 0, TimeUnit.SECONDS);
-		assertEquals(value1, redisTemplate.boundValueOps(key1).get());
+		assertThat(redisTemplate.boundValueOps(key1).get(), isEqual(value1));
 	}
 
 	@Test
@@ -121,7 +121,7 @@ public class RedisTemplateTests<K,V> {
 		assertNotNull(serializedValue);
 		redisTemplate.delete(key1);
 		redisTemplate.restore(key1, serializedValue, 200, TimeUnit.MILLISECONDS);
-		assertEquals(value1, redisTemplate.boundValueOps(key1).get());
+		assertThat(redisTemplate.boundValueOps(key1).get(), isEqual(value1));
 		waitFor(new TestCondition() {
 			public boolean passes() {
 				return (!redisTemplate.hasKey(key1));

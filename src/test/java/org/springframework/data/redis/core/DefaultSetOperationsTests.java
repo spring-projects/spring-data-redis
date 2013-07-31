@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.Assert.assertThat;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,6 +84,7 @@ public class DefaultSetOperationsTests<K,V> {
 		});
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDistinctRandomMembers() {
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
@@ -95,7 +97,11 @@ public class DefaultSetOperationsTests<K,V> {
 		setOps.add(setKey, v3);
 		Set<V> members = setOps.distinctRandomMembers(setKey, 2);
 		assertEquals(2, members.size());
-		assertTrue(Arrays.asList(new Object[] {v1, v2, v3}).containsAll(members));
+		Set<V> expected = new HashSet<V>();
+		expected.add(v1);
+		expected.add(v2);
+		expected.add(v3);
+		assertThat(expected, hasItems((V[])members.toArray()));
 	}
 
 	@Test
@@ -103,9 +109,15 @@ public class DefaultSetOperationsTests<K,V> {
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		K setKey = keyFactory.instance();
 		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
 		setOps.add(setKey, v1);
+		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
-		assertEquals(Arrays.asList(new Object[] {v1, v1}), members);
+		// No guaranteed order on returned List
+		HashSet<V> expected = new HashSet<V>();
+		expected.add(v1);
+		expected.add(v2);
+		assertThat(new HashSet<V>(members), isEqual(expected));
 	}
 
 	@Test
