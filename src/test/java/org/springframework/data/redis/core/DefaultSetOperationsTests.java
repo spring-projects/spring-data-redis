@@ -16,14 +16,15 @@
 package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
-import static org.junit.Assert.assertThat;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.junit.matchers.JUnitMatchers.hasItems;
+import static org.junit.matchers.JUnitMatchers.either;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -113,11 +114,8 @@ public class DefaultSetOperationsTests<K,V> {
 		setOps.add(setKey, v1);
 		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
-		// No guaranteed order on returned List
-		HashSet<V> expected = new HashSet<V>();
-		expected.add(v1);
-		expected.add(v2);
-		assertThat(new HashSet<V>(members), isEqual(expected));
+		assertEquals(2,members.size());
+		assertThat(members, either(hasItem(v1)).or(hasItem(v2)));
 	}
 
 	@Test
