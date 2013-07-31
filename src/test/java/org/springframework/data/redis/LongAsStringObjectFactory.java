@@ -15,20 +15,20 @@
  */
 package org.springframework.data.redis;
 
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
 *
-* Implementation of {@link ObjectFactory that returns random Longs as Strings
+* Implementation of {@link ObjectFactory} that returns unique incremented Longs as Strings
 * @author Jennifer Hickey
 *
 */
 public class LongAsStringObjectFactory implements ObjectFactory<String> {
 
-	private Random random = new Random(System.currentTimeMillis());
+	private AtomicLong counter = new AtomicLong();
 
 	public String instance() {
-		return String.valueOf(random.nextLong());
+		return String.valueOf(counter.getAndIncrement());
 	}
 
 }

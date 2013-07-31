@@ -15,23 +15,20 @@
  */
 package org.springframework.data.redis;
 
-import java.text.DecimalFormat;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Returns random Doubles
+ * Returns unique Doubles, incrementing by 1 each time
  *
  * @author Jennifer Hickey
  *
  */
 public class DoubleObjectFactory implements ObjectFactory<Double> {
 
-	private Random random = new Random(System.currentTimeMillis());
-
-	private static final DecimalFormat TWO_D_FORM = new DecimalFormat("#.##");
+	private AtomicLong counter = new AtomicLong();
 
 	public Double instance() {
-		return Double.valueOf(TWO_D_FORM.format(random.nextDouble()));
+		return Double.valueOf(counter.getAndIncrement());
 	}
 
 }

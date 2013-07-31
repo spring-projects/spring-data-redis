@@ -15,20 +15,21 @@
  */
 package org.springframework.data.redis;
 
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
- * Implementation of {@link ObjectFactory that returns random Doubles as Strings
+ * Implementation of {@link ObjectFactory} that returns unique Doubles as Strings,
+ * incrementing by 1 each time
  * @author Jennifer Hickey
  *
  */
 public class DoubleAsStringObjectFactory implements ObjectFactory<String> {
 
-	private Random random = new Random(System.currentTimeMillis());
+	private AtomicLong counter = new AtomicLong();
 
 	public String instance() {
-		return String.valueOf(random.nextDouble());
+		return String.valueOf(Double.valueOf(counter.getAndIncrement()));
 	}
 
 }
