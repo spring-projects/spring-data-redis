@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +51,9 @@ public abstract class AbstractNativeCacheTest<T> {
 
 	protected abstract Cache createCache(T nativeCache);
 
-	protected abstract Object getObject();
+	protected abstract Object getKey();
+
+	protected abstract Object getValue();
 
 	@Test
 	public void testCacheName() throws Exception {
@@ -63,15 +67,15 @@ public abstract class AbstractNativeCacheTest<T> {
 
 	@Test
 	public void testCachePut() throws Exception {
-		Object key = getObject();
-		Object value = getObject();
+		Object key = getKey();
+		Object value = getValue();
 
 		assertNotNull(value);
 		assertNull(cache.get(key));
 		cache.put(key, value);
 		ValueWrapper valueWrapper = cache.get(key);
 		if (valueWrapper != null) {
-			assertEquals(value, valueWrapper.get());
+			assertThat(valueWrapper.get(), isEqual(value));
 		}
 		// keeps failing on the CI server so do  
 		else {
@@ -83,12 +87,12 @@ public abstract class AbstractNativeCacheTest<T> {
 
 	@Test
 	public void testCacheClear() throws Exception {
-		Object key1 = getObject();
-		Object value1 = getObject();
+		Object key1 = getKey();
+		Object value1 = getValue();
 
 
-		Object key2 = getObject();
-		Object value2 = getObject();
+		Object key2 = getKey();
+		Object value2 = getValue();
 
 		assertNull(cache.get(key1));
 		cache.put(key1, value1);

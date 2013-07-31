@@ -27,6 +27,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.junit.matchers.JUnitMatchers.hasItems;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,6 +59,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 	protected AbstractRedisCollection<T> collection;
 	protected ObjectFactory<T> factory;
+	@SuppressWarnings("rawtypes")
 	protected RedisTemplate template;
 
 	@Before
@@ -70,6 +72,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 	abstract RedisStore copyStore(RedisStore store);
 
 
+	@SuppressWarnings("rawtypes")
 	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {
 		this.factory = factory;
 		this.template = template;
@@ -94,6 +97,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		return factory.instance();
 	}
 
+	@SuppressWarnings("unchecked")
 	@After
 	public void tearDown() throws Exception {
 		// remove the collection entirely since clear() doesn't always work
@@ -160,7 +164,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		List<T> list = Arrays.asList(t1, t2, t3);
 
 		assertThat(collection.addAll(list), is(true));
-		assertThat(collection.containsAll(list), is(true));
+		assertThat(collection, hasItems((T[])list.toArray()));
 		assertThat(collection, hasItems(t1, t2, t3));
 	}
 
@@ -185,6 +189,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		assertTrue(collection.isEmpty());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testIterator() {
 		T t1 = getT();
@@ -197,10 +202,10 @@ public abstract class AbstractRedisCollectionTests<T> {
 		assertThat(collection.addAll(list), is(true));
 		Iterator<T> iterator = collection.iterator();
 
-		assertEquals(t1, iterator.next());
-		assertEquals(t2, iterator.next());
-		assertEquals(t3, iterator.next());
-		assertEquals(t4, iterator.next());
+		assertThat(iterator.next(), isEqual(t1));
+		assertThat(iterator.next(), isEqual(t2));
+		assertThat(iterator.next(), isEqual(t3));
+		assertThat(iterator.next(), isEqual(t4));
 		assertFalse(iterator.hasNext());
 	}
 
@@ -222,6 +227,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		assertEquals(0, collection.size());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void removeAll() {
 		T t1 = getT();
@@ -231,7 +237,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		List<T> list = Arrays.asList(t1, t2, t3);
 
 		assertThat(collection.addAll(list), is(true));
-		assertThat(collection.containsAll(list), is(true));
+		assertThat(collection, hasItems((T[])list.toArray()));
 		assertThat(collection, hasItems(t1, t2, t3));
 
 		List<T> newList = Arrays.asList(getT(), getT());
@@ -246,6 +252,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 	}
 
 	//@Test(expected = UnsupportedOperationException.class)
+	@SuppressWarnings("unchecked")
 	public void testRetainAll() {
 		T t1 = getT();
 		T t2 = getT();

@@ -15,9 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.junit.Assert.assertThat;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.After;
@@ -27,11 +30,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Integration test of {@link DefaultHashOperations}
@@ -65,14 +68,24 @@ public class DefaultHashOperationsTests<K,HK,HV> {
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
+		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
+
 		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
 		srConnFactory.setPort(SettingsUtils.getPort());
 		srConnFactory.setHostName(SettingsUtils.getHost());
 		srConnFactory.afterPropertiesSet();
+
 		RedisTemplate<String,String> stringTemplate = new StringRedisTemplate();
 		stringTemplate.setConnectionFactory(srConnFactory);
 		stringTemplate.afterPropertiesSet();
-		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory }});
+
+		RedisTemplate<byte[],byte[]> rawTemplate = new RedisTemplate<byte[],byte[]>();
+		rawTemplate.setConnectionFactory(srConnFactory);
+		rawTemplate.setEnableDefaultSerializer(false);
+		rawTemplate.afterPropertiesSet();
+
+		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory },
+				{ rawTemplate, rawFactory, rawFactory, rawFactory }});
 	}
 
 	@Before
@@ -99,9 +112,9 @@ public class DefaultHashOperationsTests<K,HK,HV> {
 		HV val2 = hashValueFactory.instance();
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
-		Map<HK,HV> expected = new HashMap<HK,HV>();
+		Map<HK,HV> expected = new LinkedHashMap<HK,HV>();
 		expected.put(key1, val1);
 		expected.put(key2, val2);
-		assertEquals(expected, hashOps.entries(key));
+		assertThat(hashOps.entries(key), isEqual(expected));
 	}
 }

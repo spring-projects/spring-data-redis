@@ -18,6 +18,7 @@ package org.springframework.data.redis.support.collections;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.matchers.JUnitMatchers.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +50,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 	 * @param factory
 	 * @param template
 	 */
+	@SuppressWarnings("rawtypes")
 	public AbstractRedisSetTests(ObjectFactory<T> factory, RedisTemplate template) {
 		super(factory, template);
 	}
@@ -61,10 +63,12 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		set = (RedisSet<T>) collection;
 	}
 
+	@SuppressWarnings("unchecked")
 	private RedisSet<T> createSetFor(String key) {
 		return new DefaultRedisSet<T>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDiff() {
 		RedisSet<T> diffSet1 = createSetFor("test:set:diff1");
@@ -86,6 +90,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(diff, hasItem(t1));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testDiffAndStore() {
 		RedisSet<T> diffSet1 = createSetFor("test:set:diff1");
@@ -112,6 +117,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(resultName, diff.getKey());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testIntersect() {
 		RedisSet<T> intSet1 = createSetFor("test:set:int1");
@@ -137,6 +143,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 	}
 
 
+	@SuppressWarnings("unchecked")
 	public void testIntersectAndStore() {
 		RedisSet<T> intSet1 = createSetFor("test:set:int1");
 		RedisSet<T> intSet2 = createSetFor("test:set:int2");
@@ -162,6 +169,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(resultName, inter.getKey());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnion() {
 		RedisSet<T> unionSet1 = createSetFor("test:set:union1");
@@ -184,6 +192,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(union, hasItems(t1, t2, t3, t4));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnionAndStore() {
 		RedisSet<T> unionSet1 = createSetFor("test:set:union1");
@@ -208,6 +217,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(resultName, union.getKey());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testIterator() {
 		T t1 = getT();
@@ -220,10 +230,18 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(collection.addAll(list), is(true));
 		Iterator<T> iterator = collection.iterator();
 
+
 		List<T> result = new ArrayList<T>(list);
 
 		while (iterator.hasNext()) {
-			result.remove(iterator.next());
+			T expected = iterator.next();
+			Iterator<T> resultItr = result.iterator();
+			while(resultItr.hasNext()) {
+				T obj = resultItr.next();
+				if(isEqual(expected).matches(obj)) {
+					resultItr.remove();
+				}
+			}
 		}
 
 		assertEquals(0, result.size());
@@ -242,7 +260,13 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		List<T> result = new ArrayList<T>(list);
 
 		for (int i = 0; i < array.length; i++) {
-			result.remove(array[i]);
+			Iterator<T> resultItr = result.iterator();
+			while(resultItr.hasNext()) {
+				T obj = resultItr.next();
+				if(isEqual(array[i]).matches(obj)) {
+					resultItr.remove();
+				}
+			}
 		}
 
 		assertEquals(0, result.size());
@@ -260,7 +284,13 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		List<T> result = new ArrayList<T>(list);
 
 		for (int i = 0; i < array.length; i++) {
-			result.remove(array[i]);
+			Iterator<T> resultItr = result.iterator();
+			while(resultItr.hasNext()) {
+				T obj = resultItr.next();
+				if(isEqual(array[i]).matches(obj)) {
+					resultItr.remove();
+				}
+			}
 		}
 
 		assertEquals(0, result.size());

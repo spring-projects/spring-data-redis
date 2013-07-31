@@ -17,16 +17,18 @@ package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -36,17 +38,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.springframework.data.redis.DoubleObjectFactory;
-import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.SettingsUtils;
-import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link DefaultValueOperations}
@@ -128,8 +123,8 @@ public class DefaultValueOperationsTests<K,V> {
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
 		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
-		assertEquals(new HashSet<V>(keysAndValues.values()),
-				new HashSet<V>(valueOps.multiGet(keysAndValues.keySet())));
+		assertThat(valueOps.multiGet(keysAndValues.keySet()),
+				isEqual(new ArrayList<V>(keysAndValues.values())));
 	}
 
 	@Test
@@ -156,7 +151,8 @@ public class DefaultValueOperationsTests<K,V> {
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
 		valueOps.multiSet(keysAndValues);
-		assertEquals(new ArrayList<V>(keysAndValues.values()), valueOps.multiGet(keysAndValues.keySet()));
+		assertThat(valueOps.multiGet(keysAndValues.keySet()),
+				isEqual(new ArrayList<V>(keysAndValues.values())));
 	}
 
 	@Test
@@ -164,7 +160,7 @@ public class DefaultValueOperationsTests<K,V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		valueOps.set(key1,value1);
-		assertEquals(value1, valueOps.get(key1));
+		assertThat(valueOps.get(key1), isEqual(value1));
 	}
 
 	@Test
@@ -173,7 +169,7 @@ public class DefaultValueOperationsTests<K,V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		valueOps.set(key1, value1);
-		assertEquals(value1, valueOps.getAndSet(key1, value2));
+		assertThat(valueOps.getAndSet(key1, value2), isEqual(value1));
 	}
 
 	@Test
@@ -194,7 +190,7 @@ public class DefaultValueOperationsTests<K,V> {
 	public void testAppend() {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
-		assumeTrue(value1 instanceof String);
+		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 		valueOps.set(key1, value1);
 		assertEquals(Integer.valueOf(((String)value1).length() + 3), valueOps.append(key1, "aaa"));
 		assertEquals((String)value1 + "aaa",valueOps.get(key1));
@@ -253,5 +249,13 @@ public class DefaultValueOperationsTests<K,V> {
 		K key2 = keyFactory.instance();
 		byte[][] rawKeys = ((DefaultValueOperations)valueOps).rawKeys(Arrays.asList(new Object[] {key1, key2}));
 		assertEquals(2, rawKeys.length);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testDeserializeKey() {
+		K key1 = keyFactory.instance();
+		assumeTrue(key1 instanceof byte[]);
+		assertNotNull(((DefaultValueOperations)valueOps).deserializeKey((byte[])key1));
 	}
 }

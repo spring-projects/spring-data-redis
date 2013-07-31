@@ -16,6 +16,8 @@
 package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -95,8 +97,7 @@ public class DefaultZSetOperationsTests<K,V> {
 		Set<TypedTuple<V>> values = zSetOps.rangeWithScores(key1, 0, -1);
 		assertEquals(1,values.size());
 		TypedTuple<V> tuple = values.iterator().next();
-		assertEquals(value1, tuple.getValue());
-		assertEquals(Double.valueOf(5.7), tuple.getScore());
+		assertEquals(new DefaultTypedTuple<V>(value1, 5.7), tuple);
 	}
 
 	@Test
@@ -108,7 +109,8 @@ public class DefaultZSetOperationsTests<K,V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		assertEquals(Collections.singleton(value1), zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1));
+		assertThat(zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1),
+				isEqual(Collections.singleton(value1)));
 	}
 
 	@Test
@@ -123,8 +125,7 @@ public class DefaultZSetOperationsTests<K,V> {
 		Set<TypedTuple<V>> tuples = zSetOps.rangeByScoreWithScores(key, 1.5, 4.7, 0, 1);
 		assertEquals(1, tuples.size());
 		TypedTuple<V> tuple = tuples.iterator().next();
-		assertEquals(value1,tuple.getValue());
-		assertEquals(Double.valueOf(1.9), tuple.getScore());
+		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value1, 1.9)));
 	}
 
 	@Test
@@ -136,7 +137,8 @@ public class DefaultZSetOperationsTests<K,V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		assertEquals(Collections.singleton(value2), zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1));
+		assertThat(zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1),
+				isEqual(Collections.singleton(value2)));
 	}
 
 	@Test
@@ -151,7 +153,6 @@ public class DefaultZSetOperationsTests<K,V> {
 		Set<TypedTuple<V>> tuples = zSetOps.reverseRangeByScoreWithScores(key, 1.5, 4.7, 0, 1);
 		assertEquals(1, tuples.size());
 		TypedTuple<V> tuple = tuples.iterator().next();
-		assertEquals(value2,tuple.getValue());
-		assertEquals(Double.valueOf(3.7), tuple.getScore());
+		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
 	}
 }

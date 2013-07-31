@@ -47,16 +47,19 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  */
 public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
+	@SuppressWarnings("rawtypes")
 	public RedisMapTests(ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory, RedisTemplate template) {
 		super(keyFactory, valueFactory, template);
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	RedisMap<Object, Object> createMap() {
 		String redisName = getClass().getSimpleName();
 		return new DefaultRedisMap<Object, Object>(redisName, template);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		// XStream serializer
@@ -69,6 +72,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
 		JacksonJsonRedisSerializer<Person> jsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
 		JacksonJsonRedisSerializer<String> jsonStringSerializer = new JacksonJsonRedisSerializer<String>(String.class);
+		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
@@ -99,9 +103,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplate.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<String, byte[]> rawTemplate = new RedisTemplate<String, byte[]>();
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.setConnectionFactory(jedisConnFactory);
+		rawTemplate.setKeySerializer(stringSerializer);
 		rawTemplate.afterPropertiesSet();
 
 		// JRedis
@@ -125,9 +130,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		jsonPersonTemplateJR.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateJR.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplateJR = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<String, byte[]> rawTemplateJR = new RedisTemplate<String, byte[]>();
 		rawTemplateJR.setEnableDefaultSerializer(false);
 		rawTemplateJR.setConnectionFactory(jredisConnFactory);
+		rawTemplateJR.setKeySerializer(stringSerializer);
 		rawTemplateJR.afterPropertiesSet();
 
 		// Lettuce
@@ -156,9 +162,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		stringTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		stringTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<String, byte[]> rawTemplateLtc = new RedisTemplate<String, byte[]>();
 		rawTemplateLtc.setEnableDefaultSerializer(false);
 		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		rawTemplateLtc.setKeySerializer(stringSerializer);
 		rawTemplateLtc.afterPropertiesSet();
 
 		// SRP
@@ -187,9 +194,10 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		stringTemplateSrp.setConnectionFactory(srpConnFactory);
 		stringTemplateSrp.afterPropertiesSet();
 
-		RedisTemplate<byte[], byte[]> rawTemplateSrp = new RedisTemplate<byte[], byte[]>();
+		RedisTemplate<String, byte[]> rawTemplateSrp = new RedisTemplate<String, byte[]>();
 		rawTemplateSrp.setEnableDefaultSerializer(false);
 		rawTemplateSrp.setConnectionFactory(srpConnFactory);
+		rawTemplateSrp.setKeySerializer(stringSerializer);
 		rawTemplateSrp.afterPropertiesSet();
 
 

@@ -16,12 +16,12 @@
 
 package org.springframework.data.redis.cache;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -39,9 +39,8 @@ import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.ConnectionUtils;
+import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.support.collections.CollectionTestParams;
 
 /**
  * @author Costin Leau
@@ -51,19 +50,21 @@ import org.springframework.data.redis.support.collections.CollectionTestParams;
 @RunWith(Parameterized.class)
 public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
-	private ObjectFactory<Object> objFactory;
+	private ObjectFactory<Object> keyFactory;
+	private ObjectFactory<Object> valueFactory;
 	private RedisTemplate template;
 
 
-	public RedisCacheTest(ObjectFactory<Object> objFactory, RedisTemplate template) {
-		this.objFactory = objFactory;
+	public RedisCacheTest(RedisTemplate template, ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory) {
+		this.keyFactory = keyFactory;
+		this.valueFactory = valueFactory;
 		this.template = template;
 		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
-		return CollectionTestParams.testParams();
+		return AbstractOperationsTestParams.testParams();
 	}
 
 
@@ -80,7 +81,6 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Before
 	public void setUp() throws Exception {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		ConnectionFactoryTracker.add(template.getConnectionFactory());
 		super.setUp();
 	}
@@ -90,18 +90,27 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
+	protected Object getValue() {
+		return valueFactory.instance();
+	}
 
-	protected Object getObject() {
-		return objFactory.instance();
+	protected Object getKey() {
+		return keyFactory.instance();
 	}
 
 	@Test
 	public void testConcurrentRead() throws Exception {
-		final Object key1 = getObject();
-		final Object value1 = getObject();
+		final Object key1 = getKey();
+		final Object value1 = getValue();
 
-		final Object key2 = getObject();
-		final Object value2 = getObject();
+		final Object k1 = getKey();
+		final Object v1 = getValue();
+
+		final Object key2 = getKey();
+		final Object value2 = getValue();
+
+		final Object k2 = getKey();
+		final Object v2 = getValue();
 
 		final AtomicBoolean failed = new AtomicBoolean(true);
 		cache.put(key1, value1);
@@ -110,9 +119,9 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		Thread th = new Thread(new Runnable() {
 			public void run() {
 				cache.clear();
-				cache.put(value1, key1);
-				cache.put(value2, key2);
-				failed.set(key1.equals(cache.get(value1)));
+				cache.put(k1, v1);
+				cache.put(k2, v2);
+				failed.set(v1.equals(cache.get(k1)));
 
 			}
 		}, "concurrent-cache-access");
@@ -121,17 +130,19 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 		assertFalse(failed.get());
 
-		final Object key3 = getObject();
-		final Object value3 = getObject();
+		final Object key3 = getKey();
+		final Object key4 = getKey();
+		final Object value3 = getValue();
+		final Object value4 = getValue();
 
 		cache.put(key3, value3);
-		cache.put(value3, key3);
+		cache.put(key4, value4);
 
 		assertNull(cache.get(key1));
 		assertNull(cache.get(key2));
-		ValueWrapper valueWrapper = cache.get(value1);
+		ValueWrapper valueWrapper = cache.get(k1);
 		assertNotNull(valueWrapper);
-		assertEquals(key1, valueWrapper.get());
+		assertThat(valueWrapper.get(), isEqual(v1));
 	}
 
 	@Test
@@ -145,6 +156,8 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	@Test
 	public void testGetWhileClear() throws InterruptedException {
+		final Object key1 = getKey();
+		final Object value1 = getValue();
 		int numTries = 10;
 		final AtomicBoolean monitorStateException = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(numTries);
@@ -156,7 +169,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		Runnable putCache = new Runnable() {
 			public void run() {
 				try {
-					cache.put("foo", "bar");
+					cache.put(key1, value1);
 				}catch(IllegalMonitorStateException e) {
 					monitorStateException.set(true);
 				} finally {

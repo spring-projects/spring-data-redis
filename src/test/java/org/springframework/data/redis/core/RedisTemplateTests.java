@@ -16,12 +16,14 @@
 package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.springframework.data.redis.SpinBarrier.waitFor;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -169,11 +171,6 @@ public class RedisTemplateTests<K,V> {
 		final V setValue = valueFactory.instance();
 		final K zsetKey = keyFactory.instance();
 		final V zsetValue = valueFactory.instance();
-		final K mapKey = keyFactory.instance();
-		final Object hashKey = deserialize(serialize("test", redisTemplate.getHashKeySerializer()),
-				redisTemplate.getHashKeySerializer());
-		final Object hashValue = deserialize(serialize("passed", redisTemplate.getHashValueSerializer()),
-				redisTemplate.getHashValueSerializer());
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "rawtypes", "unchecked" })
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
@@ -186,8 +183,6 @@ public class RedisTemplateTests<K,V> {
 				operations.opsForSet().members(setKey);
 				operations.opsForZSet().add(zsetKey, zsetValue, 1d);
 				operations.opsForZSet().rangeWithScores(zsetKey, 0l, -1l);
-				operations.opsForHash().put(mapKey, hashKey, hashValue);
-				operations.opsForHash().entries(mapKey);
 				return operations.exec();
 			}
 		});
@@ -195,10 +190,7 @@ public class RedisTemplateTests<K,V> {
 		Set<V> set = new HashSet<V>(Collections.singletonList(setValue));
 		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(
 				Collections.singletonList(new DefaultTypedTuple<V>(zsetValue, 1d)));
-		Map<Object,Object> map = new LinkedHashMap<Object,Object>();
-		map.put(hashKey, hashValue);
-		assertEquals(Arrays.asList(new Object[] {value1, 1l, list, true, set, true, tupleSet, true, map}),
-				results);
+		assertThat(results, isEqual(Arrays.asList(new Object[] {value1, 1l, list, true, set, true, tupleSet})));
 	}
 
 	@Test
@@ -216,7 +208,7 @@ public class RedisTemplateTests<K,V> {
 				return null;
 			}
 		});
-		assertEquals(value1, redisTemplate.boundValueOps(key1).get());
+		assertThat(redisTemplate.boundValueOps(key1).get(), isEqual(value1));
 	}
 
 	@Test
@@ -248,8 +240,8 @@ public class RedisTemplateTests<K,V> {
 		Set<Long> zSet = new LinkedHashSet<Long>(Collections.singletonList(9l));
 		Map<Long, Long> map = new LinkedHashMap<Long,Long>();
 		map.put(10l, 11l);
-		assertEquals(Arrays.asList(new Object[] {5l, 1l, list, true, longSet, true, tupleSet, zSet, true, map}),
-				results);
+		assertThat(results,
+				isEqual(Arrays.asList(new Object[] {5l, 1l, list, true, longSet, true, tupleSet, zSet, true, map})));
 	}
 
 	@Test
@@ -292,7 +284,8 @@ public class RedisTemplateTests<K,V> {
 				return null;
 			}
 		});
-		assertEquals(Arrays.asList(new Object[] {value1, 1l, 2l, Arrays.asList(new Object[] {listValue, listValue2})}), results);
+		assertThat(results,
+				isEqual(Arrays.asList(new Object[] {value1, 1l, 2l, Arrays.asList(new Object[] {listValue, listValue2})})));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -340,7 +333,7 @@ public class RedisTemplateTests<K,V> {
 			}
 		});
 		// Should contain the List of deserialized exec results and the result of the last call to get()
-		assertEquals(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, value1, 0l}), value1}), pipelinedResults);
+		assertThat(pipelinedResults, isEqual(Arrays.asList(new Object[] {Arrays.asList(new Object[] {1l, value1, 0l}), value1})));
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
@@ -482,7 +475,7 @@ public class RedisTemplateTests<K,V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
-		assertEquals(key1, redisTemplate.randomKey());
+		assertThat(redisTemplate.randomKey(), isEqual(key1));
 	}
 
 	@Test
@@ -492,7 +485,7 @@ public class RedisTemplateTests<K,V> {
 		V value1 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
 		redisTemplate.rename(key1, key2);
-		assertEquals(value1, redisTemplate.opsForValue().get(key2));
+		assertThat(redisTemplate.opsForValue().get(key2), isEqual(value1));
 	}
 
 	@Test
@@ -540,7 +533,7 @@ public class RedisTemplateTests<K,V> {
 			}
 		});
 		assertNull(results);
-		assertEquals(value2, redisTemplate.opsForValue().get(key1));
+		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}
 
 	@Test
@@ -571,7 +564,7 @@ public class RedisTemplateTests<K,V> {
 			}
 		});
 		assertTrue(results.isEmpty());
-		assertEquals(value3, redisTemplate.opsForValue().get(key1));
+		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value3));
 	}
 
 	@Test
@@ -605,7 +598,7 @@ public class RedisTemplateTests<K,V> {
 			}
 		});
 		assertNull(results);
-		assertEquals(value2, redisTemplate.opsForValue().get(key1));
+		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}
 
 	@Test
@@ -617,11 +610,9 @@ public class RedisTemplateTests<K,V> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private byte[] serialize(Object value, RedisSerializer serializer) {
+		if(serializer == null && value instanceof byte[]) {
+			return (byte[])value;
+		}
 		return serializer.serialize(value);
-	}
-
-	@SuppressWarnings("rawtypes")
-	private Object deserialize(byte[] value, RedisSerializer serializer) {
-		return serializer.deserialize(value);
 	}
 }

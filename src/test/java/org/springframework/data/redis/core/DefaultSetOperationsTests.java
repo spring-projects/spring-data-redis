@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
+import static org.junit.Assert.assertThat;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -135,10 +137,10 @@ public class DefaultSetOperationsTests<K,V> {
 		setOps.add(key1, v1);
 		setOps.add(key1, v2);
 		setOps.move(key1, v1, key2);
-		assertEquals(new HashSet<V>(Collections.singletonList(v2)),
-				setOps.members(key1));
-		assertEquals(new HashSet<V>(Collections.singletonList(v1)),
-				setOps.members(key2));
+		assertThat(setOps.members(key1),
+				isEqual(new HashSet<V>(Collections.singletonList(v2))));
+		assertThat(setOps.members(key2),
+				isEqual(new HashSet<V>(Collections.singletonList(v1))));
 	}
 
 	@Test
@@ -146,7 +148,7 @@ public class DefaultSetOperationsTests<K,V> {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		setOps.add(key, v1);
-		assertEquals(v1, setOps.pop(key));
+		assertThat(setOps.pop(key), isEqual(v1));
 		assertTrue(setOps.members(key).isEmpty());
 	}
 
@@ -154,12 +156,7 @@ public class DefaultSetOperationsTests<K,V> {
 	public void testRandomMember() {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
-		V v2 = valueFactory.instance();
 		setOps.add(key, v1);
-		setOps.add(key, v2);
-		HashSet<V> expected = new HashSet<V>();
-		expected.add(v1);
-		expected.add(v2);
-		assertTrue(expected.contains(setOps.randomMember(key)));
+		assertThat(setOps.randomMember(key), isEqual(v1));
 	}
 }

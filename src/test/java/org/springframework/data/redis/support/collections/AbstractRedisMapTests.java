@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.junit.matchers.JUnitMatchers.hasItems;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -181,10 +181,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		V v1 = getValue();
 
-		assertNull(map.get(UUID.randomUUID().toString()));
 		assertNull(map.get(k1));
 		map.put(k1, v1);
-		assertEquals(v1, map.get(k1));
+		assertThat(map.get(k1), isEqual(v1));
 	}
 
 	@Test
@@ -279,8 +278,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k1, v1);
 		map.put(k2, v2);
 
-		assertEquals(v1, map.get(k1));
-		assertEquals(v2, map.get(k2));
+		assertThat(map.get(k1), isEqual(v1));
+		assertThat(map.get(k2), isEqual(v2));
 	}
 
 	@Test
@@ -301,8 +300,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 		map.putAll(m);
 
-		assertEquals(v1, map.get(k1));
-		assertEquals(v2, map.get(k2));
+		assertThat(map.get(k1), isEqual(v1));
+		assertThat(map.get(k2), isEqual(v2));
 	}
 
 	@Test
@@ -319,11 +318,11 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k1, v1);
 		map.put(k2, v2);
 
-		assertEquals(v1, map.remove(k1));
+		assertThat(map.remove(k1), isEqual(v1));
 		assertNull(map.remove(k1));
 		assertNull(map.get(k1));
 
-		assertEquals(v2, map.remove(k2));
+		assertThat(map.remove(k2), isEqual(v2));
 		assertNull(map.remove(k2));
 		assertNull(map.get(k2));
 	}
@@ -407,13 +406,13 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 		assertNull(map.get(k1));
 		assertNull(map.putIfAbsent(k1, v1));
-		assertEquals(v1, map.putIfAbsent(k1, v2));
-		assertEquals(v1, map.get(k1));
+		assertThat(map.putIfAbsent(k1, v2), isEqual(v1));
+		assertThat(map.get(k1), isEqual(v1));
 
 		assertNull(map.putIfAbsent(k2, v2));
-		assertEquals(v2, map.putIfAbsent(k2, v1));
+		assertThat(map.putIfAbsent(k2, v1), isEqual(v2));
 
-		assertEquals(v2, map.get(k2));
+		assertThat(map.get(k2), isEqual(v2));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
