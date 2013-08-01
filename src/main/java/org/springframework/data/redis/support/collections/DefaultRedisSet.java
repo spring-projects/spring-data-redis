@@ -139,10 +139,11 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 	}
 
 
+	@SuppressWarnings("unchecked")
 	public boolean add(E e) {
-		Boolean result = boundSetOps.add(e);
+		Long result = boundSetOps.add(e);
 		checkResult(result);
-		return result;
+		return result == 1;
 	}
 
 

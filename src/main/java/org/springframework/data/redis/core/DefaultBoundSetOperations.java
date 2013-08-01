@@ -44,8 +44,8 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 	}
 
 	
-	public Boolean add(V value) {
-		return ops.add(getKey(), value);
+	public Long add(V... values) {
+		return ops.add(getKey(), values);
 	}
 
 	

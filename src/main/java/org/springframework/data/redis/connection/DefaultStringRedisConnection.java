@@ -661,8 +661,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Boolean sAdd(byte[] key, byte[] value) {
-		Boolean result = delegate.sAdd(key, value);
+	public Long sAdd(byte[] key, byte[]... values) {
+		Long result = delegate.sAdd(key, values);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1676,8 +1676,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public Boolean sAdd(String key, String value) {
-		Boolean result = delegate.sAdd(serialize(key), serialize(value));
+	public Long sAdd(String key, String... values) {
+		Long result = delegate.sAdd(serialize(key), serializeMulti(values));
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

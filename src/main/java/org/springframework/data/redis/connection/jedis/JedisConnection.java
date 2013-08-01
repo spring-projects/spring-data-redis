@@ -1631,19 +1631,21 @@ public class JedisConnection implements RedisConnection {
 	//
 
 
-	public Boolean sAdd(byte[] key, byte[] value) {
+	public Long sAdd(byte[] key, byte[]... values) {
+		if((isPipelined() || isQueueing()) && values.length > 1) {
+			throw new UnsupportedOperationException("sAdd of multiple fields not supported " +
+					"in pipeline or transaction");
+		}
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.sadd(key, value),
-						JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.sadd(key, values[0])));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.sadd(key, value),
-						JedisConverters.longToBoolean()));
+				transaction(new JedisResult(transaction.sadd(key, values[0])));
 				return null;
 			}
-			return JedisConverters.toBoolean(jedis.sadd(key, value));
+			return jedis.sadd(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

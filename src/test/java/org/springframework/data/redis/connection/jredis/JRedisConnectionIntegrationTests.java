@@ -575,6 +575,11 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testRPushMultiple();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testSAddMultiple() {
+		super.testSAddMultiple();
+	}
+
 	// Jredis returns null for rPush and lPush
 	@Test
 	public void testLLen() {
@@ -705,7 +710,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		actual.add(connection.sDiffStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		// JRedis returns void for sDiffStore, so we always return -1
-		verifyResults(Arrays.asList(new Object[] { true, true, true, -1l,
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, -1l,
 						new HashSet<String>(Collections.singletonList("foo")) }));
 	}
 
@@ -717,7 +722,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		actual.add(connection.sInterStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		// JRedis returns void for sInterStore, so we always return -1
-		verifyResults(Arrays.asList(new Object[] { true, true, true, -1l,
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, -1l,
 						new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
@@ -730,7 +735,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		actual.add(connection.sUnionStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		// JRedis returns void for sUnionStore, so we always return -1
-		verifyResults(Arrays.asList(new Object[] { true, true, true, true, -1l,
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, -1l,
 						new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
 	}
 

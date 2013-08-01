@@ -53,7 +53,7 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	void unionAndStore(Collection<K> keys, K destKey);
 
-	Boolean add(V value);
+	Long add(V... values);
 
 	Boolean isMember(Object o);
 

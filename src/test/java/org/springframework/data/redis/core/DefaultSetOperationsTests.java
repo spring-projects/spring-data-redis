@@ -105,6 +105,7 @@ public class DefaultSetOperationsTests<K,V> {
 		assertThat(expected, hasItems((V[])members.toArray()));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testRandomMembersWithDuplicates() {
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
@@ -138,6 +139,7 @@ public class DefaultSetOperationsTests<K,V> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testMove() {
 		K key1 = keyFactory.instance();
@@ -153,6 +155,7 @@ public class DefaultSetOperationsTests<K,V> {
 				isEqual(new HashSet<V>(Collections.singletonList(v1))));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testPop() {
 		K key = keyFactory.instance();
@@ -162,11 +165,25 @@ public class DefaultSetOperationsTests<K,V> {
 		assertTrue(setOps.members(key).isEmpty());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testRandomMember() {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		setOps.add(key, v1);
 		assertThat(setOps.randomMember(key), isEqual(v1));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testAdd() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		assertEquals(Long.valueOf(2), setOps.add(key, v1, v2));
+		Set<V> expected = new HashSet<V>();
+		expected.add(v1);
+		expected.add(v2);
+		assertThat(setOps.members(key), isEqual(expected));
 	}
 }

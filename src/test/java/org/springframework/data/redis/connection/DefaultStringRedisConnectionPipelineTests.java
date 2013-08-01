@@ -697,13 +697,13 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 	@Test
 	public void testSAddBytes() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).closePipeline();
 		super.testSAddBytes();
 	}
 
 	@Test
 	public void testSAdd() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).closePipeline();
 		super.testSAdd();
 	}
 

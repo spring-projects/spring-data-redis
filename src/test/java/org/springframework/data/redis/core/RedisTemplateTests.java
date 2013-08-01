@@ -190,7 +190,7 @@ public class RedisTemplateTests<K,V> {
 		Set<V> set = new HashSet<V>(Collections.singletonList(setValue));
 		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(
 				Collections.singletonList(new DefaultTypedTuple<V>(zsetValue, 1d)));
-		assertThat(results, isEqual(Arrays.asList(new Object[] {value1, 1l, list, true, set, true, tupleSet})));
+		assertThat(results, isEqual(Arrays.asList(new Object[] {value1, 1l, list, 1l, set, true, tupleSet})));
 	}
 
 	@Test
@@ -241,7 +241,7 @@ public class RedisTemplateTests<K,V> {
 		Map<Long, Long> map = new LinkedHashMap<Long,Long>();
 		map.put(10l, 11l);
 		assertThat(results,
-				isEqual(Arrays.asList(new Object[] {5l, 1l, list, true, longSet, true, tupleSet, zSet, true, map})));
+				isEqual(Arrays.asList(new Object[] {5l, 1l, list, 1l, longSet, true, tupleSet, zSet, true, map})));
 	}
 
 	@Test

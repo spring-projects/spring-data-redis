@@ -44,7 +44,6 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
-import org.springframework.data.redis.connection.srp.SrpConverters;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -1707,17 +1706,17 @@ public class LettuceConnection implements RedisConnection {
 	//
 
 
-	public Boolean sAdd(byte[] key, byte[] value) {
+	public Long sAdd(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().sadd(key, value), SrpConverters.longToBoolean()));
+				pipeline(new LettuceResult(getAsyncConnection().sadd(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().sadd(key, value), SrpConverters.longToBoolean()));
+				transaction(new LettuceTxResult(getConnection().sadd(key, values)));
 				return null;
 			}
-			return SrpConverters.toBoolean(getConnection().sadd(key, value));
+			return getConnection().sadd(key, values);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

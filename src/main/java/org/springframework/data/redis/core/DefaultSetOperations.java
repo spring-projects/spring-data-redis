@@ -35,13 +35,13 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	}
 
 	
-	public Boolean add(K key, V value) {
+	public Long add(K key, V... values) {
 		final byte[] rawKey = rawKey(key);
-		final byte[] rawValue = rawValue(value);
-		return execute(new RedisCallback<Boolean>() {
+		final byte[][] rawValues = rawValues(values);
+		return execute(new RedisCallback<Long>() {
 			
-			public Boolean doInRedis(RedisConnection connection) {
-				return connection.sAdd(rawKey, rawValue);
+			public Long doInRedis(RedisConnection connection) {
+				return connection.sAdd(rawKey, rawValues);
 			}
 		}, true);
 	}

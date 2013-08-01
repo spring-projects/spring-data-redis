@@ -159,7 +159,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	String bRPopLPush(int timeout, String srcKey, String dstKey);
 
-	Boolean sAdd(String key, String value);
+	Long sAdd(String key, String... values);
 
 	Boolean sRem(String key, String value);
 

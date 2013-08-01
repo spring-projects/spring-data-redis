@@ -1281,7 +1281,17 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(Arrays.asList(new Object[] { true, true, new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" })) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, new HashSet<String>(Arrays.asList(new String[] {
+				"foo", "bar" })) }));
+	}
+
+	@Test
+	public void testSAddMultiple() {
+		actual.add(connection.sAdd("myset", "foo", "bar"));
+		actual.add(connection.sAdd("myset", "baz"));
+		actual.add(connection.sMembers("myset"));
+		verifyResults(Arrays.asList(new Object[] { 2l, 1l, new HashSet<String>(Arrays.asList(new String[] {
+				"foo", "bar", "baz" })) }));
 	}
 
 	@Test
@@ -1289,7 +1299,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sCard("myset"));
-		verifyResults(Arrays.asList(new Object[] { true, true, 2l }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 2l }));
 	}
 
 	@Test
@@ -1299,7 +1309,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sDiff("myset", "otherset"));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, true,
+				Arrays.asList(new Object[] { 1l, 1l, 1l,
 						new HashSet<String>(Collections.singletonList("foo")) }));
 	}
 
@@ -1311,7 +1321,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sDiffStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, true, 1l,
+				Arrays.asList(new Object[] { 1l, 1l, 1l, 1l,
 						new HashSet<String>(Collections.singletonList("foo")) }));
 	}
 
@@ -1322,7 +1332,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sInter("myset", "otherset"));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, true,
+				Arrays.asList(new Object[] { 1l, 1l, 1l,
 						new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
@@ -1334,7 +1344,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sInterStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, true, 1l,
+				Arrays.asList(new Object[] { 1l, 1l, 1l, 1l,
 						new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
@@ -1344,7 +1354,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sIsMember("myset", "foo"));
 		actual.add(connection.sIsMember("myset", "baz"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true, false }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, true, false }));
 	}
 
 	@Test
@@ -1353,7 +1363,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sMove("myset", "otherset", "foo"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true, true }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, true }));
 	}
 
 	@Test
@@ -1416,7 +1426,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sRem("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, true, false,
+				Arrays.asList(new Object[] { 1l, 1l, true, false,
 						new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
@@ -1427,7 +1437,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sAdd("otherset", "baz"));
 		actual.add(connection.sUnion("myset", "otherset"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true, true,
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l,
 				new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
 	}
 
@@ -1439,7 +1449,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "baz"));
 		actual.add(connection.sUnionStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true, true, 3l,
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, 3l,
 				new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
 	}
 

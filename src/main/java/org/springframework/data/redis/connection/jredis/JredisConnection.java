@@ -785,9 +785,12 @@ public class JredisConnection implements RedisConnection {
 	//
 
 
-	public Boolean sAdd(byte[] key, byte[] value) {
+	public Long sAdd(byte[] key, byte[]... values) {
+		if(values.length > 1) {
+			throw new UnsupportedOperationException("sAdd of multiple fields not supported");
+		}
 		try {
-			return jredis.sadd(key, value);
+			return JredisUtils.toLong(jredis.sadd(key, values[0]));
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}

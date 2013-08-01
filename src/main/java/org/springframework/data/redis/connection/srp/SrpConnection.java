@@ -1335,13 +1335,13 @@ public class SrpConnection implements RedisConnection {
 	//
 
 
-	public Boolean sAdd(byte[] key, byte[] value) {
+	public Long sAdd(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.sadd(key, new Object[] { value }), SrpConverters.longToBoolean()));
+				pipeline(new SrpResult(pipeline.sadd(key, (Object[]) values)));
 				return null;
 			}
-			return SrpConverters.toBoolean(client.sadd(key, new Object[] { value }).data());
+			return client.sadd(key, (Object[]) values).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

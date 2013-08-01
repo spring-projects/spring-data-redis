@@ -842,16 +842,16 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testSAddBytes() {
-		doReturn(true).when(nativeConnection).sAdd(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).sAdd(fooBytes, barBytes);
 		actual.add(connection.sAdd(fooBytes, barBytes));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test
 	public void testSAdd() {
-		doReturn(true).when(nativeConnection).sAdd(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).sAdd(fooBytes, barBytes);
 		actual.add(connection.sAdd(foo, bar));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test
