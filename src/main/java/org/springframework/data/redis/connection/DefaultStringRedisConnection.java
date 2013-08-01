@@ -645,8 +645,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Long rPush(byte[] key, byte[] value) {
-		Long result = delegate.rPush(key, value);
+	public Long rPush(byte[] key, byte[]... values) {
+		Long result = delegate.rPush(key, values);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1658,8 +1658,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public Long rPush(String key, String value) {
-		Long result = delegate.rPush(serialize(key), serialize(value));
+	public Long rPush(String key, String... values) {
+		Long result = delegate.rPush(serialize(key), serializeMulti(values));
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

@@ -1236,6 +1236,13 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
+	public void testRPushMultiple() {
+		actual.add(connection.rPush("mylist", "hi", "foo"));
+		actual.add(connection.lRange("mylist", 0, -1));
+		verifyResults(Arrays.asList(new Object[] { 2l, Arrays.asList(new String[] { "hi", "foo" }) }));
+	}
+
+	@Test
 	public void testRPushX() {
 		actual.add(connection.rPush("mylist", "hi"));
 		actual.add(connection.rPushX("mylist", "foo"));

@@ -164,4 +164,17 @@ public class DefaultListOperationsTests<K,V> {
 		assertThat(listOps.range(key, 0, -1),
 				isEqual(Arrays.asList(new Object[] {v1, v2})));
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRightPushAll() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		assertEquals(Long.valueOf(2),listOps.rightPushAll(key, v1, v2));
+		assertEquals(Long.valueOf(3),listOps.rightPush(key, v3));
+		assertThat(listOps.range(key, 0, -1),
+				isEqual(Arrays.asList(new Object[] {v1, v2, v3})));
+	}
 }

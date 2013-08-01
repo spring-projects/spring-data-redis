@@ -747,9 +747,12 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
-	public Long rPush(byte[] key, byte[] value) {
+	public Long rPush(byte[] key, byte[]... values) {
+		if(values.length > 1) {
+			throw new UnsupportedOperationException("rPush of multiple fields not supported");
+		}
 		try {
-			jredis.rpush(key, value);
+			jredis.rpush(key, values[0]);
 			return null;
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);

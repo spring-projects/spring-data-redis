@@ -41,6 +41,8 @@ public interface ListOperations<K, V> {
 
 	Long rightPush(K key, V value);
 
+	Long rightPushAll(K key, V... values);
+
 	Long rightPushIfPresent(K key, V value);
 
 	Long rightPush(K key, V pivot, V value);

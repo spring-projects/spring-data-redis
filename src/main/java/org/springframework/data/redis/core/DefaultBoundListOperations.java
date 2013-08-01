@@ -115,7 +115,10 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.rightPush(getKey(), value);
 	}
 
-	
+	public Long rightPushAll(V... values) {
+		return ops.rightPushAll(getKey(), values);
+	}
+
 	public Long rightPush(V pivot, V value) {
 		return ops.rightPush(getKey(), pivot, value);
 	}

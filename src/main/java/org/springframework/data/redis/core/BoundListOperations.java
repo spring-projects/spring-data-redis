@@ -43,6 +43,8 @@ public interface BoundListOperations<K, V> extends BoundKeyOperations<K> {
 
 	Long rightPush(V value);
 
+	Long rightPushAll(V... values);
+
 	Long rightPushIfPresent(V value);
 
 	Long rightPush(V pivot, V value);

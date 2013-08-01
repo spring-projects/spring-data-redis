@@ -436,4 +436,9 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testLPushMultiple() {
 		super.testLPushMultiple();
 	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testRPushMultiple() {
+		super.testRPushMultiple();
+	}
 }
