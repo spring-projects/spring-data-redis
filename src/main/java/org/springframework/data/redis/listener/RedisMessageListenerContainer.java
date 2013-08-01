@@ -117,7 +117,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
 
-
+	// whether container should resubscribe on redis exception occure.
+	// (as network problem or redis server restart)
+	private boolean resubscribeOnError = true;
 
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
@@ -632,7 +634,28 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
+	/**
+	 * Handle subscription task exception
+	 * @param t Throwable exception
+	 */
+	protected void handleSubscriptionTaskException(Throwable t) {
+		if (this.resubscribeOnError) {
+			subscriptionExecutor.execute(new Runnable() {
 
+				public void run() {
+					stop();
+					logger.error("Restarting subscription task after 3s.");
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						return;
+					}
+					start();
+				}
+			});
+		}
+	}
+	
 	/**
 	 * Runnable used for Redis subscription. Implemented as a dedicated class to provide as many hints
 	 * as possible to the underlying thread pool.
@@ -721,6 +744,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				else {
 					connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
 				}
+			} catch (Throwable t) {
+				if (logger.isErrorEnabled()) {
+					logger.error("PatternSubscriptionTask abort with exception:", t);
+				}
+				handleSubscriptionTaskException(t);
 			} finally {
 				// this block is executed once the subscription thread has ended, this may or may not mean
 				// the connection has been unsubscribed, depending on driver
