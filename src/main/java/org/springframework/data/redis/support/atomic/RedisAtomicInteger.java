@@ -18,7 +18,6 @@ package org.springframework.data.redis.support.atomic;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
@@ -172,9 +171,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 					if (expect == get()) {
 						generalOps.multi();
 						set(update);
-						List results = operations.exec();
-						if (results != null) {
-							System.out.println(results);
+						if (operations.exec() != null) {
 							return true;
 						}
 					}
