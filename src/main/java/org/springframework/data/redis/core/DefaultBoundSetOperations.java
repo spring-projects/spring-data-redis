@@ -125,8 +125,8 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 	}
 
 
-	public Boolean remove(Object o) {
-		return ops.remove(getKey(), o);
+	public Long remove(Object... values) {
+		return ops.remove(getKey(), values);
 	}
 	
 

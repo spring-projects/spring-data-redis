@@ -845,13 +845,13 @@ public class DefaultStringRedisConnectionPipelineTxTests extends
 
 	@Test
 	public void testSRemBytes() {
-		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { true })})).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 1l })})).when(nativeConnection).closePipeline();
 		super.testSRemBytes();
 	}
 
 	@Test
 	public void testSRem() {
-		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { true })})).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 1l })})).when(nativeConnection).closePipeline();
 		super.testSRem();
 	}
 

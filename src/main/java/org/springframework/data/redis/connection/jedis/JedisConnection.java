@@ -1826,18 +1826,21 @@ public class JedisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
-	public Boolean sRem(byte[] key, byte[] value) {
+	public Long sRem(byte[] key, byte[]... values) {
+		if((isPipelined() || isQueueing()) && values.length > 1) {
+			throw new UnsupportedOperationException("sRem of multiple fields not supported " +
+					"in pipeline or transaction");
+		}
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.srem(key, value), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.srem(key, values[0])));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.srem(key, value),
-						JedisConverters.longToBoolean()));
+				transaction(new JedisResult(transaction.srem(key, values[0])));
 				return null;
 			}
-			return JedisConverters.toBoolean(jedis.srem(key, value));
+			return jedis.srem(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

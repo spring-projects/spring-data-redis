@@ -1052,16 +1052,16 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testSRemBytes() {
-		doReturn(true).when(nativeConnection).sRem(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).sRem(fooBytes, barBytes);
 		actual.add(connection.sRem(fooBytes, barBytes));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test
 	public void testSRem() {
-		doReturn(true).when(nativeConnection).sRem(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).sRem(fooBytes, barBytes);
 		actual.add(connection.sRem(foo, bar));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test

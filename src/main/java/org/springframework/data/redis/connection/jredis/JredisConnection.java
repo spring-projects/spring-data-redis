@@ -902,9 +902,12 @@ public class JredisConnection implements RedisConnection {
 	}
 
 
-	public Boolean sRem(byte[] key, byte[] value) {
+	public Long sRem(byte[] key, byte[]... values) {
+		if(values.length > 1) {
+			throw new UnsupportedOperationException("sRem of multiple fields not supported");
+		}
 		try {
-			return jredis.srem(key, value);
+			return JredisUtils.toLong(jredis.srem(key, values[0]));
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}

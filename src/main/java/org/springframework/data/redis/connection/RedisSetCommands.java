@@ -28,7 +28,7 @@ public interface RedisSetCommands {
 
 	Long sAdd(byte[] key, byte[]... values);
 
-	Boolean sRem(byte[] key, byte[] value);
+	Long sRem(byte[] key, byte[]... values);
 
 	byte[] sPop(byte[] key);
 

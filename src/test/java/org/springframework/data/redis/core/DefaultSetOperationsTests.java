@@ -186,4 +186,17 @@ public class DefaultSetOperationsTests<K,V> {
 		expected.add(v2);
 		assertThat(setOps.members(key), isEqual(expected));
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRemove() {
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+		setOps.add(key,v1, v2, v3);
+		assertEquals(Long.valueOf(2), setOps.remove(key, v1, v2, v4));
+		assertThat(setOps.members(key), isEqual(Collections.singleton(v3)));
+	}
 }

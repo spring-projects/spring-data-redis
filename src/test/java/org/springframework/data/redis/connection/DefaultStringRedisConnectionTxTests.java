@@ -844,13 +844,13 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 	@Test
 	public void testSRemBytes() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).exec();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
 		super.testSRemBytes();
 	}
 
 	@Test
 	public void testSRem() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).exec();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
 		super.testSRem();
 	}
 

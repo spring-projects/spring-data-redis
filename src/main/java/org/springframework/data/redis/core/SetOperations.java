@@ -65,7 +65,7 @@ public interface SetOperations<K, V> {
 
 	List<V> randomMembers(K key, long count);
 
-	Boolean remove(K key, Object o);
+	Long remove(K key, Object... values);
 
 	V pop(K key);
 

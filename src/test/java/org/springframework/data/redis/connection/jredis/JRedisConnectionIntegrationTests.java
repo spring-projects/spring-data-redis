@@ -580,6 +580,11 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testSAddMultiple();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	public void testSRemMultiple() {
+		super.testSRemMultiple();
+	}
+
 	// Jredis returns null for rPush and lPush
 	@Test
 	public void testLLen() {

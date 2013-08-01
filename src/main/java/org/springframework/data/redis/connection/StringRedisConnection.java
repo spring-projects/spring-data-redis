@@ -161,7 +161,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long sAdd(String key, String... values);
 
-	Boolean sRem(String key, String value);
+	Long sRem(String key, String... values);
 
 	String sPop(String key);
 

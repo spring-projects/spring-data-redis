@@ -1907,17 +1907,17 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-	public Boolean sRem(byte[] key, byte[] value) {
+	public Long sRem(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().srem(key, value), LettuceConverters.longToBoolean()));
+				pipeline(new LettuceResult(getAsyncConnection().srem(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().srem(key, value), LettuceConverters.longToBoolean()));
+				transaction(new LettuceTxResult(getConnection().srem(key, values)));
 				return null;
 			}
-			return LettuceConverters.toBoolean(getConnection().srem(key, value));
+			return getConnection().srem(key, values);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

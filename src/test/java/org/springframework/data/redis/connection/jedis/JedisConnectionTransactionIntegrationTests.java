@@ -382,4 +382,9 @@ public class JedisConnectionTransactionIntegrationTests extends
 	public void testSAddMultiple() {
 		super.testSAddMultiple();
 	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testSRemMultiple() {
+		super.testSRemMultiple();
+	}
 }

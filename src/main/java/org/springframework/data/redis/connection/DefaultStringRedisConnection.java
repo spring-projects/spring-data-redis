@@ -813,8 +813,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
-	public Boolean sRem(byte[] key, byte[] value) {
-		Boolean result = delegate.sRem(key, value);
+	public Long sRem(byte[] key, byte[]... values) {
+		Long result = delegate.sRem(key, values);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1829,8 +1829,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return byteListToStringList.convert(results);
 	}
 	
-	public Boolean sRem(String key, String value) {
-		Boolean result = delegate.sRem(serialize(key), serialize(value));
+	public Long sRem(String key, String... values) {
+		Long result = delegate.sRem(serialize(key), serializeMulti(values));
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

@@ -1426,7 +1426,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sRem("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
 		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, true, false,
+				Arrays.asList(new Object[] { 1l, 1l, 1l, 0l,
+						new HashSet<String>(Collections.singletonList("bar")) }));
+	}
+
+	@Test
+	public void testSRemMultiple() {
+		actual.add(connection.sAdd("myset", "foo"));
+		actual.add(connection.sAdd("myset", "bar"));
+		actual.add(connection.sAdd("myset", "baz"));
+		actual.add(connection.sRem("myset", "foo", "nope", "baz"));
+		actual.add(connection.sMembers("myset"));
+		verifyResults(
+				Arrays.asList(new Object[] { 1l, 1l, 1l, 2l,
 						new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 

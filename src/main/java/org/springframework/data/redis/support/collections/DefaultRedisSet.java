@@ -170,9 +170,9 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 
 	public boolean remove(Object o) {
-		Boolean result = boundSetOps.remove(o);
+		Long result = boundSetOps.remove(o);
 		checkResult(result);
-		return result;
+		return result == 1;
 	}
 
 
