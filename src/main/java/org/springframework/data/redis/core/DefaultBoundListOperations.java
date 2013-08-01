@@ -67,6 +67,9 @@ class DefaultBoundListOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.leftPush(getKey(), value);
 	}
 
+	public Long leftPushAll(V... values) {
+		return ops.leftPushAll(getKey(), values);
+	}
 	
 	public Long leftPushIfPresent(V value) {
 		return ops.leftPushIfPresent(getKey(), value);

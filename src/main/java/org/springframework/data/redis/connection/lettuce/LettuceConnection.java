@@ -1421,17 +1421,17 @@ public class LettuceConnection implements RedisConnection {
 	//
 
 
-	public Long lPush(byte[] key, byte[] value) {
+	public Long lPush(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().lpush(key, value)));
+				pipeline(new LettuceResult(getAsyncConnection().lpush(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().lpush(key, value)));
+				transaction(new LettuceTxResult(getConnection().lpush(key, values)));
 				return null;
 			}
-			return getConnection().lpush(key, value);
+			return getConnection().lpush(key, values);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

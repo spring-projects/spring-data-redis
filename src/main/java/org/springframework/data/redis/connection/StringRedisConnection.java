@@ -127,7 +127,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long rPush(String key, String value);
 
-	Long lPush(String key, String value);
+	Long lPush(String key, String... values);
 
 	Long rPushX(String key, String value);
 

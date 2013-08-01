@@ -111,6 +111,15 @@ abstract class AbstractOperations<K, V> {
 		return valueSerializer().serialize(value);
 	}
 
+	byte[][] rawValues(Object... values) {
+		final byte[][] rawValues = new byte[values.length][];
+		int i = 0;
+		for (Object value : values) {
+			rawValues[i++] = rawValue(value);
+		}
+		return rawValues;
+	}
+
 	@SuppressWarnings("unchecked")
 	<HK> byte[] rawHashKey(HK hashKey) {
 		Assert.notNull(hashKey, "non null hash key required");

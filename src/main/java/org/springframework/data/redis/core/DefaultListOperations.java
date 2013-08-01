@@ -76,7 +76,16 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		}, true);
 	}
 
-	
+	public Long leftPushAll(K key, V... values) {
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawValues = rawValues(values);
+		return execute(new RedisCallback<Long>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.lPush(rawKey, rawValues);
+			}
+		}, true);
+	}
+
 	public Long leftPushIfPresent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);

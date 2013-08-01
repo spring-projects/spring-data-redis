@@ -1106,13 +1106,13 @@ public class SrpConnection implements RedisConnection {
 	// List commands
 	//
 
-	public Long lPush(byte[] key, byte[] value) {
+	public Long lPush(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.lpush(key, new Object[] { value })));
+				pipeline(new SrpResult(pipeline.lpush(key, (Object[]) values)));
 				return null;
 			}
-			return client.lpush(key, new Object[] { value }).data();
+			return client.lpush(key, (Object[]) values ).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

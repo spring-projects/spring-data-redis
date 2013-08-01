@@ -505,8 +505,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Long lPush(byte[] key, byte[] value) {
-		Long result = delegate.lPush(key, value);
+	public Long lPush(byte[] key, byte[]... values) {
+		Long result = delegate.lPush(key, values);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1525,8 +1525,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public Long lPush(String key, String value) {
-		Long result = delegate.lPush(serialize(key), serialize(value));
+	public Long lPush(String key, String... values) {
+		Long result = delegate.lPush(serialize(key), serializeMulti(values));
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

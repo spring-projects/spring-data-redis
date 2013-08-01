@@ -33,6 +33,8 @@ public interface ListOperations<K, V> {
 
 	Long leftPush(K key, V value);
 
+	Long leftPushAll(K key, V... values);
+
 	Long leftPushIfPresent(K key, V value);
 
 	Long leftPush(K key, V pivot, V value);

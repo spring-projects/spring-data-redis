@@ -1322,17 +1322,21 @@ public class JedisConnection implements RedisConnection {
 	// List commands
 	//
 
-	public Long lPush(byte[] key, byte[] value) {
+	public Long lPush(byte[] key, byte[]... values) {
+		if((isPipelined() || isQueueing()) && values.length > 1) {
+			throw new UnsupportedOperationException("lPush of multiple fields not supported " +
+					"in pipeline or transaction");
+		}
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.lpush(key, value)));
+				pipeline(new JedisResult(pipeline.lpush(key, values[0])));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.lpush(key, value)));
+				transaction(new JedisResult(transaction.lpush(key, values[0])));
 				return null;
 			}
-			return jedis.lpush(key, value);
+			return jedis.lpush(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

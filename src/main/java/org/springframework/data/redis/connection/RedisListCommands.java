@@ -34,7 +34,7 @@ public interface RedisListCommands {
 
 	Long rPush(byte[] key, byte[] value);
 	
-	Long lPush(byte[] key, byte[] value);
+	Long lPush(byte[] key, byte[]... value);
 
 	Long rPushX(byte[] key, byte[] value);
 

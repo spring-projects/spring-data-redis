@@ -1259,6 +1259,14 @@ public abstract class AbstractConnectionIntegrationTests {
 				Arrays.asList(new String[] { "baz", "bar" }) }));
 	}
 
+	@Test
+	public void testLPushMultiple() {
+		actual.add(connection.lPush("testlist", "bar", "baz"));
+		actual.add(connection.lRange("testlist", 0, -1));
+		verifyResults(Arrays.asList(new Object[] { 2l,
+				Arrays.asList(new String[] { "baz", "bar" }) }));
+	}
+
 	// Set operations
 
 	@Test
