@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,8 +55,8 @@ public class Equals extends BaseMatcher<Object> {
 
 	@SuppressWarnings("rawtypes")
 	public boolean matches(Object actual) {
-		if (expected instanceof List) {
-			return listEquals((List) expected, (List) actual);
+		if (expected instanceof List || expected instanceof LinkedHashSet) {
+			return collectionEquals((Collection) expected, (Collection) actual);
 		} else if (expected instanceof Set) {
 			return setEquals((Set) expected, (Set) actual);
 		} else if (expected instanceof LinkedHashMap) {
@@ -66,7 +67,7 @@ public class Equals extends BaseMatcher<Object> {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private boolean listEquals(List expected, List actual) {
+	private boolean collectionEquals(Collection expected, Collection actual) {
 		if (expected.size() != actual.size()) {
 			return false;
 		}
@@ -74,8 +75,8 @@ public class Equals extends BaseMatcher<Object> {
 		Iterator<Object> expectedItr = expected.iterator();
 		while (expectedItr.hasNext()) {
 			Object expectedObj = expectedItr.next();
-			if (expectedObj instanceof List) {
-				if (!(listEquals((List) expectedObj, (List) actualItr.next()))) {
+			if (expectedObj instanceof List || expectedObj instanceof LinkedHashSet) {
+				if (!(collectionEquals((Collection) expectedObj, (Collection) actualItr.next()))) {
 					return false;
 				}
 			} else if (expectedObj instanceof Set) {
