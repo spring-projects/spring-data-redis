@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1901,6 +1902,18 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+		if(isPipelined() || isQueueing()) {
+			throw new UnsupportedOperationException("zAdd of multiple fields not supported " +
+					"in pipeline or transaction");
+		}
+		Map<Double, byte[]> args = zAddArgs(tuples);
+		try {
+			return jedis.zadd(key, args);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
 	public Long zCard(byte[] key) {
 		try {
@@ -2746,5 +2759,17 @@ public class JedisConnection implements RedisConnection {
 		}
 		args.add(Protocol.toByteArray(timeout));
 		return args.toArray(new byte[args.size()][]);
+	}
+
+    private Map<Double, byte[]> zAddArgs(Set<Tuple> tuples) {
+		Map<Double, byte[]> args = new HashMap<Double, byte[]>();
+		for(Tuple tuple: tuples) {
+			if(args.containsKey(tuple.getScore())) {
+				throw new UnsupportedOperationException("Bulk add of multiple elements with the same score is not supported. " +
+						"Add the elements individually.");
+			}
+			args.put(tuple.getScore(), tuple.getValue());
+		}
+		return args;
 	}
 }

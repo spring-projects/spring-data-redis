@@ -21,6 +21,8 @@ import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.After;
@@ -155,5 +157,23 @@ public class DefaultZSetOperationsTests<K,V> {
 		assertEquals(1, tuples.size());
 		TypedTuple<V> tuple = tuples.iterator().next();
 		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
+	}
+
+	@Test
+	public void testAddMultiple() {
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
+		values.add(new DefaultTypedTuple<V>(value1, 1.7));
+		values.add(new DefaultTypedTuple<V>(value2, 3.2));
+		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		assertEquals(Long.valueOf(3), zSetOps.add(key, values));
+		Set<V> expected = new LinkedHashSet<V>();
+		expected.add(value3);
+		expected.add(value1);
+		expected.add(value2);
+		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
 	}
 }

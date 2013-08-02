@@ -1191,6 +1191,26 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testZAddMultipleBytes() {
+		Set<Tuple> tuples = new HashSet<Tuple>();
+		tuples.add(new DefaultTuple(barBytes, 3.0));
+		doReturn(1l).when(nativeConnection).zAdd(fooBytes, tuples);
+		actual.add(connection.zAdd(fooBytes, tuples));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
+	}
+
+	@Test
+	public void testZAddMultiple() {
+		Set<Tuple> tuples = new HashSet<Tuple>();
+		tuples.add(new DefaultTuple(barBytes, 3.0));
+		Set<StringTuple> strTuples = new HashSet<StringTuple>();
+		strTuples.add(new DefaultStringTuple(barBytes, bar, 3.0));
+		doReturn(1l).when(nativeConnection).zAdd(fooBytes, tuples);
+		actual.add(connection.zAdd(foo, strTuples));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
+	}
+
+	@Test
 	public void testZCardBytes() {
 		doReturn(5l).when(nativeConnection).zCard(fooBytes);
 		actual.add(connection.zCard(fooBytes));

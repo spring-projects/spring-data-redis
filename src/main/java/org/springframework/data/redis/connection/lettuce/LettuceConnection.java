@@ -1977,6 +1977,25 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+
+	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().zadd(key,
+						LettuceConverters.toObjects(tuples).toArray())));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().zadd(key,
+						LettuceConverters.toObjects(tuples).toArray())));
+				return null;
+			}
+			return getConnection().zadd(key, LettuceConverters.toObjects(tuples).toArray());
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	public Long zCard(byte[] key) {
 		try {
 			if (isPipelined()) {

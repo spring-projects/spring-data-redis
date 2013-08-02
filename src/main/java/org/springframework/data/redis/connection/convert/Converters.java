@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.connection.convert;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
  * Common type converters
@@ -60,5 +64,14 @@ abstract public class Converters {
 
 	public static byte[] toBit(Boolean source) {
 		return (source ? ONE : ZERO);
+	}
+
+	public static List<Object> toObjects(Set<Tuple> tuples) {
+		List<Object> tupleArgs = new ArrayList<Object>(tuples.size() * 2);
+		for(Tuple tuple: tuples) {
+			tupleArgs.add(tuple.getScore());
+			tupleArgs.add(tuple.getValue());
+		}
+		return tupleArgs;
 	}
 }

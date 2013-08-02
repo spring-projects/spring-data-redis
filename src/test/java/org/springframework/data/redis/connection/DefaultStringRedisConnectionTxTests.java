@@ -965,6 +965,18 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
+	public void testZAddMultipleBytes() {
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
+		super.testZAddMultipleBytes();
+	}
+
+	@Test
+	public void testZAddMultiple() {
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
+		super.testZAddMultiple();
+	}
+
+	@Test
 	public void testZCardBytes() {
 		doReturn(Arrays.asList(new Object[] { 5l })).when(nativeConnection).exec();
 		super.testZCardBytes();

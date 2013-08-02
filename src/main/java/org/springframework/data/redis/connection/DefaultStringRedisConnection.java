@@ -49,6 +49,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	private final RedisSerializer<String> serializer;
 	private Converter<byte[],String> bytesToString = new DeserializingConverter();
 	private SetConverter<Tuple,StringTuple> tupleToStringTuple = new SetConverter<Tuple,StringTuple>(new TupleConverter());
+	private SetConverter<StringTuple,Tuple> stringTupleToTuple = new SetConverter<StringTuple, Tuple>(new StringTupleConverter());
 	private ListConverter<byte[], String> byteListToStringList = new ListConverter<byte[],String>(bytesToString);
 	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<byte[],String>(bytesToString);
 	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<byte[],String>(bytesToString);
@@ -68,6 +69,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	private class TupleConverter implements Converter<Tuple,StringTuple> {
 		public StringTuple convert(Tuple source) {
 			return new DefaultStringTuple(source, serializer.deserialize(source.getValue()));
+		}
+	}
+
+	private class StringTupleConverter implements Converter<StringTuple, Tuple> {
+		public Tuple convert(StringTuple source) {
+			return new DefaultTuple(source.getValue(), source.getScore());
 		}
 	}
 
@@ -899,6 +906,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		Boolean result = delegate.zAdd(key, score, value);
+		if(isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+		Long result = delegate.zAdd(key, tuples);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1918,6 +1933,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
+
+	public Long zAdd(String key, Set<StringTuple> tuples) {
+		Long result = delegate.zAdd(serialize(key), stringTupleToTuple.convert(tuples));
+		if(isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
 	
 	public Long zCard(String key) {
 		Long result = delegate.zCard(serialize(key));

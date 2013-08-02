@@ -69,6 +69,8 @@ public interface ZSetOperations<K, V> {
 
 	Boolean add(K key, V value, double score);
 
+	Long add(K key, Set<TypedTuple<V>> tuples);
+
 	Double incrementScore(K key, V value, double delta);
 
 	Long rank(K key, Object o);

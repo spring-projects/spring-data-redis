@@ -47,7 +47,10 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.add(getKey(), value, score);
 	}
 
-	
+	public Long add(Set<TypedTuple<V>> tuples) {
+		return ops.add(getKey(), tuples);
+	}
+
 	public Double incrementScore(V value, double delta) {
 		return ops.incrementScore(getKey(), value, delta);
 	}

@@ -24,7 +24,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * 
  * @author Costin Leau
  */
-class DefaultTypedTuple<V> implements TypedTuple<V> {
+public class DefaultTypedTuple<V> implements TypedTuple<V> {
 
 	private final Double score;
 	private final V value;

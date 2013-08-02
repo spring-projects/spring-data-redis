@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -52,6 +53,7 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -1472,7 +1474,22 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRange("myset", 0, -1));
-		verifyResults(Arrays.asList(new Object[] { true, true, new LinkedHashSet<String>(Arrays.asList(new String[] { "James", "Bob" })) }));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "James", "Bob" })) }));
+	}
+
+	@Test
+	public void testZAddMultiple() {
+		Set<StringTuple> strTuples = new HashSet<StringTuple>();
+		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
+		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 1.0));
+		Set<Tuple> tuples = new HashSet<Tuple>();
+		tuples.add(new DefaultTuple("Joe".getBytes(), 2.5));
+		actual.add(connection.zAdd("myset",strTuples));
+		actual.add(connection.zAdd("myset".getBytes(), tuples));
+		actual.add(connection.zRange("myset", 0, -1));
+		verifyResults(Arrays.asList(new Object[] { 2l, 1l,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "James", "Bob", "Joe" })) }));
 	}
 
 	@Test

@@ -46,6 +46,17 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	public Long add(K key, Set<TypedTuple<V>> tuples) {
+		final byte[] rawKey = rawKey(key);
+		final Set<Tuple> rawValues = rawTupleValues(tuples);
+
+		return execute(new RedisCallback<Long>() {
+
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zAdd(rawKey, rawValues);
+			}
+		}, true);
+	}
 
 	public Double incrementScore(K key, V value, final double delta) {
 		final byte[] rawKey = rawKey(key);

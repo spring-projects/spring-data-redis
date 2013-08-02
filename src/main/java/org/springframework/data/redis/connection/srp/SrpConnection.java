@@ -1544,6 +1544,20 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+		try {
+			List<Object> args = new ArrayList<Object>();
+			args.add(key);
+			args.addAll(SrpConverters.toObjects(tuples));
+			if (isPipelined()) {
+				pipeline(new SrpResult(pipeline.zadd(args.toArray())));
+				return null;
+			}
+			return client.zadd(args.toArray()).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 
 	public Long zCard(byte[] key) {
 		try {

@@ -16,14 +16,19 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -216,6 +221,14 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		conn2.close();
 		factory2.getConnection();
 		factory2.destroy();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testZAddSameScores() {
+		Set<StringTuple> strTuples = new HashSet<StringTuple>();
+		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
+		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 2.0));
+		connection.zAdd("myset", strTuples);
 	}
 
 	@Test(expected=InvalidDataAccessApiUsageException.class)

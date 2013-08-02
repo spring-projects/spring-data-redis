@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -197,6 +198,24 @@ abstract class AbstractOperations<K, V> {
 			set.add(new DefaultTypedTuple(value, rawValue.getScore()));
 		}
 		return set;
+	}
+
+	@SuppressWarnings("unchecked")
+	Set<Tuple> rawTupleValues(Set<TypedTuple<V>> values) {
+		if(values == null) {
+			return null;
+		}
+		Set<Tuple> rawTuples = new LinkedHashSet<Tuple>(values.size());
+		for(TypedTuple<V> value: values) {
+			byte[] rawValue;
+			if(valueSerializer() == null && value.getValue() instanceof byte[]) {
+				rawValue = (byte[]) value.getValue();
+			}else {
+				rawValue = valueSerializer().serialize(value.getValue());
+			}
+			rawTuples.add(new DefaultTuple(rawValue, value.getScore()));
+		}
+		return rawTuples;
 	}
 
 	@SuppressWarnings("unchecked")

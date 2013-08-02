@@ -451,4 +451,9 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testSRemMultiple() {
 		super.testSRemMultiple();
 	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testZAddMultiple() {
+		super.testZAddMultiple();
+	}
 }

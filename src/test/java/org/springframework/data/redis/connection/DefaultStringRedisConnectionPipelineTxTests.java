@@ -966,6 +966,18 @@ public class DefaultStringRedisConnectionPipelineTxTests extends
 	}
 
 	@Test
+	public void testZAddMultipleBytes() {
+		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l })})).when(nativeConnection).closePipeline();
+		super.testZAddMultipleBytes();
+	}
+
+	@Test
+	public void testZAddMultiple() {
+		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l })})).when(nativeConnection).closePipeline();
+		super.testZAddMultiple();
+	}
+
+	@Test
 	public void testZCardBytes() {
 		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { 5l })})).when(nativeConnection).closePipeline();
 		super.testZCardBytes();

@@ -949,6 +949,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
+	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+		throw new UnsupportedOperationException();
+	}
 
 	public Long zCard(byte[] key) {
 		try {

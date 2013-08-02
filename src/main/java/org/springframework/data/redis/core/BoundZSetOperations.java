@@ -61,6 +61,8 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	Boolean add(V value, double score);
 
+	Long add(Set<TypedTuple<V>> tuples);
+
 	Double incrementScore(V value, double delta);
 
 	Long rank(Object o);
