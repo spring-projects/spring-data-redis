@@ -46,7 +46,7 @@ public interface RedisZSetCommands {
 
 	Long zAdd(byte[] key, Set<Tuple> tuples);
 
-	Boolean zRem(byte[] key, byte[] value);
+	Long zRem(byte[] key, byte[]... values);
 
 	Double zIncrBy(byte[] key, double increment, byte[] value);
 

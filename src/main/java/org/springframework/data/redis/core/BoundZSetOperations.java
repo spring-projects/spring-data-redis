@@ -69,7 +69,7 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	Long reverseRank(Object o);
 
-	Boolean remove(Object o);
+	Long remove(Object... values);
 
 	Long count(double min, double max);
 

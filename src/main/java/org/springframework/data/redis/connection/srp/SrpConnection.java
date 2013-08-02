@@ -1775,13 +1775,13 @@ public class SrpConnection implements RedisConnection {
 	}
 
 
-	public Boolean zRem(byte[] key, byte[] value) {
+	public Long zRem(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrem(key, new Object[] { value }), SrpConverters.longToBoolean()));
+				pipeline(new SrpResult(pipeline.zrem(key, (Object[]) values)));
 				return null;
 			}
-			return SrpConverters.toBoolean(client.zrem(key, new Object[] { value }).data());
+			return client.zrem(key, (Object[]) values).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

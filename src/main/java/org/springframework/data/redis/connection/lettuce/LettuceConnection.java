@@ -2304,17 +2304,17 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-	public Boolean zRem(byte[] key, byte[] value) {
+	public Long zRem(byte[] key, byte[]... values) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().zrem(key, value), LettuceConverters.longToBoolean()));
+				pipeline(new LettuceResult(getAsyncConnection().zrem(key, values)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().zrem(key, value), LettuceConverters.longToBoolean()));
+				transaction(new LettuceTxResult(getConnection().zrem(key, values)));
 				return null;
 			}
-			return LettuceConverters.toBoolean(getConnection().zrem(key, value));
+			return getConnection().zrem(key, values);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

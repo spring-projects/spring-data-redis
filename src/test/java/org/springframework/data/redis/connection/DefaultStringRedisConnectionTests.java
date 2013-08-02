@@ -1440,16 +1440,16 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZRemBytes() {
-		doReturn(true).when(nativeConnection).zRem(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).zRem(fooBytes, barBytes);
 		actual.add(connection.zRem(fooBytes, barBytes));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test
 	public void testZRem() {
-		doReturn(true).when(nativeConnection).zRem(fooBytes, barBytes);
+		doReturn(1l).when(nativeConnection).zRem(fooBytes, barBytes);
 		actual.add(connection.zRem(foo, bar));
-		verifyResults(Arrays.asList(new Object[] { true }));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
 	}
 
 	@Test

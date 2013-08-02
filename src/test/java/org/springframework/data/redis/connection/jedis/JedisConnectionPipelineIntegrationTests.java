@@ -456,4 +456,9 @@ public class JedisConnectionPipelineIntegrationTests extends
 	public void testZAddMultiple() {
 		super.testZAddMultiple();
 	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	public void testZRemMultiple() {
+		super.testZRemMultiple();
+	}
 }

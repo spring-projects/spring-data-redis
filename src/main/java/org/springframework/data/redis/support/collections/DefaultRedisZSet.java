@@ -202,9 +202,9 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	
 	public boolean remove(Object o) {
-		Boolean result = boundZSetOps.remove(o);
+		Long result = boundZSetOps.remove(o);
 		checkResult(result);
-		return result;
+		return result == 1;
 	}
 
 	

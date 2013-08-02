@@ -1696,8 +1696,21 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zRem("myset", "James"));
 		actual.add(connection.zRange("myset", 0l, -1l));
 		verifyResults(
-				Arrays.asList(new Object[] { true, true, true,
+				Arrays.asList(new Object[] { true, true, 1l,
 						new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
+	}
+
+	@Test
+	public void testZRemMultiple() {
+		actual.add(connection.zAdd("myset", 2, "Bob"));
+		actual.add(connection.zAdd("myset", 1, "James"));
+		actual.add(connection.zAdd("myset", 0.5, "Joe"));
+		actual.add(connection.zAdd("myset", 2.5, "Jen"));
+		actual.add(connection.zRem("myset", "James", "Jen"));
+		actual.add(connection.zRange("myset", 0l, -1l));
+		verifyResults(
+				Arrays.asList(new Object[] { true, true, true, true, 2l,
+						new LinkedHashSet<String>(Arrays.asList(new String[] { "Joe", "Bob" })) }));
 	}
 
 	@Test

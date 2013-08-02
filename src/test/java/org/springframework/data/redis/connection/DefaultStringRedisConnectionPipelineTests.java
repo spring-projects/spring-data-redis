@@ -1203,13 +1203,13 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 	@Test
 	public void testZRemBytes() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).closePipeline();
 		super.testZRemBytes();
 	}
 
 	@Test
 	public void testZRem() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).closePipeline();
 		super.testZRem();
 	}
 

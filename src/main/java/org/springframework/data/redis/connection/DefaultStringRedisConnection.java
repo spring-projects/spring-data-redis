@@ -1048,8 +1048,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Boolean zRem(byte[] key, byte[] value) {
-		Boolean result = delegate.zRem(key, value);
+	public Long zRem(byte[] key, byte[]... values) {
+		Long result = delegate.zRem(key, values);
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -2050,8 +2050,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	
-	public Boolean zRem(String key, String value) {
-		Boolean result = delegate.zRem(serialize(key), serialize(value));
+	public Long zRem(String key, String... values) {
+		Long result = delegate.zRem(serialize(key), serializeMulti(values));
 		if(isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

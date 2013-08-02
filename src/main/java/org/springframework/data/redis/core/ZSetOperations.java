@@ -79,7 +79,7 @@ public interface ZSetOperations<K, V> {
 
 	Double score(K key, Object o);
 
-	Boolean remove(K key, Object o);
+	Long remove(K key, Object... values);
 
 	Long removeRange(K key, long start, long end);
 

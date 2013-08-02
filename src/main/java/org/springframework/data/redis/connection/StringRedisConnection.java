@@ -193,7 +193,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long zAdd(String key, Set<StringTuple> tuples);
 
-	Boolean zRem(String key, String value);
+	Long zRem(String key, String... values);
 
 	Double zIncrBy(String key, double increment, String value);
 

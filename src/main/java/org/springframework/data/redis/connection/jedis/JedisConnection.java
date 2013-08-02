@@ -2209,17 +2209,21 @@ public class JedisConnection implements RedisConnection {
 	}
 
 
-	public Boolean zRem(byte[] key, byte[] value) {
+	public Long zRem(byte[] key, byte[]... values) {
+		if((isPipelined() || isQueueing()) && values.length > 1) {
+			throw new UnsupportedOperationException("zRem of multiple fields not supported " +
+					"in pipeline or transaction");
+		}
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.zrem(key, value), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.zrem(key, values[0])));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.zrem(key, value), JedisConverters.longToBoolean()));
+				transaction(new JedisResult(transaction.zrem(key, values[0])));
 				return null;
 			}
-			return JedisConverters.toBoolean(jedis.zrem(key, value));
+			return jedis.zrem(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

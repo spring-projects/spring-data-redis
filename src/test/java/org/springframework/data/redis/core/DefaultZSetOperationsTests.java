@@ -176,4 +176,21 @@ public class DefaultZSetOperationsTests<K,V> {
 		expected.add(value2);
 		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
 	}
+
+	@Test
+	public void testRemove() {
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
+		values.add(new DefaultTypedTuple<V>(value1, 1.7));
+		values.add(new DefaultTypedTuple<V>(value2, 3.2));
+		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		assertEquals(Long.valueOf(3), zSetOps.add(key, values));
+		assertEquals(Long.valueOf(2), zSetOps.remove(key, value1, value3));
+		Set<V> expected = new LinkedHashSet<V>();
+		expected.add(value2);
+		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
+	}
 }

@@ -1170,13 +1170,13 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 	@Test
 	public void testZRemBytes() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).exec();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
 		super.testZRemBytes();
 	}
 
 	@Test
 	public void testZRem() {
-		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).exec();
+		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
 		super.testZRem();
 	}
 
