@@ -37,6 +37,9 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.QueryUtils;
 import org.springframework.data.redis.core.query.SortQuery;
+import org.springframework.data.redis.core.script.DefaultScriptExecutor;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.script.ScriptExecutor;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -83,6 +86,8 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private RedisSerializer hashValueSerializer = null;
 	private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
+	private ScriptExecutor<K> scriptExecutor;
+
 	// cache singleton objects (where possible)
 	private ValueOperations<K, V> valueOps;
 	private ListOperations<K, V> listOps;
@@ -122,6 +127,10 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 		if (enableDefaultSerializer && defaultUsed) {
 			Assert.notNull(defaultSerializer, "default serializer null and not all serializers initialized");
+		}
+
+		if(scriptExecutor == null) {
+			this.scriptExecutor = new DefaultScriptExecutor<K>(this);
 		}
 
 		initialized = true;
@@ -267,6 +276,15 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 				}
 			}
 		});
+	}
+
+	public <T> T execute(RedisScript<T> script, List<K> keys, Object... args) {
+		return scriptExecutor.execute(script, keys, args);
+	}
+
+	public <T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
+			List<K> keys, Object... args) {
+		return scriptExecutor.execute(script, argsSerializer, resultSerializer, keys, args);
 	}
 
 	private Object executeSession(SessionCallback<?> session) {
@@ -439,6 +457,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 */
 	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
 		this.stringSerializer = stringSerializer;
+	}
+
+	/**
+	 *
+	 * @param scriptExecutor The {@link ScriptExecutor} to use for executing Redis scripts
+	 */
+	public void setScriptExecutor(ScriptExecutor<K> scriptExecutor) {
+		this.scriptExecutor = scriptExecutor;
 	}
 
 	@SuppressWarnings("unchecked")

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.List;
+
 /**
  * Represents a data type returned from Redis, currently used to denote the
  * expected return type of Redis scripting commands
@@ -37,5 +39,21 @@ public enum ReturnType {
 	STATUS,
 
 	/** Returned as byte[] **/
-	VALUE
+	VALUE;
+
+	public static ReturnType fromJavaType(Class<?> javaType) {
+		if(javaType == null) {
+			return ReturnType.STATUS;
+		}
+		if(javaType.isAssignableFrom(List.class)) {
+			return ReturnType.MULTI;
+		}
+		if(javaType.isAssignableFrom(Boolean.class)) {
+			return ReturnType.BOOLEAN;
+		}
+		if(javaType.isAssignableFrom(Long.class)) {
+			return ReturnType.INTEGER;
+		}
+		return ReturnType.VALUE;
+	}
 }

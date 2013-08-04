@@ -11,6 +11,7 @@ Import-Template:
  org.springframework.core.*;version="[3.1.0, 4.0.0)",
  org.springframework.dao.*;version="[3.1.0, 4.0.0)",
  org.springframework.scheduling.*;resolution:="optional";version="[3.1.0, 4.0.0)",
+ org.springframework.scripting.*;resolution:="optional";version="[3.1.0, 4.0.0)",
  org.springframework.util.*;version="[3.1.0, 4.0.0)",
  org.springframework.oxm.*;resolution:="optional";version="[3.1.0, 4.0.0)",
  org.springframework.transaction.support.*;version="[3.1.0, 4.0.0)",

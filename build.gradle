@@ -40,6 +40,7 @@ dependencies {
         exclude module: "commons-logging"
     }
     compile "org.springframework:spring-context-support:$springVersion"
+    compile "org.springframework:spring-context:$springVersion"
     compile "org.springframework:spring-tx:$springVersion"
     compile("org.springframework:spring-oxm:$springVersion", optional)
 

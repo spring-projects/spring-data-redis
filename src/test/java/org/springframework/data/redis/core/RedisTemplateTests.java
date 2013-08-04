@@ -56,8 +56,12 @@ import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  *
@@ -606,6 +610,16 @@ public class RedisTemplateTests<K,V> {
 		V value1 = valueFactory.instance();
 		// Make sure basic message sent without Exception on serialization
 		redisTemplate.convertAndSend("Channel", value1);
+	}
+
+	@Test
+	public void testExecuteScriptCustomSerializers() {
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
+		K key1 = keyFactory.instance();
+		final RedisScript<String> script =  new DefaultRedisScript<String>(new StaticScriptSource(
+				"return 'Hey'"), String.class);
+		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
+				Collections.singletonList(key1)));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
