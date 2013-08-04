@@ -188,6 +188,13 @@ public abstract class AbstractConnectionIntegrationTests {
 						new String(scriptResults.get(1)) }));
 	}
 
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayError() {
+		connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1");
+		getResults();
+	}
+
 	@Test(expected = RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
@@ -253,6 +260,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testEvalReturnArrayNumbers() {
 		actual.add(connection.eval("return {1,2}", ReturnType.MULTI, 1, "foo", "bar"));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 2l }) }));
+	}
+
+	@Test(expected=RedisSystemException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalArrayScriptError() {
+		// Syntax error
+		connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar");
+		getResults();
 	}
 
 	@SuppressWarnings("unchecked")

@@ -110,6 +110,18 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		super.testRestoreExistingKey();
 	}
 
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalArrayScriptError() {
+		super.testEvalArrayScriptError();
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayError() {
+		super.testEvalShaArrayError();
+	}
+
 	@Test
 	public void testOpenPipelineTwice()  {
 		connection.openPipeline();

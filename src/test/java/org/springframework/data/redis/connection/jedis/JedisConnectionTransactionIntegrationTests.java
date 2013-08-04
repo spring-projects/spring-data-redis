@@ -235,6 +235,18 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testEvalShaNotFound();
 	}
 
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayError() {
+		super.testEvalShaArrayError();
+	}
+
+	@Test(expected=UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalArrayScriptError() {
+		super.testEvalArrayScriptError();
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnString() {

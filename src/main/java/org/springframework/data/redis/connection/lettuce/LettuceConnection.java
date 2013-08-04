@@ -159,6 +159,27 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	private class LettuceEvalResultsConverter<T> implements Converter<Object,T> {
+		private ReturnType returnType;
+
+		public LettuceEvalResultsConverter(ReturnType returnType) {
+			this.returnType = returnType;
+		}
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public T convert(Object source) {
+			if(returnType == ReturnType.MULTI) {
+				List resultList = (List) source;
+				for(Object obj: resultList) {
+					if(obj instanceof Exception) {
+						throw convertLettuceAccessException((Exception)obj);
+					}
+				}
+			}
+			return (T) source;
+		}
+	}
+
 	/**
 	 * Instantiates a new lettuce connection.
 	 *
@@ -2738,14 +2759,17 @@ public class LettuceConnection implements RedisConnection {
 			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
 
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().eval(script, LettuceConverters.toScriptOutputType(returnType), keys, args)));
+				pipeline(new LettuceResult(getAsyncConnection().eval(script, LettuceConverters.toScriptOutputType(returnType), keys, args),
+						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().eval(script, LettuceConverters.toScriptOutputType(returnType), keys, args)));
+				transaction(new LettuceTxResult(getConnection().eval(script, LettuceConverters.toScriptOutputType(returnType), keys, args),
+						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
-			return getConnection().eval(script, LettuceConverters.toScriptOutputType(returnType), keys, args);
+			return new LettuceEvalResultsConverter<T>(returnType).convert(getConnection().eval(script,
+					LettuceConverters.toScriptOutputType(returnType), keys, args));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -2758,15 +2782,16 @@ public class LettuceConnection implements RedisConnection {
 
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType),
-						keys, args)));
+						keys, args), new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
 			if (isQueueing()) {
 				transaction(new LettuceTxResult(getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType),
-						keys, args)));
+						keys, args), new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
-			return getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args);
+			return new LettuceEvalResultsConverter<T>(returnType).convert(getConnection().evalsha(scriptSha1,
+					LettuceConverters.toScriptOutputType(returnType), keys, args));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

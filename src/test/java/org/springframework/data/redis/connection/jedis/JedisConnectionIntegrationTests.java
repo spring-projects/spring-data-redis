@@ -239,8 +239,20 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test(expected=InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalArrayScriptError() {
+		super.testEvalArrayScriptError();
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
 		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testEvalShaArrayError() {
+		super.testEvalShaArrayError();
 	}
 
 	@Test(expected=InvalidDataAccessApiUsageException.class)
