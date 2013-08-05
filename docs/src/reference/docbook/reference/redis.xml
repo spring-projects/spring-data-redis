@@ -368,7 +368,8 @@
 
       
       <para>As with the other Spring templates, <classname>RedisTemplate</classname> and <classname>StringRedisTemplate</classname> allow the developer to talk directly to Redis through
-      the <interfacename>RedisCallback</interfacename> interface: this gives complete control to the developer as it talks directly to the <interfacename>RedisConnection</interfacename>.
+      the <interfacename>RedisCallback</interfacename> interface. This gives complete control to the developer as it talks directly to the <interfacename>RedisConnection</interfacename>.
+      Note that the callback receives an instance of <interfacename>StringRedisConnection</interfacename> when a <classname>StringRedisTemplate</classname> is used.
       </para>
       
     <programlisting language="java"><![CDATA[public void useCallback() {
@@ -376,6 +377,8 @@
     
     public Object doInRedis(RedisConnection connection) throws DataAccessException {
       Long size = connection.dbSize();
+      // Can cast to StringRedisConnection if using a StringRedisTemplate
+      ((StringRedisConnection)connection).set("key", "value");
       ...
     }
   });
