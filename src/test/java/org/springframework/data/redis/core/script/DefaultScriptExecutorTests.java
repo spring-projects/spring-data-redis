@@ -84,8 +84,10 @@ public class DefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		RedisScript<Long> script = new DefaultRedisScript<Long>(new ClassPathResource(
-				"org/springframework/data/redis/core/script/increment.lua"), Long.class);
+		DefaultRedisScript<Long> script = new DefaultRedisScript<Long>();
+		script.setLocation(new ClassPathResource(
+				"org/springframework/data/redis/core/script/increment.lua"));
+		script.setResultType(Long.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		Long result = scriptExecutor.execute(script, Collections.singletonList("mykey"));
 		assertNull(result);
@@ -102,8 +104,10 @@ public class DefaultScriptExecutorTests {
 		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		RedisScript<Boolean> script = new DefaultRedisScript<Boolean>(new ClassPathResource(
-				"org/springframework/data/redis/core/script/cas.lua"), Boolean.class);
+		DefaultRedisScript<Boolean> script = new DefaultRedisScript<Boolean>();
+		script.setLocation(new ClassPathResource(
+				"org/springframework/data/redis/core/script/cas.lua"));
+		script.setResultType(Boolean.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		template.boundValueOps("counter").set(0l);
 		Boolean valueSet = scriptExecutor.execute(script, Collections.singletonList("counter"), 0,
@@ -119,8 +123,10 @@ public class DefaultScriptExecutorTests {
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
 		template.boundListOps("mylist").leftPushAll("a", "b", "c", "d");
-		RedisScript<List<String>> script = new DefaultRedisScript(new ClassPathResource(
-				"org/springframework/data/redis/core/script/bulkpop.lua"), List.class);
+		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
+		script.setLocation(new ClassPathResource(
+				"org/springframework/data/redis/core/script/bulkpop.lua"));
+		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		List<String> result = scriptExecutor
 				.execute(script, new GenericToStringSerializer<Long>(Long.class),
@@ -134,8 +140,9 @@ public class DefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		RedisScript<List<Object>> script = new DefaultRedisScript(new ClassPathResource(
-				"org/springframework/data/redis/core/script/popandlength.lua"), List.class);
+		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
+		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/popandlength.lua"));
+		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		List<Object> results = scriptExecutor.execute(script, Collections.singletonList("mylist"));
 		assertEquals(Arrays.asList(new Object[] { null, 0l }), results);
@@ -150,8 +157,9 @@ public class DefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		RedisScript<String> script = new DefaultRedisScript<String>(new StaticScriptSource(
-				"return redis.call('GET',KEYS[1])"), String.class);
+		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		script.setScriptText("return redis.call('GET',KEYS[1])");
+		script.setResultType(String.class);
 		template.opsForValue().set("foo", "bar");
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		assertEquals("bar", scriptExecutor.execute(script, Collections.singletonList("foo")));
@@ -165,8 +173,8 @@ public class DefaultScriptExecutorTests {
 		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		RedisScript script = new DefaultRedisScript(new StaticScriptSource(
-				"return redis.call('SET',KEYS[1], ARGV[1])"), null);
+		DefaultRedisScript script = new DefaultRedisScript();
+		script.setScriptText("return redis.call('SET',KEYS[1], ARGV[1])");
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		assertNull(scriptExecutor.execute(script, Collections.singletonList("foo"), 3l));
 		assertEquals(Long.valueOf(3), template.opsForValue().get("foo"));
@@ -182,8 +190,10 @@ public class DefaultScriptExecutorTests {
 		template.setValueSerializer(personSerializer);
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		RedisScript<String> script = new DefaultRedisScript<String>(new StaticScriptSource(
-				"redis.call('SET',KEYS[1], ARGV[1])\nreturn 'FOO'"), String.class);
+		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		script.setScriptSource(new StaticScriptSource(
+				"redis.call('SET',KEYS[1], ARGV[1])\nreturn 'FOO'"));
+		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		Person joe = new Person("Joe", "Schmoe", 23);
 		String result = scriptExecutor.execute(script, personSerializer,
@@ -198,8 +208,9 @@ public class DefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		final RedisScript<String> script = new DefaultRedisScript<String>(new StaticScriptSource(
-				"return KEYS[1]"), String.class);
+		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		script.setScriptText("return KEYS[1]");
+		script.setResultType(String.class);
 		List<Object> results = template.executePipelined(new SessionCallback<String>() {
 			@SuppressWarnings("rawtypes")
 			public String execute(RedisOperations operations) throws DataAccessException {
@@ -217,8 +228,9 @@ public class DefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		final RedisScript<String> script = new DefaultRedisScript<String>(new StaticScriptSource(
-				"return 'bar'..KEYS[1]"), String.class);
+		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		script.setScriptText("return 'bar'..KEYS[1]");
+		script.setResultType(String.class);
 		List<Object> results = (List<Object>) template.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings("rawtypes")
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
@@ -238,8 +250,9 @@ public class DefaultScriptExecutorTests {
 		this.template = new StringRedisTemplate();
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
-		final RedisScript<String> script = new DefaultRedisScript<String>(new StaticScriptSource(
-				"return 'HELLO'"), String.class);
+		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		script.setScriptText("return 'HELLO'");
+		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		// Execute script twice, second time should be from cache
 		assertEquals("HELLO", scriptExecutor.execute(script, null));

@@ -34,7 +34,9 @@ public class DefaultRedisScriptTests {
 	@Test
 	public void testGetSha1() {
 		StaticScriptSource script = new StaticScriptSource("return KEYS[1]");
-		RedisScript<String> redisScript = new DefaultRedisScript<String>(script, String.class);
+		DefaultRedisScript<String> redisScript = new DefaultRedisScript<String>();
+		redisScript.setScriptSource(script);
+		redisScript.setResultType(String.class);
 		String sha1 = redisScript.getSha1();
 		// Ensure multiple calls return same sha
 		assertEquals(sha1, redisScript.getSha1());
@@ -45,15 +47,23 @@ public class DefaultRedisScriptTests {
 
 	@Test
 	public void testGetScriptAsString() {
-		RedisScript<String> redisScript = new DefaultRedisScript<String>("return ARGS[1]",
-				String.class);
+		DefaultRedisScript<String> redisScript = new DefaultRedisScript<String>();
+		redisScript.setScriptText("return ARGS[1]");
+		redisScript.setResultType(String.class);
 		assertEquals("return ARGS[1]", redisScript.getScriptAsString());
 	}
 
 	@Test(expected = ScriptingException.class)
 	public void testGetScriptAsStringError() {
-		RedisScript<Long> redisScript = new DefaultRedisScript<Long>(new ResourceScriptSource(
-				new ClassPathResource("nonexistent")), Long.class);
+		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<Long>();
+		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("nonexistent")));
+		redisScript.setResultType(Long.class);
 		redisScript.getScriptAsString();
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void initializeWithNoScript() throws Exception {
+		DefaultRedisScript<Long> redisScript = new DefaultRedisScript<Long>();
+		redisScript.afterPropertiesSet();
 	}
 }

@@ -57,11 +57,9 @@ import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  *
@@ -616,8 +614,9 @@ public class RedisTemplateTests<K,V> {
 	public void testExecuteScriptCustomSerializers() {
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		K key1 = keyFactory.instance();
-		final RedisScript<String> script =  new DefaultRedisScript<String>(new StaticScriptSource(
-				"return 'Hey'"), String.class);
+		final DefaultRedisScript<String> script =  new DefaultRedisScript<String>();
+		script.setScriptText("return 'Hey'");
+		script.setResultType(String.class);
 		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
 				Collections.singletonList(key1)));
 	}

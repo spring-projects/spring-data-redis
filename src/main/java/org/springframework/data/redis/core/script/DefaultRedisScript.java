@@ -17,10 +17,12 @@ package org.springframework.data.redis.core.script;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
+import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link RedisScript}. Delegates to an underlying {@link ScriptSource} to
@@ -34,7 +36,7 @@ import org.springframework.scripting.support.StaticScriptSource;
  *            The script result type. Should be one of Long, Boolean, List, or deserialized value
  *            type. Can be null if the script returns a throw-away status (i.e "OK")
  */
-public class DefaultRedisScript<T> implements RedisScript<T> {
+public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
 	private ScriptSource scriptSource;
 
@@ -44,38 +46,9 @@ public class DefaultRedisScript<T> implements RedisScript<T> {
 
 	private final Object shaModifiedMonitor = new Object();
 
-	/**
-	 *
-	 * @param scriptLocation
-	 *            The location of the script
-	 * @param resultType
-	 *            The Script result type
-	 */
-	public DefaultRedisScript(Resource scriptLocation, Class<T> resultType) {
-		this(new ResourceScriptSource(scriptLocation), resultType);
-	}
-
-	/**
-	 *
-	 * @param script
-	 *            The script
-	 * @param resultType
-	 *            The Script result type
-	 */
-	public DefaultRedisScript(String script, Class<T> resultType) {
-		this(new StaticScriptSource(script), resultType);
-	}
-
-	/**
-	 *
-	 * @param scriptSource
-	 *            The {@link ScriptSource} of the script
-	 * @param resultType
-	 *            The Script result type
-	 */
-	public DefaultRedisScript(ScriptSource scriptSource, Class<T> resultType) {
-		this.scriptSource = scriptSource;
-		this.resultType = resultType;
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.scriptSource, "Either script, script location,"
+				+ " or script source is required");
 	}
 
 	public String getSha1() {
@@ -97,5 +70,42 @@ public class DefaultRedisScript<T> implements RedisScript<T> {
 		} catch (IOException e) {
 			throw new ScriptingException("Error reading script text", e);
 		}
+	}
+
+	/**
+	 *
+	 * @param resultType
+	 *            The script result type. Should be one of Long, Boolean, List, or deserialized
+	 *            value type. Can be null if the script returns a throw-away status (i.e "OK")
+	 */
+	public void setResultType(Class<T> resultType) {
+		this.resultType = resultType;
+	}
+
+	/**
+	 *
+	 * @param script
+	 *            The script text
+	 */
+	public void setScriptText(String scriptText) {
+		this.scriptSource = new StaticScriptSource(scriptText);
+	}
+
+	/**
+	 *
+	 * @param scriptLocation
+	 *            The location of the script
+	 */
+	public void setLocation(Resource scriptLocation) {
+		this.scriptSource = new ResourceScriptSource(scriptLocation);
+	}
+
+	/**
+	 *
+	 * @param scriptSource
+	 *            A @{link {@link ScriptSource} pointing to the script
+	 */
+	public void setScriptSource(ScriptSource scriptSource) {
+		this.scriptSource = scriptSource;
 	}
 }
