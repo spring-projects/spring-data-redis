@@ -11,12 +11,28 @@
    </para>
 
    <programlisting language="java"><![CDATA[ //execute a transaction
-redisTemplate.execute(new SessionCallback<Object>() {
-    public Object execute(RedisOperations operations) throws DataAccessException {
+List<Object> txResults = redisTemplate.execute(new SessionCallback<List<Object>>() {
+    public List<Object> execute(RedisOperations operations) throws DataAccessException {
         operations.multi();
-        operations.opsForValue().set("key", "value");
-        List<Object> results =  operations.exec();
-        return null;
+        operations.opsForSet().add("key", "value1");
+        // This will contain the results of all ops in the transaction
+        return operations.exec();
     }
-});]]></programlisting>
+});
+System.out.println("Number of items added to set: " + txResults.get(0));
+]]></programlisting>
+
+   <para><classname>RedisTemplate</classname> will use its value, hash key, and hash value serializers to deserialize all results of <literal>exec</literal>
+   before returning. There is an additional <literal>exec</literal> method that allows you to pass a custom serializer for transaction results.
+   </para>
+
+   <note>An important change has been made to the <literal>exec</literal> methods of <interfacename>RedisConnection</interfacename> and <classname>RedisTemplate</classname>
+    in version 1.1. Previously these methods returned the results of transactions directly from the connectors. This means that the data types often differed from those
+	returned from the methods of <interfacename>RedisConnection</interfacename>. For example, <literal>zAdd</literal> returns a boolean indicating
+	that the element has been added to the sorted set. Most connectors return this value as a long and Spring Data Redis performs the conversion. Another common
+	difference is that most connectors return a status reply (usually the String "OK") for operations like <literal>set</literal>. These replies are typically discarded by Spring Data Redis.
+	Prior to 1.1, these conversions were not performed on the results of <literal>exec</literal>. Also, results were not deserialized in <classname>RedisTemplate</classname>, so they
+	often included raw byte arrays. If this change breaks your application, you can
+	set <literal>convertPipelineAndTxResults</literal> to false on your <interfacename>RedisConnectionFactory</interfacename> to disable this behavior.
+	</note>
 </section>

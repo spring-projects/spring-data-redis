@@ -16,7 +16,7 @@
   
   <section id="redis:requirements">
     <title>Redis Requirements</title>
-    <para>Spring Redis requires Redis 2.2 or above and Java SE 6.0 or above .
+    <para>Spring Redis requires Redis 2.4 or above and Java SE 6.0 or above .
     In terms of language bindings (or connectors), Spring Redis integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink>,  
     <ulink url="http://github.com/alphazero/jredis">JRedis</ulink>, 
     <ulink url="http://github.com/spullara/redis-protocol">SRP</ulink> and
@@ -398,6 +398,8 @@
     <xi:include href="redis-messaging.xml"/>
     
     <xi:include href="redis-transactions.xml"/>
+
+    <xi:include href="pipelining.xml"/>
 
     <xi:include href="redis-scripting.xml"/>
 
