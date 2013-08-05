@@ -5,8 +5,39 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.0.6.RELEASE (2013-08-06)
+----------------------------------------
+
+General
+* Upgraded to Gradle 1.6
+
+Package o.s.d.redis.cache
+* Fixed IlegalMonitorStateException when get or put performed while clearing
+
+Package o.s.d.redis.core
+* Fixed StringRedisConnection not being passed to RedisCallbacks executed through StringRedisTemplate
+* Fixed NPE in DefaultZSetOperations methods that return Tuple Set in tx or pipeline
+
+Package o.s.d.redis.connection.jedis
+* Fixed connections not returning to pool on failed select
+* Fixed NPEs on exec/closePipeline that includes move
+
+Package o.s.d.redis.connection.lettuce
+* Fixed NPE calling sort with null SortParams
+* Fixed setBit and setRange executing twice when pipelined
+
+Package o.s.d.redis.connection.srp
+* Fixed NPE calling sort with null SortParams
+* Fixed Exception calling select in a transaction
+* Fixed NPE in sort when SortParameters.isAlphabetic() returns null
+
+Package o.s.d.redis.listener
+* Removed 5 second wait starting RedisMesssageListenerContainer with no listeners
+
+
 Changes in version 1.0.5.RELEASE (2013-07-02)
 ---------------------------------------------
+
 General
 * Upgraded to SRP 0.7
 * Upgraded to Lettuce 2.3.3
