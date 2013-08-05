@@ -288,7 +288,8 @@
       
       <para>Out of the box, <classname>RedisTemplate</classname> uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be
       serializer/deserialized through Java. The serialization mechanism can be easily changed on the template, and the Redis module offers several implementations available in the 
-      <literal>org.springframework.data.redis.serializer</literal> package - see <xref linkend="redis:serializer"/> for more information.
+      <literal>org.springframework.data.redis.serializer</literal> package - see <xref linkend="redis:serializer"/> for more information. You can also set any of the serializers to null
+      and use RedisTemplate with raw <literal>byte</literal> arrays by setting the <literal>enableDefaultSerializer</literal> property to false.
       Note that the template requires all keys to be non-null - values can be null as long as the underlying
       serializer accepts them; read the javadoc of each serializer for more information.</para>
       
@@ -384,7 +385,7 @@
 	<section id="redis:serializer">
 	  <title>Serializers</title>
 	  
-	  <para>From the framework perspective, the data stored in Redis are just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored 
+	  <para>From the framework perspective, the data stored in Redis is just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored
 	  rather then what it represents. It is up to the user to decide whether the information gets translated into Strings or any other objects. The conversion between the user (custom) 
 	  types and raw data (and vice-versa) is handled in Spring Data Redis through the <interfacename>RedisSerializer</interfacename> interface
 	  (package <literal>org.springframework.data.redis.serializer</literal>) which as the name implies, takes care of the serialization process. Multiple implementations are
