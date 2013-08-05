@@ -5,6 +5,95 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.1.0.M2 (2013-08-06)
+----------------------------------------
+
+General
+* Modified RedisConnection and Operations classes to allow passing multiple
+elements to hdel, rpush, lpush, sadd, srem, zadd, and zrem operations
+* Added method to RedisTemplate for executing Redis Lua scripts
+* Modified RedisTemplate and opsForX classes to allow null serializers for
+working with raw data
+* Modified RedisConnection impls to convert the connector-specific results of closePipeline
+to the same data types as the individual RedisConnection operations
+* Modified RedisConnection impls to convert the connector-specific results of transaction exec
+to the same data types as the individual RedisConnection operations
+* Upgraded to Gradle 1.6
+
+Package o.s.d.redis.cache
+* Fixed IlegalMonitorStateException when get or put performed while clearing
+
+Package o.s.d.redis.core
+* Added RedisTemplate executePipelined methods for executing commands in a pipeline and
+returning deserialized results
+* Modified RedisTemplate exec to deserialize results of transaction execution
+* Fixed StringRedisConnection not being passed to RedisCallbacks executed through StringRedisTemplate
+* Fixed NPE in DefaultZSetOperations methods that return Tuple Set in tx or pipeline
+
+Package o.s.d.redis.connection
+* Added missing zRevRangeByScore methods to StringRedisConnection
+* Modified StringRedisConnection sUnionStore, sInterStore, and sDiffStore to return Long
+* Fixed DefaultStringRedisConnection not passing begin and end to bitCount method
+
+Package o.s.d.redis.connection.jedis
+* Fixed ClassCastExceptions closing a pipeline after transaction exec
+* Fixed UnsupportedOperationExceptions being wrapped in DataAccessExceptions
+* Fixed connections not returning to pool on failed select
+* Fixed NPEs on exec/closePipeline that includes move
+
+Package o.s.d.redis.connection.lettuce
+* Fixed UnsupportedOperationExceptions being wrapped in DataAccessExceptions
+* Fixed NPE calling sort with null SortParams
+* Fixed closePipeline returning individual results of ops in a transaction instead of
+a List of exec results
+* Fixed setBit and setRange executing twice when pipelined
+* Modified watch method to throw an UnsupportedOperationException if called in a transaction
+* Fixed eval and evalsha suppressing Exceptions with ReturnType Multi
+
+Package o.s.d.redis.connection.srp
+* Fixed UnsupportedOperationExceptions being wrapped in DataAccessExceptions
+* Fixed NPE calling sort with null SortParams
+* Fixed closePipeline returning individual results of ops in a transaction instead of
+a List of exec results
+* Fixed Exception calling select in a transaction
+* Fixed NPE in sort when SortParameters.isAlphabetic() returns null
+
+Package o.s.d.redis.listener
+* Removed 5 second wait starting RedisMesssageListenerContainer with no listeners
+
+Package o.s.d.redis.support.atomic
+* Added RedisAtomicDouble
+
+
+Changes in version 1.0.6.RELEASE (2013-08-06)
+----------------------------------------
+
+General
+* Upgraded to Gradle 1.6
+
+Package o.s.d.redis.cache
+* Fixed IlegalMonitorStateException when get or put performed while clearing
+
+Package o.s.d.redis.core
+* Fixed StringRedisConnection not being passed to RedisCallbacks executed through StringRedisTemplate
+* Fixed NPE in DefaultZSetOperations methods that return Tuple Set in tx or pipeline
+
+Package o.s.d.redis.connection.jedis
+* Fixed connections not returning to pool on failed select
+* Fixed NPEs on exec/closePipeline that includes move
+
+Package o.s.d.redis.connection.lettuce
+* Fixed NPE calling sort with null SortParams
+* Fixed setBit and setRange executing twice when pipelined
+
+Package o.s.d.redis.connection.srp
+* Fixed NPE calling sort with null SortParams
+* Fixed Exception calling select in a transaction
+* Fixed NPE in sort when SortParameters.isAlphabetic() returns null
+
+Package o.s.d.redis.listener
+* Removed 5 second wait starting RedisMesssageListenerContainer with no listeners
+
 Changes in version 1.1.0.M1 (2013-07-02)
 ----------------------------------------
 
