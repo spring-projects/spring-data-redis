@@ -372,7 +372,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		if (serializer != null) {
 			return serializer.deserialize(message.getBody());
 		}
-		return message;
+		return message.getBody();
 	}
 
 	/**

@@ -16,8 +16,9 @@
 package org.springframework.data.redis.listener;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,11 +58,11 @@ public class PubSubTests<T> {
 	@SuppressWarnings("rawtypes")
 	protected RedisTemplate template;
 
-	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
+	private final BlockingDeque<Object> bag = new LinkedBlockingDeque<Object>(99);
 
 	private final Object handler = new Object() {
 		@SuppressWarnings("unused")
-		public void handleMessage(String message) {
+		public void handleMessage(Object message) {
 			bag.add(message);
 		}
 	};
@@ -117,27 +118,27 @@ public class PubSubTests<T> {
 		return factory.instance();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testContainerSubscribe() throws Exception {
-		String payload1 = "do";
-		String payload2 = "re mi";
+		T payload1 = getT();
+		T payload2 = getT();
 
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		Set<String> set = new LinkedHashSet<String>();
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-		set.add(bag.poll(1, TimeUnit.SECONDS));
+		Set<T> set = new LinkedHashSet<T>();
+		set.add((T) bag.poll(1, TimeUnit.SECONDS));
+		set.add((T) bag.poll(1, TimeUnit.SECONDS));
 
-		assertTrue(set.contains(payload1));
-		assertTrue(set.contains(payload2));
+		assertThat(set, hasItems(payload1, payload2));
 	}
 
 	@Test
 	public void testMessageBatch() throws Exception {
 		int COUNT = 10;
 		for (int i = 0; i < COUNT; i++) {
-			template.convertAndSend(CHANNEL, "message=" + i);
+			template.convertAndSend(CHANNEL, getT());
 		}
 
 		Thread.sleep(1000);
@@ -146,8 +147,8 @@ public class PubSubTests<T> {
 
 	@Test
 	public void testContainerUnsubscribe() throws Exception {
-		String payload1 = "do";
-		String payload2 = "re mi";
+		T payload1 = getT();
+		T payload2 = getT();
 
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		template.convertAndSend(CHANNEL, payload1);

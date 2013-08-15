@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
+import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -39,6 +40,7 @@ public class PubSubTestParams {
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
+		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(true);
@@ -52,6 +54,10 @@ public class PubSubTestParams {
 		RedisTemplate<String, Person> personTemplate = new RedisTemplate<String, Person>();
 		personTemplate.setConnectionFactory(jedisConnFactory);
 		personTemplate.afterPropertiesSet();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
+		rawTemplate.setEnableDefaultSerializer(false);
+		rawTemplate.setConnectionFactory(jedisConnFactory);
+		rawTemplate.afterPropertiesSet();
 
 		// add Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
@@ -63,6 +69,10 @@ public class PubSubTestParams {
 		RedisTemplate<String, Person> personTemplateLtc = new RedisTemplate<String, Person>();
 		personTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		personTemplateLtc.afterPropertiesSet();
+		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<byte[], byte[]>();
+		rawTemplateLtc.setEnableDefaultSerializer(false);
+		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		rawTemplateLtc.afterPropertiesSet();
 
 		// SRP
 		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
@@ -74,12 +84,17 @@ public class PubSubTestParams {
 		RedisTemplate<String, Person> personTemplateSrp = new RedisTemplate<String, Person>();
 		personTemplateSrp.setConnectionFactory(srpConnFactory);
 		personTemplateSrp.afterPropertiesSet();
+		RedisTemplate<byte[], byte[]> rawTemplateSrp = new RedisTemplate<byte[], byte[]>();
+		rawTemplateSrp.setEnableDefaultSerializer(false);
+		rawTemplateSrp.setConnectionFactory(srpConnFactory);
+		rawTemplateSrp.afterPropertiesSet();
 
 		// JRedis does not support pub/sub
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
-				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
-				{ stringFactory, stringTemplateSrp }, { personFactory, personTemplateSrp }
+				{rawFactory, rawTemplate}, { stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
+				{rawFactory, rawTemplateLtc}, { stringFactory, stringTemplateSrp }, { personFactory, personTemplateSrp },
+				{rawFactory, rawTemplateSrp}
 		});
 	}
 }
