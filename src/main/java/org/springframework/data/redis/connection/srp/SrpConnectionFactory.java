@@ -36,6 +36,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	private int port = 6379;
 	private BlockingQueue<SrpConnection> trackedConnections = new ArrayBlockingQueue<SrpConnection>(50);
 	private boolean convertPipelineAndTxResults = true;
+	private String password;
 		
 
 	/**
@@ -72,7 +73,8 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	public RedisConnection getConnection() {
-		SrpConnection connection = new SrpConnection(hostName, port, trackedConnections);
+		SrpConnection connection = password != null ? new SrpConnection(hostName, port, password, trackedConnections) :
+			new SrpConnection(hostName, port, trackedConnections);
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -115,6 +117,24 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * Returns the password used for authenticating with the Redis server.
+	 *
+	 * @return password for authentication
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * Sets the password used for authenticating with the Redis server.
+	 *
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	/**

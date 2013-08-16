@@ -213,6 +213,15 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	public SrpConnection(String host, int port, String password, BlockingQueue<SrpConnection> queue) {
+		this(host, port, queue);
+		try {
+			this.client.auth(password);
+		} catch(RedisException e) {
+			throw new RedisConnectionFailureException("Could not connect", e);
+		}
+	}
+
 	protected DataAccessException convertSrpAccessException(Exception ex) {
 		return SrpConverters.toDataAccessException(ex);
 	}
