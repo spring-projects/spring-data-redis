@@ -169,6 +169,8 @@ public interface RedisOperations<K, V> {
 
 	Long getExpire(K key);
 
+	Long getExpire(K key, TimeUnit timeUnit);
+
 	void watch(K keys);
 
 	void watch(Collection<K> keys);

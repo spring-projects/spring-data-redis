@@ -638,27 +638,35 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	}
 
 
-	public Boolean expire(K key, long timeout, TimeUnit unit) {
+	public Boolean expire(K key, final long timeout, final TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
-		final long rawTimeout = TimeoutUtils.toSeconds(timeout, unit);
+		final long rawTimeout = TimeoutUtils.toMillis(timeout, unit);
 
 		return execute(new RedisCallback<Boolean>() {
 
 			public Boolean doInRedis(RedisConnection connection) {
-				return connection.expire(rawKey, rawTimeout);
+				try {
+					return connection.pExpire(rawKey, rawTimeout);
+				} catch(Exception e) {
+					// Driver may not support pExpire or we may be running on Redis 2.4
+					return connection.expire(rawKey, TimeoutUtils.toSeconds(timeout, unit));
+				}
 			}
 		}, true);
 	}
 
 
-	public Boolean expireAt(K key, Date date) {
+	public Boolean expireAt(K key, final Date date) {
 		final byte[] rawKey = rawKey(key);
-		final long rawTimeout = date.getTime() / 1000;
 
 		return execute(new RedisCallback<Boolean>() {
 
 			public Boolean doInRedis(RedisConnection connection) {
-				return connection.expireAt(rawKey, rawTimeout);
+				try {
+					return connection.pExpireAt(rawKey, date.getTime());
+				} catch(Exception e) {
+					return connection.expireAt(rawKey, date.getTime() / 1000);
+				}
 			}
 		}, true);
 	}
@@ -692,6 +700,22 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 			public Long doInRedis(RedisConnection connection) {
 				return connection.ttl(rawKey);
+			}
+		}, true);
+	}
+
+	public Long getExpire(K key, final TimeUnit timeUnit) {
+		final byte[] rawKey = rawKey(key);
+
+		return execute(new RedisCallback<Long>() {
+
+			public Long doInRedis(RedisConnection connection) {
+				try {
+					return timeUnit.convert(connection.pTtl(rawKey), TimeUnit.MILLISECONDS);
+				} catch(Exception e) {
+					// Driver may not support pTtl or we may be running on Redis 2.4
+					return timeUnit.convert(connection.ttl(rawKey), TimeUnit.SECONDS);
+				}
 			}
 		}, true);
 	}

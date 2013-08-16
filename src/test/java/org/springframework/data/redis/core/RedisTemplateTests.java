@@ -53,6 +53,7 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
@@ -430,14 +431,13 @@ public class RedisTemplateTests<K,V> {
 	}
 
 	@Test
-	public void testExpireAndGetExpire() {
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6") &&
-				RedisTestProfileValueSource.matches("runLongTests", "true"));
+	public void testExpireAndGetExpireMillis() {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expire(key1, 1, TimeUnit.SECONDS);
-		assertTrue(redisTemplate.getExpire(key1) > 0l);
+		redisTemplate.expire(key1, 10, TimeUnit.MILLISECONDS);
+		assertTrue(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS) > 0l);
+		// Timeout is longer because expire will be 1 sec if pExpire not supported
 		waitFor(new TestCondition() {
 			public boolean passes() {
 				return (!redisTemplate.hasKey(key1));
@@ -446,8 +446,69 @@ public class RedisTemplateTests<K,V> {
 	}
 
 	@Test
+	public void testExpireMillisNotSupported() throws Exception {
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		assumeTrue(key1 instanceof String && value1 instanceof String);
+		// Jedis does not support pExpire
+		JedisConnectionFactory factory = new JedisConnectionFactory();
+		factory.setHostName(SettingsUtils.getHost());
+		factory.setPort(SettingsUtils.getPort());
+		factory.afterPropertiesSet();
+		final StringRedisTemplate template2 = new StringRedisTemplate(factory);
+		template2.boundValueOps((String)key1).set((String)value1);
+		template2.expire((String)key1, 10, TimeUnit.MILLISECONDS);
+		Thread.sleep(15);
+		// 10 millis should get rounded up to 1 sec if pExpire not supported
+		assertTrue(template2.hasKey((String)key1));
+		waitFor(new TestCondition() {
+			public boolean passes() {
+				return (!template2.hasKey((String)key1));
+			}
+		}, 1000l);
+	}
+
+	@Test
+	public void testGetExpireNoTimeUnit() {
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key1).set(value1);
+		redisTemplate.expire(key1, 2, TimeUnit.SECONDS);
+		Long expire = redisTemplate.getExpire(key1);
+		// Default behavior is to return seconds
+		assertTrue(expire > 0l && expire <= 2l);
+	}
+
+	@Test
+	public void testGetExpireSeconds() {
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key1).set(value1);
+		redisTemplate.expire(key1, 1500, TimeUnit.MILLISECONDS);
+		assertEquals(Long.valueOf(1), redisTemplate.getExpire(key1, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void testGetExpireMillisNotSupported() {
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		assumeTrue(key1 instanceof String && value1 instanceof String);
+		// Jedis does not support pTtl
+		JedisConnectionFactory factory = new JedisConnectionFactory();
+		factory.setHostName(SettingsUtils.getHost());
+		factory.setPort(SettingsUtils.getPort());
+		factory.afterPropertiesSet();
+		final StringRedisTemplate template2 = new StringRedisTemplate(factory);
+		template2.boundValueOps((String)key1).set((String)value1);
+		template2.expire((String)key1, 5, TimeUnit.SECONDS);
+		long expire = template2.getExpire((String)key1, TimeUnit.MILLISECONDS);
+		// we should still get expire in milliseconds if requested
+		assertTrue(expire > 1000 && expire <= 5000);
+	}
+
+	@Test
 	public void testExpireAt() {
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
@@ -460,15 +521,37 @@ public class RedisTemplateTests<K,V> {
 	}
 
 	@Test
+	public void testExpireAtMillisNotSupported() {
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		assumeTrue(key1 instanceof String && value1 instanceof String);
+		// Jedis does not support pExpireAt
+		JedisConnectionFactory factory = new JedisConnectionFactory();
+		factory.setHostName(SettingsUtils.getHost());
+		factory.setPort(SettingsUtils.getPort());
+		factory.afterPropertiesSet();
+		final StringRedisTemplate template2 = new StringRedisTemplate(factory);
+		template2.boundValueOps((String)key1).set((String)value1);
+		template2.expireAt((String)key1, new Date(System.currentTimeMillis() + 5l));
+		// Just ensure this works as expected, pExpireAt just adds some precision over expireAt
+		waitFor(new TestCondition() {
+			public boolean passes() {
+				return (!template2.hasKey((String)key1));
+			}
+		}, 5l);
+	}
+
+	@Test
 	public void testPersist() throws Exception {
-		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6") &&
-				RedisTestProfileValueSource.matches("runLongTests", "true"));
+		// Test is meaningless in Redis 2.4 because key won't expire after 10 ms
+		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
-		redisTemplate.expire(key1, 1, TimeUnit.SECONDS);
+		redisTemplate.expire(key1, 10, TimeUnit.MILLISECONDS);
 		redisTemplate.persist(key1);
-		Thread.sleep(1500);
+		Thread.sleep(10);
 		assertTrue(redisTemplate.hasKey(key1));
 	}
 
