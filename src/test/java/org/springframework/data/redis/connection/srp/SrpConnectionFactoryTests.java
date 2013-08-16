@@ -17,8 +17,10 @@ package org.springframework.data.redis.connection.srp;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
+import static org.junit.Assert.fail;
 
 /**
  * Integration test of {@link SrpConnectionFactory}
@@ -35,6 +37,18 @@ public class SrpConnectionFactoryTests {
 		factory.afterPropertiesSet();
 		RedisConnection connection = factory.getConnection();
 		connection.ping();
+	}
+
+	@Test
+	public void testConnectInvalidHost() {
+		SrpConnectionFactory factory = new SrpConnectionFactory();
+		factory.setHostName("fakeHost");
+		factory.afterPropertiesSet();
+		try {
+			factory.getConnection();
+			fail("Expected a connection failure exception");
+		} catch(RedisConnectionFailureException e) {
+		}
 	}
 
 	@Ignore("Redis must have requirepass set to run this test")

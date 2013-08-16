@@ -210,6 +210,8 @@ public class SrpConnection implements RedisConnection {
 			this.queue = queue;
 		} catch (IOException e) {
 			throw new RedisConnectionFailureException("Could not connect", e);
+		} catch(RedisException e) {
+			throw new RedisConnectionFailureException("Could not connect", e);
 		}
 	}
 
