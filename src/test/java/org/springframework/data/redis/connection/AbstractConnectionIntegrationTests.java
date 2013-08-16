@@ -771,7 +771,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.unwatch();
 		connection.multi();
 		//Give some time for unwatch to be asynch executed
-		Thread.sleep(500);
+		Thread.sleep(100);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
 				connectionFactory.getConnection());
 		conn2.set("testitnow", "something");

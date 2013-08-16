@@ -18,6 +18,7 @@ package org.springframework.data.redis.listener;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import java.util.Arrays;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -39,6 +41,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
@@ -68,6 +71,11 @@ public class PubSubTests<T> {
 	};
 
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
+
+	@BeforeClass
+	public static void shouldRun() {
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+	}
 
 	@Before
 	public void setUp() throws Exception {
