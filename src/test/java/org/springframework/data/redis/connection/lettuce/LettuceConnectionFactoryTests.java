@@ -174,18 +174,21 @@ public class LettuceConnectionFactoryTests {
 		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
 	}
 
-	@Test(expected=RedisConnectionFailureException.class)
-	public void testInitConnectionException() {
+	public void testGetConnectionException() {
 		factory.setHostName("fakeHost");
 		factory.afterPropertiesSet();
+		try {
+			factory.getConnection();
+			fail("Expected connection failure exception");
+		} catch(RedisConnectionFailureException e) {
+		}
 	}
 
-	@Test(expected=RedisConnectionFailureException.class)
-	public void testGetConnectionSharedException() {
+	@Test
+	public void testGetConnectionNotSharedBadHostname() {
 		factory.setShareNativeConnection(false);
 		factory.setHostName("fakeHost");
 		factory.afterPropertiesSet();
-		factory.setShareNativeConnection(true);
 		factory.getConnection();
 	}
 
@@ -195,15 +198,6 @@ public class LettuceConnectionFactoryTests {
 		factory.setHostName("fakeHost");
 		factory.afterPropertiesSet();
 		assertNull(factory.getSharedConnection());
-	}
-
-	@Test(expected=RedisConnectionFailureException.class)
-	public void testGetSharedConnectionSharedException() {
-		factory.setShareNativeConnection(false);
-		factory.setHostName("fakeHost");
-		factory.afterPropertiesSet();
-		factory.setShareNativeConnection(true);
-		factory.getSharedConnection();
 	}
 
 	@Test
