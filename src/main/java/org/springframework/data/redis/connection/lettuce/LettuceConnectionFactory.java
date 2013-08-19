@@ -95,6 +95,10 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	public void afterPropertiesSet() {
 		this.client = createRedisClient();
+		resetConnection();
+		if (shareNativeConnection) {
+			initConnection();
+		}
 	}
 
 	public void destroy() {
