@@ -415,34 +415,56 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(map.get(k2), isEqual(v2));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testConcurrentRemove() {
-		K k1 = getKey();
-		V v1 = getValue();
-
-		map.put(k1, v1);
-		assertFalse(map.remove(k1, v1));
-		assertEquals(v1, map.get(k1));
-		assertTrue(map.remove(k1, v1));
-		assertNull(map.get(k1));
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testConcurrentReplaceTwoArgs() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		K k1 = getKey();
 		V v1 = getValue();
 		V v2 = getValue();
+		// No point testing this with byte[], they will never be equal
+		assumeTrue(!(v1 instanceof byte[]));
+		map.put(k1, v2);
+		assertFalse(map.remove(k1, v1));
+		assertThat(map.get(k1), isEqual(v2));
+		assertTrue(map.remove(k1, v2));
+		assertNull(map.get(k1));
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testRemoveNullValue() {
+		map.remove(getKey(), null);
+	}
+
+	@Test
+	public void testConcurrentReplaceTwoArgs() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+		K k1 = getKey();
+		V v1 = getValue();
+		V v2 = getValue();
+		// No point testing binary data here, as equals will always be false
+		assumeTrue(!(v1 instanceof byte[]));
 
 		map.put(k1, v1);
 
 		assertFalse(map.replace(k1, v2, v1));
-		assertEquals(v1, map.get(k1));
+		assertThat(map.get(k1), isEqual(v1));
 		assertTrue(map.replace(k1, v1, v2));
-		assertEquals(v2, map.get(k1));
+		assertThat(map.get(k1), isEqual(v2));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected=NullPointerException.class)
+	public void testReplaceNullOldValue() {
+		map.replace(getKey(), null, getValue());
+	}
+
+	@Test(expected=NullPointerException.class)
+	public void testReplaceNullNewValue() {
+		map.replace(getKey(), getValue(), null);
+	}
+
+	@Test
 	public void testConcurrentReplaceOneArg() {
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		K k1 = getKey();
 		V v1 = getValue();
 		V v2 = getValue();
@@ -450,8 +472,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertNull(map.replace(k1, v1));
 		map.put(k1, v1);
 		assertNull(map.replace(getKey(), v1));
-		assertEquals(v1, map.replace(k1, v2));
-		assertEquals(v2, map.get(k1));
+		assertThat(map.replace(k1, v2), isEqual(v1));
+		assertThat(map.get(k1), isEqual(v2));
+	}
 
+	@Test(expected=NullPointerException.class)
+	public void testReplaceNullValue() {
+		map.replace(getKey(), null);
 	}
 }

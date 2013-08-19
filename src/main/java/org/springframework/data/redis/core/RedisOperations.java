@@ -299,4 +299,8 @@ public interface RedisOperations<K, V> {
 	RedisSerializer<?> getValueSerializer();
 
 	RedisSerializer<?> getKeySerializer();
+
+	RedisSerializer<?> getHashKeySerializer();
+
+	RedisSerializer<?> getHashValueSerializer();
 }

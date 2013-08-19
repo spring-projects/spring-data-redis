@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.SessionCallback;
 
 /**
  * Default implementation for {@link RedisMap}.
@@ -193,101 +194,81 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	
 	public V putIfAbsent(K key, V value) {
 		return (hashOps.putIfAbsent(key, value) ? null : get(key));
-
-		//		RedisOperations<String, ?> ops = hashOps.getOperations();
-		//
-		//		for (;;) {
-		//			ops.watch(getKey());
-		//			V v = get(key);
-		//			if (v == null) {
-		//				ops.multi();
-		//				put(key, value);
-		//				if (ops.exec() != null) {
-		//					return null;
-		//				}
-		//			}
-		//			else {
-		//				return v;
-		//			}
-		//		}
 	}
 
 	
-	public boolean remove(Object key, Object value) {
-		throw new UnsupportedOperationException();
-
-		//		if (value == null){
-		//			throw new NullPointerException();
-		//		}
-		//
-		//		RedisOperations<String, ?> ops = hashOps.getOperations();
-		//
-		//		for (;;) {
-		//			ops.watch(getKey());
-		//			V v = get(key);
-		//			if (value.equals(v)) {
-		//				ops.multi();
-		//				remove(key);
-		//				if (ops.exec() != null) {
-		//					return true;
-		//				}
-		//			}
-		//			else {
-		//				return false;
-		//			}
-		//		}
+	public boolean remove(final Object key, final Object value) {
+		if (value == null){
+			throw new NullPointerException();
+		}
+		return hashOps.getOperations().execute(new SessionCallback<Boolean>() {
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			public Boolean execute(RedisOperations ops) {
+				for (;;) {
+					ops.watch(Collections.singleton(getKey()));
+					V v = get(key);
+					if (value.equals(v)) {
+						ops.multi();
+						remove(key);
+						if (ops.exec(ops.getHashValueSerializer()) != null) {
+							return true;
+						}
+					} else {
+						return false;
+					}
+				}
+			}
+		});
 	}
 
 	
-	public boolean replace(K key, V oldValue, V newValue) {
-		throw new UnsupportedOperationException();
-
-		//		if (newValue == null || oldValue == null) {
-		//			throw new NullPointerException();
-		//		}
-		//
-		//		RedisOperations<String, ?> ops = hashOps.getOperations();
-		//
-		//		for (;;) {
-		//			ops.watch(getKey());
-		//			V v = get(key);
-		//			if (oldValue.equals(v)) {
-		//				ops.multi();
-		//				put(key, newValue);
-		//				if (ops.exec() != null) {
-		//					return true;
-		//				}
-		//			}
-		//			else {
-		//				return false;
-		//			}
-		//		}
+	public boolean replace(final K key, final V oldValue, final V newValue) {
+		if(oldValue == null || newValue == null) {
+			throw new NullPointerException();
+		}
+		return hashOps.getOperations().execute(new SessionCallback<Boolean>() {
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			public Boolean execute(RedisOperations ops) {
+				for (;;) {
+					ops.watch(Collections.singleton(getKey()));
+					V v = get(key);
+					if (oldValue.equals(v)) {
+						ops.multi();
+						put(key, newValue);
+						if (ops.exec(ops.getHashValueSerializer()) != null) {
+							return true;
+						}
+					} else {
+						return false;
+					}
+				}
+			}
+		});
 	}
 
 	
-	public V replace(K key, V value) {
-		throw new UnsupportedOperationException();
-
-
-		//		if (value == null) {
-		//			throw new NullPointerException();
-		//		}
-		//
-		//		RedisOperations<String, ?> ops = hashOps.getOperations();
-		//
-		//		for (;;) {
-		//			ops.watch(getKey());
-		//			if (containsKey(key)) {
-		//				ops.multi();
-		//				V oldValue = put(key, value);
-		//				if (ops.exec() != null) {
-		//					return oldValue;
-		//				}
-		//			}
-		//			else {
-		//				return null;
-		//			}
-		//		}
+	public V replace(final K key, final V value) {
+		if(value == null) {
+			throw new NullPointerException();
+		}
+		return hashOps.getOperations().execute(new SessionCallback<V>() {
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			public V execute(RedisOperations ops) {
+				for (;;) {
+					ops.watch(Collections.singleton(getKey()));
+					V v = get(key);
+					if (v != null) {
+						ops.multi();
+						put(key, value);
+						if (ops.exec(ops.getHashValueSerializer()) != null) {
+							return v;
+						}
+					} else {
+						return null;
+					}
+				}
+			}
+		});
 	}
 
 	

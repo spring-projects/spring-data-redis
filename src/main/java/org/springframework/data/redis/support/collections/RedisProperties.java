@@ -259,17 +259,17 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	
 	public boolean remove(Object key, Object value) {
-		throw new UnsupportedOperationException();
+		return delegate.remove(key, value);
 	}
 
 	
 	public boolean replace(Object key, Object oldValue, Object newValue) {
-		throw new UnsupportedOperationException();
+		return delegate.replace((String) key, (String) oldValue, (String) newValue);
 	}
 
 	
 	public Object replace(Object key, Object value) {
-		throw new UnsupportedOperationException();
+		return delegate.replace((String) key, (String) value);
 	}
 
 	
