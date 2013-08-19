@@ -34,6 +34,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -116,10 +117,13 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
-
-	// whether container should resubscribe on redis exception occure.
-	// (as network problem or redis server restart)
-	private boolean resubscribeOnError = true;
+	
+	// will recovery redis listening after recovery tnterval setting
+	private long recoveryInterval = 3000L;
+	// will recovery redis listening until reach the limit ( -1 will always try again) 
+	private int multipleRetries = -1;
+	// the retried times
+	private int numberOfRetries = 0;
 
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
@@ -635,18 +639,35 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Handle subscription task exception
+	 * Handle subscription task exception, will recovery redis listening on RedisConnectionFailureExceptions.
 	 * @param t Throwable exception
 	 */
-	protected void handleSubscriptionTaskException(Throwable t) {
-		if (this.resubscribeOnError) {
+	protected void refreshConnectionUntilSuccessful(Throwable t) {
+		// we need to specifically deal with RedisConnectionFailureExceptions 
+		// so we aren't attempting to reconnect if other types of failures occur.
+		if (t instanceof RedisConnectionFailureException) {
+
+			if (multipleRetries > 0 && numberOfRetries > multipleRetries) {
+				logger.error("Retry count has reached the upper limit " + multipleRetries);
+				return;
+			}
+
 			subscriptionExecutor.execute(new Runnable() {
 
 				public void run() {
-					stop();
-					logger.error("Restarting subscription task after 3s.");
+					if (multipleRetries > 0) {
+						numberOfRetries++;
+					}
 					try {
-						Thread.sleep(3000);
+						stop();
+					} catch (Throwable ex) {
+						// as we know the stop will throw JedisConnectionException on jedis,
+						// catch Throwable will not need to import any jedis classes.
+						// The exception will be ignored.
+					}
+					logger.error("Restarting subscription task after " + recoveryInterval + "ms.");
+					try {
+						Thread.sleep(recoveryInterval);
 					} catch (InterruptedException e) {
 						return;
 					}
@@ -744,11 +765,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				else {
 					connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
 				}
-			} catch (Throwable t) {
-				if (logger.isErrorEnabled()) {
-					logger.error("PatternSubscriptionTask abort with exception:", t);
-				}
-				handleSubscriptionTaskException(t);
+			} catch (Throwable t) {				
+				logger.error("SubscriptionTask abort with exception:", t);
+				refreshConnectionUntilSuccessful(t);
 			} finally {
 				// this block is executed once the subscription thread has ended, this may or may not mean
 				// the connection has been unsubscribed, depending on driver
@@ -897,5 +916,23 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				}
 			});
 		}
+	}
+
+	/**
+	 * Set the recovery interval value(ms), must be greater than zero
+	 * @param recoveryInterval 
+	 */
+	public void setRecoveryInterval(long recoveryInterval) {
+		if (recoveryInterval > 0) {
+			this.recoveryInterval = recoveryInterval;
+		}
+	}
+
+	/**
+	 * Set the multiple retries times, less than zero on behalf of the infinite.
+	 * @param multipleRetries 
+	 */
+	public void setMultipleRetries(int multipleRetries) {
+		this.multipleRetries = multipleRetries;
 	}
 }
