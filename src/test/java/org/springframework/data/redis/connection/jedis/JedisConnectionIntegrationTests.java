@@ -16,8 +16,14 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Test;
@@ -25,9 +31,14 @@ import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.ConnectionUtils;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.DefaultStringTuple;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -263,5 +274,136 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@Test(expected=InvalidDataAccessApiUsageException.class)
 	public void testErrorInTx() {
 		super.testErrorInTx();
+	}
+
+	// Override pub/sub test methods to use a separate connection factory for
+	// subscribing threads, due to this issue: https://github.com/xetorthio/jedis/issues/445
+	@Test
+	public void testPubSubWithNamedChannels() throws Exception {
+		final String expectedChannel = "channel1";
+		final String expectedMessage = "msg";
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
+
+		MessageListener listener = new MessageListener() {
+			public void onMessage(Message message, byte[] pattern) {
+				messages.add(message);
+				System.out.println("Received message '" + new String(message.getBody()) + "'");
+			}
+		};
+
+		JedisConnectionFactory factory2 = new JedisConnectionFactory();
+		factory2.setHostName(SettingsUtils.getHost());
+		factory2.setPort(SettingsUtils.getPort());
+		factory2.setUsePool(false);
+		factory2.afterPropertiesSet();
+		final StringRedisConnection nonPooledConn = new DefaultStringRedisConnection(factory2.getConnection());
+		Thread th = new Thread(new Runnable() {
+			public void run() {
+				// sleep 1/2 second to let the registration happen
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				// open a new connection
+				RedisConnection connection2 = connectionFactory.getConnection();
+				connection2.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
+				connection2.close();
+				// In some clients, unsubscribe happens async of message
+				// receipt, so not all
+				// messages may be received if unsubscribing now.
+				// Connection.close in teardown
+				// will take care of unsubscribing.
+				if (!(ConnectionUtils.isAsync(connectionFactory))) {
+					nonPooledConn.getSubscription().unsubscribe();
+				}
+			}
+		});
+		th.start();
+		nonPooledConn.subscribe(listener, expectedChannel.getBytes());
+		// Not all providers block on subscribe, give some time for messages to
+		// be received
+		Message message = messages.poll(5, TimeUnit.SECONDS);
+		assertNotNull(message);
+		assertEquals(expectedMessage, new String(message.getBody()));
+		assertEquals(expectedChannel, new String(message.getChannel()));
+	}
+
+	@Test
+	public void testPubSubWithPatterns() throws Exception {
+		final String expectedPattern = "channel*";
+		final String expectedMessage = "msg";
+		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
+
+		final MessageListener listener = new MessageListener() {
+			public void onMessage(Message message, byte[] pattern) {
+				assertEquals(expectedPattern, new String(pattern));
+				messages.add(message);
+				System.out.println("Received message '" + new String(message.getBody()) + "'");
+			}
+		};
+
+		JedisConnectionFactory factory2 = new JedisConnectionFactory();
+		factory2.setHostName(SettingsUtils.getHost());
+		factory2.setPort(SettingsUtils.getPort());
+		factory2.setUsePool(false);
+		factory2.afterPropertiesSet();
+		final StringRedisConnection nonPooledConn = new DefaultStringRedisConnection(factory2.getConnection());
+
+		Thread th = new Thread(new Runnable() {
+			public void run() {
+				// sleep 1/2 second to let the registration happen
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				// open a new connection
+				RedisConnection connection2 = connectionFactory.getConnection();
+				connection2.publish("channel1".getBytes(), expectedMessage.getBytes());
+				connection2.publish("channel2".getBytes(), expectedMessage.getBytes());
+				connection2.close();
+				// In some clients, unsubscribe happens async of message
+				// receipt, so not all
+				// messages may be received if unsubscribing now.
+				// Connection.close in teardown
+				// will take care of unsubscribing.
+				if (!(ConnectionUtils.isAsync(connectionFactory))) {
+					nonPooledConn.getSubscription().pUnsubscribe(expectedPattern.getBytes());
+				}
+			}
+		});
+
+		th.start();
+		nonPooledConn.pSubscribe(listener, expectedPattern);
+		// Not all providers block on subscribe (Lettuce does not), give some
+		// time for messages to be received
+		Message message = messages.poll(5, TimeUnit.SECONDS);
+		assertNotNull(message);
+		assertEquals(expectedMessage, new String(message.getBody()));
+		message = messages.poll(5, TimeUnit.SECONDS);
+		assertNotNull(message);
+		assertEquals(expectedMessage, new String(message.getBody()));
+	}
+
+	@Test
+	public void testPoolNPE() {
+		JedisPoolConfig config = new JedisPoolConfig();
+		config.setMaxActive(1);
+		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
+		factory2.setUsePool(true);
+		factory2.setHostName(SettingsUtils.getHost());
+		factory2.setPort(SettingsUtils.getPort());
+		factory2.afterPropertiesSet();
+		RedisConnection conn = factory2.getConnection();
+		try {
+			conn.get(null);
+		}catch(Exception e) {
+		}
+		conn.close();
+		// Make sure we don't end up with broken connection
+		factory2.getConnection().dbSize();
 	}
 }

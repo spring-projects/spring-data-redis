@@ -162,6 +162,10 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
+		if(ex instanceof NullPointerException) {
+			// An NPE before flush will leave data in the OutputStream of a pooled connection
+			broken = true;
+		}
 		DataAccessException exception = JedisConverters.toDataAccessException(ex);
 		if (exception instanceof RedisConnectionFailureException) {
 			broken = true;
