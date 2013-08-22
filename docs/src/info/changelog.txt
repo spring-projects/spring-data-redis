@@ -5,6 +5,36 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.1.0.RC1 (2013-08-22)
+----------------------------------------
+
+Package o.s.d.redis.core
+* Modified RedisTemplate expire and expireAt
+to use millisecond precision when available (Redis 2.6+)
+* Added RedisTemplate getExpire(key, TimeUnit) method that uses
+millisecond precision when available (Redis 2.6+)
+
+Package o.s.d.redis.connection.jedis
+* Fixed invalid Jedis connections returning to pool after NPE
+
+Package o.s.d.redis.connection.lettuce
+* Modified LettuceConnectionFactory to lazily instantiate connections,
+allowing the AppContext to start if Redis is unavailable
+
+Package o.s.d.redis.connection.srp
+* Added password to SrpConnectionFactory
+* Fixed SrpConnection throwing native Exception from constructor on
+connection failure
+
+Package o.s.d.redis.listener
+* Fixed MessageListenerAdapter extractMessage returning the whole Message
+instead of the Message body when serializer is null
+* Added resubscribe on connection failure to RedisMessageListenerContainer
+
+Package o.s.d.redis.support.collections
+* Implemented ConcurrentMap replace and remove methods
+
+
 Changes in version 1.1.0.M2 (2013-08-06)
 ----------------------------------------
 
