@@ -66,6 +66,7 @@ import org.springframework.util.ErrorHandler;
  * 
  * 
  * @author Costin Leau
+ * @author Jennifer Hickey
  * @author Way Joke
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
@@ -79,6 +80,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	public static final String DEFAULT_THREAD_NAME_PREFIX = ClassUtils.getShortName(RedisMessageListenerContainer.class)
 			+ "-";
+
+	/**
+	 * The default recovery interval: 5000 ms = 5 seconds.
+	 */
+	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
 
 	private long initWait = TimeUnit.SECONDS.toMillis(5);
 
@@ -119,12 +125,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
 	
-	// will recovery redis listening after recovery tnterval setting
-	private long recoveryInterval = 3000L;
-	// will recovery redis listening until reach the limit ( -1 will always try again) 
-	private int multipleRetries = -1;
-	// the retried times
-	private int numberOfRetries = 0;
+	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
@@ -640,41 +641,37 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Handle subscription task exception, will recovery redis listening on RedisConnectionFailureExceptions.
-	 * @param t Throwable exception
+	 * Handle subscription task exception. Will attempt to restart the subscription
+	 * if the Exception is a connection failure (for example, Redis was restarted).
+	 * @param ex Throwable exception
 	 */
-	protected void refreshConnectionUntilSuccessful(Throwable t) {
-		// we need to specifically deal with RedisConnectionFailureExceptions 
-		// so we aren't attempting to reconnect if other types of failures occur.
-		if (t instanceof RedisConnectionFailureException) {
-
-			if (multipleRetries > 0 && numberOfRetries > multipleRetries) {
-				logger.error("Retry count has reached the upper limit " + multipleRetries);
-				return;
+	protected void handleSubscriptionException(Throwable ex) {
+		listening = false;
+		subscriptionTask.closeConnection();
+		if(ex instanceof RedisConnectionFailureException) {
+			if(isRunning()) {
+				logger.error("Connection failure occurred. Restarting subscription task after " +
+						recoveryInterval + " ms");
+				sleepBeforeRecoveryAttempt();
+				lazyListen();
 			}
+		} else {
+			logger.error("SubscriptionTask aborted with exception:", ex);
+		}
+	}
 
-			subscriptionExecutor.execute(new Runnable() {
-
-				public void run() {
-					if (multipleRetries > 0) {
-						numberOfRetries++;
-					}
-					try {
-						stop();
-					} catch (Throwable ex) {
-						// as we know the stop will throw JedisConnectionException on jedis,
-						// catch Throwable will not need to import any jedis classes.
-						// The exception will be ignored.
-					}
-					logger.error("Restarting subscription task after " + recoveryInterval + "ms.");
-					try {
-						Thread.sleep(recoveryInterval);
-					} catch (InterruptedException e) {
-						return;
-					}
-					start();
-				}
-			});
+	/**
+	 * Sleep according to the specified recovery interval.
+	 * Called between recovery attempts.
+	 */
+	protected void sleepBeforeRecoveryAttempt() {
+		if (this.recoveryInterval > 0) {
+			try {
+				Thread.sleep(this.recoveryInterval);
+			}
+			catch (InterruptedException interEx) {
+				logger.debug("Thread interrupted while sleeping the recovery interval");
+			}
 		}
 	}
 	
@@ -743,8 +740,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			synchronized (localMonitor) {
 				subscriptionTaskRunning = true;
 			}
-			connection = connectionFactory.getConnection();
 			try {
+				connection = connectionFactory.getConnection();
 				if (connection.isSubscribed()) {
 					throw new IllegalStateException("Retrieved connection is already subscribed; aborting listening");
 				}
@@ -767,8 +764,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
 				}
 			} catch (Throwable t) {				
-				logger.error("SubscriptionTask abort with exception:", t);
-				refreshConnectionUntilSuccessful(t);
+				handleSubscriptionException(t);
 			} finally {
 				// this block is executed once the subscription thread has ended, this may or may not mean
 				// the connection has been unsubscribed, depending on driver
@@ -818,13 +814,24 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 							}
 						}
 						if(!subscriptionTaskRunning) {
-							logger.trace("Closing connection");
-							connection.close();
+							closeConnection();
 						}else {
 							logger.warn("Unable to close connection. Subscription task still running");
 						}
 					}
 				}
+			}
+		}
+
+		void closeConnection() {
+			if(connection != null) {
+				logger.trace("Closing connection");
+				try {
+					connection.close();
+				} catch(Exception e) {
+					logger.warn("Error closing subscription connection", e);
+				}
+				connection = null;
 			}
 		}
 
@@ -920,20 +927,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Set the recovery interval value(ms), must be greater than zero
-	 * @param recoveryInterval 
+	 * Specify the interval between recovery attempts, in <b>milliseconds</b>.
+	 * The default is 5000 ms, that is, 5 seconds.
+	 * @see #handleSubscriptionException
 	 */
 	public void setRecoveryInterval(long recoveryInterval) {
-		if (recoveryInterval > 0) {
-			this.recoveryInterval = recoveryInterval;
-		}
-	}
-
-	/**
-	 * Set the multiple retries times, less than zero on behalf of the infinite.
-	 * @param multipleRetries 
-	 */
-	public void setMultipleRetries(int multipleRetries) {
-		this.multipleRetries = multipleRetries;
+		this.recoveryInterval = recoveryInterval;
 	}
 }
