@@ -1,0 +1,124 @@
+---
+# The name of your project
+title: Spring Data Redis
+
+badges:
+
+  # Specify your project's twitter handle, if any. Delete if none.
+  twitter: SpringData
+
+  # Customize your project's badges. Delete any entries that do not apply.
+  custom:
+    - name: Source (GitHub)
+      url:  https://github.com/spring-projects/spring-data-redis
+      icon: github
+
+    - name: Issues (JIRA)
+      url:  http://jira.springsource.org/browse/DATAREDIS
+      icon: tracking
+
+    - name: CI (Bamboo)
+      url:  https://build.springsource.org/browse/SPRINGDATA
+      icon: ci
+
+    - name: Forum
+      url:  http://forum.spring.io/forum/spring-projects/data/nosql
+      icon: forum
+
+    - name: StackOverflow
+      url:  http://stackoverflow.com/questions/tagged/spring-data-redis
+      icon: stackoverflow
+
+
+---
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+<!-- Specify the parent of this project (or delete if none) to influence the rendering of the breadcrumb -->
+{% capture parent_link %}
+[Spring Data]({{ site.projects_site_url }}/spring-data)
+{% endcapture %}
+
+
+{% capture billboard_description %}
+
+Spring Data Redis, part of the larger [Spring Data]({{ site.projects_site_url }}/spring-data) family,
+provides easy configuration and access to Redis from Spring applications. It offers both low-level and
+high-level abstractions for interacting with the store, freeing the user from infrastructural concerns.
+
+{% endcapture %}
+
+{% capture main_content %}
+
+## Features
+
+* Connection package as low-level abstraction across multiple Redis drivers/connectors ([Jedis](http://github.com/xetorthio/jedis),  [JRedis](https://github.com/alphazero/jredis), [Lettuce](http://github.com/wg/lettuce), and [SRP](http://github.com/spullara/redis-protocol))
+* [Exception translation](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#redis:connectors) to Spring's portable Data Access exception hierarchy for Redis driver exceptions
+* [RedisTemplate](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#redis:template) that provides a high level abstraction for performing various Redis operations, exception translation and serialization support
+* [Pubsub](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#pubsub) support (such as a MessageListenerContainer for message-driven POJOs)
+* JDK, String, JSON and Spring Object/XML mapping [serializers](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#redis:serializer)
+* JDK [Collection](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#redis:support) implementations on top of Redis
+* Atomic [counter](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#redis:support) support classes
+* Sorting and Pipelining functionality
+* Dedicated support for SORT, SORT/GET pattern and returned bulk values
+* Redis [implementation](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/redis.html#redis:support:cache-abstraction) for Spring 3.1 cache abstraction
+
+<span id="quick-start"></span>
+## Quick Start
+
+{% include download_widget.md %}
+
+####Configure RedisTemplate....
+
+````xml
+<bean id="jedisConnFactory" 
+    class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" 
+    p:use-pool="true"/>
+
+<!-- redis template definition -->
+<bean id="redisTemplate" 
+    class="org.springframework.data.redis.core.RedisTemplate" 
+    p:connection-factory-ref="jedisConnFactory"/>
+````
+
+
+####Inject and use RedisTemplate or any of its opsForX() instances....
+
+````java
+public class Example {
+
+    // inject the actual template
+    @Autowired
+    private RedisTemplate<String, String> template;
+
+    // inject the template as ListOperations
+    // can also inject as Value, Set, ZSet, and HashOperations
+    @Resource(name="redisTemplate")
+    private ListOperations<String, String> listOps;
+
+    public void addLink(String userId, URL url) {
+        listOps.leftPush(userId, url.toExternalForm());
+        // or use template directly
+        redisTemplate.boundListOps(userId).leftPush(url.toExternalForm());
+    }
+}
+````
+
+{% endcapture %}
+
+{% capture related_resources %}
+
+### Sample Projects
+
+* [RetwisJ](https://github.com/SpringSource/spring-data-keyvalue-examples/tree/master/retwisj) - A Java implementation of the [Redis twitter clone](http://redis.io/topics/twitter-clone)
+
+### Getting Started Guides
+
+* [Messaging with Redis]({{site.main_site_url}}/guides/gs/messaging-redis)
+
+
+{% endcapture %}
+
+
+{% include project_page.html %}
+</html>
