@@ -5,6 +5,12 @@ http://www.springsource.org/spring-data/redis
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.1.0.RELEASE (2013-09-09)
+----------------------------------------
+
+No changes
+
+
 Changes in version 1.1.0.RC1 (2013-08-22)
 ----------------------------------------
 
