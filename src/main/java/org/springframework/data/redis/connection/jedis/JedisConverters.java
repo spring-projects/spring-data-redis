@@ -22,6 +22,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -33,6 +34,7 @@ import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.util.Assert;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.BitOP;
 import redis.clients.jedis.SortingParams;
 import redis.clients.util.SafeEncoder;
 
@@ -158,5 +160,20 @@ abstract public class JedisConverters extends Converters {
 			}
 		}
 		return jedisParams;
+	}
+
+	public static BitOP toBitOp(BitOperation bitOp) {
+		switch(bitOp) {
+			case AND:
+				return BitOP.AND;
+			case OR:
+				return BitOP.OR;
+			case NOT:
+				return BitOP.NOT;
+			case XOR:
+				return BitOP.XOR;
+			default:
+				throw new IllegalArgumentException();
+		}
 	}
 }

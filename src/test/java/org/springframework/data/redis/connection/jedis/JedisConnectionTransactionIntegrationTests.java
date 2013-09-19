@@ -19,6 +19,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,170 +54,11 @@ public class JedisConnectionTransactionIntegrationTests extends
 		connection = null;
 	}
 
-	@Ignore("DATAREDIS-143 transaction tries to return List<String> instead of Long on sort")
-	public void testSortStore() {
-	}
-
-	@Ignore("DATAREDIS-143 transaction tries to return Long instead of List<String> on sort with no params")
-	public void testSortStoreNullParams() {
+	@Ignore("Jedis issue: Transaction tries to return String instead of List<String>")
+	public void testGetConfig() {
 	}
 
 	// Unsupported Ops
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPExpire() {
-		super.testPExpire();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPExpireKeyNotExists() {
-		super.testPExpireKeyNotExists();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPExpireAt() {
-		super.testPExpireAt();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPExpireAtKeyNotExists() {
-		super.testPExpireAtKeyNotExists();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPTtl() {
-		super.testPTtl();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPTtlNoExpire() {
-		super.testPTtlNoExpire();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testDumpAndRestore() {
-		super.testDumpAndRestore();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testDumpNonExistentKey() {
-		super.testDumpNonExistentKey();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testRestoreBadData() {
-		super.testRestoreBadData();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testRestoreExistingKey() {
-		super.testRestoreExistingKey();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testRestoreTtl() {
-		super.testRestoreTtl();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitSet() throws Exception {
-		super.testBitSet();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitGet() {
-		connection.getBit("bitly", 1l);
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitCount() {
-		connection.bitCount("foo");
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitCountInterval() {
-		super.testBitCountInterval();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitCountNonExistentKey() {
-		super.testBitCountNonExistentKey();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitOpAnd() {
-		super.testBitOpAnd();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitOpOr() {
-		super.testBitOpOr();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitOpXOr() {
-		super.testBitOpXOr();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitOpNot() {
-		super.testBitOpNot();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testBitOpNotMultipleSources() {
-		super.testBitOpNotMultipleSources();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testRandomKey() {
-		super.testRandomKey();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetRangeSetRange() {
-		super.testGetRangeSetRange();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testPingPong() throws Exception {
-		super.testPingPong();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testInfo() throws Exception {
-		super.testInfo();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testZRevRangeByScore() {
-		super.testZRevRangeByScore();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testZRevRangeByScoreOffsetCount() {
-		super.testZRevRangeByScoreOffsetCount();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testZRevRangeByScoreWithScores() {
-		super.testZRevRangeByScoreWithScores();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		byteConnection.zRevRangeByScoreWithScores("myset".getBytes(), 0d, 3d, 0, 1);
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testHIncrByDouble() {
-		super.testHIncrByDouble();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testIncrByDouble() {
-		super.testIncrByDouble();
-	}
-
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptLoadEvalSha() {
@@ -333,71 +175,8 @@ public class JedisConnectionTransactionIntegrationTests extends
 
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCount() {
-		super.testSRandMemberCount();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCountKeyNotExists() {
-		super.testSRandMemberCountKeyNotExists();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetConfig() {
-		connection.getConfig("*");
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testEcho() {
-		super.testEcho();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testSelect() {
-		super.testSelect();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testLastSave() {
-		super.testLastSave();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testHDelMultiple() {
-		super.testHDelMultiple();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testLPushMultiple() {
-		super.testLPushMultiple();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testRPushMultiple() {
-		super.testRPushMultiple();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testSAddMultiple() {
-		super.testSAddMultiple();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testSRemMultiple() {
-		super.testSRemMultiple();
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
@@ -405,8 +184,15 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testZAddMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
-	public void testZRemMultiple() {
-		super.testZRemMultiple();
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		super.testRestoreBadData();
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		super.testRestoreExistingKey();
 	}
 }

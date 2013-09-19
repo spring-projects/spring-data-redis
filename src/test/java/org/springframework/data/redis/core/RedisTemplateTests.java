@@ -54,6 +54,7 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
@@ -451,8 +452,8 @@ public class RedisTemplateTests<K,V> {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		assumeTrue(key1 instanceof String && value1 instanceof String);
-		// Jedis does not support pExpire
-		JedisConnectionFactory factory = new JedisConnectionFactory();
+		// JRedis does not support pExpire
+		JredisConnectionFactory factory = new JredisConnectionFactory();
 		factory.setHostName(SettingsUtils.getHost());
 		factory.setPort(SettingsUtils.getPort());
 		factory.afterPropertiesSet();

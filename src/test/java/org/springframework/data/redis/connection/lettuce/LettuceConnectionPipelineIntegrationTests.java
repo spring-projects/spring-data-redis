@@ -23,7 +23,6 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
-import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.test.annotation.IfProfileValue;
@@ -53,19 +52,6 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	@Test(expected=UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
-	}
-
-	// LettuceConnection throws an UnsupportedOpException before we close the pipeline
-	@Test(expected=UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testBitOpNotMultipleSources() {
-		connection.set("key1", "abcd");
-		connection.set("key2", "efgh");
-		try {
-			actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1", "key2"));
-		}finally {
-			getResults();
-		}
 	}
 
 	@Test(expected=UnsupportedOperationException.class)

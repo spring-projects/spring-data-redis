@@ -480,7 +480,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 4l }));
 	}
 
-	@Test(expected = RedisSystemException.class)
+	@Test(expected =UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testBitOpNotMultipleSources() {
 		connection.set("key1", "abcd");

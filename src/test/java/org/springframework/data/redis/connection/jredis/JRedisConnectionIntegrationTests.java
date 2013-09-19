@@ -416,11 +416,6 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test(expected=UnsupportedOperationException.class)
-	public void testBitOpNotMultipleSources() {
-		super.testBitOpNotMultipleSources();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
 	public void testHIncrByDouble() {
 		super.testHIncrByDouble();
 	}

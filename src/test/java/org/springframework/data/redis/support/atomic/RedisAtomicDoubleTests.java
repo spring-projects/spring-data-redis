@@ -153,7 +153,7 @@ public class RedisAtomicDoubleTests {
 		// JRedis converts Unix time to millis before sending command, so it expires right away
 		assumeTrue(!ConnectionUtils.isJredis(factory));
 		doubleCounter.set(7.8);
-		assertTrue(doubleCounter.expireAt(new Date(System.currentTimeMillis() + 2000)));
+		assertTrue(doubleCounter.expireAt(new Date(System.currentTimeMillis() + 10000)));
 		assertTrue(doubleCounter.getExpire() > 0);
 	}
 

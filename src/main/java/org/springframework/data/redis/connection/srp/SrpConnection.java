@@ -1102,6 +1102,9 @@ public class SrpConnection implements RedisConnection {
 
 
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
+		if(op == BitOperation.NOT && keys.length > 1) {
+			throw new UnsupportedOperationException("Bitop NOT should only be performed against one key");
+		}
 		try {
 			if (isPipelined()) {
 				pipeline(new SrpResult(pipeline.bitop(SrpConverters.toBytes(op), destination, (Object[]) keys)));

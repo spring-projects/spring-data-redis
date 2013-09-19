@@ -75,135 +75,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection = null;
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
-	public void testPExpire() {
-		super.testPExpire();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testPExpireKeyNotExists() {
-		super.testPExpireKeyNotExists();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testPExpireAt() {
-		super.testPExpireAt();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testPExpireAtKeyNotExists() {
-		super.testPExpireAtKeyNotExists();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testPTtl() {
-		super.testPTtl();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testPTtlNoExpire() {
-		super.testPTtlNoExpire();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testDumpAndRestore() {
-		super.testDumpAndRestore();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testDumpNonExistentKey() {
-		super.testDumpNonExistentKey();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testRestoreBadData() {
-		super.testRestoreBadData();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testRestoreExistingKey() {
-		super.testRestoreExistingKey();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testRestoreTtl() {
-		super.testRestoreTtl();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitCount() {
-		super.testBitCount();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitCountInterval() {
-		super.testBitCountInterval();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitCountNonExistentKey() {
-		super.testBitCountNonExistentKey();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitOpAnd() {
-		super.testBitOpAnd();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitOpOr() {
-		super.testBitOpOr();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitOpXOr() {
-		super.testBitOpXOr();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitOpNot() {
-		super.testBitOpNot();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testBitOpNotMultipleSources() {
-		super.testBitOpNotMultipleSources();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testHIncrByDouble() {
-		super.testHIncrByDouble();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	public void testIncrByDouble() {
-		super.testIncrByDouble();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCount() {
-		super.testSRandMemberCount();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCountKeyNotExists() {
-		super.testSRandMemberCountKeyNotExists();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
-	}
-
-	@Test(expected=UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testInfoBySection() throws Exception {
-		super.testInfoBySection();
-	}
-
 	@Test
 	public void testCreateConnectionWithDb() {
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
@@ -268,6 +139,18 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		super.testRestoreBadData();
+	}
+
+	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		super.testRestoreExistingKey();
 	}
 
 	@Test(expected=InvalidDataAccessApiUsageException.class)

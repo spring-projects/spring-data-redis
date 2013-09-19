@@ -94,12 +94,6 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 
 	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	public void testBitOpNotMultipleSources() {
-		super.testBitOpNotMultipleSources();
-	}
-
-	@Test(expected = RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}

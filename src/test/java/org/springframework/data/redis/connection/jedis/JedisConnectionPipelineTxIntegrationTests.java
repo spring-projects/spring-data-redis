@@ -1,39 +1,20 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.test.annotation.IfProfileValue;
 
 public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTransactionIntegrationTests {
 
 	@Ignore("Jedis issue: Pipeline tries to return String instead of List<String>")
 	@Test
 	public void testGetConfig() {
-	}
-
-	@Ignore("https://github.com/xetorthio/jedis/pull/389 Pipeline tries to return List<String> instead of Long on sort")
-	public void testSortStore() {
-	}
-
-	@Ignore("Jedis issue: Pipeline tries to return Long instead of List<String> on sort with no params")
-	public void testSortNullParams() {
-	}
-
-	@Ignore("https://github.com/xetorthio/jedis/pull/389 Pipeline tries to return Long instead of List<String> on sort with no params")
-	public void testSortStoreNullParams() {
-	}
-
-	@Test
-	public void testEcho() {
-		actual.add(connection.echo("Hello World"));
-		verifyResults(Arrays.asList(new Object[] { "Hello World" }));
 	}
 
 	@Test(expected=RedisPipelineException.class)
@@ -43,11 +24,16 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 		getResults();
 	}
 
-	@Test
-	public void testLastSave() {
-		connection.lastSave();
-		List<Object> results = getResults();
-		assertNotNull(results.get(0));
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreBadData() {
+		super.testRestoreBadData();
+	}
+
+	@Test(expected=RedisPipelineException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6")
+	public void testRestoreExistingKey() {
+		super.testRestoreExistingKey();
 	}
 
 	protected void initConnection() {
