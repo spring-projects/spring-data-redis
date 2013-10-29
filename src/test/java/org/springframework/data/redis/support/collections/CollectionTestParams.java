@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -38,6 +39,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * @author Costin Leau
+ * @author Thomas Darimont
  */
 public abstract class CollectionTestParams {
 
@@ -51,6 +53,7 @@ public abstract class CollectionTestParams {
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
 		JacksonJsonRedisSerializer<Person> jsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
+		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
 		// create Jedis Factory
@@ -87,15 +90,21 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
 		jsonPersonTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplate = new RedisTemplate<byte[],byte[]>();
+		// jackson2
+		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
+		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnFactory);
+		jackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplate.afterPropertiesSet();
+
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
 		rawTemplate.setConnectionFactory(jedisConnFactory);
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.setKeySerializer(stringSerializer);
 		rawTemplate.afterPropertiesSet();
 
 		// jredis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateJR = new StringRedisTemplate(jredisConnFactory);
@@ -118,7 +127,12 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
 		jsonPersonTemplateJR.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplateJR = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplateJR = new RedisTemplate<String, Person>();
+		jackson2JsonPersonTemplateJR.setValueSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
+		jackson2JsonPersonTemplateJR.afterPropertiesSet();
+
+		RedisTemplate<byte[], byte[]> rawTemplateJR = new RedisTemplate<byte[], byte[]>();
 		rawTemplateJR.setConnectionFactory(jredisConnFactory);
 		rawTemplateJR.setEnableDefaultSerializer(false);
 		rawTemplateJR.setKeySerializer(stringSerializer);
@@ -150,7 +164,12 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateSRP.setConnectionFactory(srConnFactory);
 		jsonPersonTemplateSRP.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplateSRP = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplateSRP = new RedisTemplate<String, Person>();
+		jackson2JsonPersonTemplateSRP.setValueSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateSRP.setConnectionFactory(srConnFactory);
+		jackson2JsonPersonTemplateSRP.afterPropertiesSet();
+
+		RedisTemplate<byte[], byte[]> rawTemplateSRP = new RedisTemplate<byte[], byte[]>();
 		rawTemplateSRP.setConnectionFactory(srConnFactory);
 		rawTemplateSRP.setEnableDefaultSerializer(false);
 		rawTemplateSRP.setKeySerializer(stringSerializer);
@@ -182,30 +201,44 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		jsonPersonTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplateLtc = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<String, Person> jackson2JsonPersonTemplateLtc = new RedisTemplate<String, Person>();
+		jackson2JsonPersonTemplateLtc.setValueSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
+		jackson2JsonPersonTemplateLtc.afterPropertiesSet();
+
+		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<byte[], byte[]>();
 		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		rawTemplateLtc.setEnableDefaultSerializer(false);
 		rawTemplateLtc.setKeySerializer(stringSerializer);
 		rawTemplateLtc.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate },
+		return Arrays.asList(new Object[][] {
+				{ stringFactory, stringTemplate },
 				{ personFactory, personTemplate },
-				{ stringFactory, xstreamStringTemplate }, { personFactory, xstreamPersonTemplate },
-				{ personFactory, jsonPersonTemplate }, {rawFactory, rawTemplate},
+				{ stringFactory, xstreamStringTemplate },
+				{ personFactory, xstreamPersonTemplate },
+				{ personFactory, jsonPersonTemplate },
+				{ personFactory, jackson2JsonPersonTemplate },
+				{ rawFactory, rawTemplate },
 				// Jredis
 				{ stringFactory, stringTemplateJR },
 				{ personFactory, personTemplateJR },
 				{ stringFactory, xstreamStringTemplateJR },
 				{ personFactory, xstreamPersonTemplateJR },
-				{ personFactory, jsonPersonTemplateJR }, {rawFactory, rawTemplateJR},
+				{ personFactory, jsonPersonTemplateJR },
+				{ personFactory, jackson2JsonPersonTemplateJR },
+				{ rawFactory, rawTemplateJR },
 				// srp
-				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
-				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },
-				{ personFactory, jsonPersonTemplateSRP }, {rawFactory, rawTemplateSRP},
+				{ stringFactory, stringTemplateSRP }, { personFactory, personTemplateSRP },
+				{ stringFactory, xstreamStringTemplateSRP },
+				{ personFactory, xstreamPersonTemplateSRP },
+				{ personFactory, jsonPersonTemplateSRP },
+				{ personFactory, jackson2JsonPersonTemplateSRP },
+				{ rawFactory, rawTemplateSRP },
 				// lettuce
 				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
 				{ stringFactory, xstreamStringTemplateLtc }, { personFactory, xstreamPersonTemplateLtc },
-				{ personFactory, jsonPersonTemplateLtc }, {rawFactory, rawTemplateLtc}
-		});
+				{ personFactory, jsonPersonTemplateLtc }, { personFactory, jackson2JsonPersonTemplateLtc },
+				{ rawFactory, rawTemplateLtc } });
 	}
 }
