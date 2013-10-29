@@ -394,8 +394,8 @@
 	  (package <literal>org.springframework.data.redis.serializer</literal>) which as the name implies, takes care of the serialization process. Multiple implementations are
 	  available out of the box, two of which have been already mentioned before in this documentation: the <literal>StringRedisSerializer</literal> and 
 	  the <literal>JdkSerializationRedisSerializer</literal>. However one can use <classname>OxmSerializer</classname> for Object/XML mapping through Spring 3 
-	  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/oxm.html">OXM</ulink> support or <classname>JacksonJsonRedisSerializer</classname> for storing
-	  data in <ulink url="http://en.wikipedia.org/wiki/JSON">JSON</ulink> format. Do note that the storage format is not limited only to values - it can be used for keys, values or hashes
+	  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/oxm.html">OXM</ulink> support or either <classname>JacksonJsonRedisSerializer</classname> or
+      <classname>Jackson2JsonRedisSerializer</classname> for storing data in <ulink url="http://en.wikipedia.org/wiki/JSON">JSON</ulink> format. Do note that the storage format is not limited only to values - it can be used for keys, values or hashes
 	  without any restrictions.</para>
 	</section>
 	
