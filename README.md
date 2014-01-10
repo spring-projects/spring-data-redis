@@ -1,8 +1,8 @@
 Spring Data Redis
 =======================
 
-The primary goal of the [Spring Data](http://www.springsource.org/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
-This modules provides integration with the [Redis] (http://code.google.com/p/redis/) store. 
+The primary goal of the [Spring Data](http://projects.spring.io/spring-data/) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
+This modules provides integration with the [Redis] (http://redis.io/) store. 
 
 # Docs
 
@@ -54,8 +54,8 @@ dependencies {
 }
 ~~~~~
 
-Latest GA release is _1.0.2.RELEASE_  
-Latest nightly is _1.0.3.BUILD-SNAPSHOT_
+Latest GA release is _1.1.0.RELEASE_  
+Latest nightly is _1.2.0.BUILD-SNAPSHOT_
 
 # Usage (for the impatient)
 
@@ -120,5 +120,5 @@ Github is for social coding: if you want to write code, we encourage contributio
 
 # Staying in touch
 
-Follow the project team ([Costin](http://twitter.com/costinl)) on Twitter. In-depth articles can be
-found at the SpringSource [team blog](http://blog.springsource.org), and releases are announced via our [news feed](http://www.springsource.org/news-events).
+Follow the project team ([@thomasdarimont](http://twitter.com/thomasdarimont), [@stroblchristoph](http://twitter.com/stroblchristoph)) on Twitter. In-depth articles can be
+found at the SpringSource [team blog](https://spring.io/blog), and releases are announced via our [news feed](https://spring.io/blog/category/news).
