@@ -25,19 +25,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.OxmSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
-
+/**
+ * @author Jennifer Hickey
+ * @author Thomas Darimont
+ */
 public class SimpleRedisSerializerTests {
 
 	private static class A implements Serializable {
 		private Integer value = Integer.valueOf(30);
 
-		
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
@@ -45,7 +43,6 @@ public class SimpleRedisSerializerTests {
 			return result;
 		}
 
-		
 		public boolean equals(Object obj) {
 			if (this == obj)
 				return true;
@@ -57,8 +54,7 @@ public class SimpleRedisSerializerTests {
 			if (value == null) {
 				if (other.value != null)
 					return false;
-			}
-			else if (!value.equals(other.value))
+			} else if (!value.equals(other.value))
 				return false;
 			return true;
 		}
@@ -68,7 +64,6 @@ public class SimpleRedisSerializerTests {
 		private String name = getClass().getName();
 		private A a = new A();
 
-		
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
@@ -77,7 +72,6 @@ public class SimpleRedisSerializerTests {
 			return result;
 		}
 
-		
 		public boolean equals(Object obj) {
 			if (this == obj)
 				return true;
@@ -89,14 +83,12 @@ public class SimpleRedisSerializerTests {
 			if (a == null) {
 				if (other.a != null)
 					return false;
-			}
-			else if (!a.equals(other.a))
+			} else if (!a.equals(other.a))
 				return false;
 			if (name == null) {
 				if (other.name != null)
 					return false;
-			}
-			else if (!name.equals(other.name))
+			} else if (!name.equals(other.name))
 				return false;
 			return true;
 		}
@@ -159,6 +151,15 @@ public class SimpleRedisSerializerTests {
 	@Test
 	public void testJsonSerializer() throws Exception {
 		JacksonJsonRedisSerializer<Person> serializer = new JacksonJsonRedisSerializer<Person>(Person.class);
+		String value = UUID.randomUUID().toString();
+		Person p1 = new Person(value, value, 1, new Address(value, 2));
+		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
+		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
+	}
+
+	@Test
+	public void testJackson2JsonSerializer() throws Exception {
+		Jackson2JsonRedisSerializer<Person> serializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
 		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
