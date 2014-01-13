@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Cache implementation on top of Redis.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 @SuppressWarnings("unchecked")
 class RedisCache implements Cache {
@@ -84,7 +85,6 @@ class RedisCache implements Cache {
 		return template;
 	}
 
-
 	public ValueWrapper get(final Object key) {
 		return (ValueWrapper) template.execute(new RedisCallback<ValueWrapper>() {
 
@@ -95,6 +95,21 @@ class RedisCache implements Cache {
 				return (bs == null ? null : new SimpleValueWrapper(value));
 			}
 		}, true);
+	}
+	
+	/**
+	 * Return the value to which this cache maps the specified key, generically specifying a type that return value will be cast to.
+	 * 
+	 * @param key
+	 * @param type
+	 * @return
+	 * 
+	 * @see DATAREDIS-243
+	 */
+	public <T> T get(Object key, Class<T> type) {
+
+		ValueWrapper wrapper = get(key);
+		return wrapper == null ? null : (T) wrapper.get();
 	}
 
 
