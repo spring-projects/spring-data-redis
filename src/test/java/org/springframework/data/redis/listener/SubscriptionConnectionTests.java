@@ -15,11 +15,6 @@
  */
 package org.springframework.data.redis.listener;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -38,11 +33,17 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Integration tests confirming that {@link RedisMessageListenerContainer}
  * closes connections after unsubscribing
  *
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
  */
 @RunWith(Parameterized.class)

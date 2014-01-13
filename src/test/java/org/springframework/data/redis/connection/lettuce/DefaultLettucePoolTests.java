@@ -15,10 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.fail;
-
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisException;
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.junit.After;
 import org.junit.Ignore;
@@ -27,22 +25,28 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolConfig;
 import org.springframework.data.redis.connection.PoolException;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisException;
+import static org.junit.Assert.*;
 
 /**
  * Unit test of {@link DefaultLettucePool}
  *
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
  */
-public class DefaultLettucePoolTests {
+public class
+        DefaultLettucePoolTests {
 
 	private DefaultLettucePool pool;
 
 	@After
 	public void tearDown() {
 		if(this.pool != null) {
+
+            if(this.pool.getClient() != null){
+                this.pool.getClient().shutdown();
+            }
+
 			this.pool.destroy();
 		}
 	}
@@ -54,6 +58,7 @@ public class DefaultLettucePoolTests {
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		client.ping();
+        client.close();
 	}
 
 	@Test
@@ -69,7 +74,9 @@ public class DefaultLettucePoolTests {
 			pool.getResource();
 			fail("PoolException should be thrown when pool exhausted");
 		} catch (PoolException e) {
-		}
+		}finally{
+            client.close();
+        }
 	}
 
 	@Test
@@ -80,6 +87,7 @@ public class DefaultLettucePoolTests {
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
+        client.close();
 	}
 
 	@Test(expected = PoolException.class)
@@ -100,6 +108,7 @@ public class DefaultLettucePoolTests {
 		assertNotNull(client);
 		pool.returnResource(client);
 		assertNotNull(pool.getResource());
+        client.close();
 	}
 
 	@Test
@@ -118,7 +127,10 @@ public class DefaultLettucePoolTests {
 			client.ping();
 			fail("Broken resouce connection should be closed");
 		} catch (RedisException e) {
-		}
+		} finally{
+            client.close();
+            client2.close();
+        }
 	}
 
 	@Test
@@ -153,6 +165,7 @@ public class DefaultLettucePoolTests {
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> conn = pool.getResource();
 		conn.ping();
+        conn.close();
 	}
 
 	@Ignore("Redis must have requirepass set to run this test")

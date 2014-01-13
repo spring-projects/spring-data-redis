@@ -15,14 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
@@ -38,10 +30,19 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
+
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
  *
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -94,6 +95,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 					scriptDead.set(true);
 				}
 				conn2.close();
+                factory2.destroy();
 			}
 		});
 		th.start();
@@ -124,6 +126,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 				conn2.del("foo");
 			}
 			conn2.close();
+            factory2.destroy();
 		}
 	}
 }

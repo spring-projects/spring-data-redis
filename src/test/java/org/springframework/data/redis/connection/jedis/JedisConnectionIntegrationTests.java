@@ -16,15 +16,6 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +34,16 @@ import org.springframework.data.redis.connection.StringRedisConnection.StringTup
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import redis.clients.jedis.JedisPoolConfig;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Integration test of {@link JedisConnection}
@@ -328,6 +327,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertNotNull(message);
 		assertEquals(expectedMessage, new String(message.getBody()));
 		assertEquals(expectedChannel, new String(message.getChannel()));
+        nonPooledConn.close();
+        factory2.destroy();
 	}
 
 	@Test
@@ -386,6 +387,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		message = messages.poll(5, TimeUnit.SECONDS);
 		assertNotNull(message);
 		assertEquals(expectedMessage, new String(message.getBody()));
+        nonPooledConn.close();
+        factory2.destroy();
 	}
 
 	@Test
@@ -405,5 +408,6 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		conn.close();
 		// Make sure we don't end up with broken connection
 		factory2.getConnection().dbSize();
+        factory2.destroy();
 	}
 }
