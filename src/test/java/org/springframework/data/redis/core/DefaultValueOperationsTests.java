@@ -15,20 +15,17 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -99,14 +96,20 @@ public class DefaultValueOperationsTests<K,V> {
 		assertEquals(Long.valueOf((Long)v1 - 20), (Long)valueOps.get(key));
 	}
 
+	
+	/**
+	 * @see DATAREDIS-247
+	 */
 	@Test
 	public void testIncrementDouble() {
+
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		assumeTrue(v1 instanceof Double);
 		valueOps.set(key, v1);
-		DecimalFormat twoDForm = new DecimalFormat("#.##");
+		DecimalFormat twoDForm = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+
 		assertEquals(Double.valueOf(twoDForm.format((Double)v1 + 1.4)), valueOps.increment(key, 1.4));
 		assertEquals(Double.valueOf(twoDForm.format((Double)v1 + 1.4)), valueOps.get(key));
 		valueOps.increment(key, -10d);
