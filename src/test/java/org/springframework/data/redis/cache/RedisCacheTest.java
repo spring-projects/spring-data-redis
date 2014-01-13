@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.springframework.data.redis.cache;
 
+import static org.hamcrest.core.IsInstanceOf.*;
+import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Collection;
@@ -45,6 +48,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 /**
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @SuppressWarnings("rawtypes")
 @RunWith(Parameterized.class)
@@ -183,5 +187,67 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		}
 		latch.await();
 		assertFalse(monitorStateException.get());
+	}
+	
+	/**
+	 * @see DATAREDIS-243
+	 */
+	@Test
+	public void testCacheGetShouldReturnCachedInstance() {
+		assumeThat(cache, instanceOf(RedisCache.class));
+		
+		Object key = getKey();
+		Object value = getValue();
+		cache.put(key, value);
+		
+		assertThat(value, isEqual(((RedisCache)cache).get(key, Object.class)));
+	}
+	
+	/**
+	 * @see DATAREDIS-243
+	 */
+	@Test
+	public void testCacheGetShouldRetunInstanceOfCorrectType() {
+		assumeThat(cache, instanceOf(RedisCache.class));
+		
+		Object key = getKey();
+		Object value = getValue();
+		cache.put(key, value);
+		
+		RedisCache redisCache = (RedisCache)cache;
+		assertThat(redisCache.get(key, value.getClass()), instanceOf(value.getClass()));
+	}
+
+	/**
+	 * @see DATAREDIS-243
+	 */
+	@Test(expected = ClassCastException.class)
+	public void testCacheGetShouldThrowExceptionOnInvalidType() {
+		assumeThat(cache, instanceOf(RedisCache.class));
+		
+		Object key = getKey();
+		Object value = getValue();
+		cache.put(key, value);
+		
+		RedisCache redisCache = (RedisCache)cache;		
+		@SuppressWarnings("unused")
+		Cache retrievedObject = redisCache.get(key, Cache.class);
+	}
+	
+	/**
+	 * @see DATAREDIS-243
+	 */
+	@Test
+	public void testCacheGetShouldReturnNullIfNoCachedValueFound() {
+		assumeThat(cache, instanceOf(RedisCache.class));
+		
+		Object key = getKey();
+		Object value = getValue();
+		cache.put(key, value);
+		
+		RedisCache redisCache = (RedisCache)cache;	
+		
+		Object invalidKey = template.getKeySerializer() == null ? "spring-data-redis".getBytes() : "spring-data-redis";
+		assertThat(redisCache.get(invalidKey, value.getClass()), nullValue());
 	}
 }

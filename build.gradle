@@ -63,7 +63,7 @@ dependencies {
     testCompile "org.springframework:spring-test:$springVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
     testCompile("javax.annotation:jsr250-api:1.0", optional)
-    testCompile("com.thoughtworks.xstream:xstream:1.3", optional)
+    testCompile("com.thoughtworks.xstream:xstream:1.4.4", optional)
 }
 
 sourceCompatibility = 1.5
