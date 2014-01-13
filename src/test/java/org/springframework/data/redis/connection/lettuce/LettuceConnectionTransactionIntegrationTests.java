@@ -15,10 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,11 +25,16 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+
 /**
  * Integration test of {@link LettuceConnection} functionality within a
  * transaction
  *
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -74,6 +75,7 @@ public class LettuceConnectionTransactionIntegrationTests extends
 				conn2.del("foo");
 			}
 			conn2.close();
+            factory2.destroy();
 		}
 	}
 

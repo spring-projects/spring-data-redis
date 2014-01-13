@@ -15,10 +15,6 @@
  */
 package org.springframework.data.redis.connection.jredis;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.fail;
-
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.jredis.JRedis;
 import org.jredis.RedisException;
@@ -31,10 +27,13 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolException;
 
+import static org.junit.Assert.*;
+
 /**
  * Integration test of {@link JredisPool}
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  * 
  */
 public class JredisPoolTests {

@@ -15,13 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -33,13 +28,13 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisException;
+import static org.junit.Assert.*;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
  *
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
  */
 public class LettuceConnectionFactoryTests {
@@ -58,6 +53,10 @@ public class LettuceConnectionFactoryTests {
 	@After
 	public void tearDown() {
 		factory.destroy();
+
+        if(connection != null){
+            connection.close();
+        }
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -81,6 +80,7 @@ public class LettuceConnectionFactoryTests {
 		assertNotSame(nativeConn, conn2.getNativeConnection());
 		conn2.set("anotherkey", "anothervalue");
 		assertEquals("anothervalue", conn2.get("anotherkey"));
+        conn2.close();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -97,7 +97,9 @@ public class LettuceConnectionFactoryTests {
 			fail("Expected exception using natively closed conn");
 		} catch (RedisSystemException e) {
 			// expected, as we are re-using the natively closed conn
-		}
+		}finally{
+            conn2.close();
+        }
 	}
 
 	@Test
@@ -122,6 +124,7 @@ public class LettuceConnectionFactoryTests {
 			// there should still be nothing in database 1
 			assertEquals(Long.valueOf(0), connection2.dbSize());
 		} finally {
+            connection2.close();
 			factory2.destroy();
 		}
 	}
@@ -153,6 +156,7 @@ public class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.resetConnection();
 		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+        nativeConn.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -161,7 +165,9 @@ public class LettuceConnectionFactoryTests {
 		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.initConnection();
-		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+        RedisConnection newConnection = factory.getConnection();
+        assertNotSame(nativeConn, newConnection.getNativeConnection());
+        newConnection.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -171,7 +177,9 @@ public class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.resetConnection();
 		factory.initConnection();
-		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+        RedisConnection newConnection = factory.getConnection();
+        assertNotSame(nativeConn, newConnection.getNativeConnection());
+        newConnection.close();
 	}
 
 	public void testGetConnectionException() {
@@ -207,7 +215,10 @@ public class LettuceConnectionFactoryTests {
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
-		factory2.getConnection();
+        RedisConnection conn2 = factory2.getConnection();
+        conn2.close();
+        factory2.destroy();
+        pool.destroy();
 	}
 
 	@Ignore("Uncomment this test to manually check connection reuse in a pool scenario")
@@ -238,5 +249,6 @@ public class LettuceConnectionFactoryTests {
 		// Test shared and dedicated conns
 		conn.ping();
 		conn.bLPop(1, "key".getBytes());
+        conn.close();
 	}
 }
