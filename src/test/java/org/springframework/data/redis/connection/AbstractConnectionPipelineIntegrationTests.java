@@ -16,15 +16,15 @@
 
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.test.annotation.IfProfileValue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.test.annotation.IfProfileValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Base test class for integration tests that execute each operation of a
@@ -151,6 +151,14 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 	}
 
 	protected List<Object> getResults() {
-		return connection.closePipeline();
+
+        try {
+            //we give redis some time to keep up
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return connection.closePipeline();
 	}
 }
