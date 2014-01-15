@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,13 +61,19 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	public void tearDown() {
 		try {
 			connection.flushDb();
-			connection.close();
 		} catch (Exception e) {
 			// Jedis leaves some incomplete data in OutputStream on NPE caused
 			// by null key/value tests
 			// Attempting to flush the DB or close the connection will result in
 			// error on sending QUIT to Redis
 		}
+
+        try{
+            connection.close();
+        } catch (Exception e) {
+            //silently close connection
+        }
+
 		connection = null;
 	}
 
@@ -275,61 +282,68 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		super.testErrorInTx();
 	}
 
-	// Override pub/sub test methods to use a separate connection factory for
-	// subscribing threads, due to this issue: https://github.com/xetorthio/jedis/issues/445
+    /**
+     * Override pub/sub test methods to use a separate connection factory for
+     * subscribing threads, due to this issue: https://github.com/xetorthio/jedis/issues/445
+     */
 	@Test
 	public void testPubSubWithNamedChannels() throws Exception {
-		final String expectedChannel = "channel1";
+
+        final String expectedChannel = "channel1";
 		final String expectedMessage = "msg";
 		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
 
 		MessageListener listener = new MessageListener() {
 			public void onMessage(Message message, byte[] pattern) {
-				messages.add(message);
+                messages.add(message);
 				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 
-		JedisConnectionFactory factory2 = new JedisConnectionFactory();
-		factory2.setHostName(SettingsUtils.getHost());
-		factory2.setPort(SettingsUtils.getPort());
-		factory2.setUsePool(false);
-		factory2.afterPropertiesSet();
-		final StringRedisConnection nonPooledConn = new DefaultStringRedisConnection(factory2.getConnection());
-		Thread th = new Thread(new Runnable() {
-			public void run() {
-				// sleep 1/2 second to let the registration happen
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
-				}
+        Thread t = new Thread(){
+            {
+                setDaemon(true);
+            }
+            public void run(){
 
-				// open a new connection
-				RedisConnection connection2 = connectionFactory.getConnection();
-				connection2.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
-				connection2.close();
-				// In some clients, unsubscribe happens async of message
-				// receipt, so not all
-				// messages may be received if unsubscribing now.
-				// Connection.close in teardown
-				// will take care of unsubscribing.
-				if (!(ConnectionUtils.isAsync(connectionFactory))) {
-					nonPooledConn.getSubscription().unsubscribe();
-				}
-			}
-		});
-		th.start();
-		nonPooledConn.subscribe(listener, expectedChannel.getBytes());
-		// Not all providers block on subscribe, give some time for messages to
-		// be received
-		Message message = messages.poll(5, TimeUnit.SECONDS);
+                RedisConnection con = connectionFactory.getConnection();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                con.publish(expectedChannel.getBytes(),expectedMessage.getBytes());
+
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                /*
+                   In some clients, unsubscribe happens async of message
+				   receipt, so not all
+				   messages may be received if unsubscribing now.
+				   Connection.close in teardown
+				   will take care of unsubscribing.
+				 */
+                if (!(ConnectionUtils.isAsync(connectionFactory))) {
+                    connection.getSubscription().unsubscribe();
+                }
+                con.close();
+            }
+        };
+        t.start();
+
+        connection.subscribe(listener, expectedChannel.getBytes());
+
+        Message message = messages.poll(5, TimeUnit.SECONDS);
 		assertNotNull(message);
 		assertEquals(expectedMessage, new String(message.getBody()));
 		assertEquals(expectedChannel, new String(message.getChannel()));
-        nonPooledConn.close();
-        factory2.destroy();
-	}
+    }
+
 
 	@Test
 	public void testPubSubWithPatterns() throws Exception {
