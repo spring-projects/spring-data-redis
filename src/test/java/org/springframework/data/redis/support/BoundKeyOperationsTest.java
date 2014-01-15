@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,6 @@
  */
 package org.springframework.data.redis.support;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -35,9 +27,19 @@ import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
+
 /**
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
 public class BoundKeyOperationsTest {
@@ -90,8 +92,18 @@ public class BoundKeyOperationsTest {
 		assertEquals(key, keyOps.getKey());
 	}
 
+    /**
+     * @see DATAREDIS-251
+     */
 	@Test
 	public void testExpire() throws Exception {
+
+        if(keyOps instanceof List || keyOps instanceof Set){
+            ((Collection) keyOps).add("dummy");
+        }else if(keyOps instanceof Map){
+            ((Map)keyOps).put("dummy","dummy");
+        }
+
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
 			long expire = keyOps.getExpire().longValue();
@@ -99,9 +111,19 @@ public class BoundKeyOperationsTest {
 		}
 	}
 
+    /**
+     * @see DATAREDIS-251
+     */
 	@Test
 	public void testPersist() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
+        if(keyOps instanceof List || keyOps instanceof Set){
+            ((Collection) keyOps).add("dummy");
+        }else if(keyOps instanceof Map){
+            ((Map)keyOps).put("dummy","dummy");
+        }
+
 		keyOps.persist();
 		assertEquals(Long.valueOf(-1), keyOps.getExpire());
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
