@@ -208,6 +208,10 @@ task distZip(type: Zip, dependsOn: [jar, docsZip, schemaZip, sourcesJar, javadoc
 
 tasks.withType(Test) {
     systemProperty 'runLongTests', System.getProperty('runLongTests')
+
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }
 
 artifacts {
