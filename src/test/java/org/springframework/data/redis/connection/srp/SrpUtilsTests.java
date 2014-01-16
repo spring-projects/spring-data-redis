@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,25 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import java.util.ArrayList;
-import java.util.List;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.SortParameters;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit test of {@link SrpUtils}
  *
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  *
+ * Suppressed deprecation warnings since SrpUtils is deprecated.
  */
+@SuppressWarnings("deprecation")
 public class SrpUtilsTests {
 
 	@Test

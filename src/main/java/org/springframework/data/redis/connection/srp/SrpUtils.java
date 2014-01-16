@@ -16,6 +16,23 @@
 
 package org.springframework.data.redis.connection.srp;
 
+import com.google.common.base.Charsets;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.util.Assert;
+import redis.client.RedisException;
+import redis.reply.BulkReply;
+import redis.reply.IntegerReply;
+import redis.reply.MultiBulkReply;
+import redis.reply.Reply;
+import redis.reply.StatusReply;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,26 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.DefaultTuple;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
-import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.jedis.JedisUtils;
-import org.springframework.data.redis.connection.SortParameters;
-import org.springframework.util.Assert;
-
-import redis.client.RedisException;
-import redis.reply.BulkReply;
-import redis.reply.IntegerReply;
-import redis.reply.MultiBulkReply;
-import redis.reply.Reply;
-import redis.reply.StatusReply;
-
-import com.google.common.base.Charsets;
 
 /**
  * Helper class featuring methods for SRedis connection handling, providing support for exception translation.

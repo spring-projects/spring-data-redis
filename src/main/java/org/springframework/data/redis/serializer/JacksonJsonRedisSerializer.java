@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.serializer;
 
-import java.nio.charset.Charset;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.springframework.util.Assert;
+
+import java.nio.charset.Charset;
 
 /**
  * {@link RedisSerializer} that  can read and write JSON using <a href="http://jackson.codehaus.org/">Jackson's</a> {@link ObjectMapper}.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  *
  * @author Costin Leau
+ * @author Thomas Darimont
  */
 public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 
@@ -40,7 +41,7 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	public JacksonJsonRedisSerializer(Class<T> type) {
-		this.javaType = TypeFactory.type(type);
+		this.javaType = TypeFactory.defaultInstance().constructType(type);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -100,6 +101,6 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * @return the java type
 	 */
 	protected JavaType getJavaType(Class<?> clazz) {
-		return TypeFactory.type(clazz);
+		return TypeFactory.defaultInstance().constructType(clazz);
 	}
 }
