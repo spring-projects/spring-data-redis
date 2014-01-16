@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,23 @@
  */
 package org.springframework.data.redis.hash;
 
-import java.util.Map;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
+
+import java.util.Map;
 
 /**
  * Mapper based on Jackson library. Supports nested properties (rich objects).
  * 
  * @author Costin Leau
+ * @author Thomas Darimont
  */
 public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 
 	private final ObjectMapper mapper;
 	private final JavaType userType;
-	private final JavaType mapType = TypeFactory.mapType(Map.class, String.class, Object.class);
+	private final JavaType mapType = TypeFactory.defaultInstance().constructMapType(Map.class, String.class, Object.class);
 
 	public JacksonHashMapper(Class<T> type) {
 		this(type, new ObjectMapper());
@@ -38,7 +39,7 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 
 	public JacksonHashMapper(Class<T> type, ObjectMapper mapper) {
 		this.mapper = mapper;
-		this.userType = TypeFactory.type(type);
+		this.userType = TypeFactory.defaultInstance().constructType(type);
 	}
 
 	@SuppressWarnings("unchecked")
