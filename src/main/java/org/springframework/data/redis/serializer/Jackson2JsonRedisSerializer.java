@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  * 
  * @author Thomas Darimont
- * @since 1.1
+ * @since 1.2
  */
 public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
@@ -49,6 +49,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	@SuppressWarnings("unchecked")
 	public T deserialize(byte[] bytes) throws SerializationException {
+		
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
@@ -60,6 +61,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	}
 
 	public byte[] serialize(Object t) throws SerializationException {
+		
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}
@@ -80,6 +82,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * the types to be serialized, in which case a custom-configured ObjectMapper is unnecessary.
 	 */
 	public void setObjectMapper(ObjectMapper objectMapper) {
+		
 		Assert.notNull(objectMapper, "'objectMapper' must not be null");
 		this.objectMapper = objectMapper;
 	}

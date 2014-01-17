@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,6 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 		StringWriter writer = new StringWriter();
 		props.store(writer, "no-comment");
-		// System.out.println(writer.toString());
 	}
 
 	@Test
@@ -221,8 +220,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 		assertTrue(keys.contains(key3));
 	}
 
+	/**
+	 * @see DATAREDIS-241
+	 */
 	@Parameters
 	public static Collection<Object[]> testParams() {
+		
 		// XStream serializer
 		XStreamMarshaller xstream = new XStreamMarshaller();
 		try {
