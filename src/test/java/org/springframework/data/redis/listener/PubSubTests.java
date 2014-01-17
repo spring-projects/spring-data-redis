@@ -172,4 +172,27 @@ public class PubSubTests<T> {
 		// DATREDIS-207 This test previously took 5 seconds on start due to monitor wait
 		container.start();
 	}
+	
+	
+	/**
+	 * @see DATAREDIS-251
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
+		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
+		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));
+		container.start();
+		
+		Thread.sleep(1000); //give the container a little time to recover
+		
+		T payload = getT();
+		
+		template.convertAndSend(CHANNEL, payload);
+		
+		Set<T> set = new LinkedHashSet<T>();
+		set.add((T) bag.poll(3, TimeUnit.SECONDS));
+
+		assertThat(set, hasItems(payload));
+	}
 }
