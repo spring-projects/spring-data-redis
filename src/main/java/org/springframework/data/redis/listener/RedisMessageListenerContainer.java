@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,7 @@
  */
 package org.springframework.data.redis.listener;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executor;
@@ -35,11 +30,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -68,6 +59,7 @@ import org.springframework.util.ErrorHandler;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Way Joke
+ * @author Thomas Darimont
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
@@ -85,6 +77,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * The default recovery interval: 5000 ms = 5 seconds.
 	 */
 	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
+
+	/**
+	 * The default subscription wait time: 2000 ms = 2 seconds.
+	 */
+	public static final long DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME = 2000L;
 
 	private long initWait = TimeUnit.SECONDS.toMillis(5);
 
@@ -126,6 +123,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
 	
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private long maxSubscriptionRegistrationWaitingTime = DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME;
 
 	public void afterPropertiesSet() {
 		if (taskExecutor == null) {
@@ -746,24 +745,26 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					throw new IllegalStateException("Retrieved connection is already subscribed; aborting listening");
 				}
 
-				// NB: some drivers' Xsubscribe calls block
-				synchronized (monitor) {
-					monitor.notify();
+				boolean asyncConnection = ConnectionUtils.isAsync(connectionFactory);
+
+				// NB: async drivers' Xsubscribe calls block, so we notify the RDMLC before performing the actual subscription.
+				if(!asyncConnection){
+					synchronized (monitor) {
+						monitor.notify();
+					}
 				}
 
-				// subscribe one way or the other
-				// and schedule the rest
-				if (!channelMapping.isEmpty()) {
-					// schedule the rest of the subscription
-					if (!patternMapping.isEmpty()) {
-						subscriptionExecutor.execute(new PatternSubscriptionTask());
+				SubscriptionPresentCondition subscriptionPresent = eventuallyPerformSubscription();
+
+
+				if(asyncConnection){
+					SpinBarrier.waitFor(subscriptionPresent, getMaxSubscriptionRegistrationWaitingTime());
+
+					synchronized (monitor){
+						monitor.notify();
 					}
-					connection.subscribe(new DispatchMessageListener(), unwrap(channelMapping.keySet()));
 				}
-				else {
-					connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
-				}
-			} catch (Throwable t) {				
+			} catch (Throwable t) {
 				handleSubscriptionException(t);
 			} finally {
 				// this block is executed once the subscription thread has ended, this may or may not mean
@@ -772,6 +773,63 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					subscriptionTaskRunning = false;
 					localMonitor.notify();
 				}
+			}
+		}
+
+		/**
+		 * Performs a potentially asynchronous registration of a subscription.
+		 *
+		 * @return #SubscriptionPresentCondition that can serve as a handle to check whether the subscription is ready.
+		 */
+		private SubscriptionPresentCondition eventuallyPerformSubscription() {
+
+			SubscriptionPresentCondition condition = null;
+
+			if (channelMapping.isEmpty()) {
+
+				condition = new PatternSubscriptionPresentCondition();
+				connection.pSubscribe(new DispatchMessageListener(), unwrap(patternMapping.keySet()));
+			} else {
+
+				if (patternMapping.isEmpty()) {
+					condition = new SubscriptionPresentCondition();
+				} else {
+					// schedule the rest of the subscription
+					subscriptionExecutor.execute(new PatternSubscriptionTask());
+					condition = new PatternSubscriptionPresentCondition();
+				}
+
+				connection.subscribe(new DispatchMessageListener(), unwrap(channelMapping.keySet()));
+			}
+
+			return condition;
+		}
+
+		/**
+		 *
+		 * Checks whether the current connection has an associated subscription.
+		 *
+		 * @author Thomas Darimont
+		 */
+		private class SubscriptionPresentCondition implements Condition {
+
+			public boolean passes() {
+				return connection.isSubscribed();
+			}
+		}
+
+		/**
+		 * Checks whether the current connection has an associated pattern subscription.
+		 *
+		 * @author Thomas Darimont
+		 *
+		 * @see org.springframework.data.redis.listener.RedisMessageListenerContainer.SubscriptionTask.SubscriptionPresentTestCondition
+		 */
+		private class PatternSubscriptionPresentCondition extends SubscriptionPresentCondition {
+
+			@Override
+			public boolean passes() {
+				return super.passes() && !CollectionUtils.isEmpty(connection.getSubscription().getPatterns());
 			}
 		}
 
@@ -933,5 +991,80 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 */
 	public void setRecoveryInterval(long recoveryInterval) {
 		this.recoveryInterval = recoveryInterval;
+	}
+
+	public long getMaxSubscriptionRegistrationWaitingTime() {
+		return maxSubscriptionRegistrationWaitingTime;
+	}
+
+	/**
+	 * Specify the max time to wait for subscription registrations, in <b>milliseconds</b>.
+	 * The default is 2000ms, that is, 2 second.
+	 *
+	 * @param maxSubscriptionRegistrationWaitingTime
+	 *
+	 * @see #DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME
+	 */
+	public void setMaxSubscriptionRegistrationWaitingTime(long maxSubscriptionRegistrationWaitingTime) {
+		this.maxSubscriptionRegistrationWaitingTime = maxSubscriptionRegistrationWaitingTime;
+	}
+
+	/**
+	 * @author Jennifer Hickey
+	 * @author Thomas Darimont
+	 *
+	 * Note: Placed here to avoid API exposure.
+	 */
+	private static abstract class SpinBarrier {
+		
+		/**
+		 * Periodically tests, in 100ms intervals, for a condition until it is met or a timeout occurs.
+		 *
+		 * @param condition
+		 *            The condition to periodically test
+		 * @param timeout
+		 *            The timeout
+		 * @return true if condition passes, false if condition does not pass within
+		 *         timeout
+		 */
+	 static boolean waitFor(Condition condition, long timeout) {
+			
+			long startTime=System.currentTimeMillis();
+			
+			while(!timedOut(startTime, timeout)) {
+				if(condition.passes()) {
+					return true;
+				}
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+			return false;
+		}
+		
+		private static boolean timedOut(long startTime, long timeout) {
+			return (startTime + timeout) < System.currentTimeMillis();
+		}
+	}
+	
+	/**
+	 *
+	 * A condition to test periodically, used in conjunction with
+	 * {@link org.springframework.data.redis.listener.RedisMessageListenerContainer.SpinBarrier}
+	 *
+	 * @author Jennifer Hickey
+	 * @author Thomas Darimont
+	 *
+	 * Note: Placed here to avoid API exposure.
+	 */
+	private static interface Condition {
+
+		/**
+		 *
+		 * @return true if condition passes
+		 */
+		boolean passes();
 	}
 }
