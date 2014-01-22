@@ -114,6 +114,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	public void destroy() {
 		try {
+			client.shutdown();
 			internalPool.close();
 		} catch (Exception e) {
 			throw new PoolException("Could not destroy the pool", e);
