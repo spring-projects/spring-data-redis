@@ -29,9 +29,9 @@ import com.lambdaworks.redis.RedisClient;
 
 /**
  * Default implementation of {@link LettucePool}
- * 
+ *
  * @author Jennifer Hickey
- * 
+ *
  */
 public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private GenericObjectPool internalPool;
@@ -53,7 +53,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	/**
 	 * Uses the {@link Config} and {@link RedisClient} defaults for configuring
 	 * the connection pool
-	 * 
+	 *
 	 * @param hostName
 	 *            The Redis host
 	 * @param port
@@ -66,7 +66,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Uses the {@link RedisClient} defaults for configuring the connection pool
-	 * 
+	 *
 	 * @param hostName
 	 *            The Redis host
 	 * @param port
