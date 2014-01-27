@@ -16,12 +16,12 @@
   
   <section id="redis:requirements">
     <title>Redis Requirements</title>
-    <para>Spring Redis requires Redis 2.4 or above and Java SE 6.0 or above .
+    <para>Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above .
     In terms of language bindings (or connectors), Spring Redis integrates with <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink>,  
     <ulink url="http://github.com/alphazero/jredis">JRedis</ulink>, 
     <ulink url="http://github.com/spullara/redis-protocol">SRP</ulink> and
     <ulink url="http://github.com/wg/lettuce">Lettuce</ulink>, four popular open source Java libraries for Redis.
-    If you are aware of any other connector that we should be integrating with, please send us feedback.
+    If you are aware of any other connector that we should be integrating with please send us feedback.
     </para>
   </section>
   
@@ -41,7 +41,7 @@
     </itemizedlist>
     
     <para>For most tasks, the high-level abstractions and support services are the best choice. Note that at any point, one can move between layers - for example, it's very
-    easy to get a hold of the low level connection (or even the native libray) to communicate directly with Redis.</para>
+    easy to get a hold of the low level connection (or even the native library) to communicate directly with Redis.</para>
     </section>
   
     <section id="redis:connectors">
