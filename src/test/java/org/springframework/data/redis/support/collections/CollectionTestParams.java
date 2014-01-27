@@ -87,15 +87,15 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
 		jsonPersonTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplate = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
 		rawTemplate.setConnectionFactory(jedisConnFactory);
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.setKeySerializer(stringSerializer);
 		rawTemplate.afterPropertiesSet();
 
 		// jredis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplateJR = new StringRedisTemplate(jredisConnFactory);
@@ -118,7 +118,7 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateJR.setConnectionFactory(jredisConnFactory);
 		jsonPersonTemplateJR.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplateJR = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplateJR = new RedisTemplate<byte[], byte[]>();
 		rawTemplateJR.setConnectionFactory(jredisConnFactory);
 		rawTemplateJR.setEnableDefaultSerializer(false);
 		rawTemplateJR.setKeySerializer(stringSerializer);
@@ -150,7 +150,7 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateSRP.setConnectionFactory(srConnFactory);
 		jsonPersonTemplateSRP.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplateSRP = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplateSRP = new RedisTemplate<byte[], byte[]>();
 		rawTemplateSRP.setConnectionFactory(srConnFactory);
 		rawTemplateSRP.setEnableDefaultSerializer(false);
 		rawTemplateSRP.setKeySerializer(stringSerializer);
@@ -182,30 +182,34 @@ public abstract class CollectionTestParams {
 		jsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		jsonPersonTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplateLtc = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplateLtc = new RedisTemplate<byte[], byte[]>();
 		rawTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		rawTemplateLtc.setEnableDefaultSerializer(false);
 		rawTemplateLtc.setKeySerializer(stringSerializer);
 		rawTemplateLtc.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate },
+		return Arrays.asList(new Object[][] {
+				{ stringFactory, stringTemplate },
 				{ personFactory, personTemplate },
-				{ stringFactory, xstreamStringTemplate }, { personFactory, xstreamPersonTemplate },
-				{ personFactory, jsonPersonTemplate }, {rawFactory, rawTemplate},
+				{ stringFactory, xstreamStringTemplate },
+				{ personFactory, xstreamPersonTemplate },
+				{ personFactory, jsonPersonTemplate },
+				{ rawFactory, rawTemplate },
 				// Jredis
 				{ stringFactory, stringTemplateJR },
 				{ personFactory, personTemplateJR },
 				{ stringFactory, xstreamStringTemplateJR },
 				{ personFactory, xstreamPersonTemplateJR },
-				{ personFactory, jsonPersonTemplateJR }, {rawFactory, rawTemplateJR},
+				{ personFactory, jsonPersonTemplateJR },
+				{ rawFactory, rawTemplateJR },
 				// srp
-				{ stringFactory, stringTemplateSRP },{ personFactory, personTemplateSRP },
+				{ stringFactory, stringTemplateSRP }, { personFactory, personTemplateSRP },
 				{ stringFactory, xstreamStringTemplateSRP }, { personFactory, xstreamPersonTemplateSRP },
-				{ personFactory, jsonPersonTemplateSRP }, {rawFactory, rawTemplateSRP},
+				{ personFactory, jsonPersonTemplateSRP },
+				{ rawFactory, rawTemplateSRP },
 				// lettuce
 				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
 				{ stringFactory, xstreamStringTemplateLtc }, { personFactory, xstreamPersonTemplateLtc },
-				{ personFactory, jsonPersonTemplateLtc }, {rawFactory, rawTemplateLtc}
-		});
+				{ personFactory, jsonPersonTemplateLtc }, { rawFactory, rawTemplateLtc } });
 	}
 }

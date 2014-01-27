@@ -34,42 +34,35 @@ class JedisSubscription extends AbstractSubscription {
 		this.jedisPubSub = jedisPubSub;
 	}
 
-	
 	protected void doClose() {
-		if(!getChannels().isEmpty()) {
+		if (!getChannels().isEmpty()) {
 			jedisPubSub.unsubscribe();
 		}
-		if(!getPatterns().isEmpty()) {
+		if (!getPatterns().isEmpty()) {
 			jedisPubSub.punsubscribe();
 		}
 	}
 
-	
 	protected void doPsubscribe(byte[]... patterns) {
 		jedisPubSub.psubscribe(patterns);
 	}
 
-	
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		if (all) {
 			jedisPubSub.punsubscribe();
-		}
-		else {
+		} else {
 			jedisPubSub.punsubscribe(patterns);
 		}
 	}
 
-	
 	protected void doSubscribe(byte[]... channels) {
 		jedisPubSub.subscribe(channels);
 	}
 
-	
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		if (all) {
 			jedisPubSub.unsubscribe();
-		}
-		else {
+		} else {
 			jedisPubSub.unsubscribe(channels);
 		}
 	}

@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 
 import java.util.Set;
 
-
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
  * 
@@ -27,14 +26,14 @@ import java.util.Set;
 public interface RedisZSetCommands {
 
 	/**
-	 * Sort aggregation operations. 
+	 * Sort aggregation operations.
 	 */
 	public enum Aggregate {
 		SUM, MIN, MAX;
 	}
 
 	/**
-	 * ZSet tuple. 
+	 * ZSet tuple.
 	 */
 	public interface Tuple extends Comparable<Double> {
 		byte[] getValue();

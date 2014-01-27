@@ -29,10 +29,9 @@ public class DefaultTuple implements Tuple {
 	private final Double score;
 	private final byte[] value;
 
-
 	/**
 	 * Constructs a new <code>DefaultTuple</code> instance.
-	 *
+	 * 
 	 * @param value
 	 * @param score
 	 */
@@ -41,17 +40,14 @@ public class DefaultTuple implements Tuple {
 		this.value = value;
 	}
 
-	
 	public Double getScore() {
 		return score;
 	}
 
-	
 	public byte[] getValue() {
 		return value;
 	}
 
-	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -63,15 +59,13 @@ public class DefaultTuple implements Tuple {
 		if (score == null) {
 			if (other.score != null)
 				return false;
-		}
-		else if (!score.equals(other.score))
+		} else if (!score.equals(other.score))
 			return false;
 		if (!Arrays.equals(value, other.value))
 			return false;
 		return true;
 	}
 
-	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -80,7 +74,6 @@ public class DefaultTuple implements Tuple {
 		return result;
 	}
 
-	
 	public int compareTo(Double o) {
 		Double d = (score == null ? Double.valueOf(0.0d) : score);
 		Double a = (o == null ? Double.valueOf(0.0d) : o);

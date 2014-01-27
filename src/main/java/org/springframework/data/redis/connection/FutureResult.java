@@ -19,11 +19,9 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * The result of an asynchronous operation
- *
+ * 
  * @author Jennifer Hickey
- *
- * @param <T>
- *            The data type of the object that holds the future result (usually of type Future)
+ * @param <T> The data type of the object that holds the future result (usually of type Future)
  */
 abstract public class FutureResult<T> {
 
@@ -31,8 +29,7 @@ abstract public class FutureResult<T> {
 
 	protected boolean status = false;
 
-	@SuppressWarnings("rawtypes")
-	protected Converter converter;
+	@SuppressWarnings("rawtypes") protected Converter converter;
 
 	public FutureResult(T resultHolder) {
 		this.resultHolder = resultHolder;
@@ -50,9 +47,8 @@ abstract public class FutureResult<T> {
 
 	/**
 	 * Converts the given result if a converter is specified, else returns the result
-	 *
-	 * @param result
-	 *            The result to convert
+	 * 
+	 * @param result The result to convert
 	 * @return The converted result
 	 */
 	@SuppressWarnings("unchecked")
@@ -69,9 +65,8 @@ abstract public class FutureResult<T> {
 	}
 
 	/**
-	 * Indicates if this result is the status of an operation. Typically status results will be
-	 * discarded on conversion.
-	 *
+	 * Indicates if this result is the status of an operation. Typically status results will be discarded on conversion.
+	 * 
 	 * @return true if this is a status result (i.e. OK)
 	 */
 	public boolean isStatus() {
@@ -79,9 +74,8 @@ abstract public class FutureResult<T> {
 	}
 
 	/**
-	 * Indicates if this result is the status of an operation. Typically status results will be
-	 * discarded on conversion.
-	 *
+	 * Indicates if this result is the status of an operation. Typically status results will be discarded on conversion.
+	 * 
 	 * @return true if this is a status result (i.e. OK)
 	 */
 	public void setStatus(boolean status) {

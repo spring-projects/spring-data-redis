@@ -43,16 +43,14 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class DefaultStringRedisConnectionTests {
 
 	protected List<Object> actual = new ArrayList<Object>();
 
-	@Mock
-	protected RedisConnection nativeConnection;
+	@Mock protected RedisConnection nativeConnection;
 
 	protected DefaultStringRedisConnection connection;
 
@@ -78,8 +76,7 @@ public class DefaultStringRedisConnectionTests {
 
 	protected Map<String, String> stringMap = new HashMap<String, String>();
 
-	protected Set<Tuple> tupleSet = new HashSet<Tuple>(Collections.singletonList(new DefaultTuple(
-			barBytes, 3d)));
+	protected Set<Tuple> tupleSet = new HashSet<Tuple>(Collections.singletonList(new DefaultTuple(barBytes, 3d)));
 
 	protected Set<StringTuple> stringTupleSet = new HashSet<StringTuple>(
 			Collections.singletonList(new DefaultStringTuple(new DefaultTuple(barBytes, 3d), bar)));
@@ -1254,16 +1251,14 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZInterStoreAggWeightsBytes() {
-		doReturn(5l).when(nativeConnection).zInterStore(fooBytes, Aggregate.MAX, new int[0],
-				fooBytes);
+		doReturn(5l).when(nativeConnection).zInterStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
 		actual.add(connection.zInterStore(fooBytes, Aggregate.MAX, new int[0], fooBytes));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
 
 	@Test
 	public void testZInterStoreAggWeights() {
-		doReturn(5l).when(nativeConnection).zInterStore(fooBytes, Aggregate.MAX, new int[0],
-				fooBytes);
+		doReturn(5l).when(nativeConnection).zInterStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
 		actual.add(connection.zInterStore(foo, Aggregate.MAX, new int[0], foo));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
@@ -1396,16 +1391,14 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZRevRangeByScoreWithScoresOffsetCountBytes() {
-		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d, 5l,
-				7l);
+		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d, 5l, 7l);
 		actual.add(connection.zRevRangeByScoreWithScores(fooBytes, 1d, 3d, 5l, 7l));
 		verifyResults(Arrays.asList(new Object[] { tupleSet }));
 	}
 
 	@Test
 	public void testZRevRangeByScoreWithScoresOffsetCount() {
-		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d, 5l,
-				7l);
+		doReturn(tupleSet).when(nativeConnection).zRevRangeByScoreWithScores(fooBytes, 1d, 3d, 5l, 7l);
 		actual.add(connection.zRevRangeByScoreWithScores(foo, 1d, 3d, 5l, 7l));
 		verifyResults(Arrays.asList(new Object[] { stringTupleSet }));
 	}
@@ -1538,16 +1531,14 @@ public class DefaultStringRedisConnectionTests {
 
 	@Test
 	public void testZUnionStoreAggWeightsBytes() {
-		doReturn(5l).when(nativeConnection).zUnionStore(fooBytes, Aggregate.MAX, new int[0],
-				fooBytes);
+		doReturn(5l).when(nativeConnection).zUnionStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
 		actual.add(connection.zUnionStore(fooBytes, Aggregate.MAX, new int[0], fooBytes));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
 
 	@Test
 	public void testZUnionStoreAggWeights() {
-		doReturn(5l).when(nativeConnection).zUnionStore(fooBytes, Aggregate.MAX, new int[0],
-				fooBytes);
+		doReturn(5l).when(nativeConnection).zUnionStore(fooBytes, Aggregate.MAX, new int[0], fooBytes);
 		actual.add(connection.zUnionStore(foo, Aggregate.MAX, new int[0], foo));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}

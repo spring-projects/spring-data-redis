@@ -18,8 +18,7 @@ package org.springframework.data.redis.connection;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
- * Exception thrown when issuing commands on a connection that is subscribed and waiting
- * for events.
+ * Exception thrown when issuing commands on a connection that is subscribed and waiting for events.
  * 
  * @author Costin Leau
  * @see org.springframework.data.redis.connection.RedisPubSubCommands
@@ -28,7 +27,7 @@ public class RedisSubscribedConnectionException extends InvalidDataAccessApiUsag
 
 	/**
 	 * Constructs a new <code>RedisSubscribedConnectionException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 * @param cause
 	 */
@@ -38,7 +37,7 @@ public class RedisSubscribedConnectionException extends InvalidDataAccessApiUsag
 
 	/**
 	 * Constructs a new <code>RedisSubscribedConnectionException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 */
 	public RedisSubscribedConnectionException(String msg) {

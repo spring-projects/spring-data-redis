@@ -30,10 +30,8 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.SessionCallback;
 
 /**
- * Default implementation for {@link RedisMap}.
- * 
- * Note that the current implementation doesn't provide the same locking semantics across all methods.
- * In highly concurrent environments, race conditions might appear.
+ * Default implementation for {@link RedisMap}. Note that the current implementation doesn't provide the same locking
+ * semantics across all methods. In highly concurrent environments, race conditions might appear.
  * 
  * @author Costin Leau
  */
@@ -51,17 +49,14 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 			this.value = value;
 		}
 
-		
 		public K getKey() {
 			return key;
 		}
 
-		
 		public V getValue() {
 			return value;
 		}
 
-		
 		public V setValue(V value) {
 			throw new UnsupportedOperationException();
 		}
@@ -69,7 +64,7 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	/**
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
-	 *
+	 * 
 	 * @param key
 	 * @param operations
 	 */
@@ -79,14 +74,13 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 	/**
 	 * Constructs a new <code>DefaultRedisMap</code> instance.
-	 *
+	 * 
 	 * @param boundOps
 	 */
 	public DefaultRedisMap(BoundHashOperations<String, K, V> boundOps) {
 		this.hashOps = boundOps;
 	}
 
-	
 	public Long increment(K key, long delta) {
 		return hashOps.increment(key, delta);
 	}
@@ -98,22 +92,21 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 	public RedisOperations<String, ?> getOperations() {
 		return hashOps.getOperations();
 	}
-	
+
 	public void clear() {
 		getOperations().delete(Collections.singleton(getKey()));
 	}
-	
+
 	public boolean containsKey(Object key) {
 		Boolean result = hashOps.hasKey(key);
 		checkResult(result);
 		return result;
 	}
 
-	
 	public boolean containsValue(Object value) {
 		throw new UnsupportedOperationException();
 	}
-	
+
 	public Set<java.util.Map.Entry<K, V>> entrySet() {
 		Set<K> keySet = keySet();
 		checkResult(keySet);
@@ -129,15 +122,15 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 
 		return entries;
 	}
-	
+
 	public V get(Object key) {
 		return hashOps.get(key);
 	}
-	
+
 	public boolean isEmpty() {
 		return size() == 0;
 	}
-	
+
 	public Set<K> keySet() {
 		return hashOps.keys();
 	}
@@ -147,27 +140,27 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		hashOps.put(key, value);
 		return oldV;
 	}
-	
+
 	public void putAll(Map<? extends K, ? extends V> m) {
 		hashOps.putAll(m);
 	}
-	
+
 	public V remove(Object key) {
 		V v = get(key);
 		hashOps.delete(key);
 		return v;
 	}
-	
+
 	public int size() {
 		Long size = hashOps.size();
 		checkResult(size);
 		return size.intValue();
 	}
-	
+
 	public Collection<V> values() {
 		return hashOps.values();
 	}
-	
+
 	public boolean equals(Object o) {
 		if (o == this)
 			return true;
@@ -177,13 +170,13 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		}
 		return false;
 	}
-	
+
 	public int hashCode() {
 		int result = 17 + getClass().hashCode();
 		result = result * 31 + getKey().hashCode();
 		return result;
 	}
-	
+
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("RedisStore for key:");
@@ -191,14 +184,12 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		return sb.toString();
 	}
 
-	
 	public V putIfAbsent(K key, V value) {
 		return (hashOps.putIfAbsent(key, value) ? null : get(key));
 	}
 
-	
 	public boolean remove(final Object key, final Object value) {
-		if (value == null){
+		if (value == null) {
 			throw new NullPointerException();
 		}
 		return hashOps.getOperations().execute(new SessionCallback<Boolean>() {
@@ -221,9 +212,8 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	
 	public boolean replace(final K key, final V oldValue, final V newValue) {
-		if(oldValue == null || newValue == null) {
+		if (oldValue == null || newValue == null) {
 			throw new NullPointerException();
 		}
 		return hashOps.getOperations().execute(new SessionCallback<Boolean>() {
@@ -246,9 +236,8 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	
 	public V replace(final K key, final V value) {
-		if(value == null) {
+		if (value == null) {
 			throw new NullPointerException();
 		}
 		return hashOps.getOperations().execute(new SessionCallback<V>() {
@@ -271,38 +260,30 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		});
 	}
 
-	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return hashOps.expire(timeout, unit);
 	}
 
-	
 	public Boolean expireAt(Date date) {
 		return hashOps.expireAt(date);
 	}
 
-	
 	public Long getExpire() {
 		return hashOps.getExpire();
 	}
 
-	
 	public Boolean persist() {
 		return hashOps.persist();
 	}
 
-
-	
 	public String getKey() {
 		return hashOps.getKey();
 	}
 
-	
 	public void rename(String newKey) {
 		hashOps.rename(newKey);
 	}
 
-	
 	public DataType getType() {
 		return hashOps.getType();
 	}

@@ -27,7 +27,6 @@ public class StubErrorHandler implements ErrorHandler {
 
 	public BlockingDeque<Throwable> throwables = new LinkedBlockingDeque<Throwable>();
 
-
 	public void handleError(Throwable t) {
 		throwables.add(t);
 	}

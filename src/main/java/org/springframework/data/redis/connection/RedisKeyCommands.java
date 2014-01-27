@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Set;
 
-
 /**
  * Key-specific commands supported by Redis.
  * 

@@ -26,21 +26,18 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
- * Default implementation of {@link ScriptExecutor}. Optimizes performance by attempting to execute
- * script first using evalsha, then falling back to eval if Redis has not yet cached the script.
- * Evalsha is not attempted if the script is executed in a pipeline or transaction.
- *
+ * Default implementation of {@link ScriptExecutor}. Optimizes performance by attempting to execute script first using
+ * evalsha, then falling back to eval if Redis has not yet cached the script. Evalsha is not attempted if the script is
+ * executed in a pipeline or transaction.
+ * 
  * @author Jennifer Hickey
- *
- * @param <K>
- *            The type of keys that may be passed during script execution
+ * @param <K> The type of keys that may be passed during script execution
  */
 public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 
 	private RedisTemplate<K, ?> template;
 
 	/**
-	 *
 	 * @param template The {@link RedisTemplate} to use
 	 */
 	public DefaultScriptExecutor(RedisTemplate<K, ?> template) {
@@ -50,12 +47,12 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	@SuppressWarnings("unchecked")
 	public <T> T execute(final RedisScript<T> script, final List<K> keys, final Object... args) {
 		// use the Template's value serializer for args and result
-		return execute(script, template.getValueSerializer(),
-				(RedisSerializer<T>) template.getValueSerializer(), keys, args);
+		return execute(script, template.getValueSerializer(), (RedisSerializer<T>) template.getValueSerializer(), keys,
+				args);
 	}
 
-	public <T> T execute(final RedisScript<T> script, final RedisSerializer<?> argsSerializer, final RedisSerializer<T> resultSerializer,
-			final List<K> keys, final Object... args) {
+	public <T> T execute(final RedisScript<T> script, final RedisSerializer<?> argsSerializer,
+			final RedisSerializer<T> resultSerializer, final List<K> keys, final Object... args) {
 		return template.execute(new RedisCallback<T>() {
 			public T doInRedis(RedisConnection connection) throws DataAccessException {
 				final ReturnType returnType = ReturnType.fromJavaType(script.getResultType());
@@ -67,14 +64,13 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 					connection.eval(scriptBytes(script), returnType, keySize, keysAndArgs);
 					return null;
 				}
-				return eval(connection, script, returnType, keySize, keysAndArgs,
-						resultSerializer);
+				return eval(connection, script, returnType, keySize, keysAndArgs, resultSerializer);
 			}
 		});
 	}
 
-	protected <T> T eval(RedisConnection connection, RedisScript<T> script, ReturnType returnType,
-			int numKeys, byte[][] keysAndArgs, RedisSerializer<T> resultSerializer) {
+	protected <T> T eval(RedisConnection connection, RedisScript<T> script, ReturnType returnType, int numKeys,
+			byte[][] keysAndArgs, RedisSerializer<T> resultSerializer) {
 		Object result;
 		try {
 			result = connection.evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
@@ -92,7 +88,7 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 		final int keySize = keys != null ? keys.size() : 0;
 		byte[][] keysAndArgs = new byte[args.length + keySize][];
 		int i = 0;
-		if(keys != null) {
+		if (keys != null) {
 			for (K key : keys) {
 				if (keySerializer() == null && key instanceof byte[]) {
 					keysAndArgs[i++] = (byte[]) key;

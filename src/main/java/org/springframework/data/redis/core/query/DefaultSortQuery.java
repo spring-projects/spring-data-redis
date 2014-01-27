@@ -43,41 +43,33 @@ class DefaultSortQuery<K> implements SortQuery<K> {
 		this.gets = gets;
 	}
 
-	
 	public String getBy() {
 		return by;
 	}
 
-	
 	public Range getLimit() {
 		return limit;
 	}
 
-	
 	public Order getOrder() {
 		return order;
 	}
 
-	
 	public Boolean isAlphabetic() {
 		return alpha;
 	}
 
-	
 	public K getKey() {
 		return key;
 	}
 
-	
 	public List<String> getGetPattern() {
 		return gets;
 	}
 
-	
 	public String toString() {
-		return "DefaultSortQuery [alpha=" + alpha + ", by=" + by + ", gets=" + gets + ", key=" + key + ", limit="
-				+ limit + ", order=" + order + "]";
+		return "DefaultSortQuery [alpha=" + alpha + ", by=" + by + ", gets=" + gets + ", key=" + key + ", limit=" + limit
+				+ ", order=" + order + "]";
 	}
-
 
 }

@@ -19,7 +19,6 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 
 /**
- * 
  * @author Costin Leau
  */
 public class ThrowableMessageListener implements MessageListener {

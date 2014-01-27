@@ -19,10 +19,8 @@ import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisOperations;
 
 /**
- * Basic interface for Redis-based collections. 
- * 
- * Offers access to the {@link RedisOperations} entity
- * used for executing commands against the backing store.
+ * Basic interface for Redis-based collections. Offers access to the {@link RedisOperations} entity used for executing
+ * commands against the backing store.
  * 
  * @author Costin Leau
  */

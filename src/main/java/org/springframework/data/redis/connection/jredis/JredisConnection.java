@@ -64,14 +64,13 @@ public class JredisConnection implements RedisConnection {
 	private boolean broken = false;
 
 	static {
-		SERVICE_REQUEST = ReflectionUtils.findMethod(JRedisSupport.class, "serviceRequest", Command.class,
-				byte[][].class);
+		SERVICE_REQUEST = ReflectionUtils.findMethod(JRedisSupport.class, "serviceRequest", Command.class, byte[][].class);
 		ReflectionUtils.makeAccessible(SERVICE_REQUEST);
 	}
 
 	/**
 	 * Constructs a new <code>JredisConnection</code> instance.
-	 *
+	 * 
 	 * @param jredis JRedis connection
 	 */
 	public JredisConnection(JRedis jredis) {
@@ -90,7 +89,7 @@ public class JredisConnection implements RedisConnection {
 		}
 
 		if (ex instanceof ClientRuntimeException) {
-			if(ex instanceof NotConnectedException || ex instanceof ConnectionException) {
+			if (ex instanceof NotConnectedException || ex instanceof ConnectionException) {
 				broken = true;
 			}
 			return JredisUtils.convertJredisAccessException((ClientRuntimeException) ex);
@@ -115,7 +114,7 @@ public class JredisConnection implements RedisConnection {
 	}
 
 	public void close() throws RedisSystemException {
-		if(isClosed()) {
+		if (isClosed()) {
 			return;
 		}
 		isClosed = true;
@@ -123,7 +122,7 @@ public class JredisConnection implements RedisConnection {
 		if (pool != null) {
 			if (!broken) {
 				pool.returnResource(jredis);
-			}else {
+			} else {
 				pool.returnBrokenResource(jredis);
 			}
 			return;
@@ -141,31 +140,25 @@ public class JredisConnection implements RedisConnection {
 		return jredis;
 	}
 
-
 	public boolean isClosed() {
 		return isClosed;
 	}
-
 
 	public boolean isQueueing() {
 		return false;
 	}
 
-
 	public boolean isPipelined() {
 		return false;
 	}
-
 
 	public void openPipeline() {
 		throw new UnsupportedOperationException("Pipelining not supported by JRedis");
 	}
 
-
 	public List<Object> closePipeline() {
 		return Collections.emptyList();
 	}
-
 
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 		Sort sort = jredis.sort(key);
@@ -177,7 +170,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
 		Sort sort = jredis.sort(key);
 		JredisUtils.applySortingParams(sort, params, storeKey);
@@ -188,15 +180,13 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long dbSize() {
 		try {
-			return (Long)jredis.dbsize();
+			return (Long) jredis.dbsize();
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void flushDb() {
 		try {
@@ -206,7 +196,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void flushAll() {
 		try {
 			jredis.flushall();
@@ -215,7 +204,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public byte[] echo(byte[] message) {
 		try {
 			return jredis.echo(message);
@@ -223,7 +211,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public String ping() {
 		try {
@@ -234,7 +221,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void bgSave() {
 		try {
 			jredis.bgsave();
@@ -242,7 +228,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void bgWriteAof() {
 		try {
@@ -252,7 +237,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void save() {
 		try {
 			jredis.save();
@@ -261,11 +245,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public List<String> getConfig(String pattern) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Properties info() {
 		try {
@@ -275,35 +257,29 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Properties info(String section) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long lastSave() {
 		try {
-			return (Long)jredis.lastsave();
+			return (Long) jredis.lastsave();
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
 	}
 
-
 	public void setConfig(String param, String value) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public void resetConfigStats() {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public void shutdown() {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long del(byte[]... keys) {
 		try {
@@ -313,7 +289,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void discard() {
 		try {
 			jredis.discard();
@@ -322,11 +297,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public List<Object> exec() {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Boolean exists(byte[] key) {
 		try {
@@ -336,7 +309,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean expire(byte[] key, long seconds) {
 		try {
 			return jredis.expire(key, (int) seconds);
@@ -344,7 +316,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Boolean expireAt(byte[] key, long unixTime) {
 		try {
@@ -382,17 +353,13 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void multi() {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Boolean persist(byte[] key) {
 		throw new UnsupportedOperationException();
 	}
-
-
 
 	public Boolean move(byte[] key, int dbIndex) {
 		try {
@@ -402,7 +369,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public byte[] randomKey() {
 		try {
 			return jredis.randomkey();
@@ -410,7 +376,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void rename(byte[] oldName, byte[] newName) {
 		try {
@@ -420,7 +385,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
 		try {
 			return jredis.renamenx(oldName, newName);
@@ -429,11 +393,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void select(int dbIndex) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long ttl(byte[] key) {
 		try {
@@ -443,7 +405,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public DataType type(byte[] key) {
 		try {
 			return JredisUtils.convertDataType(jredis.type(key));
@@ -452,11 +413,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void unwatch() {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public void watch(byte[]... keys) {
 		throw new UnsupportedOperationException();
@@ -466,7 +425,6 @@ public class JredisConnection implements RedisConnection {
 	// String operations
 	//
 
-
 	public byte[] get(byte[] key) {
 		try {
 			return jredis.get(key);
@@ -474,7 +432,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void set(byte[] key, byte[] value) {
 		try {
@@ -484,7 +441,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public byte[] getSet(byte[] key, byte[] value) {
 		try {
 			return jredis.getset(key, value);
@@ -492,7 +448,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Long append(byte[] key, byte[] value) {
 		try {
@@ -502,7 +457,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public List<byte[]> mGet(byte[]... keys) {
 		try {
 			return jredis.mget(keys);
@@ -510,7 +464,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void mSet(Map<byte[], byte[]> tuple) {
 		try {
@@ -520,7 +473,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
 		try {
 			return jredis.msetnx(tuple);
@@ -529,11 +481,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void setEx(byte[] key, long seconds, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Boolean setNX(byte[] key, byte[] value) {
 		try {
@@ -543,7 +493,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public byte[] getRange(byte[] key, long start, long end) {
 		try {
 			return jredis.substr(key, start, end);
@@ -551,7 +500,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Long decr(byte[] key) {
 		try {
@@ -561,7 +509,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long decrBy(byte[] key, long value) {
 		try {
 			return jredis.decrby(key, (int) value);
@@ -569,7 +516,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Long incr(byte[] key) {
 		try {
@@ -579,7 +525,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long incrBy(byte[] key, long value) {
 		try {
 			return jredis.incrby(key, (int) value);
@@ -588,20 +533,17 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Double incrBy(byte[] key, double value) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Boolean getBit(byte[] key, long offset) {
 		try {
-			return jredis.getbit(key, (int)offset);
-		} catch(Exception ex) {
+			return jredis.getbit(key, (int) offset);
+		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void setBit(byte[] key, long offset, boolean value) {
 		try {
@@ -611,26 +553,21 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void setRange(byte[] key, byte[] value, long start) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long strLen(byte[] key) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long bitCount(byte[] key) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long bitCount(byte[] key, long begin, long end) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 		throw new UnsupportedOperationException();
@@ -640,16 +577,13 @@ public class JredisConnection implements RedisConnection {
 	// List commands
 	//
 
-
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public byte[] lIndex(byte[] key, long index) {
 		try {
@@ -659,7 +593,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long lLen(byte[] key) {
 		try {
 			return jredis.llen(key);
@@ -667,7 +600,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public byte[] lPop(byte[] key) {
 		try {
@@ -677,9 +609,8 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long lPush(byte[] key, byte[]... values) {
-		if(values.length > 1) {
+		if (values.length > 1) {
 			throw new UnsupportedOperationException("lPush of multiple fields not supported");
 		}
 		try {
@@ -689,7 +620,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public List<byte[]> lRange(byte[] key, long start, long end) {
 		try {
@@ -701,7 +631,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long lRem(byte[] key, long count, byte[] value) {
 		try {
 			return jredis.lrem(key, value, (int) count);
@@ -709,7 +638,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public void lSet(byte[] key, long index, byte[] value) {
 		try {
@@ -719,7 +647,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public void lTrim(byte[] key, long start, long end) {
 		try {
 			jredis.ltrim(key, start, end);
@@ -727,7 +654,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public byte[] rPop(byte[] key) {
 		try {
@@ -737,7 +663,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
 		try {
 			return jredis.rpoplpush(srcKey, dstKey);
@@ -746,9 +671,8 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long rPush(byte[] key, byte[]... values) {
-		if(values.length > 1) {
+		if (values.length > 1) {
 			throw new UnsupportedOperationException("rPush of multiple fields not supported");
 		}
 		try {
@@ -759,34 +683,28 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long lPushX(byte[] key, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long rPushX(byte[] key, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	//
 	// Set commands
 	//
 
-
 	public Long sAdd(byte[] key, byte[]... values) {
-		if(values.length > 1) {
+		if (values.length > 1) {
 			throw new UnsupportedOperationException("sAdd of multiple fields not supported");
 		}
 		try {
@@ -796,7 +714,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long sCard(byte[] key) {
 		try {
 			return jredis.scard(key);
@@ -804,7 +721,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Set<byte[]> sDiff(byte[]... keys) {
 		byte[] destKey = keys[0];
@@ -818,7 +734,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 		try {
 			jredis.sdiffstore(destKey, keys);
@@ -827,7 +742,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Set<byte[]> sInter(byte[]... keys) {
 		byte[] set1 = keys[0];
@@ -841,7 +755,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 		try {
 			jredis.sinterstore(destKey, keys);
@@ -851,7 +764,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean sIsMember(byte[] key, byte[] value) {
 		try {
 			return jredis.sismember(key, value);
@@ -859,7 +771,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Set<byte[]> sMembers(byte[] key) {
 		try {
@@ -869,7 +780,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
 		try {
 			return jredis.smove(srcKey, destKey, value);
@@ -877,7 +787,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public byte[] sPop(byte[] key) {
 		try {
@@ -887,7 +796,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public byte[] sRandMember(byte[] key) {
 		try {
 			return jredis.srandmember(key);
@@ -896,14 +804,12 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public List<byte[]> sRandMember(byte[] key, long count) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long sRem(byte[] key, byte[]... values) {
-		if(values.length > 1) {
+		if (values.length > 1) {
 			throw new UnsupportedOperationException("sRem of multiple fields not supported");
 		}
 		try {
@@ -912,7 +818,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Set<byte[]> sUnion(byte[]... keys) {
 		byte[] set1 = keys[0];
@@ -925,7 +830,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 		try {
 			jredis.sunionstore(destKey, keys);
@@ -935,11 +839,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	//
 	// ZSet commands
 	//
-
 
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 		try {
@@ -961,7 +863,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long zCount(byte[] key, double min, double max) {
 		try {
 			return jredis.zcount(key, min, max);
@@ -969,7 +870,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		try {
@@ -979,16 +879,13 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		try {
@@ -998,11 +895,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Set<Tuple> zRangeWithScores(byte[] key, long start, long end) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
@@ -1012,41 +907,33 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long zRank(byte[] key, byte[] value) {
 		try {
@@ -1056,9 +943,8 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long zRem(byte[] key, byte[]... values) {
-		if(values.length > 1) {
+		if (values.length > 1) {
 			throw new UnsupportedOperationException("zRem of multiple fields not supported");
 		}
 		try {
@@ -1068,7 +954,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long zRemRange(byte[] key, long start, long end) {
 		try {
 			return jredis.zremrangebyrank(key, start, end);
@@ -1076,7 +961,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		try {
@@ -1086,7 +970,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Set<byte[]> zRevRange(byte[] key, long start, long end) {
 		try {
 			return new LinkedHashSet<byte[]>(jredis.zrevrange(key, start, end));
@@ -1095,11 +978,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long start, long end) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long zRevRank(byte[] key, byte[] value) {
 		try {
@@ -1109,7 +990,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Double zScore(byte[] key, byte[] value) {
 		try {
 			return jredis.zscore(key, value);
@@ -1118,24 +998,20 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	//
 	// Hash commands
 	//
-
 
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public Long hDel(byte[] key, byte[]... fields) {
-		if(fields.length > 1) {
+		if (fields.length > 1) {
 			throw new UnsupportedOperationException("hDel of multiple fields not supported");
 		}
 		try {
@@ -1145,7 +1021,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean hExists(byte[] key, byte[] field) {
 		try {
 			return jredis.hexists(key, field);
@@ -1153,7 +1028,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public byte[] hGet(byte[] key, byte[] field) {
 		try {
@@ -1163,7 +1037,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 		try {
 			return jredis.hgetall(key);
@@ -1171,7 +1044,6 @@ public class JredisConnection implements RedisConnection {
 			throw convertJredisAccessException(ex);
 		}
 	}
-
 
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 		throw new UnsupportedOperationException();
@@ -1189,7 +1061,6 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Long hLen(byte[] key) {
 		try {
 			return jredis.hlen(key);
@@ -1198,16 +1069,13 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 		throw new UnsupportedOperationException();
 	}
 
-
 	public void hMSet(byte[] key, Map<byte[], byte[]> values) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 		try {
@@ -1217,11 +1085,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public List<byte[]> hVals(byte[] key) {
 		try {
@@ -1235,31 +1101,25 @@ public class JredisConnection implements RedisConnection {
 	// PubSub commands
 	//
 
-
 	public Subscription getSubscription() {
 		return null;
 	}
-
 
 	public boolean isSubscribed() {
 		return false;
 	}
 
-
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
 		throw new UnsupportedOperationException();
 	}
-
 
 	public Long publish(byte[] channel, byte[] message) {
 		throw new UnsupportedOperationException();
 	}
 
-
-	 //
-	 // Scripting commands
-	 //
-
+	//
+	// Scripting commands
+	//
 
 	public void subscribe(MessageListener listener, byte[]... channels) {
 		throw new UnsupportedOperationException();

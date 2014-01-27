@@ -35,9 +35,8 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 
 /**
  * Unit test of {@link LettuceSubscription}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class LettuceSubscriptionTests {
 

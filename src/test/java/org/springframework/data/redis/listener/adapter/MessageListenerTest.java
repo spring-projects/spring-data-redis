@@ -54,8 +54,7 @@ public class MessageListenerTest {
 		void customMethodWithChannel(String arg, String channel);
 	}
 
-	@Mock
-	private Delegate target;
+	@Mock private Delegate target;
 
 	@Before
 	public void setUp() {

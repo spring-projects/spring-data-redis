@@ -40,9 +40,8 @@ import com.lambdaworks.redis.protocol.Charsets;
 
 /**
  * Lettuce type converters
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 abstract public class LettuceConverters extends Converters {
 
@@ -161,19 +160,18 @@ abstract public class LettuceConverters extends Converters {
 
 	public static ScriptOutputType toScriptOutputType(ReturnType returnType) {
 		switch (returnType) {
-		case BOOLEAN:
-			return ScriptOutputType.BOOLEAN;
-		case MULTI:
-			return ScriptOutputType.MULTI;
-		case VALUE:
-			return ScriptOutputType.VALUE;
-		case INTEGER:
-			return ScriptOutputType.INTEGER;
-		case STATUS:
-			return ScriptOutputType.STATUS;
-		default:
-			throw new IllegalArgumentException("Return type " + returnType
-					+ " is not a supported script output type");
+			case BOOLEAN:
+				return ScriptOutputType.BOOLEAN;
+			case MULTI:
+				return ScriptOutputType.MULTI;
+			case VALUE:
+				return ScriptOutputType.VALUE;
+			case INTEGER:
+				return ScriptOutputType.INTEGER;
+			case STATUS:
+				return ScriptOutputType.STATUS;
+			default:
+				throw new IllegalArgumentException("Return type " + returnType + " is not a supported script output type");
 		}
 	}
 

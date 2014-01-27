@@ -18,8 +18,8 @@ package org.springframework.data.redis.hash;
 import java.util.Map;
 
 /**
- * Core mapping contract between Java types and Redis hashes/maps. 
- * It's up to the implementation to support nested objects.
+ * Core mapping contract between Java types and Redis hashes/maps. It's up to the implementation to support nested
+ * objects.
  * 
  * @author Costin Leau
  */

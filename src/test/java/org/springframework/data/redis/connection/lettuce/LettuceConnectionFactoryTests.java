@@ -32,10 +32,9 @@ import static org.junit.Assert.*;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
- *
+ * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 public class LettuceConnectionFactoryTests {
 
@@ -54,9 +53,9 @@ public class LettuceConnectionFactoryTests {
 	public void tearDown() {
 		factory.destroy();
 
-        if(connection != null){
-            connection.close();
-        }
+		if (connection != null) {
+			connection.close();
+		}
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -75,12 +74,11 @@ public class LettuceConnectionFactoryTests {
 		} catch (RedisSystemException e) {
 			// expected, shared conn is closed
 		}
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				factory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory.getConnection());
 		assertNotSame(nativeConn, conn2.getNativeConnection());
 		conn2.set("anotherkey", "anothervalue");
 		assertEquals("anothervalue", conn2.get("anotherkey"));
-        conn2.close();
+		conn2.close();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -90,16 +88,15 @@ public class LettuceConnectionFactoryTests {
 		((RedisAsyncConnection) connection.getNativeConnection()).close();
 		// Give some time for async channel close
 		Thread.sleep(500);
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				factory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory.getConnection());
 		try {
 			conn2.set("anotherkey", "anothervalue");
 			fail("Expected exception using natively closed conn");
 		} catch (RedisSystemException e) {
 			// expected, as we are re-using the natively closed conn
-		}finally{
-            conn2.close();
-        }
+		} finally {
+			conn2.close();
+		}
 	}
 
 	@Test
@@ -111,12 +108,10 @@ public class LettuceConnectionFactoryTests {
 
 	@Test
 	public void testSelectDb() {
-		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
-		StringRedisConnection connection2 = new DefaultStringRedisConnection(
-				factory2.getConnection());
+		StringRedisConnection connection2 = new DefaultStringRedisConnection(factory2.getConnection());
 		connection2.flushDb();
 		// put an item in database 0
 		connection.set("sometestkey", "sometestvalue");
@@ -124,7 +119,7 @@ public class LettuceConnectionFactoryTests {
 			// there should still be nothing in database 1
 			assertEquals(Long.valueOf(0), connection2.dbSize());
 		} finally {
-            connection2.close();
+			connection2.close();
 			factory2.destroy();
 		}
 	}
@@ -156,7 +151,7 @@ public class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.resetConnection();
 		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
-        nativeConn.close();
+		nativeConn.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -165,9 +160,9 @@ public class LettuceConnectionFactoryTests {
 		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.initConnection();
-        RedisConnection newConnection = factory.getConnection();
-        assertNotSame(nativeConn, newConnection.getNativeConnection());
-        newConnection.close();
+		RedisConnection newConnection = factory.getConnection();
+		assertNotSame(nativeConn, newConnection.getNativeConnection());
+		newConnection.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -177,9 +172,9 @@ public class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.resetConnection();
 		factory.initConnection();
-        RedisConnection newConnection = factory.getConnection();
-        assertNotSame(nativeConn, newConnection.getNativeConnection());
-        newConnection.close();
+		RedisConnection newConnection = factory.getConnection();
+		assertNotSame(nativeConn, newConnection.getNativeConnection());
+		newConnection.close();
 	}
 
 	public void testGetConnectionException() {
@@ -188,8 +183,7 @@ public class LettuceConnectionFactoryTests {
 		try {
 			factory.getConnection();
 			fail("Expected connection failure exception");
-		} catch(RedisConnectionFailureException e) {
-		}
+		} catch (RedisConnectionFailureException e) {}
 	}
 
 	@Test
@@ -210,26 +204,26 @@ public class LettuceConnectionFactoryTests {
 
 	@Test
 	public void testCreateFactoryWithPool() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
-        RedisConnection conn2 = factory2.getConnection();
-        conn2.close();
-        factory2.destroy();
-        pool.destroy();
+		RedisConnection conn2 = factory2.getConnection();
+		conn2.close();
+		factory2.destroy();
+		pool.destroy();
 	}
 
 	@Ignore("Uncomment this test to manually check connection reuse in a pool scenario")
 	@Test
 	public void testLotsOfConnections() throws InterruptedException {
-		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2 afterPropertiesSet for shared conn)
+		// Running a netstat here should show only the 8 conns from the pool (plus 2 from setUp and 1 from factory2
+		// afterPropertiesSet for shared conn)
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
-		for(int i=1;i< 1000;i++) {
+		for (int i = 1; i < 1000; i++) {
 			Thread th = new Thread(new Runnable() {
 				public void run() {
 					factory2.getConnection().bRPop(50000, "foo".getBytes());
@@ -249,6 +243,6 @@ public class LettuceConnectionFactoryTests {
 		// Test shared and dedicated conns
 		conn.ping();
 		conn.bLPop(1, "key".getBytes());
-        conn.close();
+		conn.close();
 	}
 }

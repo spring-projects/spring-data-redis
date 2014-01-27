@@ -19,9 +19,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Returns unique Longs by incrementing a counter each time
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class LongObjectFactory implements ObjectFactory<Long> {
 

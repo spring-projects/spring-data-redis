@@ -52,9 +52,8 @@ import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.SafeEncoder;
 
 /**
- * Helper class featuring methods for Jedis connection handling, providing support for exception translation.
- *
- * Deprecated in favor of {@link JedisConverters}
+ * Helper class featuring methods for Jedis connection handling, providing support for exception translation. Deprecated
+ * in favor of {@link JedisConverters}
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -283,28 +282,28 @@ public abstract class JedisUtils {
 
 	@SuppressWarnings("unchecked")
 	static Object convertScriptReturn(ReturnType returnType, Object result) {
-		if(result instanceof String) {
-			//evalsha converts byte[] to String. Convert back for consistency
-			return SafeEncoder.encode((String)result);
+		if (result instanceof String) {
+			// evalsha converts byte[] to String. Convert back for consistency
+			return SafeEncoder.encode((String) result);
 		}
-		if(returnType == ReturnType.STATUS) {
-			return JedisUtils.asString((byte[])result);
+		if (returnType == ReturnType.STATUS) {
+			return JedisUtils.asString((byte[]) result);
 		}
-		if(returnType == ReturnType.BOOLEAN) {
+		if (returnType == ReturnType.BOOLEAN) {
 			// Lua false comes back as a null bulk reply
-			if(result == null) {
+			if (result == null) {
 				return Boolean.FALSE;
 			}
-			return ((Long)result == 1);
+			return ((Long) result == 1);
 		}
-		if(returnType  == ReturnType.MULTI) {
+		if (returnType == ReturnType.MULTI) {
 			List<Object> resultList = (List<Object>) result;
 			List<Object> convertedResults = new ArrayList<Object>();
-			for(Object res: resultList) {
-				if(res instanceof String) {
-					//evalsha converts byte[] to String. Convert back for consistency
-					convertedResults.add(SafeEncoder.encode((String)res));
-				}else {
+			for (Object res : resultList) {
+				if (res instanceof String) {
+					// evalsha converts byte[] to String. Convert back for consistency
+					convertedResults.add(SafeEncoder.encode((String) res));
+				} else {
 					convertedResults.add(res);
 				}
 			}

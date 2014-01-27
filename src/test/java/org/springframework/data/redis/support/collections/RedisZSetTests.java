@@ -30,7 +30,7 @@ public class RedisZSetTests extends AbstractRedisZSetTest<Object> {
 
 	/**
 	 * Constructs a new <code>RedisZSetTests</code> instance.
-	 *
+	 * 
 	 * @param factory
 	 * @param template
 	 */
@@ -38,12 +38,10 @@ public class RedisZSetTests extends AbstractRedisZSetTest<Object> {
 		super(factory, template);
 	}
 
-	
 	RedisStore copyStore(RedisStore store) {
 		return new DefaultRedisZSet(store.getKey().toString(), store.getOperations());
 	}
 
-	
 	AbstractRedisCollection<Object> createCollection() {
 		String redisName = getClass().getName();
 		return new DefaultRedisZSet(redisName, template);

@@ -40,15 +40,14 @@ class SrpSubscription extends AbstractSubscription {
 	}
 
 	protected void doClose() {
-		if(!getChannels().isEmpty()) {
+		if (!getChannels().isEmpty()) {
 			client.unsubscribe((Object[]) null);
 		}
-		if(!getPatterns().isEmpty()) {
+		if (!getPatterns().isEmpty()) {
 			client.punsubscribe((Object[]) null);
 		}
 		client.removeListener(this.listener);
 	}
-
 
 	protected void doPsubscribe(byte[]... patterns) {
 		client.psubscribe((Object[]) patterns);
@@ -57,8 +56,7 @@ class SrpSubscription extends AbstractSubscription {
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		if (all) {
 			client.punsubscribe((Object[]) null);
-		}
-		else {
+		} else {
 			client.punsubscribe((Object[]) patterns);
 		}
 	}
@@ -70,8 +68,7 @@ class SrpSubscription extends AbstractSubscription {
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		if (all) {
 			client.unsubscribe((Object[]) null);
-		}
-		else {
+		} else {
 			client.unsubscribe((Object[]) channels);
 		}
 	}

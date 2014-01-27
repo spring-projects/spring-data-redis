@@ -34,7 +34,7 @@ import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
 
 /**
- * Helper class featuring methods for JRedis connection handling, providing support for exception translation. 
+ * Helper class featuring methods for JRedis connection handling, providing support for exception translation.
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -66,18 +66,18 @@ public abstract class JredisUtils {
 
 	static DataType convertDataType(RedisType type) {
 		switch (type) {
-		case NONE:
-			return DataType.NONE;
-		case string:
-			return DataType.STRING;
-		case list:
-			return DataType.LIST;
-		case set:
-			return DataType.SET;
-			//case zset:
-			// return DataType.ZSET;
-		case hash:
-			return DataType.HASH;
+			case NONE:
+				return DataType.NONE;
+			case string:
+				return DataType.STRING;
+			case list:
+				return DataType.LIST;
+			case set:
+				return DataType.SET;
+				// case zset:
+				// return DataType.ZSET;
+			case hash:
+				return DataType.HASH;
 		}
 
 		return null;
@@ -113,7 +113,6 @@ public abstract class JredisUtils {
 		if (storeKey != null) {
 			jredisSort.STORE(storeKey);
 		}
-
 
 		return jredisSort;
 	}

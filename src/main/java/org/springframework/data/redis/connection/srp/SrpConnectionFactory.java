@@ -37,26 +37,21 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	private BlockingQueue<SrpConnection> trackedConnections = new ArrayBlockingQueue<SrpConnection>(50);
 	private boolean convertPipelineAndTxResults = true;
 	private String password;
-		
 
 	/**
-	 * Constructs a new <code>SRedisConnectionFactory</code> instance
-	 * with default settings.
+	 * Constructs a new <code>SRedisConnectionFactory</code> instance with default settings.
 	 */
-	public SrpConnectionFactory() {
-	}
+	public SrpConnectionFactory() {}
 
 	/**
-	 * Constructs a new <code>SRedisConnectionFactory</code> instance
-	 * with default settings.
+	 * Constructs a new <code>SRedisConnectionFactory</code> instance with default settings.
 	 */
 	public SrpConnectionFactory(String host, int port) {
 		this.hostName = host;
 		this.port = port;
 	}
 
-	public void afterPropertiesSet() {
-	}
+	public void afterPropertiesSet() {}
 
 	public void destroy() {
 		SrpConnection con;
@@ -73,8 +68,8 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	public RedisConnection getConnection() {
-		SrpConnection connection = password != null ? new SrpConnection(hostName, port, password, trackedConnections) :
-			new SrpConnection(hostName, port, trackedConnections);
+		SrpConnection connection = password != null ? new SrpConnection(hostName, port, password, trackedConnections)
+				: new SrpConnection(hostName, port, trackedConnections);
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -85,7 +80,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Returns the current host.
-	 *
+	 * 
 	 * @return the host
 	 */
 	public String getHostName() {
@@ -94,7 +89,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Sets the host.
-	 *
+	 * 
 	 * @param host the host to set
 	 */
 	public void setHostName(String host) {
@@ -103,7 +98,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Returns the current port.
-	 *
+	 * 
 	 * @return the port
 	 */
 	public int getPort() {
@@ -112,7 +107,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Sets the port.
-	 *
+	 * 
 	 * @param port the port to set
 	 */
 	public void setPort(int port) {
@@ -121,7 +116,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Returns the password used for authenticating with the Redis server.
-	 *
+	 * 
 	 * @return password for authentication
 	 */
 	public String getPassword() {
@@ -130,7 +125,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 
 	/**
 	 * Sets the password used for authenticating with the Redis server.
-	 *
+	 * 
 	 * @param password the password to set
 	 */
 	public void setPassword(String password) {
@@ -138,10 +133,10 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()}
-	 * will be of the type returned by the SRP driver
-	 *
+	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
+	 * {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()} will be of the type returned by the SRP
+	 * driver
+	 * 
 	 * @return Whether or not to convert pipeline and tx results
 	 */
 	public boolean getConvertPipelineAndTxResults() {
@@ -149,10 +144,10 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()}
-	 * will be of the type returned by the SRP driver
-	 *
+	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
+	 * {@link SrpConnection#closePipeline()} and {@link SrpConnection#exec()} will be of the type returned by the SRP
+	 * driver
+	 * 
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {

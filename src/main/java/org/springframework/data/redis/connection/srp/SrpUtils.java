@@ -48,9 +48,8 @@ import com.google.common.base.Charsets;
 
 /**
  * Helper class featuring methods for SRedis connection handling, providing support for exception translation.
- * 
  * Deprecated. Use {@link SrpConverters} instead.
- *
+ * 
  * @author Costin Leau
  * @author Jennifer Hickey
  */
@@ -67,7 +66,6 @@ abstract class SrpUtils {
 	private static final byte[] GET = "GET".getBytes(Charsets.UTF_8);
 	private static final byte[] ALPHA = "ALPHA".getBytes(Charsets.UTF_8);
 	private static final byte[] STORE = "STORE".getBytes(Charsets.UTF_8);
-
 
 	static DataAccessException convertSRedisAccessException(RuntimeException ex) {
 		if (ex instanceof RedisException) {
@@ -92,7 +90,7 @@ abstract class SrpUtils {
 
 	@SuppressWarnings("rawtypes")
 	static List<byte[]> toBytesList(Reply[] replies) {
-		if(replies == null) {
+		if (replies == null) {
 			return null;
 		}
 		List<byte[]> list = new ArrayList<byte[]>(replies.length);
@@ -100,8 +98,7 @@ abstract class SrpUtils {
 			Object data = reply.data();
 			if (data == null) {
 				list.add(null);
-			}
-			else if (data instanceof byte[])
+			} else if (data instanceof byte[])
 				list.add((byte[]) data);
 			else
 				throw new IllegalArgumentException("array contains more then just nulls and bytes -> " + data);
@@ -112,8 +109,8 @@ abstract class SrpUtils {
 
 	static List<String> asStatusList(Reply[] replies) {
 		List<String> statuses = new ArrayList<String>();
-		for(Reply reply: replies) {
-			statuses.add(((StatusReply)reply).data());
+		for (Reply reply : replies) {
+			statuses.add(((StatusReply) reply).data());
 		}
 		return statuses;
 	}
@@ -182,7 +179,7 @@ abstract class SrpUtils {
 				args[i] = keys[i];
 			}
 		}
-		args[length-1] = String.valueOf(timeout).getBytes();
+		args[length - 1] = String.valueOf(timeout).getBytes();
 		return args;
 	}
 
@@ -207,9 +204,8 @@ abstract class SrpUtils {
 	}
 
 	static Object[] limitParams(long offset, long count) {
-		return new Object[] { "LIMIT".getBytes(Charsets.UTF_8),
-				String.valueOf(offset).getBytes(Charsets.UTF_8),
-				String.valueOf(count).getBytes(Charsets.UTF_8)};
+		return new Object[] { "LIMIT".getBytes(Charsets.UTF_8), String.valueOf(offset).getBytes(Charsets.UTF_8),
+				String.valueOf(count).getBytes(Charsets.UTF_8) };
 	}
 
 	static byte[] sort(SortParameters params) {
@@ -220,17 +216,17 @@ abstract class SrpUtils {
 		List<byte[]> arrays = new ArrayList<byte[]>();
 
 		Object[] sortParams = sortParams(params, sortKey);
-		for(Object param: sortParams) {
-			arrays.add((byte[])param);
+		for (Object param : sortParams) {
+			arrays.add((byte[]) param);
 			arrays.add(SPACE);
 		}
-		arrays.remove(arrays.size()-1);
+		arrays.remove(arrays.size() - 1);
 
 		// concatenate array
 		int size = 0;
 
 		for (Object bs : arrays) {
-			size += ((byte[])bs).length;
+			size += ((byte[]) bs).length;
 		}
 		byte[] result = new byte[size];
 
@@ -250,7 +246,7 @@ abstract class SrpUtils {
 	static Object[] sortParams(SortParameters params, byte[] sortKey) {
 		List<byte[]> arrays = new ArrayList<byte[]>();
 
-		if(params != null) {
+		if (params != null) {
 			if (params.getByPattern() != null) {
 				arrays.add(BY);
 				arrays.add(params.getByPattern());
@@ -297,20 +293,20 @@ abstract class SrpUtils {
 	}
 
 	static List<Boolean> asBooleanList(Reply reply) {
-		if(!(reply instanceof MultiBulkReply)) {
+		if (!(reply instanceof MultiBulkReply)) {
 			throw new IllegalArgumentException();
 		}
 		List<Boolean> results = new ArrayList<Boolean>();
-		for(Reply r: ((MultiBulkReply)reply).data()) {
-			results.add(SrpUtils.asBoolean((IntegerReply)r));
+		for (Reply r : ((MultiBulkReply) reply).data()) {
+			results.add(SrpUtils.asBoolean((IntegerReply) r));
 		}
 		return results;
 	}
 
 	static List<Long> asIntegerList(Reply[] replies) {
 		List<Long> results = new ArrayList<Long>();
-		for(Reply reply: replies) {
-			results.add(((IntegerReply)reply).data());
+		for (Reply reply : replies) {
+			results.add(((IntegerReply) reply).data());
 		}
 		return results;
 	}
@@ -318,22 +314,22 @@ abstract class SrpUtils {
 	static List<Object> asList(MultiBulkReply genericReply) {
 		Reply[] replies = genericReply.data();
 		List<Object> results = new ArrayList<Object>();
-		for(Reply reply: replies) {
+		for (Reply reply : replies) {
 			results.add(reply.data());
 		}
 		return results;
 	}
 
 	static Object convertScriptReturn(ReturnType returnType, Reply reply) {
-		if(reply instanceof MultiBulkReply) {
-			return SrpUtils.asList((MultiBulkReply)reply);
+		if (reply instanceof MultiBulkReply) {
+			return SrpUtils.asList((MultiBulkReply) reply);
 		}
-		if(returnType == ReturnType.BOOLEAN) {
+		if (returnType == ReturnType.BOOLEAN) {
 			// Lua false comes back as a null bulk reply
-			if(reply.data() == null) {
+			if (reply.data() == null) {
 				return Boolean.FALSE;
 			}
-			return ((Long)reply.data() == 1);
+			return ((Long) reply.data() == 1);
 		}
 		return reply.data();
 	}

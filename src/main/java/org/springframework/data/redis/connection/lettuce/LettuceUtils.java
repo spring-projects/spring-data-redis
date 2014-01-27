@@ -46,10 +46,9 @@ import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.protocol.Charsets;
 
 /**
- * Helper class featuring methods for Lettuce connection handling, providing
- * support for exception translation.
- * 
+ * Helper class featuring methods for Lettuce connection handling, providing support for exception translation.
  * Deprecated in favor of {@link LettuceConverters}
+ * 
  * @author Costin Leau
  */
 @Deprecated
@@ -68,7 +67,7 @@ abstract class LettuceUtils {
 	}
 
 	static Properties info(String reply) {
-		if(reply == null) {
+		if (reply == null) {
 			return null;
 		}
 		Properties info = new Properties();
@@ -93,7 +92,7 @@ abstract class LettuceUtils {
 	}
 
 	static Set<Tuple> convertTuple(List<ScoredValue<byte[]>> zrange) {
-		if(zrange == null) {
+		if (zrange == null) {
 			return null;
 		}
 		Set<Tuple> tuples = new LinkedHashSet<Tuple>(zrange.size());
@@ -107,7 +106,7 @@ abstract class LettuceUtils {
 	static SortArgs sort(SortParameters params) {
 		SortArgs args = new SortArgs();
 
-		if(params == null) {
+		if (params == null) {
 			return args;
 		}
 
@@ -129,8 +128,7 @@ abstract class LettuceUtils {
 		if (params.getOrder() != null) {
 			if (params.getOrder() == Order.ASC) {
 				args.asc();
-			}
-			else {
+			} else {
 				args.desc();
 			}
 		}
@@ -147,15 +145,15 @@ abstract class LettuceUtils {
 
 		if (aggregate != null) {
 			switch (aggregate) {
-			case MIN:
-				args.min();
-				break;
-			case MAX:
-				args.max();
-				break;
-			default:
-				args.sum();
-				break;
+				case MIN:
+					args.min();
+					break;
+				case MAX:
+					args.max();
+					break;
+				default:
+					args.sum();
+					break;
 			}
 		}
 
@@ -168,7 +166,7 @@ abstract class LettuceUtils {
 	}
 
 	static List<byte[]> toList(KeyValue<byte[], byte[]> blpop) {
-		if(blpop == null) {
+		if (blpop == null) {
 			return null;
 		}
 		List<byte[]> list = new ArrayList<byte[]>(2);
@@ -179,31 +177,30 @@ abstract class LettuceUtils {
 
 	static ScriptOutputType toScriptOutputType(ReturnType returnType) {
 		switch (returnType) {
-		case BOOLEAN:
-			return ScriptOutputType.BOOLEAN;
-		case MULTI:
-			return ScriptOutputType.MULTI;
-		case VALUE:
-			return ScriptOutputType.VALUE;
-		case INTEGER:
-			return ScriptOutputType.INTEGER;
-		case STATUS:
-			return ScriptOutputType.STATUS;
-		default:
-			throw new IllegalArgumentException("Return type " + returnType
-					+ " is not a supported script output type");
+			case BOOLEAN:
+				return ScriptOutputType.BOOLEAN;
+			case MULTI:
+				return ScriptOutputType.MULTI;
+			case VALUE:
+				return ScriptOutputType.VALUE;
+			case INTEGER:
+				return ScriptOutputType.INTEGER;
+			case STATUS:
+				return ScriptOutputType.STATUS;
+			default:
+				throw new IllegalArgumentException("Return type " + returnType + " is not a supported script output type");
 		}
 	}
 
 	static byte[][] extractScriptKeys(int numKeys, byte[]... keysAndArgs) {
-		if(numKeys > 0) {
-			return Arrays.copyOfRange(keysAndArgs, 0,numKeys);
+		if (numKeys > 0) {
+			return Arrays.copyOfRange(keysAndArgs, 0, numKeys);
 		}
 		return new byte[0][0];
 	}
 
 	static byte[][] extractScriptArgs(int numKeys, byte[]... keysAndArgs) {
-		if(keysAndArgs.length > numKeys) {
+		if (keysAndArgs.length > numKeys) {
 			return Arrays.copyOfRange(keysAndArgs, numKeys, keysAndArgs.length);
 		}
 		return new byte[0][0];

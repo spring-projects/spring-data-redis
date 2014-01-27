@@ -24,8 +24,8 @@ import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * High-level abstraction over a Redis SORT (generified equivalent of {@link SortParameters}). To be used with {@link RedisTemplate}
- * (just as {@link SortParameters} is used by {@link RedisConnection}).
+ * High-level abstraction over a Redis SORT (generified equivalent of {@link SortParameters}). To be used with
+ * {@link RedisTemplate} (just as {@link SortParameters} is used by {@link RedisConnection}).
  * 
  * @author Costin Leau
  */
@@ -39,17 +39,15 @@ public interface SortQuery<K> {
 	Order getOrder();
 
 	/**
-	 * Indicates if the sorting is numeric (default) or alphabetical (lexicographical).
-	 * Can be null if nothing is specified.
+	 * Indicates if the sorting is numeric (default) or alphabetical (lexicographical). Can be null if nothing is
+	 * specified.
 	 * 
 	 * @return the type of sorting
 	 */
 	Boolean isAlphabetic();
 
-
 	/**
-	 * Returns the sorting limit (range or pagination).
-	 * Can be null if nothing is specified.
+	 * Returns the sorting limit (range or pagination). Can be null if nothing is specified.
 	 * 
 	 * @return sorting limit/range
 	 */
@@ -71,7 +69,7 @@ public interface SortQuery<K> {
 
 	/**
 	 * Returns the external key(s) whose values are returned by the sort.
-	 *  
+	 * 
 	 * @return the (list of) keys used for GET
 	 */
 	List<String> getGetPattern();

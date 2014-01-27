@@ -52,7 +52,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		super(keyFactory, valueFactory, template);
 	}
 
-	
 	@SuppressWarnings("unchecked")
 	RedisMap<Object, Object> createMap() {
 		String redisName = getClass().getSimpleName();
@@ -110,8 +109,8 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		rawTemplate.afterPropertiesSet();
 
 		// JRedis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate genericTemplateJR = new RedisTemplate();
@@ -200,39 +199,24 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		rawTemplateSrp.setKeySerializer(stringSerializer);
 		rawTemplateSrp.afterPropertiesSet();
 
-
-		return Arrays.asList(new Object[][] {
-				{ stringFactory, stringFactory, genericTemplate },
-				{ personFactory, personFactory, genericTemplate },
-				{ stringFactory, personFactory, genericTemplate },
-				{ personFactory, stringFactory, genericTemplate },
-				{ personFactory, stringFactory, xstreamGenericTemplate },
-				{ personFactory, stringFactory, jsonPersonTemplate },
-				{ rawFactory, rawFactory, rawTemplate},
-				{ stringFactory, stringFactory, genericTemplateJR },
-				{ personFactory, personFactory, genericTemplateJR },
-				{ stringFactory, personFactory, genericTemplateJR },
-				{ personFactory, stringFactory, genericTemplateJR },
-				{ personFactory, stringFactory, xGenericTemplateJR },
-				{ personFactory, stringFactory, jsonPersonTemplateJR },
-				{ rawFactory, rawFactory, rawTemplateJR},
-				{ stringFactory, stringFactory, genericTemplateLettuce },
+		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
+				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
+				{ personFactory, stringFactory, genericTemplate }, { personFactory, stringFactory, xstreamGenericTemplate },
+				{ personFactory, stringFactory, jsonPersonTemplate }, { rawFactory, rawFactory, rawTemplate },
+				{ stringFactory, stringFactory, genericTemplateJR }, { personFactory, personFactory, genericTemplateJR },
+				{ stringFactory, personFactory, genericTemplateJR }, { personFactory, stringFactory, genericTemplateJR },
+				{ personFactory, stringFactory, xGenericTemplateJR }, { personFactory, stringFactory, jsonPersonTemplateJR },
+				{ rawFactory, rawFactory, rawTemplateJR }, { stringFactory, stringFactory, genericTemplateLettuce },
 				{ personFactory, personFactory, genericTemplateLettuce },
 				{ stringFactory, personFactory, genericTemplateLettuce },
 				{ personFactory, stringFactory, genericTemplateLettuce },
 				{ personFactory, stringFactory, xGenericTemplateLettuce },
 				{ personFactory, stringFactory, jsonPersonTemplateLettuce },
-				{ stringFactory, doubleFactory, stringTemplateLtc},
-				{ stringFactory, longFactory, stringTemplateLtc},
-				{ rawFactory, rawFactory, rawTemplateLtc},
-				{ stringFactory, stringFactory, genericTemplateSrp },
-				{ personFactory, personFactory, genericTemplateSrp },
-				{ stringFactory, personFactory, genericTemplateSrp },
-				{ personFactory, stringFactory, genericTemplateSrp },
-				{ personFactory, stringFactory, xGenericTemplateSrp },
-				{ stringFactory, doubleFactory, stringTemplateSrp},
-				{ stringFactory, longFactory, stringTemplateSrp},
-				{ personFactory, stringFactory, jsonPersonTemplateSrp },
-				{ rawFactory, rawFactory, rawTemplateSrp}});
+				{ stringFactory, doubleFactory, stringTemplateLtc }, { stringFactory, longFactory, stringTemplateLtc },
+				{ rawFactory, rawFactory, rawTemplateLtc }, { stringFactory, stringFactory, genericTemplateSrp },
+				{ personFactory, personFactory, genericTemplateSrp }, { stringFactory, personFactory, genericTemplateSrp },
+				{ personFactory, stringFactory, genericTemplateSrp }, { personFactory, stringFactory, xGenericTemplateSrp },
+				{ stringFactory, doubleFactory, stringTemplateSrp }, { stringFactory, longFactory, stringTemplateSrp },
+				{ personFactory, stringFactory, jsonPersonTemplateSrp }, { rawFactory, rawFactory, rawTemplateSrp } });
 	}
 }

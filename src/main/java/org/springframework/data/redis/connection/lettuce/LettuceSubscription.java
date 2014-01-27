@@ -40,16 +40,15 @@ class LettuceSubscription extends AbstractSubscription {
 	}
 
 	protected void doClose() {
-		if(!getChannels().isEmpty()) {
+		if (!getChannels().isEmpty()) {
 			pubsub.unsubscribe(new byte[0]);
 		}
-		if(!getPatterns().isEmpty()) {
+		if (!getPatterns().isEmpty()) {
 			pubsub.punsubscribe(new byte[0]);
 		}
 		pubsub.removeListener(this.listener);
 		pubsub.close();
 	}
-
 
 	protected void doPsubscribe(byte[]... patterns) {
 		pubsub.psubscribe(patterns);

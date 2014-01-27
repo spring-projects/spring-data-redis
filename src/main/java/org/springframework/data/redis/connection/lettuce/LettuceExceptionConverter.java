@@ -29,9 +29,8 @@ import com.lambdaworks.redis.RedisException;
 
 /**
  * Converts Lettuce Exceptions to {@link DataAccessException}s
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class LettuceExceptionConverter implements Converter<Exception, DataAccessException> {
 

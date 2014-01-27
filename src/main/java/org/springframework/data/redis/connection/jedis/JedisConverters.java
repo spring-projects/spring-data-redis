@@ -38,9 +38,8 @@ import redis.clients.util.SafeEncoder;
 
 /**
  * Jedis type converters
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 abstract public class JedisConverters extends Converters {
 
@@ -49,7 +48,7 @@ abstract public class JedisConverters extends Converters {
 	private static final SetConverter<String, byte[]> STRING_SET_TO_BYTE_SET;
 	private static final MapConverter<String, byte[]> STRING_MAP_TO_BYTE_MAP;
 	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_TO_TUPLE_SET;
-	private static final Converter<Exception,DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
+	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
 
 	static {
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
@@ -89,7 +88,7 @@ abstract public class JedisConverters extends Converters {
 		return TUPLE_SET_TO_TUPLE_SET;
 	}
 
-	public static Converter<Exception,DataAccessException> exceptionConverter() {
+	public static Converter<Exception, DataAccessException> exceptionConverter() {
 		return EXCEPTION_CONVERTER;
 	}
 

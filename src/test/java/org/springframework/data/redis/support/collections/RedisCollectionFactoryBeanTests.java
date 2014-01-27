@@ -69,7 +69,6 @@ public class RedisCollectionFactoryBeanTests {
 		// clean up the whole db
 		template.execute(new RedisCallback<Object>() {
 
-			
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;
@@ -108,7 +107,6 @@ public class RedisCollectionFactoryBeanTests {
 		store = createCollection("nosrt");
 		assertThat(store, instanceOf(DefaultRedisList.class));
 	}
-
 
 	@Test
 	public void testExistingCol() throws Exception {

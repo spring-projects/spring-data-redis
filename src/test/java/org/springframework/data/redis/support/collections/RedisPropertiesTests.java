@@ -62,7 +62,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 	/**
 	 * Constructs a new <code>RedisPropertiesTests</code> instance.
-	 *
+	 * 
 	 * @param keyFactory
 	 * @param valueFactory
 	 * @param template
@@ -72,14 +72,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 		super(keyFactory, valueFactory, template);
 	}
 
-	
 	RedisMap<Object, Object> createMap() {
 		String redisName = getClass().getSimpleName();
 		props = new RedisProperties(defaults, redisName, new StringRedisTemplate(template.getConnectionFactory()));
 		return props;
 	}
 
-	
 	protected RedisStore copyStore(RedisStore store) {
 		return new RedisProperties(store.getKey(), store.getOperations());
 	}
@@ -139,7 +137,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 		StringWriter writer = new StringWriter();
 		props.store(writer, "no-comment");
-		//System.out.println(writer.toString());
+		// System.out.println(writer.toString());
 	}
 
 	@Test
@@ -266,8 +264,8 @@ public class RedisPropertiesTests extends RedisMapTests {
 		jsonPersonTemplate.afterPropertiesSet();
 
 		// JRedis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> genericTemplateJR = new StringRedisTemplate(jredisConnFactory);
@@ -282,7 +280,6 @@ public class RedisPropertiesTests extends RedisMapTests {
 		jsonPersonTemplateJR.setHashKeySerializer(jsonSerializer);
 		jsonPersonTemplateJR.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateJR.afterPropertiesSet();
-
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
@@ -322,34 +319,20 @@ public class RedisPropertiesTests extends RedisMapTests {
 		jsonPersonTemplateSrp.setHashValueSerializer(jsonStringSerializer);
 		jsonPersonTemplateSrp.afterPropertiesSet();
 
-
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
-				{ stringFactory, stringFactory, genericTemplate },
-				{ stringFactory, stringFactory, genericTemplate },
-				{ stringFactory, stringFactory, genericTemplate },
-				{ stringFactory, stringFactory, xstreamGenericTemplate },
-				{ stringFactory, stringFactory, genericTemplateJR },
-				{ stringFactory, stringFactory, genericTemplateJR },
-				{ stringFactory, stringFactory, genericTemplateJR },
-				{ stringFactory, stringFactory, genericTemplateJR },
-				{ stringFactory, stringFactory, xGenericTemplateJR },
-				{ stringFactory, stringFactory, jsonPersonTemplate },
-				{ stringFactory, stringFactory, jsonPersonTemplateJR },
-				{ stringFactory, stringFactory, genericTemplateLtc },
-				{ stringFactory, stringFactory, genericTemplateLtc },
-				{ stringFactory, stringFactory, genericTemplateLtc },
-				{ stringFactory, stringFactory, genericTemplateLtc },
-				{ stringFactory, doubleFactory, genericTemplateLtc },
-				{ stringFactory, longFactory, genericTemplateLtc },
-				{ stringFactory, stringFactory, xGenericTemplateLtc },
-				{ stringFactory, stringFactory, jsonPersonTemplateLtc },
-				{ stringFactory, stringFactory, genericTemplateSrp },
-				{ stringFactory, stringFactory, genericTemplateSrp },
-				{ stringFactory, stringFactory, genericTemplateSrp },
-				{ stringFactory, stringFactory, genericTemplateSrp },
-				{ stringFactory, doubleFactory, genericTemplateSrp },
-				{ stringFactory, longFactory, genericTemplateSrp },
-				{ stringFactory, stringFactory, xGenericTemplateSrp },
-				{ stringFactory, stringFactory, jsonPersonTemplateSrp }});
+				{ stringFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, genericTemplate },
+				{ stringFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, xstreamGenericTemplate },
+				{ stringFactory, stringFactory, genericTemplateJR }, { stringFactory, stringFactory, genericTemplateJR },
+				{ stringFactory, stringFactory, genericTemplateJR }, { stringFactory, stringFactory, genericTemplateJR },
+				{ stringFactory, stringFactory, xGenericTemplateJR }, { stringFactory, stringFactory, jsonPersonTemplate },
+				{ stringFactory, stringFactory, jsonPersonTemplateJR }, { stringFactory, stringFactory, genericTemplateLtc },
+				{ stringFactory, stringFactory, genericTemplateLtc }, { stringFactory, stringFactory, genericTemplateLtc },
+				{ stringFactory, stringFactory, genericTemplateLtc }, { stringFactory, doubleFactory, genericTemplateLtc },
+				{ stringFactory, longFactory, genericTemplateLtc }, { stringFactory, stringFactory, xGenericTemplateLtc },
+				{ stringFactory, stringFactory, jsonPersonTemplateLtc }, { stringFactory, stringFactory, genericTemplateSrp },
+				{ stringFactory, stringFactory, genericTemplateSrp }, { stringFactory, stringFactory, genericTemplateSrp },
+				{ stringFactory, stringFactory, genericTemplateSrp }, { stringFactory, doubleFactory, genericTemplateSrp },
+				{ stringFactory, longFactory, genericTemplateSrp }, { stringFactory, stringFactory, xGenericTemplateSrp },
+				{ stringFactory, stringFactory, jsonPersonTemplateSrp } });
 	}
 }

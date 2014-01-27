@@ -34,9 +34,8 @@ import redis.clients.jedis.BinaryJedisPubSub;
 
 /**
  * Unit test of {@link JedisSubscription}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class JedisSubscriptionTests {
 

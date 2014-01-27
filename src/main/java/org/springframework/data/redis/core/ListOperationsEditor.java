@@ -18,20 +18,17 @@ package org.springframework.data.redis.core;
 import java.beans.PropertyEditorSupport;
 
 /**
- * PropertyEditor allowing for easy injection of {@link ListOperations} from
- * {@link RedisOperations}.
+ * PropertyEditor allowing for easy injection of {@link ListOperations} from {@link RedisOperations}.
  * 
  * @author Costin Leau
  */
 class ListOperationsEditor extends PropertyEditorSupport {
-	
+
 	public void setValue(Object value) {
 		if (value instanceof RedisOperations) {
 			super.setValue(((RedisOperations) value).opsForList());
-		}
-		else {
-			throw new java.lang.IllegalArgumentException("Editor supports only conversion of type "
-					+ RedisOperations.class);
+		} else {
+			throw new java.lang.IllegalArgumentException("Editor supports only conversion of type " + RedisOperations.class);
 		}
 	}
 }

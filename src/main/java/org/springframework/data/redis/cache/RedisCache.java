@@ -39,8 +39,7 @@ class RedisCache implements Cache {
 
 	private static final int PAGE_SIZE = 128;
 	private final String name;
-	@SuppressWarnings("rawtypes")
-	private final RedisTemplate template;
+	@SuppressWarnings("rawtypes") private final RedisTemplate template;
 	private final byte[] prefix;
 	private final byte[] setName;
 	private final byte[] cacheLockName;
@@ -48,9 +47,8 @@ class RedisCache implements Cache {
 	private final long expiration;
 
 	/**
-	 * 
 	 * Constructs a new <code>RedisCache</code> instance.
-	 *
+	 * 
 	 * @param name cache name
 	 * @param prefix
 	 * @param template
@@ -76,10 +74,8 @@ class RedisCache implements Cache {
 	}
 
 	/**
-	 * {@inheritDoc}
-	 * 
-	 * This implementation simply returns the RedisTemplate used for configuring the cache, giving access
-	 * to the underlying Redis store.
+	 * {@inheritDoc} This implementation simply returns the RedisTemplate used for configuring the cache, giving access to
+	 * the underlying Redis store.
 	 */
 	public Object getNativeCache() {
 		return template;
@@ -96,14 +92,14 @@ class RedisCache implements Cache {
 			}
 		}, true);
 	}
-	
+
 	/**
-	 * Return the value to which this cache maps the specified key, generically specifying a type that return value will be cast to.
+	 * Return the value to which this cache maps the specified key, generically specifying a type that return value will
+	 * be cast to.
 	 * 
 	 * @param key
 	 * @param type
 	 * @return
-	 * 
 	 * @see DATAREDIS-243
 	 */
 	public <T> T get(Object key, Class<T> type) {
@@ -111,7 +107,6 @@ class RedisCache implements Cache {
 		ValueWrapper wrapper = get(key);
 		return wrapper == null ? null : (T) wrapper.get();
 	}
-
 
 	public void put(final Object key, final Object value) {
 		final byte[] k = computeKey(key);
@@ -121,8 +116,8 @@ class RedisCache implements Cache {
 				waitForLock(connection);
 				connection.multi();
 				byte[] v;
-				if(template.getValueSerializer() == null && value instanceof byte[]) {
-					v = (byte[])value;
+				if (template.getValueSerializer() == null && value instanceof byte[]) {
+					v = (byte[]) value;
 				} else {
 					v = template.getValueSerializer().serialize(value);
 				}
@@ -141,7 +136,6 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
-
 	public void evict(Object key) {
 		final byte[] k = computeKey(key);
 
@@ -154,7 +148,6 @@ class RedisCache implements Cache {
 			}
 		}, true);
 	}
-
 
 	public void clear() {
 		// need to del each key individually
@@ -173,8 +166,7 @@ class RedisCache implements Cache {
 
 					do {
 						// need to paginate the keys
-						Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE
-								- 1);
+						Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
 						finished = keys.size() < PAGE_SIZE;
 						offset++;
 						if (!keys.isEmpty()) {
@@ -193,8 +185,8 @@ class RedisCache implements Cache {
 	}
 
 	private byte[] computeKey(Object key) {
-		if(template.getKeySerializer() == null && key instanceof byte[]) {
-			return (byte[])key;
+		if (template.getKeySerializer() == null && key instanceof byte[]) {
+			return (byte[]) key;
 		}
 		byte[] k = template.getKeySerializer().serialize(key);
 

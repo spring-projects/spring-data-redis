@@ -20,7 +20,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * Default implementation for {@link RedisCachePrefix} which uses the given cache name and a delimiter for creating the prefix.
+ * Default implementation for {@link RedisCachePrefix} which uses the given cache name and a delimiter for creating the
+ * prefix.
  * 
  * @author Costin Leau
  */

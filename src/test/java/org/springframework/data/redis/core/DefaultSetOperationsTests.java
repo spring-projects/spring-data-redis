@@ -45,20 +45,19 @@ import org.springframework.data.redis.connection.RedisConnection;
  * Integration test of {@link DefaultSetOperations}
  * 
  * @author Jennifer Hickey
- * 
  */
 @RunWith(Parameterized.class)
-public class DefaultSetOperationsTests<K,V> {
-	
-	private RedisTemplate<K,V> redisTemplate;
+public class DefaultSetOperationsTests<K, V> {
+
+	private RedisTemplate<K, V> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;
 
 	private ObjectFactory<V> valueFactory;
 
-	private SetOperations<K,V> setOps;
+	private SetOperations<K, V> setOps;
 
-	public DefaultSetOperationsTests(RedisTemplate<K,V> redisTemplate, ObjectFactory<K> keyFactory,
+	public DefaultSetOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -69,7 +68,7 @@ public class DefaultSetOperationsTests<K,V> {
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
 	}
-	
+
 	@Before
 	public void setUp() {
 		setOps = redisTemplate.opsForSet();
@@ -84,7 +83,7 @@ public class DefaultSetOperationsTests<K,V> {
 			}
 		});
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDistinctRandomMembers() {
@@ -102,7 +101,7 @@ public class DefaultSetOperationsTests<K,V> {
 		expected.add(v1);
 		expected.add(v2);
 		expected.add(v3);
-		assertThat(expected, hasItems((V[])members.toArray()));
+		assertThat(expected, hasItems((V[]) members.toArray()));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -115,7 +114,7 @@ public class DefaultSetOperationsTests<K,V> {
 		setOps.add(setKey, v1);
 		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
-		assertEquals(2,members.size());
+		assertEquals(2, members.size());
 		assertThat(members, either(hasItem(v1)).or(hasItem(v2)));
 	}
 
@@ -125,8 +124,7 @@ public class DefaultSetOperationsTests<K,V> {
 		try {
 			setOps.randomMembers(keyFactory.instance(), -1);
 			fail("IllegalArgumentException should be thrown");
-		}catch(IllegalArgumentException e) {
-		}
+		} catch (IllegalArgumentException e) {}
 	}
 
 	@Test
@@ -135,8 +133,7 @@ public class DefaultSetOperationsTests<K,V> {
 		try {
 			setOps.distinctRandomMembers(keyFactory.instance(), -2);
 			fail("IllegalArgumentException should be thrown");
-		}catch(IllegalArgumentException e) {
-		}
+		} catch (IllegalArgumentException e) {}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -149,10 +146,8 @@ public class DefaultSetOperationsTests<K,V> {
 		setOps.add(key1, v1);
 		setOps.add(key1, v2);
 		setOps.move(key1, v1, key2);
-		assertThat(setOps.members(key1),
-				isEqual(new HashSet<V>(Collections.singletonList(v2))));
-		assertThat(setOps.members(key2),
-				isEqual(new HashSet<V>(Collections.singletonList(v1))));
+		assertThat(setOps.members(key1), isEqual(new HashSet<V>(Collections.singletonList(v2))));
+		assertThat(setOps.members(key2), isEqual(new HashSet<V>(Collections.singletonList(v1))));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -195,7 +190,7 @@ public class DefaultSetOperationsTests<K,V> {
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
 		V v4 = valueFactory.instance();
-		setOps.add(key,v1, v2, v3);
+		setOps.add(key, v1, v2, v3);
 		assertEquals(Long.valueOf(2), setOps.remove(key, v1, v2, v4));
 		assertThat(setOps.members(key), isEqual(Collections.singleton(v3)));
 	}

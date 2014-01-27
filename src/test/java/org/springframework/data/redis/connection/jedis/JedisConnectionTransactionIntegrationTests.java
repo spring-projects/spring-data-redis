@@ -27,17 +27,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * Integration test of {@link JedisConnection} transaction functionality.
  * <p>
- * Each method of {@link JedisConnection} behaves differently if executed with a
- * transaction (i.e. between multi and exec or discard calls), so this test
- * covers those branching points
- *
+ * Each method of {@link JedisConnection} behaves differently if executed with a transaction (i.e. between multi and
+ * exec or discard calls), so this test covers those branching points
+ * 
  * @author Jennifer Hickey
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
-public class JedisConnectionTransactionIntegrationTests extends
-		AbstractConnectionTransactionIntegrationTests {
+public class JedisConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
 	@After
 	public void tearDown() {
@@ -54,12 +51,10 @@ public class JedisConnectionTransactionIntegrationTests extends
 	}
 
 	@Ignore("DATAREDIS-143 transaction tries to return List<String> instead of Long on sort")
-	public void testSortStore() {
-	}
+	public void testSortStore() {}
 
 	@Ignore("DATAREDIS-143 transaction tries to return Long instead of List<String> on sort with no params")
-	public void testSortStoreNullParams() {
-	}
+	public void testSortStoreNullParams() {}
 
 	// Unsupported Ops
 	@Test(expected = UnsupportedOperationException.class)
@@ -235,13 +230,13 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testEvalShaNotFound();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
@@ -375,37 +370,37 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testLastSave();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testHDelMultiple() {
 		super.testHDelMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testLPushMultiple() {
 		super.testLPushMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRPushMultiple() {
 		super.testRPushMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSAddMultiple() {
 		super.testSAddMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSRemMultiple() {
 		super.testSRemMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZAddMultiple() {
 		super.testZAddMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZRemMultiple() {
 		super.testZRemMultiple();
 	}

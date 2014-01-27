@@ -22,10 +22,9 @@ import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
  * Utilities for examining a {@link RedisConnection}
- *
+ * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 public abstract class ConnectionUtils {
 

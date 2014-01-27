@@ -35,7 +35,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
  * Integration test of {@link RedisAtomicLong}
- *
+ * 
  * @author Costin Leau
  * @author Jennifer Hickey
  */

@@ -25,13 +25,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
- * Convenience extension of {@link RedisConnection} that accepts and returns {@link String}s instead of
- * byte arrays. Uses a {@link RedisSerializer} underneath to perform the conversion.
+ * Convenience extension of {@link RedisConnection} that accepts and returns {@link String}s instead of byte arrays.
+ * Uses a {@link RedisSerializer} underneath to perform the conversion.
  * 
  * @author Costin Leau
  * @see RedisCallback
  * @see RedisSerializer
- * @see StringRedisTemplate 
+ * @see StringRedisTemplate
  */
 public interface StringRedisConnection extends RedisConnection {
 

@@ -19,9 +19,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Returns unique Doubles, incrementing by 1 each time
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class DoubleObjectFactory implements ObjectFactory<Double> {
 

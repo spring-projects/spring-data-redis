@@ -22,10 +22,11 @@ import java.lang.reflect.Method;
 import org.springframework.data.redis.connection.RedisConnection;
 
 /**
-* Invocation handler that suppresses close calls on {@link RedisConnection}.
-* @see RedisConnection#close()
-* @author Costin Leau
-*/
+ * Invocation handler that suppresses close calls on {@link RedisConnection}.
+ * 
+ * @see RedisConnection#close()
+ * @author Costin Leau
+ */
 class CloseSuppressingInvocationHandler implements InvocationHandler {
 
 	private static final String CLOSE = "close";
@@ -43,12 +44,10 @@ class CloseSuppressingInvocationHandler implements InvocationHandler {
 		if (method.getName().equals(EQUALS)) {
 			// Only consider equal when proxies are identical.
 			return (proxy == args[0]);
-		}
-		else if (method.getName().equals(HASH_CODE)) {
+		} else if (method.getName().equals(HASH_CODE)) {
 			// Use hashCode of PersistenceManager proxy.
 			return System.identityHashCode(proxy);
-		}
-		else if (method.getName().equals(CLOSE)) {
+		} else if (method.getName().equals(CLOSE)) {
 			// Handle close method: suppress, not valid.
 			return null;
 		}

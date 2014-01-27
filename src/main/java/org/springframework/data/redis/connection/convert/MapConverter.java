@@ -22,25 +22,18 @@ import java.util.Map;
 import org.springframework.core.convert.converter.Converter;
 
 /**
- * Converts a Map of values of one key/value type to a Map of values of another
- * type
- *
+ * Converts a Map of values of one key/value type to a Map of values of another type
+ * 
  * @author Jennifer Hickey
- *
- * @param <S>
- *            The type of keys and values in the Map to convert
- * @param <T>
- *            The type of keys and values in the converted Map
+ * @param <S> The type of keys and values in the Map to convert
+ * @param <T> The type of keys and values in the converted Map
  */
 public class MapConverter<S, T> implements Converter<Map<S, S>, Map<T, T>> {
 
 	private Converter<S, T> itemConverter;
 
 	/**
-	 *
-	 * @param itemConverter
-	 *            The {@link Converter} to use for converting individual Map
-	 *            keys and values
+	 * @param itemConverter The {@link Converter} to use for converting individual Map keys and values
 	 */
 	public MapConverter(Converter<S, T> itemConverter) {
 		this.itemConverter = itemConverter;
@@ -57,8 +50,7 @@ public class MapConverter<S, T> implements Converter<Map<S, S>, Map<T, T>> {
 			results = new HashMap<T, T>();
 		}
 		for (Map.Entry<S, S> result : source.entrySet()) {
-			results.put(itemConverter.convert(result.getKey()),
-					itemConverter.convert(result.getValue()));
+			results.put(itemConverter.convert(result.getKey()), itemConverter.convert(result.getValue()));
 		}
 		return results;
 	}

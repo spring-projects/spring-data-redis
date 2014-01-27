@@ -17,9 +17,8 @@ package org.springframework.data.redis;
 
 /**
  * A {@link Comparable} software version
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class Version implements Comparable<Version> {
 	Integer major;

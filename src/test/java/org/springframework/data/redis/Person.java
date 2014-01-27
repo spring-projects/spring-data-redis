@@ -33,8 +33,7 @@ public class Person implements Serializable {
 	private Integer age;
 	private Address address;
 
-	public Person() {
-	}
+	public Person() {}
 
 	public Person(String firstName, String lastName, int age) {
 		this(firstName, lastName, age, null);
@@ -80,7 +79,6 @@ public class Person implements Serializable {
 		this.address = address;
 	}
 
-	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -91,7 +89,6 @@ public class Person implements Serializable {
 		return result;
 	}
 
-	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -103,26 +100,22 @@ public class Person implements Serializable {
 		if (address == null) {
 			if (other.address != null)
 				return false;
-		}
-		else if (!address.equals(other.address))
+		} else if (!address.equals(other.address))
 			return false;
 		if (age == null) {
 			if (other.age != null)
 				return false;
-		}
-		else if (!age.equals(other.age))
+		} else if (!age.equals(other.age))
 			return false;
 		if (firstName == null) {
 			if (other.firstName != null)
 				return false;
-		}
-		else if (!firstName.equals(other.firstName))
+		} else if (!firstName.equals(other.firstName))
 			return false;
 		if (lastName == null) {
 			if (other.lastName != null)
 				return false;
-		}
-		else if (!lastName.equals(other.lastName))
+		} else if (!lastName.equals(other.lastName))
 			return false;
 		return true;
 	}

@@ -65,10 +65,9 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 
 /**
  * Base test class for AbstractConnection integration tests
- *
+ * 
  * @author Costin Leau
  * @author Jennifer Hickey
- *
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -81,8 +80,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected List<Object> actual = new ArrayList<Object>();
 
-	@Autowired
-	protected RedisConnectionFactory connectionFactory;
+	@Autowired protected RedisConnectionFactory connectionFactory;
 
 	protected RedisConnection byteConnection;
 
@@ -90,7 +88,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void setUp() {
 		byteConnection = connectionFactory.getConnection();
 		connection = new DefaultStringRedisConnection(byteConnection);
-		((DefaultStringRedisConnection)connection).setDeserializePipelineAndTxResults(true);
+		((DefaultStringRedisConnection) connection).setDeserializePipelineAndTxResults(true);
 		initConnection();
 	}
 
@@ -105,7 +103,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.close();
 		connection = null;
 	}
-	
+
 	@Test
 	public void testSelect() {
 		// Make sure this doesn't throw Exception
@@ -182,13 +180,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(
-				Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)),
-						new String(scriptResults.get(1)) }));
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
 
-	@Test(expected=RedisSystemException.class)
+	@Test(expected = RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1");
@@ -251,8 +247,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testEvalReturnArrayStrings() {
 		actual.add(connection.eval("return {KEYS[1],ARGV[1]}", ReturnType.MULTI, 1, "foo", "bar"));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
-		assertEquals(Arrays.asList(new Object[] { "foo", "bar" }), Arrays.asList(new Object[] {
-				new String(result.get(0)), new String(result.get(1)) }));
+		assertEquals(Arrays.asList(new Object[] { "foo", "bar" }),
+				Arrays.asList(new Object[] { new String(result.get(0)), new String(result.get(1)) }));
 	}
 
 	@Test
@@ -262,7 +258,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 2l }) }));
 	}
 
-	@Test(expected=RedisSystemException.class)
+	@Test(expected = RedisSystemException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		// Syntax error
@@ -274,12 +270,11 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayOKs() {
-		actual.add(connection.eval(
-				"return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
-		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }), Arrays.asList(new Object[] {
-				new String(result.get(0)), new String(result.get(1)) }));
+		assertEquals(Arrays.asList(new Object[] { "OK", "OK" }),
+				Arrays.asList(new Object[] { new String(result.get(0)), new String(result.get(1)) }));
 	}
 
 	@Test
@@ -315,11 +310,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		final AtomicBoolean scriptDead = new AtomicBoolean(false);
 		Thread th = new Thread(new Runnable() {
 			public void run() {
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-						connectionFactory.getConnection());
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 				try {
-					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end",
-							ReturnType.BOOLEAN, 0);
+					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
 				} catch (DataAccessException e) {
 					scriptDead.set(true);
 				}
@@ -691,7 +684,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testExecuteNoArgs() {
 		actual.add(connection.execute("PING"));
 		List<Object> results = getResults();
-		assertEquals("PONG", stringSerializer.deserialize((byte[])results.get(0)));
+		assertEquals("PONG", stringSerializer.deserialize((byte[]) results.get(0)));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -703,7 +696,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] {"value"}), execResults);
+		assertEquals(Arrays.asList(new Object[] { "value" }), execResults);
 		assertEquals("value", connection.get("key"));
 	}
 
@@ -714,16 +707,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		testMultiExec();
 	}
 
-	@Test(expected=RedisSystemException.class)
+	@Test(expected = RedisSystemException.class)
 	public void testExecWithoutMulti() {
 		connection.exec();
 		getResults();
 	}
 
-	@Test(expected=RedisSystemException.class)
+	@Test(expected = RedisSystemException.class)
 	public void testErrorInTx() {
 		connection.multi();
-		connection.set("foo","bar");
+		connection.set("foo", "bar");
 		// Try to do a list op on a value
 		connection.lPop("foo");
 		connection.exec();
@@ -732,8 +725,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testMultiDiscard() throws Exception {
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "willdo");
 		connection.multi();
 		connection.set("testitnow2", "notok");
@@ -750,10 +742,9 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testWatch() throws Exception {
 		connection.set("testitnow", "willdo");
 		connection.watch("testitnow".getBytes());
-		//Give some time for watch to be asynch executed in extending tests
+		// Give some time for watch to be asynch executed in extending tests
 		Thread.sleep(500);
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		conn2.close();
 		connection.multi();
@@ -770,17 +761,16 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.watch("testitnow".getBytes());
 		connection.unwatch();
 		connection.multi();
-		//Give some time for unwatch to be asynch executed
+		// Give some time for unwatch to be asynch executed
 		Thread.sleep(100);
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		connection.set("testitnow", "somethingelse");
 		connection.get("testitnow");
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), execResults);
+		assertEquals(Arrays.asList(new Object[] { "somethingelse" }), execResults);
 	}
 
 	@Test
@@ -789,9 +779,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("sortlist", "bar"));
 		actual.add(connection.rPush("sortlist", "baz"));
 		actual.add(connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true)));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l,
-						Arrays.asList(new String[] { "bar", "baz", "foo" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, Arrays.asList(new String[] { "bar", "baz", "foo" }) }));
 	}
 
 	@Test
@@ -799,12 +787,9 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("sortlist", "foo"));
 		actual.add(connection.rPush("sortlist", "bar"));
 		actual.add(connection.rPush("sortlist", "baz"));
-		actual.add(connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true),
-				"newlist"));
+		actual.add(connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true), "newlist"));
 		actual.add(connection.lRange("newlist", 0, 9));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l, 3l,
-						Arrays.asList(new String[] { "bar", "baz", "foo" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, 3l, Arrays.asList(new String[] { "bar", "baz", "foo" }) }));
 	}
 
 	@Test
@@ -813,9 +798,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("sortlist", "2"));
 		actual.add(connection.rPush("sortlist", "3"));
 		actual.add(connection.sort("sortlist", null));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l,
-						Arrays.asList(new String[] { "2", "3", "5" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, Arrays.asList(new String[] { "2", "3", "5" }) }));
 	}
 
 	@Test
@@ -825,9 +808,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("sortlist", "5"));
 		actual.add(connection.sort("sortlist", null, "newlist"));
 		actual.add(connection.lRange("newlist", 0, 9));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l, 3l,
-						Arrays.asList(new String[] { "3", "5", "9" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, 3l, Arrays.asList(new String[] { "3", "5", "9" }) }));
 	}
 
 	@Test
@@ -981,7 +962,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testDel() {
-		connection.set("testing","123");
+		connection.set("testing", "123");
 		actual.add(connection.del("testing"));
 		actual.add(connection.exists("testing"));
 		verifyResults(Arrays.asList(new Object[] { 1l, false }));
@@ -1076,7 +1057,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.incrBy(key, largeNumber));
 		actual.add(connection.decrBy(key, largeNumber));
 		actual.add(connection.decrBy(key, 2 * largeNumber));
-		verifyResults(Arrays.asList(new Object[] {largeNumber, 0l, -2 * largeNumber}));
+		verifyResults(Arrays.asList(new Object[] { largeNumber, 0l, -2 * largeNumber }));
 	}
 
 	@Test
@@ -1087,10 +1068,10 @@ public abstract class AbstractConnectionIntegrationTests {
 		long largeNumber = 0x123456789L; // > 32bits
 		actual.add(connection.hSet(key, hkey, "0"));
 		actual.add(connection.hIncrBy(key, hkey, largeNumber));
-		//assertEquals(largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
+		// assertEquals(largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
 		actual.add(connection.hIncrBy(key, hkey, -2 * largeNumber));
-		//assertEquals(-largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
-		verifyResults(Arrays.asList(new Object[] {true, largeNumber, -largeNumber}));
+		// assertEquals(-largeNumber, Long.valueOf(connection.hGet(key, hkey)).longValue());
+		verifyResults(Arrays.asList(new Object[] { true, largeNumber, -largeNumber }));
 	}
 
 	@Test
@@ -1114,26 +1095,20 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@Test
 	public void testBLPop() {
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.lPush("poplist", "foo");
 		conn2.lPush("poplist", "bar");
 		actual.add(connection.bLPop(100, "poplist", "otherlist"));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						Arrays.asList(new String[] { "poplist", "bar" }) }));
+		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new String[] { "poplist", "bar" }) }));
 	}
 
 	@Test
 	public void testBRPop() {
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.rPush("rpoplist", "bar");
 		conn2.rPush("rpoplist", "foo");
 		actual.add(connection.bRPop(1, "rpoplist"));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						Arrays.asList(new String[] { "rpoplist", "foo" }) }));
+		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new String[] { "rpoplist", "foo" }) }));
 	}
 
 	@Test
@@ -1144,10 +1119,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.lRange("MyList", 0, -1));
 		actual.add(connection.lInsert("MyList", Position.BEFORE, "big", "very"));
 		actual.add(connection.lRange("MyList", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l,
-						Arrays.asList(new String[] { "hello", "big", "world" }), 4l,
-						Arrays.asList(new String[] { "hello", "very", "big", "world" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, Arrays.asList(new String[] { "hello", "big", "world" }), 4l,
+				Arrays.asList(new String[] { "hello", "very", "big", "world" }) }));
 	}
 
 	@Test
@@ -1166,9 +1139,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("PopList", "hello"));
 		actual.add(connection.lRem("PopList", 2, "hello"));
 		actual.add(connection.lRange("PopList", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l, 4l, 2l,
-						Arrays.asList(new String[] { "big", "world" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, 4l, 2l, Arrays.asList(new String[] { "big", "world" }) }));
 	}
 
 	@Test
@@ -1178,8 +1149,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("PopList", "world"));
 		actual.add(connection.rPush("PopList", "hello"));
 		actual.add(connection.lLen("PopList"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l, 4l, 4l }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, 4l, 4l }));
 	}
 
 	@Test
@@ -1189,9 +1159,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("PopList", "world"));
 		connection.lSet("PopList", 1, "cruel");
 		actual.add(connection.lRange("PopList", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l,
-						Arrays.asList(new String[] { "hello", "cruel", "world" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, Arrays.asList(new String[] { "hello", "cruel", "world" }) }));
 	}
 
 	@Test
@@ -1201,9 +1169,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPush("PopList", "world"));
 		connection.lTrim("PopList", 1, -1);
 		actual.add(connection.lRange("PopList", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 3l,
-						Arrays.asList(new String[] { "big", "world" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 3l, Arrays.asList(new String[] { "big", "world" }) }));
 	}
 
 	@Test
@@ -1222,17 +1188,14 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.rPopLPush("PopList", "pop2"));
 		actual.add(connection.lRange("PopList", 0, -1));
 		actual.add(connection.lRange("pop2", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 2l, 1l, "world",
-						Arrays.asList(new String[] { "hello" }),
-						Arrays.asList(new String[] { "world", "hey" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, 1l, "world", Arrays.asList(new String[] { "hello" }),
+				Arrays.asList(new String[] { "world", "hey" }) }));
 
 	}
 
 	@Test
 	public void testBRPopLPush() {
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.rPush("PopList", "hello");
 		conn2.rPush("PopList", "world");
 		conn2.rPush("pop2", "hey");
@@ -1240,8 +1203,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		List<Object> results = getResults();
 		assertEquals(Arrays.asList(new String[] { "world" }), results);
 		assertEquals(Arrays.asList(new String[] { "hello" }), connection.lRange("PopList", 0, -1));
-		assertEquals(Arrays.asList(new String[] { "world", "hey" }),
-				connection.lRange("pop2", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "world", "hey" }), connection.lRange("pop2", 0, -1));
 	}
 
 	@Test
@@ -1279,16 +1241,14 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.lPush("testlist", "bar"));
 		actual.add(connection.lPush("testlist", "baz"));
 		actual.add(connection.lRange("testlist", 0, -1));
-		verifyResults(Arrays.asList(new Object[] { 1l, 2l,
-				Arrays.asList(new String[] { "baz", "bar" }) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 2l, Arrays.asList(new String[] { "baz", "bar" }) }));
 	}
 
 	@Test
 	public void testLPushMultiple() {
 		actual.add(connection.lPush("testlist", "bar", "baz"));
 		actual.add(connection.lRange("testlist", 0, -1));
-		verifyResults(Arrays.asList(new Object[] { 2l,
-				Arrays.asList(new String[] { "baz", "bar" }) }));
+		verifyResults(Arrays.asList(new Object[] { 2l, Arrays.asList(new String[] { "baz", "bar" }) }));
 	}
 
 	// Set operations
@@ -1298,8 +1258,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, new HashSet<String>(Arrays.asList(new String[] {
-				"foo", "bar" })) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l,
+				new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" })) }));
 	}
 
 	@Test
@@ -1307,8 +1267,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo", "bar"));
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(Arrays.asList(new Object[] { 2l, 1l, new HashSet<String>(Arrays.asList(new String[] {
-				"foo", "bar", "baz" })) }));
+		verifyResults(Arrays.asList(new Object[] { 2l, 1l,
+				new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
 	}
 
 	@Test
@@ -1325,9 +1285,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sDiff("myset", "otherset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l,
-						new HashSet<String>(Collections.singletonList("foo")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, new HashSet<String>(Collections.singletonList("foo")) }));
 	}
 
 	@Test
@@ -1337,9 +1295,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sDiffStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l, 1l,
-						new HashSet<String>(Collections.singletonList("foo")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, new HashSet<String>(Collections.singletonList("foo")) }));
 	}
 
 	@Test
@@ -1348,9 +1304,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sInter("myset", "otherset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l,
-						new HashSet<String>(Collections.singletonList("bar")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
 	@Test
@@ -1360,9 +1314,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("otherset", "bar"));
 		actual.add(connection.sInterStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l, 1l,
-						new HashSet<String>(Collections.singletonList("bar")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
 	@Test
@@ -1388,8 +1340,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sPop("myset"));
-		assertTrue(new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" }))
-				.contains((String) getResults().get(2)));
+		assertTrue(new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)));
 	}
 
 	@Test
@@ -1397,8 +1348,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
 		actual.add(connection.sRandMember("myset"));
-		assertTrue(new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" }))
-				.contains((String) getResults().get(2)));
+		assertTrue(new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" })).contains((String) getResults().get(2)));
 	}
 
 	@Test
@@ -1442,9 +1392,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sRem("myset", "foo"));
 		actual.add(connection.sRem("myset", "baz"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l, 0l,
-						new HashSet<String>(Collections.singletonList("bar")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 0l, new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
 	@Test
@@ -1454,9 +1402,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.sAdd("myset", "baz"));
 		actual.add(connection.sRem("myset", "foo", "nope", "baz"));
 		actual.add(connection.sMembers("myset"));
-		verifyResults(
-				Arrays.asList(new Object[] { 1l, 1l, 1l, 2l,
-						new HashSet<String>(Collections.singletonList("bar")) }));
+		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 2l, new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
 	@Test
@@ -1500,7 +1446,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 1.0));
 		Set<Tuple> tuples = new HashSet<Tuple>();
 		tuples.add(new DefaultTuple("Joe".getBytes(), 2.5));
-		actual.add(connection.zAdd("myset",strTuples));
+		actual.add(connection.zAdd("myset", strTuples));
 		actual.add(connection.zAdd("myset".getBytes(), tuples));
 		actual.add(connection.zRange("myset", 0, -1));
 		verifyResults(Arrays.asList(new Object[] { 2l, 1l,
@@ -1531,9 +1477,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 4, "Joe"));
 		actual.add(connection.zIncrBy("myset", 2, "Joe"));
 		actual.add(connection.zRangeByScore("myset", 6, 6));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, true, 6d,
-						new LinkedHashSet<String>(Collections.singletonList("Joe")) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, 6d,
+				new LinkedHashSet<String>(Collections.singletonList("Joe")) }));
 	}
 
 	@Test
@@ -1556,21 +1501,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 4, "Joe"));
 		actual.add(connection.zAdd("otherset", 1, "Bob"));
 		actual.add(connection.zAdd("otherset", 4, "James"));
-		actual.add(connection.zInterStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset",
-				"otherset"));
+		actual.add(connection.zInterStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
 
 		actual.add(connection.zRangeWithScores("thirdset", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						true,
-						true,
-						true,
-						true,
-						true,
-						2l,
-						new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
-								new DefaultStringTuple("Bob".getBytes(), "Bob", 4d),
-								new DefaultStringTuple("James".getBytes(), "James", 12d) })) }));
+		verifyResults(Arrays.asList(new Object[] {
+				true,
+				true,
+				true,
+				true,
+				true,
+				2l,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
+						new DefaultStringTuple("Bob".getBytes(), "Bob", 4d),
+						new DefaultStringTuple("James".getBytes(), "James", 12d) })) }));
 	}
 
 	@Test
@@ -1578,13 +1521,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeWithScores("myset", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						true,
-						true,
-						new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
-								new DefaultStringTuple("James".getBytes(), "James", 1d),
-								new DefaultStringTuple("Bob".getBytes(), "Bob", 2d) })) }));
+		verifyResults(Arrays.asList(new Object[] {
+				true,
+				true,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
+						new DefaultStringTuple("James".getBytes(), "James", 1d),
+						new DefaultStringTuple("Bob".getBytes(), "Bob", 2d) })) }));
 	}
 
 	@Test
@@ -1593,7 +1535,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScore("myset", 1, 1));
 		verifyResults(Arrays.asList(new Object[] { true, true,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "James" })) }));
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "James" })) }));
 	}
 
 	@Test
@@ -1601,9 +1543,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRangeByScore("myset", 1d, 3d, 1, -1));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
 	}
 
 	@Test
@@ -1614,9 +1555,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] {
 				true,
 				true,
-				new LinkedHashSet<StringTuple>(Arrays
-						.asList(new StringTuple[] { new DefaultStringTuple("Bob".getBytes(), "Bob",
-								2d) })) }));
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] { new DefaultStringTuple("Bob".getBytes(),
+						"Bob", 2d) })) }));
 	}
 
 	@Test
@@ -1627,9 +1567,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] {
 				true,
 				true,
-				new LinkedHashSet<StringTuple>(Arrays
-						.asList(new StringTuple[] { new DefaultStringTuple("James".getBytes(),
-								"James", 1d) })) }));
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] { new DefaultStringTuple("James".getBytes(),
+						"James", 1d) })) }));
 	}
 
 	@Test
@@ -1646,13 +1585,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2, "Bob"));
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRevRangeWithScores("myset", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						true,
-						true,
-						new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
-								new DefaultStringTuple("Bob".getBytes(), "Bob", 2d),
-								new DefaultStringTuple("James".getBytes(), "James", 1d) })) }));
+		verifyResults(Arrays.asList(new Object[] {
+				true,
+				true,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
+						new DefaultStringTuple("Bob".getBytes(), "Bob", 2d),
+						new DefaultStringTuple("James".getBytes(), "James", 1d) })) }));
 	}
 
 	@Test
@@ -1660,8 +1598,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScore("myset", 0d, 3d, 0, 5));
-		verifyResults(Arrays.asList(new Object[] {true, true,
-				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" }))}));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" })) }));
 	}
 
 	@Test
@@ -1669,8 +1607,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScore("myset", 0d, 3d));
-		verifyResults(Arrays.asList(new Object[] {true, true,
-				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" }))}));
+		verifyResults(Arrays.asList(new Object[] { true, true,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James" })) }));
 	}
 
 	@Test
@@ -1678,9 +1616,11 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset".getBytes(), 2, "Bob".getBytes()));
 		actual.add(connection.zAdd("myset".getBytes(), 1, "James".getBytes()));
 		actual.add(connection.zRevRangeByScoreWithScores("myset", 0d, 3d, 0, 1));
-		verifyResults(Arrays.asList(new Object[] {true, true,
-				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] { new DefaultStringTuple("Bob"
-						.getBytes(), "Bob", 2d) }))}));
+		verifyResults(Arrays.asList(new Object[] {
+				true,
+				true,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] { new DefaultStringTuple("Bob".getBytes(),
+						"Bob", 2d) })) }));
 	}
 
 	@Test
@@ -1689,10 +1629,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zAdd("myset", 3, "Joe"));
 		actual.add(connection.zRevRangeByScoreWithScores("myset", 0d, 2d));
-		verifyResults(Arrays.asList(new Object[] {true, true, true,
+		verifyResults(Arrays.asList(new Object[] {
+				true,
+				true,
+				true,
 				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
 						new DefaultStringTuple("Bob".getBytes(), "Bob", 2d),
-						new DefaultStringTuple("James".getBytes(), "James", 1d) }))}));
+						new DefaultStringTuple("James".getBytes(), "James", 1d) })) }));
 	}
 
 	@Test
@@ -1710,9 +1653,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRem("myset", "James"));
 		actual.add(connection.zRange("myset", 0l, -1l));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, 1l,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, 1l,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
 	}
 
 	@Test
@@ -1723,9 +1665,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 2.5, "Jen"));
 		actual.add(connection.zRem("myset", "James", "Jen"));
 		actual.add(connection.zRange("myset", 0l, -1l));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, true, true, 2l,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "Joe", "Bob" })) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, 2l,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Joe", "Bob" })) }));
 	}
 
 	@Test
@@ -1743,9 +1684,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 1, "James"));
 		actual.add(connection.zRemRangeByScore("myset", 0d, 1d));
 		actual.add(connection.zRange("myset", 0l, -1l));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true, 1l,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, 1l,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob" })) }));
 	}
 
 	@Test
@@ -1775,16 +1715,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("otherset", 4, "James"));
 		actual.add(connection.zUnionStore("thirdset", "myset", "otherset"));
 		actual.add(connection.zRange("thirdset", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						true,
-						true,
-						true,
-						true,
-						true,
-						3l,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James",
-								"Joe" })) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, true, true, true, 3l,
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "Bob", "James", "Joe" })) }));
 	}
 
 	@Test
@@ -1794,21 +1726,18 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 4, "Joe"));
 		actual.add(connection.zAdd("otherset", 1, "Bob"));
 		actual.add(connection.zAdd("otherset", 4, "James"));
-		actual.add(connection.zUnionStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset",
-				"otherset"));
+		actual.add(connection.zUnionStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
 		actual.add(connection.zRangeWithScores("thirdset", 0, -1));
-		verifyResults(
-				Arrays.asList(new Object[] {
-						true,
-						true,
-						true,
-						true,
-						true,
-						3l,
-						new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
-								new DefaultStringTuple("Bob".getBytes(), "Bob", 4d),
-								new DefaultStringTuple("Joe".getBytes(), "Joe", 8d),
-								new DefaultStringTuple("James".getBytes(), "James", 12d) })) }));
+		verifyResults(Arrays.asList(new Object[] {
+				true,
+				true,
+				true,
+				true,
+				true,
+				3l,
+				new LinkedHashSet<StringTuple>(Arrays.asList(new StringTuple[] {
+						new DefaultStringTuple("Bob".getBytes(), "Bob", 4d), new DefaultStringTuple("Joe".getBytes(), "Joe", 8d),
+						new DefaultStringTuple("James".getBytes(), "James", 12d) })) }));
 	}
 
 	// Hash Ops
@@ -1880,7 +1809,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hSet("test", "key2", "2"));
 		actual.add(connection.hKeys("test"));
 		verifyResults(Arrays.asList(new Object[] { true, true,
-						new LinkedHashSet<String>(Arrays.asList(new String[] { "key", "key2" })) }));
+				new LinkedHashSet<String>(Arrays.asList(new String[] { "key", "key2" })) }));
 	}
 
 	@Test
@@ -1906,21 +1835,19 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.hSet("test", "key", "foo"));
 		actual.add(connection.hSet("test", "key2", "bar"));
 		actual.add(connection.hVals("test"));
-		verifyResults(
-				Arrays.asList(new Object[] { true, true,
-						Arrays.asList(new String[] { "foo", "bar" }) }));
+		verifyResults(Arrays.asList(new Object[] { true, true, Arrays.asList(new String[] { "foo", "bar" }) }));
 	}
 
 	@Test
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}));
+		verifyResults(Arrays.asList(new Object[] { true }));
 		connection.select(1);
 		try {
-			assertEquals("bar",connection.get("foo"));
+			assertEquals("bar", connection.get("foo"));
 		} finally {
-			if(connection.exists("foo")) {
+			if (connection.exists("foo")) {
 				connection.del("foo");
 			}
 		}

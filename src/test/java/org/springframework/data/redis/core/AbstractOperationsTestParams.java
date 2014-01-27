@@ -35,9 +35,8 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Parameters for testing implementations of {@link AbstractOperations}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 abstract public class AbstractOperationsTestParams {
 
@@ -64,23 +63,23 @@ abstract public class AbstractOperationsTestParams {
 		srConnFactory.setHostName(SettingsUtils.getHost());
 		srConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String,String> stringTemplate = new StringRedisTemplate();
+		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
 		stringTemplate.setConnectionFactory(srConnFactory);
 		stringTemplate.afterPropertiesSet();
 
-		RedisTemplate<String,Long> longTemplate = new RedisTemplate<String,Long>();
+		RedisTemplate<String, Long> longTemplate = new RedisTemplate<String, Long>();
 		longTemplate.setKeySerializer(new StringRedisSerializer());
 		longTemplate.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
 		longTemplate.setConnectionFactory(srConnFactory);
 		longTemplate.afterPropertiesSet();
 
-		RedisTemplate<String,Double> doubleTemplate = new RedisTemplate<String,Double>();
+		RedisTemplate<String, Double> doubleTemplate = new RedisTemplate<String, Double>();
 		doubleTemplate.setKeySerializer(new StringRedisSerializer());
 		doubleTemplate.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
 		doubleTemplate.setConnectionFactory(srConnFactory);
 		doubleTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplate = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.setConnectionFactory(srConnFactory);
 		rawTemplate.afterPropertiesSet();
@@ -104,10 +103,12 @@ abstract public class AbstractOperationsTestParams {
 		jsonPersonTemplate.setValueSerializer(jsonSerializer);
 		jsonPersonTemplate.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory },
-			{ longTemplate, stringFactory, longFactory }, { doubleTemplate, stringFactory, doubleFactory },
-			{ rawTemplate, rawFactory, rawFactory},  { personTemplate, stringFactory, personFactory },
-			{ xstreamStringTemplate, stringFactory, stringFactory }, { xstreamPersonTemplate, stringFactory, personFactory },
-			{ jsonPersonTemplate, stringFactory, personFactory }});
+		return Arrays
+				.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory },
+						{ longTemplate, stringFactory, longFactory }, { doubleTemplate, stringFactory, doubleFactory },
+						{ rawTemplate, rawFactory, rawFactory }, { personTemplate, stringFactory, personFactory },
+						{ xstreamStringTemplate, stringFactory, stringFactory },
+						{ xstreamPersonTemplate, stringFactory, personFactory },
+						{ jsonPersonTemplate, stringFactory, personFactory } });
 	}
 }

@@ -27,14 +27,11 @@ abstract public class TimeoutUtils {
 	/**
 	 * Converts the given timeout to seconds.
 	 * <p>
-	 * Since a 0 timeout blocks some Redis ops indefinitely, this method will
-	 * return 1 if the original value is greater than 0 but is truncated to 0 on
-	 * conversion.
+	 * Since a 0 timeout blocks some Redis ops indefinitely, this method will return 1 if the original value is greater
+	 * than 0 but is truncated to 0 on conversion.
 	 * 
-	 * @param timeout
-	 *            The timeout to convert
-	 * @param unit
-	 *            The timeout's unit
+	 * @param timeout The timeout to convert
+	 * @param unit The timeout's unit
 	 * @return The converted timeout
 	 */
 	public static long toSeconds(long timeout, TimeUnit unit) {
@@ -45,14 +42,11 @@ abstract public class TimeoutUtils {
 	/**
 	 * Converts the given timeout to milliseconds.
 	 * <p>
-	 * Since a 0 timeout blocks some Redis ops indefinitely, this method will
-	 * return 1 if the original value is greater than 0 but is truncated to 0 on
-	 * conversion.
-	 *
-	 * @param timeout
-	 *            The timeout to convert
-	 * @param unit
-	 *            The timeout's unit
+	 * Since a 0 timeout blocks some Redis ops indefinitely, this method will return 1 if the original value is greater
+	 * than 0 but is truncated to 0 on conversion.
+	 * 
+	 * @param timeout The timeout to convert
+	 * @param unit The timeout's unit
 	 * @return The converted timeout
 	 */
 	public static long toMillis(long timeout, TimeUnit unit) {

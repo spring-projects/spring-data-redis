@@ -30,7 +30,7 @@ abstract class RedisIterator<E> implements Iterator<E> {
 
 	/**
 	 * Constructs a new <code>RedisIterator</code> instance.
-	 *
+	 * 
 	 * @param delegate
 	 */
 	RedisIterator(Iterator<E> delegate) {
@@ -55,7 +55,6 @@ abstract class RedisIterator<E> implements Iterator<E> {
 	}
 
 	/**
-	 * 
 	 * @see java.util.Iterator#remove()
 	 */
 	public void remove() {

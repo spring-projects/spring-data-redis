@@ -30,9 +30,8 @@ import redis.clients.jedis.exceptions.JedisException;
 
 /**
  * Converts Exceptions thrown from Jedis to {@link DataAccessException}s
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class JedisExceptionConverter implements Converter<Exception, DataAccessException> {
 

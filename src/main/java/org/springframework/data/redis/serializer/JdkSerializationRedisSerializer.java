@@ -20,8 +20,7 @@ import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 
 /**
- * Java Serialization Redis serializer.
- * Delegates to the default (Java based) serializer in Spring 3.
+ * Java Serialization Redis serializer. Delegates to the default (Java based) serializer in Spring 3.
  * 
  * @author Mark Pollack
  * @author Costin Leau
@@ -43,7 +42,6 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 		}
 	}
 
-	
 	public byte[] serialize(Object object) {
 		if (object == null) {
 			return SerializationUtils.EMPTY_ARRAY;

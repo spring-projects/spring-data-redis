@@ -16,7 +16,6 @@
 
 package org.springframework.data.redis.connection;
 
-
 /**
  * Interface for the commands supported by Redis.
  * 
@@ -26,11 +25,10 @@ public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, Re
 		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
 		RedisServerCommands, RedisScriptingCommands {
 
-
 	/**
-	 * 'Native' or 'raw' execution of the given command along-side the given arguments.
-	 * The command is executed as is, with as little 'interpretation' as possible - it is up to the caller
-	 * to take care of any processing of arguments or the result.
+	 * 'Native' or 'raw' execution of the given command along-side the given arguments. The command is executed as is,
+	 * with as little 'interpretation' as possible - it is up to the caller to take care of any processing of arguments or
+	 * the result.
 	 * 
 	 * @param command Command to execute
 	 * @param args Possible command arguments (may be null)

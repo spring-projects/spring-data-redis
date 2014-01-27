@@ -24,7 +24,6 @@ import org.springframework.data.redis.hash.HashMapper;
  */
 public class BeanUtilsHashMapperTest extends AbstractHashMapperTest {
 
-	
 	protected HashMapper mapperFor(Class t) {
 		return new BeanUtilsHashMapper(t);
 	}

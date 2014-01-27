@@ -44,15 +44,11 @@ class SrpMessageListener implements ReplyListener {
 		listener.onMessage(new DefaultMessage(channel, message), pattern);
 	}
 
-	public void psubscribed(byte[] arg0, int arg1) {
-	}
+	public void psubscribed(byte[] arg0, int arg1) {}
 
-	public void punsubscribed(byte[] arg0, int arg1) {
-	}
+	public void punsubscribed(byte[] arg0, int arg1) {}
 
-	public void subscribed(byte[] arg0, int arg1) {
-	}
+	public void subscribed(byte[] arg0, int arg1) {}
 
-	public void unsubscribed(byte[] arg0, int arg1) {
-	}
+	public void unsubscribed(byte[] arg0, int arg1) {}
 }

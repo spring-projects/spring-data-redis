@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
@@ -23,12 +22,10 @@ import org.springframework.data.redis.core.query.SortQueryBuilder;
 public class SortTest {
 
 	@Before
-	public void setUp() throws Exception {
-	}
+	public void setUp() throws Exception {}
 
 	@After
-	public void tearDown() throws Exception {
-	}
+	public void tearDown() throws Exception {}
 
 	public void testBasicDSL() throws Exception {
 		SortQueryBuilder.sort("list").build();

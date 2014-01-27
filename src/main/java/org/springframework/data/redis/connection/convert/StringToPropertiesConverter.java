@@ -23,9 +23,8 @@ import org.springframework.data.redis.RedisSystemException;
 
 /**
  * Converts Strings to {@link Properties}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class StringToPropertiesConverter implements Converter<String, Properties> {
 

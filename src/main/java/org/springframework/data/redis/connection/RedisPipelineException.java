@@ -22,11 +22,11 @@ import java.util.List;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
 /**
- * Exception thrown when executing/closing a pipeline that contains one or multiple invalid/incorrect statements.
- * The exception might also contain the pipeline result (if the driver returns it), allowing for analysis and tracing.
+ * Exception thrown when executing/closing a pipeline that contains one or multiple invalid/incorrect statements. The
+ * exception might also contain the pipeline result (if the driver returns it), allowing for analysis and tracing.
  * <p/>
  * Typically, the first exception returned by the pipeline is used as the <i>cause</i> of this exception for easier
- * debugging.  
+ * debugging.
  * 
  * @author Costin Leau
  */
@@ -36,7 +36,7 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 
 	/**
 	 * Constructs a new <code>RedisPipelineException</code> instance.
-	 *
+	 * 
 	 * @param msg the message
 	 * @param cause the cause
 	 * @param pipelineResult the pipeline result
@@ -48,7 +48,7 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 
 	/**
 	 * Constructs a new <code>RedisPipelineException</code> instance using a default message.
-	 *
+	 * 
 	 * @param cause the cause
 	 * @param pipelineResult the pipeline result
 	 */
@@ -57,9 +57,9 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 	}
 
 	/**
-	 * Constructs a new <code>RedisPipelineException</code> instance using a default message
-	 * and an empty pipeline result list.
-	 *
+	 * Constructs a new <code>RedisPipelineException</code> instance using a default message and an empty pipeline result
+	 * list.
+	 * 
 	 * @param cause the cause
 	 */
 	public RedisPipelineException(Exception cause) {
@@ -78,9 +78,8 @@ public class RedisPipelineException extends InvalidDataAccessResourceUsageExcept
 	}
 
 	/**
-	 * Optionally returns the result of the pipeline that caused the exception.
-	 * Typically contains both the results of the successful statements but also
-	 * the exceptions of the incorrect ones. 
+	 * Optionally returns the result of the pipeline that caused the exception. Typically contains both the results of the
+	 * successful statements but also the exceptions of the incorrect ones.
 	 * 
 	 * @return result of the pipeline
 	 */

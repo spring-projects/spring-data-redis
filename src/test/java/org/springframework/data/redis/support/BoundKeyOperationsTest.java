@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -107,9 +106,9 @@ public class BoundKeyOperationsTest {
 		}
 	}
 
-    /**
-     * @see DATAREDIS-251
-     */
+	/**
+	 * @see DATAREDIS-251
+	 */
 	@Test
 	public void testPersist() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
