@@ -18,10 +18,8 @@ package org.springframework.data.redis.connection;
 import java.util.Collection;
 
 /**
- * Subscription for Redis channels. Just like the underlying {@link RedisConnection},
- * it should not be used by multiple threads.
- *  
- * Note that once a subscription died, it cannot accept any more subscriptions.
+ * Subscription for Redis channels. Just like the underlying {@link RedisConnection}, it should not be used by multiple
+ * threads. Note that once a subscription died, it cannot accept any more subscriptions.
  * 
  * @author Costin Leau
  */
@@ -60,7 +58,7 @@ public interface Subscription {
 
 	/**
 	 * Cancels the subscription for all channels matching the given patterns.
-	 *  
+	 * 
 	 * @param patterns
 	 */
 	void pUnsubscribe(byte[]... patterns);
@@ -87,8 +85,7 @@ public interface Subscription {
 	MessageListener getListener();
 
 	/**
-	 * Indicates whether this subscription is still 'alive'
-	 * or not. 
+	 * Indicates whether this subscription is still 'alive' or not.
 	 * 
 	 * @return true if the subscription still applies, false otherwise.
 	 */

@@ -28,7 +28,7 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 
 	/**
 	 * Constructs a new <code>DefaultBoundValueOperations</code> instance.
-	 *
+	 * 
 	 * @param key
 	 * @param operations
 	 */
@@ -37,17 +37,14 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 		this.ops = operations.opsForValue();
 	}
 
-	
 	public V get() {
 		return ops.get(getKey());
 	}
 
-	
 	public V getAndSet(V value) {
 		return ops.getAndSet(getKey(), value);
 	}
 
-	
 	public Long increment(long delta) {
 		return ops.increment(getKey(), delta);
 	}
@@ -60,42 +57,34 @@ class DefaultBoundValueOperations<K, V> extends DefaultBoundKeyOperations<K> imp
 		return ops.append(getKey(), value);
 	}
 
-	
 	public String get(long start, long end) {
 		return ops.get(getKey(), start, end);
 	}
 
-	
 	public void set(V value, long timeout, TimeUnit unit) {
 		ops.set(getKey(), value, timeout, unit);
 	}
 
-	
 	public void set(V value) {
 		ops.set(getKey(), value);
 	}
 
-	
 	public Boolean setIfAbsent(V value) {
 		return ops.setIfAbsent(getKey(), value);
 	}
 
-	
 	public void set(V value, long offset) {
 		ops.set(getKey(), value, offset);
 	}
 
-	
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}
 
-	
 	public DataType getType() {
 		return DataType.STRING;
 	}

@@ -25,14 +25,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.FutureResult;
 
 /**
- * Converts the results of transaction exec using a supplied Queue of {@link FutureResult}s.
- * Converts any Exception objects returned in the list as well, using the supplied Exception
- * {@link Converter}
- *
+ * Converts the results of transaction exec using a supplied Queue of {@link FutureResult}s. Converts any Exception
+ * objects returned in the list as well, using the supplied Exception {@link Converter}
+ * 
  * @author Jennifer Hickey
- *
- * @param <T>
- *            The type of {@link FutureResult} of the individual tx operations
+ * @param <T> The type of {@link FutureResult} of the individual tx operations
  */
 public class TransactionResultConverter<T> implements Converter<List<Object>, List<Object>> {
 
@@ -51,9 +48,8 @@ public class TransactionResultConverter<T> implements Converter<List<Object>, Li
 			return null;
 		}
 		if (execResults.size() != txResults.size()) {
-			throw new IllegalArgumentException(
-					"Incorrect number of transaction results. Expected: " + txResults.size()
-							+ " Actual: " + execResults.size());
+			throw new IllegalArgumentException("Incorrect number of transaction results. Expected: " + txResults.size()
+					+ " Actual: " + execResults.size());
 		}
 		List<Object> convertedResults = new ArrayList<Object>();
 		for (Object result : execResults) {

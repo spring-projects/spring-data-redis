@@ -26,8 +26,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Base implementation for a subscription handling the channel/pattern registration so subclasses only have to deal
- * with the actual registration/unregistration.
+ * Base implementation for a subscription handling the channel/pattern registration so subclasses only have to deal with
+ * the actual registration/unregistration.
  * 
  * @author Costin Leau
  */
@@ -43,10 +43,10 @@ public abstract class AbstractSubscription implements Subscription {
 	}
 
 	/**
-	 * Constructs a new <code>AbstractSubscription</code> instance. Allows channels and patterns to be added
-	 * to the subscription w/o triggering a subscription action (as some clients (Jedis) require an initial call
-	 * before entering into listening mode).
-	 *
+	 * Constructs a new <code>AbstractSubscription</code> instance. Allows channels and patterns to be added to the
+	 * subscription w/o triggering a subscription action (as some clients (Jedis) require an initial call before entering
+	 * into listening mode).
+	 * 
 	 * @param listener
 	 * @param channels
 	 * @param patterns
@@ -98,26 +98,22 @@ public abstract class AbstractSubscription implements Subscription {
 	 */
 	protected abstract void doClose();
 
-	
 	public MessageListener getListener() {
 		return listener;
 	}
 
-	
 	public Collection<byte[]> getChannels() {
 		synchronized (channels) {
 			return clone(channels);
 		}
 	}
 
-	
 	public Collection<byte[]> getPatterns() {
 		synchronized (patterns) {
 			return clone(patterns);
 		}
 	}
 
-	
 	public void pSubscribe(byte[]... patterns) {
 		checkPulse();
 
@@ -130,13 +126,10 @@ public abstract class AbstractSubscription implements Subscription {
 		doPsubscribe(patterns);
 	}
 
-	
 	public void pUnsubscribe() {
 		pUnsubscribe((byte[][]) null);
 	}
 
-
-	
 	public void subscribe(byte[]... channels) {
 		checkPulse();
 
@@ -149,12 +142,10 @@ public abstract class AbstractSubscription implements Subscription {
 		doSubscribe(channels);
 	}
 
-	
 	public void unsubscribe() {
 		unsubscribe((byte[][]) null);
 	}
 
-	
 	public void pUnsubscribe(byte[]... patts) {
 		if (!isAlive()) {
 			return;
@@ -168,13 +159,11 @@ public abstract class AbstractSubscription implements Subscription {
 					doPUnsubscribe(true, patts);
 					this.patterns.clear();
 				}
-			}
-			else {
+			} else {
 				// nothing to unsubscribe from
 				return;
 			}
-		}
-		else {
+		} else {
 			doPUnsubscribe(false, patts);
 			synchronized (this.patterns) {
 				remove(this.patterns, patts);
@@ -184,7 +173,6 @@ public abstract class AbstractSubscription implements Subscription {
 		closeIfUnsubscribed();
 	}
 
-	
 	public void unsubscribe(byte[]... chans) {
 		if (!isAlive()) {
 			return;
@@ -198,13 +186,11 @@ public abstract class AbstractSubscription implements Subscription {
 					doUnsubscribe(true, chans);
 					this.channels.clear();
 				}
-			}
-			else {
+			} else {
 				// nothing to unsubscribe from
 				return;
 			}
-		}
-		else {
+		} else {
 			doUnsubscribe(false, chans);
 			synchronized (this.channels) {
 				remove(this.channels, chans);
@@ -214,7 +200,6 @@ public abstract class AbstractSubscription implements Subscription {
 		closeIfUnsubscribed();
 	}
 
-	
 	public boolean isAlive() {
 		return alive.get();
 	}
@@ -232,7 +217,6 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 	}
 
-
 	private static Collection<byte[]> clone(Collection<ByteArrayWrapper> col) {
 		Collection<byte[]> list = new ArrayList<byte[]>(col.size());
 		for (ByteArrayWrapper wrapper : col) {
@@ -240,7 +224,6 @@ public abstract class AbstractSubscription implements Subscription {
 		}
 		return list;
 	}
-
 
 	private static void add(Collection<ByteArrayWrapper> col, byte[]... bytes) {
 		if (!ObjectUtils.isEmpty(bytes)) {

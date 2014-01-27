@@ -43,17 +43,15 @@ import org.w3c.dom.NamedNodeMap;
  */
 class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 
-	
 	protected Class<RedisMessageListenerContainer> getBeanClass(Element element) {
 		return RedisMessageListenerContainer.class;
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		// parse attributes (but replace the value assignment with references)
 		NamedNodeMap attributes = element.getAttributes();
-		
+
 		for (int x = 0; x < attributes.getLength(); x++) {
 			Attr attribute = (Attr) attributes.item(x);
 			if (isEligibleAttribute(attribute, parserContext)) {
@@ -87,13 +85,13 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		}
 	}
 
-	
 	protected boolean isEligibleAttribute(String attributeName) {
 		return (!"phase".equals(attributeName));
 	}
 
 	/**
-	 * Parses a listener definition. Returns the listener bean reference definition (as the array first entry) and its associated topics (also as bean definitions).
+	 * Parses a listener definition. Returns the listener bean reference definition (as the array first entry) and its
+	 * associated topics (also as bean definitions).
 	 * 
 	 * @param element
 	 * @return
@@ -103,17 +101,17 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageListenerAdapter.class);
 		builder.addConstructorArgReference(element.getAttribute("ref"));
-		
+
 		String method = element.getAttribute("method");
-		if (StringUtils.hasText(method)){
-			builder.addPropertyValue("defaultListenerMethod", method);	
+		if (StringUtils.hasText(method)) {
+			builder.addPropertyValue("defaultListenerMethod", method);
 		}
-		
+
 		String serializer = element.getAttribute("serializer");
-		if (StringUtils.hasText(serializer)){
+		if (StringUtils.hasText(serializer)) {
 			builder.addPropertyReference("serializer", serializer);
 		}
-		
+
 		// assemble topics
 		Collection<Topic> topics = new ArrayList<Topic>();
 
@@ -132,7 +130,6 @@ class RedisListenerContainerParser extends AbstractSimpleBeanDefinitionParser {
 		return ret;
 	}
 
-	
 	protected boolean shouldGenerateId() {
 		return true;
 	}

@@ -40,8 +40,8 @@ public abstract class AtomicCountersParam {
 		jedisConnFactory.afterPropertiesSet();
 
 		// JRedis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort()));
 		jredisConnFactory.afterPropertiesSet();
 
 		// Lettuce
@@ -56,8 +56,7 @@ public abstract class AtomicCountersParam {
 		srpConnFactory.setHostName(SettingsUtils.getHost());
 		srpConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { jedisConnFactory },
-				{ jredisConnFactory}, { lettuceConnFactory },
-				{ srpConnFactory} });
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { jredisConnFactory }, { lettuceConnFactory },
+				{ srpConnFactory } });
 	}
 }

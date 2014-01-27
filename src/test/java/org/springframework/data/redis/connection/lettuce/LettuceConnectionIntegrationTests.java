@@ -42,11 +42,10 @@ import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 /**
  * Integration test of {@link LettuceConnection}
- *
+ * 
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -57,8 +56,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	public void testMultiThreadsOneBlocking() throws Exception {
 		Thread th = new Thread(new Runnable() {
 			public void run() {
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-						connectionFactory.getConnection());
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 				conn2.openPipeline();
 				conn2.bLPop(3, "multilist");
 				conn2.closePipeline();
@@ -77,8 +75,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		connection.set("txs1", "rightnow");
 		connection.multi();
 		connection.set("txs1", "delay");
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 
 		// We get immediate results executing command in separate conn (not part
 		// of tx)
@@ -91,8 +88,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 		// Now it should be set
 		assertEquals("delay", conn2.get("txs1"));
-        conn2.closePipeline();
-        conn2.close();
+		conn2.closePipeline();
+		conn2.close();
 	}
 
 	@Test
@@ -120,14 +117,12 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			// can't do blocking ops after closing
 			connection.bLPop(1, "what".getBytes());
 			fail("Expected exception using a closed conn for dedicated ops");
-		}catch(RedisSystemException e) {
-		}
+		} catch (RedisSystemException e) {}
 	}
 
 	@Test
 	public void testClosePooledConnectionWithShared() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
@@ -140,15 +135,14 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 		// The dedicated connection should not be closed b/c it's part of a pool
 		connection.multi();
-        connection.close();
+		connection.close();
 		factory2.destroy();
-        pool.destroy();
+		pool.destroy();
 	}
 
 	@Test
 	public void testClosePooledConnectionNotShared() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
@@ -160,13 +154,13 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		// The dedicated connection should not be closed
 		connection.ping();
 
-        connection.close();
+		connection.close();
 		factory2.destroy();
-        pool.destroy();
+		pool.destroy();
 	}
 
 	@Test
-	public void testCloseNonPooledConnectionNotShared()  {
+	public void testCloseNonPooledConnectionNotShared() {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
@@ -178,16 +172,14 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		try {
 			connection.set("foo".getBytes(), "bar".getBytes());
 			fail("Exception should be thrown trying to use a closed connection");
-		}catch(RedisSystemException e) {
-		}
+		} catch (RedisSystemException e) {}
 		factory2.destroy();
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testCloseReturnBrokenResourceToPool() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
@@ -195,30 +187,28 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		RedisConnection connection = factory2.getConnection();
 		// Use the connection to make sure the channel is initialized, else nothing happens on close
 		connection.ping();
-		((RedisAsyncConnection)connection.getNativeConnection()).close();
+		((RedisAsyncConnection) connection.getNativeConnection()).close();
 		try {
 			connection.ping();
 			fail("Exception should be thrown trying to use a closed connection");
-		}catch(RedisSystemException e) {
-		}
+		} catch (RedisSystemException e) {}
 		connection.close();
 		factory2.destroy();
-        pool.destroy();
+		pool.destroy();
 	}
 
 	@Test
 	public void testSelectNotShared() {
-		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
 		connection.select(2);
-        connection.close();
+		connection.close();
 		factory2.destroy();
-        pool.destroy();
+		pool.destroy();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -226,7 +216,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		super.testSelect();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
@@ -234,7 +224,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testScriptKill() throws Exception{
+	public void testScriptKill() throws Exception {
 		getResults();
 		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
 		final AtomicBoolean scriptDead = new AtomicBoolean(false);
@@ -244,15 +234,14 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
 						SettingsUtils.getPort());
 				factory2.afterPropertiesSet();
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-						factory2.getConnection());
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 				try {
 					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
-				}catch(DataAccessException e) {
+				} catch (DataAccessException e) {
 					scriptDead.set(true);
 				}
 				conn2.close();
-                factory2.destroy();
+				factory2.destroy();
 			}
 		});
 		th.start();
@@ -269,20 +258,20 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}));
+		verifyResults(Arrays.asList(new Object[] { true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar",conn2.get("foo"));
+			assertEquals("bar", conn2.get("foo"));
 		} finally {
-			if(conn2.exists("foo")) {
+			if (conn2.exists("foo")) {
 				conn2.del("foo");
 			}
 			conn2.close();
-            factory2.destroy();
+			factory2.destroy();
 		}
 	}
 }

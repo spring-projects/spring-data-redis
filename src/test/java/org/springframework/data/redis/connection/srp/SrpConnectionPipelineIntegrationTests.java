@@ -28,27 +28,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Integration test of {@link SrpConnection} pipeline functionality
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("SrpConnectionIntegrationTests-context.xml")
-public class SrpConnectionPipelineIntegrationTests extends
-		AbstractConnectionPipelineIntegrationTests {
+public class SrpConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayOKs() {
 		// SRP returns the Strings from individual StatusReplys in a
 		// MultiBulkReply, while other clients return as byte[]
-		actual.add(connection.eval(
-				"return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
+		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { "OK", "OK" }) }));
 	}
 
-	@Test(expected=RedisSystemException.class)
+	@Test(expected = RedisSystemException.class)
 	public void testExecWithoutMulti() {
 		connection.exec();
 		// SRP throws an Exception right away on exec instead of once pipeline is closed

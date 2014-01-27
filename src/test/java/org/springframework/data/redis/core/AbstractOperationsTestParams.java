@@ -46,7 +46,7 @@ abstract public class AbstractOperationsTestParams {
 	 * @see DATAREDIS-241
 	 */
 	public static Collection<Object[]> testParams() {
-		
+
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();

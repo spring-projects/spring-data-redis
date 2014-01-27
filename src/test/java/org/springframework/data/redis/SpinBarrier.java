@@ -16,21 +16,16 @@
 package org.springframework.data.redis;
 
 /**
- *
  * @author Jennifer Hickey
- *
  */
 abstract public class SpinBarrier {
 
 	/**
 	 * Periodically tests for a condition until it is met or a timeout occurs
 	 * 
-	 * @param condition
-	 *            The condition to periodically test
-	 * @param timeout
-	 *            The timeout
-	 * @return true if condition passes, false if condition does not pass within
-	 *         timeout
+	 * @param condition The condition to periodically test
+	 * @param timeout The timeout
+	 * @return true if condition passes, false if condition does not pass within timeout
 	 */
 	public static boolean waitFor(TestCondition condition, long timeout) {
 		boolean passes = false;
@@ -41,8 +36,7 @@ abstract public class SpinBarrier {
 			}
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) {}
 		}
 		return passes;
 	}

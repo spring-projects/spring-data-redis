@@ -31,24 +31,24 @@ import org.springframework.data.redis.PersonObjectFactory;
  * @author Christoph Strobl
  */
 public class Jackson2JsonRedisSerializerTests {
-	
+
 	private Jackson2JsonRedisSerializer<Person> serializer;
-	
+
 	@Before
 	public void setUp() {
 		this.serializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 	}
-	
+
 	/**
-	 * @see DATAREDIS-241 
+	 * @see DATAREDIS-241
 	 */
 	@Test
 	public void testJackson2JsonSerializer() throws Exception {
-		
+
 		Person person = new PersonObjectFactory().instance();
 		assertEquals(person, serializer.deserialize(serializer.serialize(person)));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-241
 	 */
@@ -56,7 +56,7 @@ public class Jackson2JsonRedisSerializerTests {
 	public void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
 		assertThat(serializer.serialize(null), Is.is(new byte[0]));
 	}
-	
+
 	/**
 	 * @see DTATREDIS-241
 	 */
@@ -64,24 +64,24 @@ public class Jackson2JsonRedisSerializerTests {
 	public void testJackson2JsonSerializerShouldReturnNullWhenDerserializingEmtyByteArray() {
 		assertThat(serializer.deserialize(new byte[0]), IsNull.nullValue());
 	}
-	
+
 	/**
 	 * @see DTATREDIS-241
 	 */
-	@Test(expected=SerializationException.class)
+	@Test(expected = SerializationException.class)
 	public void testJackson2JsonSerilizerShouldThrowExceptionWhenDeserializingInvalidByteArray() {
-		
+
 		Person person = new PersonObjectFactory().instance();
-		byte [] serializedValue = serializer.serialize(person);
-		Arrays.sort(serializedValue); //corrupt serialization result
-		
+		byte[] serializedValue = serializer.serialize(person);
+		Arrays.sort(serializedValue); // corrupt serialization result
+
 		serializer.deserialize(serializedValue);
 	}
-	
+
 	/**
 	 * @see DTATREDIS-241
 	 */
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
 		serializer.setObjectMapper(null);
 	}

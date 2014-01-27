@@ -27,56 +27,47 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Unit test of {@link SrpUtils}
- *
+ * 
  * @author Jennifer Hickey
- * @author Thomas Darimont
- *
- * Suppressed deprecation warnings since SrpUtils is deprecated.
+ * @author Thomas Darimont Suppressed deprecation warnings since SrpUtils is deprecated.
  */
 @SuppressWarnings("deprecation")
 public class SrpUtilsTests {
 
 	@Test
 	public void testSortParamsWithAllParams() {
-		SortParameters sortParams = new DefaultSortParameters().alpha().asc()
-				.by("weight_*".getBytes()).get("object_*".getBytes())
-				.limit(0, 5);
+		SortParameters sortParams = new DefaultSortParameters().alpha().asc().by("weight_*".getBytes())
+				.get("object_*".getBytes()).limit(0, 5);
 		Object[] sort = SrpUtils.sortParams(sortParams, "foo".getBytes());
-		assertArrayEquals(new String[] { "BY", "weight_*", "LIMIT 0 5", "GET",
-				"object_*", "ASC", "ALPHA", "STORE", "foo" },
+		assertArrayEquals(
+				new String[] { "BY", "weight_*", "LIMIT 0 5", "GET", "object_*", "ASC", "ALPHA", "STORE", "foo" },
 				convertByteArrays(sort));
 	}
 
 	@Test
 	public void testSortParamsOnlyBy() {
-		SortParameters sortParams = new DefaultSortParameters().numeric().by(
-				"weight_*".getBytes());
+		SortParameters sortParams = new DefaultSortParameters().numeric().by("weight_*".getBytes());
 		Object[] sort = SrpUtils.sortParams(sortParams);
-		assertArrayEquals(new String[] { "BY", "weight_*" },
-				convertByteArrays(sort));
+		assertArrayEquals(new String[] { "BY", "weight_*" }, convertByteArrays(sort));
 	}
 
 	@Test
 	public void testSortParamsOnlyLimit() {
-		SortParameters sortParams = new DefaultSortParameters().numeric()
-				.limit(0, 5);
+		SortParameters sortParams = new DefaultSortParameters().numeric().limit(0, 5);
 		Object[] sort = SrpUtils.sortParams(sortParams);
 		assertArrayEquals(new String[] { "LIMIT 0 5" }, convertByteArrays(sort));
 	}
 
 	@Test
 	public void testSortParamsOnlyGetPatterns() {
-		SortParameters sortParams = new DefaultSortParameters().numeric()
-				.get("foo".getBytes()).get("bar".getBytes());
+		SortParameters sortParams = new DefaultSortParameters().numeric().get("foo".getBytes()).get("bar".getBytes());
 		Object[] sort = SrpUtils.sortParams(sortParams);
-		assertArrayEquals(new String[] { "GET", "foo", "GET", "bar" },
-				convertByteArrays(sort));
+		assertArrayEquals(new String[] { "GET", "foo", "GET", "bar" }, convertByteArrays(sort));
 	}
 
 	@Test
 	public void testSortParamsOnlyOrder() {
-		SortParameters sortParams = new DefaultSortParameters().numeric()
-				.desc();
+		SortParameters sortParams = new DefaultSortParameters().numeric().desc();
 		Object[] sort = SrpUtils.sortParams(sortParams);
 		assertArrayEquals(new String[] { "DESC" }, convertByteArrays(sort));
 	}
@@ -92,48 +83,41 @@ public class SrpUtilsTests {
 	public void testSortParamsOnlyStore() {
 		SortParameters sortParams = new DefaultSortParameters().numeric();
 		Object[] sort = SrpUtils.sortParams(sortParams, "storelist".getBytes());
-		assertArrayEquals(new String[] { "STORE", "storelist" },
-				convertByteArrays(sort));
+		assertArrayEquals(new String[] { "STORE", "storelist" }, convertByteArrays(sort));
 	}
 
 	@Test
 	public void testSortWithAllParams() {
-		SortParameters sortParams = new DefaultSortParameters().alpha().asc()
-				.by("weight_*".getBytes()).get("object_*".getBytes())
-				.limit(0, 5);
+		SortParameters sortParams = new DefaultSortParameters().alpha().asc().by("weight_*".getBytes())
+				.get("object_*".getBytes()).limit(0, 5);
 		byte[] sort = SrpUtils.sort(sortParams, "foo".getBytes());
-		assertEquals("BY weight_* LIMIT 0 5 GET object_* ASC ALPHA STORE foo",
-				new String(sort));
+		assertEquals("BY weight_* LIMIT 0 5 GET object_* ASC ALPHA STORE foo", new String(sort));
 	}
 
 	@Test
 	public void testSortOnlyBy() {
-		SortParameters sortParams = new DefaultSortParameters().numeric().by(
-				"weight_*".getBytes());
+		SortParameters sortParams = new DefaultSortParameters().numeric().by("weight_*".getBytes());
 		byte[] sort = SrpUtils.sort(sortParams);
 		assertEquals("BY weight_*", new String(sort));
 	}
 
 	@Test
 	public void testSortOnlyLimit() {
-		SortParameters sortParams = new DefaultSortParameters().numeric()
-				.limit(0, 5);
+		SortParameters sortParams = new DefaultSortParameters().numeric().limit(0, 5);
 		byte[] sort = SrpUtils.sort(sortParams);
 		assertEquals("LIMIT 0 5", new String(sort));
 	}
 
 	@Test
 	public void testSortOnlyGetPatterns() {
-		SortParameters sortParams = new DefaultSortParameters().numeric()
-				.get("foo".getBytes()).get("bar".getBytes());
+		SortParameters sortParams = new DefaultSortParameters().numeric().get("foo".getBytes()).get("bar".getBytes());
 		byte[] sort = SrpUtils.sort(sortParams);
 		assertEquals("GET foo GET bar", new String(sort));
 	}
 
 	@Test
 	public void testSortOnlyOrder() {
-		SortParameters sortParams = new DefaultSortParameters().numeric()
-				.desc();
+		SortParameters sortParams = new DefaultSortParameters().numeric().desc();
 		byte[] sort = SrpUtils.sort(sortParams);
 		assertEquals("DESC", new String(sort));
 	}

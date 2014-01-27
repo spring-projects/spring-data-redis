@@ -19,8 +19,7 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Redis extension for the {@link Set} contract. Supports {@link Set} specific
- * operations backed by Redis operations.
+ * Redis extension for the {@link Set} contract. Supports {@link Set} specific operations backed by Redis operations.
  * 
  * @author Costin Leau
  */

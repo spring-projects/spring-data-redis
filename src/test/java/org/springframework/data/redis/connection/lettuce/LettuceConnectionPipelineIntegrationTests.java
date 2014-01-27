@@ -39,22 +39,20 @@ import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
- *
+ * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
-public class LettuceConnectionPipelineIntegrationTests extends
-		AbstractConnectionPipelineIntegrationTests {
-	
-	@Test(expected=UnsupportedOperationException.class)
+public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
+
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
@@ -62,7 +60,7 @@ public class LettuceConnectionPipelineIntegrationTests extends
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
-	public void testScriptKill() throws Exception{
+	public void testScriptKill() throws Exception {
 		getResults();
 		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
 		initConnection();
@@ -73,15 +71,14 @@ public class LettuceConnectionPipelineIntegrationTests extends
 				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
 						SettingsUtils.getPort());
 				factory2.afterPropertiesSet();
-				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-						factory2.getConnection());
+				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 				try {
 					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
-				}catch(DataAccessException e) {
+				} catch (DataAccessException e) {
 					scriptDead.set(true);
 				}
 				conn2.close();
-                factory2.destroy();
+				factory2.destroy();
 			}
 		});
 		th.start();
@@ -99,20 +96,20 @@ public class LettuceConnectionPipelineIntegrationTests extends
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}));
+		verifyResults(Arrays.asList(new Object[] { true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar",conn2.get("foo"));
+			assertEquals("bar", conn2.get("foo"));
 		} finally {
-			if(conn2.exists("foo")) {
+			if (conn2.exists("foo")) {
 				conn2.del("foo");
 			}
 			conn2.close();
-            factory2.destroy();
+			factory2.destroy();
 		}
 	}
 }

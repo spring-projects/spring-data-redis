@@ -16,7 +16,7 @@
 package org.springframework.data.redis;
 
 /**
- * Simple object factory. 
+ * Simple object factory.
  * 
  * @author Costin Leau
  */

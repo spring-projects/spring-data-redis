@@ -20,9 +20,8 @@ import org.springframework.data.redis.connection.DataType;
 
 /**
  * Converts Strings to {@link DataType}s
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class StringToDataTypeConverter implements Converter<String, DataType> {
 

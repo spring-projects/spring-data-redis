@@ -25,16 +25,13 @@ import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 
 /**
- * Default implementation of {@link RedisScript}. Delegates to an underlying {@link ScriptSource} to
- * retrieve script text and detect if script has been modified (and thus should have SHA1
- * re-calculated). This class is best used as a Singleton to avoid re-calculation of SHA1 on every
- * script execution.
- *
+ * Default implementation of {@link RedisScript}. Delegates to an underlying {@link ScriptSource} to retrieve script
+ * text and detect if script has been modified (and thus should have SHA1 re-calculated). This class is best used as a
+ * Singleton to avoid re-calculation of SHA1 on every script execution.
+ * 
  * @author Jennifer Hickey
- *
- * @param <T>
- *            The script result type. Should be one of Long, Boolean, List, or deserialized value
- *            type. Can be null if the script returns a throw-away status (i.e "OK")
+ * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be null if
+ *          the script returns a throw-away status (i.e "OK")
  */
 public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 
@@ -47,8 +44,7 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	private final Object shaModifiedMonitor = new Object();
 
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.scriptSource, "Either script, script location,"
-				+ " or script source is required");
+		Assert.notNull(this.scriptSource, "Either script, script location," + " or script source is required");
 	}
 
 	public String getSha1() {
@@ -73,37 +69,29 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	}
 
 	/**
-	 *
-	 * @param resultType
-	 *            The script result type. Should be one of Long, Boolean, List, or deserialized
-	 *            value type. Can be null if the script returns a throw-away status (i.e "OK")
+	 * @param resultType The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be
+	 *          null if the script returns a throw-away status (i.e "OK")
 	 */
 	public void setResultType(Class<T> resultType) {
 		this.resultType = resultType;
 	}
 
 	/**
-	 *
-	 * @param script
-	 *            The script text
+	 * @param script The script text
 	 */
 	public void setScriptText(String scriptText) {
 		this.scriptSource = new StaticScriptSource(scriptText);
 	}
 
 	/**
-	 *
-	 * @param scriptLocation
-	 *            The location of the script
+	 * @param scriptLocation The location of the script
 	 */
 	public void setLocation(Resource scriptLocation) {
 		this.scriptSource = new ResourceScriptSource(scriptLocation);
 	}
 
 	/**
-	 *
-	 * @param scriptSource
-	 *            A @{link {@link ScriptSource} pointing to the script
+	 * @param scriptSource A @{link {@link ScriptSource} pointing to the script
 	 */
 	public void setScriptSource(ScriptSource scriptSource) {
 		this.scriptSource = scriptSource;

@@ -29,23 +29,21 @@ import static org.junit.Assert.*;
 
 /**
  * Unit test of {@link DefaultLettucePool}
- *
+ * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
-public class
-        DefaultLettucePoolTests {
+public class DefaultLettucePoolTests {
 
 	private DefaultLettucePool pool;
 
 	@After
 	public void tearDown() {
-		if(this.pool != null) {
+		if (this.pool != null) {
 
-            if(this.pool.getClient() != null){
-                this.pool.getClient().shutdown();
-            }
+			if (this.pool.getClient() != null) {
+				this.pool.getClient().shutdown();
+			}
 
 			this.pool.destroy();
 		}
@@ -58,7 +56,7 @@ public class
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
 		client.ping();
-        client.close();
+		client.close();
 	}
 
 	@Test
@@ -73,10 +71,9 @@ public class
 		try {
 			pool.getResource();
 			fail("PoolException should be thrown when pool exhausted");
-		} catch (PoolException e) {
-		}finally{
-            client.close();
-        }
+		} catch (PoolException e) {} finally {
+			client.close();
+		}
 	}
 
 	@Test
@@ -87,7 +84,7 @@ public class
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
 		assertNotNull(client);
-        client.close();
+		client.close();
 	}
 
 	@Test(expected = PoolException.class)
@@ -108,7 +105,7 @@ public class
 		assertNotNull(client);
 		pool.returnResource(client);
 		assertNotNull(pool.getResource());
-        client.close();
+		client.close();
 	}
 
 	@Test
@@ -126,11 +123,10 @@ public class
 		try {
 			client.ping();
 			fail("Broken resouce connection should be closed");
-		} catch (RedisException e) {
-		} finally{
-            client.close();
-            client2.close();
-        }
+		} catch (RedisException e) {} finally {
+			client.close();
+			client2.close();
+		}
 	}
 
 	@Test
@@ -165,7 +161,7 @@ public class
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> conn = pool.getResource();
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 	@Ignore("Redis must have requirepass set to run this test")

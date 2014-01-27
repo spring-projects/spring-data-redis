@@ -31,8 +31,8 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * Atomic integer backed by Redis.
- * Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS operations. 
+ * Atomic integer backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
+ * operations.
  * 
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
@@ -43,11 +43,9 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	private ValueOperations<String, Integer> operations;
 	private RedisOperations<String, Integer> generalOps;
 
-
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing
-	 * in Redis or 0 if none is found.
-	 *
+	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * 
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
 	 */
@@ -57,7 +55,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance.
-	 *
+	 * 
 	 * @param redisCounter the redis counter
 	 * @param factory the factory
 	 * @param initialValue the initial value
@@ -67,9 +65,8 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing
-	 * in Redis or 0 if none is found.
-	 *
+	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 */
@@ -79,7 +76,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance.
-	 *
+	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @param initialValue the initial value
@@ -104,8 +101,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 			if (this.operations.get(redisCounter) == null) {
 				set(0);
 			}
-		}
-		else {
+		} else {
 			set(initialValue);
 		}
 	}
@@ -119,14 +115,14 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 			if (this.operations.get(redisCounter) == null) {
 				set(0);
 			}
-		}
-		else {
+		} else {
 			set(initialValue);
 		}
 	}
+
 	/**
 	 * Get the current value.
-	 *
+	 * 
 	 * @return the current value
 	 */
 	public int get() {
@@ -135,7 +131,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Set to the given value.
-	 *
+	 * 
 	 * @param newValue the new value
 	 */
 	public void set(int newValue) {
@@ -144,7 +140,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Set to the give value and return the old value.
-	 *
+	 * 
 	 * @param newValue the new value
 	 * @return the previous value
 	 */
@@ -153,18 +149,16 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	/**
-	 * Atomically set the value to the given updated value
-	 * if the current value <tt>==</tt> the expected value.
+	 * Atomically set the value to the given updated value if the current value <tt>==</tt> the expected value.
+	 * 
 	 * @param expect the expected value
 	 * @param update the new value
-	 * @return true if successful. False return indicates that
-	 * the actual value was not equal to the expected value.
+	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
 	 */
 	public boolean compareAndSet(final int expect, final int update) {
 		return generalOps.execute(new SessionCallback<Boolean>() {
 
 			@SuppressWarnings("unchecked")
-			
 			public Boolean execute(RedisOperations operations) {
 				for (;;) {
 					operations.watch(Collections.singleton(key));
@@ -192,18 +186,18 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		return incrementAndGet() - 1;
 	}
 
-
 	/**
 	 * Atomically decrement by one the current value.
+	 * 
 	 * @return the previous value
 	 */
 	public int getAndDecrement() {
 		return decrementAndGet() + 1;
 	}
 
-
 	/**
 	 * Atomically add the given value to current value.
+	 * 
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
@@ -213,6 +207,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically increment by one the current value.
+	 * 
 	 * @return the updated value
 	 */
 	public int incrementAndGet() {
@@ -221,15 +216,16 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically decrement by one the current value.
+	 * 
 	 * @return the updated value
 	 */
 	public int decrementAndGet() {
 		return operations.increment(key, -1).intValue();
 	}
 
-
 	/**
 	 * Atomically add the given value to current value.
+	 * 
 	 * @param delta the value to add
 	 * @return the updated value
 	 */
@@ -239,12 +235,12 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Returns the String representation of the current value.
+	 * 
 	 * @return the String representation of the current value.
 	 */
 	public String toString() {
 		return Integer.toString(get());
 	}
-
 
 	public int intValue() {
 		return get();
@@ -262,38 +258,31 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 		return (double) get();
 	}
 
-	
 	public String getKey() {
 		return key;
 	}
 
-	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}
 
-	
 	public Boolean expireAt(Date date) {
 		return generalOps.expireAt(key, date);
 	}
 
-	
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
-	
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
 
-	
 	public void rename(String newKey) {
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
 
-	
 	public DataType getType() {
 		return DataType.STRING;
 	}

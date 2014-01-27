@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Default implementation for {@link SortParameters}.
  * 
@@ -41,7 +40,7 @@ public class DefaultSortParameters implements SortParameters {
 
 	/**
 	 * Constructs a new <code>DefaultSortParameters</code> instance.
-	 *
+	 * 
 	 * @param limit
 	 * @param order
 	 * @param alphabetic
@@ -52,7 +51,7 @@ public class DefaultSortParameters implements SortParameters {
 
 	/**
 	 * Constructs a new <code>DefaultSortParameters</code> instance.
-	 *
+	 * 
 	 * @param byPattern
 	 * @param limit
 	 * @param getPattern
@@ -68,7 +67,6 @@ public class DefaultSortParameters implements SortParameters {
 		setGetPattern(getPattern);
 	}
 
-	
 	public byte[] getByPattern() {
 		return byPattern;
 	}
@@ -77,7 +75,6 @@ public class DefaultSortParameters implements SortParameters {
 		this.byPattern = byPattern;
 	}
 
-	
 	public Range getLimit() {
 		return limit;
 	}
@@ -86,7 +83,6 @@ public class DefaultSortParameters implements SortParameters {
 		this.limit = limit;
 	}
 
-	
 	public byte[][] getGetPattern() {
 		return getPattern.toArray(new byte[getPattern.size()][]);
 	}
@@ -98,7 +94,7 @@ public class DefaultSortParameters implements SortParameters {
 	public void setGetPattern(byte[][] gPattern) {
 		getPattern.clear();
 
-		if(gPattern == null) {
+		if (gPattern == null) {
 			return;
 		}
 
@@ -107,7 +103,6 @@ public class DefaultSortParameters implements SortParameters {
 		}
 	}
 
-	
 	public Order getOrder() {
 		return order;
 	}
@@ -116,7 +111,6 @@ public class DefaultSortParameters implements SortParameters {
 		this.order = order;
 	}
 
-	
 	public Boolean isAlphabetic() {
 		return alphabetic;
 	}

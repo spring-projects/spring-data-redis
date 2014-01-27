@@ -41,20 +41,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 
 /**
- * Container providing asynchronous behaviour for Redis message listeners.
- * Handles the low level details of listening, converting and message dispatching.
+ * Container providing asynchronous behaviour for Redis message listeners. Handles the low level details of listening,
+ * converting and message dispatching.
  * <p/>
- * As oppose to the low level Redis (one connection per subscription), the container 
- * uses only one connection that is 'multiplexed' for all registered listeners, 
- * the message dispatch being done through the task executor.
- * 
+ * As oppose to the low level Redis (one connection per subscription), the container uses only one connection that is
+ * 'multiplexed' for all registered listeners, the message dispatch being done through the task executor.
  * <p/>
- * Note the container uses the connection in a lazy fashion (the connection is used only if at least one listener is configured).
- * 
+ * Note the container uses the connection in a lazy fashion (the connection is used only if at least one listener is
+ * configured).
  * <p/>
- * Adding and removing listeners at the same time has undefined results. It is strongly recommended to synchronize/order these
- * methods accordingly.
- * 
+ * Adding and removing listeners at the same time has undefined results. It is strongly recommended to synchronize/order
+ * these methods accordingly.
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -65,7 +62,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
-
 
 	/**
 	 * Default thread name prefix: "RedisListeningContainer-".
@@ -95,7 +91,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private ErrorHandler errorHandler;
 
-
 	private final Object monitor = new Object();
 	// whether the container is running (or not)
 	private volatile boolean running = false;
@@ -107,9 +102,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	private volatile boolean manageExecutor = false;
 
-
 	// lookup maps
-	// to avoid creation of hashes for each message, the maps use raw byte arrays (wrapped to respect the equals/hashcode contract)
+	// to avoid creation of hashes for each message, the maps use raw byte arrays (wrapped to respect the equals/hashcode
+	// contract)
 
 	// lookup map between patterns and listeners
 	private final Map<ByteArrayWrapper, Collection<MessageListener>> patternMapping = new ConcurrentHashMap<ByteArrayWrapper, Collection<MessageListener>>();
@@ -121,7 +116,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	private final SubscriptionTask subscriptionTask = new SubscriptionTask();
 
 	private volatile RedisSerializer<String> serializer = new StringRedisSerializer();
-	
+
 	private long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private long maxSubscriptionRegistrationWaitingTime = DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME;
@@ -141,15 +136,16 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * Creates a default TaskExecutor. Called if no explicit TaskExecutor has been specified.
-	 * <p>The default implementation builds a {@link org.springframework.core.task.SimpleAsyncTaskExecutor}
-	 * with the specified bean name (or the class name, if no bean name specified) as thread name prefix.
+	 * <p>
+	 * The default implementation builds a {@link org.springframework.core.task.SimpleAsyncTaskExecutor} with the
+	 * specified bean name (or the class name, if no bean name specified) as thread name prefix.
+	 * 
 	 * @see org.springframework.core.task.SimpleAsyncTaskExecutor#SimpleAsyncTaskExecutor(String)
 	 */
 	protected TaskExecutor createDefaultTaskExecutor() {
 		String threadNamePrefix = (beanName != null ? beanName + "-" : DEFAULT_THREAD_NAME_PREFIX);
 		return new SimpleAsyncTaskExecutor(threadNamePrefix);
 	}
-
 
 	public void destroy() throws Exception {
 		initialized = false;
@@ -167,28 +163,23 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-
 	public boolean isAutoStartup() {
 		return true;
 	}
-
 
 	public void stop(Runnable callback) {
 		stop();
 		callback.run();
 	}
 
-
 	public int getPhase() {
 		// start the latest
 		return Integer.MAX_VALUE;
 	}
 
-
 	public boolean isRunning() {
 		return running;
 	}
-
 
 	public void start() {
 		if (!running) {
@@ -197,7 +188,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			// technically speaking we can only be notified right before the subscription starts
 			synchronized (monitor) {
 				lazyListen();
-				if(listening) {
+				if (listening) {
 					try {
 						// wait up to 5 seconds for Subscription thread
 						monitor.wait(initWait);
@@ -213,7 +204,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-
 	public void stop() {
 		if (isRunning()) {
 			running = false;
@@ -225,7 +215,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-
 	/**
 	 * Process a message received from the provider.
 	 * 
@@ -235,7 +224,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	protected void processMessage(MessageListener listener, Message message, byte[] pattern) {
 		executeListener(listener, message, pattern);
 	}
-
 
 	/**
 	 * Execute the specified listener.
@@ -251,8 +239,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Return whether this container is currently active,
-	 * that is, whether it has been set up but not shut down yet.
+	 * Return whether this container is currently active, that is, whether it has been set up but not shut down yet.
 	 */
 	public final boolean isActive() {
 		return initialized;
@@ -260,8 +247,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * Handle the given exception that arose during listener execution.
-	 * <p>The default implementation logs the exception at error level.
-	 * This can be overridden in subclasses.
+	 * <p>
+	 * The default implementation logs the exception at error level. This can be overridden in subclasses.
+	 * 
 	 * @param ex the exception to handle
 	 */
 	protected void handleListenerException(Throwable ex) {
@@ -269,8 +257,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			// Regular case: failed while active.
 			// Invoke ErrorHandler if available.
 			invokeErrorHandler(ex);
-		}
-		else {
+		} else {
 			// Rare case: listener thread failed after container shutdown.
 			// Log at debug level, to avoid spamming the shutdown logger.
 			logger.debug("Listener exception after container shutdown", ex);
@@ -279,21 +266,21 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * Invoke the registered ErrorHandler, if any. Log at error level otherwise.
+	 * 
 	 * @param ex the uncaught error that arose during message processing.
 	 * @see #setErrorHandler
 	 */
 	protected void invokeErrorHandler(Throwable ex) {
 		if (this.errorHandler != null) {
 			this.errorHandler.handleError(ex);
-		}
-		else if (logger.isWarnEnabled()) {
+		} else if (logger.isWarnEnabled()) {
 			logger.warn("Execution of JMS message listener failed, and no ErrorHandler has been set.", ex);
 		}
 	}
 
 	/**
 	 * Returns the connectionFactory.
-	 *
+	 * 
 	 * @return Returns the connectionFactory
 	 */
 	public RedisConnectionFactory getConnectionFactory() {
@@ -307,17 +294,14 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		this.connectionFactory = connectionFactory;
 	}
 
-
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
 
-
 	/**
-	 * Sets the task executor used for running the message listeners when messages are received.
-	 * If no task executor is set, an instance of {@link SimpleAsyncTaskExecutor} will be used by default.
-	 * The task executor can be adjusted depending on the work done by the listeners and the number of 
-	 * messages coming in.
+	 * Sets the task executor used for running the message listeners when messages are received. If no task executor is
+	 * set, an instance of {@link SimpleAsyncTaskExecutor} will be used by default. The task executor can be adjusted
+	 * depending on the work done by the listeners and the number of messages coming in.
 	 * 
 	 * @param taskExecutor The taskExecutor to set.
 	 */
@@ -326,12 +310,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Sets the task execution used for subscribing to Redis channels. By default, if no executor is set,
-	 * the {@link #setTaskExecutor(Executor)} will be used. In some cases, this might be undersired as
-	 * the listening to the connection is a long running task.
-	 *
-	 * <p/>Note: This implementation uses at most one long running thread (depending on whether there are any listeners registered or not)
-	 * and up to two threads during the initial registration. 
+	 * Sets the task execution used for subscribing to Redis channels. By default, if no executor is set, the
+	 * {@link #setTaskExecutor(Executor)} will be used. In some cases, this might be undersired as the listening to the
+	 * connection is a long running task.
+	 * <p/>
+	 * Note: This implementation uses at most one long running thread (depending on whether there are any listeners
+	 * registered or not) and up to two threads during the initial registration.
 	 * 
 	 * @param subscriptionExecutor The subscriptionExecutor to set.
 	 */
@@ -340,8 +324,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Sets the serializer for converting the {@link Topic}s into low-level channels and patterns.
-	 * By default, {@link StringRedisSerializer} is used.
+	 * Sets the serializer for converting the {@link Topic}s into low-level channels and patterns. By default,
+	 * {@link StringRedisSerializer} is used.
 	 * 
 	 * @param serializer The serializer to set.
 	 */
@@ -350,9 +334,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown
-	 * while processing a Message. By default there will be <b>no</b> ErrorHandler
-	 * so that error-level logging is the only result.
+	 * Set an ErrorHandler to be invoked in case of any uncaught exceptions thrown while processing a Message. By default
+	 * there will be <b>no</b> ErrorHandler so that error-level logging is the only result.
 	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -360,11 +343,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * Attaches the given listeners (and their topics) to the container.
-	 * 
 	 * <p/>
-	 * Note: it's possible to call this method while the container is running forcing a reinitialization
-	 * of the container. Note however that this might cause some messages to be lost (while the container
-	 * reinitializes) - hence calling this method at runtime is considered advanced usage.
+	 * Note: it's possible to call this method while the container is running forcing a reinitialization of the container.
+	 * Note however that this might cause some messages to be lost (while the container reinitializes) - hence calling
+	 * this method at runtime is considered advanced usage.
 	 * 
 	 * @param listeners map of message listeners and their associated topics
 	 */
@@ -373,8 +355,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Adds a message listener to the (potentially running) container. If the container is running,
-	 * the listener starts receiving (matching) messages as soon as possible.
+	 * Adds a message listener to the (potentially running) container. If the container is running, the listener starts
+	 * receiving (matching) messages as soon as possible.
 	 * 
 	 * @param listener message listener
 	 * @param topics message listener topic
@@ -385,8 +367,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Adds a message listener to the (potentially running) container. If the container is running,
-	 * the listener starts receiving (matching) messages as soon as possible.
+	 * Adds a message listener to the (potentially running) container. If the container is running, the listener starts
+	 * receiving (matching) messages as soon as possible.
 	 * 
 	 * @param listener message listener
 	 * @param topic message topic
@@ -396,12 +378,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Removes a message listener from the given topics. If the container is running,
-	 * the listener stops receiving (matching) messages as soon as possible.
+	 * Removes a message listener from the given topics. If the container is running, the listener stops receiving
+	 * (matching) messages as soon as possible.
 	 * <p/>
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
-	 * listener from all channels.
-	 * Similarly a null listener will unsubscribe all listeners from the given topic.
+	 * listener from all channels. Similarly a null listener will unsubscribe all listeners from the given topic.
 	 * 
 	 * @param listener message listener
 	 * @param topics message listener topics
@@ -411,13 +392,12 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Removes a message listener from the from the given topic. If the container is running,
-	 * the listener stops receiving (matching) messages as soon as possible.
-	 * 
+	 * Removes a message listener from the from the given topic. If the container is running, the listener stops receiving
+	 * (matching) messages as soon as possible.
 	 * <p/>
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels. Similarly a null listener will unsubscribe all listeners from the given topic.
-	 *
+	 * 
 	 * @param listener message listener
 	 * @param topic message topic
 	 */
@@ -426,9 +406,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Removes the given message listener completely (from all topics). If the container is running,
-	 * the listener stops receiving (matching) messages as soon as possible.
-	 * Similarly a null listener will unsubscribe all listeners from the given topic.
+	 * Removes the given message listener completely (from all topics). If the container is running, the listener stops
+	 * receiving (matching) messages as soon as possible. Similarly a null listener will unsubscribe all listeners from
+	 * the given topic.
 	 * 
 	 * @param listener message listener
 	 */
@@ -479,8 +459,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				if (debug) {
 					if (started) {
 						logger.debug("Started listening for Redis messages");
-					}
-					else {
+					} else {
 						logger.debug("Postpone listening for Redis messages until actual listeners are added");
 					}
 				}
@@ -604,7 +583,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 	}
 
-	private void remove(MessageListener listener, Topic topic, ByteArrayWrapper holder, Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
+	private void remove(MessageListener listener, Topic topic, ByteArrayWrapper holder,
+			Map<ByteArrayWrapper, Collection<MessageListener>> mapping, List<byte[]> topicToRemove) {
 
 		Collection<MessageListener> listeners = mapping.get(holder);
 		Collection<MessageListener> listenersToRemove = null;
@@ -631,7 +611,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 					listenerTopics.remove(messageListener);
 				}
 			}
-			// if we removed everything, remove the empty holder collection 
+			// if we removed everything, remove the empty holder collection
 			if (listener == null || listeners.isEmpty()) {
 				mapping.remove(holder);
 				topicToRemove.add(holder.getArray());
@@ -640,17 +620,17 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Handle subscription task exception. Will attempt to restart the subscription
-	 * if the Exception is a connection failure (for example, Redis was restarted).
+	 * Handle subscription task exception. Will attempt to restart the subscription if the Exception is a connection
+	 * failure (for example, Redis was restarted).
+	 * 
 	 * @param ex Throwable exception
 	 */
 	protected void handleSubscriptionException(Throwable ex) {
 		listening = false;
 		subscriptionTask.closeConnection();
-		if(ex instanceof RedisConnectionFailureException) {
-			if(isRunning()) {
-				logger.error("Connection failure occurred. Restarting subscription task after " +
-						recoveryInterval + " ms");
+		if (ex instanceof RedisConnectionFailureException) {
+			if (isRunning()) {
+				logger.error("Connection failure occurred. Restarting subscription task after " + recoveryInterval + " ms");
 				sleepBeforeRecoveryAttempt();
 				lazyListen();
 			}
@@ -660,34 +640,31 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Sleep according to the specified recovery interval.
-	 * Called between recovery attempts.
+	 * Sleep according to the specified recovery interval. Called between recovery attempts.
 	 */
 	protected void sleepBeforeRecoveryAttempt() {
 		if (this.recoveryInterval > 0) {
 			try {
 				Thread.sleep(this.recoveryInterval);
-			}
-			catch (InterruptedException interEx) {
+			} catch (InterruptedException interEx) {
 				logger.debug("Thread interrupted while sleeping the recovery interval");
 			}
 		}
 	}
-	
+
 	/**
-	 * Runnable used for Redis subscription. Implemented as a dedicated class to provide as many hints
-	 * as possible to the underlying thread pool.
+	 * Runnable used for Redis subscription. Implemented as a dedicated class to provide as many hints as possible to the
+	 * underlying thread pool.
 	 * 
 	 * @author Costin Leau
 	 */
 	private class SubscriptionTask implements SchedulingAwareRunnable {
 
 		/**
-		 * Runnable used, on a parallel thread, to do the initial pSubscribe.
-		 * This is required since, during initialization, both subscribe and pSubscribe
-		 * might be needed but since the first call is blocking, the second call needs to
+		 * Runnable used, on a parallel thread, to do the initial pSubscribe. This is required since, during initialization,
+		 * both subscribe and pSubscribe might be needed but since the first call is blocking, the second call needs to
 		 * executed in parallel.
-		 *  
+		 * 
 		 * @author Costin Leau
 		 */
 		private class PatternSubscriptionTask implements SchedulingAwareRunnable {
@@ -695,11 +672,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			private long WAIT = 500;
 			private long ROUNDS = 3;
 
-
 			public boolean isLongLived() {
 				return false;
 			}
-
 
 			public void run() {
 				// wait for subscription to be initialized
@@ -711,8 +686,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 							if (connection.isSubscribed()) {
 								done = true;
 								connection.getSubscription().pSubscribe(unwrap(patternMapping.keySet()));
-							}
-							else {
+							} else {
 								try {
 									Thread.sleep(WAIT);
 								} catch (InterruptedException ex) {
@@ -734,7 +708,6 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			return true;
 		}
 
-
 		public void run() {
 			synchronized (localMonitor) {
 				subscriptionTaskRunning = true;
@@ -748,7 +721,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				boolean asyncConnection = ConnectionUtils.isAsync(connectionFactory);
 
 				// NB: async drivers' Xsubscribe calls block, so we notify the RDMLC before performing the actual subscription.
-				if(!asyncConnection){
+				if (!asyncConnection) {
 					synchronized (monitor) {
 						monitor.notify();
 					}
@@ -756,11 +729,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 				SubscriptionPresentCondition subscriptionPresent = eventuallyPerformSubscription();
 
-
-				if(asyncConnection){
+				if (asyncConnection) {
 					SpinBarrier.waitFor(subscriptionPresent, getMaxSubscriptionRegistrationWaitingTime());
 
-					synchronized (monitor){
+					synchronized (monitor) {
 						monitor.notify();
 					}
 				}
@@ -778,7 +750,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		/**
 		 * Performs a potentially asynchronous registration of a subscription.
-		 *
+		 * 
 		 * @return #SubscriptionPresentCondition that can serve as a handle to check whether the subscription is ready.
 		 */
 		private SubscriptionPresentCondition eventuallyPerformSubscription() {
@@ -806,9 +778,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		/**
-		 *
 		 * Checks whether the current connection has an associated subscription.
-		 *
+		 * 
 		 * @author Thomas Darimont
 		 */
 		private class SubscriptionPresentCondition implements Condition {
@@ -820,9 +791,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 		/**
 		 * Checks whether the current connection has an associated pattern subscription.
-		 *
+		 * 
 		 * @author Thomas Darimont
-		 *
 		 * @see org.springframework.data.redis.listener.RedisMessageListenerContainer.SubscriptionTask.SubscriptionPresentTestCondition
 		 */
 		private class PatternSubscriptionPresentCondition extends SubscriptionPresentCondition {
@@ -860,20 +830,20 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			if (connection != null) {
 				Subscription sub = connection.getSubscription();
 				if (sub != null) {
-					synchronized(localMonitor) {
+					synchronized (localMonitor) {
 						logger.trace("Unsubscribing from all channels");
 						sub.pUnsubscribe();
 						sub.unsubscribe();
-						if(subscriptionTaskRunning) {
+						if (subscriptionTaskRunning) {
 							try {
 								localMonitor.wait(subscriptionWait);
 							} catch (InterruptedException e) {
 								// Stop waiting
 							}
 						}
-						if(!subscriptionTaskRunning) {
+						if (!subscriptionTaskRunning) {
 							closeConnection();
-						}else {
+						} else {
 							logger.warn("Unable to close connection. Subscription task still running");
 						}
 					}
@@ -882,11 +852,11 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		}
 
 		void closeConnection() {
-			if(connection != null) {
+			if (connection != null) {
 				logger.trace("Closing connection");
 				try {
 					connection.close();
-				} catch(Exception e) {
+				} catch (Exception e) {
 					logger.warn("Error closing subscription connection", e);
 				}
 				connection = null;
@@ -935,7 +905,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		void unsubscribePattern(byte[]... patterns) {
 			if (patterns != null && patterns.length > 0) {
 				if (connection != null) {
-					synchronized(localMonitor) {
+					synchronized (localMonitor) {
 						Subscription sub = connection.getSubscription();
 						if (sub != null) {
 							sub.pUnsubscribe(patterns);
@@ -959,8 +929,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			// if it's a pattern, disregard channel
 			if (pattern != null && pattern.length > 0) {
 				listeners = patternMapping.get(new ByteArrayWrapper(pattern));
-			}
-			else {
+			} else {
 				pattern = null;
 				// do channel matching first
 				listeners = channelMapping.get(new ByteArrayWrapper(message.getChannel()));
@@ -985,8 +954,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Specify the interval between recovery attempts, in <b>milliseconds</b>.
-	 * The default is 5000 ms, that is, 5 seconds.
+	 * Specify the interval between recovery attempts, in <b>milliseconds</b>. The default is 5000 ms, that is, 5 seconds.
+	 * 
 	 * @see #handleSubscriptionException
 	 */
 	public void setRecoveryInterval(long recoveryInterval) {
@@ -998,11 +967,10 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	}
 
 	/**
-	 * Specify the max time to wait for subscription registrations, in <b>milliseconds</b>.
-	 * The default is 2000ms, that is, 2 second.
-	 *
+	 * Specify the max time to wait for subscription registrations, in <b>milliseconds</b>. The default is 2000ms, that
+	 * is, 2 second.
+	 * 
 	 * @param maxSubscriptionRegistrationWaitingTime
-	 *
 	 * @see #DEFAULT_SUBSCRIPTION_REGISTRATION_WAIT_TIME
 	 */
 	public void setMaxSubscriptionRegistrationWaitingTime(long maxSubscriptionRegistrationWaitingTime) {
@@ -1011,28 +979,23 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * @author Jennifer Hickey
-	 * @author Thomas Darimont
-	 *
-	 * Note: Placed here to avoid API exposure.
+	 * @author Thomas Darimont Note: Placed here to avoid API exposure.
 	 */
 	private static abstract class SpinBarrier {
-		
+
 		/**
 		 * Periodically tests, in 100ms intervals, for a condition until it is met or a timeout occurs.
-		 *
-		 * @param condition
-		 *            The condition to periodically test
-		 * @param timeout
-		 *            The timeout
-		 * @return true if condition passes, false if condition does not pass within
-		 *         timeout
+		 * 
+		 * @param condition The condition to periodically test
+		 * @param timeout The timeout
+		 * @return true if condition passes, false if condition does not pass within timeout
 		 */
-	 static boolean waitFor(Condition condition, long timeout) {
-			
-			long startTime=System.currentTimeMillis();
-			
-			while(!timedOut(startTime, timeout)) {
-				if(condition.passes()) {
+		static boolean waitFor(Condition condition, long timeout) {
+
+			long startTime = System.currentTimeMillis();
+
+			while (!timedOut(startTime, timeout)) {
+				if (condition.passes()) {
 					return true;
 				}
 				try {
@@ -1043,26 +1006,22 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 			}
 			return false;
 		}
-		
+
 		private static boolean timedOut(long startTime, long timeout) {
 			return (startTime + timeout) < System.currentTimeMillis();
 		}
 	}
-	
+
 	/**
-	 *
 	 * A condition to test periodically, used in conjunction with
 	 * {@link org.springframework.data.redis.listener.RedisMessageListenerContainer.SpinBarrier}
-	 *
+	 * 
 	 * @author Jennifer Hickey
-	 * @author Thomas Darimont
-	 *
-	 * Note: Placed here to avoid API exposure.
+	 * @author Thomas Darimont Note: Placed here to avoid API exposure.
 	 */
 	private static interface Condition {
 
 		/**
-		 *
 		 * @return true if condition passes
 		 */
 		boolean passes();

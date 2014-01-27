@@ -36,9 +36,8 @@ import redis.client.ReplyListener;
 
 /**
  * Unit test of {@link SrpSubscription}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class SrpSubscriptionTests {
 

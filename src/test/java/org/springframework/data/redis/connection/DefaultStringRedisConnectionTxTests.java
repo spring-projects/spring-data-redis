@@ -940,15 +940,13 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 
 	@Test
 	public void testTypeBytes() {
-		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection)
-				.exec();
+		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection).exec();
 		super.testTypeBytes();
 	}
 
 	@Test
 	public void testType() {
-		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection)
-				.exec();
+		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection).exec();
 		super.testType();
 	}
 
@@ -1383,7 +1381,8 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	public void testDisablePipelineAndTxDeserialize() {
 		connection.setDeserializePipelineAndTxResults(false);
 		doReturn(Arrays.asList(new Object[] { barBytes })).when(nativeConnection).exec();
-		doReturn(Arrays.asList(new Object[] {Arrays.asList(new Object[] { barBytes })})).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { barBytes }) })).when(nativeConnection)
+				.closePipeline();
 		doReturn(barBytes).when(nativeConnection).get(fooBytes);
 		connection.get(foo);
 		verifyResults(Arrays.asList(new Object[] { barBytes }));
@@ -1403,7 +1402,8 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	@Test
 	public void testDiscard() {
 		doReturn(Arrays.asList(new Object[] { fooBytes })).when(nativeConnection).exec();
-		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { fooBytes })})).when(nativeConnection).closePipeline();
+		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { fooBytes }) })).when(nativeConnection)
+				.closePipeline();
 		doReturn(barBytes).when(nativeConnection).get(fooBytes);
 		doReturn(fooBytes).when(nativeConnection).get(barBytes);
 		connection.get(foo);

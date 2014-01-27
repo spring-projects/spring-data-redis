@@ -19,8 +19,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Delegating hash mapper used for flattening objects into Strings.
- * Suitable when dealing with mappers that support Strings and type conversion.
+ * Delegating hash mapper used for flattening objects into Strings. Suitable when dealing with mappers that support
+ * Strings and type conversion.
  * 
  * @author Costin Leau
  */
@@ -36,7 +36,6 @@ public class DecoratingStringHashMapper<T> implements HashMapper<T, String, Stri
 		return delegate.fromHash(hash);
 	}
 
-	
 	public Map<String, String> toHash(T object) {
 		Map<?, ?> hash = delegate.toHash(object);
 		Map<String, String> flatten = new LinkedHashMap<String, String>(hash.size());

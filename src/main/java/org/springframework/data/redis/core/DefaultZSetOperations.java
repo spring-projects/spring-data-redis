@@ -33,7 +33,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		super(template);
 	}
 
-
 	public Boolean add(final K key, final V value, final double score) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -70,11 +69,9 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long intersectAndStore(K key, K otherKey, K destKey) {
 		return intersectAndStore(key, Collections.singleton(otherKey), destKey);
 	}
-
 
 	public Long intersectAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);
@@ -86,7 +83,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 			}
 		}, true);
 	}
-
 
 	public Set<V> range(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
@@ -101,7 +97,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeValues(rawValues);
 	}
 
-
 	public Set<V> reverseRange(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
@@ -114,7 +109,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return deserializeValues(rawValues);
 	}
-
 
 	public Set<TypedTuple<V>> rangeWithScores(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
@@ -129,7 +123,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-
 	public Set<TypedTuple<V>> reverseRangeWithScores(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
@@ -142,7 +135,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return deserializeTupleValues(rawValues);
 	}
-
 
 	public Set<V> rangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
@@ -169,7 +161,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return deserializeValues(rawValues);
 	}
-
 
 	public Set<V> reverseRangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
@@ -210,7 +201,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, final double min, final double max, final long offset, final long count) {
+	public Set<TypedTuple<V>> rangeByScoreWithScores(K key, final double min, final double max, final long offset,
+			final long count) {
 		final byte[] rawKey = rawKey(key);
 
 		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
@@ -222,7 +214,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return deserializeTupleValues(rawValues);
 	}
-
 
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
@@ -238,7 +229,8 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
-	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, final double min, final double max, final long offset, final long count) {
+	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(K key, final double min, final double max, final long offset,
+			final long count) {
 		final byte[] rawKey = rawKey(key);
 
 		Set<Tuple> rawValues = execute(new RedisCallback<Set<Tuple>>() {
@@ -251,7 +243,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return deserializeTupleValues(rawValues);
 	}
-
 
 	public Long rank(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
@@ -266,7 +257,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long reverseRank(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(o);
@@ -280,7 +270,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long remove(K key, Object... values) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawValues = rawValues(values);
@@ -293,7 +282,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long removeRange(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {
@@ -304,7 +292,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long removeRangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {
@@ -314,7 +301,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 			}
 		}, true);
 	}
-
 
 	public Double score(K key, Object o) {
 		final byte[] rawKey = rawKey(key);
@@ -328,7 +314,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long count(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);
 
@@ -339,7 +324,6 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 			}
 		}, true);
 	}
-
 
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
@@ -352,11 +336,9 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
-
 	public Long unionAndStore(K key, K otherKey, K destKey) {
 		return unionAndStore(key, Collections.singleton(otherKey), destKey);
 	}
-
 
 	public Long unionAndStore(K key, Collection<K> otherKeys, K destKey) {
 		final byte[][] rawKeys = rawKeys(key, otherKeys);

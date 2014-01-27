@@ -27,15 +27,11 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.util.Assert;
 
 /**
- * Generic String to byte[] (and back) serializer. Relies on the Spring {@link ConversionService}
- * to transform objects into String and vice versa. The Strings are convert into bytes and vice-versa
- * using the specified charset (by default UTF-8). 
- *
- * <b>Note:</b> The conversion service initialization happens automatically if the class is defined
- * as a Spring bean.
+ * Generic String to byte[] (and back) serializer. Relies on the Spring {@link ConversionService} to transform objects
+ * into String and vice versa. The Strings are convert into bytes and vice-versa using the specified charset (by default
+ * UTF-8). <b>Note:</b> The conversion service initialization happens automatically if the class is defined as a Spring
+ * bean. <b>Note:</b> Does not handle nulls in any special way delegating everything to the container.
  * 
- * <b>Note:</b> Does not handle nulls in any special way delegating everything to the container.
- *
  * @author Costin Leau
  */
 public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFactoryAware {
@@ -64,7 +60,6 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 		converter = new Converter(typeConverter);
 	}
 
-	
 	public T deserialize(byte[] bytes) {
 		if (bytes == null) {
 			return null;
@@ -74,7 +69,6 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 		return converter.convert(string, type);
 	}
 
-	
 	public byte[] serialize(T object) {
 		if (object == null) {
 			return null;
@@ -83,14 +77,12 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 		return string.getBytes(charset);
 	}
 
-	
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		if (converter == null && beanFactory instanceof ConfigurableBeanFactory) {
 			ConfigurableBeanFactory cFB = (ConfigurableBeanFactory) beanFactory;
 			ConversionService conversionService = cFB.getConversionService();
 
-			converter = (conversionService != null ? new Converter(conversionService) : new Converter(
-					cFB.getTypeConverter()));
+			converter = (conversionService != null ? new Converter(conversionService) : new Converter(cFB.getTypeConverter()));
 		}
 	}
 

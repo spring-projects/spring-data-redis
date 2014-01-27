@@ -49,7 +49,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	@SuppressWarnings("unchecked")
 	public T deserialize(byte[] bytes) throws SerializationException {
-		
+
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
 		}
@@ -61,7 +61,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	}
 
 	public byte[] serialize(Object t) throws SerializationException {
-		
+
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;
 		}
@@ -82,7 +82,7 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 	 * the types to be serialized, in which case a custom-configured ObjectMapper is unnecessary.
 	 */
 	public void setObjectMapper(ObjectMapper objectMapper) {
-		
+
 		Assert.notNull(objectMapper, "'objectMapper' must not be null");
 		this.objectMapper = objectMapper;
 	}

@@ -21,14 +21,11 @@ import org.hamcrest.Matcher;
  * Customs {@link Matcher}s for Redis tests
  * 
  * @author Jennifer Hickey
- * 
  */
 abstract public class RedisTestMatchers {
 
 	/**
-	 * 
-	 * @param expected
-	 *            The expected results
+	 * @param expected The expected results
 	 * @return The {@link Equals} matcher
 	 */
 	public static Matcher<Object> isEqual(Object expected) {

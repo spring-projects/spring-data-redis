@@ -31,7 +31,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 
 	/**
 	 * Constructs a new <code>DefaultTypedTuple</code> instance.
-	 *
+	 * 
 	 * @param value
 	 * @param score
 	 */
@@ -40,17 +40,14 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		this.value = value;
 	}
 
-	
 	public Double getScore() {
 		return score;
 	}
 
-	
 	public V getValue() {
 		return value;
 	}
 
-	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -59,7 +56,6 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		return result;
 	}
 
-	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -71,24 +67,21 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 		if (score == null) {
 			if (other.score != null)
 				return false;
-		}
-		else if (!score.equals(other.score))
+		} else if (!score.equals(other.score))
 			return false;
 		if (value == null) {
 			if (other.value != null)
 				return false;
-		}
-		else if(value instanceof byte[]) {
-			if(!(other.value instanceof byte[])) {
+		} else if (value instanceof byte[]) {
+			if (!(other.value instanceof byte[])) {
 				return false;
 			}
-			return Arrays.equals((byte[])value, (byte[])other.value);
+			return Arrays.equals((byte[]) value, (byte[]) other.value);
 		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}
 
-	
 	public int compareTo(Double o) {
 		Double d = (score == null ? Double.valueOf(0) : score);
 		Double a = (o == null ? Double.valueOf(0) : o);

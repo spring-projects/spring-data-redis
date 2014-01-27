@@ -22,11 +22,9 @@ import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 
 /**
- * Extension of {@link RedisClient} that calls auth on all new connections using
- * the supplied credentials
+ * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
  * 
  * @author Jennifer Hickey
- * 
  */
 public class AuthenticatingRedisClient extends RedisClient {
 

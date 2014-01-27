@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection;
 
-
 /**
  * Connection-specific commands supported by Redis.
  * 

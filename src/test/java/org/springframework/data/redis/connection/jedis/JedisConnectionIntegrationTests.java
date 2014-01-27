@@ -45,11 +45,10 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Integration test of {@link JedisConnection}
- *
+ * 
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -66,11 +65,11 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 			// error on sending QUIT to Redis
 		}
 
-        try{
-            connection.close();
-        } catch (Exception e) {
-            //silently close connection
-        }
+		try {
+			connection.close();
+		} catch (Exception e) {
+			// silently close connection
+		}
 
 		connection = null;
 	}
@@ -85,7 +84,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.destroy();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void testCreateConnectionWithDbFailure() {
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
 		factory2.setDatabase(77);
@@ -109,7 +108,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.destroy();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZAddSameScores() {
 		Set<StringTuple> strTuples = new HashSet<StringTuple>();
 		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
@@ -117,114 +116,114 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.zAdd("myset", strTuples);
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {
 		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
 		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void testExecWithoutMulti() {
 		super.testExecWithoutMulti();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void testErrorInTx() {
 		super.testErrorInTx();
 	}
 
-    /**
-     * Override pub/sub test methods to use a separate connection factory for
-     * subscribing threads, due to this issue: https://github.com/xetorthio/jedis/issues/445
-     */
+	/**
+	 * Override pub/sub test methods to use a separate connection factory for subscribing threads, due to this issue:
+	 * https://github.com/xetorthio/jedis/issues/445
+	 */
 	@Test
 	public void testPubSubWithNamedChannels() throws Exception {
 
-        final String expectedChannel = "channel1";
+		final String expectedChannel = "channel1";
 		final String expectedMessage = "msg";
 		final BlockingDeque<Message> messages = new LinkedBlockingDeque<Message>();
 
 		MessageListener listener = new MessageListener() {
 			public void onMessage(Message message, byte[] pattern) {
-                messages.add(message);
+				messages.add(message);
 				System.out.println("Received message '" + new String(message.getBody()) + "'");
 			}
 		};
 
-        Thread t = new Thread(){
-            {
-                setDaemon(true);
-            }
-            public void run(){
+		Thread t = new Thread() {
+			{
+				setDaemon(true);
+			}
 
-                RedisConnection con = connectionFactory.getConnection();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+			public void run() {
 
-                con.publish(expectedChannel.getBytes(),expectedMessage.getBytes());
+				RedisConnection con = connectionFactory.getConnection();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+				con.publish(expectedChannel.getBytes(), expectedMessage.getBytes());
 
-                /*
-                   In some clients, unsubscribe happens async of message
-				   receipt, so not all
-				   messages may be received if unsubscribing now.
-				   Connection.close in teardown
-				   will take care of unsubscribing.
-				 */
-                if (!(ConnectionUtils.isAsync(connectionFactory))) {
-                    connection.getSubscription().unsubscribe();
-                }
-                con.close();
-            }
-        };
-        t.start();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
-        connection.subscribe(listener, expectedChannel.getBytes());
+				/*
+				   In some clients, unsubscribe happens async of message
+				receipt, so not all
+				messages may be received if unsubscribing now.
+				Connection.close in teardown
+				will take care of unsubscribing.
+				*/
+				if (!(ConnectionUtils.isAsync(connectionFactory))) {
+					connection.getSubscription().unsubscribe();
+				}
+				con.close();
+			}
+		};
+		t.start();
 
-        Message message = messages.poll(5, TimeUnit.SECONDS);
+		connection.subscribe(listener, expectedChannel.getBytes());
+
+		Message message = messages.poll(5, TimeUnit.SECONDS);
 		assertNotNull(message);
 		assertEquals(expectedMessage, new String(message.getBody()));
 		assertEquals(expectedChannel, new String(message.getChannel()));
-    }
-
+	}
 
 	@Test
 	public void testPubSubWithPatterns() throws Exception {
@@ -241,28 +240,29 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 			}
 		};
 
-		Thread th = new Thread(){
-            {
-                setDaemon(true);
-            }
+		Thread th = new Thread() {
+			{
+				setDaemon(true);
+			}
+
 			public void run() {
 
-                // open a new connection
-                RedisConnection con = connectionFactory.getConnection();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+				// open a new connection
+				RedisConnection con = connectionFactory.getConnection();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
 				con.publish("channel1".getBytes(), expectedMessage.getBytes());
 				con.publish("channel2".getBytes(), expectedMessage.getBytes());
 
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 
 				con.close();
 				// In some clients, unsubscribe happens async of message
@@ -274,7 +274,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 					connection.getSubscription().pUnsubscribe(expectedPattern.getBytes());
 				}
 			}
-        };
+		};
 		th.start();
 
 		connection.pSubscribe(listener, expectedPattern);
@@ -300,11 +300,10 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		RedisConnection conn = factory2.getConnection();
 		try {
 			conn.get(null);
-		}catch(Exception e) {
-		}
+		} catch (Exception e) {}
 		conn.close();
 		// Make sure we don't end up with broken connection
 		factory2.getConnection().dbSize();
-        factory2.destroy();
+		factory2.destroy();
 	}
 }

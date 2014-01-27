@@ -24,8 +24,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Factory bean that facilitates creation of Redis-based collections. Supports list, set, zset (or sortedSet), map (or hash) and properties.
- * Will use the key type if it exists or to create a dedicated collection (Properties vs Map).
+ * Factory bean that facilitates creation of Redis-based collections. Supports list, set, zset (or sortedSet), map (or
+ * hash) and properties. Will use the key type if it exists or to create a dedicated collection (Properties vs Map).
  * Otherwise uses the provided type (default is list).
  * 
  * @author Costin Leau
@@ -39,31 +39,31 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 	 */
 	public enum CollectionType {
 		LIST {
-			
+
 			public DataType dataType() {
 				return DataType.LIST;
 			}
 		},
 		SET {
-			
+
 			public DataType dataType() {
 				return DataType.SET;
 			}
 		},
 		ZSET {
-			
+
 			public DataType dataType() {
 				return DataType.ZSET;
 			}
 		},
 		MAP {
-			
+
 			public DataType dataType() {
 				return DataType.HASH;
 			}
 		},
 		PROPERTIES {
-			
+
 			public DataType dataType() {
 				return DataType.HASH;
 			}
@@ -72,14 +72,12 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 		abstract DataType dataType();
 	}
 
-
 	private RedisStore store;
 	private CollectionType type = null;
 	private RedisTemplate<String, ?> template;
 	private String key;
 	private String beanName;
 
-	
 	public void afterPropertiesSet() {
 		if (!StringUtils.hasText(key)) {
 			key = beanName;
@@ -106,40 +104,36 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 	@SuppressWarnings("unchecked")
 	private RedisStore createStore(DataType dt) {
 		switch (dt) {
-		case LIST:
-			return new DefaultRedisList(key, template);
+			case LIST:
+				return new DefaultRedisList(key, template);
 
-		case SET:
-			return new DefaultRedisSet(key, template);
+			case SET:
+				return new DefaultRedisSet(key, template);
 
-		case ZSET:
-			return new DefaultRedisZSet(key, template);
+			case ZSET:
+				return new DefaultRedisZSet(key, template);
 
-		case HASH:
-			if (CollectionType.PROPERTIES.equals(type)) {
-				return new RedisProperties(key, template);
-			}
-			return new DefaultRedisMap(key, template);
+			case HASH:
+				if (CollectionType.PROPERTIES.equals(type)) {
+					return new RedisProperties(key, template);
+				}
+				return new DefaultRedisMap(key, template);
 		}
 		return null;
 	}
 
-	
 	public RedisStore getObject() {
 		return store;
 	}
 
-	
 	public Class<?> getObjectType() {
 		return (store != null ? store.getClass() : RedisStore.class);
 	}
 
-	
 	public boolean isSingleton() {
 		return true;
 	}
 
-	
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -164,7 +158,7 @@ public class RedisCollectionFactoryBean implements InitializingBean, BeanNameAwa
 
 	/**
 	 * Sets the key of the store.
-	 *  
+	 * 
 	 * @param key The key to set.
 	 */
 	public void setKey(String key) {

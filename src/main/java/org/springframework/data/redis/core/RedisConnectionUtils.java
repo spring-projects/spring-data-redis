@@ -24,7 +24,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 
 /**
- * Helper class featuring {@link RedisConnection} handling, allowing for reuse of instances within 'transactions'/scopes.
+ * Helper class featuring {@link RedisConnection} handling, allowing for reuse of instances within
+ * 'transactions'/scopes.
  * 
  * @author Costin Leau
  */
@@ -33,7 +34,7 @@ public abstract class RedisConnectionUtils {
 	private static final Log log = LogFactory.getLog(RedisConnectionUtils.class);
 
 	/**
-	 * Binds a new Redis connection (from the given factory) to the current thread, if none is already bound. 
+	 * Binds a new Redis connection (from the given factory) to the current thread, if none is already bound.
 	 * 
 	 * @param factory connection factory
 	 * @return a new Redis connection
@@ -43,8 +44,9 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * Gets a Redis connection from the given factory. Is aware of and will return any existing corresponding connections bound to the current thread, 
-	 * for example when using a transaction manager. Will always create a new connection otherwise.
+	 * Gets a Redis connection from the given factory. Is aware of and will return any existing corresponding connections
+	 * bound to the current thread, for example when using a transaction manager. Will always create a new connection
+	 * otherwise.
 	 * 
 	 * @param factory connection factory for creating the connection
 	 * @return an active Redis connection
@@ -54,11 +56,13 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * Gets a Redis connection. Is aware of and will return any existing corresponding connections bound to the current thread, 
-	 * for example when using a transaction manager. Will create a new Connection otherwise, if {@code allowCreate} is <tt>true</tt>.
+	 * Gets a Redis connection. Is aware of and will return any existing corresponding connections bound to the current
+	 * thread, for example when using a transaction manager. Will create a new Connection otherwise, if
+	 * {@code allowCreate} is <tt>true</tt>.
 	 * 
 	 * @param factory connection factory for creating the connection
-	 * @param allowCreate whether a new (unbound) connection should be created when no connection can be found for the current thread
+	 * @param allowCreate whether a new (unbound) connection should be created when no connection can be found for the
+	 *          current thread
 	 * @param bind binds the connection to the thread, in case one was created
 	 * @return an active Redis connection
 	 */
@@ -66,7 +70,7 @@ public abstract class RedisConnectionUtils {
 		Assert.notNull(factory, "No RedisConnectionFactory specified");
 
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
-		//TODO: investigate tx synchronization
+		// TODO: investigate tx synchronization
 
 		if (connHolder != null)
 			return connHolder.getConnection();
@@ -89,7 +93,8 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * Closes the given connection, created via the given factory if not managed externally (i.e. not bound to the thread).
+	 * Closes the given connection, created via the given factory if not managed externally (i.e. not bound to the
+	 * thread).
 	 * 
 	 * @param conn the Redis connection to close
 	 * @param factory the Redis factory that the connection was created with
@@ -113,7 +118,8 @@ public abstract class RedisConnectionUtils {
 	 * @param factory Redis factory
 	 */
 	public static void unbindConnection(RedisConnectionFactory factory) {
-		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.unbindResourceIfPossible(factory);
+		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager
+				.unbindResourceIfPossible(factory);
 		if (connHolder != null) {
 			RedisConnection connection = connHolder.getConnection();
 			connection.close();
@@ -121,7 +127,8 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * Return whether the given Redis connection is transactional, that is, bound to the current thread by Spring's transaction facilities. 
+	 * Return whether the given Redis connection is transactional, that is, bound to the current thread by Spring's
+	 * transaction facilities.
 	 * 
 	 * @param conn Redis connection to check
 	 * @param connFactory Redis connection factory that the connection was created with
@@ -131,7 +138,8 @@ public abstract class RedisConnectionUtils {
 		if (connFactory == null) {
 			return false;
 		}
-		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(connFactory);
+		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager
+				.getResource(connFactory);
 		return (connHolder != null && conn == connHolder.getConnection());
 	}
 
@@ -144,7 +152,6 @@ public abstract class RedisConnectionUtils {
 			this.conn = conn;
 		}
 
-		
 		public boolean isVoid() {
 			return isVoid;
 		}
@@ -153,12 +160,10 @@ public abstract class RedisConnectionUtils {
 			return conn;
 		}
 
-		
 		public void reset() {
 			// no-op
 		}
 
-		
 		public void unbound() {
 			this.isVoid = true;
 		}

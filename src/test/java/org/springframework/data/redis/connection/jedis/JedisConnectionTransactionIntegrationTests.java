@@ -28,17 +28,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * Integration test of {@link JedisConnection} transaction functionality.
  * <p>
- * Each method of {@link JedisConnection} behaves differently if executed with a
- * transaction (i.e. between multi and exec or discard calls), so this test
- * covers those branching points
- *
+ * Each method of {@link JedisConnection} behaves differently if executed with a transaction (i.e. between multi and
+ * exec or discard calls), so this test covers those branching points
+ * 
  * @author Jennifer Hickey
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
-public class JedisConnectionTransactionIntegrationTests extends
-		AbstractConnectionTransactionIntegrationTests {
+public class JedisConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
 	@After
 	public void tearDown() {
@@ -55,8 +52,7 @@ public class JedisConnectionTransactionIntegrationTests extends
 	}
 
 	@Ignore("Jedis issue: Transaction tries to return String instead of List<String>")
-	public void testGetConfig() {
-	}
+	public void testGetConfig() {}
 
 	// Unsupported Ops
 	@Test(expected = UnsupportedOperationException.class)
@@ -77,13 +73,13 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testEvalShaNotFound();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
@@ -179,18 +175,18 @@ public class JedisConnectionTransactionIntegrationTests extends
 		super.testInfoBySection();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZAddMultiple() {
 		super.testZAddMultiple();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}
 
-	@Test(expected=InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();

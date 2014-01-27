@@ -26,9 +26,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
  * Common type converters
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 abstract public class Converters {
 
@@ -68,7 +67,7 @@ abstract public class Converters {
 
 	public static List<Object> toObjects(Set<Tuple> tuples) {
 		List<Object> tupleArgs = new ArrayList<Object>(tuples.size() * 2);
-		for(Tuple tuple: tuples) {
+		for (Tuple tuple : tuples) {
 			tupleArgs.add(tuple.getScore());
 			tupleArgs.add(tuple.getValue());
 		}

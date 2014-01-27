@@ -25,7 +25,6 @@ import static org.junit.Assert.assertEquals;
  * Unit test of {@link TimeoutUtils}
  * 
  * @author Jennifer Hickey
- * 
  */
 public class TimeoutUtilsTests {
 
@@ -43,21 +42,21 @@ public class TimeoutUtilsTests {
 	public void testConvertZeroSeconds() {
 		assertEquals(0, TimeoutUtils.toSeconds(0, TimeUnit.MINUTES));
 	}
-	
+
 	@Test
 	public void testConvertNegativeSecondsGreaterThanNegativeOne() {
 		// Ensure we convert this to 0 as before, though ideally we wouldn't accept negative values
-		assertEquals(0,TimeoutUtils.toSeconds(-123, TimeUnit.MILLISECONDS));
+		assertEquals(0, TimeoutUtils.toSeconds(-123, TimeUnit.MILLISECONDS));
 	}
-	
+
 	@Test
 	public void testConvertNegativeSecondsEqualNegativeOne() {
-		assertEquals(-1,TimeoutUtils.toSeconds(-1111, TimeUnit.MILLISECONDS));
+		assertEquals(-1, TimeoutUtils.toSeconds(-1111, TimeUnit.MILLISECONDS));
 	}
-	
+
 	@Test
 	public void testConvertNegativeSecondsLessThanNegativeOne() {
-		assertEquals(-2,TimeoutUtils.toSeconds(-2344, TimeUnit.MILLISECONDS));
+		assertEquals(-2, TimeoutUtils.toSeconds(-2344, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
@@ -78,16 +77,16 @@ public class TimeoutUtilsTests {
 	@Test
 	public void testConvertNegativeMillisGreaterThanNegativeOne() {
 		// Ensure we convert this to 0 as before, though ideally we wouldn't accept negative values
-		assertEquals(0,TimeoutUtils.toMillis(-123, TimeUnit.MICROSECONDS));
+		assertEquals(0, TimeoutUtils.toMillis(-123, TimeUnit.MICROSECONDS));
 	}
 
 	@Test
 	public void testConvertNegativeMillisEqualNegativeOne() {
-		assertEquals(-1,TimeoutUtils.toMillis(-1111, TimeUnit.MICROSECONDS));
+		assertEquals(-1, TimeoutUtils.toMillis(-1111, TimeUnit.MICROSECONDS));
 	}
 
 	@Test
 	public void testConvertNegativeMillisLessThanNegativeOne() {
-		assertEquals(-2,TimeoutUtils.toMillis(-2344, TimeUnit.MICROSECONDS));
+		assertEquals(-2, TimeoutUtils.toMillis(-2344, TimeUnit.MICROSECONDS));
 	}
 }

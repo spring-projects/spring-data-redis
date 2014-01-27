@@ -32,9 +32,9 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 
 /**
- * {@link Properties} extension for a Redis back-store. Useful for reading (and storing) properties
- * inside a Redis hash. Particularly useful inside a Spring container for hooking into Spring's property
- * placeholder or {@link org.springframework.beans.factory.config.PropertiesFactoryBean}.
+ * {@link Properties} extension for a Redis back-store. Useful for reading (and storing) properties inside a Redis hash.
+ * Particularly useful inside a Spring container for hooking into Spring's property placeholder or
+ * {@link org.springframework.beans.factory.config.PropertiesFactoryBean}.
  * <p/>
  * Note that this implementation only accepts Strings - objects of other type are not supported.
  * 
@@ -49,7 +49,6 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 *
 	 */
 	public RedisProperties(BoundHashOperations<String, String, String> boundOps) {
 		this(null, boundOps);
@@ -57,7 +56,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 *
+	 * 
 	 * @param key
 	 * @param operations
 	 */
@@ -67,7 +66,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 *
+	 * 
 	 * @param defaults
 	 * @param boundOps
 	 */
@@ -79,7 +78,7 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 
 	/**
 	 * Constructs a new <code>RedisProperties</code> instance.
-	 *
+	 * 
 	 * @param defaults
 	 * @param key
 	 * @param operations
@@ -88,23 +87,19 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 		this(defaults, operations.<String, String> boundHashOps(key));
 	}
 
-	
 	public synchronized Object get(Object key) {
 		return delegate.get(key);
 	}
 
-	
 	public synchronized Object put(Object key, Object value) {
 		return delegate.put((String) key, (String) value);
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public synchronized void putAll(Map<? extends Object, ? extends Object> t) {
 		delegate.putAll((Map<? extends String, ? extends String>) t);
 	}
 
-	
 	public Enumeration<?> propertyNames() {
 		Set<String> keys = new LinkedHashSet<String>(delegate.keySet());
 		if (defaults != null) {
@@ -113,46 +108,38 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 		return Collections.enumeration(keys);
 	}
 
-	
 	public synchronized void clear() {
 		delegate.clear();
 	}
 
-	
 	public synchronized Object clone() {
 		return new RedisProperties(defaults, hashOps);
 	}
 
-	
 	public synchronized boolean contains(Object value) {
 		return containsValue(value);
 	}
 
-	
 	public synchronized boolean containsKey(Object key) {
 		return delegate.containsKey(key);
 	}
 
-	
 	public boolean containsValue(Object value) {
 		return delegate.containsValue(value);
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public synchronized Enumeration<Object> elements() {
 		Collection values = delegate.values();
 		return Collections.enumeration(values);
 	}
 
-	
 	@SuppressWarnings("unchecked")
 	public Set<Entry<Object, Object>> entrySet() {
 		Set entries = delegate.entrySet();
 		return entries;
 	}
 
-	
 	public synchronized boolean equals(Object o) {
 		if (o == this)
 			return true;
@@ -163,52 +150,44 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 		return false;
 	}
 
-	
 	public synchronized int hashCode() {
 		int hash = RedisProperties.class.hashCode();
 		return hash * 17 + delegate.hashCode();
 	}
 
-	
 	public synchronized boolean isEmpty() {
 		return delegate.isEmpty();
 	}
 
-	
 	public synchronized Enumeration<Object> keys() {
 		Set<Object> keys = keySet();
 		return Collections.enumeration(keys);
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public Set<Object> keySet() {
 		Set keys = delegate.keySet();
 		return keys;
 	}
 
-	
 	public synchronized Object remove(Object key) {
 		return delegate.remove(key);
 	}
 
-	
 	public synchronized int size() {
 		return delegate.size();
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public Collection<Object> values() {
 		Collection vals = delegate.values();
 		return vals;
 	}
 
-	
 	public Long increment(Object key, long delta) {
 		return hashOps.increment((String) key, delta);
 	}
-	
+
 	public Double increment(Object key, double delta) {
 		return hashOps.increment((String) key, delta);
 	}
@@ -217,67 +196,54 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 		return hashOps.getOperations();
 	}
 
-	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return hashOps.expire(timeout, unit);
 	}
 
-	
 	public Boolean expireAt(Date date) {
 		return hashOps.expireAt(date);
 	}
 
-	
 	public Long getExpire() {
 		return hashOps.getExpire();
 	}
 
-	
 	public String getKey() {
 		return hashOps.getKey();
 	}
 
-	
 	public DataType getType() {
 		return hashOps.getType();
 	}
 
-	
 	public Boolean persist() {
 		return hashOps.persist();
 	}
 
-	
 	public void rename(String newKey) {
 		hashOps.rename(newKey);
 	}
 
-	
 	public Object putIfAbsent(Object key, Object value) {
 		return (hashOps.putIfAbsent((String) key, (String) value) ? null : get(key));
 	}
 
-	
 	public boolean remove(Object key, Object value) {
 		return delegate.remove(key, value);
 	}
 
-	
 	public boolean replace(Object key, Object oldValue, Object newValue) {
 		return delegate.replace((String) key, (String) oldValue, (String) newValue);
 	}
 
-	
 	public Object replace(Object key, Object value) {
 		return delegate.replace((String) key, (String) value);
 	}
 
-	
 	public synchronized void storeToXML(OutputStream os, String comment, String encoding) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 
-	
 	public synchronized void storeToXML(OutputStream os, String comment) throws IOException {
 		throw new UnsupportedOperationException();
 	}

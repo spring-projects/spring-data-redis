@@ -14,23 +14,22 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 
 	@Ignore("Jedis issue: Pipeline tries to return String instead of List<String>")
 	@Test
-	public void testGetConfig() {
-	}
+	public void testGetConfig() {}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	public void exceptionExecuteNative() throws Exception {
 		connection.execute("set", "foo");
 		connection.execute("ZadD", getClass() + "#foo\t0.90\titem");
 		getResults();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();
@@ -46,8 +45,8 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 		assertNull(connection.exec());
 		List<Object> pipelined = connection.closePipeline();
 		// We expect only the results of exec to be in the closed pipeline
-		assertEquals(1,pipelined.size());
-		List<Object> txResults = (List<Object>)pipelined.get(0);
+		assertEquals(1, pipelined.size());
+		List<Object> txResults = (List<Object>) pipelined.get(0);
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;
 	}

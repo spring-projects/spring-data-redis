@@ -20,7 +20,7 @@ import org.springframework.data.redis.connection.StringRedisConnection.StringTup
 
 /**
  * Default implementation for {@link StringTuple} interface.
- *  
+ * 
  * @author Costin Leau
  */
 public class DefaultStringTuple extends DefaultTuple implements StringTuple {
@@ -29,7 +29,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 
 	/**
 	 * Constructs a new <code>DefaultStringTuple</code> instance.
-	 *
+	 * 
 	 * @param value
 	 * @param score
 	 */
@@ -41,7 +41,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 
 	/**
 	 * Constructs a new <code>DefaultStringTuple</code> instance.
-	 *
+	 * 
 	 * @param tuple
 	 * @param valueAsString
 	 */
@@ -50,12 +50,10 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 		this.valueAsString = valueAsString;
 	}
 
-	
 	public String getValueAsString() {
 		return valueAsString;
 	}
 
-	
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
@@ -63,7 +61,6 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 		return result;
 	}
 
-	
 	public boolean equals(Object obj) {
 		if (super.equals(obj)) {
 			if (!(obj instanceof DefaultStringTuple))
@@ -72,8 +69,7 @@ public class DefaultStringTuple extends DefaultTuple implements StringTuple {
 			if (valueAsString == null) {
 				if (other.valueAsString != null)
 					return false;
-			}
-			else if (!valueAsString.equals(other.valueAsString))
+			} else if (!valueAsString.equals(other.valueAsString))
 				return false;
 			return true;
 		}

@@ -22,7 +22,7 @@ import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.RedisStore;
 
 /**
- * Parameterized instance of Redis tests. 
+ * Parameterized instance of Redis tests.
  * 
  * @author Costin Leau
  */
@@ -30,7 +30,7 @@ public class RedisListTests extends AbstractRedisListTests<Object> {
 
 	/**
 	 * Constructs a new <code>RedisListTests</code> instance.
-	 *
+	 * 
 	 * @param factory
 	 * @param connFactory
 	 */
@@ -38,12 +38,10 @@ public class RedisListTests extends AbstractRedisListTests<Object> {
 		super(factory, template);
 	}
 
-	
 	RedisStore copyStore(RedisStore store) {
 		return new DefaultRedisList(store.getKey().toString(), store.getOperations());
 	}
 
-	
 	AbstractRedisCollection<Object> createCollection() {
 		String redisName = getClass().getName();
 		return new DefaultRedisList(redisName, template);

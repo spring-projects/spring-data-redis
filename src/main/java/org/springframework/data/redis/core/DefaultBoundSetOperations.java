@@ -31,10 +31,9 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 
 	private final SetOperations<K, V> ops;
 
-
 	/**
 	 * Constructs a new <code>DefaultBoundSetOperations</code> instance.
-	 *
+	 * 
 	 * @param key
 	 * @param operations
 	 */
@@ -43,124 +42,98 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 		this.ops = operations.opsForSet();
 	}
 
-	
 	public Long add(V... values) {
 		return ops.add(getKey(), values);
 	}
 
-	
 	public Set<V> diff(K key) {
 		return ops.difference(getKey(), key);
 	}
 
-	
 	public Set<V> diff(Collection<K> keys) {
 		return ops.difference(getKey(), keys);
 	}
 
-
-	
 	public void diffAndStore(K key, K destKey) {
 		ops.differenceAndStore(getKey(), key, destKey);
 	}
 
-	
 	public void diffAndStore(Collection<K> keys, K destKey) {
 		ops.differenceAndStore(getKey(), keys, destKey);
 	}
 
-	
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}
 
-	
 	public Set<V> intersect(K key) {
 		return ops.intersect(getKey(), key);
 	}
 
-	
 	public Set<V> intersect(Collection<K> keys) {
 		return ops.intersect(getKey(), keys);
 	}
 
-	
 	public void intersectAndStore(K key, K destKey) {
 		ops.intersectAndStore(getKey(), key, destKey);
 	}
 
-	
 	public void intersectAndStore(Collection<K> keys, K destKey) {
 		ops.intersectAndStore(getKey(), keys, destKey);
 	}
 
-	
 	public Boolean isMember(Object o) {
 		return ops.isMember(getKey(), o);
 	}
 
-	
 	public Set<V> members() {
 		return ops.members(getKey());
 	}
 
-	
 	public Boolean move(K destKey, V value) {
 		return ops.move(getKey(), value, destKey);
 	}
 
-	
 	public V randomMember() {
 		return ops.randomMember(getKey());
 	}
-
 
 	public Set<V> distinctRandomMembers(long count) {
 		return ops.distinctRandomMembers(getKey(), count);
 	}
 
-	
 	public List<V> randomMembers(long count) {
 		return ops.randomMembers(getKey(), count);
 	}
 
-
 	public Long remove(Object... values) {
 		return ops.remove(getKey(), values);
 	}
-	
 
 	public V pop() {
 		return ops.pop(getKey());
 	}
 
-	
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-
-	
 	public Set<V> union(K key) {
 		return ops.union(getKey(), key);
 	}
 
-	
 	public Set<V> union(Collection<K> keys) {
 		return ops.union(getKey(), keys);
 	}
 
-	
 	public void unionAndStore(K key, K destKey) {
 		ops.unionAndStore(getKey(), key, destKey);
 	}
 
-	
 	public void unionAndStore(Collection<K> keys, K destKey) {
 		ops.unionAndStore(getKey(), keys, destKey);
 	}
 
-	
 	public DataType getType() {
 		return DataType.SET;
 	}

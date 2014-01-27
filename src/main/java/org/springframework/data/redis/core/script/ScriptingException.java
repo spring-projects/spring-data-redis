@@ -19,16 +19,15 @@ import org.springframework.core.NestedRuntimeException;
 
 /**
  * {@link RuntimeException} thrown when issues occur with {@link RedisScript}s
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 @SuppressWarnings("serial")
 public class ScriptingException extends NestedRuntimeException {
 
 	/**
 	 * Constructs a new <code>ScriptingException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 * @param cause
 	 */
@@ -38,7 +37,7 @@ public class ScriptingException extends NestedRuntimeException {
 
 	/**
 	 * Constructs a new <code>ScriptingException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 */
 	public ScriptingException(String msg) {

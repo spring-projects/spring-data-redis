@@ -39,16 +39,15 @@ import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
  * Integration test of {@link DefaultHashOperations}
- *
+ * 
  * @author Jennifer Hickey
- *
  * @param <K> Key type
  * @param <HK> Hash key type
  * @param <HV> Hash value type
  */
 @RunWith(Parameterized.class)
-public class DefaultHashOperationsTests<K,HK,HV> {
-	private RedisTemplate<K,?> redisTemplate;
+public class DefaultHashOperationsTests<K, HK, HV> {
+	private RedisTemplate<K, ?> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;
 
@@ -56,9 +55,9 @@ public class DefaultHashOperationsTests<K,HK,HV> {
 
 	private ObjectFactory<HV> hashValueFactory;
 
-	private HashOperations<K, HK,HV> hashOps;
+	private HashOperations<K, HK, HV> hashOps;
 
-	public DefaultHashOperationsTests(RedisTemplate<K,?> redisTemplate, ObjectFactory<K> keyFactory,
+	public DefaultHashOperationsTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<HK> hashKeyFactory, ObjectFactory<HV> hashValueFactory) {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -76,17 +75,17 @@ public class DefaultHashOperationsTests<K,HK,HV> {
 		srConnFactory.setHostName(SettingsUtils.getHost());
 		srConnFactory.afterPropertiesSet();
 
-		RedisTemplate<String,String> stringTemplate = new StringRedisTemplate();
+		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
 		stringTemplate.setConnectionFactory(srConnFactory);
 		stringTemplate.afterPropertiesSet();
 
-		RedisTemplate<byte[],byte[]> rawTemplate = new RedisTemplate<byte[],byte[]>();
+		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
 		rawTemplate.setConnectionFactory(srConnFactory);
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.afterPropertiesSet();
 
 		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory },
-				{ rawTemplate, rawFactory, rawFactory, rawFactory }});
+				{ rawTemplate, rawFactory, rawFactory, rawFactory } });
 	}
 
 	@Before
@@ -113,7 +112,7 @@ public class DefaultHashOperationsTests<K,HK,HV> {
 		HV val2 = hashValueFactory.instance();
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
-		Map<HK,HV> expected = new LinkedHashMap<HK,HV>();
+		Map<HK, HV> expected = new LinkedHashMap<HK, HV>();
 		expected.put(key1, val1);
 		expected.put(key2, val2);
 		assertThat(hashOps.entries(key), isEqual(expected));

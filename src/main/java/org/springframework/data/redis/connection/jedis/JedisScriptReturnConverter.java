@@ -24,11 +24,9 @@ import org.springframework.data.redis.connection.ReturnType;
 import redis.clients.util.SafeEncoder;
 
 /**
- * Converts the value returned by Jedis script eval to the expected
- * {@link ReturnType}
- *
+ * Converts the value returned by Jedis script eval to the expected {@link ReturnType}
+ * 
  * @author Jennifer Hickey
- *
  */
 public class JedisScriptReturnConverter implements Converter<Object, Object> {
 

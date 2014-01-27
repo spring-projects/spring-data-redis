@@ -32,15 +32,14 @@ public class ContainerXmlSetupTest {
 
 	@After
 	public void tearDown() {
-		if(ctx != null) {
+		if (ctx != null) {
 			ctx.destroy();
 		}
 	}
 
 	@Test
 	public void testContainerSetup() throws Exception {
-		ctx = new GenericXmlApplicationContext(
-				"/org/springframework/data/redis/listener/container.xml");
+		ctx = new GenericXmlApplicationContext("/org/springframework/data/redis/listener/container.xml");
 		RedisMessageListenerContainer container = ctx.getBean("redisContainer", RedisMessageListenerContainer.class);
 		assertTrue(container.isRunning());
 	}

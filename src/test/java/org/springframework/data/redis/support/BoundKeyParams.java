@@ -82,21 +82,19 @@ public class BoundKeyParams {
 		DefaultRedisSet setSRP = new DefaultRedisSet("bound:key:setSRP", templateSRP);
 		RedisList listSRP = new DefaultRedisList("bound:key:listSRP", templateSRP);
 
-
 		StringObjectFactory sof = new StringObjectFactory();
 
 		return Arrays.asList(new Object[][] {
 				{ new RedisAtomicInteger("bound:key:int", jedisConnFactory), sof, templateJS },
-				{ new RedisAtomicLong("bound:key:long", jedisConnFactory), sof, templateJS },
-				{ list, sof, templateJS }, { setJS, sof, templateJS }, { mapJS, sof, templateJS },
+				{ new RedisAtomicLong("bound:key:long", jedisConnFactory), sof, templateJS }, { list, sof, templateJS },
+				{ setJS, sof, templateJS }, { mapJS, sof, templateJS },
 				{ new RedisAtomicInteger("bound:key:intJR", jredisConnFactory), sof, templateJR },
-				{ new RedisAtomicLong("bound:key:longJR", jredisConnFactory), sof, templateJR },
-				{ mapJR, sof, templateJR },
+				{ new RedisAtomicLong("bound:key:longJR", jredisConnFactory), sof, templateJR }, { mapJR, sof, templateJR },
 				{ new RedisAtomicInteger("bound:key:intLT", lettuceConnFactory), sof, templateLT },
-				{ new RedisAtomicLong("bound:key:longLT", lettuceConnFactory), sof, templateLT },
-				{ listLT, sof, templateLT }, { setLT, sof, templateLT }, { mapLT, sof, templateLT },
+				{ new RedisAtomicLong("bound:key:longLT", lettuceConnFactory), sof, templateLT }, { listLT, sof, templateLT },
+				{ setLT, sof, templateLT }, { mapLT, sof, templateLT },
 				{ new RedisAtomicInteger("bound:key:intSrp", srpConnFactory), sof, templateSRP },
-				{ new RedisAtomicLong("bound:key:longSrp", srpConnFactory), sof, templateSRP },
-				{ listSRP, sof, templateSRP }, { setSRP, sof, templateSRP }, { mapSRP, sof, templateSRP }});
+				{ new RedisAtomicLong("bound:key:longSrp", srpConnFactory), sof, templateSRP }, { listSRP, sof, templateSRP },
+				{ setSRP, sof, templateSRP }, { mapSRP, sof, templateSRP } });
 	}
 }

@@ -26,7 +26,7 @@ public class SerializationException extends NestedRuntimeException {
 
 	/**
 	 * Constructs a new <code>SerializationException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 * @param cause
 	 */
@@ -36,7 +36,7 @@ public class SerializationException extends NestedRuntimeException {
 
 	/**
 	 * Constructs a new <code>SerializationException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 */
 	public SerializationException(String msg) {

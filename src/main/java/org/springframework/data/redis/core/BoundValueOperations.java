@@ -18,7 +18,7 @@ package org.springframework.data.redis.core;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Value (or String in Redis terminology) operations bound to a certain key. 
+ * Value (or String in Redis terminology) operations bound to a certain key.
  * 
  * @author Costin Leau
  */

@@ -25,8 +25,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.SessionCallback;
 
 /**
- * Utility class used mainly for type conversion by the default collection implementations.
- * Meant for internal use.
+ * Utility class used mainly for type conversion by the default collection implementations. Meant for internal use.
  * 
  * @author Costin Leau
  */
@@ -56,7 +55,6 @@ abstract class CollectionUtils {
 	static <K> void rename(final K key, final K newKey, RedisOperations<K, ?> operations) {
 		operations.execute(new SessionCallback<Object>() {
 			@SuppressWarnings("unchecked")
-			
 			public Object execute(RedisOperations operations) throws DataAccessException {
 				do {
 					operations.watch(key);
@@ -64,8 +62,7 @@ abstract class CollectionUtils {
 					if (operations.hasKey(key)) {
 						operations.multi();
 						operations.rename(key, newKey);
-					}
-					else {
+					} else {
 						operations.multi();
 					}
 				} while (operations.exec() == null);
@@ -77,7 +74,6 @@ abstract class CollectionUtils {
 	static <K> Boolean renameIfAbsent(final K key, final K newKey, RedisOperations<K, ?> operations) {
 		return operations.execute(new SessionCallback<Boolean>() {
 			@SuppressWarnings("unchecked")
-			
 			public Boolean execute(RedisOperations operations) throws DataAccessException {
 				List<Object> exec = null;
 				do {
@@ -86,8 +82,7 @@ abstract class CollectionUtils {
 					if (operations.hasKey(key)) {
 						operations.multi();
 						operations.renameIfAbsent(key, newKey);
-					}
-					else {
+					} else {
 						operations.watch(newKey);
 						operations.multi();
 						operations.hasKey(newKey);

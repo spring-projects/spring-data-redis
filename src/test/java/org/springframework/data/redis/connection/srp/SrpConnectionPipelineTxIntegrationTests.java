@@ -28,9 +28,8 @@ import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link SrpConnection} transactions within a pipeline
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransactionIntegrationTests {
 
@@ -40,7 +39,7 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		assertNull(connection.get("foo"));
 		List<Object> results = connection.closePipeline();
-		assertEquals(Arrays.asList(new Object[] {Collections.emptyList(), "bar"}), results);
+		assertEquals(Arrays.asList(new Object[] { Collections.emptyList(), "bar" }), results);
 		assertEquals("bar", connection.get("foo"));
 	}
 
@@ -55,17 +54,17 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		List<Object> results = connection.closePipeline();
 		assertEquals(2, results.size());
-		assertEquals(Arrays.asList(new Object[] {"bar"}), results.get(0));
-		assertEquals(Arrays.asList(new Object[] {"baz"}), results.get(1));
+		assertEquals(Arrays.asList(new Object[] { "bar" }), results.get(0));
+		assertEquals(Arrays.asList(new Object[] { "baz" }), results.get(1));
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
 		super.testEvalShaNotFound();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {
 		super.testEvalReturnSingleError();
@@ -83,13 +82,13 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		super.testRestoreBadData();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
@@ -105,8 +104,8 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 		assertNull(connection.exec());
 		List<Object> pipelined = connection.closePipeline();
 		// We expect only the results of exec to be in the closed pipeline
-		assertEquals(1,pipelined.size());
-		List<Object> txResults = (List<Object>)pipelined.get(0);
+		assertEquals(1, pipelined.size());
+		List<Object> txResults = (List<Object>) pipelined.get(0);
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;
 	}

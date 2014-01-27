@@ -23,23 +23,17 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * Converts a Set of values of one type to a Set of values of another type
- *
+ * 
  * @author Jennifer Hickey
- *
- * @param <S>
- *            The type of elements in the Set to convert
- * @param <T>
- *            The type of elements in the converted Set
+ * @param <S> The type of elements in the Set to convert
+ * @param <T> The type of elements in the converted Set
  */
 public class SetConverter<S, T> implements Converter<Set<S>, Set<T>> {
 
 	private Converter<S, T> itemConverter;
 
 	/**
-	 *
-	 * @param itemConverter
-	 *            The {@link Converter} to use for converting individual Set
-	 *            items
+	 * @param itemConverter The {@link Converter} to use for converting individual Set items
 	 */
 	public SetConverter(Converter<S, T> itemConverter) {
 		this.itemConverter = itemConverter;

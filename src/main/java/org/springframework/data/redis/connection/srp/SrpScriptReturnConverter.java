@@ -24,11 +24,9 @@ import org.springframework.data.redis.connection.ReturnType;
 import redis.reply.Reply;
 
 /**
- * Converts the value returned by SRP script eval to the expected
- * {@link ReturnType}
- *
+ * Converts the value returned by SRP script eval to the expected {@link ReturnType}
+ * 
  * @author Jennifer Hickey
- *
  */
 public class SrpScriptReturnConverter implements Converter<Object, Object> {
 

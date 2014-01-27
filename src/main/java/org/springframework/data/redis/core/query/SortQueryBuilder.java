@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.core.query;
 
-
 /**
  * Simple builder class for constructing {@link SortQuery}.
- *
+ * 
  * @author Costin Leau
  */
 public class SortQueryBuilder<K> extends DefaultSortCriterion<K> {

@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
-
 /**
  * ZSet (or SortedSet) operations bound to a certain key.
  * 

@@ -37,23 +37,23 @@ import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Integration test of {@link DefaultListOperations}
+ * 
  * @author Jennifer Hickey
- *
  * @param <K> Key test
  * @param <V> Value test
  */
 @RunWith(Parameterized.class)
-public class DefaultListOperationsTests<K,V> {
+public class DefaultListOperationsTests<K, V> {
 
-	private RedisTemplate<K,V> redisTemplate;
+	private RedisTemplate<K, V> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;
 
 	private ObjectFactory<V> valueFactory;
 
-	private ListOperations<K,V> listOps;
+	private ListOperations<K, V> listOps;
 
-	public DefaultListOperationsTests(RedisTemplate<K,V> redisTemplate, ObjectFactory<K> keyFactory,
+	public DefaultListOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -89,10 +89,10 @@ public class DefaultListOperationsTests<K,V> {
 		System.out.println("Value1" + v1);
 		System.out.println("Value2" + v2);
 		System.out.println("Value3" + v3);
-		assertEquals(Long.valueOf(1),listOps.leftPush(key, v1));
-		assertEquals(Long.valueOf(2),listOps.leftPush(key, v2));
+		assertEquals(Long.valueOf(1), listOps.leftPush(key, v1));
+		assertEquals(Long.valueOf(2), listOps.leftPush(key, v2));
 		assertEquals(Long.valueOf(3), listOps.leftPush(key, v1, v3));
-		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] {v2, v3, v1})));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v2, v3, v1 })));
 	}
 
 	@Test
@@ -101,9 +101,9 @@ public class DefaultListOperationsTests<K,V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		assertEquals(Long.valueOf(0), listOps.leftPushIfPresent(key, v1));
-		assertEquals(Long.valueOf(1),listOps.leftPush(key, v1));
-		assertEquals(Long.valueOf(2),listOps.leftPushIfPresent(key, v2));
-		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] {v2, v1})));
+		assertEquals(Long.valueOf(1), listOps.leftPush(key, v1));
+		assertEquals(Long.valueOf(2), listOps.leftPushIfPresent(key, v2));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v2, v1 })));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -113,9 +113,9 @@ public class DefaultListOperationsTests<K,V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
-		assertEquals(Long.valueOf(2),listOps.leftPushAll(key, v1, v2));
+		assertEquals(Long.valueOf(2), listOps.leftPushAll(key, v1, v2));
 		assertEquals(Long.valueOf(3), listOps.leftPush(key, v3));
-		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] {v3, v2, v1})));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v3, v2, v1 })));
 	}
 
 	@Test
@@ -146,11 +146,10 @@ public class DefaultListOperationsTests<K,V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
-		assertEquals(Long.valueOf(1),listOps.rightPush(key, v1));
-		assertEquals(Long.valueOf(2),listOps.rightPush(key, v2));
+		assertEquals(Long.valueOf(1), listOps.rightPush(key, v1));
+		assertEquals(Long.valueOf(2), listOps.rightPush(key, v2));
 		assertEquals(Long.valueOf(3), listOps.rightPush(key, v1, v3));
-		assertThat(listOps.range(key, 0, -1),
-				isEqual(Arrays.asList(new Object[] {v1, v3, v2})));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v3, v2 })));
 	}
 
 	@Test
@@ -159,10 +158,9 @@ public class DefaultListOperationsTests<K,V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		assertEquals(Long.valueOf(0), listOps.rightPushIfPresent(key, v1));
-		assertEquals(Long.valueOf(1),listOps.rightPush(key, v1));
-		assertEquals(Long.valueOf(2),listOps.rightPushIfPresent(key, v2));
-		assertThat(listOps.range(key, 0, -1),
-				isEqual(Arrays.asList(new Object[] {v1, v2})));
+		assertEquals(Long.valueOf(1), listOps.rightPush(key, v1));
+		assertEquals(Long.valueOf(2), listOps.rightPushIfPresent(key, v2));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2 })));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -172,9 +170,8 @@ public class DefaultListOperationsTests<K,V> {
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
 		V v3 = valueFactory.instance();
-		assertEquals(Long.valueOf(2),listOps.rightPushAll(key, v1, v2));
-		assertEquals(Long.valueOf(3),listOps.rightPush(key, v3));
-		assertThat(listOps.range(key, 0, -1),
-				isEqual(Arrays.asList(new Object[] {v1, v2, v3})));
+		assertEquals(Long.valueOf(2), listOps.rightPushAll(key, v1, v2));
+		assertEquals(Long.valueOf(3), listOps.rightPush(key, v3));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
 	}
 }

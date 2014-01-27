@@ -54,16 +54,15 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private boolean convertPipelineAndTxResults = true;
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance
-	 * with default settings (default connection pooling, no shard information).
+	 * Constructs a new <code>JedisConnectionFactory</code> instance with default settings (default connection pooling, no
+	 * shard information).
 	 */
-	public JedisConnectionFactory() {
-	}
+	public JedisConnectionFactory() {}
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance.
-	 * Will override the other connection parameters passed to the factory. 
-	 *
+	 * Constructs a new <code>JedisConnectionFactory</code> instance. Will override the other connection parameters passed
+	 * to the factory.
+	 * 
 	 * @param shardInfo shard information
 	 */
 	public JedisConnectionFactory(JedisShardInfo shardInfo) {
@@ -71,19 +70,17 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Constructs a new <code>JedisConnectionFactory</code> instance using
-	 * the given pool configuration.
-	 *
+	 * Constructs a new <code>JedisConnectionFactory</code> instance using the given pool configuration.
+	 * 
 	 * @param poolConfig pool configuration
 	 */
 	public JedisConnectionFactory(JedisPoolConfig poolConfig) {
 		this.poolConfig = poolConfig;
 	}
 
-
 	/**
-	 * Returns a Jedis instance to be used as a Redis connection.
-	 * The instance can be newly created or retrieved from a pool.
+	 * Returns a Jedis instance to be used as a Redis connection. The instance can be newly created or retrieved from a
+	 * pool.
 	 * 
 	 * @return Jedis instance ready for wrapping into a {@link RedisConnection}.
 	 */
@@ -102,9 +99,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Post process a newly retrieved connection. Useful for decorating or executing
-	 * initialization commands on a new connection.
-	 * This implementation simply returns the connection.
+	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
+	 * connection. This implementation simply returns the connection.
 	 * 
 	 * @param connection
 	 * @return processed connection
@@ -145,12 +141,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	public JedisConnection getConnection() {
 		Jedis jedis = fetchJedisConnector();
-		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex) :
-			new JedisConnection(jedis, null, dbIndex));
+		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis,
+				null, dbIndex));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
-
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return JedisConverters.toDataAccessException(ex);
@@ -158,7 +153,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the Redis hostName.
-	 *
+	 * 
 	 * @return Returns the hostName
 	 */
 	public String getHostName() {
@@ -213,7 +208,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the shardInfo.
-	 *
+	 * 
 	 * @return Returns the shardInfo
 	 */
 	public JedisShardInfo getShardInfo() {
@@ -231,7 +226,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the timeout.
-	 *
+	 * 
 	 * @return Returns the timeout
 	 */
 	public int getTimeout() {
@@ -247,7 +242,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Indicates the use of a connection pool.
-	 *
+	 * 
 	 * @return Returns the use of connection pooling.
 	 */
 	public boolean getUsePool() {
@@ -265,7 +260,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/**
 	 * Returns the poolConfig.
-	 *
+	 * 
 	 * @return Returns the poolConfig
 	 */
 	public JedisPoolConfig getPoolConfig() {
@@ -281,10 +276,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		this.poolConfig = poolConfig;
 	}
 
-
 	/**
 	 * Returns the index of the database.
-	 *
+	 * 
 	 * @return Returns the database index
 	 */
 	public int getDatabase() {
@@ -292,8 +286,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Sets the index of the database used by this connection factory.
-	 * Default is 0.
+	 * Sets the index of the database used by this connection factory. Default is 0.
 	 * 
 	 * @param index database index
 	 */
@@ -303,10 +296,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link JedisConnection#closePipeline()} and
-	 * {@link JedisConnection#exec()} will be of the type returned by the Jedis driver
-	 *
+	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
+	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
+	 * Jedis driver
+	 * 
 	 * @return Whether or not to convert pipeline and tx results
 	 */
 	public boolean getConvertPipelineAndTxResults() {
@@ -314,10 +307,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
-	 * Specifies if pipelined results should be converted to the expected data
-	 * type. If false, results of {@link JedisConnection#closePipeline()} and
-	 * {@link JedisConnection#exec()} will be of the type returned by the Jedis driver
-	 *
+	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
+	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
+	 * Jedis driver
+	 * 
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {

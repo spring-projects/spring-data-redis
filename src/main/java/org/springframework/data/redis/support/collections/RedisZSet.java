@@ -24,7 +24,8 @@ import java.util.SortedSet;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
- * Redis ZSet (or sorted set (by weight)). Acts as a {@link SortedSet} based on the given priorities or weights associated with each item.
+ * Redis ZSet (or sorted set (by weight)). Acts as a {@link SortedSet} based on the given priorities or weights
+ * associated with each item.
  * <p/>
  * Since using a {@link Comparator} does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
  * 
@@ -61,8 +62,7 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	RedisZSet<E> removeByScore(double min, double max);
 
 	/**
-	 * Adds an element to the set with the given score, or updates the score if
-	 * the element exists.
+	 * Adds an element to the set with the given score, or updates the score if the element exists.
 	 * 
 	 * @param e element to add
 	 * @param score element score
@@ -71,13 +71,8 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	boolean add(E e, double score);
 
 	/**
-	 * Adds an element to the set with a default score. Equivalent to
-	 * {@code add(e, getDefaultScore())}.
-	 *  
-	 * 
-	 * The score value is implementation specific.
-	 * 
-	 * {@inheritDoc}
+	 * Adds an element to the set with a default score. Equivalent to {@code add(e, getDefaultScore())}. The score value
+	 * is implementation specific. {@inheritDoc}
 	 */
 	boolean add(E e);
 
@@ -90,8 +85,8 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Double score(Object o);
 
 	/**
-	 * Returns the rank (position) of the given element in the set, in ascending order. 
-	 * Returns null if the element is not contained by the set.
+	 * Returns the rank (position) of the given element in the set, in ascending order. Returns null if the element is not
+	 * contained by the set.
 	 * 
 	 * @param o object
 	 * @return rank of the given object
@@ -99,8 +94,8 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Long rank(Object o);
 
 	/**
-	 * Returns the rank (position) of the given element in the set, in descending order.
-	 * Returns null if the element is not contained by the set.
+	 * Returns the rank (position) of the given element in the set, in descending order. Returns null if the element is
+	 * not contained by the set.
 	 * 
 	 * @param o object
 	 * @return reverse rank of the given object
@@ -116,17 +111,17 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
 	/**
 	 * Returns the first (lowest) element currently in this sorted set.
-	 *
+	 * 
 	 * @return the first (lowest) element currently in this sorted set.
-	 * @throws    NoSuchElementException sorted set is empty.
+	 * @throws NoSuchElementException sorted set is empty.
 	 */
 	E first();
 
 	/**
 	 * Returns the last (highest) element currently in this sorted set.
-	 *
+	 * 
 	 * @return the last (highest) element currently in this sorted set.
-	 * @throws    NoSuchElementException sorted set is empty.
+	 * @throws NoSuchElementException sorted set is empty.
 	 */
 	E last();
 }

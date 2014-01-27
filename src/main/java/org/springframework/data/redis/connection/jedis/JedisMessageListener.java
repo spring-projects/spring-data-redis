@@ -35,32 +35,26 @@ class JedisMessageListener extends BinaryJedisPubSub {
 		this.listener = listener;
 	}
 
-	
 	public void onMessage(byte[] channel, byte[] message) {
 		listener.onMessage(new DefaultMessage(channel, message), null);
 	}
 
-	
 	public void onPMessage(byte[] pattern, byte[] channel, byte[] message) {
 		listener.onMessage(new DefaultMessage(channel, message), pattern);
 	}
 
-	
 	public void onPSubscribe(byte[] pattern, int subscribedChannels) {
 		// no-op
 	}
 
-	
 	public void onPUnsubscribe(byte[] pattern, int subscribedChannels) {
-		// no-op	
+		// no-op
 	}
 
-	
 	public void onSubscribe(byte[] channel, int subscribedChannels) {
 		// no-op
 	}
 
-	
 	public void onUnsubscribe(byte[] channel, int subscribedChannels) {
 		// no-op
 	}

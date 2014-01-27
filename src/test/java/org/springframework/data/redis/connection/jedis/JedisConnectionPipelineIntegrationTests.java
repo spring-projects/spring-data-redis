@@ -36,14 +36,12 @@ import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * Integration test of {@link JedisConnection} pipeline functionality
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
-public class JedisConnectionPipelineIntegrationTests extends
-		AbstractConnectionPipelineIntegrationTests {
+public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
 	@After
 	public void tearDown() {
@@ -60,8 +58,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 	}
 
 	@Ignore("Jedis issue: Pipeline tries to return String instead of List<String>")
-	public void testGetConfig() {
-	}
+	public void testGetConfig() {}
 
 	@Test
 	public void testWatch() {
@@ -69,8 +66,7 @@ public class JedisConnectionPipelineIntegrationTests extends
 		connection.watch("testitnow".getBytes());
 		// Jedis doesn't actually send commands until you close the pipeline
 		getResults();
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		conn2.close();
 		// Reopen the pipeline
@@ -95,19 +91,18 @@ public class JedisConnectionPipelineIntegrationTests extends
 		getResults();
 		initConnection();
 		connection.multi();
-		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(
-				connectionFactory.getConnection());
+		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 		conn2.set("testitnow", "something");
 		connection.set("testitnow", "somethingelse");
 		connection.get("testitnow");
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] {"somethingelse"}), execResults);
+		assertEquals(Arrays.asList(new Object[] { "somethingelse" }), execResults);
 	}
 
 	@Test
-	//DATAREDIS-213 - Verify connection returns to pool after select
+	// DATAREDIS-213 - Verify connection returns to pool after select
 	public void testClosePoolPipelinedDbSelect() {
 		JedisPoolConfig config = new JedisPoolConfig();
 		config.setMaxActive(1);
@@ -125,127 +120,127 @@ public class JedisConnectionPipelineIntegrationTests extends
 	}
 
 	// Unsupported Ops
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptLoadEvalSha() {
 		super.testScriptLoadEvalSha();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
 		super.testEvalShaNotFound();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnString() {
 		super.testEvalReturnString();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnNumber() {
 		super.testEvalReturnNumber();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleOK() {
 		super.testEvalReturnSingleOK();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {
 		super.testEvalReturnSingleError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnFalse() {
 		super.testEvalReturnFalse();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnTrue() {
 		super.testEvalReturnTrue();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayStrings() {
 		super.testEvalReturnArrayStrings();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayNumbers() {
 		super.testEvalReturnArrayNumbers();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayOKs() {
 		super.testEvalReturnArrayOKs();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayFalses() {
 		super.testEvalReturnArrayFalses();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayTrues() {
 		super.testEvalReturnArrayTrues();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptExists() {
 		super.testScriptExists();
 	}
 
 	@IfProfileValue(name = "redisVersion", value = "2.6")
-	@Test(expected=UnsupportedOperationException.class)
-	public void testScriptKill() throws Exception{
+	@Test(expected = UnsupportedOperationException.class)
+	public void testScriptKill() throws Exception {
 		connection.scriptKill();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptFlush() {
 		connection.scriptFlush();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZAddMultiple() {
 		super.testZAddMultiple();
 	}

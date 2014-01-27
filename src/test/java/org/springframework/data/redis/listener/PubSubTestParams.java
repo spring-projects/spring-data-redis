@@ -92,9 +92,8 @@ public class PubSubTestParams {
 		// JRedis does not support pub/sub
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, { personFactory, personTemplate },
-				{rawFactory, rawTemplate}, { stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
-				{rawFactory, rawTemplateLtc}, { stringFactory, stringTemplateSrp }, { personFactory, personTemplateSrp },
-				{rawFactory, rawTemplateSrp}
-		});
+				{ rawFactory, rawTemplate }, { stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
+				{ rawFactory, rawTemplateLtc }, { stringFactory, stringTemplateSrp }, { personFactory, personTemplateSrp },
+				{ rawFactory, rawTemplateSrp } });
 	}
 }

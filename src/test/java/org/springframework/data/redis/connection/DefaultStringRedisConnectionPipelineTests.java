@@ -28,9 +28,8 @@ import org.junit.Test;
 
 /**
  * Unit test of {@link DefaultStringRedisConnection} that executes commands in a pipeline
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedisConnectionTests {
 
@@ -152,7 +151,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 		connection.lLen(fooBytes);
 		connection.exec();
 		// closePipeline should only return the results of exec, not of llen
-		verifyResults(Arrays.asList(new Object[] {results}));
+		verifyResults(Arrays.asList(new Object[] { results }));
 	}
 
 	@Test
@@ -973,15 +972,13 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 
 	@Test
 	public void testTypeBytes() {
-		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection)
-				.closePipeline();
+		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection).closePipeline();
 		super.testTypeBytes();
 	}
 
 	@Test
 	public void testType() {
-		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection)
-				.closePipeline();
+		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection).closePipeline();
 		super.testType();
 	}
 
@@ -1426,8 +1423,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 		// Only call one method, but return 2 results from nativeConnection.closePipeline()
 		// Emulates scenario where user has called some methods directly on the native connection
 		// while pipeline is open
-		doReturn(Arrays.asList(new Object[] { barBytes, 3l })).when(nativeConnection)
-				.closePipeline();
+		doReturn(Arrays.asList(new Object[] { barBytes, 3l })).when(nativeConnection).closePipeline();
 		doReturn(barBytes).when(nativeConnection).get(fooBytes);
 		connection.get(foo);
 		verifyResults(Arrays.asList(new Object[] { barBytes, 3l }));

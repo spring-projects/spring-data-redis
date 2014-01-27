@@ -69,8 +69,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	protected RedisMap<K, V> map;
 	protected ObjectFactory<K> keyFactory;
 	protected ObjectFactory<V> valueFactory;
-	@SuppressWarnings("rawtypes")
-	protected RedisTemplate template;
+	@SuppressWarnings("rawtypes") protected RedisTemplate template;
 
 	abstract RedisMap<K, V> createMap();
 
@@ -112,7 +111,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.getOperations().delete(Collections.singleton(map.getKey()));
 		template.execute(new RedisCallback<Object>() {
 
-			
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;
@@ -204,8 +202,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testIncrementNotNumber() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()) &&
-				!(valueFactory instanceof LongAsStringObjectFactory));
+		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory())
+				&& !(valueFactory instanceof LongAsStringObjectFactory));
 		K k1 = getKey();
 		V v1 = getValue();
 
@@ -226,18 +224,18 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);
-		assertEquals(Long.valueOf(Long.valueOf((String)v1) + 10), map.increment(k1, 10));
+		assertEquals(Long.valueOf(Long.valueOf((String) v1) + 10), map.increment(k1, 10));
 	}
 
 	@Test
 	public void testIncrementDouble() {
-		assumeTrue(RedisVersionUtils.atLeast("2.6", template.getConnectionFactory().getConnection()) &&
-				valueFactory instanceof DoubleAsStringObjectFactory);
+		assumeTrue(RedisVersionUtils.atLeast("2.6", template.getConnectionFactory().getConnection())
+				&& valueFactory instanceof DoubleAsStringObjectFactory);
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
-		assertEquals(twoDForm.format(Double.valueOf((String)v1) + 3.4), twoDForm.format(map.increment(k1, 3.4)));
+		assertEquals(twoDForm.format(Double.valueOf((String) v1) + 3.4), twoDForm.format(map.increment(k1, 3.4)));
 	}
 
 	@Test
@@ -430,7 +428,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertNull(map.get(k1));
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testRemoveNullValue() {
 		map.remove(getKey(), null);
 	}
@@ -452,12 +450,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(map.get(k1), isEqual(v2));
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testReplaceNullOldValue() {
 		map.replace(getKey(), null, getValue());
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testReplaceNullNewValue() {
 		map.replace(getKey(), getValue(), null);
 	}
@@ -476,7 +474,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		assertThat(map.get(k1), isEqual(v2));
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testReplaceNullValue() {
 		map.replace(getKey(), null);
 	}

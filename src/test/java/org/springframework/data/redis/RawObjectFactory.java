@@ -19,9 +19,8 @@ import java.util.UUID;
 
 /**
  * Implementation of {@link ObjectFactory} that returns random byte[]s
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class RawObjectFactory implements ObjectFactory<byte[]> {
 

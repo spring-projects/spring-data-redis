@@ -25,9 +25,8 @@ import org.springframework.scripting.support.StaticScriptSource;
 
 /**
  * Test of {@link DefaultRedisScript}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class DefaultRedisScriptTests {
 

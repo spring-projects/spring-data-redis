@@ -17,10 +17,9 @@ package org.springframework.data.redis;
 
 import java.util.UUID;
 
-
 /**
  * String object factory based on UUID.
- *
+ * 
  * @author Costin Leau
  */
 public class StringObjectFactory implements ObjectFactory<String> {

@@ -23,11 +23,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisOperations;
 
 /**
- * Base implementation for {@link RedisCollection}.
- * Provides a skeletal implementation.
- * 
- * Note that the collection support works only with normal, non-pipeline/multi-exec connections as it requires
- * a reply to be sent right away. 
+ * Base implementation for {@link RedisCollection}. Provides a skeletal implementation. Note that the collection support
+ * works only with normal, non-pipeline/multi-exec connections as it requires a reply to be sent right away.
  * 
  * @author Costin Leau
  */
@@ -43,17 +40,14 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		this.operations = operations;
 	}
 
-	
 	public String getKey() {
 		return key;
 	}
 
-	
 	public RedisOperations<String, E> getOperations() {
 		return operations;
 	}
 
-	
 	public boolean addAll(Collection<? extends E> c) {
 		boolean modified = false;
 		for (E e : c) {
@@ -66,7 +60,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 
 	public abstract void clear();
 
-	
 	public boolean containsAll(Collection<?> c) {
 		boolean contains = true;
 		for (Object object : c) {
@@ -77,8 +70,6 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 
 	public abstract boolean remove(Object o);
 
-
-	
 	public boolean removeAll(Collection<?> c) {
 		boolean modified = false;
 		for (Object object : c) {
@@ -101,15 +92,12 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return false;
 	}
 
-	
 	public int hashCode() {
 		int result = 17 + getClass().hashCode();
 		result = result * 31 + key.hashCode();
 		return result;
 	}
 
-
-	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("RedisStore for key:");
@@ -117,27 +105,22 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return sb.toString();
 	}
 
-	
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return operations.expire(key, timeout, unit);
 	}
 
-	
 	public Boolean expireAt(Date date) {
 		return operations.expireAt(key, date);
 	}
 
-	
 	public Long getExpire() {
 		return operations.getExpire(key);
 	}
 
-	
 	public Boolean persist() {
 		return operations.persist(key);
 	}
 
-	
 	public void rename(final String newKey) {
 		CollectionUtils.rename(key, newKey, operations);
 		key = newKey;

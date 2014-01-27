@@ -33,6 +33,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 public class SimpleRedisSerializerTests {
 
 	private static class A implements Serializable {
+
 		private Integer value = Integer.valueOf(30);
 
 		public int hashCode() {
@@ -60,6 +61,7 @@ public class SimpleRedisSerializerTests {
 	}
 
 	private static class B implements Serializable {
+
 		private String name = getClass().getName();
 		private A a = new A();
 
@@ -107,7 +109,6 @@ public class SimpleRedisSerializerTests {
 
 	@Test
 	public void testBasicSerializationRoundtrip() throws Exception {
-		Integer integer = new Integer(300);
 		verifySerializedObjects(new Integer(300), new Double(200), new B());
 	}
 

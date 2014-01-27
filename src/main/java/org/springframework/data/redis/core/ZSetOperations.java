@@ -27,7 +27,7 @@ import java.util.Set;
 public interface ZSetOperations<K, V> {
 
 	/**
-	 * Typed ZSet tuple. 
+	 * Typed ZSet tuple.
 	 */
 	public interface TypedTuple<V> extends Comparable<Double> {
 		V getValue();

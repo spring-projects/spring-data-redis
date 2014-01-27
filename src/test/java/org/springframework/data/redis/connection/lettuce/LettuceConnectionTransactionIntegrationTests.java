@@ -30,22 +30,18 @@ import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Integration test of {@link LettuceConnection} functionality within a
- * transaction
- *
+ * Integration test of {@link LettuceConnection} functionality within a transaction
+ * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
-public class LettuceConnectionTransactionIntegrationTests extends
-		AbstractConnectionTransactionIntegrationTests {
+public class LettuceConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
 	@Test
 	@Ignore("DATAREDIS-226 Exceptions on native execute are swallowed in tx")
-	public void exceptionExecuteNative() throws Exception {
-	}
+	public void exceptionExecuteNative() throws Exception {}
 
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
@@ -57,24 +53,24 @@ public class LettuceConnectionTransactionIntegrationTests extends
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}));
+		verifyResults(Arrays.asList(new Object[] { true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar",conn2.get("foo"));
+			assertEquals("bar", conn2.get("foo"));
 		} finally {
-			if(conn2.exists("foo")) {
+			if (conn2.exists("foo")) {
 				conn2.del("foo");
 			}
 			conn2.close();
-            factory2.destroy();
+			factory2.destroy();
 		}
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
 	}

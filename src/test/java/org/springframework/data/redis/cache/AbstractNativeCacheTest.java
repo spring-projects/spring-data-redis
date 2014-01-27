@@ -46,7 +46,6 @@ public abstract class AbstractNativeCacheTest<T> {
 		cache.clear();
 	}
 
-
 	protected abstract T createNativeCache() throws Exception;
 
 	protected abstract Cache createCache(T nativeCache);
@@ -77,10 +76,10 @@ public abstract class AbstractNativeCacheTest<T> {
 		if (valueWrapper != null) {
 			assertThat(valueWrapper.get(), isEqual(value));
 		}
-		// keeps failing on the CI server so do  
+		// keeps failing on the CI server so do
 		else {
-			//			Thread.sleep(200);
-			//			assertNotNull(cache.get(key));
+			// Thread.sleep(200);
+			// assertNotNull(cache.get(key));
 			// ignore for now
 		}
 	}
@@ -89,7 +88,6 @@ public abstract class AbstractNativeCacheTest<T> {
 	public void testCacheClear() throws Exception {
 		Object key1 = getKey();
 		Object value1 = getValue();
-
 
 		Object key2 = getKey();
 		Object value2 = getValue();

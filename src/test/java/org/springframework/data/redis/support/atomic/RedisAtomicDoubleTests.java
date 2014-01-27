@@ -40,7 +40,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
  * Integration test of {@link RedisAtomicDouble}
- *
+ * 
  * @author Jennifer Hickey
  */
 @RunWith(Parameterized.class)

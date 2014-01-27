@@ -30,12 +30,11 @@ public class Address implements Serializable {
 
 	private Integer number;
 
-	public Address() {
-	}
+	public Address() {}
 
 	/**
 	 * Constructs a new <code>Address</code> instance.
-	 *
+	 * 
 	 * @param street
 	 * @param number
 	 */
@@ -45,10 +44,9 @@ public class Address implements Serializable {
 		this.number = number;
 	}
 
-
 	/**
 	 * Returns the street.
-	 *
+	 * 
 	 * @return Returns the street
 	 */
 	public String getStreet() {
@@ -64,7 +62,7 @@ public class Address implements Serializable {
 
 	/**
 	 * Returns the number.
-	 *
+	 * 
 	 * @return Returns the number
 	 */
 	public Integer getNumber() {
@@ -78,7 +76,6 @@ public class Address implements Serializable {
 		this.number = number;
 	}
 
-	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -87,7 +84,6 @@ public class Address implements Serializable {
 		return result;
 	}
 
-	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -99,14 +95,12 @@ public class Address implements Serializable {
 		if (number == null) {
 			if (other.number != null)
 				return false;
-		}
-		else if (!number.equals(other.number))
+		} else if (!number.equals(other.number))
 			return false;
 		if (street == null) {
 			if (other.street != null)
 				return false;
-		}
-		else if (!street.equals(other.street))
+		} else if (!street.equals(other.street))
 			return false;
 		return true;
 	}

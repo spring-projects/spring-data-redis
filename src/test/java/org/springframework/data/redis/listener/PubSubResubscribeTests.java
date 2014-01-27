@@ -61,8 +61,7 @@ public class PubSubResubscribeTests {
 	protected RedisMessageListenerContainer container;
 	protected RedisConnectionFactory factory;
 
-	@SuppressWarnings("rawtypes")
-	protected RedisTemplate template;
+	@SuppressWarnings("rawtypes") protected RedisTemplate template;
 
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
 
@@ -118,7 +117,6 @@ public class PubSubResubscribeTests {
 		Thread.sleep(1000);
 	}
 
-
 	@Test
 	public void testContainerPatternResubscribe() throws Exception {
 		String payload1 = "do";
@@ -160,10 +158,10 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
 		// original listener received only one message on another channel
-		assertEquals(payload2,bag.poll(1, TimeUnit.SECONDS));
+		assertEquals(payload2, bag.poll(1, TimeUnit.SECONDS));
 		assertNull(bag.poll(1, TimeUnit.SECONDS));
 
-		//another listener receives messages on both channels
+		// another listener receives messages on both channels
 		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
 		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
 		assertEquals(2, msgs.size());
@@ -187,11 +185,11 @@ public class PubSubResubscribeTests {
 
 		// Listener removed from channel
 		template.convertAndSend(CHANNEL, payload1);
-        template.convertAndSend(CHANNEL, payload2);
+		template.convertAndSend(CHANNEL, payload2);
 
-        // Listener receives messages on another channel
+		// Listener receives messages on another channel
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload1);
-        template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
+		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
 		Set<String> set = new LinkedHashSet<String>();
 		set.add(bag.poll(1, TimeUnit.SECONDS));
@@ -205,8 +203,9 @@ public class PubSubResubscribeTests {
 	}
 
 	/**
-	 * Validates the behavior of {@link RedisMessageListenerContainer} when it needs to spin up
-	 * a thread executing its PatternSubscriptionTask
+	 * Validates the behavior of {@link RedisMessageListenerContainer} when it needs to spin up a thread executing its
+	 * PatternSubscriptionTask
+	 * 
 	 * @throws Exception
 	 */
 	@Ignore("DATAREDIS-166 Intermittent corrupted input/output streams subscribing to both patterns and channels in RMLC")

@@ -18,7 +18,7 @@ package org.springframework.data.redis.listener;
 import org.springframework.util.Assert;
 
 /**
- * Channel topic implementation (maps to a Redis channel). 
+ * Channel topic implementation (maps to a Redis channel).
  * 
  * @author Costin Leau
  */
@@ -28,7 +28,7 @@ public class ChannelTopic implements Topic {
 
 	/**
 	 * Constructs a new <code>ChannelTopic</code> instance.
-	 *
+	 * 
 	 * @param name
 	 */
 	public ChannelTopic(String name) {
@@ -38,7 +38,7 @@ public class ChannelTopic implements Topic {
 
 	/**
 	 * Returns the topic name.
-	 *  
+	 * 
 	 * @return topic name
 	 */
 	public String getTopic() {
@@ -66,8 +66,7 @@ public class ChannelTopic implements Topic {
 			if (other.channelName != null) {
 				return false;
 			}
-		}
-		else if (!channelName.equals(other.channelName)) {
+		} else if (!channelName.equals(other.channelName)) {
 			return false;
 		}
 		return true;

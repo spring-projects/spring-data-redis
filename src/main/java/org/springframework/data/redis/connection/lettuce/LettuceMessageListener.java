@@ -44,15 +44,11 @@ class LettuceMessageListener implements RedisPubSubListener<byte[], byte[]> {
 		listener.onMessage(new DefaultMessage(channel, message), pattern);
 	}
 
-	public void subscribed(byte[] channel, long count) {
-	}
+	public void subscribed(byte[] channel, long count) {}
 
-	public void psubscribed(byte[] pattern, long count) {
-	}
+	public void psubscribed(byte[] pattern, long count) {}
 
-	public void unsubscribed(byte[] channel, long count) {
-	}
+	public void unsubscribed(byte[] channel, long count) {}
 
-	public void punsubscribed(byte[] pattern, long count) {
-	}
+	public void punsubscribed(byte[] pattern, long count) {}
 }
