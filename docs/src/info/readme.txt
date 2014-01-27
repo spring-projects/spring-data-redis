@@ -23,6 +23,6 @@ Please see the reference documentation.
 Additionally the blog at http://blog.springsource.com as well as sections of interest in the reference documentation.
 
 ADDITIONAL RESOURCES
-Spring Data Homepage: http://www.springsource.org/spring-data/redis
+Spring Data Homepage: http://projects.spring.io/spring-data-redis/
 Spring Data Forum   : http://forum.springsource.org/forumdisplay.php?f=80
 Redis Homepage      : http://redis.io
