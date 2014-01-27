@@ -15,32 +15,25 @@
  */
 package org.springframework.data.redis.connection;
 
-
 /**
  * Pool of resources
  * 
  * @author Jennifer Hickey
- * 
  */
 public interface Pool<T> {
 
 	/**
-	 * 
 	 * @return A resource, if available
 	 */
 	T getResource();
 
 	/**
-	 * 
-	 * @param resource
-	 *            A broken resource that should be invalidated
+	 * @param resource A broken resource that should be invalidated
 	 */
 	void returnBrokenResource(final T resource);
 
 	/**
-	 * 
-	 * @param resource
-	 *            A resource to return to the pool
+	 * @param resource A resource to return to the pool
 	 */
 	void returnResource(final T resource);
 

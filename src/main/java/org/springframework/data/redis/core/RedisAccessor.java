@@ -22,8 +22,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
 
 /**
- * Base class for {@link RedisTemplate} defining common properties.
- * Not intended to be used directly. 
+ * Base class for {@link RedisTemplate} defining common properties. Not intended to be used directly.
  * 
  * @author Costin Leau
  */
@@ -40,7 +39,7 @@ public class RedisAccessor implements InitializingBean {
 
 	/**
 	 * Returns the connectionFactory.
-	 *
+	 * 
 	 * @return Returns the connectionFactory
 	 */
 	public RedisConnectionFactory getConnectionFactory() {

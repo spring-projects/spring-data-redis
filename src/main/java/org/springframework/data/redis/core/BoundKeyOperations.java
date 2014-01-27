@@ -21,13 +21,12 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.DataType;
 
 /**
- * Operations over a Redis key.  
- * 
- * Useful for executing common key-'bound' operations to all implementations.
- * 
- * <p>As the rest of the APIs, if the underlying connection is pipelined or queued/in multi mode,
- * all methods will return null.
+ * Operations over a Redis key. Useful for executing common key-'bound' operations to all implementations.
+ * <p>
+ * As the rest of the APIs, if the underlying connection is pipelined or queued/in multi mode, all methods will return
+ * null.
  * </p>
+ * 
  * @author Costin Leau
  */
 public interface BoundKeyOperations<K> {
@@ -41,13 +40,13 @@ public interface BoundKeyOperations<K> {
 
 	/**
 	 * Returns the associated Redis type.
-	 *  
+	 * 
 	 * @return key type
 	 */
 	DataType getType();
 
 	/**
-	 * Returns the expiration of this key. 
+	 * Returns the expiration of this key.
 	 * 
 	 * @return expiration value (in seconds)
 	 */
@@ -72,6 +71,7 @@ public interface BoundKeyOperations<K> {
 
 	/**
 	 * Removes the expiration (if any) of the key.
+	 * 
 	 * @return true if expiration was removed, false otherwise
 	 */
 	Boolean persist();

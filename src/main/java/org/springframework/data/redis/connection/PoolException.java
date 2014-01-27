@@ -21,7 +21,6 @@ import org.springframework.core.NestedRuntimeException;
  * Exception thrown when there are issues with a resource pool
  * 
  * @author Jennifer Hickey
- * 
  */
 @SuppressWarnings("serial")
 public class PoolException extends NestedRuntimeException {

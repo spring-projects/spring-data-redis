@@ -20,7 +20,7 @@ import org.springframework.dao.UncategorizedDataAccessException;
 
 /**
  * Exception thrown when we can't classify a Redis exception into one of Spring generic data access exceptions.
- *  
+ * 
  * @author Costin Leau
  */
 public class RedisSystemException extends UncategorizedDataAccessException {

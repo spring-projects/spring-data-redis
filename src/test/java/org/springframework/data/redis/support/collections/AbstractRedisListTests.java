@@ -50,7 +50,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	/**
 	 * Constructs a new <code>AbstractRedisListTests</code> instance.
-	 *
+	 * 
 	 * @param factory
 	 * @param template
 	 */

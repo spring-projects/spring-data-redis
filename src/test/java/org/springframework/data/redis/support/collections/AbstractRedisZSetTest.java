@@ -50,7 +50,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 	/**
 	 * Constructs a new <code>AbstractRedisZSetTest</code> instance.
-	 *
+	 * 
 	 * @param factory
 	 * @param template
 	 */
@@ -99,7 +99,6 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertEquals(d, zSet.score(t2));
 		assertEquals(d, zSet.score(t3));
 	}
-
 
 	@Test
 	public void testFirst() {
@@ -153,7 +152,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertEquals(Long.valueOf(1), zSet.rank(t2));
 		assertEquals(Long.valueOf(2), zSet.rank(t3));
 		assertNull(zSet.rank(getT()));
-		//assertNull();
+		// assertNull();
 	}
 
 	@Test

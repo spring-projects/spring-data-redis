@@ -26,7 +26,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Default implementation of {@link HashOperations}.
- *  
+ * 
  * @author Costin Leau
  */
 class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
@@ -37,13 +37,12 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public HV get(K key, Object hashKey) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
 
 		byte[] rawHashValue = execute(new RedisCallback<byte[]>() {
-			
+
 			public byte[] doInRedis(RedisConnection connection) {
 				return connection.hGet(rawKey, rawHashKey);
 			}
@@ -52,26 +51,24 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return (HV) deserializeHashValue(rawHashValue);
 	}
 
-	
 	public Boolean hasKey(K key, Object hashKey) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
 
 		return execute(new RedisCallback<Boolean>() {
-			
+
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.hExists(rawKey, rawHashKey);
 			}
 		}, true);
 	}
 
-	
 	public Long increment(K key, HK hashKey, final long delta) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
 
 		return execute(new RedisCallback<Long>() {
-			
+
 			public Long doInRedis(RedisConnection connection) {
 				return connection.hIncrBy(rawKey, rawHashKey, delta);
 			}
@@ -94,7 +91,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		final byte[] rawKey = rawKey(key);
 
 		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-			
+
 			public Set<byte[]> doInRedis(RedisConnection connection) {
 				return connection.hKeys(rawKey);
 			}
@@ -103,19 +100,17 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashKeys(rawValues);
 	}
 
-	
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		return execute(new RedisCallback<Long>() {
-			
+
 			public Long doInRedis(RedisConnection connection) {
 				return connection.hLen(rawKey);
 			}
 		}, true);
 	}
 
-	
 	public void putAll(K key, Map<? extends HK, ? extends HV> m) {
 		if (m.isEmpty()) {
 			return;
@@ -130,7 +125,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}
 
 		execute(new RedisCallback<Object>() {
-			
+
 			public Object doInRedis(RedisConnection connection) {
 				connection.hMSet(rawKey, hashes);
 				return null;
@@ -138,8 +133,6 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}, true);
 	}
 
-
-	
 	public List<HV> multiGet(K key, Collection<HK> fields) {
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
@@ -155,7 +148,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}
 
 		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-			
+
 			public List<byte[]> doInRedis(RedisConnection connection) {
 				return connection.hMGet(rawKey, rawHashKeys);
 			}
@@ -164,14 +157,13 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-	
 	public void put(K key, HK hashKey, HV value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
 		final byte[] rawHashValue = rawHashValue(value);
 
 		execute(new RedisCallback<Object>() {
-			
+
 			public Object doInRedis(RedisConnection connection) {
 				connection.hSet(rawKey, rawHashKey, rawHashValue);
 				return null;
@@ -179,27 +171,24 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}, true);
 	}
 
-	
 	public Boolean putIfAbsent(K key, HK hashKey, HV value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
 		final byte[] rawHashValue = rawHashValue(value);
 
 		return execute(new RedisCallback<Boolean>() {
-			
+
 			public Boolean doInRedis(RedisConnection connection) {
 				return connection.hSetNX(rawKey, rawHashKey, rawHashValue);
 			}
 		}, true);
 	}
 
-
-	
 	public List<HV> values(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		List<byte[]> rawValues = execute(new RedisCallback<List<byte[]>>() {
-			
+
 			public List<byte[]> doInRedis(RedisConnection connection) {
 				return connection.hVals(rawKey);
 			}
@@ -208,13 +197,12 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-	
 	public void delete(K key, Object... hashKeys) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawHashKeys = rawHashKeys(hashKeys);
 
 		execute(new RedisCallback<Object>() {
-			
+
 			public Object doInRedis(RedisConnection connection) {
 				connection.hDel(rawKey, rawHashKeys);
 				return null;
@@ -222,12 +210,11 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}, true);
 	}
 
-	
 	public Map<HK, HV> entries(K key) {
 		final byte[] rawKey = rawKey(key);
 
 		Map<byte[], byte[]> entries = execute(new RedisCallback<Map<byte[], byte[]>>() {
-			
+
 			public Map<byte[], byte[]> doInRedis(RedisConnection connection) {
 				return connection.hGetAll(rawKey);
 			}

@@ -19,9 +19,8 @@ import org.springframework.core.convert.converter.Converter;
 
 /**
  * Converts Longs to Booleans
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class LongToBooleanConverter implements Converter<Long, Boolean> {
 

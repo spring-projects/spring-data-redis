@@ -27,11 +27,8 @@ import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 
 /**
- * Serializer adapter on top of Spring's O/X Mapping.
- * Delegates serialization/deserialization to OXM {@link Marshaller} and
- * {@link Unmarshaller}.
- * 
- * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
+ * Serializer adapter on top of Spring's O/X Mapping. Delegates serialization/deserialization to OXM {@link Marshaller}
+ * and {@link Unmarshaller}. <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
  * 
  * @author Costin Leau
  */
@@ -40,8 +37,7 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 	private Marshaller marshaller;
 	private Unmarshaller unmarshaller;
 
-	public OxmSerializer() {
-	}
+	public OxmSerializer() {}
 
 	public OxmSerializer(Marshaller marshaller, Unmarshaller unmarshaller) {
 		this.marshaller = marshaller;
@@ -50,7 +46,6 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		afterPropertiesSet();
 	}
 
-	
 	public void afterPropertiesSet() {
 		Assert.notNull(marshaller, "non-null marshaller required");
 		Assert.notNull(unmarshaller, "non-null unmarshaller required");
@@ -70,7 +65,6 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		this.unmarshaller = unmarshaller;
 	}
 
-	
 	public Object deserialize(byte[] bytes) throws SerializationException {
 		if (SerializationUtils.isEmpty(bytes)) {
 			return null;
@@ -83,7 +77,6 @@ public class OxmSerializer implements InitializingBean, RedisSerializer<Object> 
 		}
 	}
 
-	
 	public byte[] serialize(Object t) throws SerializationException {
 		if (t == null) {
 			return SerializationUtils.EMPTY_ARRAY;

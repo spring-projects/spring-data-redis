@@ -58,7 +58,6 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	private ObjectFactory<Object> valueFactory;
 	private RedisTemplate template;
 
-
 	public RedisCacheTest(RedisTemplate template, ObjectFactory<Object> keyFactory, ObjectFactory<Object> valueFactory) {
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
@@ -71,13 +70,10 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		return AbstractOperationsTestParams.testParams();
 	}
 
-
 	@SuppressWarnings("unchecked")
 	protected Cache createCache(RedisTemplate nativeCache) {
-		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache,
-				TimeUnit.MINUTES.toSeconds(10));
+		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache, TimeUnit.MINUTES.toSeconds(10));
 	}
-
 
 	protected RedisTemplate createNativeCache() throws Exception {
 		return template;
@@ -174,7 +170,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 			public void run() {
 				try {
 					cache.put(key1, value1);
-				}catch(IllegalMonitorStateException e) {
+				} catch (IllegalMonitorStateException e) {
 					monitorStateException.set(true);
 				} finally {
 					latch.countDown();
@@ -188,33 +184,33 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		latch.await();
 		assertFalse(monitorStateException.get());
 	}
-	
+
 	/**
 	 * @see DATAREDIS-243
 	 */
 	@Test
 	public void testCacheGetShouldReturnCachedInstance() {
 		assumeThat(cache, instanceOf(RedisCache.class));
-		
+
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
-		
-		assertThat(value, isEqual(((RedisCache)cache).get(key, Object.class)));
+
+		assertThat(value, isEqual(((RedisCache) cache).get(key, Object.class)));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-243
 	 */
 	@Test
 	public void testCacheGetShouldRetunInstanceOfCorrectType() {
 		assumeThat(cache, instanceOf(RedisCache.class));
-		
+
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
-		
-		RedisCache redisCache = (RedisCache)cache;
+
+		RedisCache redisCache = (RedisCache) cache;
 		assertThat(redisCache.get(key, value.getClass()), instanceOf(value.getClass()));
 	}
 
@@ -224,29 +220,29 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	@Test(expected = ClassCastException.class)
 	public void testCacheGetShouldThrowExceptionOnInvalidType() {
 		assumeThat(cache, instanceOf(RedisCache.class));
-		
+
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
-		
-		RedisCache redisCache = (RedisCache)cache;		
+
+		RedisCache redisCache = (RedisCache) cache;
 		@SuppressWarnings("unused")
 		Cache retrievedObject = redisCache.get(key, Cache.class);
 	}
-	
+
 	/**
 	 * @see DATAREDIS-243
 	 */
 	@Test
 	public void testCacheGetShouldReturnNullIfNoCachedValueFound() {
 		assumeThat(cache, instanceOf(RedisCache.class));
-		
+
 		Object key = getKey();
 		Object value = getValue();
 		cache.put(key, value);
-		
-		RedisCache redisCache = (RedisCache)cache;	
-		
+
+		RedisCache redisCache = (RedisCache) cache;
+
 		Object invalidKey = template.getKeySerializer() == null ? "spring-data-redis".getBytes() : "spring-data-redis";
 		assertThat(redisCache.get(invalidKey, value.getClass()), nullValue());
 	}

@@ -26,11 +26,9 @@ import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
 
 /**
- * Default implementation for {@link RedisSet}.
+ * Default implementation for {@link RedisSet}. Note that the collection support works only with normal,
+ * non-pipeline/multi-exec connections as it requires a reply to be sent right away.
  * 
- * Note that the collection support works only with normal, non-pipeline/multi-exec connections as it requires
- * a reply to be sent right away.
- *  
  * @author Costin Leau
  */
 public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements RedisSet<E> {
@@ -43,7 +41,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 			super(delegate);
 		}
 
-
 		protected void removeFromRedisStorage(E item) {
 			DefaultRedisSet.this.remove(item);
 		}
@@ -51,7 +48,7 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	/**
 	 * Constructs a new <code>DefaultRedisSet</code> instance.
-	 *
+	 * 
 	 * @param key
 	 * @param operations
 	 */
@@ -70,74 +67,59 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		this.boundSetOps = boundOps;
 	}
 
-
-
 	public Set<E> diff(RedisSet<?> set) {
 		return boundSetOps.diff(set.getKey());
 	}
 
-
 	public Set<E> diff(Collection<? extends RedisSet<?>> sets) {
 		return boundSetOps.diff(CollectionUtils.extractKeys(sets));
 	}
-
-
 
 	public RedisSet<E> diffAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.diffAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-
 	public RedisSet<E> diffAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.diffAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-
 	public Set<E> intersect(RedisSet<?> set) {
 		return boundSetOps.intersect(set.getKey());
 	}
 
-
 	public Set<E> intersect(Collection<? extends RedisSet<?>> sets) {
 		return boundSetOps.intersect(CollectionUtils.extractKeys(sets));
 	}
-
 
 	public RedisSet<E> intersectAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.intersectAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-
 	public RedisSet<E> intersectAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.intersectAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-
 	public Set<E> union(RedisSet<?> set) {
 		return boundSetOps.union(set.getKey());
 	}
 
-
 	public Set<E> union(Collection<? extends RedisSet<?>> sets) {
 		return boundSetOps.union(CollectionUtils.extractKeys(sets));
 	}
-
 
 	public RedisSet<E> unionAndStore(RedisSet<?> set, String destKey) {
 		boundSetOps.unionAndStore(set.getKey(), destKey);
 		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
 
-
 	public RedisSet<E> unionAndStore(Collection<? extends RedisSet<?>> sets, String destKey) {
 		boundSetOps.unionAndStore(CollectionUtils.extractKeys(sets), destKey);
 		return new DefaultRedisSet<E>(boundSetOps.getOperations().boundSetOps(destKey));
 	}
-
 
 	@SuppressWarnings("unchecked")
 	public boolean add(E e) {
@@ -146,7 +128,6 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return result == 1;
 	}
 
-
 	public void clear() {
 		// intersect the set with a non existing one
 		// TODO: find a safer way to clean the set
@@ -154,13 +135,11 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		boundSetOps.intersectAndStore(Collections.singleton(randomKey), getKey());
 	}
 
-
 	public boolean contains(Object o) {
 		Boolean result = boundSetOps.isMember(o);
 		checkResult(result);
 		return result;
 	}
-
 
 	public Iterator<E> iterator() {
 		Set<E> members = boundSetOps.members();
@@ -168,20 +147,17 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 		return new DefaultRedisSetIterator(members.iterator());
 	}
 
-
 	public boolean remove(Object o) {
 		Long result = boundSetOps.remove(o);
 		checkResult(result);
 		return result == 1;
 	}
 
-
 	public int size() {
 		Long result = boundSetOps.size();
 		checkResult(result);
 		return result.intValue();
 	}
-
 
 	public DataType getType() {
 		return DataType.SET;

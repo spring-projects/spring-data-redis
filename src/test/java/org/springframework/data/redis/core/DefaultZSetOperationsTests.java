@@ -37,15 +37,15 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
  * Integration test of {@link DefaultZSetOperations}
+ * 
  * @author Jennifer Hickey
- *
  * @param <K> Key type
  * @param <V> Value type
  */
 @RunWith(Parameterized.class)
-public class DefaultZSetOperationsTests<K,V> {
+public class DefaultZSetOperationsTests<K, V> {
 
-	private RedisTemplate<K,V> redisTemplate;
+	private RedisTemplate<K, V> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;
 
@@ -53,7 +53,7 @@ public class DefaultZSetOperationsTests<K,V> {
 
 	private ZSetOperations<K, V> zSetOps;
 
-	public DefaultZSetOperationsTests(RedisTemplate<K,V> redisTemplate, ObjectFactory<K> keyFactory,
+	public DefaultZSetOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -97,7 +97,7 @@ public class DefaultZSetOperationsTests<K,V> {
 		zSetOps.add(key1, value1, 2.5);
 		assertEquals(Double.valueOf(5.7), zSetOps.incrementScore(key1, value1, 3.2));
 		Set<TypedTuple<V>> values = zSetOps.rangeWithScores(key1, 0, -1);
-		assertEquals(1,values.size());
+		assertEquals(1, values.size());
 		TypedTuple<V> tuple = values.iterator().next();
 		assertEquals(new DefaultTypedTuple<V>(value1, 5.7), tuple);
 	}
@@ -112,8 +112,7 @@ public class DefaultZSetOperationsTests<K,V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		assertThat(zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1),
-				isEqual(Collections.singleton(value1)));
+		assertThat(zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1), isEqual(Collections.singleton(value1)));
 	}
 
 	@Test
@@ -140,8 +139,7 @@ public class DefaultZSetOperationsTests<K,V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		assertThat(zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1),
-				isEqual(Collections.singleton(value2)));
+		assertThat(zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1), isEqual(Collections.singleton(value2)));
 	}
 
 	@Test

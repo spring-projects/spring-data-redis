@@ -18,11 +18,10 @@ package org.springframework.data.redis;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
-*
-* Implementation of {@link ObjectFactory} that returns unique incremented Longs as Strings
-* @author Jennifer Hickey
-*
-*/
+ * Implementation of {@link ObjectFactory} that returns unique incremented Longs as Strings
+ * 
+ * @author Jennifer Hickey
+ */
 public class LongAsStringObjectFactory implements ObjectFactory<String> {
 
 	private AtomicLong counter = new AtomicLong();

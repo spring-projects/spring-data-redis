@@ -18,7 +18,7 @@ package org.springframework.data.redis.listener.adapter;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
- * Exception thrown when the execution of a listener method failed. 
+ * Exception thrown when the execution of a listener method failed.
  * 
  * @author Costin Leau
  * @see MessageListenerAdapter
@@ -27,7 +27,7 @@ public class RedisListenerExecutionFailedException extends InvalidDataAccessApiU
 
 	/**
 	 * Constructs a new <code>RedisListenerExecutionFailedException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 * @param cause
 	 */
@@ -37,7 +37,7 @@ public class RedisListenerExecutionFailedException extends InvalidDataAccessApiU
 
 	/**
 	 * Constructs a new <code>RedisListenerExecutionFailedException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 */
 	public RedisListenerExecutionFailedException(String msg) {

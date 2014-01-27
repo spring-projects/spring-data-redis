@@ -22,14 +22,12 @@ import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Utilities for examining the Redis version
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public abstract class RedisVersionUtils {
 
-	private static final Pattern VERSION_MATCHER = Pattern
-			.compile("([0-9]+)\\.([0-9]+)(\\.([0-9]+))?");
+	private static final Pattern VERSION_MATCHER = Pattern.compile("([0-9]+)\\.([0-9]+)(\\.([0-9]+))?");
 
 	public static Version getRedisVersion(RedisConnection connection) {
 		return parseVersion((String) connection.info().get("redis_version"));

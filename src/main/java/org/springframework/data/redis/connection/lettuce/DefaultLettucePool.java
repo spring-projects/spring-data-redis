@@ -31,7 +31,6 @@ import com.lambdaworks.redis.RedisClient;
  * Default implementation of {@link LettucePool}
  * 
  * @author Jennifer Hickey
- * 
  */
 public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private GenericObjectPool internalPool;
@@ -44,20 +43,15 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
 
 	/**
-	 * Constructs a new <code>DefaultLettucePool</code> instance with
-	 * default settings.
+	 * Constructs a new <code>DefaultLettucePool</code> instance with default settings.
 	 */
-	public DefaultLettucePool() {
-	}
+	public DefaultLettucePool() {}
 
 	/**
-	 * Uses the {@link Config} and {@link RedisClient} defaults for configuring
-	 * the connection pool
+	 * Uses the {@link Config} and {@link RedisClient} defaults for configuring the connection pool
 	 * 
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
+	 * @param hostName The Redis host
+	 * @param port The Redis port
 	 */
 	public DefaultLettucePool(String hostName, int port) {
 		this.hostName = hostName;
@@ -67,12 +61,9 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	/**
 	 * Uses the {@link RedisClient} defaults for configuring the connection pool
 	 * 
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
-	 * @param poolConfig
-	 *            The pool {@link Config}
+	 * @param hostName The Redis host
+	 * @param port The Redis port
+	 * @param poolConfig The pool {@link Config}
 	 */
 	public DefaultLettucePool(String hostName, int port, Config poolConfig) {
 		this.hostName = hostName;
@@ -81,8 +72,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	public void afterPropertiesSet() {
-		this.client = password != null ? new AuthenticatingRedisClient(hostName, port, password) :
-			new RedisClient(hostName, port);
+		this.client = password != null ? new AuthenticatingRedisClient(hostName, port, password) : new RedisClient(
+				hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		this.internalPool = new GenericObjectPool(new LettuceFactory(client, dbIndex), poolConfig);
 	}
@@ -126,7 +117,6 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
-	 *
 	 * @return The pool configuration
 	 */
 	public Config getPoolConfig() {
@@ -134,7 +124,6 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
-	 *
 	 * @param poolConfig The pool configuration to use
 	 */
 	public void setPoolConfig(Config poolConfig) {
@@ -143,7 +132,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the index of the database.
-	 *
+	 * 
 	 * @return Returns the database index
 	 */
 	public int getDatabase() {
@@ -151,11 +140,9 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
-	 * Sets the index of the database used by this connection pool. Default
-	 * is 0.
-	 *
-	 * @param index
-	 *            database index
+	 * Sets the index of the database used by this connection pool. Default is 0.
+	 * 
+	 * @param index database index
 	 */
 	public void setDatabase(int index) {
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
@@ -164,7 +151,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the password used for authenticating with the Redis server.
-	 *
+	 * 
 	 * @return password for authentication
 	 */
 	public String getPassword() {
@@ -173,7 +160,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the password used for authenticating with the Redis server.
-	 *
+	 * 
 	 * @param password the password to set
 	 */
 	public void setPassword(String password) {
@@ -182,7 +169,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the current host.
-	 *
+	 * 
 	 * @return the host
 	 */
 	public String getHostName() {
@@ -191,9 +178,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the host.
-	 *
-	 * @param host
-	 *            the host to set
+	 * 
+	 * @param host the host to set
 	 */
 	public void setHostName(String host) {
 		this.hostName = host;
@@ -201,7 +187,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the current port.
-	 *
+	 * 
 	 * @return the port
 	 */
 	public int getPort() {
@@ -210,9 +196,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the port.
-	 *
-	 * @param port
-	 *            the port to set
+	 * 
+	 * @param port the port to set
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -220,7 +205,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Returns the connection timeout (in milliseconds).
-	 *
+	 * 
 	 * @return connection timeout
 	 */
 	public long getTimeout() {
@@ -229,9 +214,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * Sets the connection timeout (in milliseconds).
-	 *
-	 * @param timeout
-	 *            connection timeout
+	 * 
+	 * @param timeout connection timeout
 	 */
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;

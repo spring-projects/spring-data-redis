@@ -22,16 +22,13 @@ import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 
 /**
- *
  * Pool of Lettuce {@link RedisAsyncConnection}s
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public interface LettucePool extends Pool<RedisAsyncConnection<byte[], byte[]>> {
 
 	/**
-	 * 
 	 * @return The {@link RedisClient} used to create pooled connections
 	 */
 	RedisClient getClient();

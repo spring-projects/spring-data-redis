@@ -19,7 +19,7 @@ import java.util.Arrays;
 
 /**
  * Simple wrapper class used for wrapping arrays so they can be used as keys inside maps.
- *
+ * 
  * @author Costin Leau
  */
 public class ByteArrayWrapper {
@@ -32,7 +32,6 @@ public class ByteArrayWrapper {
 		this.hashCode = Arrays.hashCode(array);
 	}
 
-	
 	public boolean equals(Object obj) {
 		if (obj instanceof ByteArrayWrapper) {
 			return Arrays.equals(array, ((ByteArrayWrapper) obj).array);
@@ -41,14 +40,13 @@ public class ByteArrayWrapper {
 		return false;
 	}
 
-	
 	public int hashCode() {
 		return hashCode;
 	}
 
 	/**
 	 * Returns the array.
-	 *
+	 * 
 	 * @return Returns the array
 	 */
 	public byte[] getArray() {

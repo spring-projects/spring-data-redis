@@ -32,59 +32,44 @@ import org.springframework.util.StringUtils;
  * JRedis implementation of {@link Pool}
  * 
  * @author Jennifer Hickey
- * 
  */
 public class JredisPool implements Pool<JRedis> {
 
 	private final GenericObjectPool internalPool;
 
 	/**
-	 * Uses the {@link Config} and {@link ConnectionSpec} defaults for
-	 * configuring the connection pool
-	 *
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
+	 * Uses the {@link Config} and {@link ConnectionSpec} defaults for configuring the connection pool
+	 * 
+	 * @param hostName The Redis host
+	 * @param port The Redis port
 	 */
 	public JredisPool(String hostName, int port) {
 		this(hostName, port, 0, null, 0, new Config());
 	}
 
 	/**
-	 * Uses the {@link ConnectionSpec} defaults for configuring the connection
-	 * pool
+	 * Uses the {@link ConnectionSpec} defaults for configuring the connection pool
 	 * 
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
-	 * @param poolConfig
-	 *            The pool {@link Config}
+	 * @param hostName The Redis host
+	 * @param port The Redis port
+	 * @param poolConfig The pool {@link Config}
 	 */
 	public JredisPool(String hostName, int port, Config poolConfig) {
 		this(hostName, port, 0, null, 0, poolConfig);
 	}
 
 	/**
-	 * 
 	 * Uses the {@link Config} defaults for configuring the connection pool
-	 *
-	 * @param connectionSpec
-	 *            The {@link ConnectionSpec} for connecting to Redis
-	 *
+	 * 
+	 * @param connectionSpec The {@link ConnectionSpec} for connecting to Redis
 	 */
 	public JredisPool(ConnectionSpec connectionSpec) {
 		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), new Config());
 	}
 
 	/**
-	 *
-	 * @param connectionSpec
-	 *            The {@link ConnectionSpec} for connecting to Redis
-	 *
-	 * @param poolConfig
-	 *            The pool {@link Config}
+	 * @param connectionSpec The {@link ConnectionSpec} for connecting to Redis
+	 * @param poolConfig The pool {@link Config}
 	 */
 	public JredisPool(ConnectionSpec connectionSpec, Config poolConfig) {
 		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), poolConfig);
@@ -92,45 +77,28 @@ public class JredisPool implements Pool<JRedis> {
 
 	/**
 	 * Uses the {@link Config} defaults for configuring the connection pool
-	 *
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
-	 * @param dbIndex
-	 *            The index of the database all connections should use. The
-	 *            database will only be selected on initial creation of the
-	 *            pooled {@link JRedis} instances. Since calling select directly
-	 *            on {@link JRedis} is not supported, it is assumed that
-	 *            connections can be re-used without subsequent selects.
-	 * @param password
-	 *            The password used for authenticating with the Redis server or
-	 *            null if no password required
-	 * @param timeout
-	 *            The socket timeout or 0 to use the default socket timeout
+	 * 
+	 * @param hostName The Redis host
+	 * @param port The Redis port
+	 * @param dbIndex The index of the database all connections should use. The database will only be selected on initial
+	 *          creation of the pooled {@link JRedis} instances. Since calling select directly on {@link JRedis} is not
+	 *          supported, it is assumed that connections can be re-used without subsequent selects.
+	 * @param password The password used for authenticating with the Redis server or null if no password required
+	 * @param timeout The socket timeout or 0 to use the default socket timeout
 	 */
 	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout) {
 		this(hostName, port, dbIndex, password, timeout, new Config());
 	}
 
 	/**
-	 *
-	 * @param hostName
-	 *            The Redis host
-	 * @param port
-	 *            The Redis port
-	 * @param dbIndex
-	 *            The index of the database all connections should use
-	 * @param password
-	 *            The password used for authenticating with the Redis server or
-	 *            null if no password required
-	 * @param timeout
-	 *            The socket timeout or 0 to use the default socket timeout
-	 * @param poolConfig
-	 *            The pool {@link Config}
+	 * @param hostName The Redis host
+	 * @param port The Redis port
+	 * @param dbIndex The index of the database all connections should use
+	 * @param password The password used for authenticating with the Redis server or null if no password required
+	 * @param timeout The socket timeout or 0 to use the default socket timeout
+	 * @param poolConfig The pool {@link Config}
 	 */
-	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout,
-			Config poolConfig) {
+	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout, Config poolConfig) {
 		ConnectionSpec connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, dbIndex, null);
 		connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
 		if (StringUtils.hasLength(password)) {
@@ -191,7 +159,7 @@ public class JredisPool implements Pool<JRedis> {
 			if (obj instanceof JRedis) {
 				try {
 					((JRedis) obj).quit();
-				}catch(Exception e) {
+				} catch (Exception e) {
 					// Errors may happen if returning a broken resource
 				}
 			}

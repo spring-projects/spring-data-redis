@@ -38,14 +38,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ProfileValueSourceConfiguration
 public class NamespaceTest {
 
-	@Autowired
-	private RedisMessageListenerContainer container;
+	@Autowired private RedisMessageListenerContainer container;
 
-	@Autowired
-	private StringRedisTemplate template;
+	@Autowired private StringRedisTemplate template;
 
-	@Autowired
-	private StubErrorHandler handler;
+	@Autowired private StubErrorHandler handler;
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")

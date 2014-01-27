@@ -33,7 +33,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 
 	/**
 	 * Constructs a new <code>DefaultBoundZSetOperations</code> instance.
-	 *
+	 * 
 	 * @param key
 	 * @param oeprations
 	 */
@@ -42,7 +42,6 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		this.ops = operations.opsForZSet();
 	}
 
-	
 	public Boolean add(V value, double score) {
 		return ops.add(getKey(), value, score);
 	}
@@ -55,112 +54,90 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.incrementScore(getKey(), value, delta);
 	}
 
-	
 	public RedisOperations<K, V> getOperations() {
 		return ops.getOperations();
 	}
 
-	
 	public void intersectAndStore(K otherKey, K destKey) {
 		ops.intersectAndStore(getKey(), otherKey, destKey);
 	}
 
-	
 	public void intersectAndStore(Collection<K> otherKeys, K destKey) {
 		ops.intersectAndStore(getKey(), otherKeys, destKey);
 	}
 
-	
 	public Set<V> range(long start, long end) {
 		return ops.range(getKey(), start, end);
 	}
 
-	
 	public Set<V> rangeByScore(double min, double max) {
 		return ops.rangeByScore(getKey(), min, max);
 	}
 
-	
 	public Set<TypedTuple<V>> rangeByScoreWithScores(double min, double max) {
 		return ops.rangeByScoreWithScores(getKey(), min, max);
 	}
 
-	
 	public Set<TypedTuple<V>> rangeWithScores(long start, long end) {
 		return ops.rangeWithScores(getKey(), start, end);
 	}
 
-	
 	public Set<V> reverseRangeByScore(double min, double max) {
 		return ops.reverseRangeByScore(getKey(), min, max);
 	}
 
-	
 	public Set<TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max) {
 		return ops.reverseRangeByScoreWithScores(getKey(), min, max);
 	}
 
-	
 	public Set<TypedTuple<V>> reverseRangeWithScores(long start, long end) {
 		return ops.reverseRangeWithScores(getKey(), start, end);
 	}
 
-	
 	public Long rank(Object o) {
 		return ops.rank(getKey(), o);
 	}
 
-	
 	public Long reverseRank(Object o) {
 		return ops.reverseRank(getKey(), o);
 	}
 
-	
 	public Double score(Object o) {
 		return ops.score(getKey(), o);
 	}
 
-	
 	public Long remove(Object... values) {
 		return ops.remove(getKey(), values);
 	}
 
-	
 	public void removeRange(long start, long end) {
 		ops.removeRange(getKey(), start, end);
 	}
 
-	
 	public void removeRangeByScore(double min, double max) {
 		ops.removeRangeByScore(getKey(), min, max);
 	}
 
-	
 	public Set<V> reverseRange(long start, long end) {
 		return ops.reverseRange(getKey(), start, end);
 	}
 
-	
 	public Long count(double min, double max) {
 		return ops.count(getKey(), min, max);
 	}
 
-	
 	public Long size() {
 		return ops.size(getKey());
 	}
 
-	
 	public void unionAndStore(K otherKey, K destKey) {
 		ops.unionAndStore(getKey(), otherKey, destKey);
 	}
 
-	
 	public void unionAndStore(Collection<K> otherKeys, K destKey) {
 		ops.unionAndStore(getKey(), otherKeys, destKey);
 	}
 
-	
 	public DataType getType() {
 		return DataType.ZSET;
 	}

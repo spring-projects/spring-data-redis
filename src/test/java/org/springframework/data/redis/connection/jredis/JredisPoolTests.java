@@ -34,7 +34,6 @@ import static org.junit.Assert.*;
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- * 
  */
 public class JredisPoolTests {
 
@@ -44,8 +43,7 @@ public class JredisPoolTests {
 
 	@Before
 	public void setUp() {
-		this.connectionSpec = DefaultConnectionSpec.newSpec(SettingsUtils.getHost(), SettingsUtils.getPort(),
-				0, null);
+		this.connectionSpec = DefaultConnectionSpec.newSpec(SettingsUtils.getHost(), SettingsUtils.getPort(), 0, null);
 	}
 
 	@After
@@ -92,8 +90,7 @@ public class JredisPoolTests {
 	public void testGetResourceCreationUnsuccessful() {
 		// Config poolConfig = new Config();
 		// poolConfig.testOnBorrow = true;
-		this.pool = new JredisPool(DefaultConnectionSpec.newSpec(SettingsUtils.getHost(), 3333, 0,
-				null));
+		this.pool = new JredisPool(DefaultConnectionSpec.newSpec(SettingsUtils.getHost(), 3333, 0, null));
 		pool.getResource();
 	}
 
@@ -123,8 +120,7 @@ public class JredisPoolTests {
 		try {
 			client.ping();
 			fail("Broken resouce connection should be closed");
-		} catch (NotConnectedException e) {
-		}
+		} catch (NotConnectedException e) {}
 	}
 
 	@Test

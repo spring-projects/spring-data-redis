@@ -27,50 +27,40 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Base test class for integration tests that execute each operation of a
- * Connection while a pipeline is open, verifying that the operations return
- * null and the proper values are returned when closing the pipeline.
+ * Base test class for integration tests that execute each operation of a Connection while a pipeline is open, verifying
+ * that the operations return null and the proper values are returned when closing the pipeline.
  * <p>
- * Pipelined results are generally native to the provider and not transformed by
- * our {@link RedisConnection}, so this test overrides
- * {@link AbstractConnectionIntegrationTests} when result types are different
- *
+ * Pipelined results are generally native to the provider and not transformed by our {@link RedisConnection}, so this
+ * test overrides {@link AbstractConnectionIntegrationTests} when result types are different
+ * 
  * @author Jennifer Hickey
- *
  */
-abstract public class AbstractConnectionPipelineIntegrationTests extends
-		AbstractConnectionIntegrationTests {
+abstract public class AbstractConnectionPipelineIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	@Ignore
-	public void testNullKey() throws Exception {
-	}
+	public void testNullKey() throws Exception {}
 
 	@Ignore
-	public void testNullValue() throws Exception {
-	}
+	public void testNullValue() throws Exception {}
 
 	@Ignore
-	public void testHashNullKey() throws Exception {
-	}
+	public void testHashNullKey() throws Exception {}
 
 	@Ignore
-	public void testHashNullValue() throws Exception {
-	}
+	public void testHashNullValue() throws Exception {}
 
 	@Ignore("Pub/Sub not supported while pipelining")
-	public void testPubSubWithNamedChannels() throws Exception {
-	}
+	public void testPubSubWithNamedChannels() throws Exception {}
 
 	@Ignore("Pub/Sub not supported while pipelining")
-	public void testPubSubWithPatterns() throws Exception {
-	}
+	public void testPubSubWithPatterns() throws Exception {}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	public void testExecWithoutMulti() {
 		super.testExecWithoutMulti();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	public void testErrorInTx() {
 		super.testErrorInTx();
 	}
@@ -104,20 +94,20 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 		super.testRestoreExistingKey();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
-	@Test(expected=RedisPipelineException.class)
+	@Test(expected = RedisPipelineException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
 	@Test
-	public void testOpenPipelineTwice()  {
+	public void testOpenPipelineTwice() {
 		connection.openPipeline();
 		// ensure things still proceed normally with an extra openPipeline
 		testGetSet();
@@ -146,13 +136,13 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends
 
 	protected List<Object> getResults() {
 
-        try {
-            //we give redis some time to keep up
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+		try {
+			// we give redis some time to keep up
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
-        return connection.closePipeline();
+		return connection.closePipeline();
 	}
 }

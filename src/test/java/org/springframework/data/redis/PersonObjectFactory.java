@@ -17,7 +17,6 @@ package org.springframework.data.redis;
 
 import java.util.UUID;
 
-
 /**
  * @author Costin Leau
  */

@@ -25,13 +25,10 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
-
 /**
  * Integration test of {@link SrpConnection} functionality within a transaction
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("SrpConnectionIntegrationTests-context.xml")
@@ -43,7 +40,7 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 		// SRP returns the Strings from individual StatusReplys in a MultiBulkReply, while other clients return as byte[]
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
-		verifyResults(Arrays.asList(new Object[] {Arrays.asList(new Object[] {"OK", "OK"} )}));
+		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { "OK", "OK" }) }));
 	}
 
 	@Test

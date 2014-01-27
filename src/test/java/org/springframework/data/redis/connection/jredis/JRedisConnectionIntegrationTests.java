@@ -45,10 +45,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Integration test of {@link JredisConnection}
- *
+ * 
  * @author Costin Leau
  * @author Jennifer Hickey
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -69,32 +68,25 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Ignore("Pub/Sub not supported")
-	public void testPubSubWithPatterns() {
-	}
+	public void testPubSubWithPatterns() {}
 
 	@Ignore("Pub/Sub not supported")
-	public void testPubSubWithNamedChannels() {
-	}
+	public void testPubSubWithNamedChannels() {}
 
 	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
-	public void testMSet() {
-	}
+	public void testMSet() {}
 
 	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
-	public void testMSetNx() {
-	}
+	public void testMSetNx() {}
 
 	@Ignore("https://github.com/alphazero/jredis/issues/64 Protocol error: expected '$' got '*' on mset")
-	public void testMSetNxFailure() {
-	}
+	public void testMSetNxFailure() {}
 
 	@Ignore("JRedis casts to int")
-	public void testIncrDecrByLong() {
-	}
+	public void testIncrDecrByLong() {}
 
 	@Ignore("Ping returns status response instead of value response")
-	public void testExecuteNoArgs() {
-	}
+	public void testExecuteNoArgs() {}
 
 	@Test
 	public void testConnectionClosesWhenNotPooled() {
@@ -102,14 +94,13 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		try {
 			connection.ping();
 			fail("Expected RedisConnectionFailureException trying to use a closed connection");
-		} catch (RedisConnectionFailureException e) {
-		}
+		} catch (RedisConnectionFailureException e) {}
 	}
 
 	@Test
 	public void testConnectionStaysOpenWhenPooled() {
-		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort()));
+		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort()));
 		RedisConnection conn2 = factory2.getConnection();
 		conn2.close();
 		conn2.ping();
@@ -120,15 +111,14 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		Config config = new Config();
 		config.maxActive = 1;
 		config.maxWait = 1;
-		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(
-				SettingsUtils.getHost(), SettingsUtils.getPort(), config));
+		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
+				SettingsUtils.getPort(), config));
 		RedisConnection conn2 = factory2.getConnection();
 		((JRedis) conn2.getNativeConnection()).quit();
 		try {
 			conn2.ping();
 			fail("Expected RedisConnectionFailureException trying to use a closed connection");
-		} catch (RedisConnectionFailureException e) {
-		}
+		} catch (RedisConnectionFailureException e) {}
 		conn2.close();
 		// Verify we get a new connection from the pool and not the broken one
 		RedisConnection conn3 = factory2.getConnection();
@@ -160,12 +150,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testUnwatch();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testErrorInTx() {
 		super.testErrorInTx();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testExecWithoutMulti() {
 		super.testExecWithoutMulti();
 	}
@@ -319,285 +309,285 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testZRevRangeByScoreWithScoresOffsetCount() {
 		super.testZRevRangeByScoreWithScoresOffsetCount();
 	}
-	
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPExpire() {
 		super.testPExpire();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPExpireKeyNotExists() {
 		super.testPExpireKeyNotExists();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPExpireAt() {
 		super.testPExpireAt();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPExpireAtKeyNotExists() {
 		super.testPExpireAtKeyNotExists();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPTtl() {
 		super.testPTtl();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testPTtlNoExpire() {
 		super.testPTtlNoExpire();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testDumpAndRestore() {
 		super.testDumpAndRestore();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testDumpNonExistentKey() {
 		super.testDumpNonExistentKey();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRestoreTtl() {
 		super.testRestoreTtl();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitCount() {
 		super.testBitCount();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitCountInterval() {
 		super.testBitCountInterval();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitCountNonExistentKey() {
 		super.testBitCountNonExistentKey();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitOpAnd() {
 		super.testBitOpAnd();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitOpOr() {
 		super.testBitOpOr();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitOpXOr() {
 		super.testBitOpXOr();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testBitOpNot() {
 		super.testBitOpNot();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testHIncrByDouble() {
 		super.testHIncrByDouble();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testHashIncrDecrByLong() {
 		super.testHashIncrDecrByLong();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testIncrByDouble() {
 		super.testIncrByDouble();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptLoadEvalSha() {
 		super.testScriptLoadEvalSha();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaNotFound() {
 		super.testEvalShaNotFound();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnString() {
 		super.testEvalReturnString();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnNumber() {
 		super.testEvalReturnNumber();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleOK() {
 		super.testEvalReturnSingleOK();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnSingleError() {
 		super.testEvalReturnSingleError();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnFalse() {
 		super.testEvalReturnFalse();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnTrue() {
 		super.testEvalReturnTrue();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayStrings() {
 		super.testEvalReturnArrayStrings();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayNumbers() {
 		super.testEvalReturnArrayNumbers();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayOKs() {
 		super.testEvalReturnArrayOKs();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayFalses() {
 		super.testEvalReturnArrayFalses();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testEvalReturnArrayTrues() {
 		super.testEvalReturnArrayTrues();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptExists() {
 		super.testScriptExists();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
-	public void testScriptKill() throws Exception{
+	@Test(expected = UnsupportedOperationException.class)
+	public void testScriptKill() throws Exception {
 		connection.scriptKill();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testScriptFlush() {
 		connection.scriptFlush();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCount() {
 		super.testSRandMemberCount();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCountKeyNotExists() {
 		super.testSRandMemberCountKeyNotExists();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testHDelMultiple() {
 		super.testHDelMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testLPushMultiple() {
 		super.testLPushMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testRPushMultiple() {
 		super.testRPushMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSAddMultiple() {
 		super.testSAddMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testSRemMultiple() {
 		super.testSRemMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZAddMultiple() {
 		super.testZAddMultiple();
 	}
 
-	@Test(expected=UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class)
 	public void testZRemMultiple() {
 		super.testZRemMultiple();
 	}
@@ -674,8 +664,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "big");
 		connection.rPush("PopList", "world");
 		connection.lSet("PopList", 1, "cruel");
-		assertEquals(Arrays.asList(new String[] { "hello", "cruel", "world" }),
-				connection.lRange("PopList", 0, -1));
+		assertEquals(Arrays.asList(new String[] { "hello", "cruel", "world" }), connection.lRange("PopList", 0, -1));
 	}
 
 	@Test
@@ -732,8 +721,8 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		actual.add(connection.sDiffStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		// JRedis returns void for sDiffStore, so we always return -1
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, -1l,
-						new HashSet<String>(Collections.singletonList("foo")) }));
+		verifyResults(Arrays
+				.asList(new Object[] { 1l, 1l, 1l, -1l, new HashSet<String>(Collections.singletonList("foo")) }));
 	}
 
 	@Test
@@ -744,8 +733,8 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		actual.add(connection.sInterStore("thirdset", "myset", "otherset"));
 		actual.add(connection.sMembers("thirdset"));
 		// JRedis returns void for sInterStore, so we always return -1
-		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, -1l,
-						new HashSet<String>(Collections.singletonList("bar")) }));
+		verifyResults(Arrays
+				.asList(new Object[] { 1l, 1l, 1l, -1l, new HashSet<String>(Collections.singletonList("bar")) }));
 	}
 
 	@Test
@@ -758,23 +747,23 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		actual.add(connection.sMembers("thirdset"));
 		// JRedis returns void for sUnionStore, so we always return -1
 		verifyResults(Arrays.asList(new Object[] { 1l, 1l, 1l, 1l, -1l,
-						new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
+				new HashSet<String>(Arrays.asList(new String[] { "foo", "bar", "baz" })) }));
 	}
 
 	@Test
 	public void testMove() {
 		connection.set("foo", "bar");
 		actual.add(connection.move("foo", 1));
-		verifyResults(Arrays.asList(new Object[] { true}));
+		verifyResults(Arrays.asList(new Object[] { true }));
 		// JRedis does not support select() on existing conn, create new one
 		JredisConnectionFactory factory2 = new JredisConnectionFactory();
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar",conn2.get("foo"));
+			assertEquals("bar", conn2.get("foo"));
 		} finally {
-			if(conn2.exists("foo")) {
+			if (conn2.exists("foo")) {
 				conn2.del("foo");
 			}
 			conn2.close();

@@ -30,16 +30,13 @@ import org.hamcrest.Matcher;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 
 /**
- * Custom JUnit {@link Matcher} that exists to properly compare byte arrays, either as individual
- * results or members of a {@link Collection} or {@link LinkedHashMap}. Works the same as
- * assertEquals for all other types of Objects.
- *
- * Make some assumptions about structure of data based on what we typically get back from Redis
- * commands, i.e that Sets or Maps don't contain Collections, but a List might contain a bit of
- * everything (when it comes back from exec() or closePipeline())
+ * Custom JUnit {@link Matcher} that exists to properly compare byte arrays, either as individual results or members of
+ * a {@link Collection} or {@link LinkedHashMap}. Works the same as assertEquals for all other types of Objects. Make
+ * some assumptions about structure of data based on what we typically get back from Redis commands, i.e that Sets or
+ * Maps don't contain Collections, but a List might contain a bit of everything (when it comes back from exec() or
+ * closePipeline())
  * 
  * @author Jennifer Hickey
- * 
  */
 public class Equals extends BaseMatcher<Object> {
 

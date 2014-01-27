@@ -24,16 +24,14 @@ import static org.junit.Assert.fail;
 
 /**
  * Integration test of {@link SrpConnectionFactory}
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 public class SrpConnectionFactoryTests {
 
 	@Test
 	public void testConnect() {
-		SrpConnectionFactory factory = new SrpConnectionFactory(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		SrpConnectionFactory factory = new SrpConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory.afterPropertiesSet();
 		RedisConnection connection = factory.getConnection();
 		connection.ping();
@@ -47,15 +45,13 @@ public class SrpConnectionFactoryTests {
 		try {
 			factory.getConnection();
 			fail("Expected a connection failure exception");
-		} catch(RedisConnectionFailureException e) {
-		}
+		} catch (RedisConnectionFailureException e) {}
 	}
 
 	@Ignore("Redis must have requirepass set to run this test")
 	@Test
 	public void testConnectWithPassword() {
-		SrpConnectionFactory factory = new SrpConnectionFactory(SettingsUtils.getHost(),
-				SettingsUtils.getPort());
+		SrpConnectionFactory factory = new SrpConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory.setPassword("foob");
 		factory.afterPropertiesSet();
 		RedisConnection connection = factory.getConnection();

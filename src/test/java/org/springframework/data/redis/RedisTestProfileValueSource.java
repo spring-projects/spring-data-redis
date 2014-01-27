@@ -20,15 +20,12 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.test.annotation.ProfileValueSource;
 
 /**
- * Implementation of {@link ProfileValueSource} that handles profile value name
- * "redisVersion" by checking the current version of Redis. 2.4.x will be
- * returned as "2.4" and 2.6.x will be returned as "2.6". Any other version
- * found will cause an {@link UnsupportedOperationException}
- * 
- * System property values will be returned for any key other than "redisVersion"
+ * Implementation of {@link ProfileValueSource} that handles profile value name "redisVersion" by checking the current
+ * version of Redis. 2.4.x will be returned as "2.4" and 2.6.x will be returned as "2.6". Any other version found will
+ * cause an {@link UnsupportedOperationException} System property values will be returned for any key other than
+ * "redisVersion"
  * 
  * @author Jennifer Hickey
- * 
  */
 public class RedisTestProfileValueSource implements ProfileValueSource {
 
@@ -40,8 +37,8 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 
 	public RedisTestProfileValueSource() {
 		if (redisVersion == null) {
-			LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
-					SettingsUtils.getHost(), SettingsUtils.getPort());
+			LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(SettingsUtils.getHost(),
+					SettingsUtils.getPort());
 			connectionFactory.afterPropertiesSet();
 			RedisConnection connection = connectionFactory.getConnection();
 			redisVersion = RedisVersionUtils.getRedisVersion(connection);

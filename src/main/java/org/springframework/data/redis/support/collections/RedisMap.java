@@ -17,7 +17,6 @@ package org.springframework.data.redis.support.collections;
 
 import java.util.concurrent.ConcurrentMap;
 
-
 /**
  * Map view of a Redis hash.
  * 

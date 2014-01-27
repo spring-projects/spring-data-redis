@@ -32,9 +32,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
 /**
- * Atomic long backed by Redis.
- * Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS operations.
- *  
+ * Atomic long backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
+ * operations.
+ * 
  * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
  */
@@ -44,11 +44,9 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	private ValueOperations<String, Long> operations;
 	private RedisOperations<String, Long> generalOps;
 
-
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing
-	 * in Redis or 0 if none is found.
-	 *
+	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * 
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
 	 */
@@ -58,7 +56,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance.
-	 *
+	 * 
 	 * @param redisCounter
 	 * @param factory
 	 * @param initialValue
@@ -86,16 +84,14 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 			if (this.operations.get(redisCounter) == null) {
 				set(0);
 			}
-		}
-		else {
+		} else {
 			set(initialValue);
 		}
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicLong</code> instance.  Uses the value existing
-	 * in Redis or 0 if none is found.
-	 *
+	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing in Redis or 0 if none is found.
+	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 */
@@ -105,7 +101,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance.
-	 *
+	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @param initialValue the initial value
@@ -126,16 +122,14 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 			if (this.operations.get(redisCounter) == null) {
 				set(0);
 			}
-		}
-		else {
+		} else {
 			set(initialValue);
 		}
 	}
 
-
 	/**
 	 * Gets the current value.
-	 *
+	 * 
 	 * @return the current value
 	 */
 	public long get() {
@@ -144,7 +138,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Sets to the given value.
-	 *
+	 * 
 	 * @param newValue the new value
 	 */
 	public void set(long newValue) {
@@ -153,7 +147,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically sets to the given value and returns the old value.
-	 *
+	 * 
 	 * @param newValue the new value
 	 * @return the previous value
 	 */
@@ -162,13 +156,11 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	/**
-	 * Atomically sets the value to the given updated value
-	 * if the current value {@code ==} the expected value.
-	 *
+	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
+	 * 
 	 * @param expect the expected value
 	 * @param update the new value
-	 * @return true if successful. False return indicates that
-	 * the actual value was not equal to the expected value.
+	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
 	 */
 	public boolean compareAndSet(final long expect, final long update) {
 		return generalOps.execute(new SessionCallback<Boolean>() {
@@ -194,7 +186,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically increments by one the current value.
-	 *
+	 * 
 	 * @return the previous value
 	 */
 	public long getAndIncrement() {
@@ -203,7 +195,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically decrements by one the current value.
-	 *
+	 * 
 	 * @return the previous value
 	 */
 	public long getAndDecrement() {
@@ -212,7 +204,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically adds the given value to the current value.
-	 *
+	 * 
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
@@ -222,7 +214,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically increments by one the current value.
-	 *
+	 * 
 	 * @return the updated value
 	 */
 	public long incrementAndGet() {
@@ -231,7 +223,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically decrements by one the current value.
-	 *
+	 * 
 	 * @return the updated value
 	 */
 	public long decrementAndGet() {
@@ -240,7 +232,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically adds the given value to the current value.
-	 *
+	 * 
 	 * @param delta the value to add
 	 * @return the updated value
 	 */
@@ -256,7 +248,6 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	public String toString() {
 		return Long.toString(get());
 	}
-
 
 	public int intValue() {
 		return (int) get();
@@ -274,37 +265,30 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 		return (double) get();
 	}
 
-
 	public String getKey() {
 		return key;
 	}
-
 
 	public Boolean expire(long timeout, TimeUnit unit) {
 		return generalOps.expire(key, timeout, unit);
 	}
 
-
 	public Boolean expireAt(Date date) {
 		return generalOps.expireAt(key, date);
 	}
-
 
 	public Long getExpire() {
 		return generalOps.getExpire(key);
 	}
 
-
 	public Boolean persist() {
 		return generalOps.persist(key);
 	}
-
 
 	public void rename(String newKey) {
 		generalOps.rename(key, newKey);
 		key = newKey;
 	}
-
 
 	public DataType getType() {
 		return DataType.STRING;

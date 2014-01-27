@@ -52,7 +52,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Integration test of {@link DefaultScriptExecutor}
  * 
  * @author Jennifer Hickey
- * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -60,11 +59,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @IfProfileValue(name = "redisVersion", value = "2.6")
 public class DefaultScriptExecutorTests {
 
-	@Autowired
-	private RedisConnectionFactory connFactory;
+	@Autowired private RedisConnectionFactory connFactory;
 
-	@SuppressWarnings("rawtypes")
-	private RedisTemplate template;
+	@SuppressWarnings("rawtypes") private RedisTemplate template;
 
 	@SuppressWarnings("unchecked")
 	@After
@@ -85,15 +82,13 @@ public class DefaultScriptExecutorTests {
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
 		DefaultRedisScript<Long> script = new DefaultRedisScript<Long>();
-		script.setLocation(new ClassPathResource(
-				"org/springframework/data/redis/core/script/increment.lua"));
+		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/increment.lua"));
 		script.setResultType(Long.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		Long result = scriptExecutor.execute(script, Collections.singletonList("mykey"));
 		assertNull(result);
 		template.boundValueOps("mykey").set("2");
-		assertEquals(Long.valueOf(3),
-				scriptExecutor.execute(script, Collections.singletonList("mykey")));
+		assertEquals(Long.valueOf(3), scriptExecutor.execute(script, Collections.singletonList("mykey")));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -105,13 +100,11 @@ public class DefaultScriptExecutorTests {
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
 		DefaultRedisScript<Boolean> script = new DefaultRedisScript<Boolean>();
-		script.setLocation(new ClassPathResource(
-				"org/springframework/data/redis/core/script/cas.lua"));
+		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/cas.lua"));
 		script.setResultType(Boolean.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		template.boundValueOps("counter").set(0l);
-		Boolean valueSet = scriptExecutor.execute(script, Collections.singletonList("counter"), 0,
-				3);
+		Boolean valueSet = scriptExecutor.execute(script, Collections.singletonList("counter"), 0, 3);
 		assertTrue(valueSet);
 		assertFalse(scriptExecutor.execute(script, Collections.singletonList("counter"), 0, 3));
 	}
@@ -124,13 +117,11 @@ public class DefaultScriptExecutorTests {
 		template.afterPropertiesSet();
 		template.boundListOps("mylist").leftPushAll("a", "b", "c", "d");
 		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
-		script.setLocation(new ClassPathResource(
-				"org/springframework/data/redis/core/script/bulkpop.lua"));
+		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/bulkpop.lua"));
 		script.setResultType(List.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
-		List<String> result = scriptExecutor
-				.execute(script, new GenericToStringSerializer<Long>(Long.class),
-						template.getValueSerializer(), Collections.singletonList("mylist"), 1l);
+		List<String> result = scriptExecutor.execute(script, new GenericToStringSerializer<Long>(Long.class),
+				template.getValueSerializer(), Collections.singletonList("mylist"), 1l);
 		assertEquals(Collections.singletonList("a"), result);
 	}
 
@@ -183,21 +174,19 @@ public class DefaultScriptExecutorTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecuteCustomResultSerializer() {
-		JacksonJsonRedisSerializer<Person> personSerializer = new JacksonJsonRedisSerializer<Person>(
-				Person.class);
+		JacksonJsonRedisSerializer<Person> personSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
 		this.template = new RedisTemplate<String, Person>();
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setValueSerializer(personSerializer);
 		template.setConnectionFactory(connFactory);
 		template.afterPropertiesSet();
 		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
-		script.setScriptSource(new StaticScriptSource(
-				"redis.call('SET',KEYS[1], ARGV[1])\nreturn 'FOO'"));
+		script.setScriptSource(new StaticScriptSource("redis.call('SET',KEYS[1], ARGV[1])\nreturn 'FOO'"));
 		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		Person joe = new Person("Joe", "Schmoe", 23);
-		String result = scriptExecutor.execute(script, personSerializer,
-				new StringRedisSerializer(), Collections.singletonList("bar"), joe);
+		String result = scriptExecutor.execute(script, personSerializer, new StringRedisSerializer(),
+				Collections.singletonList("bar"), joe);
 		assertEquals("FOO", result);
 		assertEquals(joe, template.boundValueOps("bar").get());
 	}

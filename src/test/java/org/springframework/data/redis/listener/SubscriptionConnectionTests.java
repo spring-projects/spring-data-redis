@@ -39,12 +39,10 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Integration tests confirming that {@link RedisMessageListenerContainer}
- * closes connections after unsubscribing
- *
+ * Integration tests confirming that {@link RedisMessageListenerContainer} closes connections after unsubscribing
+ * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- *
  */
 @RunWith(Parameterized.class)
 public class SubscriptionConnectionTests {
@@ -104,8 +102,7 @@ public class SubscriptionConnectionTests {
 		srpConnFactory.setHostName(SettingsUtils.getHost());
 		srpConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory },
-				{ srpConnFactory } });
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { srpConnFactory } });
 	}
 
 	@Test
@@ -116,8 +113,7 @@ public class SubscriptionConnectionTests {
 			RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 			container.setConnectionFactory(connectionFactory);
 			container.setBeanName("container" + i);
-			container.addMessageListener(new MessageListenerAdapter(handler),
-					Arrays.asList(new ChannelTopic(CHANNEL)));
+			container.addMessageListener(new MessageListenerAdapter(handler), Arrays.asList(new ChannelTopic(CHANNEL)));
 			container.setTaskExecutor(new SyncTaskExecutor());
 			container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 			container.afterPropertiesSet();

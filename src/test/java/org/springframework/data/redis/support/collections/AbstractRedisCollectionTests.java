@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.support.collections;
 
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -48,10 +47,9 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 
-
 /**
  * Base test for Redis collections.
- *  
+ * 
  * @author Costin Leau
  */
 @RunWith(Parameterized.class)
@@ -59,8 +57,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 	protected AbstractRedisCollection<T> collection;
 	protected ObjectFactory<T> factory;
-	@SuppressWarnings("rawtypes")
-	protected RedisTemplate template;
+	@SuppressWarnings("rawtypes") protected RedisTemplate template;
 
 	@Before
 	public void setUp() throws Exception {
@@ -70,7 +67,6 @@ public abstract class AbstractRedisCollectionTests<T> {
 	abstract AbstractRedisCollection<T> createCollection();
 
 	abstract RedisStore copyStore(RedisStore store);
-
 
 	@SuppressWarnings("rawtypes")
 	public AbstractRedisCollectionTests(ObjectFactory<T> factory, RedisTemplate template) {
@@ -91,6 +87,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 	/**
 	 * Return a new instance of T
+	 * 
 	 * @return
 	 */
 	protected T getT() {
@@ -104,7 +101,6 @@ public abstract class AbstractRedisCollectionTests<T> {
 		collection.getOperations().delete(Collections.singleton(collection.getKey()));
 		template.execute(new RedisCallback<Object>() {
 
-			
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
 				return null;
@@ -164,13 +160,13 @@ public abstract class AbstractRedisCollectionTests<T> {
 		List<T> list = Arrays.asList(t1, t2, t3);
 
 		assertThat(collection.addAll(list), is(true));
-		assertThat(collection, hasItems((T[])list.toArray()));
+		assertThat(collection, hasItems((T[]) list.toArray()));
 		assertThat(collection, hasItems(t1, t2, t3));
 	}
 
 	@Test
 	public void testEquals() {
-		//assertEquals(collection, copyStore(collection));
+		// assertEquals(collection, copyStore(collection));
 	}
 
 	@Test
@@ -237,7 +233,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		List<T> list = Arrays.asList(t1, t2, t3);
 
 		assertThat(collection.addAll(list), is(true));
-		assertThat(collection, hasItems((T[])list.toArray()));
+		assertThat(collection, hasItems((T[]) list.toArray()));
 		assertThat(collection, hasItems(t1, t2, t3));
 
 		List<T> newList = Arrays.asList(getT(), getT());
@@ -251,7 +247,7 @@ public abstract class AbstractRedisCollectionTests<T> {
 		assertThat(collection, not(hasItems(t2, t3)));
 	}
 
-	//@Test(expected = UnsupportedOperationException.class)
+	// @Test(expected = UnsupportedOperationException.class)
 	@SuppressWarnings("unchecked")
 	public void testRetainAll() {
 		T t1 = getT();

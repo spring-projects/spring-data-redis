@@ -41,8 +41,7 @@ public abstract class QueryUtils {
 
 		if (strings == null) {
 			raw = Collections.emptyList();
-		}
-		else {
+		} else {
 			raw = new ArrayList<byte[]>(strings.size());
 			for (String key : strings) {
 				raw.add(stringSerializer.serialize(key));

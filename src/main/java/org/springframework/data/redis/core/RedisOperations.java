@@ -26,25 +26,22 @@ import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
-
 /**
- * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}.
- * Not often used but a useful option for extensibility and testability (as it can be easily mocked or stubbed). 
+ * Interface that specified a basic set of Redis operations, implemented by {@link RedisTemplate}. Not often used but a
+ * useful option for extensibility and testability (as it can be easily mocked or stubbed).
  * 
  * @author Costin Leau
  */
 public interface RedisOperations<K, V> {
 
 	/**
-	 * Executes the given action within a Redis connection.
-	 * 
-	 * Application exceptions thrown by the action object get propagated to the caller (can only be unchecked) whenever possible.
-	 * Redis exceptions are transformed into appropriate DAO ones. 
-	 * Allows for returning a result object, that is a domain object or a collection of domain objects.
-	 * Performs automatic serialization/deserialization for the given objects to and from binary data suitable for the Redis storage.   
-	 * 
-	 * Note: Callback code is not supposed to handle transactions itself! Use an appropriate transaction manager. 
-	 * Generally, callback code must not touch any Connection lifecycle methods, like close, to let the template do its work. 
+	 * Executes the given action within a Redis connection. Application exceptions thrown by the action object get
+	 * propagated to the caller (can only be unchecked) whenever possible. Redis exceptions are transformed into
+	 * appropriate DAO ones. Allows for returning a result object, that is a domain object or a collection of domain
+	 * objects. Performs automatic serialization/deserialization for the given objects to and from binary data suitable
+	 * for the Redis storage. Note: Callback code is not supposed to handle transactions itself! Use an appropriate
+	 * transaction manager. Generally, callback code must not touch any Connection lifecycle methods, like close, to let
+	 * the template do its work.
 	 * 
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action
@@ -52,13 +49,10 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(RedisCallback<T> action);
 
-
 	/**
-	 * Executes a Redis session.
+	 * Executes a Redis session. Allows multiple operations to be executed in the same session enabling 'transactional'
+	 * capabilities through {@link #multi()} and {@link #watch(Collection)} operations.
 	 * 
-	 * Allows multiple operations to be executed in the same session enabling 'transactional' capabilities through {@link #multi()} 
-	 * and {@link #watch(Collection)} operations.
-	 *  
 	 * @param <T> return type
 	 * @param session session callback
 	 * @return result object returned by the action or <tt>null</tt>
@@ -66,30 +60,30 @@ public interface RedisOperations<K, V> {
 	<T> T execute(SessionCallback<T> session);
 
 	/**
-	* Executes the given action object on a pipelined connection, returning the results. Note that the callback <b>cannot</b>
-	* return a non-null value as it gets overwritten by the pipeline.
-	*
-	* This method will use the default serializers to deserialize results
-	*
-	* @param action callback object to execute
-	* @return list of objects returned by the pipeline
-	*/
+	 * Executes the given action object on a pipelined connection, returning the results. Note that the callback
+	 * <b>cannot</b> return a non-null value as it gets overwritten by the pipeline. This method will use the default
+	 * serializers to deserialize results
+	 * 
+	 * @param action callback object to execute
+	 * @return list of objects returned by the pipeline
+	 */
 	List<Object> executePipelined(RedisCallback<?> action);
 
 	/**
 	 * Executes the given action object on a pipelined connection, returning the results using a dedicated serializer.
 	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
-	 *
+	 * 
 	 * @param action callback object to execute
-	 * @param resultSerializer The Serializer to use for individual values or Collections of values. If any
-	 * returned values are hashes, this serializer will be used to deserialize both the key and value
+	 * @param resultSerializer The Serializer to use for individual values or Collections of values. If any returned
+	 *          values are hashes, this serializer will be used to deserialize both the key and value
 	 * @return list of objects returned by the pipeline
 	 */
 	List<Object> executePipelined(final RedisCallback<?> action, final RedisSerializer<?> resultSerializer);
 
 	/**
-	 * Executes the given Redis session on a pipelined connection. Allows transactions to be pipelined.
-	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 * Executes the given Redis session on a pipelined connection. Allows transactions to be pipelined. Note that the
+	 * callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 * 
 	 * @param session Session callback
 	 * @return list of objects returned by the pipeline
 	 */
@@ -97,8 +91,9 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Executes the given Redis session on a pipelined connection, returning the results using a dedicated serializer.
-	 * Allows transactions to be pipelined.
-	 * Note that the callback <b>cannot</b> return a non-null value as it gets overwritten by the pipeline.
+	 * Allows transactions to be pipelined. Note that the callback <b>cannot</b> return a non-null value as it gets
+	 * overwritten by the pipeline.
+	 * 
 	 * @param session Session callback
 	 * @param resultSerializer
 	 * @return list of objects returned by the pipeline
@@ -107,34 +102,26 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Executes the given {@link RedisScript}
-	 *
-	 * @param script
-	 *            The script to execute
-	 * @param keys
-	 *            Any keys that need to be passed to the script
-	 * @param args
-	 *            Any args that need to be passed to the script
-	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is
-	 *         null, likely indicating a throw-away status reply (i.e. "OK")
+	 * 
+	 * @param script The script to execute
+	 * @param keys Any keys that need to be passed to the script
+	 * @param args Any args that need to be passed to the script
+	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
+	 *         throw-away status reply (i.e. "OK")
 	 */
 	<T> T execute(RedisScript<T> script, List<K> keys, Object... args);
 
 	/**
-	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to
-	 * serialize the script arguments and result.
-	 *
-	 * @param script
-	 *            The script to execute
-	 * @param argsSerializer
-	 *            The {@link RedisSerializer} to use for serializing args
-	 * @param resultSerializer
-	 *            The {@link RedisSerializer} to use for serializing the script return value
-	 * @param keys
-	 *            Any keys that need to be passed to the script
-	 * @param args
-	 *            Any args that need to be passed to the script
-	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is
-	 *         null, likely indicating a throw-away status reply (i.e. "OK")
+	 * Executes the given {@link RedisScript}, using the provided {@link RedisSerializer}s to serialize the script
+	 * arguments and result.
+	 * 
+	 * @param script The script to execute
+	 * @param argsSerializer The {@link RedisSerializer} to use for serializing args
+	 * @param resultSerializer The {@link RedisSerializer} to use for serializing the script return value
+	 * @param keys Any keys that need to be passed to the script
+	 * @param args Any args that need to be passed to the script
+	 * @return The return value of the script or null if {@link RedisScript#getResultType()} is null, likely indicating a
+	 *         throw-away status reply (i.e. "OK")
 	 */
 	<T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
 			List<K> keys, Object... args);
@@ -177,8 +164,8 @@ public interface RedisOperations<K, V> {
 
 	void unwatch();
 
-	/**'
-	 * 
+	/**
+	 * '
 	 */
 	void multi();
 
@@ -187,21 +174,18 @@ public interface RedisOperations<K, V> {
 	List<Object> exec();
 
 	/**
-	 * Execute a transaction, using the provided {@link RedisSerializer} to deserialize
-	 * any results that are byte[]s or Collections of byte[]s. If a result is a Map, the
-	 * provided {@link RedisSerializer} will be used for both the keys and values. Other result
-	 * types (Long, Boolean, etc) are left as-is in the converted results. Tuple results are
+	 * Execute a transaction, using the provided {@link RedisSerializer} to deserialize any results that are byte[]s or
+	 * Collections of byte[]s. If a result is a Map, the provided {@link RedisSerializer} will be used for both the keys
+	 * and values. Other result types (Long, Boolean, etc) are left as-is in the converted results. Tuple results are
 	 * automatically converted to TypedTuples.
-	 *
-	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results
-	 * of transaction exec
+	 * 
+	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results of transaction exec
 	 * @return The deserialized results of transaction exec
 	 */
 	List<Object> exec(RedisSerializer<?> valueSerializer);
 
 	// pubsub functionality on the template
 	void convertAndSend(String destination, Object message);
-
 
 	// operation types
 	/**
@@ -212,8 +196,7 @@ public interface RedisOperations<K, V> {
 	ValueOperations<K, V> opsForValue();
 
 	/**
-	 * Returns the operations performed on simple values (or Strings in Redis terminology) 
-	 * bound to the given key.
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) bound to the given key.
 	 * 
 	 * @param key Redis key
 	 * @return value operations bound to the given key
@@ -222,7 +205,7 @@ public interface RedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on list values.
-	 *
+	 * 
 	 * @return list operations
 	 */
 	ListOperations<K, V> opsForList();
@@ -258,8 +241,7 @@ public interface RedisOperations<K, V> {
 	ZSetOperations<K, V> opsForZSet();
 
 	/**
-	 * Returns the operations performed on zset values (also known as sorted sets)
-	 * bound to the given key.
+	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given key.
 	 * 
 	 * @param key Redis key
 	 * @return zset operations bound to the given key.
@@ -284,7 +266,6 @@ public interface RedisOperations<K, V> {
 	 * @return hash operations bound to the given key.
 	 */
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
-
 
 	List<V> sort(SortQuery<K> query);
 

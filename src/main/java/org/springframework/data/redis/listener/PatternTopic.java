@@ -56,8 +56,7 @@ public class PatternTopic implements Topic {
 			if (other.channelPattern != null) {
 				return false;
 			}
-		}
-		else if (!channelPattern.equals(other.channelPattern)) {
+		} else if (!channelPattern.equals(other.channelPattern)) {
 			return false;
 		}
 		return true;

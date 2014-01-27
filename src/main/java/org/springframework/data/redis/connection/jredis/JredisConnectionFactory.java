@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Connection factory using creating <a href="http://github.com/alphazero/jredis">JRedis</a> based connections. 
+ * Connection factory using creating <a href="http://github.com/alphazero/jredis">JRedis</a> based connections.
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -52,23 +52,21 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	private static final int DEFAULT_REDIS_DB = 0;
 	private static final byte[] DEFAULT_REDIS_PASSWORD = null;
 
-
 	/**
 	 * Constructs a new <code>JredisConnectionFactory</code> instance.
 	 */
-	public JredisConnectionFactory() {
-	}
+	public JredisConnectionFactory() {}
 
 	/**
-	 * Constructs a new <code>JredisConnectionFactory</code> instance.
-	 * Will override the other connection parameters passed to the factory. 
-	 *
+	 * Constructs a new <code>JredisConnectionFactory</code> instance. Will override the other connection parameters
+	 * passed to the factory.
+	 * 
 	 * @param connectionSpec already configured connection.
 	 */
 	public JredisConnectionFactory(ConnectionSpec connectionSpec) {
 		this.connectionSpec = connectionSpec;
 	}
-	
+
 	public JredisConnectionFactory(Pool<JRedis> pool) {
 		this.pool = pool;
 	}
@@ -88,9 +86,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 			}
 		}
 	}
-	
+
 	public void destroy() throws Exception {
-		if(pool != null) {
+		if (pool != null) {
 			pool.destroy();
 			pool = null;
 		}
@@ -98,18 +96,17 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	public RedisConnection getConnection() {
 		JredisConnection connection;
-		if(pool != null) {
+		if (pool != null) {
 			connection = new JredisConnection(pool.getResource(), pool);
-		}else {
+		} else {
 			connection = new JredisConnection(new JRedisClient(connectionSpec), null);
 		}
 		return postProcessConnection(connection);
 	}
 
 	/**
-	 * Post process a newly retrieved connection. Useful for decorating or executing
-	 * initialization commands on a new connection.
-	 * This implementation simply returns the connection.
+	 * Post process a newly retrieved connection. Useful for decorating or executing initialization commands on a new
+	 * connection. This implementation simply returns the connection.
 	 * 
 	 * @param connection
 	 * @return processed connection
@@ -118,7 +115,6 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		return connection;
 	}
 
-	
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		if (ex instanceof ClientRuntimeException) {
 			return JredisUtils.convertJredisAccessException((ClientRuntimeException) ex);
@@ -126,10 +122,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		return null;
 	}
 
-
 	/**
 	 * Returns the Redis host name of this factory.
-	 *
+	 * 
 	 * @return Returns the hostName
 	 */
 	public String getHostName() {
@@ -145,10 +140,9 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 		this.hostName = hostName;
 	}
 
-
 	/**
 	 * Returns the Redis port.
-	 *
+	 * 
 	 * @return Returns the port
 	 */
 	public int getPort() {
@@ -184,7 +178,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 
 	/**
 	 * Returns the index of the database.
-	 *
+	 * 
 	 * @return Returns the database index
 	 */
 	public int getDatabase() {
@@ -192,8 +186,7 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	}
 
 	/**
-	 * Sets the index of the database used by this connection factory.
-	 * Can be between 0 (default) and 15.
+	 * Sets the index of the database used by this connection factory. Can be between 0 (default) and 15.
 	 * 
 	 * @param index database index
 	 */

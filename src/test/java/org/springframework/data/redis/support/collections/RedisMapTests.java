@@ -67,7 +67,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 	@SuppressWarnings("rawtypes")
 	@Parameters
 	public static Collection<Object[]> testParams() {
-		
+
 		// XStream serializer
 		XStreamMarshaller xstream = new XStreamMarshaller();
 		try {

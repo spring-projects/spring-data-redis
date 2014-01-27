@@ -43,10 +43,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 	protected RedisSet<T> set;
 
-
 	/**
 	 * Constructs a new <code>AbstractRedisSetTests</code> instance.
-	 *
+	 * 
 	 * @param factory
 	 * @param template
 	 */
@@ -54,7 +53,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 	public AbstractRedisSetTests(ObjectFactory<T> factory, RedisTemplate template) {
 		super(factory, template);
 	}
-
 
 	@SuppressWarnings("unchecked")
 	@Before
@@ -141,7 +139,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(1, inter.size());
 		assertThat(inter, hasItem(t2));
 	}
-
 
 	@SuppressWarnings("unchecked")
 	public void testIntersectAndStore() {
@@ -230,15 +227,14 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(collection.addAll(list), is(true));
 		Iterator<T> iterator = collection.iterator();
 
-
 		List<T> result = new ArrayList<T>(list);
 
 		while (iterator.hasNext()) {
 			T expected = iterator.next();
 			Iterator<T> resultItr = result.iterator();
-			while(resultItr.hasNext()) {
+			while (resultItr.hasNext()) {
 				T obj = resultItr.next();
-				if(isEqual(expected).matches(obj)) {
+				if (isEqual(expected).matches(obj)) {
 					resultItr.remove();
 				}
 			}
@@ -261,9 +257,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 		for (int i = 0; i < array.length; i++) {
 			Iterator<T> resultItr = result.iterator();
-			while(resultItr.hasNext()) {
+			while (resultItr.hasNext()) {
 				T obj = resultItr.next();
-				if(isEqual(array[i]).matches(obj)) {
+				if (isEqual(array[i]).matches(obj)) {
 					resultItr.remove();
 				}
 			}
@@ -285,9 +281,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 		for (int i = 0; i < array.length; i++) {
 			Iterator<T> resultItr = result.iterator();
-			while(resultItr.hasNext()) {
+			while (resultItr.hasNext()) {
 				T obj = resultItr.next();
-				if(isEqual(array[i]).matches(obj)) {
+				if (isEqual(array[i]).matches(obj)) {
 					resultItr.remove();
 				}
 			}

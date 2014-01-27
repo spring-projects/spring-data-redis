@@ -18,11 +18,9 @@ package org.springframework.data.redis;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- *
- * Implementation of {@link ObjectFactory} that returns unique Doubles as Strings,
- * incrementing by 1 each time
+ * Implementation of {@link ObjectFactory} that returns unique Doubles as Strings, incrementing by 1 each time
+ * 
  * @author Jennifer Hickey
- *
  */
 public class DoubleAsStringObjectFactory implements ObjectFactory<String> {
 

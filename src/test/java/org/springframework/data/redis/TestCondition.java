@@ -16,17 +16,13 @@
 package org.springframework.data.redis;
 
 /**
+ * A condition to test periodically, used in conjunction with {@link SpinBarrier}
  * 
- * A condition to test periodically, used in conjunction with
- * {@link SpinBarrier}
- *
  * @author Jennifer Hickey
- *
  */
 public interface TestCondition {
 
 	/**
-	 * 
 	 * @return true if condition passes
 	 */
 	boolean passes();

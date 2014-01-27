@@ -26,7 +26,7 @@ public class RedisInvalidSubscriptionException extends InvalidDataAccessResource
 
 	/**
 	 * Constructs a new <code>RedisInvalidSubscriptionException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 * @param cause
 	 */
@@ -36,7 +36,7 @@ public class RedisInvalidSubscriptionException extends InvalidDataAccessResource
 
 	/**
 	 * Constructs a new <code>RedisInvalidSubscriptionException</code> instance.
-	 *
+	 * 
 	 * @param msg
 	 */
 	public RedisInvalidSubscriptionException(String msg) {

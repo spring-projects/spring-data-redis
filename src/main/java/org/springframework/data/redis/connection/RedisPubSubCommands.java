@@ -23,16 +23,14 @@ package org.springframework.data.redis.connection;
 public interface RedisPubSubCommands {
 
 	/**
-	 * Indicates whether the current connection is subscribed (to at least one channel)
-	 * or not.
+	 * Indicates whether the current connection is subscribed (to at least one channel) or not.
 	 * 
 	 * @return true if the connection is subscribed, false otherwise
 	 */
 	boolean isSubscribed();
 
 	/**
-	 * Returns the current subscription for this connection or null if the connection is
-	 * not subscribed.
+	 * Returns the current subscription for this connection or null if the connection is not subscribed.
 	 * 
 	 * @return the current subscription, null if none is available
 	 */
@@ -48,13 +46,10 @@ public interface RedisPubSubCommands {
 	Long publish(byte[] channel, byte[] message);
 
 	/**
-	 * Subscribes the connection to the given channels.
-	 * Once subscribed, a connection
-	 * enters listening mode and can only subscribe to other channels or unsubscribe.
-	 * No other commands are accepted until the connection is unsubscribed.
+	 * Subscribes the connection to the given channels. Once subscribed, a connection enters listening mode and can only
+	 * subscribe to other channels or unsubscribe. No other commands are accepted until the connection is unsubscribed.
 	 * <p/>
-	 * Note that this operation is blocking and the current thread starts waiting
-	 * for new messages immediately.
+	 * Note that this operation is blocking and the current thread starts waiting for new messages immediately.
 	 * 
 	 * @param listener message listener
 	 * @param channels channel names
@@ -62,13 +57,11 @@ public interface RedisPubSubCommands {
 	void subscribe(MessageListener listener, byte[]... channels);
 
 	/**
-	 * Subscribes the connection to all channels matching the given patterns.
-	 * Once subscribed, a connection
-	 * enters listening mode and can only subscribe to other channels or unsubscribe.
-	 * No other commands are accepted until the connection is unsubscribed.
+	 * Subscribes the connection to all channels matching the given patterns. Once subscribed, a connection enters
+	 * listening mode and can only subscribe to other channels or unsubscribe. No other commands are accepted until the
+	 * connection is unsubscribed.
 	 * <p/>
-	 * Note that this operation is blocking and the current thread starts waiting
-	 * for new messages immediately.
+	 * Note that this operation is blocking and the current thread starts waiting for new messages immediately.
 	 * 
 	 * @param listener message listener
 	 * @param patterns channel name patterns

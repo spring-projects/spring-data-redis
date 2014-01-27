@@ -58,8 +58,7 @@ public class PubSubTests<T> {
 
 	protected RedisMessageListenerContainer container;
 	protected ObjectFactory<T> factory;
-	@SuppressWarnings("rawtypes")
-	protected RedisTemplate template;
+	@SuppressWarnings("rawtypes") protected RedisTemplate template;
 
 	private final BlockingDeque<Object> bag = new LinkedBlockingDeque<Object>(99);
 
@@ -120,6 +119,7 @@ public class PubSubTests<T> {
 
 	/**
 	 * Return a new instance of T
+	 * 
 	 * @return
 	 */
 	protected T getT() {
@@ -172,8 +172,7 @@ public class PubSubTests<T> {
 		// DATREDIS-207 This test previously took 5 seconds on start due to monitor wait
 		container.start();
 	}
-	
-	
+
 	/**
 	 * @see DATAREDIS-251
 	 */
@@ -183,13 +182,13 @@ public class PubSubTests<T> {
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));
 		container.start();
-		
-		Thread.sleep(1000); //give the container a little time to recover
-		
+
+		Thread.sleep(1000); // give the container a little time to recover
+
 		T payload = getT();
-		
+
 		template.convertAndSend(CHANNEL, payload);
-		
+
 		Set<T> set = new LinkedHashSet<T>();
 		set.add((T) bag.poll(3, TimeUnit.SECONDS));
 

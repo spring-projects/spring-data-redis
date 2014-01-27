@@ -25,7 +25,6 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  */
 class RedisNamespaceHandler extends NamespaceHandlerSupport {
 
-	
 	public void init() {
 		registerBeanDefinitionParser("listener-container", new RedisListenerContainerParser());
 		registerBeanDefinitionParser("collection", new RedisCollectionParser());

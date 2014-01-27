@@ -22,8 +22,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
- * Basic utility to help with the destruction of {@link RedisConnectionFactory} inside JUnit 4 tests.
- * Simply add the factory during setup and then call {@link #cleanUp()} through the <tt>@AfterClass</tt> method.
+ * Basic utility to help with the destruction of {@link RedisConnectionFactory} inside JUnit 4 tests. Simply add the
+ * factory during setup and then call {@link #cleanUp()} through the <tt>@AfterClass</tt> method.
  * 
  * @author Costin Leau
  */
@@ -40,7 +40,7 @@ public abstract class ConnectionFactoryTracker {
 			for (RedisConnectionFactory connectionFactory : connFactories) {
 				try {
 					((DisposableBean) connectionFactory).destroy();
-					//System.out.println("Succesfully cleaned up factory " + connectionFactory);
+					// System.out.println("Succesfully cleaned up factory " + connectionFactory);
 				} catch (Exception ex) {
 					System.err.println("Cannot clean factory " + connectionFactory + ex);
 				}

@@ -225,7 +225,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 	 */
 	@Parameters
 	public static Collection<Object[]> testParams() {
-		
+
 		// XStream serializer
 		XStreamMarshaller xstream = new XStreamMarshaller();
 		try {

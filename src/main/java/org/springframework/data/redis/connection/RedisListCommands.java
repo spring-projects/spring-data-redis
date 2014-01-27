@@ -26,14 +26,14 @@ import java.util.List;
 public interface RedisListCommands {
 
 	/**
-	 * List insertion position. 
+	 * List insertion position.
 	 */
 	public enum Position {
 		BEFORE, AFTER
 	}
 
 	Long rPush(byte[] key, byte[]... values);
-	
+
 	Long lPush(byte[] key, byte[]... value);
 
 	Long rPushX(byte[] key, byte[] value);

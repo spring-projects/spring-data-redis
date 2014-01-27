@@ -44,9 +44,8 @@ import com.google.common.base.Charsets;
 
 /**
  * SRP type converters
- *
+ * 
  * @author Jennifer Hickey
- *
  */
 @SuppressWarnings("rawtypes")
 abstract public class SrpConverters extends Converters {
@@ -77,8 +76,7 @@ abstract public class SrpConverters extends Converters {
 					} else if (data instanceof byte[])
 						list.add((byte[]) data);
 					else
-						throw new IllegalArgumentException(
-								"array contains more then just nulls and bytes -> " + data);
+						throw new IllegalArgumentException("array contains more then just nulls and bytes -> " + data);
 				}
 				return list;
 			}
@@ -95,13 +93,12 @@ abstract public class SrpConverters extends Converters {
 		};
 		BYTES_TO_DOUBLE = new Converter<byte[], Double>() {
 			public Double convert(byte[] bytes) {
-				return (bytes == null || bytes.length == 0 ? null : Double.valueOf(new String(
-						bytes, Charsets.UTF_8)));
+				return (bytes == null || bytes.length == 0 ? null : Double.valueOf(new String(bytes, Charsets.UTF_8)));
 			}
 		};
 		REPLIES_TO_TUPLE_SET = new Converter<Reply[], Set<Tuple>>() {
 			public Set<Tuple> convert(Reply[] byteArrays) {
-				if(byteArrays == null) {
+				if (byteArrays == null) {
 					return null;
 				}
 				Set<Tuple> tuples = new LinkedHashSet<Tuple>(byteArrays.length / 2 + 1);
@@ -116,7 +113,7 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_BYTES_MAP = new Converter<Reply[], Map<byte[], byte[]>>() {
 			public Map<byte[], byte[]> convert(Reply[] byteArrays) {
-				if(byteArrays == null) {
+				if (byteArrays == null) {
 					return null;
 				}
 				Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>(byteArrays.length / 2);
@@ -133,7 +130,7 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_BOOLEAN_LIST = new Converter<Reply[], List<Boolean>>() {
 			public List<Boolean> convert(Reply[] source) {
-				if(source == null) {
+				if (source == null) {
 					return null;
 				}
 				List<Boolean> results = new ArrayList<Boolean>();
@@ -145,7 +142,7 @@ abstract public class SrpConverters extends Converters {
 		};
 		REPLIES_TO_STRING_LIST = new Converter<Reply[], List<String>>() {
 			public List<String> convert(Reply[] source) {
-				if(source == null) {
+				if (source == null) {
 					return null;
 				}
 				List<String> results = new ArrayList<String>();

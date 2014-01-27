@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 
-
 /**
  * Transaction/Batch specific commands supported by Redis.
  * 

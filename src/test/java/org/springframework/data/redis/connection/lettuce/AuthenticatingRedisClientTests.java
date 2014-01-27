@@ -26,12 +26,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Integration test of {@link AuthenticatingRedisClient}. Enable requirepass and
- * comment out the @Ignore to run.
+ * Integration test of {@link AuthenticatingRedisClient}. Enable requirepass and comment out the @Ignore to run.
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
- * 
  */
 @Ignore("Redis must have requirepass set to run this test")
 public class AuthenticatingRedisClientTests {
@@ -43,26 +41,26 @@ public class AuthenticatingRedisClientTests {
 		client = new AuthenticatingRedisClient("localhost", "foo");
 	}
 
-    @After
-    public void tearDown(){
-        if(client != null){
-            client.shutdown();
-        }
-    }
+	@After
+	public void tearDown() {
+		if (client != null) {
+			client.shutdown();
+		}
+	}
 
 	@Test
 	public void connect() {
 		RedisConnection<String, String> conn = client.connect();
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 	@Test(expected = RedisException.class)
 	public void connectWithInvalidPassword() {
 
-        if(client != null){
-            client.shutdown();
-        }
+		if (client != null) {
+			client.shutdown();
+		}
 
 		RedisClient badClient = new AuthenticatingRedisClient("localhost", "notthepassword");
 		badClient.connect();
@@ -72,35 +70,35 @@ public class AuthenticatingRedisClientTests {
 	public void codecConnect() {
 		RedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 	@Test
 	public void connectAsync() {
 		RedisAsyncConnection<String, String> conn = client.connectAsync();
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 	@Test
 	public void codecConnectAsync() {
 		RedisAsyncConnection<byte[], byte[]> conn = client.connectAsync(LettuceConnection.CODEC);
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 	@Test
 	public void connectPubSub() {
 		RedisPubSubConnection<String, String> conn = client.connectPubSub();
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 	@Test
 	public void codecConnectPubSub() {
 		RedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
 		conn.ping();
-        conn.close();
+		conn.close();
 	}
 
 }

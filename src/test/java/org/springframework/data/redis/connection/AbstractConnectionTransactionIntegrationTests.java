@@ -9,34 +9,27 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.IfProfileValue;
 
-abstract public class AbstractConnectionTransactionIntegrationTests extends
-		AbstractConnectionIntegrationTests {
+abstract public class AbstractConnectionTransactionIntegrationTests extends AbstractConnectionIntegrationTests {
 
 	@Ignore
-	public void testMultiDiscard() {
-	}
+	public void testMultiDiscard() {}
 
 	@Ignore
-	public void testMultiExec() {
-	}
+	public void testMultiExec() {}
 
 	@Ignore
-	public void testUnwatch() {
-	}
+	public void testUnwatch() {}
 
 	@Ignore
-	public void testWatch() {
-	}
+	public void testWatch() {}
 
 	@Ignore
 	@Test
-	public void testExecWithoutMulti() {
-	}
+	public void testExecWithoutMulti() {}
 
 	@Ignore
 	@Test
-	public void testErrorInTx() {
-	}
+	public void testErrorInTx() {}
 
 	/*
 	 * Using blocking ops inside a tx does not make a lot of sense as it would require blocking the
@@ -45,52 +38,40 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends
 	 */
 
 	@Ignore
-	public void testBLPop() {
-	}
+	public void testBLPop() {}
 
 	@Ignore
-	public void testBRPop() {
-	}
+	public void testBRPop() {}
 
 	@Ignore
-	public void testBRPopLPush() {
-	}
+	public void testBRPopLPush() {}
 
 	@Ignore
-	public void testBLPopTimeout() {
-	}
+	public void testBLPopTimeout() {}
 
 	@Ignore
-	public void testBRPopTimeout() {
-	}
+	public void testBRPopTimeout() {}
 
 	@Ignore
-	public void testBRPopLPushTimeout() {
-	}
+	public void testBRPopLPushTimeout() {}
 
 	@Ignore("Pub/Sub not supported with transactions")
-	public void testPubSubWithNamedChannels() throws Exception {
-	}
+	public void testPubSubWithNamedChannels() throws Exception {}
 
 	@Ignore("Pub/Sub not supported with transactions")
-	public void testPubSubWithPatterns() throws Exception {
-	}
+	public void testPubSubWithPatterns() throws Exception {}
 
 	@Ignore
-	public void testNullKey() throws Exception {
-	}
+	public void testNullKey() throws Exception {}
 
 	@Ignore
-	public void testNullValue() throws Exception {
-	}
+	public void testNullValue() throws Exception {}
 
 	@Ignore
-	public void testHashNullKey() throws Exception {
-	}
+	public void testHashNullKey() throws Exception {}
 
 	@Ignore
-	public void testHashNullValue() throws Exception {
-	}
+	public void testHashNullValue() throws Exception {}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testWatchWhileInTx() {

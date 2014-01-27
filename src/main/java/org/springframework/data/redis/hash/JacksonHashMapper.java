@@ -31,7 +31,8 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 
 	private final ObjectMapper mapper;
 	private final JavaType userType;
-	private final JavaType mapType = TypeFactory.defaultInstance().constructMapType(Map.class, String.class, Object.class);
+	private final JavaType mapType = TypeFactory.defaultInstance()
+			.constructMapType(Map.class, String.class, Object.class);
 
 	public JacksonHashMapper(Class<T> type) {
 		this(type, new ObjectMapper());
@@ -43,12 +44,10 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 	}
 
 	@SuppressWarnings("unchecked")
-	
 	public T fromHash(Map<String, Object> hash) {
 		return (T) mapper.convertValue(hash, userType);
 	}
 
-	
 	public Map<String, Object> toHash(T object) {
 		return mapper.convertValue(object, mapType);
 	}
