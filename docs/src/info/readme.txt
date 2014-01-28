@@ -1,6 +1,8 @@
-SPRING DATA REDIS
+Spring Data Redis $version (Jan 28, 2014)
 -----------------
-http://www.springsource.org/spring-data/redis
+Spring Data Redis is released under the terms of the Apache Software License Version 2.0 (see license.txt).
+
+http://projects.spring.io/spring-data-redis/
 
 1. INTRODUCTION
 
@@ -23,6 +25,6 @@ Please see the reference documentation.
 Additionally the blog at http://blog.springsource.com as well as sections of interest in the reference documentation.
 
 ADDITIONAL RESOURCES
-Spring Data Homepage: http://www.springsource.org/spring-data/redis
+Spring Data Homepage: http://projects.spring.io/spring-data-redis
 Spring Data Forum   : http://forum.springsource.org/forumdisplay.php?f=80
 Redis Homepage      : http://redis.io

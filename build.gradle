@@ -106,15 +106,17 @@ jar {
     manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
     manifest.attributes['Implementation-Title'] = 'spring-data-redis'
     manifest.attributes['Implementation-Version'] = project.version
-    manifest.attributes['Implementation-URL'] = "http://www.springsource.org/spring-data/redis"
+    manifest.attributes['Implementation-URL'] = "http://http://projects.spring.io/spring-data-redis"
     manifest.attributes['Implementation-Vendor'] = "SpringSource"
     manifest.attributes['Implementation-Vendor-Id'] = "org.springframework"
 
     from("$rootDir/docs/src/info") {
         include "license.txt"
         include "notice.txt"
+        include "readme.txt"
+        include "changelog.txt"
         into "META-INF"
-        expand(copyright: new Date().format('yyyy'), version: project.version)
+        expand(copyright: new Date().format('2011-yyyy'), version: project.version)
     }
 }
 

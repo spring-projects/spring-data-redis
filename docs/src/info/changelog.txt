@@ -1,9 +1,25 @@
-SPRING DATA REDIS INTEGRATION CHANGELOG
+SPRING DATA REDIS CHANGELOG
 =======================================
-http://www.springsource.org/spring-data/redis
+http://projects.spring.io/spring-data-redis
 
 Commit changelog: http://github.com/SpringSource/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
+
+Changes in version 1.1.1.RELEASE (2014-01-28)
+----------------------------------------
+Bug
+[DATAREDIS-245] - Prevent excessive Thread creation in unit tests
+[DATAREDIS-248] - Fix generics in DecoratingStringHashMapper to be Java 8 compatible
+[DATAREDIS-257] - Shutdown the client when DefaultLettucePool is destroyed
+Improvement
+[DATAREDIS-242] - Listener Container start() Returns Before Container is Really Started
+[DATAREDIS-249] - Improve logging for tests in Gradle build
+[DATAREDIS-251] - Fix tests to work against Redis 2.8.x
+Task
+[DATAREDIS-243] - Ensure compatibility with Spring Framework 4.0
+[DATAREDIS-247] - Testcases must be locale independent
+[DATAREDIS-255] - Release 1.1.1
+
 
 Changes in version 1.1.0.RELEASE (2013-09-09)
 ----------------------------------------

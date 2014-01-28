@@ -6,6 +6,6 @@
       3.0.x and above.</para>
       <para>
       In terms of key value stores, <ulink url="http://redis.io">Redis</ulink> 2.4.x or higher
-      is required. Spring Data Redis is currently tested against the latest 2.4 and 2.6 releases.
+      is required. Spring Data Redis is currently tested against the latest 2.4, 2.6, 2.8 releases.
       </para>
   </chapter>
