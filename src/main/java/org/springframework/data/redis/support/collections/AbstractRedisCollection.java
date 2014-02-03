@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * works only with normal, non-pipeline/multi-exec connections as it requires a reply to be sent right away.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> implements RedisCollection<E> {
 
@@ -48,6 +49,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return operations;
 	}
 
+	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		boolean modified = false;
 		for (E e : c) {
@@ -56,10 +58,7 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return modified;
 	}
 
-	public abstract boolean add(E e);
-
-	public abstract void clear();
-
+	@Override
 	public boolean containsAll(Collection<?> c) {
 		boolean contains = true;
 		for (Object object : c) {
@@ -68,14 +67,67 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return contains;
 	}
 
-	public abstract boolean remove(Object o);
-
+	@Override
 	public boolean removeAll(Collection<?> c) {
 		boolean modified = false;
 		for (Object object : c) {
 			modified |= remove(object);
 		}
 		return modified;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expire(long, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Boolean expire(long timeout, TimeUnit unit) {
+		return operations.expire(key, timeout, unit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#expireAt(java.util.Date)
+	 */
+	@Override
+	public Boolean expireAt(Date date) {
+		return operations.expireAt(key, date);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#getExpire()
+	 */
+	@Override
+	public Long getExpire() {
+		return operations.getExpire(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#persist()
+	 */
+	@Override
+	public Boolean persist() {
+		return operations.persist(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundKeyOperations#rename(java.lang.Object)
+	 */
+	@Override
+	public void rename(final String newKey) {
+		if (!this.isEmpty()) {
+			CollectionUtils.rename(key, newKey, operations);
+		}
+		key = newKey;
+	}
+
+	protected void checkResult(Object obj) {
+		if (obj == null) {
+			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
+		}
 	}
 
 	public boolean equals(Object o) {
@@ -105,30 +157,4 @@ public abstract class AbstractRedisCollection<E> extends AbstractCollection<E> i
 		return sb.toString();
 	}
 
-	public Boolean expire(long timeout, TimeUnit unit) {
-		return operations.expire(key, timeout, unit);
-	}
-
-	public Boolean expireAt(Date date) {
-		return operations.expireAt(key, date);
-	}
-
-	public Long getExpire() {
-		return operations.getExpire(key);
-	}
-
-	public Boolean persist() {
-		return operations.persist(key);
-	}
-
-	public void rename(final String newKey) {
-		CollectionUtils.rename(key, newKey, operations);
-		key = newKey;
-	}
-
-	protected void checkResult(Object obj) {
-		if (obj == null) {
-			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
-		}
-	}
 }
