@@ -19,21 +19,23 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.BoundKeyOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
@@ -42,13 +44,20 @@ import org.springframework.data.redis.support.atomic.RedisAtomicLong;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class BoundKeyOperationsTest {
+
+	@SuppressWarnings("rawtypes")//
 	private BoundKeyOperations keyOps;
+
 	private ObjectFactory<Object> objFactory;
+
+	@SuppressWarnings("rawtypes")//
 	private RedisTemplate template;
 
+	@SuppressWarnings("rawtypes")
 	public BoundKeyOperationsTest(BoundKeyOperations<Object> keyOps, ObjectFactory<Object> objFactory,
 			RedisTemplate template) {
 		this.objFactory = objFactory;
@@ -57,8 +66,23 @@ public class BoundKeyOperationsTest {
 		ConnectionFactoryTracker.add(template.getConnectionFactory());
 	}
 
+	@Before
+	public void setUp() {
+		populateBoundKey();
+	}
+
+	@SuppressWarnings("unchecked")
 	@After
-	public void stop() {}
+	public void tearDown() {
+		template.execute(new RedisCallback<Object>() {
+
+			@Override
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.flushDb();
+				return null;
+			}
+		});
+	}
 
 	@AfterClass
 	public static void cleanUp() {
@@ -70,23 +94,16 @@ public class BoundKeyOperationsTest {
 		return BoundKeyParams.testParams();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testRename() throws Exception {
-		// DATAREDIS-188 Infinite loop renaming a non-existent Collection when using Lettuce
-		assumeTrue(!ConnectionUtils.isLettuce(template.getConnectionFactory()));
+
 		Object key = keyOps.getKey();
-		assertNotNull(key);
-		// RedisAtomicInteger/Long need to be reset, as they may be created
-		// at start of test run and underlying key wiped out by other tests
-		try {
-			keyOps.getClass().getMethod("set", int.class).invoke(keyOps, 0);
-		} catch (NoSuchMethodException e) {}
-		try {
-			keyOps.getClass().getMethod("set", long.class).invoke(keyOps, 0l);
-		} catch (NoSuchMethodException e) {}
 		Object newName = objFactory.instance();
+
 		keyOps.rename(newName);
 		assertEquals(newName, keyOps.getKey());
+
 		keyOps.rename(key);
 		assertEquals(key, keyOps.getKey());
 	}
@@ -97,9 +114,8 @@ public class BoundKeyOperationsTest {
 	@Test
 	public void testExpire() throws Exception {
 
-		populateBoundKey();
-
 		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
+
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
 			long expire = keyOps.getExpire().longValue();
 			assertTrue(expire <= 10 && expire > 5);
@@ -113,22 +129,20 @@ public class BoundKeyOperationsTest {
 	public void testPersist() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 
-		populateBoundKey();
-
 		keyOps.persist();
 
 		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
 			assertTrue(keyOps.getExpire().longValue() > 0);
 		}
+
 		keyOps.persist();
 		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), -1, keyOps.getExpire().longValue());
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void populateBoundKey() {
-
-		if (keyOps instanceof List || keyOps instanceof Set) {
+		if (keyOps instanceof Collection) {
 			((Collection) keyOps).add("dummy");
 		} else if (keyOps instanceof Map) {
 			((Map) keyOps).put("dummy", "dummy");
