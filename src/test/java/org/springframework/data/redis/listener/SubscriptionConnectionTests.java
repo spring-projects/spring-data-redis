@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,13 @@
  */
 package org.springframework.data.redis.listener;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -29,24 +36,22 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Integration tests confirming that {@link RedisMessageListenerContainer} closes connections after unsubscribing
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class SubscriptionConnectionTests {
 
+	private static final Log logger = LogFactory.getLog(SubscriptionConnectionTests.class);
 	private static final String CHANNEL = "pubsub::test";
 
 	private RedisConnectionFactory connectionFactory;
@@ -56,7 +61,7 @@ public class SubscriptionConnectionTests {
 	private final Object handler = new Object() {
 		@SuppressWarnings("unused")
 		public void handleMessage(String message) {
-			System.out.println(message);
+			logger.debug(message);
 		}
 	};
 
@@ -81,28 +86,39 @@ public class SubscriptionConnectionTests {
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
+		int port = SettingsUtils.getPort();
+		String host = SettingsUtils.getHost();
+
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
+		jedisConnFactory.setPort(port);
+		jedisConnFactory.setHostName(host);
 		jedisConnFactory.setDatabase(2);
 		jedisConnFactory.afterPropertiesSet();
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setPort(SettingsUtils.getPort());
-		lettuceConnFactory.setHostName(SettingsUtils.getHost());
+		lettuceConnFactory.setPort(port);
+		lettuceConnFactory.setHostName(host);
 		lettuceConnFactory.setDatabase(2);
 		lettuceConnFactory.setValidateConnection(true);
 		lettuceConnFactory.afterPropertiesSet();
 
 		// SRP
 		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
-		srpConnFactory.setPort(SettingsUtils.getPort());
-		srpConnFactory.setHostName(SettingsUtils.getHost());
+		srpConnFactory.setPort(port);
+		srpConnFactory.setHostName(host);
 		srpConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { srpConnFactory } });
+		// JRedis
+		JredisConnectionFactory jRedisConnectionFactory = new JredisConnectionFactory();
+		jRedisConnectionFactory.setPort(port);
+		jRedisConnectionFactory.setHostName(host);
+		jRedisConnectionFactory.setDatabase(2);
+		jRedisConnectionFactory.afterPropertiesSet();
+
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { srpConnFactory },
+				{ jRedisConnectionFactory } });
 	}
 
 	@Test
@@ -118,12 +134,15 @@ public class SubscriptionConnectionTests {
 			container.setSubscriptionExecutor(new SimpleAsyncTaskExecutor());
 			container.afterPropertiesSet();
 			container.start();
-			// DATAREDIS-170 Need time for subscription to fully complete or
-			// cancelTask won't close connection b/c subscription is null
-			Thread.sleep(100);
+
+			// Need to sleep shortly as jedis cannot deal propery with multiple repsonses within one connection
+			// @see https://github.com/xetorthio/jedis/issues/186
+			Thread.sleep(1000);
+
 			container.stop();
 			containers.add(container);
 		}
+
 		// verify we can now get a connection from the pool
 		RedisConnection connection = connectionFactory.getConnection();
 		connection.close();
@@ -144,10 +163,6 @@ public class SubscriptionConnectionTests {
 			container.start();
 			containers.add(container);
 		}
-
-		// DATAREDIS-170 Need time for subscription to fully complete or
-		// cancelTask won't close connection b/c subscription is null
-		Thread.sleep(100);
 
 		// Removing the sole listener from the container should free up a
 		// connection
@@ -173,10 +188,6 @@ public class SubscriptionConnectionTests {
 			container.start();
 			containers.add(container);
 		}
-
-		// DATAREDIS-170 Need time for subscription to fully complete or
-		// cancelTask won't close connection b/c subscription is null
-		Thread.sleep(100);
 
 		// Unsubscribe all listeners from all topics, freeing up a connection
 		containers.get(0).removeMessageListener(null, Arrays.asList(new Topic[] {}));
