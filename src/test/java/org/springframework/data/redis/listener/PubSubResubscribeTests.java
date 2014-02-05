@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package org.springframework.data.redis.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.core.Is.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,16 +35,21 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.beans.factory.DisposableBean;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -53,21 +57,28 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 /**
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
+@RunWith(Parameterized.class)
 public class PubSubResubscribeTests {
 
 	private static final String CHANNEL = "pubsub::test";
 
-	protected RedisMessageListenerContainer container;
-	protected RedisConnectionFactory factory;
-
-	@SuppressWarnings("rawtypes") protected RedisTemplate template;
-
 	private final BlockingDeque<String> bag = new LinkedBlockingDeque<String>(99);
-
 	private final Object handler = new MessageHandler("handler1", bag);
-
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
+
+	private RedisMessageListenerContainer container;
+	private RedisConnectionFactory factory;
+
+	@SuppressWarnings("rawtypes")//
+	private RedisTemplate template;
+
+	public PubSubResubscribeTests(RedisConnectionFactory connectionFactory) {
+
+		this.factory = connectionFactory;
+		ConnectionFactoryTracker.add(factory);
+	}
 
 	@BeforeClass
 	public static void shouldRun() {
@@ -79,21 +90,52 @@ public class PubSubResubscribeTests {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	@Before
-	public void setUp() throws Exception {
+	@Parameters
+	public static Collection<Object[]> testParams() {
+
+		int port = SettingsUtils.getPort();
+		String host = SettingsUtils.getHost();
+		
+		// Jedis
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(true);
-		jedisConnFactory.setPort(SettingsUtils.getPort());
-		jedisConnFactory.setHostName(SettingsUtils.getHost());
+		jedisConnFactory.setPort(port);
+		jedisConnFactory.setHostName(host);
 		jedisConnFactory.setDatabase(2);
 		jedisConnFactory.afterPropertiesSet();
 
-		factory = jedisConnFactory;
+		// Lettuce
+		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setPort(port);
+		lettuceConnFactory.setHostName(host);
+		lettuceConnFactory.setDatabase(2);
+		lettuceConnFactory.setValidateConnection(true);
+		lettuceConnFactory.afterPropertiesSet();
 
-		template = new StringRedisTemplate(jedisConnFactory);
-		ConnectionFactoryTracker.add(template.getConnectionFactory());
+		// SRP
+		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
+		srpConnFactory.setPort(port);
+		srpConnFactory.setHostName(host);
+		srpConnFactory.afterPropertiesSet();
 
-		bag.clear();
+		// JRedis
+		JredisConnectionFactory jRedisConnectionFactory = new JredisConnectionFactory();
+		jRedisConnectionFactory.setPort(port);
+		jRedisConnectionFactory.setHostName(host);
+		jRedisConnectionFactory.setDatabase(2);
+		jRedisConnectionFactory.afterPropertiesSet();
+
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { srpConnFactory },
+				{ jRedisConnectionFactory } });
+	}
+
+	@Before
+	public void setUp() throws Exception {
+
+		// JredisConnection#publish is currently not supported -> tests would fail
+		assumeThat(ConnectionUtils.isJredis(factory), is(false));
+
+		template = new StringRedisTemplate(factory);
 
 		adapter.setSerializer(template.getValueSerializer());
 		adapter.afterPropertiesSet();
@@ -111,14 +153,13 @@ public class PubSubResubscribeTests {
 	}
 
 	@After
-	public void tearDown() throws Exception {
-		container.destroy();
-		((DisposableBean) factory).destroy();
-		Thread.sleep(1000);
+	public void tearDown() {
+		bag.clear();
 	}
 
 	@Test
 	public void testContainerPatternResubscribe() throws Exception {
+
 		String payload1 = "do";
 		String payload2 = "re mi";
 
@@ -171,6 +212,7 @@ public class PubSubResubscribeTests {
 
 	@Test
 	public void testContainerChannelResubscribe() throws Exception {
+
 		String payload1 = "do";
 		String payload2 = "re mi";
 
@@ -208,8 +250,9 @@ public class PubSubResubscribeTests {
 	 * 
 	 * @throws Exception
 	 */
-	@Ignore("DATAREDIS-166 Intermittent corrupted input/output streams subscribing to both patterns and channels in RMLC")
+	@Test
 	public void testInitializeContainerWithMultipleTopicsIncludingPattern() throws Exception {
+
 		container.removeMessageListener(adapter);
 		container.stop();
 		container.addMessageListener(adapter,
@@ -230,17 +273,18 @@ public class PubSubResubscribeTests {
 	}
 
 	private class MessageHandler {
+
 		private final BlockingDeque<String> bag;
 		private final String name;
 
 		public MessageHandler(String name, BlockingDeque<String> bag) {
+
 			this.bag = bag;
 			this.name = name;
 		}
 
 		@SuppressWarnings("unused")
 		public void handleMessage(String message) {
-			System.out.println(name + ": " + message);
 			bag.add(message);
 		}
 	}
