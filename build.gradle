@@ -15,6 +15,7 @@ group = 'org.springframework.data'
 repositories {
   maven { url "http://repo.springsource.org/libs-snapshot" }
   maven { url "http://repo.springsource.org/plugins-release" }
+  mavenCentral()
 }
 
 apply plugin: "java"

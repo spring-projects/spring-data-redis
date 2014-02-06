@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import redis.clients.util.Pool;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class JedisConnection implements RedisConnection {
 
@@ -1907,7 +1908,7 @@ public class JedisConnection implements RedisConnection {
 		if (isPipelined() || isQueueing()) {
 			throw new UnsupportedOperationException("zAdd of multiple fields not supported " + "in pipeline or transaction");
 		}
-		Map<Double, byte[]> args = zAddArgs(tuples);
+		Map<byte[], Double> args = zAddArgs(tuples);
 		try {
 			return jedis.zadd(key, args);
 		} catch (Exception ex) {
@@ -2727,15 +2728,17 @@ public class JedisConnection implements RedisConnection {
 		return args.toArray(new byte[args.size()][]);
 	}
 
-	private Map<Double, byte[]> zAddArgs(Set<Tuple> tuples) {
-		Map<Double, byte[]> args = new HashMap<Double, byte[]>();
+	private Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
+
+		Map<byte[], Double> args = new HashMap<byte[], Double>();
 		for (Tuple tuple : tuples) {
-			if (args.containsKey(tuple.getScore())) {
-				throw new UnsupportedOperationException("Bulk add of multiple elements with the same score is not supported. "
-						+ "Add the elements individually.");
+			if (args.containsValue(tuple.getScore())) {
+				throw new UnsupportedOperationException(
+						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
 			}
-			args.put(tuple.getScore(), tuple.getValue());
+			args.put(tuple.getValue(), tuple.getScore());
 		}
+
 		return args;
 	}
 }

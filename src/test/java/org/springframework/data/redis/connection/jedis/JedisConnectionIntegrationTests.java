@@ -16,6 +16,14 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,16 +40,8 @@ import org.springframework.data.redis.connection.StringRedisConnection.StringTup
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import redis.clients.jedis.JedisPoolConfig;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Integration test of {@link JedisConnection}
@@ -49,6 +49,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -95,13 +96,16 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	public void testClosePool() {
+
 		JedisPoolConfig config = new JedisPoolConfig();
-		config.setMaxActive(1);
-		config.setMaxWait(1l);
+		config.setMaxTotal(1);
+		config.setMaxIdle(1);
+
 		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
 		factory2.setHostName(SettingsUtils.getHost());
 		factory2.setPort(SettingsUtils.getPort());
 		factory2.afterPropertiesSet();
+
 		RedisConnection conn2 = factory2.getConnection();
 		conn2.close();
 		factory2.getConnection();
@@ -290,13 +294,16 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 	@Test
 	public void testPoolNPE() {
+
 		JedisPoolConfig config = new JedisPoolConfig();
-		config.setMaxActive(1);
+		config.setMaxTotal(1);
+
 		JedisConnectionFactory factory2 = new JedisConnectionFactory(config);
 		factory2.setUsePool(true);
 		factory2.setHostName(SettingsUtils.getHost());
 		factory2.setPort(SettingsUtils.getPort());
 		factory2.afterPropertiesSet();
+
 		RedisConnection conn = factory2.getConnection();
 		try {
 			conn.get(null);
