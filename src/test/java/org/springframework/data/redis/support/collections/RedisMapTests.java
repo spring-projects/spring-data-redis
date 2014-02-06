@@ -47,6 +47,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 
@@ -94,7 +95,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.getPoolConfig().setMaxActive(defaultPoolConfig.maxActive);
+		jedisConnFactory.getPoolConfig().setMaxTotal(defaultPoolConfig.maxActive);
 		jedisConnFactory.setUsePool(true);
 		jedisConnFactory.setPort(SettingsUtils.getPort());
 		jedisConnFactory.setHostName(SettingsUtils.getHost());
