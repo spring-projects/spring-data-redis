@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,65 +13,100 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.cache;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
+import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
- * CacheManager implementation for Redis. By default saves the keys directly, without appending a prefix (which acts as
- * a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). For performance
- * reasons, the current implementation uses a set for the keys in each cache.
+ * {@link CacheManager} implementation for Redis. By default saves the keys directly, without appending a prefix (which
+ * acts as a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). <br/>
+ * By default {@link RedisCache}s will be lazily initialized for each {@link #getCache(String)} request unless a set of
+ * predefined cache names is provided. <br />
+ * <br />
+ * Setting {@link #setTransactionAware(boolean)} to {@code true} will force Caches to be decorated as
+ * {@link TransactionAwareCacheDecorator} so values will only be written to the cache after successful commit of
+ * surrounding transaction.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
+ * @author Thomas Darimont
  */
-public class RedisCacheManager implements CacheManager {
+public class RedisCacheManager extends AbstractTransactionSupportingCacheManager {
 
-	// fast lookup by name map
-	private final ConcurrentMap<String, Cache> caches = new ConcurrentHashMap<String, Cache>();
-	private final Collection<String> names = Collections.unmodifiableSet(caches.keySet());
+	private final Log logger = LogFactory.getLog(RedisCacheManager.class);
+
+	@SuppressWarnings("rawtypes")//
 	private final RedisTemplate template;
 
 	private boolean usePrefix = false;
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
+	private boolean loadRemoteCachesOnStartup = false;
+	private boolean dynamic = true;
 
 	// 0 - never expire
 	private long defaultExpiration = 0;
 	private Map<String, Long> expires = null;
 
+	/**
+	 * Construct a {@link RedisCacheManager}.
+	 * 
+	 * @param template
+	 */
+	@SuppressWarnings("rawtypes")
 	public RedisCacheManager(RedisTemplate template) {
+		this(template, Collections.<String> emptyList());
+	}
+
+	/**
+	 * Construct a static {@link RedisCacheManager}, managing caches for the specified cache names only.
+	 * 
+	 * @param template
+	 * @param cacheNames
+	 * @since 1.2
+	 */
+	@SuppressWarnings("rawtypes")
+	public RedisCacheManager(RedisTemplate template, Collection<String> cacheNames) {
 		this.template = template;
+		setCacheNames(cacheNames);
 	}
 
+	@Override
 	public Cache getCache(String name) {
-		Cache c = caches.get(name);
-		if (c == null) {
-			long expiration = computeExpiration(name);
-			c = new RedisCache(name, (usePrefix ? cachePrefix.prefix(name) : null), template, expiration);
-			caches.put(name, c);
+		Cache cache = super.getCache(name);
+		if (cache == null && this.dynamic) {
+			return createAndAddCache(name);
 		}
 
-		return c;
+		return cache;
 	}
 
-	private long computeExpiration(String name) {
-		Long expiration = null;
-		if (expires != null) {
-			expiration = expires.get(name);
+	/**
+	 * Specify the set of cache names for this CacheManager's 'static' mode. <br/>
+	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
+	 * regions at runtime.
+	 */
+	public void setCacheNames(Collection<String> cacheNames) {
+
+		if (!CollectionUtils.isEmpty(cacheNames)) {
+			for (String cacheName : cacheNames) {
+				createAndAddCache(cacheName);
+			}
+			this.dynamic = false;
 		}
-		return (expiration != null ? expiration.longValue() : defaultExpiration);
-	}
-
-	public Collection<String> getCacheNames() {
-		return names;
 	}
 
 	public void setUsePrefix(boolean usePrefix) {
@@ -103,5 +138,90 @@ public class RedisCacheManager implements CacheManager {
 	 */
 	public void setExpires(Map<String, Long> expires) {
 		this.expires = (expires != null ? new ConcurrentHashMap<String, Long>(expires) : null);
+	}
+
+	/**
+	 * If set to {@code true} {@link RedisCacheManager} will try to retrieve cache names from redis server using
+	 * {@literal KEYS} command and initialize {@link RedisCache} for each of them.
+	 * 
+	 * @param loadRemoteCachesOnStartup
+	 * @since 1.2
+	 */
+	public void setLoadRemoteCachesOnStartup(boolean loadRemoteCachesOnStartup) {
+		this.loadRemoteCachesOnStartup = loadRemoteCachesOnStartup;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.support.AbstractCacheManager#loadCaches()
+	 */
+	@Override
+	protected Collection<? extends Cache> loadCaches() {
+
+		Assert.notNull(this.template, "A redis template is required in order to interact with data store");
+		return loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : Collections.<Cache> emptyList();
+	}
+
+	private Cache createAndAddCache(String cacheName) {
+		addCache(createCache(cacheName));
+		return super.getCache(cacheName);
+	}
+
+	@SuppressWarnings("unchecked")
+	private RedisCache createCache(String cacheName) {
+		long expiration = computeExpiration(cacheName);
+		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), template, expiration);
+	}
+
+	private long computeExpiration(String name) {
+		Long expiration = null;
+		if (expires != null) {
+			expiration = expires.get(name);
+		}
+		return (expiration != null ? expiration.longValue() : defaultExpiration);
+	}
+
+	private List<RedisCache> loadAndInitRemoteCaches() {
+
+		List<RedisCache> caches = new ArrayList<RedisCache>();
+
+		try {
+			Set<String> cacheNames = loadRemoteCacheKeys();
+			if (!CollectionUtils.isEmpty(cacheNames)) {
+				for (String cacheName : cacheNames) {
+					if (null == super.getCache(cacheName)) {
+						caches.add(createCache(cacheName));
+					}
+				}
+			}
+		} catch (Exception e) {
+			if(logger.isWarnEnabled()){
+				logger.warn("Failed to initialize cache with remote cache keys.",e);
+			}
+		}
+
+		return caches;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Set<String> loadRemoteCacheKeys() {
+		return (Set<String>) template.execute(new RedisCallback<Set<String>>() {
+
+			@Override
+			public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
+
+				// we are using the ~keys postfix as defined in RedisCache#setName
+				Set<byte[]> keys = connection.keys(template.getKeySerializer().serialize("*~keys"));
+				Set<String> cacheKeys = new LinkedHashSet<String>();
+
+				if (!CollectionUtils.isEmpty(keys)) {
+					for (byte[] key : keys) {
+						cacheKeys.add(template.getKeySerializer().deserialize(key).toString().replace("~keys", ""));
+					}
+				}
+
+				return cacheKeys;
+			}
+		});
 	}
 }
