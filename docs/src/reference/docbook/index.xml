@@ -21,6 +21,11 @@
                 <surname>Hickey</surname>
                 <affiliation>SpringSource</affiliation>
             </author>
+             <author>
+                <firstname>Christoph</firstname>
+                <surname>Strobl</surname>
+                <affiliation>Pivotal</affiliation>
+            </author>
         </authorgroup>
 
         <legalnotice>

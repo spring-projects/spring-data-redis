@@ -65,9 +65,11 @@ dependencies {
     // Testing
     testCompile "junit:junit:$junitVersion"
     testCompile "org.springframework:spring-test:$springVersion"
+    testCompile "org.springframework:spring-jdbc:$springVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
     testCompile("javax.annotation:jsr250-api:1.0", optional)
     testCompile("com.thoughtworks.xstream:xstream:1.4.4", optional)
+    testCompile("javax.transaction:jta:1.1")
 }
 
 sourceCompatibility = 1.6
