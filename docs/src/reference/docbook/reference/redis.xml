@@ -450,7 +450,7 @@
 	 <section id="redis:support:cache-abstraction">
         <title>Support for Spring Cache Abstraction</title>
   	
-  	<para>Spring Redis provides an implementation for Spring 3.1 <ulink url="http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/cache.html">cache abstraction</ulink>
+  	<para>Spring Redis provides an implementation for Spring <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html">cache abstraction</ulink>
   	through the <literal>org.springframework.data.redis.cache</literal> package. To use Redis as a backing implementation, simply add <literal>RedisCacheManager</literal> to your configuration:</para>
   	
   	<programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -466,6 +466,13 @@
 </beans>]]>
   	
   	</programlisting>
+  	
+  	<note>
+  		By default <classname>RedisCacheManager</classname> will lazily initialize <classname>RedisCache</classname> whenever a <interfacename>Cache</interfacename> is requested. This can be changed by predefining a <interfacename>Set</interfacename> of cache names.
+  	</note>
+  	<note>
+  		By default <classname>RedisCacheManager</classname> will not participate in any ongoing transaction. Use <methodname>setTransactionAware</methodname> to enable transaction support.
+  	</note>
   </section>
 	 
     </section>
