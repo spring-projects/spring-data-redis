@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static com.lambdaworks.redis.protocol.CommandType.MULTI;
+import static com.lambdaworks.redis.protocol.CommandType.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,8 +43,10 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
@@ -64,6 +66,8 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class LettuceConnection implements RedisConnection {
 
@@ -2760,6 +2764,27 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long time() {
+
+		/*
+		 * We have to emulate the time command via eval script since the current driver version doesn't
+		 * support the time command natively.
+		 * see https://github.com/wg/lettuce/issues/19
+		 */
+		List<byte[]> result = (List<byte[]>)eval("return redis.call('TIME')".getBytes(),ReturnType.MULTI,0);
+
+		Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
+		Assert.isTrue(result.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
+				+ result.size());
+
+		return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
+	}
+
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver
@@ -2905,4 +2930,5 @@ public class LettuceConnection implements RedisConnection {
 		args.weights(lg);
 		return args;
 	}
+
 }

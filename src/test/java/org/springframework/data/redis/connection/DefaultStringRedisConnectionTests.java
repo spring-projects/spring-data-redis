@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Mockito.doReturn;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1677,11 +1677,22 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Arrays.asList(new Object[] { "foo" }));
 	}
 
+	/**
+	 * @see DATAREDIS-206
+	 */
+	@Test
+	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
+
+		doReturn(1L).when(nativeConnection).time();
+		actual.add(connection.time());
+		verifyResults(Arrays.asList(1L));
+	}
+
 	protected List<Object> getResults() {
 		return actual;
 	}
 
-	protected void verifyResults(List<Object> expected) {
+	protected void verifyResults(List<?> expected) {
 		assertEquals(expected, getResults());
 	}
 }

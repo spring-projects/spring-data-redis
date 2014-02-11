@@ -39,8 +39,10 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -67,6 +69,7 @@ import redis.clients.util.Pool;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class JedisConnection implements RedisConnection {
 
@@ -2707,6 +2710,22 @@ public class JedisConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long time() {
+
+		List<String> serverTimeInformation = this.jedis.time();
+
+		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
+		Assert.isTrue(serverTimeInformation.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
+				+ serverTimeInformation.size());
+
+		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
+import org.springframework.util.NumberUtils;
 
 import redis.client.RedisException;
 import redis.reply.IntegerReply;
@@ -46,6 +47,8 @@ import com.google.common.base.Charsets;
  * SRP type converters
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 @SuppressWarnings("rawtypes")
 abstract public class SrpConverters extends Converters {
@@ -61,6 +64,7 @@ abstract public class SrpConverters extends Converters {
 	private static final Converter<byte[], Properties> BYTES_TO_PROPERTIES;
 	private static final Converter<byte[], String> BYTES_TO_STRING;
 	private static final Converter<byte[], Double> BYTES_TO_DOUBLE;
+	private static final Converter<Reply[], Long> REPLIES_TO_TIME_AS_LONG;
 
 	static {
 		REPLIES_TO_BYTES_LIST = new Converter<Reply[], List<byte[]>>() {
@@ -95,6 +99,21 @@ abstract public class SrpConverters extends Converters {
 			public Double convert(byte[] bytes) {
 				return (bytes == null || bytes.length == 0 ? null : Double.valueOf(new String(bytes, Charsets.UTF_8)));
 			}
+		};
+		REPLIES_TO_TIME_AS_LONG = new Converter<Reply[], Long>() {
+
+			@Override
+			public Long convert(Reply[] reply) {
+
+				Assert.notEmpty(reply, "Received invalid result from server. Expected 2 items in collection.");
+				Assert.isTrue(reply.length == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
+						+ reply.length);
+
+				List<String> serverTimeInformation = REPLIES_TO_STRING_LIST.convert(reply);
+
+				return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
+			}
+
 		};
 		REPLIES_TO_TUPLE_SET = new Converter<Reply[], Set<Tuple>>() {
 			public Set<Tuple> convert(Reply[] byteArrays) {
@@ -190,6 +209,10 @@ abstract public class SrpConverters extends Converters {
 		return REPLIES_TO_STRING_LIST;
 	}
 
+	public static Converter<Reply[], Long> repliesToTimeAsLong() {
+		return REPLIES_TO_TIME_AS_LONG;
+	}
+
 	public static List<byte[]> toBytesList(Reply[] source) {
 		return REPLIES_TO_BYTES_LIST.convert(source);
 	}
@@ -224,6 +247,16 @@ abstract public class SrpConverters extends Converters {
 
 	public static List<String> toStringList(Reply[] source) {
 		return REPLIES_TO_STRING_LIST.convert(source);
+	}
+
+	/**
+	 * Converts given {@link Reply}s to {@link Long}.
+	 * 
+	 * @param source Array holding time values in seconds and microseconds.
+	 * @return
+	 */
+	public static Long toTimeAsLong(Reply[] source) {
+		return REPLIES_TO_TIME_AS_LONG.convert(source);
 	}
 
 	public static byte[] toBytes(BitOperation op) {

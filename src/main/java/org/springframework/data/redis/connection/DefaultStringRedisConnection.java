@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class DefaultStringRedisConnection implements StringRedisConnection {
 
@@ -2144,6 +2145,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long time() {
+		return this.delegate.time();
+	}
+
 	/**
 	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
@@ -2182,4 +2192,5 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		}
 		return convertedResults;
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
+import static org.hamcrest.core.IsEqual.*;
+import static org.hamcrest.core.IsNull.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,6 +65,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -1858,6 +1856,17 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.lastSave());
 		List<Object> results = getResults();
 		assertNotNull(results.get(0));
+	}
+
+	/**
+	 * @see DATAREDIS-206
+	 */
+	@Test
+	public void testGetTimeShouldRequestServerTime() {
+
+		Long time = connectionFactory.getConnection().time();
+		assertThat(time, notNullValue());
+		assertThat(time > 0, equalTo(true));
 	}
 
 	protected void verifyResults(List<Object> expected) {
