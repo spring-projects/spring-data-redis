@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +29,7 @@ import org.junit.Test;
  * Unit test of {@link DefaultStringRedisConnection} that executes commands in a pipeline
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedisConnectionTests {
 
@@ -1427,6 +1427,17 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 		doReturn(barBytes).when(nativeConnection).get(fooBytes);
 		connection.get(foo);
 		verifyResults(Arrays.asList(new Object[] { barBytes, 3l }));
+	}
+
+	/**
+	 * @see DATAREDIS-206
+	 */
+	@Test
+	@Override
+	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
+
+		doReturn(Arrays.asList(1L)).when(nativeConnection).closePipeline();
+		super.testTimeIsDelegatedCorrectlyToNativeConnection();
 	}
 
 	protected List<Object> getResults() {

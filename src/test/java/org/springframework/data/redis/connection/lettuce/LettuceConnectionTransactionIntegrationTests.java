@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,15 +29,12 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-
 /**
  * Integration test of {@link LettuceConnection} functionality within a transaction
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")

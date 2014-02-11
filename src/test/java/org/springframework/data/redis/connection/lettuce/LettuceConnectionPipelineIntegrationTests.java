@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
+
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
@@ -29,19 +36,12 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-
 /**
  * Integration test of {@link LettuceConnection} pipeline functionality
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")

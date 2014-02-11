@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class JredisConnection implements RedisConnection {
 
@@ -1147,5 +1149,14 @@ public class JredisConnection implements RedisConnection {
 
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long time() {
+		throw new UnsupportedOperationException("The 'TIME' command is not supported by the JRedis driver.");
 	}
 }

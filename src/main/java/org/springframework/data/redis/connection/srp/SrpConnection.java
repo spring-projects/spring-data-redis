@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class SrpConnection implements RedisConnection {
 
@@ -2138,6 +2139,24 @@ public class SrpConnection implements RedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
+	@Override
+	public Long time() {
+
+		if (isPipelined()) {
+			pipeline(new SrpGenericResult(pipeline.time(), SrpConverters.repliesToTimeAsLong()));
+			return null;
+		}
+
+		MultiBulkReply reply = this.client.time();
+		Assert.notNull(reply, "Received invalid result from server. MultiBulkReply must not be empty.");
+
+		return SrpConverters.toTimeAsLong(reply.data());
+	}
+
 	private List<Object> closeTransaction() {
 		List<Object> results = Collections.emptyList();
 		if (txTracker != null) {
@@ -2231,4 +2250,5 @@ public class SrpConnection implements RedisConnection {
 		}
 		return arrays.toArray();
 	}
+
 }

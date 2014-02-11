@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import java.util.Set;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.util.NumberUtils;
 
 /**
  * Common type converters
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 abstract public class Converters {
 
@@ -72,5 +74,18 @@ abstract public class Converters {
 			tupleArgs.add(tuple.getValue());
 		}
 		return tupleArgs;
+	}
+
+
+	/**
+	 * Returns the timestamp constructed from the given {@code seconds} and {@code microseconds}.
+	 *
+	 * @param seconds server time in seconds
+	 * @param microseconds elapsed microseconds in current second
+	 * @return
+	 */
+	public static Long toTimeMillis(String seconds, String microseconds) {
+		return NumberUtils.parseNumber(seconds, Long.class) * 1000L + NumberUtils.parseNumber(microseconds, Long.class)
+				/ 1000L;
 	}
 }

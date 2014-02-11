@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.data.redis.connection.jredis;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,6 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -768,6 +768,14 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 			}
 			conn2.close();
 		}
+	}
+
+	/**
+	 * @see DATAREDIS-206
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetTimeShouldRequestServerTime() {
+		super.testGetTimeShouldRequestServerTime();
 	}
 
 }
