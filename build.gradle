@@ -70,8 +70,8 @@ dependencies {
     testCompile("com.thoughtworks.xstream:xstream:1.4.4", optional)
 }
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 javadoc {
   ext.srcDir = file("${projectDir}/docs/src/api")
