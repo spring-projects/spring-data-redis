@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,47 @@ import java.util.List;
  * Transaction/Batch specific commands supported by Redis.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface RedisTxCommands {
 
+	/**
+	 * Mark the start of a transaction block. <br />
+	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
+	 * .
+	 * 
+	 * @see http://redis.io/commands/multi
+	 */
 	void multi();
 
+	/**
+	 * Executes all queued commands in a transaction started with {@link #multi()}. <br />
+	 * If used along with {@link #watch(byte[])} the operation will fail if any of watched keys has been modified.
+	 * 
+	 * @see http://redis.io/commands/exec
+	 * @return List of replies for each executed command.
+	 */
 	List<Object> exec();
 
+	/**
+	 * Discard all commands issued after {@link #multi()}.
+	 * 
+	 * @see http://redis.io/commands/discard
+	 */
 	void discard();
 
+	/**
+	 * Watch given {@code keys} for modifications during transaction started with {@link #multi()}.
+	 * 
+	 * @see http://redis.io/commands/watch
+	 * @param keys
+	 */
 	void watch(byte[]... keys);
 
+	/**
+	 * Flushes all the previously {@link #watch(byte[])} keys.
+	 * 
+	 * @see http://redis.io/commands/unwatch
+	 */
 	void unwatch();
 }

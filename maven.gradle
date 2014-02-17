@@ -31,10 +31,10 @@ def customizePom(pom, gradleProject) {
         generatedPom.project {
             name = gradleProject.description
             description = gradleProject.description
-            url = 'http://github.com/SpringSource/spring-data-redis'
+            url = 'http://github.com/spring-projects/spring-data-redis'
             organization {
-                name = 'SpringSource'
-                url = 'http://www.springsource.org/spring-data/redis'
+                name = 'Pivotal Software, Inc.'
+                url = 'http://projects.spring.io/spring-data-redis'
             }
             licenses {
                 license {
@@ -44,9 +44,9 @@ def customizePom(pom, gradleProject) {
                 }
             }
             scm {
-                url = 'http://github.com/SpringSource/spring-data-redis'
-                connection = 'scm:git:git://github.com/SpringSource/spring-data-redis'
-                developerConnection = 'scm:git:git://github.com/SpringSource/spring-data-redis'
+                url = 'http://github.com/spring-projects/spring-data-redis'
+                connection = 'scm:git:git://github.com/spring-projects/spring-data-redis'
+                developerConnection = 'scm:git:git://github.com/spring-projects/spring-data-redis'
             }
             developers {
                 developer {
@@ -55,6 +55,27 @@ def customizePom(pom, gradleProject) {
                     email = 'cleau@vmware.com'
                     properties {
                         twitter = 'costinl'
+                    }
+                }
+                developer {
+                    id = 'jencompgeek'
+                    name = 'Jennifer Hickey'
+                    properties {
+                        twitter = 'jencompgeek'
+                    }
+                }
+                developer {
+                    id = 'christophstrobl'
+                    name = 'Christoph Strobl'
+                    properties {
+                        twitter = 'stroblchristoph'
+                    }
+                }
+                developer {
+                    id = 'thomasdarimont'
+                    name = 'Thomas Darimont'
+                    properties {
+                        twitter = 'thomasdarimont'
                     }
                 }
             }

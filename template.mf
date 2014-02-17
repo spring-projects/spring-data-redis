@@ -1,6 +1,6 @@
 Bundle-SymbolicName: org.springframework.data.redis
 Bundle-Name: Spring Data Redis Support
-Bundle-Vendor: SpringSource
+Bundle-Vendor: Pivotal Software, Inc.
 Bundle-ManifestVersion: 2
 Import-Package: 
  sun.reflect;version="0";resolution:=optional
