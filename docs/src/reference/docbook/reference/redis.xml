@@ -36,7 +36,7 @@
       <xref linkend="redis:template"/> explains the abstraction built on top of the low-level <interfacename>Connection</interfacename> API to handle the
       infrastructural concerns and object conversion.</listitem>
       <listitem><emphasis>Support Classes</emphasis> - that offer reusable components (built on the aforementioned abstractions) such as 
-      <interfacename>java.util.Collection</interfacename> or Spring 3.1 <ulink url="http://blog.springsource.com/2011/02/23/spring-3-1-m1-caching/">cache</ulink> implementation backed by 
+      <interfacename>java.util.Collection</interfacename> or Spring <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/cache.html">cache</ulink> implementation backed by 
       Redis as documented in <xref linkend="redis:support"/></listitem>
     </itemizedlist>
     
@@ -58,7 +58,7 @@
         
         <para><interfacename>RedisConnection</interfacename> provides the building block for Redis communication as it handles the communication with the Redis back-end. 
         It also automatically translates the underlying connecting library exceptions to Spring's consistent DAO exception 
-        <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/dao.html#dao-exceptions">hierarchy</ulink> so one can switch the connectors
+        <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions">hierarchy</ulink> so one can switch the connectors
         without any code changes as the operation semantics remain the same.</para>
         
         <note>For the corner cases where the native library API is required, <interfacename>RedisConnection</interfacename> provides a dedicated method 
@@ -67,7 +67,7 @@
         <para>Active <interfacename>RedisConnection</interfacename>s are created through <interfacename>RedisConnectionFactory</interfacename>. In addition, the factories act as
         <interfacename>PersistenceExceptionTranslator</interfacename>s, meaning once declared, they allow one to do transparent exception translation.  For example, exception translation through the use of the
         <literal>@Repository</literal> annotation and AOP. For more information see the dedicated 
-        <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/orm.html#orm-exception-translation">section</ulink> in Spring Framework documentation.</para>
+        <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/orm.html#orm-exception-translation">section</ulink> in Spring Framework documentation.</para>
         
         <note>Depending on the underlying configuration, the factory can return a new connection or an existing connection (in case a pool or shared native connection is used).</note>
       </section>
@@ -394,7 +394,7 @@
 	  (package <literal>org.springframework.data.redis.serializer</literal>) which as the name implies, takes care of the serialization process. Multiple implementations are
 	  available out of the box, two of which have been already mentioned before in this documentation: the <literal>StringRedisSerializer</literal> and 
 	  the <literal>JdkSerializationRedisSerializer</literal>. However one can use <classname>OxmSerializer</classname> for Object/XML mapping through Spring 3 
-	  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/oxm.html">OXM</ulink> support or either <classname>JacksonJsonRedisSerializer</classname> or
+	  <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html">OXM</ulink> support or either <classname>JacksonJsonRedisSerializer</classname> or
       <classname>Jackson2JsonRedisSerializer</classname> for storing data in <ulink url="http://en.wikipedia.org/wiki/JSON">JSON</ulink> format. Do note that the storage format is not limited only to values - it can be used for keys, values or hashes
 	  without any restrictions.</para>
 	</section>

@@ -6,11 +6,11 @@ This modules provides integration with the [Redis] (http://redis.io/) store.
 
 # Docs
 
-You can find out more details from the [user documentation](http://static.springsource.org/spring-data/redis/docs/current/reference/) or by browsing the [javadocs](http://static.springsource.org/spring-data/redis/docs/current/api/).
+You can find out more details from the [user documentation](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/) or by browsing the [javadocs](http://docs.spring.io/spring-data/data-redis/docs/current/api/).
 
 # Examples
 
-For examples on using the Spring Data Key Value, see the dedicated project, also available on [GitHub](https://github.com/SpringSource/spring-data-keyvalue-examples)
+For examples on using the Spring Data Key Value, see the dedicated project, also available on [GitHub](https://github.com/spring-projects/spring-data-keyvalue-examples)
 
 # Artifacts
 
@@ -29,14 +29,14 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
   <id>spring-maven-snapshot</id>
   <snapshots><enabled>true</enabled></snapshots>
   <name>Springframework Maven SNAPSHOT Repository</name>
-  <url>http://repo.springsource.org/libs-release</url>
+  <url>http://repo.spring.io/libs-release</url>
 </repository> 
 
 <!-- used for milestone/rc releases -->
 <repository>
   <id>spring-maven-milestone</id>
   <name>Springframework Maven Milestone Repository</name>
-  <url>http://repo.springsource.org/libs-milestone</url>
+  <url>http://repo.spring.io/libs-milestone</url>
 </repository> 
 ~~~~~
 
@@ -44,8 +44,8 @@ For examples on using the Spring Data Key Value, see the dedicated project, also
 
 ~~~~~ groovy
 repositories {
-   maven { url "http://repo.springsource.org/libs-milestone" }
-   maven { url "http://repo.springsource.org/libs-snapshot" }
+   maven { url "http://repo.spring.io/libs-milestone" }
+   maven { url "http://repo.spring.io/libs-snapshot" }
 }
 
 // used for nightly builds
@@ -54,7 +54,7 @@ dependencies {
 }
 ~~~~~
 
-Latest GA release is _1.1.0.RELEASE_  
+Latest GA release is _1.1.1.RELEASE_  
 Latest nightly is _1.2.0.BUILD-SNAPSHOT_
 
 # Usage (for the impatient)
@@ -112,13 +112,13 @@ depending on your editor.
 
 Here are some ways for you to get involved in the community:
 
-* Get involved with the Spring community on the Spring Community Forums.  Please help out on the [forum](http://forum.springsource.org/forumdisplay.php?80-NoSQL) by responding to questions and joining the debate.
+* Get involved with the Spring community on the Spring Community Forums.  Please help out on the [forum](http://forum.spring.io/forum/spring-projects/data/nosql) by responding to questions and joining the debate.
 * Create [JIRA](https://jira.springframework.org/browse/DATAREDIS) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
-* Watch for upcoming articles on Spring by [subscribing](http://www.springsource.org/node/feed) to springframework.org.
+* Watch for upcoming articles on Spring by [subscribing](https://spring.io/blog) to spring.io.
 
-Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, read the Spring Framework [contributor guidelines] (https://github.com/SpringSource/spring-framework/blob/master/CONTRIBUTING.md).
+Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, read the Spring Framework [contributor guidelines] (https://github.com/spring-projects/spring-framework/blob/master/CONTRIBUTING.md).
 
 # Staying in touch
 
 Follow the project team ([@thomasdarimont](http://twitter.com/thomasdarimont), [@stroblchristoph](http://twitter.com/stroblchristoph)) on Twitter. In-depth articles can be
-found at the SpringSource [team blog](https://spring.io/blog), and releases are announced via our [news feed](https://spring.io/blog/category/news).
+found at the Spring [team blog](https://spring.io/blog), and releases are announced via our [news feed](https://spring.io/blog/category/news).

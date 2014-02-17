@@ -17,15 +17,15 @@
 		  
 		<section id="get-started:first-steps:spring">
 			<title>Knowing Spring</title>
-			<para>Spring Data uses heavily Spring framework's <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/spring-core.html">core</ulink> functionality, 
-			such as the <ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/beans.html">IoC</ulink> container,
-			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/resources.html">resource</ulink> abstract or
-			<ulink url="http://static.springframework.org/spring/docs/3.0.x/reference/aop.html">AOP</ulink> infrastructure. While it is not important
+			<para>Spring Data uses heavily Spring framework's <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/spring-core.html">core</ulink> functionality, 
+			such as the <ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html">IoC</ulink> container,
+			<ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html">resource</ulink> abstract or
+			<ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html">AOP</ulink> infrastructure. While it is not important
 			to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar.
 			That being said, the more knowledge one has about the Spring, the faster she will pick up Spring Data Redis.
 			Besides the very comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework,
-			there are a lot of articles, blog entries and books on the matter - take a look at the Spring framework
-			<ulink url="http://www.springsource.org/documentation">home page</ulink> for more information. In general, this should be the starting point for 
+			there are a lot of articles, blog entries and books on the matter - take a look at the Spring Guides
+			<ulink url="http://spring.io/guides">home page</ulink> for more information. In general, this should be the starting point for 
 			developers wanting to try Spring DR.</para>
 		</section>
 		<section id="get-started:first-steps:nosql">
@@ -40,7 +40,7 @@
 		<section id="get-started:first-steps:samples">
 			<title>Trying Out The Samples</title>
 			<para>One can find various samples for key value stores in the dedicated example repo, at 
-			<ulink url="https://github.com/SpringSource/spring-data-keyvalue-examples">http://github.com/SpringSource/spring-data-keyvalue-examples</ulink>. For Spring Data Redis,
+			<ulink url="https://github.com/spring-projects/spring-data-keyvalue-examples">http://github.com/spring-projects/spring-data-keyvalue-examples</ulink>. For Spring Data Redis,
 			of interest is the <literal>retwisj</literal> sample, a Twitter-clone built on top of Redis which can be run locally or be deployed into the cloud. See its 
 			<ulink url="http://static.springsource.org/spring-data/data-keyvalue/examples/retwisj/current/">documentation</ulink>, the following blog 
 			<ulink url="http://blog.springsource.com/2011/04/27/getting-started-redis-spring-cloud-foundry/">entry</ulink> or the 
@@ -55,13 +55,13 @@
 		
 		<section id="get-started:help:community">
   		    <title>Community Support</title>
-			<para>The Spring Data <ulink url="http://forum.springframework.org/forumdisplay.php?f=80">forum</ulink> is a message board for all Spring Data (not just Redis) users to
+			<para>The Spring Data <ulink url="http://forum.spring.io/forum/spring-projects/data/nosql">forum</ulink> is a message board for all Spring Data (not just Redis) users to
 			share information and help each other. Note that registration is needed <emphasis>only</emphasis> for posting.
 			</para>
 		</section>
 		<section id="get-started:help:professional">
   		    <title>Professional Support</title>
-			<para>Professional, from-the-source support, with guaranteed response time, is available from <ulink url="http://www.springsource.com">SpringSource</ulink>,
+			<para>Professional, from-the-source support, with guaranteed response time, is available from <ulink url="http://www.gopivotal.com/">Pivotal Software, Inc.</ulink>,
 			the company behind Spring Data and Spring.  
 			</para>
 		</section>
@@ -71,16 +71,16 @@
 		<title>Following Development</title>
 		
 		<para>For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home 
-		<ulink url="http://www.springsource.org/spring-data">page</ulink>.   
+		<ulink url="http://spring.io/spring-data">page</ulink>.   
 		</para>
 		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the Spring Community 
-		<ulink url="http://forum.springsource.org">forums</ulink>.</para>
+		<ulink url="http://forum.spring.io/">forums</ulink>.</para>
 		<para>If you encounter a bug or want to suggest an improvement, 
 		please create a ticket on the Spring Data issue <ulink url="https://jira.springsource.org/browse/DATAREDIS">tracker</ulink>.</para>
 		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
-		Spring Community <ulink url="http://www.springframework.org/">Portal</ulink>.</para>
-		<para>Lastly, you can follow the SpringSource Data <ulink url="http://blog.springsource.com/category/data-access/">blog</ulink> or the project team on Twitter 
-		(<ulink url="http://twitter.com/jencompgeek">Jennifer</ulink>)</para>
+		Spring Community <ulink url="http://spring.io/">Portal</ulink>.</para>
+		<para>Lastly, you can follow the Spring <ulink url="http://spring.io/blog/">blog</ulink> or the project team (<ulink url="http://twitter.com/thomasdarimont ">Thomas</ulink> and <ulink url="http://twitter.com/stroblchristoph">Christoph</ulink>) on Twitter. 
+		</para>
 	</section>
     
 </chapter>

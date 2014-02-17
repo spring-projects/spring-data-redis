@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        maven { url 'http://repo.springsource.org/plugins-release' }
+        maven { url 'http://repo.spring.io/plugins-release' }
     }
     dependencies {
         classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
@@ -13,8 +13,8 @@ description = 'Spring Data Redis'
 group = 'org.springframework.data'
 
 repositories {
-  maven { url "http://repo.springsource.org/libs-snapshot" }
-  maven { url "http://repo.springsource.org/plugins-release" }
+  maven { url "http://repo.spring.io/libs-snapshot" }
+  maven { url "http://repo.spring.io/plugins-release" }
   mavenCentral()
 }
 
@@ -112,8 +112,8 @@ jar {
     manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
     manifest.attributes['Implementation-Title'] = 'spring-data-redis'
     manifest.attributes['Implementation-Version'] = project.version
-    manifest.attributes['Implementation-URL'] = "http://www.springsource.org/spring-data/redis"
-    manifest.attributes['Implementation-Vendor'] = "SpringSource"
+    manifest.attributes['Implementation-URL'] = "http://projects.spring.io/spring-data-redis"
+    manifest.attributes['Implementation-Vendor'] = "Pivotal Software, Inc."
     manifest.attributes['Implementation-Vendor-Id'] = "org.springframework"
 
     from("$rootDir/docs/src/info") {

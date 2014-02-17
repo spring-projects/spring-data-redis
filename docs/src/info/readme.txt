@@ -1,6 +1,6 @@
 SPRING DATA REDIS
 -----------------
-http://www.springsource.org/spring-data/redis
+http://projects.spring.io/spring-data-redis/
 
 1. INTRODUCTION
 
@@ -20,9 +20,9 @@ The Spring Data Redis jars files can be found in the 'dist' directory.
 4. GETTING STARTED
 
 Please see the reference documentation.
-Additionally the blog at http://blog.springsource.com as well as sections of interest in the reference documentation.
+Additionally the blog at https://spring.io/blog as well as sections of interest in the reference documentation.
 
 ADDITIONAL RESOURCES
 Spring Data Homepage: http://projects.spring.io/spring-data-redis/
-Spring Data Forum   : http://forum.springsource.org/forumdisplay.php?f=80
+Spring Data Forum   : http://forum.spring.io/forum/spring-projects/data/nosql
 Redis Homepage      : http://redis.io
