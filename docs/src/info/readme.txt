@@ -1,5 +1,5 @@
-SPRING DATA REDIS
------------------
+SPRING DATA REDIS $version (Feb. 19, 2014)
+------------------------------------------
 http://projects.spring.io/spring-data-redis/
 
 1. INTRODUCTION

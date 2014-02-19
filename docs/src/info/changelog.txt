@@ -1,9 +1,51 @@
-SPRING DATA REDIS INTEGRATION CHANGELOG
-=======================================
+SPRING DATA REDIS CHANGELOG
+===========================
 http://projects.spring.io/spring-data-redis/
 
 Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
+
+Changes in version 1.2.0.RC1 (2014-02-19)
+----------------------------------------
+Fix
+  [DATAREDIS-166] - Intermittent corrupted input/output streams subscribing to both patterns and channels in RMLC
+  [DATAREDIS-170] - Canceling RMLC SubscriptionTask immediately after start can leave connection open
+  [DATAREDIS-188] - Infinite loop renaming a non-existent Collection when using Lettuce
+  [DATAREDIS-246] - RedisCacheManager‘s getCache method does not match the logical of CompositeCacheManager
+
+Improvement
+  [DATAREDIS-250] - Upgrade to Spring Framework 3.2.8.
+
+New Feature
+  [DATAREDIS-206] - Add support for time operation
+  [DATAREDIS-241] - Add a Jackson2 based RedisSerializer
+
+Task
+  [DATAREDIS-254] - Clean up codebase to match spring data conventions
+  [DATAREDIS-260] - Upgrade to latest jedis release
+  [DATAREDIS-264] - Update gradle version
+  [DATAREDIS-265] - Update Java source and target compatibility to Java 6
+  [DATAREDIS-266] - Overhaul documentation.
+
+
+Changes in version 1.1.1.RELEASE (2014-01-28)
+----------------------------------------
+
+Fix
+  [DATAREDIS-245] - Prevent excessive Thread creation in unit tests
+  [DATAREDIS-248] - Fix generics in DecoratingStringHashMapper to be Java 8 compatible
+  [DATAREDIS-257] - Shutdown the client when DefaultLettucePool is destroyed
+
+Improvement
+  [DATAREDIS-242] - Listener Container start() Returns Before Container is Really Started
+  [DATAREDIS-249] - Improve logging for tests in Gradle build
+  [DATAREDIS-251] - Fix tests to work against Redis 2.8.x
+
+Task
+  [DATAREDIS-243] - Ensure compatibility with Spring Framework 4.0
+  [DATAREDIS-247] - Testcases must be locale independent
+  [DATAREDIS-255] - Release 1.1.1
+
 
 Changes in version 1.1.0.RELEASE (2013-09-09)
 ----------------------------------------
