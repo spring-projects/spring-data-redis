@@ -119,8 +119,10 @@ jar {
     from("$rootDir/docs/src/info") {
         include "license.txt"
         include "notice.txt"
+        include "readme.txt"
+        include "changelog.txt"
         into "META-INF"
-        expand(copyright: new Date().format('yyyy'), version: project.version)
+        expand(copyright: new Date().format('2011-yyyy'), version: project.version)
     }
 }
 
