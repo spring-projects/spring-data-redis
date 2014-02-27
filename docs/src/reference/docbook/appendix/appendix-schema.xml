@@ -3,10 +3,8 @@
     <title>Spring Data Redis Schema(s)</title>
 
 	<para>Core schema</para>	
-    <programlisting language="xml"><xi:include href="../../../src/main/resources/org/springframework/data/redis/config/spring-redis-1.0.xsd" parse="text" xmlns:xi="http://www.w3.org/2001/XInclude">
-       <xi:fallback>
-    	<para><emphasis>FIXME: REDIS SCHEMA LOCATION/NAME CHANGED</emphasis></para>
-  	   </xi:fallback>
+  <programlisting language="xml"><xi:include href="../../../src/main/resources/org/springframework/data/redis/config/spring-redis-1.0.xsd" parse="text" xmlns:xi="http://www.w3.org/2001/XInclude">
+       <xi:fallback href="https://raw.github.com/spring-projects/spring-data-redis/src/main/resources/org/springframework/data/redis/config/spring-redis-1.0.xsd" parse="text" xmlns:xi="http://www.w3.org/2001/XInclude"/>
   	 </xi:include>
     </programlisting>
     

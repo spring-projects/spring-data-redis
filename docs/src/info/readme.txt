@@ -22,7 +22,7 @@ The Spring Data Redis jars files can be found in the 'dist' directory.
 Please see the reference documentation.
 Additionally the blog at https://spring.io/blog as well as sections of interest in the reference documentation.
 
-ADDITIONAL RESOURCES
+5. ADDITIONAL RESOURCES
 Spring Data Homepage: http://projects.spring.io/spring-data-redis/
 Spring Data Forum   : http://forum.spring.io/forum/spring-projects/data/nosql
 Redis Homepage      : http://redis.io

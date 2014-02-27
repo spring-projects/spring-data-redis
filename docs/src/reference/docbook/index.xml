@@ -40,7 +40,13 @@
                 further provided that each copy contains this Copyright Notice, whether
                 distributed in print or electronically.
             </para>
-        </legalnotice>
+          </legalnotice>
+          
+          <copyright xmlns:xi="http://www.w3.org/2001/XInclude">
+              <year>2011-2014</year>
+              <holder>The original authors.</holder>
+          </copyright>
+
     </bookinfo>
 
     <toc/>
@@ -67,20 +73,7 @@
       
       <xi:include href="appendix/introduction.xml"/>
       <xi:include href="appendix/appendix-schema.xml"/>
+      <xi:include href="appendix/appendix-command-reference.xml"/>
     </part>
-    <!--
-    <part id="resources">
-      <title>Other Documentation</title>
-       
-      <partintro>
-          <para>
-              In addition to this reference documentation, there are a number of
-              other resources that may help you learn how to use the various key value
-              stores and Spring Data. These additional, third-party resources are
-              enumerated in this section.
-          </para>
-      </partintro>
-      <xi:include href="links.xml"/>       
-    </part>
-    -->
+
 </book>
