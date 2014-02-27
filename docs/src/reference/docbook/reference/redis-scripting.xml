@@ -17,17 +17,13 @@
    <para>Here's an example that executes a common "check-and-set" scenario using a Lua script. This is an ideal use case for a Redis script, as
    it requires that we execute a set of commands atomically and the behavior of one command is influenced by the result of another.</para>
 
-    <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-    <bean id="script" class="org.springframework.data.redis.core.script.DefaultRedisScript">
-    	<property name="location" value="classpath:META-INF/scripts/checkandset.lua"/>
-    	<property name="resultType" value="java.lang.Boolean"/>
-    </bean>
-    ...
-</beans>]]></programlisting>
+   <programlisting language="java">@Bean
+public RedisScript&lt;Boolean&gt; script() {
+  DefaultRedisScript&lt;Boolean&gt; redisScript = new DefaultRedisScript&lt;Boolean&gt;();
+  redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/checkandset.lua")));
+  redisScript.setResultType(Boolean.class);
+}
+</programlisting>
 
    <programlisting language="java"><![CDATA[
 public class Example {
@@ -55,7 +51,7 @@ return false
     <para>The XML above configures a <classname>DefaultRedisScript</classname> pointing to a file called <literal>checkandset.lua</literal>, which is
     expected to return a boolean value. The script <literal>resultType</literal> should be one of Long, Boolean, List, or deserialized value type. It can also be null if the
     script returns a throw-away status (i.e "OK"). It is ideal to configure a single instance of <classname>DefaultRedisScript</classname> in your application context to avoid
-    re-calcuation of the script's SHA1 on every script execution.
+    re-calculation of the script's SHA1 on every script execution.
     </para>
 
     <para>The checkAndSet method above then executes the configured <interfacename>RedisScript</interfacename> with the provided key and arguments and returns the result.</para>

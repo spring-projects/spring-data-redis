@@ -134,7 +134,7 @@
         p:host-name="server" p:port="6379"/>
 </beans>]]></programlisting>
 
-      <para>The configuration is quite similar to Jedis, with one notable exception. By default, the <literal>JedisConnectionFactory</literal> pools connections.
+      <para>The configuration is quite similar to Jedis, with one notable exception. By default, the <literal>JredisConnectionFactory</literal> pools connections.
       In order to use a connection pool with JRedis, configure the <literal>JredisConnectionFactory</literal> with an instance of <literal>JredisPool</literal>. For example:     
       </para>
 
