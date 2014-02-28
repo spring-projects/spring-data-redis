@@ -5,6 +5,12 @@ http://projects.spring.io/spring-data-redis/
 Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.2.0.GA (2014-03-03)
+----------------------------------------
+Task
+  [DATAREDIS-279] - Update reference documentation.
+  
+
 Changes in version 1.2.0.RC1 (2014-02-19)
 ----------------------------------------
 Fix
@@ -22,7 +28,7 @@ New Feature
 
 Task
   [DATAREDIS-254] - Clean up codebase to match spring data conventions
-  [DATAREDIS-260] - Upgrade to latest jedis release
+  [DATAREDIS-260] - Upgrade to latest jedis (2.4.1) release
   [DATAREDIS-264] - Update gradle version
   [DATAREDIS-265] - Update Java source and target compatibility to Java 6
   [DATAREDIS-266] - Overhaul documentation.
