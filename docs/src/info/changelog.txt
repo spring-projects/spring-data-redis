@@ -9,6 +9,7 @@ Changes in version 1.2.0.GA (2014-03-03)
 ----------------------------------------
 Task
   [DATAREDIS-279] - Update reference documentation.
+  [DATAREDIS-282] - PubSubResubscribeTests should use jedis without pool.
   
 
 Changes in version 1.2.0.RC1 (2014-02-19)
