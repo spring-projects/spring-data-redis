@@ -98,7 +98,7 @@ public class PubSubResubscribeTests {
 		
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
-		jedisConnFactory.setUsePool(true);
+		jedisConnFactory.setUsePool(false);
 		jedisConnFactory.setPort(port);
 		jedisConnFactory.setHostName(host);
 		jedisConnFactory.setDatabase(2);
