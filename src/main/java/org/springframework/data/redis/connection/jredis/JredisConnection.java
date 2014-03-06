@@ -231,12 +231,20 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-	public void bgWriteAof() {
+	public void bgReWriteAof() {
 		try {
 			jredis.bgrewriteaof();
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
+	}
+
+	/**
+	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
+	 */
+	@Deprecated
+	public void bgWriteAof() {
+		bgReWriteAof();
 	}
 
 	public void save() {

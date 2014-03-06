@@ -23,6 +23,7 @@ import java.util.Properties;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public interface RedisServerCommands {
 
@@ -30,8 +31,18 @@ public interface RedisServerCommands {
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 * 
 	 * @see http://redis.io/commands/bgrewriteaof
+	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
 	 */
+	@Deprecated
 	void bgWriteAof();
+
+	/**
+	 * Start an {@literal Append Only File} rewrite process on server.
+	 * 
+	 * @see http://redis.io/commands/bgrewriteaof
+	 * @since 1.3
+	 */
+	void bgReWriteAof();
 
 	/**
 	 * Start background saving of db on server.

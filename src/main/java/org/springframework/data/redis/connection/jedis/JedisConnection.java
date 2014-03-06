@@ -42,7 +42,6 @@ import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.util.Assert;
-import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -466,7 +465,8 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	public void bgWriteAof() {
+	@Override
+	public void bgReWriteAof() {
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisStatusResult(pipeline.bgrewriteaof()));
@@ -480,6 +480,14 @@ public class JedisConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/**
+	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
+	 */
+	@Deprecated
+	public void bgWriteAof() {
+		bgReWriteAof();
 	}
 
 	public void save() {
@@ -2722,8 +2730,8 @@ public class JedisConnection implements RedisConnection {
 		List<String> serverTimeInformation = this.jedis.time();
 
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
-		Assert.isTrue(serverTimeInformation.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
-				+ serverTimeInformation.size());
+		Assert.isTrue(serverTimeInformation.size() == 2,
+				"Received invalid nr of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
 		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
 	}

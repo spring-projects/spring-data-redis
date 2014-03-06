@@ -60,6 +60,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class SrpConnection implements RedisConnection {
 
@@ -363,7 +364,7 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
-	public void bgWriteAof() {
+	public void bgReWriteAof() {
 		try {
 			if (isPipelined()) {
 				pipeline(new SrpStatusResult(pipeline.bgrewriteaof()));
@@ -373,6 +374,14 @@ public class SrpConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
+	}
+
+	/**
+	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
+	 */
+	@Deprecated
+	public void bgWriteAof() {
+		bgReWriteAof();
 	}
 
 	public void save() {
