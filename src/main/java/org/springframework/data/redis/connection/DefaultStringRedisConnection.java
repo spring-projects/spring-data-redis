@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class DefaultStringRedisConnection implements StringRedisConnection {
 
@@ -135,8 +136,17 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.bgSave();
 	}
 
+	@Override
+	public void bgReWriteAof() {
+		delegate.bgReWriteAof();
+	}
+
+	/**
+	 * @deprecated As of 1.3, use #bgReWriteAof
+	 */
+	@Deprecated
 	public void bgWriteAof() {
-		delegate.bgWriteAof();
+		bgReWriteAof();
 	}
 
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
