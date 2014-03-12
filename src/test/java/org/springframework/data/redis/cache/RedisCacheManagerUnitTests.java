@@ -42,6 +42,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RedisCacheManagerUnitTests {
@@ -171,4 +172,34 @@ public class RedisCacheManagerUnitTests {
 		assertThat(cacheManager.getCache("redis"), notNullValue());
 	}
 
+	/**
+	 * @see DATAREDIS-283
+	 */
+	@Test
+	public void testRetainConfiguredCachesAfterBeanInitialization() {
+
+		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
+		cacheManager.afterPropertiesSet();
+
+		assertThat(cacheManager.getCache("spring"), notNullValue());
+		assertThat(cacheManager.getCache("data"), notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-283
+	 */
+	@Test
+	public void testRetainConfiguredCachesAfterBeanInitializationWithLoadingOfRemoteKeys() {
+
+		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
+		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(redisTemplate.getKeySerializer()
+				.serialize("remote-cache~keys")));
+		when(redisConnectionMock.keys(any(byte[].class))).thenReturn(keys);
+		cacheManager.setLoadRemoteCachesOnStartup(true);
+		cacheManager.afterPropertiesSet();
+
+		assertThat(cacheManager.getCache("spring"), notNullValue());
+		assertThat(cacheManager.getCache("data"), notNullValue());
+		assertThat(cacheManager.getCacheNames(), IsCollectionContaining.hasItem("remote-cache"));
+	}
 }
