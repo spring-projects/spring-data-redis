@@ -159,7 +159,39 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	protected Collection<? extends Cache> loadCaches() {
 
 		Assert.notNull(this.template, "A redis template is required in order to interact with data store");
-		return loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : Collections.<Cache> emptyList();
+		return addConfiguredCachesIfNecessary(loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : Collections.<Cache> emptyList());
+	}
+
+	/**
+	 * Returns a new {@link Collection} of {@link Cache} from the given caches collection and adds
+	 * the configured {@link Cache}s of they are not already present.
+	 *
+	 * @param caches must not be {@literal null}
+	 * @return
+	 */
+	private Collection<? extends Cache> addConfiguredCachesIfNecessary(Collection<? extends Cache> caches) {
+
+		Assert.notNull(caches, "Caches must not be null!");
+
+		Collection<Cache> result = new ArrayList<Cache>(caches);
+
+		for(String cacheName : getCacheNames()){
+
+			boolean configuredCacheAlreadyPresent = false;
+
+			for(Cache cache : caches){
+				if(cache.getName().equals(cacheName)){
+					configuredCacheAlreadyPresent = true;
+					break;
+				}
+			}
+
+			if(!configuredCacheAlreadyPresent){
+				result.add(getCache(cacheName));
+			}
+		}
+
+		return result;
 	}
 
 	private Cache createAndAddCache(String cacheName) {
