@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * Uses a {@link RedisSerializer} underneath to perform the conversion.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -92,6 +93,17 @@ public interface StringRedisConnection extends RedisConnection {
 	Boolean setNX(String key, String value);
 
 	void setEx(String key, long seconds, String value);
+
+	/**
+	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
+	 * 
+	 * @see http://redis.io/commands/psetex
+	 * @param key
+	 * @param seconds
+	 * @param value
+	 * @since 1.3
+	 */
+	void pSetEx(String key, long milliseconds, String value);
 
 	void mSetString(Map<String, String> tuple);
 

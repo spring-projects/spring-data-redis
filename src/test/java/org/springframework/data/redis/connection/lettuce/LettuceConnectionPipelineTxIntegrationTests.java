@@ -82,4 +82,5 @@ public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnecti
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;
 	}
+
 }

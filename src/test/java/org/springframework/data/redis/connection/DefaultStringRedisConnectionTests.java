@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Unit test of {@link DefaultStringRedisConnection}
  * 
  * @author Jennifer Hickey
+ * @auhtor Christoph Strobl
  */
 public class DefaultStringRedisConnectionTests {
 
@@ -905,6 +906,16 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(true).when(nativeConnection).setNX(fooBytes, barBytes);
 		actual.add(connection.setNX(foo, bar));
 		verifyResults(Arrays.asList(new Object[] { true }));
+	}
+
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Test
+	public void testPSetExShouldDelegateCallToNativeConnection() {
+
+		connection.pSetEx(fooBytes, 10L, barBytes);
+		verify(nativeConnection, times(1)).pSetEx(eq(fooBytes), eq(10L), eq(barBytes));
 	}
 
 	@Test

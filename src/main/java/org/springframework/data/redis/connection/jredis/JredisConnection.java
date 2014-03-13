@@ -495,6 +495,15 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
+	 */
+	@Override
+	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+		throw new UnsupportedOperationException();
+	}
+
 	public Boolean setNX(byte[] key, byte[] value) {
 		try {
 			return jredis.setnx(key, value);

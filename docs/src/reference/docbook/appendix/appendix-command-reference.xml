@@ -94,7 +94,7 @@
 				<row><entry><code>PEXIPRE</code></entry><entry>X</entry></row>
 				<row><entry><code>PEXPIREAT</code></entry><entry>X</entry></row>
 				<row><entry><code>PING</code></entry><entry>X</entry></row>
-				<row><entry><code>PSETEX</code></entry><entry>-</entry></row>
+				<row><entry><code>PSETEX</code></entry><entry>X</entry></row>
 				<row><entry><code>PSUBSCRIBE</code></entry><entry>X</entry></row>
 				<row><entry><code>PTTL</code></entry><entry>X</entry></row>
 				<row><entry><code>PUBLISH</code></entry><entry>X</entry></row>

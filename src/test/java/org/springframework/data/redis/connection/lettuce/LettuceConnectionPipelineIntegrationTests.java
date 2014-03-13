@@ -112,4 +112,5 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 			factory2.destroy();
 		}
 	}
+
 }

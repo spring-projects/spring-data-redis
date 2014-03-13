@@ -75,4 +75,5 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 	public void testSelect() {
 		super.testSelect();
 	}
+
 }

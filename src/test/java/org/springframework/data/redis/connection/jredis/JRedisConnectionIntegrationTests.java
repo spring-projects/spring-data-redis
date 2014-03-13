@@ -801,4 +801,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 				IsCollectionContaining.hasItems("awesome".getBytes(), "cool".getBytes(),
 						"supercalifragilisticexpialidocious".getBytes()));
 	}
+
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void testPsetEx() throws Exception {
+		super.testPsetEx();
+	}
 }
