@@ -66,6 +66,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 public abstract class AbstractConnectionIntegrationTests {
@@ -357,6 +358,20 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("expy"));
 		verifyResults(Arrays.asList(new Object[] { "yep" }));
 		assertTrue(waitFor(new KeyExpired("expy"), 2500l));
+	}
+
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Test
+	@IfProfileValue(name = "runLongTests", value = "true")
+	public void testPsetEx() throws Exception {
+
+		connection.pSetEx("expy", 500L, "yep");
+		actual.add(connection.get("expy"));
+
+		verifyResults(Arrays.asList(new Object[] { "yep" }));
+		assertTrue(waitFor(new KeyExpired("expy"), 2500L));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
@@ -173,17 +174,37 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		}, true);
 	}
 
-	public void set(K key, V value, long timeout, TimeUnit unit) {
+	public void set(K key, V value, final long timeout, final TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
-		final long rawTimeout = TimeoutUtils.toSeconds(timeout, unit);
 
 		execute(new RedisCallback<Object>() {
 
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.setEx(rawKey, rawTimeout, rawValue);
+
+				potentiallyUsePsetEx(connection);
 				return null;
 			}
+
+			public void potentiallyUsePsetEx(RedisConnection connection) {
+
+				if (!TimeUnit.MILLISECONDS.equals(unit) || !failsafeInvokePsetEx(connection)) {
+					connection.setEx(rawKey, TimeoutUtils.toSeconds(timeout, unit), rawValue);
+				}
+			}
+
+			private boolean failsafeInvokePsetEx(RedisConnection connection) {
+
+				boolean failed = false;
+				try {
+					connection.pSetEx(rawKey, timeout, rawValue);
+				} catch (UnsupportedOperationException e) {
+					// in case the connection does not support pSetEx return false to allow fallback to other operation.
+					failed = true;
+				}
+				return !failed;
+			}
+
 		}, true);
 	}
 

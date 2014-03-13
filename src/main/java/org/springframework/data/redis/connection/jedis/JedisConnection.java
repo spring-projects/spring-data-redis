@@ -331,12 +331,20 @@ public class JedisConnection implements RedisConnection {
 		return results;
 	}
 
+	private void doPipelined(Response<?> response) {
+		pipeline(new JedisStatusResult(response));
+	}
+
 	private void pipeline(FutureResult<Response<?>> result) {
 		if (isQueueing()) {
 			transaction(result);
 		} else {
 			pipelinedResults.add(result);
 		}
+	}
+
+	private void doQueued(Response<?> response) {
+		transaction(new JedisStatusResult(response));
 	}
 
 	private void transaction(FutureResult<Response<?>> result) {
@@ -1136,6 +1144,28 @@ public class JedisConnection implements RedisConnection {
 				return;
 			}
 			jedis.setex(key, (int) time, value);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
+	 */
+	@Override
+	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+
+		try {
+			if (isPipelined()) {
+				doPipelined(pipeline.psetex(key, (int) milliseconds, value));
+				return;
+			}
+			if (isQueueing()) {
+				doQueued(transaction.psetex(key, (int) milliseconds, value));
+				return;
+			}
+			jedis.psetex(key, (int) milliseconds, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

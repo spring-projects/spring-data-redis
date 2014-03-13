@@ -287,6 +287,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
+
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
 		connection.set("redis", "supercalifragilisticexpialidocious");

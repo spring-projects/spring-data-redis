@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * Integration test of {@link DefaultValueOperations}
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {
@@ -173,7 +174,23 @@ public class DefaultValueOperationsTests<K, V> {
 
 	@Test
 	public void testSetWithExpiration() {
-		// 1 ms timeout gets upgraded to 1 sec timeout at the moment
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		valueOps.set(key1, value1, 1, TimeUnit.SECONDS);
+		waitFor(new TestCondition() {
+			public boolean passes() {
+				return (!redisTemplate.hasKey(key1));
+			}
+		}, 1000);
+	}
+
+	/**
+	 * @see DATAREDIS-271
+	 */
+	@Test
+	public void testSetWithExpirationWithTimeUnitMilliseconds() {
+
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -182,7 +199,7 @@ public class DefaultValueOperationsTests<K, V> {
 			public boolean passes() {
 				return (!redisTemplate.hasKey(key1));
 			}
-		}, 1000);
+		}, 500);
 	}
 
 	@Test

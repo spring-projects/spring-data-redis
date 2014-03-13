@@ -735,6 +735,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.setEx(key, seconds, value);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
+	 */
+	@Override
+	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+		delegate.pSetEx(key, milliseconds, value);
+	}
+
 	public Boolean setNX(byte[] key, byte[] value) {
 		Boolean result = delegate.setNX(key, value);
 		if (isFutureConversion()) {
@@ -1693,6 +1702,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public void setEx(String key, long seconds, String value) {
 		delegate.setEx(serialize(key), seconds, serialize(value));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pSetEx(java.lang.String, long, java.lang.String)
+	 */
+	@Override
+	public void pSetEx(String key, long seconds, String value) {
+		pSetEx(serialize(key), seconds, serialize(value));
 	}
 
 	public Boolean setNX(String key, String value) {

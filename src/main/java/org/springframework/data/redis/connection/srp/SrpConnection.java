@@ -900,6 +900,24 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
+	 */
+	@Override
+	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
+
+		try {
+			if (isPipelined()) {
+				doPipelined(pipeline.psetex(key, milliseconds, value));
+				return;
+			}
+			client.psetex(key, milliseconds, value);
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
 	public Boolean setNX(byte[] key, byte[] value) {
 		try {
 			if (isPipelined()) {
@@ -2111,6 +2129,11 @@ public class SrpConnection implements RedisConnection {
 			throw new RedisSubscribedConnectionException(
 					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
 		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private void doPipelined(ListenableFuture<Reply> listenableFuture) {
+		pipeline(new SrpStatusResult(listenableFuture));
 	}
 
 	// processing method that adds a listener to the future in order to track down the results and close the pipeline

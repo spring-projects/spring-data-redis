@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,21 @@ import java.util.concurrent.TimeUnit;
  * Redis operations for simple (or in Redis terminology 'string') values.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface ValueOperations<K, V> {
 
 	void set(K key, V value);
 
+	/**
+	 * Set {@code key} to hold the string {@code value} until {@code timeout}.
+	 * 
+	 * @param key
+	 * @param value
+	 * @param timeout
+	 * @param units
+	 * @see http://redis.io/commands/set
+	 */
 	void set(K key, V value, long timeout, TimeUnit unit);
 
 	Boolean setIfAbsent(K key, V value);

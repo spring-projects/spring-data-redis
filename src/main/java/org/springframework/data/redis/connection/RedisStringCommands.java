@@ -88,6 +88,17 @@ public interface RedisStringCommands {
 	void setEx(byte[] key, long seconds, byte[] value);
 
 	/**
+	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
+	 * 
+	 * @see http://redis.io/commands/psetex
+	 * @param key
+	 * @param milliseconds
+	 * @param value
+	 * @since 1.3
+	 */
+	void pSetEx(byte[] key, long milliseconds, byte[] value);
+
+	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
 	 * 
 	 * @see http://redis.io/commands/mset
