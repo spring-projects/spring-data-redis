@@ -27,6 +27,10 @@ import java.util.Properties;
  */
 public interface RedisServerCommands {
 
+	public enum ShutdownOption {
+		SAVE, NOSAVE;
+	}
+
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 * 
@@ -115,6 +119,14 @@ public interface RedisServerCommands {
 	 * @see http://redis.io/commands/shutdown
 	 */
 	void shutdown();
+
+	/**
+	 * Shutdown server.
+	 * 
+	 * @see http://redis.io/commands/shutdown
+	 * @since 1.3
+	 */
+	void shutdown(ShutdownOption option);
 
 	/**
 	 * Load configuration parameters for given {@code pattern} from server.

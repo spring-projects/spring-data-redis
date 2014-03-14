@@ -662,6 +662,30 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
+	 */
+	@Override
+	public void shutdown(ShutdownOption option) {
+
+		if (option == null) {
+			shutdown();
+			return;
+		}
+
+		boolean save = ShutdownOption.SAVE.equals(option);
+		try {
+			if (isPipelined()) {
+				getAsyncConnection().shutdown(save);
+				return;
+			}
+			getConnection().shutdown(save);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	public byte[] echo(byte[] message) {
 		try {
 			if (isPipelined()) {
