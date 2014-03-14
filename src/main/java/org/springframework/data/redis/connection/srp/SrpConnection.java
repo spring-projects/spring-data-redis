@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 
@@ -149,7 +150,7 @@ public class SrpConnection implements RedisConnection {
 
 		public void addCommand(FutureResult result) {
 			futureResults.add(result);
-			if (!(result instanceof SrpTxResult)) {
+			if (!(result instanceof SrpTxResult) && result.getResultHolder() != null) {
 				Futures.addCallback(((SrpGenericResult) result).getResultHolder(), this);
 			}
 		}
@@ -206,6 +207,13 @@ public class SrpConnection implements RedisConnection {
 			}
 			return resultHolder.complete();
 		}
+	}
+
+	SrpConnection(RedisClient client) {
+
+		Assert.notNull(client);
+		this.client = client;
+		this.queue = new ArrayBlockingQueue<SrpConnection>(50);
 	}
 
 	public SrpConnection(String host, int port, BlockingQueue<SrpConnection> queue) {
@@ -479,6 +487,31 @@ public class SrpConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
+	 */
+	@Override
+	public void shutdown(ShutdownOption option) {
+
+		if (option == null) {
+			shutdown();
+			return;
+		}
+
+		byte[] save = option.name().getBytes(Charsets.UTF_8);
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpStatusResult(pipeline.shutdown(save, null)));
+				return;
+			}
+			client.shutdown(save, null);
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+
 	}
 
 	public byte[] echo(byte[] message) {

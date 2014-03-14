@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
@@ -1697,6 +1698,16 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(1L).when(nativeConnection).time();
 		actual.add(connection.time());
 		verifyResults(Arrays.asList(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-184
+	 */
+	@Test
+	public void testShutdownInDelegatedCorrectlyToNativeConnection() {
+
+		connection.shutdown(ShutdownOption.NOSAVE);
+		verify(nativeConnection, times(1)).shutdown(eq(ShutdownOption.NOSAVE));
 	}
 
 	protected List<Object> getResults() {

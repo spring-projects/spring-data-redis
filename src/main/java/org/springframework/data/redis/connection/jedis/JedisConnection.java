@@ -76,6 +76,8 @@ public class JedisConnection implements RedisConnection {
 	private static final Method SEND_COMMAND;
 	private static final Method GET_RESPONSE;
 
+	private static final String SHUTDOWN_SCRIPT = "return redis.call('SHUTDOWN','%s')";
+
 	static {
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
@@ -622,6 +624,21 @@ public class JedisConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
+	 */
+	@Override
+	public void shutdown(ShutdownOption option) {
+
+		if (option == null) {
+			shutdown();
+			return;
+		}
+
+		eval(String.format(SHUTDOWN_SCRIPT, option.name()).getBytes(), ReturnType.STATUS, 0);
 	}
 
 	public byte[] echo(byte[] message) {

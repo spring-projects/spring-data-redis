@@ -760,6 +760,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.shutdown();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
+	 */
+	@Override
+	public void shutdown(ShutdownOption option) {
+		delegate.shutdown(option);
+	}
+
 	public Set<byte[]> sInter(byte[]... keys) {
 		Set<byte[]> results = delegate.sInter(keys);
 		if (isFutureConversion()) {

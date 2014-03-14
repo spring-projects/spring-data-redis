@@ -291,6 +291,15 @@ public class JredisConnection implements RedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#shutdown(org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption)
+	 */
+	@Override
+	public void shutdown(ShutdownOption option) {
+		throw new UnsupportedOperationException();
+	}
+
 	public Long del(byte[]... keys) {
 		try {
 			return jredis.del(keys);
