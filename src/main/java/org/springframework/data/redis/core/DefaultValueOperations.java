@@ -83,7 +83,8 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 		return execute(new RedisCallback<Integer>() {
 
 			public Integer doInRedis(RedisConnection connection) {
-				return connection.append(rawKey, rawString).intValue();
+				final Long result = connection.append(rawKey, rawString); 				
+				return ( result != null ) ? result.intValue() : null; 
 			}
 		}, true);
 	}
