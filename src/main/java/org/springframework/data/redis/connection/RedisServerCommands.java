@@ -177,4 +177,13 @@ public interface RedisServerCommands {
 	 * @since 1.3
 	 */
 	void setClientName(byte[] name);
+
+	/**
+	 * Returns the name of the current connection.
+	 * 
+	 * @see http://redis.io/commands/client-getname
+	 * @return
+	 * @since 1.3
+	 */
+	String getClientName();
 }

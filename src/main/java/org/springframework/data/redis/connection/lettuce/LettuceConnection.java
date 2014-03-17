@@ -2935,6 +2935,30 @@ public class LettuceConnection implements RedisConnection {
 		getAsyncConnection().clientSetname(name);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
+	 */
+	@Override
+	public String getClientName() {
+
+		try {
+
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().clientGetname(), LettuceConverters.bytesToString()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().clientGetname(), LettuceConverters.bytesToString()));
+				return null;
+			}
+
+			return LettuceConverters.toString(getConnection().clientGetname());
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver

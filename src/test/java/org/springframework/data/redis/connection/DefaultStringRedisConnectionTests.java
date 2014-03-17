@@ -1720,6 +1720,16 @@ public class DefaultStringRedisConnectionTests {
 		verify(nativeConnection, times(1)).setClientName(eq("foo".getBytes()));
 	}
 
+	/**
+	 * @see DATAREDIS-270
+	 */
+	@Test
+	public void testGetClientNameIsDelegatedCorrectlyToNativeConnection() {
+
+		actual.add(connection.getClientName());
+		verify(nativeConnection, times(1)).getClientName();
+	}
+
 	protected List<Object> getResults() {
 		return actual;
 	}

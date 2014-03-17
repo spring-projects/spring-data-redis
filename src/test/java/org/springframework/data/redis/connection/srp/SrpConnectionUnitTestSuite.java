@@ -89,6 +89,16 @@ public class SrpConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().client_kill(eq(ipPort));
 		}
 
+		/**
+		 * @see DATAREDIS-270
+		 */
+		@Test
+		public void getClientNameShouldSendRequestCorrectly() {
+
+			connection.getClientName();
+			verifyNativeConnectionInvocation().client_getname();
+		}
+
 	}
 
 	public static class SrpConnectionPiplineUnitTests extends AbstractConnectionUnitTestBase<Pipeline> {
@@ -133,6 +143,16 @@ public class SrpConnectionUnitTestSuite {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verifyNativeConnectionInvocation().shutdown("NOSAVE".getBytes(Charsets.UTF_8), null);
+		}
+
+		/**
+		 * @see DATAREDIS-270
+		 */
+		@Test
+		public void getClientNameShouldSendRequestCorrectly() {
+
+			connection.getClientName();
+			verifyNativeConnectionInvocation().client_getname();
 		}
 
 	}

@@ -2260,6 +2260,26 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
+	 */
+	@Override
+	public String getClientName() {
+
+		try {
+
+			if (isPipelined()) {
+				pipeline(new SrpGenericResult(pipeline.client_getname(), SrpConverters.replyToString()));
+				return null;
+			}
+
+			return SrpConverters.toString(client.client_getname());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
 	private List<Object> closeTransaction() {
 		List<Object> results = Collections.emptyList();
 		if (txTracker != null) {
