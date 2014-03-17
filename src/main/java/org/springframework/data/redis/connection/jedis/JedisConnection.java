@@ -2841,6 +2841,19 @@ public class JedisConnection implements RedisConnection {
 		jedis.clientSetname(name);
 	}
 
+	/*
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
+	 */
+	@Override
+	public String getClientName() {
+
+		if (isPipelined() || isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
+
+		return jedis.clientGetname();
+	}
+
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Jedis driver

@@ -56,4 +56,13 @@ public class JRedisConnectionUnitTests extends AbstractConnectionUnitTestBase<JR
 	public void shutdownWithNullShouldThrowUnsupportedOperationException() {
 		connection.shutdown(null);
 	}
+
+	/**
+	 * @see DATAREDIS-270
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void getClientNameShouldSendRequestCorrectly() {
+		connection.getClientName();
+	}
+
 }

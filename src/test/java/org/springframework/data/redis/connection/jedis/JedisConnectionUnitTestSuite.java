@@ -123,6 +123,17 @@ public class JedisConnectionUnitTestSuite {
 			connection.killClient("127.0.0.1", 1001);
 			verifyNativeConnectionInvocation().clientKill(eq("127.0.0.1:1001"));
 		}
+
+		/**
+		 * @see DATAREDIS-270
+		 */
+		@Test
+		public void getClientNameShouldSendRequestCorrectly() {
+
+			connection.getClientName();
+			verifyNativeConnectionInvocation().clientGetname();
+		}
+
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
@@ -151,10 +162,23 @@ public class JedisConnectionUnitTestSuite {
 			super.shutdownSaveShouldBeSentCorrectlyUsingLuaScript();
 		}
 
+		/**
+		 * @see DATAREDIS-267
+		 */
 		@Test(expected = UnsupportedOperationException.class)
 		public void killClientShouldDelegateCallCorrectly() {
 			super.killClientShouldDelegateCallCorrectly();
 		}
+
+		/**
+		 * @see DATAREDIS-270
+		 */
+		@Override
+		@Test(expected = UnsupportedOperationException.class)
+		public void getClientNameShouldSendRequestCorrectly() {
+			super.getClientNameShouldSendRequestCorrectly();
+		}
+
 	}
 
 	/**

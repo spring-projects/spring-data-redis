@@ -35,7 +35,6 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.util.Assert;
-import org.springframework.util.NumberUtils;
 
 import redis.client.RedisException;
 import redis.reply.IntegerReply;
@@ -61,6 +60,7 @@ abstract public class SrpConverters extends Converters {
 	private static final Converter<Reply[], Map<byte[], byte[]>> REPLIES_TO_BYTES_MAP;
 	private static final Converter<Reply[], List<Boolean>> REPLIES_TO_BOOLEAN_LIST;
 	private static final Converter<Reply[], List<String>> REPLIES_TO_STRING_LIST;
+	private static final Converter<Reply, String> REPLY_TO_STRING;
 	private static final Converter<byte[], Properties> BYTES_TO_PROPERTIES;
 	private static final Converter<byte[], String> BYTES_TO_STRING;
 	private static final Converter<byte[], Double> BYTES_TO_DOUBLE;
@@ -171,6 +171,16 @@ abstract public class SrpConverters extends Converters {
 				return results;
 			}
 		};
+		REPLY_TO_STRING = new Converter<Reply, String>() {
+
+			@Override
+			public String convert(Reply source) {
+				if (source == null) {
+					return null;
+				}
+				return SrpConverters.toString((byte[]) source.data());
+			}
+		};
 	}
 
 	public static Converter<Reply[], List<byte[]>> repliesToBytesList() {
@@ -199,6 +209,10 @@ abstract public class SrpConverters extends Converters {
 
 	public static Converter<byte[], String> bytesToString() {
 		return BYTES_TO_STRING;
+	}
+
+	public static Converter<Reply, String> replyToString() {
+		return REPLY_TO_STRING;
 	}
 
 	public static Converter<Reply[], List<Boolean>> repliesToBooleanList() {
@@ -235,6 +249,10 @@ abstract public class SrpConverters extends Converters {
 
 	public static Map<byte[], byte[]> toBytesMap(Reply[] source) {
 		return REPLIES_TO_BYTES_MAP.convert(source);
+	}
+
+	public static String toString(Reply source) {
+		return REPLY_TO_STRING.convert(source);
 	}
 
 	public static String toString(byte[] source) {
@@ -293,4 +311,5 @@ abstract public class SrpConverters extends Converters {
 	public static List<String> toStringList(String source) {
 		return Collections.singletonList(source);
 	}
+
 }

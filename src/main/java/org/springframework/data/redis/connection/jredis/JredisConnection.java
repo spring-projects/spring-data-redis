@@ -1195,4 +1195,13 @@ public class JredisConnection implements RedisConnection {
 	public void setClientName(byte[] name) {
 		throw new UnsupportedOperationException("'CLIENT SETNAME' is not supported by the JRedis driver.");
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
+	 */
+	@Override
+	public String getClientName() {
+		throw new UnsupportedOperationException("The 'CLIENT GETNAME' command is not supported by the JRedis driver.");
+	}
 }

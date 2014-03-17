@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,6 +48,7 @@ abstract public class LettuceConverters extends Converters {
 
 	private static final Converter<Date, Long> DATE_TO_LONG;
 	private static final Converter<List<byte[]>, Set<byte[]>> BYTES_LIST_TO_BYTES_SET;
+	private static final Converter<byte[], String> BYTES_TO_STRING;
 	private static final Converter<Set<byte[]>, List<byte[]>> BYTES_SET_TO_BYTES_LIST;
 	private static final Converter<KeyValue<byte[], byte[]>, List<byte[]>> KEY_VALUE_TO_BYTES_LIST;
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
@@ -63,6 +65,17 @@ abstract public class LettuceConverters extends Converters {
 		BYTES_LIST_TO_BYTES_SET = new Converter<List<byte[]>, Set<byte[]>>() {
 			public Set<byte[]> convert(List<byte[]> results) {
 				return results != null ? new LinkedHashSet<byte[]>(results) : null;
+			}
+
+		};
+		BYTES_TO_STRING = new Converter<byte[], String>() {
+
+			@Override
+			public String convert(byte[] source) {
+				if (source == null || Arrays.equals(source, new byte[0])) {
+					return null;
+				}
+				return new String(source);
 			}
 
 		};
@@ -108,6 +121,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<List<byte[]>, Set<byte[]>> bytesListToBytesSet() {
 		return BYTES_LIST_TO_BYTES_SET;
+	}
+
+	public static Converter<byte[], String> bytesToString() {
+		return BYTES_TO_STRING;
 	}
 
 	public static Converter<KeyValue<byte[], byte[]>, List<byte[]>> keyValueToBytesList() {
@@ -156,6 +173,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static DataAccessException toDataAccessException(Exception ex) {
 		return EXCEPTION_CONVERTER.convert(ex);
+	}
+
+	public static String toString(byte[] source) {
+		return BYTES_TO_STRING.convert(source);
 	}
 
 	public static ScriptOutputType toScriptOutputType(ReturnType returnType) {
