@@ -21,9 +21,13 @@ import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.hamcrest.core.AllOf;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.Test;
+import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
@@ -275,5 +279,21 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 			conn2.close();
 			factory2.destroy();
 		}
+	}
+
+	/**
+	 * @see DATAREDIS-285
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testExecuteShouldConvertArrayReplyCorrectly() {
+		connection.set("spring", "awesome");
+		connection.set("data", "cool");
+		connection.set("redis", "supercalifragilisticexpialidocious");
+
+		assertThat(
+				connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
+				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
+						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
 }

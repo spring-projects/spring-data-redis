@@ -21,13 +21,17 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import org.hamcrest.core.IsInstanceOf;
 import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
+import org.jredis.ri.alphazero.protocol.SyncProtocol.SyncMultiBulkResponse;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -778,4 +782,23 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testGetTimeShouldRequestServerTime();
 	}
 
+	/**
+	 * @see DATAREDIS-285
+	 */
+	@Test
+	public void testExecuteShouldConvertArrayReplyCorrectly() {
+		connection.set("spring", "awesome");
+		connection.set("data", "cool");
+		connection.set("redis", "supercalifragilisticexpialidocious");
+
+		Object result = connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes());
+
+		assertThat(result, IsInstanceOf.instanceOf(SyncMultiBulkResponse.class));
+
+		List<byte[]> data = ((SyncMultiBulkResponse) result).getMultiBulkData();
+		assertThat(
+				data,
+				IsCollectionContaining.hasItems("awesome".getBytes(), "cool".getBytes(),
+						"supercalifragilisticexpialidocious".getBytes()));
+	}
 }
