@@ -18,7 +18,10 @@ package org.springframework.data.redis.connection.srp;
 
 import java.util.Arrays;
 
+import org.hamcrest.core.Is;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -26,6 +29,8 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import redis.reply.Reply;
 
 /**
  * Integration test of {@link SrpConnection}
@@ -74,5 +79,24 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { "OK", "OK" }) }));
+	}
+
+	/**
+	 * @see DATAREDIS-285
+	 */
+	@Test
+	public void testExecuteShouldConvertArrayReplyCorrectly() {
+		connection.set("spring", "awesome");
+		connection.set("data", "cool");
+		connection.set("redis", "supercalifragilisticexpialidocious");
+
+		Object result = connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes());
+		Assert.assertThat(result, IsInstanceOf.instanceOf(Reply[].class));
+
+		Reply<?>[] replies = (Reply[]) result;
+
+		Assert.assertThat(replies[0].data(), Is.<Object> is("awesome".getBytes()));
+		Assert.assertThat(replies[1].data(), Is.<Object> is("cool".getBytes()));
+		Assert.assertThat(replies[2].data(), Is.<Object> is("supercalifragilisticexpialidocious".getBytes()));
 	}
 }
