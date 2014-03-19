@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisException;
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import static org.junit.Assert.*;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -25,13 +25,15 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolConfig;
 import org.springframework.data.redis.connection.PoolException;
 
-import static org.junit.Assert.*;
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisException;
 
 /**
  * Unit test of {@link DefaultLettucePool}
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class DefaultLettucePoolTests {
 
@@ -61,9 +63,9 @@ public class DefaultLettucePoolTests {
 
 	@Test
 	public void testGetResourcePoolExhausted() {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(1);
+		poolConfig.setMaxWaitMillis(1);
 		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
@@ -96,9 +98,9 @@ public class DefaultLettucePoolTests {
 
 	@Test
 	public void testReturnResource() {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(1);
+		poolConfig.setMaxWaitMillis(1);
 		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
@@ -110,9 +112,9 @@ public class DefaultLettucePoolTests {
 
 	@Test
 	public void testReturnBrokenResource() {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(1);
+		poolConfig.setMaxWaitMillis(1);
 		this.pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.afterPropertiesSet();
 		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();

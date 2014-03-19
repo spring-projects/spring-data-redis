@@ -29,6 +29,12 @@ apply plugin: 'javadocHotfix'
 [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial"]
 [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial", "-Xlint:deprecation"]
 
+configurations.all {
+  resolutionStrategy {
+    force 'org.apache.commons:commons-pool2:2.2'
+  }
+}
+
 // Common dependencies
 dependencies {
     // Logging
@@ -60,7 +66,7 @@ dependencies {
     compile("com.fasterxml.jackson.core:jackson-databind:$fasterXmlJacksonDatabindVersion", optional)
 
     // Pool
-    compile("commons-pool:commons-pool:1.5.6", optional)
+    compile("org.apache.commons:commons-pool2:2.2", optional)
 
     // Testing
     testCompile "junit:junit:$junitVersion"

@@ -314,23 +314,32 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	private void returnDedicatedAsyncConnection() {
+
+		if (pool != null) {
+
+			if (!broken) {
+				pool.returnResource(this.asyncDedicatedConn);
+			} else {
+				pool.returnBrokenResource(this.asyncDedicatedConn);
+			}
+			this.asyncDedicatedConn = null;
+
+		} else {
+
+			try {
+				asyncDedicatedConn.close();
+			} catch (RuntimeException ex) {
+				throw convertLettuceAccessException(ex);
+			}
+		}
+	}
+
 	public void close() throws DataAccessException {
 		isClosed = true;
 
 		if (asyncDedicatedConn != null) {
-			if (pool != null) {
-				if (!broken) {
-					pool.returnResource(asyncDedicatedConn);
-				} else {
-					pool.returnBrokenResource(asyncDedicatedConn);
-				}
-			} else {
-				try {
-					asyncDedicatedConn.close();
-				} catch (RuntimeException ex) {
-					throw convertLettuceAccessException(ex);
-				}
-			}
+			returnDedicatedAsyncConnection();
 		}
 
 		if (subscription != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.pool.BasePoolableObjectFactory;
-import org.apache.commons.pool.impl.GenericObjectPool;
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.util.Assert;
@@ -28,15 +30,18 @@ import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 
 /**
- * Default implementation of {@link LettucePool}
+ * Default implementation of {@link LettucePool}.
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class DefaultLettucePool implements LettucePool, InitializingBean {
-	private GenericObjectPool internalPool;
+
+	@SuppressWarnings("rawtypes")//
+	private GenericObjectPool<RedisAsyncConnection> internalPool;
 	private RedisClient client;
 	private int dbIndex = 0;
-	private Config poolConfig = new Config();
+	private GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 	private String hostName = "localhost";
 	private int port = 6379;
 	private String password;
@@ -63,25 +68,26 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	 * 
 	 * @param hostName The Redis host
 	 * @param port The Redis port
-	 * @param poolConfig The pool {@link Config}
+	 * @param poolConfig The pool {@link GenericObjectPoolConfig}
 	 */
-	public DefaultLettucePool(String hostName, int port, Config poolConfig) {
+	public DefaultLettucePool(String hostName, int port, GenericObjectPoolConfig poolConfig) {
 		this.hostName = hostName;
 		this.port = port;
 		this.poolConfig = poolConfig;
 	}
 
+	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
 		this.client = password != null ? new AuthenticatingRedisClient(hostName, port, password) : new RedisClient(
 				hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
-		this.internalPool = new GenericObjectPool(new LettuceFactory(client, dbIndex), poolConfig);
+		this.internalPool = new GenericObjectPool<RedisAsyncConnection>(new LettuceFactory(client, dbIndex), poolConfig);
 	}
 
 	@SuppressWarnings("unchecked")
 	public RedisAsyncConnection<byte[], byte[]> getResource() {
 		try {
-			return (RedisAsyncConnection<byte[], byte[]>) internalPool.borrowObject();
+			return internalPool.borrowObject();
 		} catch (Exception e) {
 			throw new PoolException("Could not get a resource from the pool", e);
 		}
@@ -119,14 +125,14 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	/**
 	 * @return The pool configuration
 	 */
-	public Config getPoolConfig() {
+	public GenericObjectPoolConfig getPoolConfig() {
 		return poolConfig;
 	}
 
 	/**
 	 * @param poolConfig The pool configuration to use
 	 */
-	public void setPoolConfig(Config poolConfig) {
+	public void setPoolConfig(GenericObjectPoolConfig poolConfig) {
 		this.poolConfig = poolConfig;
 	}
 
@@ -221,7 +227,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		this.timeout = timeout;
 	}
 
-	private static class LettuceFactory extends BasePoolableObjectFactory {
+	@SuppressWarnings("rawtypes")
+	private static class LettuceFactory extends BasePooledObjectFactory<RedisAsyncConnection> {
 
 		private final RedisClient client;
 
@@ -233,41 +240,37 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 			this.dbIndex = dbIndex;
 		}
 
-		public Object makeObject() throws Exception {
-			return client.connectAsync(LettuceConnection.CODEC);
-		}
-
-		@SuppressWarnings("rawtypes")
 		@Override
-		public void activateObject(Object obj) throws Exception {
-			if (obj instanceof RedisAsyncConnection) {
-				((RedisAsyncConnection) obj).select(dbIndex);
+		public void activateObject(PooledObject<RedisAsyncConnection> pooledObject) throws Exception {
+			pooledObject.getObject().select(dbIndex);
+		}
+
+		public void destroyObject(final PooledObject<RedisAsyncConnection> obj) throws Exception {
+			try {
+				obj.getObject().close();
+			} catch (Exception e) {
+				// Errors may happen if returning a broken resource
 			}
 		}
 
-		@SuppressWarnings("rawtypes")
-		public void destroyObject(final Object obj) throws Exception {
-			if (obj instanceof RedisAsyncConnection) {
-				try {
-					((RedisAsyncConnection) obj).close();
-				} catch (Exception e) {
-					// Errors may happen if returning a broken resource
-				}
-			}
-		}
-
-		@SuppressWarnings("rawtypes")
-		public boolean validateObject(final Object obj) {
-			if (obj instanceof RedisAsyncConnection) {
-				try {
-					((RedisAsyncConnection) obj).ping();
-					return true;
-				} catch (Exception e) {
-					return false;
-				}
-			} else {
+		public boolean validateObject(final PooledObject<RedisAsyncConnection> obj) {
+			try {
+				obj.getObject().ping();
+				return true;
+			} catch (Exception e) {
 				return false;
 			}
 		}
+
+		@Override
+		public RedisAsyncConnection create() throws Exception {
+			return client.connectAsync(LettuceConnection.CODEC);
+		}
+
+		@Override
+		public PooledObject<RedisAsyncConnection> wrap(RedisAsyncConnection obj) {
+			return new DefaultPooledObject<RedisAsyncConnection>(obj);
+		}
+
 	}
 }
