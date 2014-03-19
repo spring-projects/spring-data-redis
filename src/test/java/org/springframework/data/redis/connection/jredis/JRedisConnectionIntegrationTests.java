@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.hamcrest.core.IsInstanceOf;
 import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
@@ -112,9 +112,9 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 	@Test
 	public void testConnectionNotReturnedOnException() {
-		Config config = new Config();
-		config.maxActive = 1;
-		config.maxWait = 1;
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+		config.setMaxTotal(1);
+		config.setMaxWaitMillis(1);
 		JredisConnectionFactory factory2 = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
 				SettingsUtils.getPort(), config));
 		RedisConnection conn2 = factory2.getConnection();

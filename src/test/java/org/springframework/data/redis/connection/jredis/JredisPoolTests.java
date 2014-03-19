@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package org.springframework.data.redis.connection.jredis;
 
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import static org.junit.Assert.*;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jredis.JRedis;
 import org.jredis.RedisException;
 import org.jredis.connector.ConnectionSpec;
@@ -27,13 +29,12 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolException;
 
-import static org.junit.Assert.*;
-
 /**
- * Integration test of {@link JredisPool}
+ * Integration test of {@link JredisPool}.
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class JredisPoolTests {
 
@@ -63,9 +64,9 @@ public class JredisPoolTests {
 
 	@Test
 	public void testGetResourcePoolExhausted() {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(1);
+		poolConfig.setMaxWaitMillis(1);
 		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
@@ -79,8 +80,8 @@ public class JredisPoolTests {
 
 	@Test
 	public void testGetResourceValidate() {
-		Config poolConfig = new Config();
-		poolConfig.testOnBorrow = true;
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setTestOnBorrow(true);
 		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
@@ -96,9 +97,10 @@ public class JredisPoolTests {
 
 	@Test
 	public void testReturnResource() throws RedisException {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(1);
+		poolConfig.setMaxWaitMillis(1);
 		this.pool = new JredisPool(connectionSpec);
 		JRedis client = pool.getResource();
 		assertNotNull(client);
@@ -108,9 +110,10 @@ public class JredisPoolTests {
 
 	@Test
 	public void testReturnBrokenResource() throws RedisException {
-		Config poolConfig = new Config();
-		poolConfig.maxActive = 1;
-		poolConfig.maxWait = 1;
+
+		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+		poolConfig.setMaxTotal(1);
+		poolConfig.setMaxWaitMillis(1);
 		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
 		assertNotNull(client);

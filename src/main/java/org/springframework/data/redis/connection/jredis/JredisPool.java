@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 package org.springframework.data.redis.connection.jredis;
 
-import org.apache.commons.pool.BasePoolableObjectFactory;
-import org.apache.commons.pool.impl.GenericObjectPool;
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jredis.JRedis;
 import org.jredis.connector.Connection;
 import org.jredis.connector.Connection.Socket.Property;
@@ -32,10 +34,11 @@ import org.springframework.util.StringUtils;
  * JRedis implementation of {@link Pool}
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class JredisPool implements Pool<JRedis> {
 
-	private final GenericObjectPool internalPool;
+	private final GenericObjectPool<JRedis> internalPool;
 
 	/**
 	 * Uses the {@link Config} and {@link ConnectionSpec} defaults for configuring the connection pool
@@ -44,7 +47,7 @@ public class JredisPool implements Pool<JRedis> {
 	 * @param port The Redis port
 	 */
 	public JredisPool(String hostName, int port) {
-		this(hostName, port, 0, null, 0, new Config());
+		this(hostName, port, 0, null, 0, new GenericObjectPoolConfig());
 	}
 
 	/**
@@ -54,7 +57,7 @@ public class JredisPool implements Pool<JRedis> {
 	 * @param port The Redis port
 	 * @param poolConfig The pool {@link Config}
 	 */
-	public JredisPool(String hostName, int port, Config poolConfig) {
+	public JredisPool(String hostName, int port, GenericObjectPoolConfig poolConfig) {
 		this(hostName, port, 0, null, 0, poolConfig);
 	}
 
@@ -64,15 +67,15 @@ public class JredisPool implements Pool<JRedis> {
 	 * @param connectionSpec The {@link ConnectionSpec} for connecting to Redis
 	 */
 	public JredisPool(ConnectionSpec connectionSpec) {
-		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), new Config());
+		this.internalPool = new GenericObjectPool<JRedis>(new JredisFactory(connectionSpec), new GenericObjectPoolConfig());
 	}
 
 	/**
 	 * @param connectionSpec The {@link ConnectionSpec} for connecting to Redis
 	 * @param poolConfig The pool {@link Config}
 	 */
-	public JredisPool(ConnectionSpec connectionSpec, Config poolConfig) {
-		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), poolConfig);
+	public JredisPool(ConnectionSpec connectionSpec, GenericObjectPoolConfig poolConfig) {
+		this.internalPool = new GenericObjectPool<JRedis>(new JredisFactory(connectionSpec), poolConfig);
 	}
 
 	/**
@@ -87,7 +90,7 @@ public class JredisPool implements Pool<JRedis> {
 	 * @param timeout The socket timeout or 0 to use the default socket timeout
 	 */
 	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout) {
-		this(hostName, port, dbIndex, password, timeout, new Config());
+		this(hostName, port, dbIndex, password, timeout, new GenericObjectPoolConfig());
 	}
 
 	/**
@@ -98,7 +101,8 @@ public class JredisPool implements Pool<JRedis> {
 	 * @param timeout The socket timeout or 0 to use the default socket timeout
 	 * @param poolConfig The pool {@link Config}
 	 */
-	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout, Config poolConfig) {
+	public JredisPool(String hostName, int port, int dbIndex, String password, int timeout,
+			GenericObjectPoolConfig poolConfig) {
 		ConnectionSpec connectionSpec = DefaultConnectionSpec.newSpec(hostName, port, dbIndex, null);
 		connectionSpec.setConnectionFlag(Connection.Flag.RELIABLE, false);
 		if (StringUtils.hasLength(password)) {
@@ -107,12 +111,12 @@ public class JredisPool implements Pool<JRedis> {
 		if (timeout > 0) {
 			connectionSpec.setSocketProperty(Property.SO_TIMEOUT, timeout);
 		}
-		this.internalPool = new GenericObjectPool(new JredisFactory(connectionSpec), poolConfig);
+		this.internalPool = new GenericObjectPool<JRedis>(new JredisFactory(connectionSpec), poolConfig);
 	}
 
 	public JRedis getResource() {
 		try {
-			return (JRedis) internalPool.borrowObject();
+			return internalPool.borrowObject();
 		} catch (Exception e) {
 			throw new PoolException("Could not get a resource from the pool", e);
 		}
@@ -142,7 +146,7 @@ public class JredisPool implements Pool<JRedis> {
 		}
 	}
 
-	private static class JredisFactory extends BasePoolableObjectFactory {
+	private static class JredisFactory extends BasePooledObjectFactory<JRedis> {
 
 		private final ConnectionSpec connectionSpec;
 
@@ -151,31 +155,33 @@ public class JredisPool implements Pool<JRedis> {
 			this.connectionSpec = connectionSpec;
 		}
 
-		public Object makeObject() throws Exception {
+		@Override
+		public void destroyObject(final PooledObject<JRedis> obj) throws Exception {
+			try {
+				obj.getObject().quit();
+			} catch (Exception e) {
+				// Errors may happen if returning a broken resource
+			}
+		}
+
+		@Override
+		public boolean validateObject(final PooledObject<JRedis> obj) {
+			try {
+				obj.getObject().ping();
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+
+		@Override
+		public JRedis create() throws Exception {
 			return new JRedisClient(connectionSpec);
 		}
 
-		public void destroyObject(final Object obj) throws Exception {
-			if (obj instanceof JRedis) {
-				try {
-					((JRedis) obj).quit();
-				} catch (Exception e) {
-					// Errors may happen if returning a broken resource
-				}
-			}
-		}
-
-		public boolean validateObject(final Object obj) {
-			if (obj instanceof JRedis) {
-				try {
-					((JRedis) obj).ping();
-					return true;
-				} catch (Exception e) {
-					return false;
-				}
-			} else {
-				return false;
-			}
+		@Override
+		public PooledObject<JRedis> wrap(JRedis obj) {
+			return new DefaultPooledObject<JRedis>(obj);
 		}
 	}
 
