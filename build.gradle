@@ -51,6 +51,7 @@ dependencies {
     compile "org.springframework:spring-context:$springVersion"
     compile "org.springframework:spring-tx:$springVersion"
     compile("org.springframework:spring-oxm:$springVersion", optional)
+    compile "org.springframework:spring-aop:$springVersion"
 
     // Redis Drivers
     compile("redis.clients:jedis:$jedisVersion", optional)
