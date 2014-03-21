@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
@@ -332,5 +333,36 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
+	}
+
+	/**
+	 * @see DATAREDIS-286
+	 */
+	@Test
+	public void expireShouldSupportExiprationForValuesLargerThanInteger() {
+
+		connection.set("expireKey", "foo");
+
+		long seconds = ((long) Integer.MAX_VALUE) + 1;
+		connection.expire("expireKey", seconds);
+		long ttl = connection.ttl("expireKey");
+
+		assertThat(ttl, is(seconds));
+	}
+
+	/**
+	 * @see DATAREDIS-286
+	 */
+	@Test
+	public void pExpireShouldSupportExiprationForValuesLargerThanInteger() {
+
+		connection.set("pexpireKey", "foo");
+
+		long millis = ((long) Integer.MAX_VALUE) + 10;
+		connection.pExpire("pexpireKey", millis);
+		long ttl = connection.pTtl("pexpireKey");
+
+		assertTrue(String.format("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s",
+				millis, ttl, millis - ttl), millis - ttl < 20L);
 	}
 }
