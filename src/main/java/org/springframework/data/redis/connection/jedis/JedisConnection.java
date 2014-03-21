@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -737,6 +738,18 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	public Boolean expire(byte[] key, long seconds) {
+
+		/*
+		 *  @see DATAREDIS-286 to avoid overflow in Jedis
+		 *  
+		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
+		 *  fix for: https://github.com/xetorthio/jedis/pull/575
+		 */
+		if (seconds > Integer.MAX_VALUE) {
+
+			return pExpireAt(key, time() + TimeUnit.SECONDS.toMillis(seconds));
+		}
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.expire(key, (int) seconds), JedisConverters.longToBoolean()));
@@ -912,6 +925,18 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	public Boolean pExpire(byte[] key, long millis) {
+
+		/*
+		 *  @see DATAREDIS-286 to avoid overflow in Jedis
+		 *  
+		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
+		 *  fix for: https://github.com/xetorthio/jedis/pull/575
+		 */
+		if (millis > Integer.MAX_VALUE) {
+
+			return pExpireAt(key, time() + millis);
+		}
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.pexpire(key, (int) millis), JedisConverters.longToBoolean()));
