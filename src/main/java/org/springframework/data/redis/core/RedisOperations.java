@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * useful option for extensibility and testability (as it can be easily mocked or stubbed).
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface RedisOperations<K, V> {
 
@@ -284,4 +285,13 @@ public interface RedisOperations<K, V> {
 	RedisSerializer<?> getHashKeySerializer();
 
 	RedisSerializer<?> getHashValueSerializer();
+
+	/**
+	 * Closes a given client connection identified by {@literal ip:port} given in {@code client}.
+	 * 
+	 * @param host of connection to close.
+	 * @param port of connection to close
+	 * @since 1.3
+	 */
+	void killClient(String host, int port);
 }

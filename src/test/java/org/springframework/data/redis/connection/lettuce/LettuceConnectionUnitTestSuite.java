@@ -82,6 +82,17 @@ public class LettuceConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().shutdown(true);
 		}
 
+		/**
+		 * @see DATAREDIS-267
+		 */
+		@Test
+		public void killClientShouldDelegateCallCorrectly() {
+
+			String ipPort = "127.0.0.1:1001";
+			connection.killClient("127.0.0.1", 1001);
+			verifyNativeConnectionInvocation().clientKill(eq(ipPort));
+		}
+
 	}
 
 	public static class LettucePipelineConnectionUnitTests extends LettuceConnectionUnitTests {

@@ -1185,4 +1185,9 @@ public class JredisConnection implements RedisConnection {
 	public Long time() {
 		throw new UnsupportedOperationException("The 'TIME' command is not supported by the JRedis driver.");
 	}
+
+	@Override
+	public void killClient(String host, int port) {
+		throw new UnsupportedOperationException("The 'CLIENT KILL' command is not supported by the JRedis driver.");
+	}
 }

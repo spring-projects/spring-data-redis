@@ -113,6 +113,16 @@ public class JedisConnectionUnitTestSuite {
 			connection.pExpire("foo".getBytes(), msec);
 			verifyNativeConnectionInvocation().pexpireAt(any(byte[].class), eq(expected));
 		}
+
+		/**
+		 * @see DATAREDIS-267
+		 */
+		@Test
+		public void killClientShouldDelegateCallCorrectly() {
+
+			connection.killClient("127.0.0.1", 1001);
+			verifyNativeConnectionInvocation().clientKill(eq("127.0.0.1:1001"));
+		}
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
@@ -141,6 +151,10 @@ public class JedisConnectionUnitTestSuite {
 			super.shutdownSaveShouldBeSentCorrectlyUsingLuaScript();
 		}
 
+		@Test(expected = UnsupportedOperationException.class)
+		public void killClientShouldDelegateCallCorrectly() {
+			super.killClientShouldDelegateCallCorrectly();
+		}
 	}
 
 	/**
