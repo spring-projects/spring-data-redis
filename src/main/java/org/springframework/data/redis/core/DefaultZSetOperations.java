@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
  * Default implementation of {@link ZSetOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -325,9 +326,23 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#size(java.lang.Object)
+	 */
+	@Override
 	public Long size(K key) {
-		final byte[] rawKey = rawKey(key);
+		return zCard(key);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#zCard(java.lang.Object)
+	 */
+	@Override
+	public Long zCard(K key) {
+
+		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {
 
 			public Long doInRedis(RedisConnection connection) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.Assert.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.hamcrest.core.IsEqual;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +39,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * Integration test of {@link DefaultZSetOperations}
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -190,5 +191,39 @@ public class DefaultZSetOperationsTests<K, V> {
 		Set<V> expected = new LinkedHashSet<V>();
 		expected.add(value2);
 		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
+	}
+
+	@Test
+	public void zCardRetrievesDataCorrectly() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
+		values.add(new DefaultTypedTuple<V>(value1, 1.7));
+		values.add(new DefaultTypedTuple<V>(value2, 3.2));
+		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		zSetOps.add(key, values);
+
+		assertThat(zSetOps.zCard(key), IsEqual.equalTo(3L));
+	}
+
+	@Test
+	public void sizeRetrievesDataCorrectly() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>();
+		values.add(new DefaultTypedTuple<V>(value1, 1.7));
+		values.add(new DefaultTypedTuple<V>(value2, 3.2));
+		values.add(new DefaultTypedTuple<V>(value3, 0.8));
+		zSetOps.add(key, values);
+
+		assertThat(zSetOps.size(key), IsEqual.equalTo(3L));
 	}
 }

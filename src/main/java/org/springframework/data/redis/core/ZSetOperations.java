@@ -87,7 +87,23 @@ public interface ZSetOperations<K, V> {
 
 	Long count(K key, double min, double max);
 
+	/**
+	 * Returns the number of elements of the sorted set stored with given {@code key}.
+	 * 
+	 * @see #zCard(Object)
+	 * @param key
+	 * @return
+	 */
 	Long size(K key);
+
+	/**
+	 * Returns the number of elements of the sorted set stored with given {@code key}.
+	 * 
+	 * @param key
+	 * @return
+	 * @since 1.3
+	 */
+	Long zCard(K key);
 
 	RedisOperations<K, V> getOperations();
 }

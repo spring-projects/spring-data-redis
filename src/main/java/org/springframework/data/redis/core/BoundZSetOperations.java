@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * ZSet (or SortedSet) operations bound to a certain key.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -72,7 +73,21 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
 	Long count(double min, double max);
 
+	/**
+	 * Returns the number of elements of the sorted set.
+	 * 
+	 * @return
+	 * @see #zCard()
+	 */
 	Long size();
+
+	/**
+	 * Returns the number of elements of the sorted set.
+	 * 
+	 * @return
+	 * @since 1.3
+	 */
+	Long zCard();
 
 	Double score(Object o);
 }
