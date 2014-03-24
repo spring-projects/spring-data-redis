@@ -2920,6 +2920,21 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	@Override
+	public void setClientName(byte[] name) {
+
+		if (isQueueing()) {
+			pipeline(new LettuceStatusResult(getAsyncConnection().clientSetname(name)));
+			return;
+		}
+		if (isQueueing()) {
+			transaction(new LettuceTxResult(getConnection().clientSetname(name)));
+			return;
+		}
+
+		getAsyncConnection().clientSetname(name);
+	}
+
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver

@@ -171,4 +171,10 @@ public interface RedisServerCommands {
 	 */
 	void killClient(String host, int port);
 
+	/**
+	 * Assign given name to current connection.
+	 * 
+	 * @since 1.3
+	 */
+	void setClientName(byte[] name);
 }

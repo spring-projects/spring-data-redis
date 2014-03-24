@@ -191,4 +191,13 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();
 	}
+
+	/**
+	 * @see DATAREDIS-269
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void clientSetNameWorksCorrectly() {
+		super.clientSetNameWorksCorrectly();
+	}
+
 }

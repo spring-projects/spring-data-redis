@@ -246,4 +246,12 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	public void testZAddMultiple() {
 		super.testZAddMultiple();
 	}
+
+	/**
+	 * @see DATAREDIS-269
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void clientSetNameWorksCorrectly() {
+		super.clientSetNameWorksCorrectly();
+	}
 }
