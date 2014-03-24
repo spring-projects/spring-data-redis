@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -1203,5 +1204,9 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public String getClientName() {
 		throw new UnsupportedOperationException("The 'CLIENT GETNAME' command is not supported by the JRedis driver.");
+	}
+
+	public List<RedisClientInfo> getClientList() {
+		throw new UnsupportedOperationException();
 	}
 }

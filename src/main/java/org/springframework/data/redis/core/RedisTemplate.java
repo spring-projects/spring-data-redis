@@ -40,6 +40,7 @@ import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.DefaultScriptExecutor;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.script.ScriptExecutor;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -1004,6 +1005,17 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.killClient(host, port);
 				return null;
+			}
+		});
+	}
+
+	@Override
+	public List<RedisClientInfo> clientList() {
+		return execute(new RedisCallback<List<RedisClientInfo>>() {
+
+			@Override
+			public List<RedisClientInfo> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.getClientList();
 			}
 		});
 	}

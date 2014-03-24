@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 
 import redis.Command;
@@ -2278,6 +2279,19 @@ public class SrpConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
+	}
+
+	@Override
+	public List<RedisClientInfo> getClientList() {
+		if (isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
+		if (isPipelined()) {
+			pipeline(new SrpGenericResult(pipeline.client_list(), SrpConverters.replyToListOfRedisClientInfo()));
+			return null;
+		}
+
+		return SrpConverters.toListOfRedisClientInformation(this.client.client_list());
 	}
 
 	private List<Object> closeTransaction() {

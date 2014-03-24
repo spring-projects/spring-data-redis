@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,7 +33,10 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
+import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BitOP;
@@ -42,6 +47,7 @@ import redis.clients.util.SafeEncoder;
  * Jedis type converters
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 abstract public class JedisConverters extends Converters {
 
@@ -51,6 +57,7 @@ abstract public class JedisConverters extends Converters {
 	private static final MapConverter<String, byte[]> STRING_MAP_TO_BYTE_MAP;
 	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_TO_TUPLE_SET;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
+	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
 
 	static {
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
@@ -112,6 +119,19 @@ abstract public class JedisConverters extends Converters {
 
 	public static String toString(byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.3
+	 */
+	public static List<RedisClientInfo> toListOfRedisClientInformation(String source) {
+
+		if (!StringUtils.hasText(source)) {
+			return Collections.emptyList();
+		}
+		return STRING_TO_CLIENT_INFO_CONVERTER.convert(source.split("\\r?\\n"));
 	}
 
 	public static DataAccessException toDataAccessException(Exception ex) {
