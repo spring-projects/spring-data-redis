@@ -809,4 +809,13 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testPsetEx() throws Exception {
 		super.testPsetEx();
 	}
+
+	/**
+	 * @see DATAREDIS-269
+	 */
+	@Override
+	@Test(expected = UnsupportedOperationException.class)
+	public void clientSetNameWorksCorrectly() {
+		super.clientSetNameWorksCorrectly();
+	}
 }

@@ -1190,4 +1190,9 @@ public class JredisConnection implements RedisConnection {
 	public void killClient(String host, int port) {
 		throw new UnsupportedOperationException("The 'CLIENT KILL' command is not supported by the JRedis driver.");
 	}
+
+	@Override
+	public void setClientName(byte[] name) {
+		throw new UnsupportedOperationException("'CLIENT SETNAME' is not supported by the JRedis driver.");
+	}
 }

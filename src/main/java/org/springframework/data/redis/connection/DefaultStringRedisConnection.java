@@ -2239,4 +2239,22 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return convertedResults;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(java.lang.String)
+	 */
+	@Override
+	public void setClientName(byte[] name) {
+		this.delegate.setClientName(name);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#setClientName(java.lang.String)
+	 */
+	@Override
+	public void setClientName(String name) {
+		setClientName(this.serializer.serialize(name));
+	}
+
 }

@@ -1884,6 +1884,14 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(time > 0, equalTo(true));
 	}
 
+	/**
+	 * @see DATAREDIS-269
+	 */
+	@Test
+	public void clientSetNameWorksCorrectly() {
+		connection.setClientName("foo".getBytes());
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}
