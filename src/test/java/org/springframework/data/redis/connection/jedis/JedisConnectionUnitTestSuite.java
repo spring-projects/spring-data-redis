@@ -17,6 +17,11 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,11 +29,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionPipelineUnitTests;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionUnitTests;
+import org.springframework.data.redis.core.TimeoutUtils;
 
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
@@ -43,10 +48,13 @@ public class JedisConnectionUnitTestSuite {
 	public static class JedisConnectionUnitTests extends AbstractConnectionUnitTestBase<Client> {
 
 		protected JedisConnection connection;
+		private Jedis jedisSpy;
 
 		@Before
 		public void setUp() {
-			connection = new JedisConnection(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+
+			jedisSpy = spy(new MockedClientJedis("http://localhost:1234", getNativeRedisConnectionMock()));
+			connection = new JedisConnection(jedisSpy);
 		}
 
 		/**
@@ -69,8 +77,7 @@ public class JedisConnectionUnitTestSuite {
 			connection.shutdown(ShutdownOption.NOSAVE);
 
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-			verifyNativeConnectionInvocation().eval(captor.capture(), Matchers.any(byte[].class),
-					Matchers.any(byte[][].class));
+			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
 
 			assertThat(captor.getValue(), equalTo("return redis.call('SHUTDOWN','NOSAVE')".getBytes()));
 		}
@@ -84,12 +91,28 @@ public class JedisConnectionUnitTestSuite {
 			connection.shutdown(ShutdownOption.SAVE);
 
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-			verifyNativeConnectionInvocation().eval(captor.capture(), Matchers.any(byte[].class),
-					Matchers.any(byte[][].class));
+			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
 
 			assertThat(captor.getValue(), equalTo("return redis.call('SHUTDOWN','SAVE')".getBytes()));
 		}
 
+		/**
+		 * @see DATAREDIS-286
+		 */
+		@Test
+		public void pExpireHavingIntOverflowShouldUseRedisServerTimeAsReferenceForPExpireAt() {
+
+			long msec = Long.valueOf((long) Integer.MAX_VALUE + 1);
+			long expected = msec + TimeoutUtils.toMillis(1, TimeUnit.SECONDS);
+
+			/* redis time as list containing [0] = seconds, [1] = microseconds
+			 * @see http://redis.io/commands/time
+			 */
+			when(jedisSpy.time()).thenReturn(Arrays.asList("1", "0"));
+
+			connection.pExpire("foo".getBytes(), msec);
+			verifyNativeConnectionInvocation().pexpireAt(any(byte[].class), eq(expected));
+		}
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
@@ -129,5 +152,6 @@ public class JedisConnectionUnitTestSuite {
 			super(host);
 			this.client = client;
 		}
+
 	}
 }
