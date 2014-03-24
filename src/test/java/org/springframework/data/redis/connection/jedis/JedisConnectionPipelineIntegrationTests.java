@@ -254,4 +254,13 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	public void clientSetNameWorksCorrectly() {
 		super.clientSetNameWorksCorrectly();
 	}
+
+	/**
+	 * @see DATAREDIS-268
+	 */
+	@Override
+	@Test(expected = UnsupportedOperationException.class)
+	public void testListClientsContainsAtLeastOneElement() {
+		super.testListClientsContainsAtLeastOneElement();
+	}
 }

@@ -1,4 +1,4 @@
-#<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="appendix-command-reference" xmlns:xi="http://www.w3.org/2001/XInclude">
 	<title>Spring Data Redis Supported Commands</title>
 	
@@ -25,7 +25,7 @@
 				<row><entry><code>BRPOPLPUSH</code></entry><entry>X</entry></row>
 				<row><entry><code>CLIENT KILL</code></entry><entry>X</entry></row>
 				<row><entry><code>CLIENT GETNAME</code></entry><entry>X</entry></row>
-				<row><entry><code>CLIENT LIST</code></entry><entry>-</entry></row>
+				<row><entry><code>CLIENT LIST</code></entry><entry>X</entry></row>
 				<row><entry><code>CLIENT SETNAME</code></entry><entry>X</entry></row>
 				<row><entry><code>CONFIG GET</code></entry><entry>X</entry></row>
 				<row><entry><code>CONFIG RESETSTAT</code></entry><entry>X</entry></row>

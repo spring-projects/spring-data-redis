@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
@@ -301,4 +302,10 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @sice 1.3
 	 */
 	void setClientName(String name);
+
+	/**
+	 * @see RedisConnection#getClientList()
+	 * @since 1.3
+	 */
+	List<RedisClientInfo> getClientList();
 }

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
@@ -173,6 +174,14 @@ public interface RedisOperations<K, V> {
 	void discard();
 
 	List<Object> exec();
+
+	/**
+	 * /** Request information and statistics about connected clients.
+	 * 
+	 * @return {@link List} of {@link RedisClientInfo} objects.
+	 * @since 1.3
+	 */
+	List<RedisClientInfo> getClientList();
 
 	/**
 	 * Execute a transaction, using the provided {@link RedisSerializer} to deserialize any results that are byte[]s or

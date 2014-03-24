@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Properties;
 
+import org.springframework.data.redis.core.types.RedisClientInfo;
+
 /**
  * Server-specific commands supported by Redis.
  * 
@@ -186,4 +188,13 @@ public interface RedisServerCommands {
 	 * @since 1.3
 	 */
 	String getClientName();
+
+	/**
+	 * Request information and statistics about connected clients.
+	 * 
+	 * @return {@link List} of {@link RedisClientInfo} objects.
+	 * @since 1.3
+	 * @see http://redis.io/commands/client-list
+	 */
+	List<RedisClientInfo> getClientList();
 }

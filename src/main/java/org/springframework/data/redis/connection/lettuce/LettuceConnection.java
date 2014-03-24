@@ -49,6 +49,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -2957,6 +2958,21 @@ public class LettuceConnection implements RedisConnection {
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
+	}
+
+	@Override
+	public List<RedisClientInfo> getClientList() {
+
+		if (isPipelined()) {
+			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
+		}
+		if (isQueueing()) {
+			transaction(new LettuceTxResult(getAsyncConnection().clientList(),
+					LettuceConverters.stringToRedisClientListConverter()));
+			return null;
+		}
+
+		return LettuceConverters.toListOfRedisClientInformation(getConnection().clientList());
 	}
 
 	/**

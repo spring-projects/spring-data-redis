@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -38,6 +37,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +54,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -1890,6 +1891,25 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void clientSetNameWorksCorrectly() {
 		connection.setClientName("foo".getBytes());
+	}
+
+	/**
+	 * @see DATAREDIS-268
+	 */
+	@Test
+	public void testListClientsContainsAtLeastOneElement() {
+
+		actual.add(connection.getClientList());
+
+		List<Object> results = getResults();
+		assertNotNull(results.get(0));
+
+		List<?> firstEntry = (List<?>) results.get(0);
+		assertThat(firstEntry.size(), IsNot.not(0));
+		assertThat(firstEntry.get(0), is(instanceOf(RedisClientInfo.class)));
+
+		RedisClientInfo info = (RedisClientInfo) firstEntry.get(0);
+		assertThat(info.getDatabaseId(), is(notNullValue()));
 	}
 
 	protected void verifyResults(List<Object> expected) {

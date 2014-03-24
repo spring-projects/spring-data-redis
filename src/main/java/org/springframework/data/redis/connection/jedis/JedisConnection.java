@@ -42,6 +42,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -2852,6 +2853,18 @@ public class JedisConnection implements RedisConnection {
 		}
 
 		return jedis.clientGetname();
+	}
+
+	/*
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
+	 */
+	@Override
+	public List<RedisClientInfo> getClientList() {
+
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("'CLIENT LIST' is not supported in in pipeline / multi mode.");
+		}
+		return JedisConverters.toListOfRedisClientInformation(this.jedis.clientList());
 	}
 
 	/**
