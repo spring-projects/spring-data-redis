@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * Default implementation for {@link BoundZSetOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundZSetOperations<K, V> {
 
@@ -126,8 +127,22 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.count(getKey(), min, max);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#size()
+	 */
+	@Override
 	public Long size() {
-		return ops.size(getKey());
+		return zCard();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#zCard()
+	 */
+	@Override
+	public Long zCard() {
+		return ops.zCard(getKey());
 	}
 
 	public void unionAndStore(K otherKey, K destKey) {
