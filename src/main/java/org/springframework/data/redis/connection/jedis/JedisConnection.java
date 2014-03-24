@@ -2808,6 +2808,26 @@ public class JedisConnection implements RedisConnection {
 		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#killClient(byte[])
+	 */
+	@Override
+	public void killClient(String host, int port) {
+
+		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
+
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("'CLIENT KILL' is not supported in transaction / pipline mode.");
+		}
+
+		try {
+			this.jedis.clientKill(String.format("%s:%s", host, port));
+		} catch (Exception e) {
+			throw convertJedisAccessException(e);
+		}
+	}
+
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Jedis driver

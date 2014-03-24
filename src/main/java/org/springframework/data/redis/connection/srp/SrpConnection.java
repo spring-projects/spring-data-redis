@@ -2222,6 +2222,24 @@ public class SrpConnection implements RedisConnection {
 		return SrpConverters.toTimeAsLong(reply.data());
 	}
 
+	@Override
+	public void killClient(String host, int port) {
+
+		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
+
+		String client = String.format("%s:%s", host, port);
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpStatusResult(pipeline.client_kill(client)));
+				return;
+			}
+
+			this.client.client_kill(client);
+		} catch (Exception e) {
+			throw convertSrpAccessException(e);
+		}
+	}
+
 	private List<Object> closeTransaction() {
 		List<Object> results = Collections.emptyList();
 		if (txTracker != null) {

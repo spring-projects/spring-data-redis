@@ -2191,6 +2191,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return this.delegate.time();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#killClient(byte[])
+	 */
+	@Override
+	public void killClient(String host, int port) {
+		this.delegate.killClient(host, port);
+	}
+
 	/**
 	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection

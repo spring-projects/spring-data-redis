@@ -161,4 +161,14 @@ public interface RedisServerCommands {
 	 * @since 1.1
 	 */
 	Long time();
+
+	/**
+	 * Closes a given client connection identified by {@literal ip:port}.
+	 * 
+	 * @param host of connection to close.
+	 * @param port of connection to close
+	 * @since 1.3
+	 */
+	void killClient(String host, int port);
+
 }

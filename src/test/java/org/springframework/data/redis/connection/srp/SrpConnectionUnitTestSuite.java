@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.srp;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -75,6 +76,17 @@ public class SrpConnectionUnitTestSuite {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verifyNativeConnectionInvocation().shutdown("NOSAVE".getBytes(Charsets.UTF_8), null);
+		}
+
+		/**
+		 * @see DATAREDIS-267
+		 */
+		@Test
+		public void killClientShouldDelegateCallCorrectly() {
+
+			String ipPort = "127.0.0.1:1001";
+			connection.killClient("127.0.0.1", 1001);
+			verifyNativeConnectionInvocation().client_kill(eq(ipPort));
 		}
 
 	}

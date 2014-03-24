@@ -2903,6 +2903,23 @@ public class LettuceConnection implements RedisConnection {
 		return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
 	}
 
+	@Override
+	public void killClient(String host, int port) {
+
+		Assert.hasText(host, "Host for 'CLIENT KILL' must not be 'null' or 'empty'.");
+
+		String client = String.format("%s:%s", host, port);
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceStatusResult(getAsyncConnection().clientKill(client)));
+				return;
+			}
+			getConnection().clientKill(client);
+		} catch (Exception e) {
+			convertLettuceAccessException(e);
+		}
+	}
+
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver

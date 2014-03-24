@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ import org.springframework.util.CollectionUtils;
  * <b>This is the central class in Redis support</b>.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -988,5 +989,22 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	public <HK, HV> HashOperations<K, HK, HV> opsForHash() {
 		return new DefaultHashOperations<K, HK, HV>(this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#killClient(java.lang.Object)
+	 */
+	@Override
+	public void killClient(final String host, final int port) {
+
+		execute(new RedisCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.killClient(host, port);
+				return null;
+			}
+		});
 	}
 }
