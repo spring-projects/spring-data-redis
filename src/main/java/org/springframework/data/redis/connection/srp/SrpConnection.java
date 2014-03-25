@@ -2263,6 +2263,25 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
+	*/
+	@Override
+	public void slaveOf(String host, int port) {
+
+		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpStatusResult(pipeline.slaveof(host, port)));
+				return;
+			}
+			client.slaveof(host, port);
+		} catch (Exception e) {
+			throw convertSrpAccessException(e);
+		}
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
 	 */
@@ -2293,6 +2312,23 @@ public class SrpConnection implements RedisConnection {
 		}
 
 		return SrpConverters.toListOfRedisClientInformation(this.client.client_list());
+	}
+
+	/*
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpStatusResult(pipeline.slaveof("NO", "ONE")));
+				return;
+			}
+			client.slaveof("NO", "ONE");
+		} catch (Exception e) {
+			throw convertSrpAccessException(e);
+		}
 	}
 
 	private List<Object> closeTransaction() {

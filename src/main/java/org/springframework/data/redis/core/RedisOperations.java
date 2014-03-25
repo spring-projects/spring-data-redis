@@ -303,4 +303,20 @@ public interface RedisOperations<K, V> {
 	 * @since 1.3
 	 */
 	void killClient(String host, int port);
+
+	/**
+	 * Change redis replication setting to new master.
+	 * 
+	 * @param host
+	 * @param port
+	 * @since 1.3
+	 */
+	void slaveOf(String host, int port);
+
+	/**
+	 * Change server into master.
+	 * 
+	 * @since 1.3
+	 */
+	void slaveOfNoOne();
 }

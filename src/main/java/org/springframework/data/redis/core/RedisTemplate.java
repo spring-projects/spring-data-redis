@@ -1019,4 +1019,38 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		});
 	}
+
+	/*
+	 * @see org.springframework.data.redis.core.RedisOperations#slaveOf(java.lang.String, int)
+	 */
+	@Override
+	public void slaveOf(final String host, final int port) {
+
+		execute(new RedisCallback<Void>() {
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+
+				connection.slaveOf(host, port);
+				return null;
+			}
+
+		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+
+		execute(new RedisCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.slaveOfNoOne();
+				return null;
+			}
+		});
+	}
 }

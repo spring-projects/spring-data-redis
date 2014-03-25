@@ -1199,6 +1199,20 @@ public class JredisConnection implements RedisConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
+	 */
+	@Override
+	public void slaveOf(String host, int port) {
+
+		try {
+			this.jredis.slaveof(host, port);
+		} catch (Exception e) {
+			throw convertJredisAccessException(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
 	 */
 	@Override
@@ -1208,5 +1222,18 @@ public class JredisConnection implements RedisConnection {
 
 	public List<RedisClientInfo> getClientList() {
 		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+
+		try {
+			this.jredis.slaveofnone();
+		} catch (Exception e) {
+			throw convertJredisAccessException(e);
+		}
 	}
 }

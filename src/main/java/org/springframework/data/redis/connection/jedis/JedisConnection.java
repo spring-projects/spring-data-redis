@@ -2051,8 +2051,7 @@ public class JedisConnection implements RedisConnection {
 
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
-			ZParams zparams = new ZParams().weights(weights).aggregate(
-					redis.clients.jedis.ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.zinterstore(destKey, zparams, sets)));
@@ -2382,8 +2381,7 @@ public class JedisConnection implements RedisConnection {
 
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
-			ZParams zparams = new ZParams().weights(weights).aggregate(
-					redis.clients.jedis.ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.zunionstore(destKey, zparams, sets)));
@@ -2831,6 +2829,23 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	/*
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
+	 */
+	@Override
+	public void slaveOf(String host, int port) {
+
+		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
+		}
+		try {
+			this.jedis.slaveof(host, port);
+		} catch (Exception e) {
+			throw convertJedisAccessException(e);
+		}
+	}
+
+	/*
 	* @see org.springframework.data.redis.connection.RedisServerCommands#setClientName(java.lang.String)
 	*/
 	@Override
@@ -2866,6 +2881,23 @@ public class JedisConnection implements RedisConnection {
 			throw new UnsupportedOperationException("'CLIENT LIST' is not supported in in pipeline / multi mode.");
 		}
 		return JedisConverters.toListOfRedisClientInformation(this.jedis.clientList());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+
+		if (isQueueing() || isPipelined()) {
+			throw new UnsupportedOperationException("'SLAVEOF' cannot be called in pipline / transaction mode.");
+		}
+		try {
+			this.jedis.slaveofNoOne();
+		} catch (Exception e) {
+			throw convertJedisAccessException(e);
+		}
 	}
 
 	/**

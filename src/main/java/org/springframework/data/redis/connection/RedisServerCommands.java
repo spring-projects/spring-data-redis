@@ -165,7 +165,7 @@ public interface RedisServerCommands {
 	Long time();
 
 	/**
-	 * Closes a given client connection identified by {@literal ip:port}.
+	 * <<<<<<< HEAD Closes a given client connection identified by {@literal ip:port}.
 	 * 
 	 * @param host of connection to close.
 	 * @param port of connection to close
@@ -197,4 +197,22 @@ public interface RedisServerCommands {
 	 * @see http://redis.io/commands/client-list
 	 */
 	List<RedisClientInfo> getClientList();
+
+	/**
+	 * Change redis replication setting to new master.
+	 * 
+	 * @param host
+	 * @param port
+	 * @since 1.3
+	 * @see http://redis.io/commands/slaveof
+	 */
+	void slaveOf(String host, int port);
+
+	/**
+	 * Change server into master.
+	 * 
+	 * @since 1.3
+	 * @see http://redis.io/commands/slaveof
+	 */
+	void slaveOfNoOne();
 }

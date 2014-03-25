@@ -115,6 +115,8 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		/**
+		 * <<<<<<< HEAD
+		 * 
 		 * @see DATAREDIS-267
 		 */
 		@Test
@@ -134,6 +136,33 @@ public class JedisConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().clientGetname();
 		}
 
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
+			connection.slaveOf(null, 0);
+		}
+
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test
+		public void slaveOfShouldBeSentCorrectly() {
+
+			connection.slaveOf("127.0.0.1", 1001);
+			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
+		}
+
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test
+		public void slaveOfNoOneShouldBeSentCorrectly() {
+
+			connection.slaveOfNoOne();
+			verifyNativeConnectionInvocation().slaveofNoOne();
+		}
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
@@ -177,6 +206,23 @@ public class JedisConnectionUnitTestSuite {
 		@Test(expected = UnsupportedOperationException.class)
 		public void getClientNameShouldSendRequestCorrectly() {
 			super.getClientNameShouldSendRequestCorrectly();
+		}
+
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Override
+		@Test(expected = UnsupportedOperationException.class)
+		public void slaveOfShouldBeSentCorrectly() {
+			super.slaveOfShouldBeSentCorrectly();
+		}
+
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void slaveOfNoOneShouldBeSentCorrectly() {
+			super.slaveOfNoOneShouldBeSentCorrectly();
 		}
 
 	}
