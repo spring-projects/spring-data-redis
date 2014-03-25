@@ -2940,6 +2940,29 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	/*
+	* (non-Javadoc)
+	* @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
+	*/
+	@Override
+	public void slaveOf(String host, int port) {
+
+		Assert.hasText(host, "Host must not be null for 'SLAVEOF' command.");
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceStatusResult(getAsyncConnection().slaveof(host, port)));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().slaveof(host, port)));
+				return;
+			}
+			getConnection().slaveof(host, port);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#getClientName()
 	 */
@@ -2976,6 +2999,27 @@ public class LettuceConnection implements RedisConnection {
 		}
 
 		return LettuceConverters.toListOfRedisClientInformation(getConnection().clientList());
+	}
+
+	/*
+		* @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceStatusResult(getAsyncConnection().slaveofNoOne()));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().slaveofNoOne()));
+				return;
+			}
+			getConnection().slaveofNoOne();
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	/**

@@ -79,6 +79,8 @@ public class SrpConnectionUnitTestSuite {
 		}
 
 		/**
+		 * <<<<<<< HEAD
+		 * 
 		 * @see DATAREDIS-267
 		 */
 		@Test
@@ -99,6 +101,33 @@ public class SrpConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().client_getname();
 		}
 
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
+			connection.slaveOf(null, 0);
+		}
+
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test
+		public void slaveOfShouldBeSentCorrectly() {
+
+			connection.slaveOf("127.0.0.1", 1001);
+			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
+		}
+
+		/**
+		 * @see DATAREDIS-277
+		 */
+		@Test
+		public void slaveOfNoOneShouldBeSentCorrectly() {
+
+			connection.slaveOfNoOne();
+			verifyNativeConnectionInvocation().slaveof(eq("NO"), eq("ONE"));
+		}
 	}
 
 	public static class SrpConnectionPiplineUnitTests extends AbstractConnectionUnitTestBase<Pipeline> {

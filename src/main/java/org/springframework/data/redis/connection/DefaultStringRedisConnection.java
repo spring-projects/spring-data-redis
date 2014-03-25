@@ -2197,6 +2197,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return this.delegate.getClientList();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOf(java.lang.String, int)
+	 */
+	@Override
+	public void slaveOf(String host, int port) {
+		this.delegate.slaveOf(host, port);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#slaveOfNoOne()
+	 */
+	@Override
+	public void slaveOfNoOne() {
+		this.delegate.slaveOfNoOne();
+	}
+
 	/**
 	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
