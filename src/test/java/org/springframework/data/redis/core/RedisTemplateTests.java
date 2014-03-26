@@ -221,6 +221,7 @@ public class RedisTemplateTests<K, V> {
 				operations.multi();
 				operations.opsForValue().set("foo", "5");
 				operations.opsForValue().get("foo");
+				operations.opsForValue().append("foo1", "5");
 				operations.opsForList().leftPush("foolist", "6");
 				operations.opsForList().range("foolist", 0l, 1l);
 				operations.opsForSet().add("fooset", "7");
@@ -242,7 +243,7 @@ public class RedisTemplateTests<K, V> {
 		Map<Long, Long> map = new LinkedHashMap<Long, Long>();
 		map.put(10l, 11l);
 		assertThat(results,
-				isEqual(Arrays.asList(new Object[] { 5l, 1l, list, 1l, longSet, true, tupleSet, zSet, true, map })));
+				isEqual(Arrays.asList(new Object[] { 5l, 1L, 1l, list, 1l, longSet, true, tupleSet, zSet, true, map })));
 	}
 
 	@Test
