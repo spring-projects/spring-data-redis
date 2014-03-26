@@ -209,8 +209,9 @@ public interface RedisStringCommands {
 	 * @param key
 	 * @param offset
 	 * @param value
+	 * @return the original bit value stored at {@code offset}.
 	 */
-	void setBit(byte[] key, long offset, boolean value);
+	Boolean setBit(byte[] key, long offset, boolean value);
 
 	/**
 	 * Count the number of set bits (population counting) in value stored at {@code key}.

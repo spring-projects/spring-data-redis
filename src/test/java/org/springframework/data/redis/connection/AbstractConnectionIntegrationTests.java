@@ -417,22 +417,23 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void testBitSet() throws Exception {
 		String key = "bitset-test";
-		connection.setBit(key, 0, false);
-		connection.setBit(key, 1, true);
+		actual.add(connection.setBit(key, 0, true));
+		actual.add(connection.setBit(key, 0, false));
+		actual.add(connection.setBit(key, 1, true));
 		actual.add(connection.getBit(key, 0));
 		actual.add(connection.getBit(key, 1));
-		verifyResults(Arrays.asList(new Object[] { false, true }));
+		verifyResults(Arrays.asList(new Object[] { false, true, false, false, true }));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6")
 	public void testBitCount() {
 		String key = "bitset-test";
-		connection.setBit(key, 0, false);
-		connection.setBit(key, 1, true);
-		connection.setBit(key, 2, true);
+		actual.add(connection.setBit(key, 0, false));
+		actual.add(connection.setBit(key, 1, true));
+		actual.add(connection.setBit(key, 2, true));
 		actual.add(connection.bitCount(key));
-		verifyResults(new ArrayList<Object>(Collections.singletonList(2l)));
+		verifyResults(Arrays.asList(new Object[] { false, false, false, 2L }));
 	}
 
 	@Test

@@ -1048,13 +1048,14 @@ public class SrpConnection implements RedisConnection {
 		}
 	}
 
-	public void setBit(byte[] key, long offset, boolean value) {
+	public Boolean setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpStatusResult(pipeline.setbit(key, offset, SrpConverters.toBit(value))));
-				return;
+				pipeline(new SrpGenericResult(pipeline.setbit(key, offset, SrpConverters.toBit(value)),
+						SrpConverters.longToBooleanConverter()));
+				return null;
 			}
-			client.setbit(key, offset, SrpConverters.toBit(value));
+			return SrpConverters.toBoolean(client.setbit(key, offset, SrpConverters.toBit(value)));
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

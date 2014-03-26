@@ -1403,17 +1403,20 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
-	public void setBit(byte[] key, long offset, boolean value) {
+	public Boolean setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().setbit(key, offset, LettuceConverters.toInt(value))));
-				return;
+				pipeline(new LettuceResult(getAsyncConnection().setbit(key, offset, LettuceConverters.toInt(value)),
+						LettuceConverters.longToBooleanConverter()));
+				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().setbit(key, offset, LettuceConverters.toInt(value))));
-				return;
+				transaction(new LettuceTxResult(getConnection().setbit(key, offset, LettuceConverters.toInt(value)),
+						LettuceConverters.longToBooleanConverter()));
+				return null;
 			}
-			getConnection().setbit(key, offset, LettuceConverters.toInt(value));
+			return LettuceConverters.longToBooleanConverter().convert(
+					getConnection().setbit(key, offset, LettuceConverters.toInt(value)));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

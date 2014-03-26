@@ -724,8 +724,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.set(key, value);
 	}
 
-	public void setBit(byte[] key, long offset, boolean value) {
-		delegate.setBit(key, offset, value);
+	public Boolean setBit(byte[] key, long offset, boolean value) {
+		return delegate.setBit(key, offset, value);
 	}
 
 	public void setConfig(String param, String value) {
@@ -1706,8 +1706,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		delegate.set(serialize(key), serialize(value));
 	}
 
-	public void setBit(String key, long offset, boolean value) {
-		delegate.setBit(serialize(key), offset, value);
+	public Boolean setBit(String key, long offset, boolean value) {
+		return delegate.setBit(serialize(key), offset, value);
 	}
 
 	public void setEx(String key, long seconds, String value) {

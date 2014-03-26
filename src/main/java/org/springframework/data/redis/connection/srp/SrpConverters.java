@@ -34,6 +34,7 @@ import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -70,6 +71,8 @@ abstract public class SrpConverters extends Converters {
 	private static final Converter<Reply, List<RedisClientInfo>> REPLY_T0_LIST_OF_CLIENT_INFO;
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 	private static final Converter<byte[], List<RedisClientInfo>> BYTEARRAY_T0_LIST_OF_CLIENT_INFO;
+	private static final Converter<IntegerReply, Boolean> INTEGER_REPLY_TO_BOOLEAN;
+	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
 
 	static {
 
@@ -223,6 +226,17 @@ abstract public class SrpConverters extends Converters {
 				return STRING_TO_LIST_OF_CLIENT_INFO.convert(s.split("\\r?\\n"));
 			}
 		};
+
+		INTEGER_REPLY_TO_BOOLEAN = new Converter<IntegerReply, Boolean>() {
+
+			@Override
+			public Boolean convert(IntegerReply source) {
+				if (source == null || source.data() == null) {
+					return false;
+				}
+				return source.data() == 1;
+			}
+		};
 	}
 
 	public static Converter<Reply[], List<byte[]>> repliesToBytesList() {
@@ -269,8 +283,20 @@ abstract public class SrpConverters extends Converters {
 		return REPLIES_TO_TIME_AS_LONG;
 	}
 
+	/**
+	 * @return
+	 * @since 1.3
+	 */
 	public static List<RedisClientInfo> toListOfRedisClientInformation(Reply reply) {
 		return REPLY_T0_LIST_OF_CLIENT_INFO.convert(reply);
+	}
+
+	/**
+	 * @return
+	 * @since 1.3
+	 */
+	public static Converter<Long, Boolean> longToBooleanConverter() {
+		return LONG_TO_BOOLEAN;
 	}
 
 	public static List<byte[]> toBytesList(Reply[] source) {
@@ -358,7 +384,22 @@ abstract public class SrpConverters extends Converters {
 		return Collections.singletonList(source);
 	}
 
+	/**
+	 * @since 1.3
+	 * @return
+	 */
 	public static Converter<byte[], List<RedisClientInfo>> replyToListOfRedisClientInfo() {
 		return BYTEARRAY_T0_LIST_OF_CLIENT_INFO;
+	}
+
+	/**
+	 * Convert an {@link IntegerReply} to a {@link Boolean} by inspecting {@link IntegerReply#data()}.
+	 * 
+	 * @since 1.3
+	 * @param reply
+	 * @return
+	 */
+	public static Boolean toBoolean(IntegerReply reply) {
+		return INTEGER_REPLY_TO_BOOLEAN.convert(reply);
 	}
 }
