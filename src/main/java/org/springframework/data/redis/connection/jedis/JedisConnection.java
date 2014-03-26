@@ -1349,17 +1349,18 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	public void setBit(byte[] key, long offset, boolean value) {
+	public Boolean setBit(byte[] key, long offset, boolean value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisStatusResult(pipeline.setbit(key, offset, JedisConverters.toBit(value))));
-				return;
+
+				pipeline(new JedisResult(pipeline.setbit(key, offset, JedisConverters.toBit(value))));
+				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisStatusResult(transaction.setbit(key, offset, JedisConverters.toBit(value))));
-				return;
+				transaction(new JedisResult(transaction.setbit(key, offset, JedisConverters.toBit(value))));
+				return null;
 			}
-			jedis.setbit(key, offset, JedisConverters.toBit(value));
+			return jedis.setbit(key, offset, JedisConverters.toBit(value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}

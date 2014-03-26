@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -47,6 +48,8 @@ import com.lambdaworks.redis.protocol.Charsets;
  * Lettuce type converters
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 abstract public class LettuceConverters extends Converters {
 
@@ -58,6 +61,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
 	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
+	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
 
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 
@@ -119,6 +123,7 @@ abstract public class LettuceConverters extends Converters {
 			}
 
 		};
+
 	}
 
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
@@ -165,6 +170,14 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<Exception, DataAccessException> exceptionConverter() {
 		return EXCEPTION_CONVERTER;
+	}
+
+	/**
+	 * @return
+	 * @sice 1.3
+	 */
+	public static Converter<Long, Boolean> longToBooleanConverter() {
+		return LONG_TO_BOOLEAN;
 	}
 
 	public static Long toLong(Date source) {

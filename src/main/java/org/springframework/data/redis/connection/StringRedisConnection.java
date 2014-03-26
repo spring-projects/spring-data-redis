@@ -128,7 +128,15 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Boolean getBit(String key, long offset);
 
-	void setBit(String key, long offset, boolean value);
+	/**
+	 * Sets the bit at {@code offset} in value stored at {@code key}.
+	 * 
+	 * @param key
+	 * @param offset
+	 * @param value
+	 * @return the original bit value stored at {@code offset}.
+	 */
+	Boolean setBit(String key, long offset, boolean value);
 
 	Long bitCount(String key);
 

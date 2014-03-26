@@ -574,9 +574,9 @@ public class JredisConnection implements RedisConnection {
 		}
 	}
 
-	public void setBit(byte[] key, long offset, boolean value) {
+	public Boolean setBit(byte[] key, long offset, boolean value) {
 		try {
-			jredis.setbit(key, (int) offset, value);
+			return jredis.setbit(key, (int) offset, value);
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}
