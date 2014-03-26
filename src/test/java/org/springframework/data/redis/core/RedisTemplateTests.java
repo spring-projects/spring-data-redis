@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +63,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Integration test of {@link RedisTemplate}
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class RedisTemplateTests<K, V> {
@@ -701,6 +698,11 @@ public class RedisTemplateTests<K, V> {
 				"Hey",
 				redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
 						Collections.singletonList(key1)));
+	}
+
+	@Test
+	public void clientListShouldReturnCorrectly() {
+		assertThat(redisTemplate.clientList().size(), IsNot.not(0));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

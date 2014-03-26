@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,7 +32,10 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.KeyValue;
 import com.lambdaworks.redis.ScoredValue;
@@ -54,6 +58,8 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
 	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
+
+	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 
 	static {
 		DATE_TO_LONG = new Converter<Date, Long>() {
@@ -112,6 +118,20 @@ abstract public class LettuceConverters extends Converters {
 				return source != null ? new DefaultTuple(source.value, Double.valueOf(source.score)) : null;
 			}
 
+		};
+	}
+
+	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
+		return new Converter<String, List<RedisClientInfo>>() {
+
+			@Override
+			public List<RedisClientInfo> convert(String source) {
+				if (!StringUtils.hasText(source)) {
+					return Collections.emptyList();
+				}
+
+				return STRING_TO_LIST_OF_CLIENT_INFO.convert(source.split("\\r?\\n"));
+			}
 		};
 	}
 
@@ -234,5 +254,9 @@ abstract public class LettuceConverters extends Converters {
 			args.alpha();
 		}
 		return args;
+	}
+
+	public static List<RedisClientInfo> toListOfRedisClientInformation(String clientList) {
+		return stringToRedisClientListConverter().convert(clientList);
 	}
 }

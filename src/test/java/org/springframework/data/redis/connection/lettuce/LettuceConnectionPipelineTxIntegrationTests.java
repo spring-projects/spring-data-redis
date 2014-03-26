@@ -83,4 +83,13 @@ public class LettuceConnectionPipelineTxIntegrationTests extends LettuceConnecti
 		return txResults;
 	}
 
+	/**
+	 * @see DATAREDIS-268
+	 */
+	@Override
+	@Test(expected = UnsupportedOperationException.class)
+	public void testListClientsContainsAtLeastOneElement() {
+		super.testListClientsContainsAtLeastOneElement();
+	}
+
 }

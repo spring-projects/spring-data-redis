@@ -38,6 +38,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1890,6 +1891,19 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	public void clientSetNameWorksCorrectly() {
 		connection.setClientName("foo".getBytes());
+	}
+
+	/**
+	 * @see DATAREDIS-268
+	 */
+	@Test
+	public void testListClientsContainsAtLeastOneElement() {
+
+		actual.add(connection.getClientList());
+
+		List<Object> results = getResults();
+		assertNotNull(results.get(0));
+		assertThat(((List<?>) results.get(0)).size(), IsNot.not(0));
 	}
 
 	protected void verifyResults(List<Object> expected) {

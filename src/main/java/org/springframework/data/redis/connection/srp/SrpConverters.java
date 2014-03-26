@@ -34,6 +34,8 @@ import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 
 import redis.client.RedisException;
@@ -65,8 +67,12 @@ abstract public class SrpConverters extends Converters {
 	private static final Converter<byte[], String> BYTES_TO_STRING;
 	private static final Converter<byte[], Double> BYTES_TO_DOUBLE;
 	private static final Converter<Reply[], Long> REPLIES_TO_TIME_AS_LONG;
+	private static final Converter<Reply, List<RedisClientInfo>> REPLY_T0_LIST_OF_CLIENT_INFO;
+	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
+	private static final Converter<byte[], List<RedisClientInfo>> BYTEARRAY_T0_LIST_OF_CLIENT_INFO;
 
 	static {
+
 		REPLIES_TO_BYTES_LIST = new Converter<Reply[], List<byte[]>>() {
 			public List<byte[]> convert(Reply[] replies) {
 				if (replies == null) {
@@ -85,21 +91,25 @@ abstract public class SrpConverters extends Converters {
 				return list;
 			}
 		};
+
 		REPLIES_TO_BYTES_SET = new Converter<Reply[], Set<byte[]>>() {
 			public Set<byte[]> convert(Reply[] source) {
 				return source != null ? new LinkedHashSet<byte[]>(SrpConverters.toBytesList(source)) : null;
 			}
 		};
+
 		BYTES_TO_PROPERTIES = new Converter<byte[], Properties>() {
 			public Properties convert(byte[] source) {
 				return source != null ? SrpConverters.toProperties(new String(source, Charsets.UTF_8)) : null;
 			}
 		};
+
 		BYTES_TO_DOUBLE = new Converter<byte[], Double>() {
 			public Double convert(byte[] bytes) {
 				return (bytes == null || bytes.length == 0 ? null : Double.valueOf(new String(bytes, Charsets.UTF_8)));
 			}
 		};
+
 		REPLIES_TO_TIME_AS_LONG = new Converter<Reply[], Long>() {
 
 			@Override
@@ -115,6 +125,7 @@ abstract public class SrpConverters extends Converters {
 			}
 
 		};
+
 		REPLIES_TO_TUPLE_SET = new Converter<Reply[], Set<Tuple>>() {
 			public Set<Tuple> convert(Reply[] byteArrays) {
 				if (byteArrays == null) {
@@ -130,6 +141,7 @@ abstract public class SrpConverters extends Converters {
 				return tuples;
 			}
 		};
+
 		REPLIES_TO_BYTES_MAP = new Converter<Reply[], Map<byte[], byte[]>>() {
 			public Map<byte[], byte[]> convert(Reply[] byteArrays) {
 				if (byteArrays == null) {
@@ -142,11 +154,13 @@ abstract public class SrpConverters extends Converters {
 				return map;
 			}
 		};
+
 		BYTES_TO_STRING = new Converter<byte[], String>() {
 			public String convert(byte[] data) {
 				return data != null ? new String((byte[]) data, Charsets.UTF_8) : null;
 			}
 		};
+
 		REPLIES_TO_BOOLEAN_LIST = new Converter<Reply[], List<Boolean>>() {
 			public List<Boolean> convert(Reply[] source) {
 				if (source == null) {
@@ -159,6 +173,7 @@ abstract public class SrpConverters extends Converters {
 				return results;
 			}
 		};
+
 		REPLIES_TO_STRING_LIST = new Converter<Reply[], List<String>>() {
 			public List<String> convert(Reply[] source) {
 				if (source == null) {
@@ -171,6 +186,7 @@ abstract public class SrpConverters extends Converters {
 				return results;
 			}
 		};
+
 		REPLY_TO_STRING = new Converter<Reply, String>() {
 
 			@Override
@@ -179,6 +195,32 @@ abstract public class SrpConverters extends Converters {
 					return null;
 				}
 				return SrpConverters.toString((byte[]) source.data());
+			}
+		};
+
+		REPLY_T0_LIST_OF_CLIENT_INFO = new Converter<Reply, List<RedisClientInfo>>() {
+
+			@Override
+			public List<RedisClientInfo> convert(Reply source) {
+
+				if (source == null || source.data() == null) {
+					return Collections.emptyList();
+				}
+				Assert.isInstanceOf(byte[].class, source.data(), "Expected data to be an instace of byte [].");
+				return BYTEARRAY_T0_LIST_OF_CLIENT_INFO.convert((byte[]) source.data());
+			}
+		};
+
+		BYTEARRAY_T0_LIST_OF_CLIENT_INFO = new Converter<byte[], List<RedisClientInfo>>() {
+
+			@Override
+			public List<RedisClientInfo> convert(byte[] source) {
+				if (source == null || source.length == 0) {
+					return Collections.emptyList();
+				}
+
+				String s = SrpConverters.toString(source);
+				return STRING_TO_LIST_OF_CLIENT_INFO.convert(s.split("\\r?\\n"));
 			}
 		};
 	}
@@ -225,6 +267,10 @@ abstract public class SrpConverters extends Converters {
 
 	public static Converter<Reply[], Long> repliesToTimeAsLong() {
 		return REPLIES_TO_TIME_AS_LONG;
+	}
+
+	public static List<RedisClientInfo> toListOfRedisClientInformation(Reply reply) {
+		return REPLY_T0_LIST_OF_CLIENT_INFO.convert(reply);
 	}
 
 	public static List<byte[]> toBytesList(Reply[] source) {
@@ -312,4 +358,7 @@ abstract public class SrpConverters extends Converters {
 		return Collections.singletonList(source);
 	}
 
+	public static Converter<byte[], List<RedisClientInfo>> replyToListOfRedisClientInfo() {
+		return BYTEARRAY_T0_LIST_OF_CLIENT_INFO;
+	}
 }
