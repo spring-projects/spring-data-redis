@@ -5,6 +5,16 @@ http://projects.spring.io/spring-data-redis/
 Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 
+Changes in version 1.2.1.GA (2014-03-27)
+----------------------------------------
+Fix
+  [DATAREDIS-283] - RedisCacheManager.loadCaches overrides already defined cache names in afterPropertiesSet().
+  [DATAREDIS-285] - LettuceConnection.execute should fully read response.
+  [DATAREDIS-286] - Avoid overflow in JedisConnection#expire / #pexpire.
+  [DATAREDIS-289] - Avoid NPE in DefaultValueOperations#append() in case of pipelining or/and multi/exec calls.
+Task
+  [DATAREDIS-291] - Release Version 1.2.1.
+
 Changes in version 1.2.0.GA (2014-03-03)
 ----------------------------------------
 Task
