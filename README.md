@@ -54,7 +54,7 @@ dependencies {
 }
 ~~~~~
 
-Latest GA release is _1.2.0.RELEASE_  
+Latest GA release is _1.2.1.RELEASE_  
 Latest nightly is _1.3.0.BUILD-SNAPSHOT_
 
 # Usage (for the impatient)
