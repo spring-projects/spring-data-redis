@@ -15,7 +15,6 @@ Changes in version 1.3.0.RC1 (2014-05-02)
 * DATAREDIS-226 - Individual syntax errors on Lettuce transactions are not reported.
 * DATAREDIS-73 - add TransactionAware* Driver interfaces.
 
-
 Changes in version 1.3.0.M1 (2014-03-31)
 ----------------------------------------
 Fix
@@ -39,6 +38,39 @@ Task
   [DATAREDIS-275] - Rename RedisServerCommands.bgWriteAof to bgReWriteAof.
   [DATAREDIS-292] - Release 1.3.0 M1.
 
+Changes in version 1.2.1.GA (2014-03-27)
+----------------------------------------
+Fix
+  [DATAREDIS-283] - RedisCacheManager.loadCaches overrides already defined cache names in afterPropertiesSet().
+  [DATAREDIS-285] - LettuceConnection.execute should fully read response.
+  [DATAREDIS-286] - Avoid overflow in JedisConnection#expire / #pexpire.
+  [DATAREDIS-289] - Avoid NPE in DefaultValueOperations#append() in case of pipelining or/and multi/exec calls.
+Task
+  [DATAREDIS-291] - Release Version 1.2.1.
+
+Changes in version 1.3.0.M1 (2014-03-31)
+----------------------------------------
+Fix
+  [DATAREDIS-283] - RedisCacheManager.loadCaches overrides already defined cache names in afterPropertiesSet().
+  [DATAREDIS-285] - LettuceTemplate.execute should read and convert entire response.
+  [DATAREDIS-286] - Avoid potential RedisTemplate.expire() overflow.
+  [DATAREDIS-289] - Avoid NPE in append() in case of pipelining or/and multi/exec calls.
+Improvement
+  [DATAREDIS-184] - Support Redis 2.6 SAVE/NOSAVE arguments to shutdown command.
+  [DATAREDIS-284] - Add support for zCard to ZSetOperations.
+  [DATAREDIS-287] - setBit() should return a Boolean.
+New Feature
+  [DATAREDIS-267] - Add support for CLIENT KILL.
+  [DATAREDIS-268] - Add support for CLIENT LIST.
+  [DATAREDIS-269] - Add support for CLIENT SETNAME.
+  [DATAREDIS-270] - Add support for CLIENT GETNAME.
+  [DATAREDIS-271] - Add support for PSETEX.
+  [DATAREDIS-277] - Add support for SLAVEOF.
+Task
+  [DATAREDIS-261] - Upgrade commons-pool to commons-pool2.
+  [DATAREDIS-275] - Rename RedisServerCommands.bgWriteAof to bgReWriteAof.
+  [DATAREDIS-292] - Release 1.3.0 M1.
+  
 Changes in version 1.2.1.GA (2014-03-27)
 ----------------------------------------
 Fix
