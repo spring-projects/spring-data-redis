@@ -2923,10 +2923,6 @@ public class JedisConnection implements RedisConnection {
 
 		Map<byte[], Double> args = new HashMap<byte[], Double>();
 		for (Tuple tuple : tuples) {
-			if (args.containsValue(tuple.getScore())) {
-				throw new UnsupportedOperationException(
-						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
-			}
 			args.put(tuple.getValue(), tuple.getScore());
 		}
 
