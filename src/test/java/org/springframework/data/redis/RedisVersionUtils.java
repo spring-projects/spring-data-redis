@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,15 @@
  */
 package org.springframework.data.redis;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Utilities for examining the Redis version
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public abstract class RedisVersionUtils {
-
-	private static final Pattern VERSION_MATCHER = Pattern.compile("([0-9]+)\\.([0-9]+)(\\.([0-9]+))?");
 
 	public static Version getRedisVersion(RedisConnection connection) {
 		return parseVersion((String) connection.info().get("redis_version"));
@@ -42,14 +38,11 @@ public abstract class RedisVersionUtils {
 	}
 
 	public static Version parseVersion(String version) {
-		Matcher matcher = VERSION_MATCHER.matcher(version);
-		if (matcher.matches()) {
-			String major = matcher.group(1);
-			String minor = matcher.group(2);
-			String patch = matcher.group(4);
-			return new Version(Integer.parseInt(major), minor != null ? Integer.parseInt(minor) : 0,
-					patch != null ? Integer.parseInt(patch) : 0);
+
+		Version resolvedVersion = VersionParser.parseVersion(version);
+		if (Version.UNKNOWN.equals(resolvedVersion)) {
+			throw new IllegalArgumentException("Specified version cannot be parsed");
 		}
-		throw new IllegalArgumentException("Specified version cannot be parsed");
+		return resolvedVersion;
 	}
 }

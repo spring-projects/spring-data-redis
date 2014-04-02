@@ -117,12 +117,13 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.destroy();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testZAddSameScores() {
 		Set<StringTuple> strTuples = new HashSet<StringTuple>();
 		strTuples.add(new DefaultStringTuple("Bob".getBytes(), "Bob", 2.0));
 		strTuples.add(new DefaultStringTuple("James".getBytes(), "James", 2.0));
-		connection.zAdd("myset", strTuples);
+		Long added = connection.zAdd("myset", strTuples);
+		assertEquals(2L, added.longValue());
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
