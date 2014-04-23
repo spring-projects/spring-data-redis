@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 			return false;
 		if (!(obj instanceof DefaultTypedTuple))
 			return false;
-		DefaultTypedTuple other = (DefaultTypedTuple) obj;
+		DefaultTypedTuple<?> other = (DefaultTypedTuple<?>) obj;
 		if (score == null) {
 			if (other.score != null)
 				return false;
@@ -83,8 +83,20 @@ public class DefaultTypedTuple<V> implements TypedTuple<V> {
 	}
 
 	public int compareTo(Double o) {
-		Double d = (score == null ? Double.valueOf(0) : score);
-		Double a = (o == null ? Double.valueOf(0) : o);
-		return d.compareTo(a);
+
+		double thisScore = (score == null ? 0.0 : score);
+		double otherScore = (o == null ? 0.0 : o);
+
+		return Double.compare(thisScore, otherScore);
+	}
+
+	@Override
+	public int compareTo(TypedTuple<V> o) {
+
+		if (o == null) {
+			return compareTo(Double.valueOf(0));
+		}
+
+		return compareTo(o.getScore());
 	}
 }
