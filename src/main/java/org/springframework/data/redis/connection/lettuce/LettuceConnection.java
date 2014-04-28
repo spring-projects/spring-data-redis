@@ -49,6 +49,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -294,18 +295,22 @@ public class LettuceConnection implements RedisConnection {
 		try {
 			String name = command.trim().toUpperCase();
 			CommandType cmd = CommandType.valueOf(name);
-			CommandArgs<byte[], byte[]> cmdArg = new CommandArgs<byte[], byte[]>(CODEC);
 
+			validateCommandIfRunningInTransactionMode(cmd, args);
+
+			CommandArgs<byte[], byte[]> cmdArg = new CommandArgs<byte[], byte[]>(CODEC);
 			if (!ObjectUtils.isEmpty(args)) {
 				cmdArg.addKeys(args);
 			}
 
 			CommandOutput expectedOutput = commandOutputTypeHint != null ? commandOutputTypeHint : typeHints.getTypeHint(cmd);
 			if (isPipelined()) {
+
 				pipeline(new LettuceResult(getAsyncConnection().dispatch(cmd, expectedOutput, cmdArg)));
 				return null;
 			} else if (isQueueing()) {
-				transaction(new LettuceResult(getAsyncConnection().dispatch(cmd, expectedOutput, cmdArg)));
+
+				transaction(new LettuceTxResult(getAsyncConnection().dispatch(cmd, expectedOutput, cmdArg)));
 				return null;
 			} else {
 				return await(getAsyncConnection().dispatch(cmd, expectedOutput, cmdArg));
@@ -3166,6 +3171,25 @@ public class LettuceConnection implements RedisConnection {
 		}
 		args.weights(lg);
 		return args;
+	}
+
+	private void validateCommandIfRunningInTransactionMode(CommandType cmd, byte[]... args) {
+
+		if (this.isQueueing()) {
+			validateCommand(cmd, args);
+		}
+	}
+
+	private void validateCommand(CommandType cmd, byte[]... args) {
+
+		RedisCommand redisCommand = RedisCommand.failsafeCommandLookup(cmd.name());
+		if (!RedisCommand.UNKNOWN.equals(redisCommand) && redisCommand.requiresArguments()) {
+			try {
+				redisCommand.validateArgumentCount(args != null ? args.length : 0);
+			} catch (IllegalArgumentException e) {
+				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command.", cmd), e);
+			}
+		}
 	}
 
 	/**

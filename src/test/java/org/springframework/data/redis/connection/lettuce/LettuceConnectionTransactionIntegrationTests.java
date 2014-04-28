@@ -19,7 +19,6 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
@@ -39,10 +38,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
-
-	@Test
-	@Ignore("DATAREDIS-226 Exceptions on native execute are swallowed in tx")
-	public void exceptionExecuteNative() throws Exception {}
 
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6")

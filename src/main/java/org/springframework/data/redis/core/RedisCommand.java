@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @see Redis command list:
  *      https://github.com/antirez/redis/blob/93e7a130fc9594e41ccfc996b5eca7626ae5356a/src/redis.c#L119
  */
-enum RedisCommand {
+public enum RedisCommand {
 	// -- A
 	APPEND("rw", 2, 2), //
 	AUTH("rw", 1, 1), //
