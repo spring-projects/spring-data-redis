@@ -1,9 +1,10 @@
 SPRING DATA REDIS CHANGELOG
-===========================
+---------------------------
 http://projects.spring.io/spring-data-redis/
 
 Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[version]
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
+===========================
 
 Changes in version 1.3.0.M1 (2014-03-31)
 ----------------------------------------
@@ -27,7 +28,7 @@ Task
   [DATAREDIS-261] - Upgrade commons-pool to commons-pool2.
   [DATAREDIS-275] - Rename RedisServerCommands.bgWriteAof to bgReWriteAof.
   [DATAREDIS-292] - Release 1.3.0 M1.
-  
+
 Changes in version 1.2.1.GA (2014-03-27)
 ----------------------------------------
 Fix
@@ -43,7 +44,7 @@ Changes in version 1.2.0.GA (2014-03-03)
 Task
   [DATAREDIS-279] - Update reference documentation.
   [DATAREDIS-282] - PubSubResubscribeTests should use jedis without pool.
-  
+
 
 Changes in version 1.2.0.RC1 (2014-02-19)
 ----------------------------------------
