@@ -42,10 +42,15 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
@@ -58,6 +63,7 @@ import redis.clients.jedis.Protocol;
 import redis.clients.jedis.Protocol.Command;
 import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
+import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
@@ -2898,6 +2904,38 @@ public class JedisConnection implements RedisConnection {
 		} catch (Exception e) {
 			throw convertJedisAccessException(e);
 		}
+	}
+
+	public Cursor<String> scan() {
+		return scan(0, ScanOptions.NONE);
+	}
+
+	public Cursor<String> scan(long cursorId, ScanOptions options) {
+
+		return new ScanCursor<String>(cursorId, options) {
+
+			@Override
+			protected ScanIteration<String> doScan(long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				ScanParams sp = new ScanParams();
+				if (!options.equals(ScanOptions.NONE)) {
+					if (options.getCount() != null) {
+						sp.count(options.getCount().intValue());
+					}
+					if (StringUtils.hasText(options.getPattern())) {
+						sp.match(options.getPattern());
+					}
+				}
+
+				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), sp);
+				return new ScanIteration<String>(Long.valueOf(result.getStringCursor()), result.getResult());
+			}
+		};
+
 	}
 
 	/**
