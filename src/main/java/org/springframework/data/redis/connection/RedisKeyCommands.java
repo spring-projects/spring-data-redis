@@ -18,6 +18,9 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+
 /**
  * Key-specific commands supported by Redis.
  * 
@@ -61,6 +64,17 @@ public interface RedisKeyCommands {
 	 * @return
 	 */
 	Set<byte[]> keys(byte[] pattern);
+
+	/**
+	 * Use a {@link Cursor} to iterate over keys. <br />
+	 * 
+	 * @see http://redis.io/commands/scan
+	 * @param count
+	 * @param pattern
+	 * @return
+	 * @since 1.4
+	 */
+	Cursor<byte[]> scan(ScanOptions options);
 
 	/**
 	 * Return a random key from the keyspace.
