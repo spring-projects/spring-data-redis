@@ -32,6 +32,8 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -2213,6 +2215,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@Override
 	public void slaveOfNoOne() {
 		this.delegate.slaveOfNoOne();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> scan(ScanOptions options) {
+		return this.delegate.scan(options);
 	}
 
 	/**

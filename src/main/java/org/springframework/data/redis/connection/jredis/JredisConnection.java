@@ -43,6 +43,8 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -1235,5 +1237,14 @@ public class JredisConnection implements RedisConnection {
 		} catch (Exception e) {
 			throw convertJredisAccessException(e);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> scan(ScanOptions options) {
+		throw new UnsupportedOperationException("'SCAN' command is not supported for jredis.");
 	}
 }

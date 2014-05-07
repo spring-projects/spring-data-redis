@@ -41,6 +41,7 @@ import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.internal.AssumptionViolatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
@@ -53,6 +54,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -1911,6 +1914,38 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		RedisClientInfo info = (RedisClientInfo) firstEntry.get(0);
 		assertThat(info.getDatabaseId(), is(notNullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-290
+	 */
+	@Test
+	public void scanShouldReadEntireValueRange() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("SCAN is only available for jedis and lettuce");
+		}
+
+		if (connection.isPipelined() || connection.isQueueing()) {
+			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode.");
+		}
+
+		connection.set("spring", "data");
+
+		int itemCount = 22;
+		for (int i = 0; i < itemCount; i++) {
+			connection.set(("key_" + i), ("foo_" + i));
+		}
+
+		Cursor<byte[]> cursor = connection.scan(ScanOptions.count(20).match("ke*").build());
+
+		int i = 0;
+		while (cursor.hasNext()) {
+			cursor.next();
+			i++;
+		}
+
+		assertThat(i, is(itemCount));
 	}
 
 	protected void verifyResults(List<Object> expected) {

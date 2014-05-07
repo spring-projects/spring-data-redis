@@ -2906,16 +2906,24 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
-	public Cursor<String> scan() {
-		return scan(0, ScanOptions.NONE);
+	public Cursor<byte[]> scan() {
+		return scan(ScanOptions.NONE);
 	}
 
-	public Cursor<String> scan(long cursorId, ScanOptions options) {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	public Cursor<byte[]> scan(ScanOptions options) {
+		return scan(0, options != null ? options : ScanOptions.NONE);
+	}
 
-		return new ScanCursor<String>(cursorId, options) {
+	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
+
+		return new ScanCursor<byte[]>(cursorId, options) {
 
 			@Override
-			protected ScanIteration<String> doScan(long cursorId, ScanOptions options) {
+			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
@@ -2932,7 +2940,8 @@ public class JedisConnection implements RedisConnection {
 				}
 
 				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), sp);
-				return new ScanIteration<String>(Long.valueOf(result.getStringCursor()), result.getResult());
+				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
+						.convert(result.getResult()));
 			}
 		}.init();
 

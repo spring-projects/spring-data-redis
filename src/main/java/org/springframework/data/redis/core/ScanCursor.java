@@ -30,7 +30,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Christoph Strobl
  * @param <T>
- * @since 1.3
+ * @since 1.4
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 

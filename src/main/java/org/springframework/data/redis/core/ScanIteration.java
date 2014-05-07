@@ -24,7 +24,7 @@ import java.util.List;
  * command.
  * 
  * @author Christoph Strobl
- * @since 1.3
+ * @since 1.4
  */
 public class ScanIteration<T> {
 

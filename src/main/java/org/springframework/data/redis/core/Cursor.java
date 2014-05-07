@@ -21,7 +21,7 @@ import java.util.Iterator;
 /**
  * @author Christoph Strobl
  * @param <T>
- * @since 1.3
+ * @since 1.4
  */
 public interface Cursor<T> extends Iterator<T>, Closeable {
 

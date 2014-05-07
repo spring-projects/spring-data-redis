@@ -42,8 +42,6 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -369,28 +367,4 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				millis, ttl, millis - ttl), millis - ttl < 20L);
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
-	public void scanShouldReadEntireValueRange() {
-
-		connection.set("spring", "data");
-
-		int itemCount = 22;
-		for (int i = 0; i < itemCount; i++) {
-			connection.set(("key_" + i), ("foo_" + i));
-		}
-
-		JedisConnection jedisConnection = (JedisConnection) byteConnection;
-		Cursor<String> cursor = jedisConnection.scan(0, ScanOptions.count(20).match("ke*").build());
-
-		int i = 0;
-		while (cursor.hasNext()) {
-			cursor.next();
-			i++;
-		}
-
-		assertThat(i, is(itemCount));
-	}
 }

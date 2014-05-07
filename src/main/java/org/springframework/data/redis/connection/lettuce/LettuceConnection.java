@@ -3036,6 +3036,14 @@ public class LettuceConnection implements RedisConnection {
 		return scan(0, ScanOptions.NONE);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#scan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	public Cursor<byte[]> scan(ScanOptions options) {
+		return scan(0, options != null ? options : ScanOptions.NONE);
+	}
+
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
 
 		return new ScanCursor<byte[]>(cursorId, options) {
