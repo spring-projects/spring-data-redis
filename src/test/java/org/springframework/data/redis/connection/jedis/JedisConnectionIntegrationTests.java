@@ -373,18 +373,23 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	 * @see DATAREDIS-290
 	 */
 	@Test
-	public void justASimpleTestToCheckWithRedisCliAndConsoleOutputWhichSouldBeDeletedOnceDone() {
+	public void scanShouldReadEntireValueRange() {
 
 		connection.set("spring", "data");
-		for (int i = 0; i < 22; i++) {
+
+		int itemCount = 22;
+		for (int i = 0; i < itemCount; i++) {
 			connection.set(("key_" + i), ("foo_" + i));
 		}
 
 		JedisConnection jedisConnection = (JedisConnection) byteConnection;
 		Cursor<String> cursor = jedisConnection.scan(0, ScanOptions.count(20).match("ke*").build());
+
+		int i = 0;
 		while (cursor.hasNext()) {
-			System.out.println(cursor.next());
+			i++;
 		}
 
+		assertThat(i, is(itemCount));
 	}
 }

@@ -18,12 +18,15 @@ package org.springframework.data.redis.core;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.util.CollectionUtils;
 
 /**
  * Redis client agnostic {@link Cursor} implementation continuously loading additional results from Redis server until
- * reaching its starting point {@code zero}.
+ * reaching its starting point {@code zero}. <br />
+ * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #init()} prior to usage.
  * 
  * @author Christoph Strobl
  * @param <T>
@@ -31,6 +34,8 @@ import org.springframework.util.CollectionUtils;
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 
+	private boolean initialized = false;
+	private boolean finished = false;
 	private int currentIndex = 0;
 	private long cursorId;
 	private List<T> items = new ArrayList<T>();
@@ -70,10 +75,14 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	public ScanCursor(long cursorId, ScanOptions options) {
 
 		this.scanOptions = options != null ? options : ScanOptions.NONE;
-		scan(cursorId);
+		this.cursorId = cursorId;
 	}
 
 	private void scan(long cursorId) {
+
+		if (!initialized) {
+			initialized = true;
+		}
 
 		ScanIteration<T> result = doScan(cursorId, this.scanOptions);
 		processScanResult(result);
@@ -89,11 +98,27 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 */
 	protected abstract ScanIteration<T> doScan(long cursorId, ScanOptions options);
 
+	/**
+	 * Initialize the {@link Cursor} prior to usage.
+	 */
+	public ScanCursor<T> init() {
+		if (!initialized) {
+			scan(cursorId);
+		}
+		return this;
+	}
+
 	private void processScanResult(ScanIteration<T> result) {
+
+		if (result == null) {
+
+			finished = true;
+			return;
+		}
 
 		cursorId = Long.valueOf(result.getCursorId());
 		if (cursorId == 0) {
-			cursorId = -1;
+			this.finished = true;
 		}
 
 		if (!CollectionUtils.isEmpty(result.getItems())) {
@@ -117,6 +142,8 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public boolean hasNext() {
 
+		verifyProperInitialization();
+
 		if (currentIndex < items.size()) {
 			return true;
 		}
@@ -126,6 +153,12 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		return false;
 	}
 
+	private void verifyProperInitialization() {
+		if (!initialized) {
+			throw new InvalidDataAccessApiUsageException("Cursor not properly initialized. Did you forget to call init().");
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see java.util.Iterator#next()
@@ -133,8 +166,14 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public T next() {
 
-		if (cursorId > -1 && (currentIndex + 1 > items.size())) {
+		verifyProperInitialization();
+
+		if (!finished && (currentIndex + 1 > items.size())) {
 			scan(cursorId);
+		}
+
+		if (currentIndex + 1 > items.size()) {
+			throw new NoSuchElementException("No more elements available for cursor " + this.cursorId + ".");
 		}
 
 		return items.get(currentIndex++);

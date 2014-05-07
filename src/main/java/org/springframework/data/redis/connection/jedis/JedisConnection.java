@@ -2934,7 +2934,7 @@ public class JedisConnection implements RedisConnection {
 				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), sp);
 				return new ScanIteration<String>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
-		};
+		}.init();
 
 	}
 
