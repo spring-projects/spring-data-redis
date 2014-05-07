@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -39,6 +40,8 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -296,5 +299,30 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				(Iterable<byte[]>)connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
+	}
+
+	/**
+	 * @see DATAREDIS-290
+	 */
+	@Test
+	public void scanShouldReadEntireValueRange() {
+
+		connection.set("spring", "data");
+
+		int itemCount = 22;
+		for (int i = 0; i < itemCount; i++) {
+			connection.set(("key_" + i), ("foo_" + i));
+		}
+
+		LettuceConnection jedisConnection = (LettuceConnection) byteConnection;
+		Cursor<byte[]> cursor = jedisConnection.scan(0, ScanOptions.count(20).match("ke*").build());
+
+		int i = 0;
+		while (cursor.hasNext()) {
+			cursor.next();
+			i++;
+		}
+
+		assertThat(i, is(itemCount));
 	}
 }

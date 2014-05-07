@@ -387,6 +387,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		int i = 0;
 		while (cursor.hasNext()) {
+			cursor.next();
 			i++;
 		}
 
