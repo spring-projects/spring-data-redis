@@ -25,13 +25,13 @@ import java.util.List;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.hamcrest.core.IsInstanceOf;
+import org.hamcrest.core.IsCollectionContaining;
 import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
 import org.jredis.ri.alphazero.protocol.SyncProtocol.SyncMultiBulkResponse;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;

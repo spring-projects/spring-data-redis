@@ -15,14 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.either;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
-import static org.junit.matchers.JUnitMatchers.hasItem;
-import static org.junit.matchers.JUnitMatchers.hasItems;
-import static org.junit.matchers.JUnitMatchers.either;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Collection;
@@ -31,6 +31,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.core.CombinableMatcher;
+import org.hamcrest.core.CombinableMatcher.CombinableEitherMatcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -115,7 +118,8 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
 		assertEquals(2, members.size());
-		assertThat(members, either(hasItem(v1)).or(hasItem(v2)));
+		
+		assertThat(members, CoreMatchers.<Iterable<? super V>>either(hasItem(v1)).or(hasItem(v2)));
 	}
 
 	@Test

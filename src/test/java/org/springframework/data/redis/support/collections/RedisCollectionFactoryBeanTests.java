@@ -115,15 +115,15 @@ public class RedisCollectionFactoryBeanTests {
 
 		template.boundSetOps(key).add(val);
 		RedisStore col = createCollection(key);
-		assertThat(col, is(DefaultRedisSet.class));
+		assertThat(col, instanceOf(DefaultRedisSet.class));
 
 		key = "map";
 		template.boundHashOps(key).put(val, val);
 		col = createCollection(key);
-		assertThat(col, is(DefaultRedisMap.class));
+		assertThat(col, instanceOf(DefaultRedisMap.class));
 
 		col = createCollection(key, CollectionType.PROPERTIES);
-		assertThat(col, is(RedisProperties.class));
+		assertThat(col, instanceOf(RedisProperties.class));
 
 	}
 }

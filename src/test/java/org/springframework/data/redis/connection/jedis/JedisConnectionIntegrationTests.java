@@ -27,10 +27,10 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.core.AllOf;
+import org.hamcrest.core.IsCollectionContaining;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.internal.matchers.IsCollectionContaining;
 import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
@@ -331,7 +331,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.set("redis", "supercalifragilisticexpialidocious");
 
 		assertThat(
-				connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
+				(Iterable<byte[]>)connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
