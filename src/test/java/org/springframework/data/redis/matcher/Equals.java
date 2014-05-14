@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.matcher;
 
+import static org.hamcrest.CoreMatchers.hasItems;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,7 +29,6 @@ import java.util.Set;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.junit.matchers.JUnitMatchers.hasItems;
 
 /**
  * Custom JUnit {@link Matcher} that exists to properly compare byte arrays, either as individual results or members of
