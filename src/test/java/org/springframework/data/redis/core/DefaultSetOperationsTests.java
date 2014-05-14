@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.matchers.JUnitMatchers.hasItem;
-import static org.junit.matchers.JUnitMatchers.hasItems;
-import static org.junit.matchers.JUnitMatchers.either;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.core.IsCollectionContaining.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.core.IsCollectionContaining;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -115,7 +112,8 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
 		assertEquals(2, members.size());
-		assertThat(members, either(hasItem(v1)).or(hasItem(v2)));
+		assertThat(members,
+				CoreMatchers.either(IsCollectionContaining.<V> hasItem(v1)).or(IsCollectionContaining.<V> hasItem(v2)));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.matchers.JUnitMatchers.hasItem;
-import static org.junit.matchers.JUnitMatchers.hasItems;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.core.IsCollectionContaining.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +102,6 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		list.add(1, t3);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void addAllIndexCollectionHead() {
 		T t1 = getT();
@@ -127,7 +121,6 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertThat(list.get(1), isEqual(t4));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void addAllIndexCollectionTail() {
 		T t1 = getT();
@@ -148,7 +141,6 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 		assertThat(list.get(3), isEqual(t4));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test(expected = IllegalArgumentException.class)
 	public void addAllIndexCollectionMiddle() {
 		T t1 = getT();
