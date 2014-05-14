@@ -18,6 +18,7 @@ package org.springframework.data.redis.support.collections;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -115,15 +116,15 @@ public class RedisCollectionFactoryBeanTests {
 
 		template.boundSetOps(key).add(val);
 		RedisStore col = createCollection(key);
-		assertThat(col, is(DefaultRedisSet.class));
+		assertThat(col, instanceOf(DefaultRedisSet.class));
 
 		key = "map";
 		template.boundHashOps(key).put(val, val);
 		col = createCollection(key);
-		assertThat(col, is(DefaultRedisMap.class));
+		assertThat(col, instanceOf(DefaultRedisMap.class));
 
 		col = createCollection(key, CollectionType.PROPERTIES);
-		assertThat(col, is(RedisProperties.class));
+		assertThat(col, instanceOf(RedisProperties.class));
 
 	}
 }
