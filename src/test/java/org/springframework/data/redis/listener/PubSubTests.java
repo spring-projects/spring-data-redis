@@ -15,11 +15,11 @@
  */
 package org.springframework.data.redis.listener;
 
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeTrue;
-import static org.junit.matchers.JUnitMatchers.hasItems;
 
 import java.util.Arrays;
 import java.util.Collection;

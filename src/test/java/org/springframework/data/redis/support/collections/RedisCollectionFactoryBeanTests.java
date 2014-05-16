@@ -18,7 +18,6 @@ package org.springframework.data.redis.support.collections;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
