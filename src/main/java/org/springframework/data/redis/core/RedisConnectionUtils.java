@@ -148,7 +148,7 @@ public abstract class RedisConnectionUtils {
 	}
 
 	private static void potentiallyRegisterTransactionSynchronisation(final RedisConnectionHolder connHolder,
-			RedisConnectionFactory factory) {
+			final RedisConnectionFactory factory) {
 
 		if (isActualNonReadonlyTransactionActive()) {
 
@@ -162,19 +162,26 @@ public abstract class RedisConnectionUtils {
 					@Override
 					public void afterCompletion(int status) {
 
-						switch (status) {
+						try {
+							switch (status) {
 
-							case TransactionSynchronization.STATUS_COMMITTED:
-								connection.exec();
-								break;
+								case TransactionSynchronization.STATUS_COMMITTED:
+									connection.exec();
+									break;
 
-							case TransactionSynchronization.STATUS_ROLLED_BACK:
-							case TransactionSynchronization.STATUS_UNKNOWN:
-							default:
-								connection.discard();
+								case TransactionSynchronization.STATUS_ROLLED_BACK:
+								case TransactionSynchronization.STATUS_UNKNOWN:
+								default:
+									connection.discard();
+							}
+						} finally {
+
+							if (log.isDebugEnabled()) {
+								log.debug("Closing bound connection after transaction completed with " + status);
+							}
+							connHolder.setTransactionSyncronisationActive(false);
+							connection.close();
 						}
-
-						connHolder.setTransactionSyncronisationActive(false);
 					}
 				});
 			}
@@ -202,9 +209,20 @@ public abstract class RedisConnectionUtils {
 	 * @param factory the Redis factory that the connection was created with
 	 */
 	public static void releaseConnection(RedisConnection conn, RedisConnectionFactory factory) {
+
 		if (conn == null) {
 			return;
 		}
+
+		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager.getResource(factory);
+
+		if (connHolder != null && connHolder.isTransactionSyncronisationActive()) {
+			if (log.isDebugEnabled()) {
+				log.debug("Redis Connection will be closed when transaction finished.");
+			}
+			return;
+		}
+
 		// Only release non-transactional/non-bound connections.
 		if (!isConnectionTransactional(conn, factory)) {
 			if (log.isDebugEnabled()) {
@@ -220,12 +238,24 @@ public abstract class RedisConnectionUtils {
 	 * @param factory Redis factory
 	 */
 	public static void unbindConnection(RedisConnectionFactory factory) {
+
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager
 				.unbindResourceIfPossible(factory);
+
 		if (connHolder != null) {
-			RedisConnection connection = connHolder.getConnection();
-			connection.close();
+			if (connHolder.isTransactionSyncronisationActive()) {
+				if (log.isDebugEnabled()) {
+					log.debug("Redis Connection will be closed when outer transaction finished.");
+				}
+			} else {
+				if (log.isDebugEnabled()) {
+					log.debug("Closing bound connection.");
+				}
+				RedisConnection connection = connHolder.getConnection();
+				connection.close();
+			}
 		}
+
 	}
 
 	/**
@@ -242,6 +272,7 @@ public abstract class RedisConnectionUtils {
 		}
 		RedisConnectionHolder connHolder = (RedisConnectionHolder) TransactionSynchronizationManager
 				.getResource(connFactory);
+
 		return (connHolder != null && conn == connHolder.getConnection());
 	}
 
