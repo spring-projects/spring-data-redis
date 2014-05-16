@@ -169,7 +169,13 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		RedisConnectionFactory factory = getConnectionFactory();
 		RedisConnection conn = null;
 		try {
-			conn = RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
+
+			if (enableTransactionSupport) {
+				// only bind resources in case of potential transaction synchronization
+				conn = RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
+			} else {
+				conn = RedisConnectionUtils.getConnection(factory);
+			}
 
 			boolean existingConnection = TransactionSynchronizationManager.hasResource(factory);
 
@@ -191,7 +197,12 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			// TODO: any other connection processing?
 			return postProcessResult(result, connToUse, existingConnection);
 		} finally {
-			RedisConnectionUtils.releaseConnection(conn, factory);
+
+			if (enableTransactionSupport) {
+				RedisConnectionUtils.unbindConnection(factory);
+			} else {
+				RedisConnectionUtils.releaseConnection(conn, factory);
+			}
 		}
 	}
 
