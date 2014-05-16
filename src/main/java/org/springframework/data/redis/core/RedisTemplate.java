@@ -171,7 +171,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		try {
 
 			if (enableTransactionSupport) {
-				// only bind resources in case of potential transacttion synchronisation
+				// only bind resources in case of potential transaction synchronization
 				conn = RedisConnectionUtils.bindConnection(factory, enableTransactionSupport);
 			} else {
 				conn = RedisConnectionUtils.getConnection(factory);

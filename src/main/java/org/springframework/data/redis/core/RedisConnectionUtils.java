@@ -147,43 +147,18 @@ public abstract class RedisConnectionUtils {
 		return conn;
 	}
 
-	private static void potentiallyRegisterTransactionSynchronisation(final RedisConnectionHolder connHolder,
+	private static void potentiallyRegisterTransactionSynchronisation(RedisConnectionHolder connHolder,
 			final RedisConnectionFactory factory) {
 
 		if (isActualNonReadonlyTransactionActive()) {
 
-			final RedisConnection connection = connHolder.getConnection();
-
 			if (!connHolder.isTransactionSyncronisationActive()) {
 				connHolder.setTransactionSyncronisationActive(true);
-				connection.multi();
+				
+				RedisConnection conn = connHolder.getConnection();
+				conn.multi();
 
-				TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-					@Override
-					public void afterCompletion(int status) {
-
-						try {
-							switch (status) {
-
-								case TransactionSynchronization.STATUS_COMMITTED:
-									connection.exec();
-									break;
-
-								case TransactionSynchronization.STATUS_ROLLED_BACK:
-								case TransactionSynchronization.STATUS_UNKNOWN:
-								default:
-									connection.discard();
-							}
-						} finally {
-
-							if (log.isDebugEnabled()) {
-								log.debug("Closing bound connection after transaction completed with " + status);
-							}
-							connHolder.setTransactionSyncronisationActive(false);
-							connection.close();
-						}
-					}
-				});
+				TransactionSynchronizationManager.registerSynchronization(new RedisTransactionSynchronizer(connHolder, conn));
 			}
 		}
 	}
@@ -274,6 +249,56 @@ public abstract class RedisConnectionUtils {
 				.getResource(connFactory);
 
 		return (connHolder != null && conn == connHolder.getConnection());
+	}
+
+	/**
+	 * A {@link TransactionSynchronizationAdapter} that makes sure that the associated RedisConnection is released after the transaction completes.
+	 * 
+	 * @author Christoph Strobl
+	 * @author Thomas Darimont
+	 */
+	private static class RedisTransactionSynchronizer extends TransactionSynchronizationAdapter {
+		
+		private final RedisConnectionHolder connHolder;
+		private final RedisConnection connection;
+
+		/**
+		 * Creates a new {@link RedisTransactionSynchronizer}.
+		 * 
+		 * @param connHolder
+		 * @param connection
+		 */
+		private RedisTransactionSynchronizer(RedisConnectionHolder connHolder, RedisConnection connection) {
+			
+			this.connHolder = connHolder;
+			this.connection = connection;
+		}
+
+		@Override
+		public void afterCompletion(int status) {
+
+			try {
+				switch (status) {
+
+					case TransactionSynchronization.STATUS_COMMITTED:
+						connection.exec();
+						break;
+
+					case TransactionSynchronization.STATUS_ROLLED_BACK:
+					case TransactionSynchronization.STATUS_UNKNOWN:
+					default:
+						connection.discard();
+				}
+			} finally {
+
+				if (log.isDebugEnabled()) {
+					log.debug("Closing bound connection after transaction completed with " + status);
+				}
+				
+				connHolder.setTransactionSyncronisationActive(false);
+				connection.close();
+			}
+		}
 	}
 
 	/**
