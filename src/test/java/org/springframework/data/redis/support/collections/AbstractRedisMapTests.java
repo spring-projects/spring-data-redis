@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,10 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.matchers.JUnitMatchers.hasItem;
-import static org.junit.matchers.JUnitMatchers.hasItems;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -38,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.hamcrest.core.IsCollectionContaining;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -388,9 +381,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 		assertEquals(2, keys.size());
 
-		assertThat(keys, hasItems(k1, k2));
-		assertThat(values, hasItem(v1));
-		assertThat(values, not(hasItem(v2)));
+		assertThat(keys, IsCollectionContaining.<K> hasItems(k1, k2));
+		assertThat(values, IsCollectionContaining.<V> hasItem(v1));
+		assertThat(values, not(IsCollectionContaining.<V> hasItem(v2)));
 	}
 
 	@Test

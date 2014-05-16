@@ -17,7 +17,6 @@ package org.springframework.data.redis.support.collections;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.junit.matchers.JUnitMatchers.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.ArrayList;

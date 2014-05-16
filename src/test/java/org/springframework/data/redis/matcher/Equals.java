@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.matcher;
 
+import static org.hamcrest.core.IsCollectionContaining.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,7 +29,6 @@ import java.util.Set;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.junit.matchers.JUnitMatchers.hasItems;
 
 /**
  * Custom JUnit {@link Matcher} that exists to properly compare byte arrays, either as individual results or members of
