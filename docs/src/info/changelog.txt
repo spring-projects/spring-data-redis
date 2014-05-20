@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.3.0.RELEASE (2014-05-20)
+---------------------------------------------
+* DATAREDIS-303 - Upgrade to Spring 3.2.9.
+* DATAREDIS-302 - DecoratingStringHashMapper breaks RetwisJ sample.
+* DATAREDIS-301 - Release 1.3 GA.
+* DATAREDIS-300 - RedisConnectionUtils: inconsistency with connection open() and close().
+* DATAREDIS-299 - Assert compatibility with Spring IO.
+
+
 Changes in version 1.3.0.RC1 (2014-05-02)
 -----------------------------------------
 * DATAREDIS-298 - Unneeded jcl-over-slf4j dependency.
