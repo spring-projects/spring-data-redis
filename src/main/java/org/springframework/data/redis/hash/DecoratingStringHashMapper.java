@@ -26,14 +26,16 @@ import java.util.Map;
  */
 public class DecoratingStringHashMapper<T> implements HashMapper<T, String, String> {
 
-	private final HashMapper<T, String, String> delegate;
+	private final HashMapper<T, ?, ?> delegate;
 
-	public DecoratingStringHashMapper(HashMapper<T, String, String> mapper) {
+	public DecoratingStringHashMapper(HashMapper<T, ?, ?> mapper) {
 		this.delegate = mapper;
 	}
 
-	public T fromHash(Map<String, String> hash) {
-		return delegate.fromHash(hash);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public T fromHash(Map hash) {
+		return (T) delegate.fromHash(hash);
 	}
 
 	public Map<String, String> toHash(T object) {
