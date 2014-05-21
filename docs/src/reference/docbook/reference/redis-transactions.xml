@@ -35,4 +35,55 @@ System.out.println("Number of items added to set: " + txResults.get(0));
 	often included raw byte arrays. If this change breaks your application, you can
 	set <literal>convertPipelineAndTxResults</literal> to false on your <interfacename>RedisConnectionFactory</interfacename> to disable this behavior.
 	</note>
+	<section id="tx.spring">
+		<title><interfacename>@Transactional</interfacename> Support</title>
+		<para>Transaction Support is disabled by default and has explicitly to be enabled for each <classname>RedisTemplate</classname> in use by setting <literal>setEnableTransactionSupport(true)</literal>.
+		This will force binding the <interfacename>RedisConnection</interfacename> in use to the current <classname>Thread</classname> triggering <literal>MULTI</literal>. If the transaction finishes without errors, <literal>EXEC</literal> is called, otherwise <literal>DISCARD</literal>. 
+		Once in <literal>MULTI</literal>, <classname>RedisConnection</classname> would queue write operations, all <literal>readonly</literal> operations, such as <literal>KEYS</literal> are piped to a fresh (non thread bound) <interfacename>RedisConnection</interfacename>.
+		</para>
+		<programlisting language="java"><![CDATA[ /** Sample Configuration **/
+@Configuration
+public class RedisTxContextConfiguration {
+
+	@Bean
+	public StringRedisTemplate redisTemplate() {
+
+		StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
+
+		// explicitly enable transaction support
+		template.setEnableTransactionSupport(true);
+		return template;
+	}
+
+
+	@Bean
+	public PlatformTransactionManager transactionManager() throws SQLException {
+		return new DataSourceTransactionManager(dataSource());
+	}
+
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory(
+		// jedis, lettuce, srp,...
+	);
+
+
+	@Bean
+	public DataSource dataSource() throws SQLException {
+		// ...
+	}
+}
+]]></programlisting>
+	<programlisting language="java"><![CDATA[ /** Usage Constrainsts **/
+	
+	// executed on thread bound connection
+	template.opsForValue().set("foo", "bar");
+	
+	// read operation executed on a free (not tx-aware) connection 
+	template.keys("*");
+	
+	// returns null as values set within transaction are not visible
+	template.opsForValue().get("foo");
+]]></programlisting>
+
+	</section>
 </section>
