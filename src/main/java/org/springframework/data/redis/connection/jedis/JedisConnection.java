@@ -2943,7 +2943,7 @@ public class JedisConnection implements RedisConnection {
 				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
 						.convert(result.getResult()));
 			}
-		}.init();
+		}.open();
 
 	}
 

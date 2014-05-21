@@ -16,8 +16,8 @@
 package org.springframework.data.redis.core;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -26,7 +26,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * Redis client agnostic {@link Cursor} implementation continuously loading additional results from Redis server until
  * reaching its starting point {@code zero}. <br />
- * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #init()} prior to usage.
+ * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #open()} prior to usage.
  * 
  * @author Christoph Strobl
  * @param <T>
@@ -34,12 +34,12 @@ import org.springframework.util.CollectionUtils;
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 
-	private boolean initialized = false;
 	private boolean finished = false;
-	private int currentIndex = 0;
+	private boolean closed = true;
 	private long cursorId;
-	private List<T> items = new ArrayList<T>();
+	private Iterator<T> delegate = Collections.emptyIterator();
 	private final ScanOptions scanOptions;
+	private long position = 0;
 
 	/**
 	 * Crates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
@@ -80,10 +80,6 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	private void scan(long cursorId) {
 
-		if (!initialized) {
-			initialized = true;
-		}
-
 		ScanIteration<T> result = doScan(cursorId, this.scanOptions);
 		processScanResult(result);
 	}
@@ -101,29 +97,48 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Initialize the {@link Cursor} prior to usage.
 	 */
-	public ScanCursor<T> init() {
-		if (!initialized) {
-			scan(cursorId);
+	public final ScanCursor<T> open() {
+
+		if (isClosed()) {
+			doOpen(cursorId);
+			closed = false;
 		}
 		return this;
+	}
+
+	/**
+	 * Customization hook when calling {@link #open()}.
+	 * 
+	 * @param cursorId
+	 */
+	protected void doOpen(long cursorId) {
+		scan(cursorId);
 	}
 
 	private void processScanResult(ScanIteration<T> result) {
 
 		if (result == null) {
 
+			resetDelegate();
 			finished = true;
 			return;
 		}
 
 		cursorId = Long.valueOf(result.getCursorId());
+
 		if (cursorId == 0) {
 			this.finished = true;
 		}
 
 		if (!CollectionUtils.isEmpty(result.getItems())) {
-			items.addAll(result.getItems());
+			delegate = result.iterator();
+		} else {
+			resetDelegate();
 		}
+	}
+
+	private void resetDelegate() {
+		delegate = Collections.emptyIterator();
 	}
 
 	/*
@@ -144,7 +159,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		verifyProperInitialization();
 
-		if (currentIndex < items.size()) {
+		if (delegate.hasNext()) {
 			return true;
 		}
 		if (cursorId > 0) {
@@ -154,8 +169,8 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	private void verifyProperInitialization() {
-		if (!initialized) {
-			throw new InvalidDataAccessApiUsageException("Cursor not properly initialized. Did you forget to call init().");
+		if (isClosed()) {
+			throw new InvalidDataAccessApiUsageException("Cannot access closed cursor. Did you forget to call open().");
 		}
 	}
 
@@ -168,15 +183,27 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		verifyProperInitialization();
 
-		if (!finished && (currentIndex + 1 > items.size())) {
+		if (!finished && !delegate.hasNext()) {
 			scan(cursorId);
 		}
 
-		if (currentIndex + 1 > items.size()) {
+		if (!delegate.hasNext()) {
 			throw new NoSuchElementException("No more elements available for cursor " + this.cursorId + ".");
 		}
 
-		return items.get(currentIndex++);
+		T next = doNext(delegate);
+		position++;
+		return next;
+	}
+
+	/**
+	 * Fetch the next item from the underlying {@link Iterable}.
+	 * 
+	 * @param source
+	 * @return
+	 */
+	protected T doNext(Iterator<T> source) {
+		return source.next();
 	}
 
 	/*
@@ -188,9 +215,39 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		throw new UnsupportedOperationException("Remove is not supported");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.io.Closeable#close()
+	 */
 	@Override
-	public void close() throws IOException {
-		// nothing to do
+	public final void close() throws IOException {
+
+		closed = true;
+		doClose();
 	}
 
+	/**
+	 * Customization hook for cleaning up resources on when calling {@link #close()}.
+	 */
+	protected void doClose() {
+		resetDelegate();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.Cursor#isClosed()
+	 */
+	@Override
+	public boolean isClosed() {
+		return closed;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.Cursor#getPosition()
+	 */
+	@Override
+	public long getPosition() {
+		return position;
+	}
 }

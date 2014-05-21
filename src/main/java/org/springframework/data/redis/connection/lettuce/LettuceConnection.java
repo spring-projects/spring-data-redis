@@ -3073,7 +3073,7 @@ public class LettuceConnection implements RedisConnection {
 
 				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((ArrayList<byte[]>) result.get(1)));
 			}
-		}.init();
+		}.open();
 
 	}
 

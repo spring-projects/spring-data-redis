@@ -33,4 +33,21 @@ public interface Cursor<T> extends Iterator<T>, Closeable {
 	 */
 	long getCursorId();
 
+	/**
+	 * @return Returns true if cursor closed.
+	 */
+	boolean isClosed();
+
+	/**
+	 * Opens cursor and returns itself.
+	 * 
+	 * @return
+	 */
+	Cursor<T> open();
+
+	/**
+	 * @return Returns the current position of the cursor.
+	 */
+	long getPosition();
+
 }

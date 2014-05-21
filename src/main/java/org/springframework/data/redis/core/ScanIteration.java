@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ import java.util.List;
  * @author Christoph Strobl
  * @since 1.4
  */
-public class ScanIteration<T> {
+public class ScanIteration<T> implements Iterable<T> {
 
 	private final long cursorId;
 	private final List<T> items;
@@ -57,6 +58,15 @@ public class ScanIteration<T> {
 	 */
 	public List<T> getItems() {
 		return items;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Iterable#iterator()
+	 */
+	@Override
+	public Iterator<T> iterator() {
+		return items.iterator();
 	}
 
 }
