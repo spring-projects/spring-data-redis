@@ -297,4 +297,5 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
+
 }

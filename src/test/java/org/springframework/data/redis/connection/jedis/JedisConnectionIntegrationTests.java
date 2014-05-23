@@ -366,4 +366,5 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertTrue(String.format("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s",
 				millis, ttl, millis - ttl), millis - ttl < 20L);
 	}
+
 }
