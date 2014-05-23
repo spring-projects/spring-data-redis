@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
+import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +56,6 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -1937,11 +1937,12 @@ public abstract class AbstractConnectionIntegrationTests {
 			connection.set(("key_" + i), ("foo_" + i));
 		}
 
-		Cursor<byte[]> cursor = connection.scan(ScanOptions.count(20).match("ke*").build());
+		Cursor<byte[]> cursor = connection.scan(scanOptions().count(20).match("ke*").build());
 
 		int i = 0;
 		while (cursor.hasNext()) {
-			cursor.next();
+			byte[] value = cursor.next();
+			assertThat(new String(value), not(containsString("spring")));
 			i++;
 		}
 

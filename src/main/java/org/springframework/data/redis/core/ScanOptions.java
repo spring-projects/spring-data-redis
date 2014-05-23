@@ -19,7 +19,8 @@ package org.springframework.data.redis.core;
  * Options to be used for with {@literal SCAN} command.
  * 
  * @author Christoph Strobl
- * @since 1.3
+ * @author Thomas Darimont
+ * @since 1.4
  */
 public class ScanOptions {
 
@@ -29,15 +30,15 @@ public class ScanOptions {
 	private String pattern;
 
 	private ScanOptions() {
-
 	}
 
-	public static ScanOptionsBuilder count(long count) {
-		return new ScanOptionsBuilder().count(count);
-	}
-
-	public static ScanOptionsBuilder match(String pattern) {
-		return new ScanOptionsBuilder().match(pattern);
+	/**
+	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
+	 *
+	 * @return
+	 */
+	public static ScanOptionsBuilder scanOptions(){
+		return new ScanOptionsBuilder();
 	}
 
 	public Long getCount() {
@@ -48,6 +49,10 @@ public class ScanOptions {
 		return pattern;
 	}
 
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.4
+	 */
 	public static class ScanOptionsBuilder {
 
 		ScanOptions options;
@@ -56,11 +61,23 @@ public class ScanOptions {
 			options = new ScanOptions();
 		}
 
+		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code count}.
+		 *
+		 * @param count
+		 * @return
+		 */
 		public ScanOptionsBuilder count(long count) {
 			options.count = count;
 			return this;
 		}
 
+		/**
+		 * Returns the current {@link ScanOptionsBuilder} configured with the given {@code pattern}.
+		 *
+		 * @param pattern
+		 * @return
+		 */
 		public ScanOptionsBuilder match(String pattern) {
 			options.pattern = pattern;
 			return this;

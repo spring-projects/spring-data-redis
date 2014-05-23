@@ -29,17 +29,17 @@ import org.springframework.util.CollectionUtils;
  * <strong>Note:</strong> Please note that the {@link ScanCursor} has to be initialized ({@link #open()} prior to usage.
  * 
  * @author Christoph Strobl
+ * @author Thomas Darimont
  * @param <T>
  * @since 1.4
  */
 public abstract class ScanCursor<T> implements Cursor<T> {
 
-	private boolean finished = false;
-	private boolean closed = true;
+	private CursorState state;
 	private long cursorId;
-	private Iterator<T> delegate = Collections.emptyIterator();
+	private Iterator<T> delegate;
 	private final ScanOptions scanOptions;
-	private long position = 0;
+	private long position;
 
 	/**
 	 * Crates new {@link ScanCursor} with {@code id=0} and {@link ScanOptions#NONE}
@@ -76,6 +76,8 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		this.scanOptions = options != null ? options : ScanOptions.NONE;
 		this.cursorId = cursorId;
+		this.state = CursorState.CLOSED;
+		this.delegate = Collections.emptyIterator();
 	}
 
 	private void scan(long cursorId) {
@@ -101,8 +103,9 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		if (isClosed()) {
 			doOpen(cursorId);
-			closed = false;
+			state = CursorState.OPEN;
 		}
+
 		return this;
 	}
 
@@ -120,14 +123,14 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		if (result == null) {
 
 			resetDelegate();
-			finished = true;
+			state = CursorState.FINISHED;
 			return;
 		}
 
 		cursorId = Long.valueOf(result.getCursorId());
 
 		if (cursorId == 0) {
-			this.finished = true;
+			state = CursorState.FINISHED;
 		}
 
 		if (!CollectionUtils.isEmpty(result.getItems())) {
@@ -147,7 +150,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 */
 	@Override
 	public long getCursorId() {
-		return this.cursorId;
+		return cursorId;
 	}
 
 	/*
@@ -157,20 +160,23 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public boolean hasNext() {
 
-		verifyProperInitialization();
+		assertCursorIsOpen();
 
 		if (delegate.hasNext()) {
 			return true;
 		}
+
 		if (cursorId > 0) {
 			return true;
 		}
+
 		return false;
 	}
 
-	private void verifyProperInitialization() {
+	private void assertCursorIsOpen() {
+
 		if (isClosed()) {
-			throw new InvalidDataAccessApiUsageException("Cannot access closed cursor. Did you forget to call open().");
+			throw new InvalidDataAccessApiUsageException("Cannot access closed cursor. Did you forget to call open()?");
 		}
 	}
 
@@ -181,18 +187,19 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public T next() {
 
-		verifyProperInitialization();
+		assertCursorIsOpen();
 
-		if (!finished && !delegate.hasNext()) {
+		if (state != CursorState.FINISHED && !delegate.hasNext()) {
 			scan(cursorId);
 		}
 
 		if (!delegate.hasNext()) {
-			throw new NoSuchElementException("No more elements available for cursor " + this.cursorId + ".");
+			throw new NoSuchElementException("No more elements available for cursor " + cursorId + ".");
 		}
 
-		T next = doNext(delegate);
+		T next = advance(delegate);
 		position++;
+
 		return next;
 	}
 
@@ -202,7 +209,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 * @param source
 	 * @return
 	 */
-	protected T doNext(Iterator<T> source) {
+	protected T advance(Iterator<T> source) {
 		return source.next();
 	}
 
@@ -222,8 +229,11 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public final void close() throws IOException {
 
-		closed = true;
-		doClose();
+		try {
+			doClose();
+		}finally {
+			state = CursorState.CLOSED;
+		}
 	}
 
 	/**
@@ -239,7 +249,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 */
 	@Override
 	public boolean isClosed() {
-		return closed;
+		return state == CursorState.CLOSED;
 	}
 
 	/*
@@ -249,5 +259,12 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public long getPosition() {
 		return position;
+	}
+
+	/**
+	 * @author Thomas Darimont
+	 */
+	enum CursorState{
+		OPEN, FINISHED, CLOSED;
 	}
 }
