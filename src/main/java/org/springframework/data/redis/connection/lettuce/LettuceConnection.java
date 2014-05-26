@@ -50,6 +50,7 @@ import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
@@ -3044,6 +3045,12 @@ public class LettuceConnection implements RedisConnection {
 		return scan(0, options != null ? options : ScanOptions.NONE);
 	}
 
+	/**
+	 * @since 1.4
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 */
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
 
 		return new ScanCursor<byte[]>(cursorId, options) {
@@ -3056,16 +3063,7 @@ public class LettuceConnection implements RedisConnection {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				String params = " ," + cursorId;
-				if (!options.equals(ScanOptions.NONE)) {
-					if (options.getCount() != null) {
-						params += (", 'count', " + options.getCount());
-					}
-					if (StringUtils.hasText(options.getPattern())) {
-						params += (", 'match' , '" + options.getPattern() + "'");
-					}
-				}
-
+				String params = " ," + cursorId + prepareScanParams(options);
 				String script = "return redis.call('SCAN'" + params + ")";
 
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
@@ -3075,6 +3073,60 @@ public class LettuceConnection implements RedisConnection {
 			}
 		}.open();
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
+		return sScan(key, 0, options);
+	}
+
+	/**
+	 * @since 1.4
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 */
+	public Cursor<byte[]> sScan(byte[] key, long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'SSCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
+						+ prepareScanParams(options);
+				String script = "return redis.call('SSCAN'" + params + ")";
+
+				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
+				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
+
+				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((ArrayList<byte[]>) result.get(1)));
+			}
+		}.open();
+	}
+
+	private String prepareScanParams(ScanOptions options) {
+
+		String params = "";
+		if (!options.equals(ScanOptions.NONE)) {
+			if (options.getCount() != null) {
+				params += (", 'count', " + options.getCount());
+			}
+			if (StringUtils.hasText(options.getPattern())) {
+				params += (", 'match' , '" + options.getPattern() + "'");
+			}
+		}
+		return params;
 	}
 
 	/**

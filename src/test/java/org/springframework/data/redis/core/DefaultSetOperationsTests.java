@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013 - 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,19 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.either;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.core.CombinableMatcher;
-import org.hamcrest.core.CombinableMatcher.CombinableEitherMatcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,11 +37,13 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link DefaultSetOperations}
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class DefaultSetOperationsTests<K, V> {
@@ -118,8 +114,8 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
 		assertEquals(2, members.size());
-		
-		assertThat(members, CoreMatchers.<Iterable<? super V>>either(hasItem(v1)).or(hasItem(v2)));
+
+		assertThat(members, CoreMatchers.<Iterable<? super V>> either(hasItem(v1)).or(hasItem(v2)));
 	}
 
 	@Test
@@ -197,5 +193,27 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(key, v1, v2, v3);
 		assertEquals(Long.valueOf(2), setOps.remove(key, v1, v2, v4));
 		assertThat(setOps.members(key), isEqual(Collections.singleton(v3)));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testSSCanReadsValuesFully() {
+
+		// TODO: remove this when upgrading to jedis v.2.4.3 as this guard to avoids key serialization
+		assumeThat(redisTemplate.getKeySerializer(), instanceOf(StringRedisSerializer.class));
+		K key = keyFactory.instance();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		setOps.add(key, v1, v2, v3);
+		Iterator<V> it = setOps.sScan(key, ScanOptions.scanOptions().count(1).build());
+		long count = 0;
+		while (it.hasNext()) {
+			assertThat(it.next(), anyOf(equalTo(v1), equalTo(v2), equalTo(v3)));
+			count++;
+		}
+		assertThat(count, is(setOps.size(key)));
+
 	}
 }

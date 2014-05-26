@@ -43,6 +43,7 @@ import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
@@ -2918,6 +2919,12 @@ public class JedisConnection implements RedisConnection {
 		return scan(0, options != null ? options : ScanOptions.NONE);
 	}
 
+	/**
+	 * @since 1.4
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 */
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
 
 		return new ScanCursor<byte[]>(cursorId, options) {
@@ -2929,22 +2936,65 @@ public class JedisConnection implements RedisConnection {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				ScanParams sp = new ScanParams();
-				if (!options.equals(ScanOptions.NONE)) {
-					if (options.getCount() != null) {
-						sp.count(options.getCount().intValue());
-					}
-					if (StringUtils.hasText(options.getPattern())) {
-						sp.match(options.getPattern());
-					}
+				ScanParams params = prepareScanParams(options);
+				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), params);
+				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
+						.convert(result.getResult()));
+			}
+
+		}.open();
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
+		return sScan(key, 0, options);
+	}
+
+	/**
+	 * @since 1.4
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 */
+	public Cursor<byte[]> sScan(byte[] key, long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
+
+			@Override
+			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'SSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), sp);
+				ScanParams params = prepareScanParams(options);
+
+				// TODO: use binary version of jedis.sscan (in v.2.4.3) to avoid potentially invalid representations.
+				redis.clients.jedis.ScanResult<String> result = jedis.sscan(JedisConverters.toString(key),
+						Long.toString(cursorId), params);
 				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
 						.convert(result.getResult()));
 			}
 		}.open();
+	}
 
+	private ScanParams prepareScanParams(ScanOptions options) {
+		ScanParams sp = new ScanParams();
+		if (!options.equals(ScanOptions.NONE)) {
+			if (options.getCount() != null) {
+				sp.count(options.getCount().intValue());
+			}
+			if (StringUtils.hasText(options.getPattern())) {
+				sp.match(options.getPattern());
+			}
+		}
+		return sp;
 	}
 
 	/**

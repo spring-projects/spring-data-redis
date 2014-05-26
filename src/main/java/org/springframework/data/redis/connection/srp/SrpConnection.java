@@ -2342,6 +2342,15 @@ public class SrpConnection implements RedisConnection {
 		throw new UnsupportedOperationException("'SCAN' command is not supported for Srp.");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
+		throw new UnsupportedOperationException("'SSCAN' command is not supported for Srp.");
+	}
+
 	private List<Object> closeTransaction() {
 		List<Object> results = Collections.emptyList();
 		if (txTracker != null) {

@@ -102,8 +102,8 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	public final ScanCursor<T> open() {
 
 		if (isClosed()) {
-			doOpen(cursorId);
 			state = CursorState.OPEN;
+			doOpen(cursorId);
 		}
 
 		return this;
@@ -162,6 +162,10 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
+		if (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
+			scan(cursorId);
+		}
+
 		if (delegate.hasNext()) {
 			return true;
 		}
@@ -189,11 +193,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
-		if (state != CursorState.FINISHED && !delegate.hasNext()) {
-			scan(cursorId);
-		}
-
-		if (!delegate.hasNext()) {
+		if (!hasNext()) {
 			throw new NoSuchElementException("No more elements available for cursor " + cursorId + ".");
 		}
 
@@ -231,7 +231,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		try {
 			doClose();
-		}finally {
+		} finally {
 			state = CursorState.CLOSED;
 		}
 	}
@@ -239,9 +239,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Customization hook for cleaning up resources on when calling {@link #close()}.
 	 */
-	protected void doClose() {
-		resetDelegate();
-	}
+	protected void doClose() {}
 
 	/*
 	 * (non-Javadoc)
@@ -264,7 +262,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * @author Thomas Darimont
 	 */
-	enum CursorState{
+	enum CursorState {
 		OPEN, FINISHED, CLOSED;
 	}
 }

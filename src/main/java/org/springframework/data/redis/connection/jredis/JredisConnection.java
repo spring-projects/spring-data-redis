@@ -1247,4 +1247,13 @@ public class JredisConnection implements RedisConnection {
 	public Cursor<byte[]> scan(ScanOptions options) {
 		throw new UnsupportedOperationException("'SCAN' command is not supported for jredis.");
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
+		throw new UnsupportedOperationException("'SSCAN' command is not uspported for jredis");
+	}
 }
