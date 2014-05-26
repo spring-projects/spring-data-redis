@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +27,7 @@ import org.springframework.data.redis.connection.DataType;
  * Default implementation for {@link BoundSetOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> implements BoundSetOperations<K, V> {
 
@@ -136,5 +138,14 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 
 	public DataType getType() {
 		return DataType.SET;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundSetOperations#sScan(org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Iterator<V> sScan(ScanOptions options) {
+		return ops.sScan(getKey(), options);
 	}
 }

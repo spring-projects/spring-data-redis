@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -316,4 +318,13 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @since 1.3
 	 */
 	List<RedisClientInfo> getClientList();
+
+	/**
+	 * @see RedisSetCommands#sScan(byte[], ScanOptions)
+	 * @param key
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	Cursor<String> sScan(String key, ScanOptions options);
 }

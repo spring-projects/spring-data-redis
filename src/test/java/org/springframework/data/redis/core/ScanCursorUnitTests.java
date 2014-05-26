@@ -111,7 +111,7 @@ public class ScanCursorUnitTests {
 
 		CapturingCursorDummy cursor = new CapturingCursorDummy(null);
 
-		assertThat(cursor.isClosed(), is(true));
+		assertThat(cursor.isClosed(), is(false));
 
 		exception.expect(InvalidDataAccessApiUsageException.class);
 		exception.expectMessage("closed cursor");
@@ -122,7 +122,7 @@ public class ScanCursorUnitTests {
 	/**
 	 * @see DATAREDIS-290
 	 */
-	@Test
+	@Test(expected = InvalidDataAccessApiUsageException.class)
 	public void repoeningCursorShouldHappenAtLastPosition() throws IOException {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -131,11 +131,8 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(0, "redis"));
 		Cursor<String> cursor = initCursor(values).open();
 
-		cursor.open();
-
 		assertThat(cursor.next(), is("spring"));
 		assertThat(cursor.getCursorId(), is(1L));
-		assertThat(cursor.hasNext(), is(true));
 
 		// close the cursor
 		cursor.close();
@@ -143,14 +140,6 @@ public class ScanCursorUnitTests {
 
 		// reopen cursor at last position
 		cursor.open();
-
-		assertThat(cursor.next(), is("data"));
-		assertThat(cursor.getCursorId(), is(2L));
-		assertThat(cursor.hasNext(), is(true));
-
-		assertThat(cursor.next(), is("redis"));
-		assertThat(cursor.getCursorId(), is(0L));
-		assertThat(cursor.hasNext(), is(false));
 	}
 
 	/**
@@ -163,9 +152,8 @@ public class ScanCursorUnitTests {
 		values.add(createIteration(1, "spring"));
 		values.add(createIteration(2, "data"));
 		values.add(createIteration(0, "redis"));
-		Cursor<String> cursor = initCursor(values).open();
+		Cursor<String> cursor = initCursor(values);
 
-		cursor.open();
 		assertThat(cursor.getPosition(), is(0L));
 
 		cursor.next();

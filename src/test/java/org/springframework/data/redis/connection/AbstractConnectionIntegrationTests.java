@@ -1950,6 +1950,35 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(itemCount));
 	}
 
+	/**
+	 * @see DATAREDIS-304
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8")
+	public void sScanShouldReadEntireValueRange() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("SCAN is only available for jedis and lettuce");
+		}
+
+		if (connection.isPipelined() || connection.isQueueing()) {
+			throw new AssumptionViolatedException("SCAN is only available in non pipeline | queue mode.");
+		}
+
+		connection.sAdd("sscankey", "bar");
+		connection.sAdd("sscankey", "foo-1", "foo-2", "foo-3", "foo-4", "foo-5", "foo-6");
+
+		Cursor<String> cursor = connection.sScan("sscankey", scanOptions().count(2).match("fo*").build());
+
+		int i = 0;
+		while (cursor.hasNext()) {
+			assertThat(cursor.next(), not(containsString("bar")));
+			i++;
+		}
+
+		assertThat(i, is(6));
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}

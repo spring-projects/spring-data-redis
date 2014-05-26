@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Default implementation of {@link SetOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 
@@ -243,5 +246,29 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 				return connection.sUnionStore(rawDestKey, rawKeys);
 			}
 		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.SetOperations#sScan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<V> sScan(K key, final ScanOptions options) {
+
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Cursor<V>>() {
+
+			@Override
+			public Cursor<V> doInRedis(RedisConnection connection) throws DataAccessException {
+				return new ConvertingCursor<byte[], V>(connection.sScan(rawKey, options), new Converter<byte[], V>() {
+
+					@Override
+					public V convert(byte[] source) {
+						return deserializeValue(source);
+					}
+				});
+			}
+		}, true);
+
 	}
 }

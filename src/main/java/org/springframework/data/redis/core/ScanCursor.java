@@ -76,7 +76,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		this.scanOptions = options != null ? options : ScanOptions.NONE;
 		this.cursorId = cursorId;
-		this.state = CursorState.CLOSED;
+		this.state = CursorState.READY;
 		this.delegate = Collections.emptyIterator();
 	}
 
@@ -101,10 +101,12 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	 */
 	public final ScanCursor<T> open() {
 
-		if (isClosed()) {
-			doOpen(cursorId);
-			state = CursorState.OPEN;
+		if (!isReady()) {
+			throw new InvalidDataAccessApiUsageException("Cursor already " + state + ". Cannot (re)open it.");
 		}
+
+		state = CursorState.OPEN;
+		doOpen(cursorId);
 
 		return this;
 	}
@@ -162,6 +164,10 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
+		if (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
+			scan(cursorId);
+		}
+
 		if (delegate.hasNext()) {
 			return true;
 		}
@@ -175,7 +181,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 	private void assertCursorIsOpen() {
 
-		if (isClosed()) {
+		if (isReady() || isClosed()) {
 			throw new InvalidDataAccessApiUsageException("Cannot access closed cursor. Did you forget to call open()?");
 		}
 	}
@@ -189,11 +195,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
-		if (state != CursorState.FINISHED && !delegate.hasNext()) {
-			scan(cursorId);
-		}
-
-		if (!delegate.hasNext()) {
+		if (!hasNext()) {
 			throw new NoSuchElementException("No more elements available for cursor " + cursorId + ".");
 		}
 
@@ -231,7 +233,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		try {
 			doClose();
-		}finally {
+		} finally {
 			state = CursorState.CLOSED;
 		}
 	}
@@ -239,9 +241,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * Customization hook for cleaning up resources on when calling {@link #close()}.
 	 */
-	protected void doClose() {
-		resetDelegate();
-	}
+	protected void doClose() {}
 
 	/*
 	 * (non-Javadoc)
@@ -250,6 +250,14 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	@Override
 	public boolean isClosed() {
 		return state == CursorState.CLOSED;
+	}
+
+	protected final boolean isReady() {
+		return state == CursorState.READY;
+	}
+
+	protected final boolean isOpen() {
+		return state == CursorState.OPEN;
 	}
 
 	/*
@@ -264,7 +272,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	/**
 	 * @author Thomas Darimont
 	 */
-	enum CursorState{
-		OPEN, FINISHED, CLOSED;
+	enum CursorState {
+		READY, OPEN, FINISHED, CLOSED;
 	}
 }

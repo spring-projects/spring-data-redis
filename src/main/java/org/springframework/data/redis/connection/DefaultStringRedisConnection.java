@@ -32,6 +32,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
+import org.springframework.data.redis.core.ConvertingCursor;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -2226,6 +2227,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return this.delegate.scan(options);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisSetCommands#scan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
+		return this.delegate.sScan(key, options);
+	}
+
 	/**
 	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
@@ -2299,4 +2309,23 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	public String getClientName() {
 		return this.delegate.getClientName();
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sScan(java.lang.String, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<String> sScan(String key, ScanOptions options) {
+
+		return new ConvertingCursor<byte[], String>(this.delegate.sScan(this.serialize(key), options),
+				new Converter<byte[], String>() {
+
+					@Override
+					public String convert(byte[] source) {
+						return serializer.deserialize(source);
+					}
+				});
+
+	}
+
 }
