@@ -42,9 +42,9 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -56,7 +56,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -127,37 +127,37 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();
 	}
@@ -331,7 +331,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		connection.set("redis", "supercalifragilisticexpialidocious");
 
 		assertThat(
-				(Iterable<byte[]>)connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
+				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}

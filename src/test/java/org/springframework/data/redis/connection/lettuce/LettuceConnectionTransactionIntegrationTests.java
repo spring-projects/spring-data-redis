@@ -24,9 +24,9 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Integration test of {@link LettuceConnection} functionality within a transaction
@@ -35,12 +35,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
 	}

@@ -79,7 +79,7 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptKill() {
 		// Impossible to call script kill in a tx because you can't issue the
 		// exec command while Redis is running a script

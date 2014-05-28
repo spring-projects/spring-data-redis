@@ -132,7 +132,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPExpire() {
 		connection.set("exp", "true");
 		actual.add(connection.pExpire("exp", 100));
@@ -141,14 +141,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPExpireKeyNotExists() {
 		actual.add(connection.pExpire("nonexistent", 100));
 		verifyResults(Arrays.asList(new Object[] { false }));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPExpireAt() {
 		connection.set("exp2", "true");
 		actual.add(connection.pExpireAt("exp2", System.currentTimeMillis() + 200));
@@ -157,14 +157,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPExpireAtKeyNotExists() {
 		actual.add(connection.pExpireAt("nonexistent", System.currentTimeMillis() + 200));
 		verifyResults(Arrays.asList(new Object[] { false }));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptLoadEvalSha() {
 		getResults();
 		String sha1 = connection.scriptLoad("return KEYS[1]");
@@ -175,7 +175,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayStrings() {
 		getResults();
 		String sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}");
@@ -188,21 +188,21 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
 		connection.evalSha("notasha", ReturnType.MULTI, 1, "key1", "arg1");
 		getResults();
 	}
 
 	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		connection.evalSha("somefakesha", ReturnType.VALUE, 2, "key1", "key2");
 		getResults();
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnString() {
 		actual.add(connection.eval("return KEYS[1]", ReturnType.VALUE, 1, "foo"));
 		byte[] result = (byte[]) getResults().get(0);
@@ -210,35 +210,35 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnNumber() {
 		actual.add(connection.eval("return 10", ReturnType.INTEGER, 0));
 		verifyResults(Arrays.asList(new Object[] { 10l }));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleOK() {
 		actual.add(connection.eval("return redis.call('set','abc','ghk')", ReturnType.STATUS, 0));
 		assertEquals(Arrays.asList(new Object[] { "OK" }), getResults());
 	}
 
 	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		connection.eval("return redis.call('expire','foo')", ReturnType.BOOLEAN, 0);
 		getResults();
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnFalse() {
 		actual.add(connection.eval("return false", ReturnType.BOOLEAN, 0));
 		verifyResults(Arrays.asList(new Object[] { false }));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnTrue() {
 		actual.add(connection.eval("return true", ReturnType.BOOLEAN, 0));
 		verifyResults(Arrays.asList(new Object[] { true }));
@@ -246,7 +246,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayStrings() {
 		actual.add(connection.eval("return {KEYS[1],ARGV[1]}", ReturnType.MULTI, 1, "foo", "bar"));
 		List<byte[]> result = (List<byte[]>) getResults().get(0);
@@ -255,14 +255,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayNumbers() {
 		actual.add(connection.eval("return {1,2}", ReturnType.MULTI, 1, "foo", "bar"));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 2l }) }));
 	}
 
 	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		// Syntax error
 		connection.eval("return {1,2", ReturnType.MULTI, 1, "foo", "bar");
@@ -271,7 +271,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayOKs() {
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",
 				ReturnType.MULTI, 0));
@@ -281,21 +281,21 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayFalses() {
 		actual.add(connection.eval("return { false, false}", ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { null, null }) }));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayTrues() {
 		actual.add(connection.eval("return { true, true}", ReturnType.MULTI, 0));
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1l, 1l }) }));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptExists() {
 		getResults();
 		String sha1 = connection.scriptLoad("return 'foo'");
@@ -334,7 +334,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptFlush() {
 		getResults();
 		String sha1 = connection.scriptLoad("return KEYS[1]");
@@ -429,7 +429,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitCount() {
 		String key = "bitset-test";
 		actual.add(connection.setBit(key, 0, false));
@@ -440,7 +440,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitCountInterval() {
 		connection.set("mykey", "foobar");
 		actual.add(connection.bitCount("mykey", 1, 1));
@@ -448,14 +448,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitCountNonExistentKey() {
 		actual.add(connection.bitCount("mykey"));
 		verifyResults(new ArrayList<Object>(Collections.singletonList(0l)));
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpAnd() {
 		connection.set("key1", "foo");
 		connection.set("key2", "bar");
@@ -465,7 +465,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpOr() {
 		connection.set("key1", "foo");
 		connection.set("key2", "ugh");
@@ -475,7 +475,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpXOr() {
 		connection.set("key1", "abcd");
 		connection.set("key2", "efgh");
@@ -484,7 +484,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpNot() {
 		connection.set("key1", "abcd");
 		actual.add(connection.bitOp(BitOperation.NOT, "key3", "key1"));
@@ -492,7 +492,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testBitOpNotMultipleSources() {
 		connection.set("key1", "abcd");
 		connection.set("key2", "efgh");
@@ -511,7 +511,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testInfoBySection() throws Exception {
 		actual.add(connection.info("server"));
 		List<Object> results = getResults();
@@ -907,7 +907,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtlNoExpire() {
 		connection.set("whatup", "yo");
 		actual.add(connection.pTtl("whatup"));
@@ -915,7 +915,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtl() {
 		connection.set("whatup", "yo");
 		actual.add(connection.pExpire("whatup", 9000l));
@@ -925,7 +925,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testDumpAndRestore() {
 		connection.set("testing", "12");
 		actual.add(connection.dump("testing".getBytes()));
@@ -939,14 +939,14 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testDumpNonExistentKey() {
 		actual.add(connection.dump("fakey".getBytes()));
 		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
 	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
 		// Use something other than dump-specific serialization
 		connection.restore("testing".getBytes(), 0, "foo".getBytes());
@@ -954,7 +954,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test(expected = RedisSystemException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
 		connection.set("testing", "12");
 		actual.add(connection.dump("testing".getBytes()));
@@ -965,7 +965,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreTtl() {
 		connection.set("testing", "12");
 		actual.add(connection.dump("testing".getBytes()));
@@ -1059,7 +1059,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testIncrByDouble() {
 		connection.set("tdb", "4.5");
 		actual.add(connection.incrBy("tdb", 7.2));
@@ -1377,7 +1377,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCount() {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sAdd("myset", "bar"));
@@ -1388,7 +1388,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountNegative() {
 		actual.add(connection.sAdd("myset", "foo"));
 		actual.add(connection.sRandMember("myset", -2));
@@ -1397,7 +1397,7 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	@SuppressWarnings("rawtypes")
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountKeyNotExists() {
 		actual.add(connection.sRandMember("notexist", 2));
 		assertTrue(((Collection) getResults().get(0)).isEmpty());
@@ -1813,7 +1813,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testHIncrByDouble() {
 		actual.add(connection.hSet("test", "key", "2.9"));
 		actual.add(connection.hIncrBy("test", "key", 3.5));
@@ -1920,7 +1920,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	 * @see DATAREDIS-290
 	 */
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.8")
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void scanShouldReadEntireValueRange() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
@@ -1951,7 +1951,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	// @IfProfileValue(name = "redisVersion", value = "2.8")
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void sScanShouldReadEntireValueRange() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
