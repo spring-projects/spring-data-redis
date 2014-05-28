@@ -38,7 +38,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -47,6 +46,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
 public class DefaultSetOperationsTests<K, V> {
@@ -208,8 +208,6 @@ public class DefaultSetOperationsTests<K, V> {
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testSSCanReadsValuesFully() {
 
-		// TODO: remove this when upgrading to jedis v.2.4.3 as this guard to avoids key serialization
-		assumeThat(redisTemplate.getKeySerializer(), instanceOf(StringRedisSerializer.class));
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();

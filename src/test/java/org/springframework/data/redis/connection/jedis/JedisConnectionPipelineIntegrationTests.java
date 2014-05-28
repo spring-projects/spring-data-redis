@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
@@ -39,6 +40,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
@@ -262,5 +264,13 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	@Test(expected = UnsupportedOperationException.class)
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
+	}
+
+	/**
+	 * @see DATAREDIS-296
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void testExecWithoutMulti() {
+		super.testExecWithoutMulti();
 	}
 }
