@@ -28,9 +28,9 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -40,7 +40,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("JedisConnectionIntegrationTests-context.xml")
 public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
@@ -123,121 +123,121 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 
 	// Unsupported Ops
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptLoadEvalSha() {
 		super.testScriptLoadEvalSha();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		super.testEvalShaNotFound();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnString() {
 		super.testEvalReturnString();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnNumber() {
 		super.testEvalReturnNumber();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleOK() {
 		super.testEvalReturnSingleOK();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		super.testEvalReturnSingleError();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnFalse() {
 		super.testEvalReturnFalse();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnTrue() {
 		super.testEvalReturnTrue();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayStrings() {
 		super.testEvalReturnArrayStrings();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayNumbers() {
 		super.testEvalReturnArrayNumbers();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayOKs() {
 		super.testEvalReturnArrayOKs();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayFalses() {
 		super.testEvalReturnArrayFalses();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayTrues() {
 		super.testEvalReturnArrayTrues();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptExists() {
 		super.testScriptExists();
 	}
 
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	@Test(expected = UnsupportedOperationException.class)
 	public void testScriptKill() throws Exception {
 		connection.scriptKill();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptFlush() {
 		connection.scriptFlush();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
 	}

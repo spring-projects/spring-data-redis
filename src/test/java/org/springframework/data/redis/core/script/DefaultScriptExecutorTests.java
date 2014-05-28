@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.core.script;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,21 +39,21 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Integration test of {@link DefaultScriptExecutor}
  * 
  * @author Jennifer Hickey
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 @ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
-@IfProfileValue(name = "redisVersion", value = "2.6")
+@IfProfileValue(name = "redisVersion", value = "2.6+")
 public class DefaultScriptExecutorTests {
 
 	@Autowired private RedisConnectionFactory connFactory;

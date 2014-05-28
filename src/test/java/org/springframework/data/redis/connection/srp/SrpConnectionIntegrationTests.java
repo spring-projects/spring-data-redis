@@ -26,9 +26,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import redis.reply.Reply;
 
@@ -38,7 +38,7 @@ import redis.reply.Reply;
  * @author Costin Leau
  * @author Jennifer Hickey
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 public class SrpConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -73,7 +73,7 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 	}
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayOKs() {
 		// SRP returns the Strings from individual StatusReplys in a MultiBulkReply, while other clients return as byte[]
 		actual.add(connection.eval("return { redis.call('set','abc','ghk'),  redis.call('set','abc','lfdf')}",

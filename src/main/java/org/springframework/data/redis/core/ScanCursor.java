@@ -77,7 +77,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 		this.scanOptions = options != null ? options : ScanOptions.NONE;
 		this.cursorId = cursorId;
 		this.state = CursorState.READY;
-		this.delegate = Collections.emptyIterator();
+		this.delegate = Collections.<T> emptyList().iterator();
 	}
 
 	private void scan(long cursorId) {
@@ -143,7 +143,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 	}
 
 	private void resetDelegate() {
-		delegate = Collections.emptyIterator();
+		delegate = Collections.<T> emptyList().iterator();
 	}
 
 	/*

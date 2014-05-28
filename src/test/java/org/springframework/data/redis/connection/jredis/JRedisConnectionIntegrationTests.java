@@ -24,8 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.hamcrest.core.IsInstanceOf;
 import org.hamcrest.core.IsCollectionContaining;
+import org.hamcrest.core.IsInstanceOf;
 import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
 import org.jredis.ri.alphazero.protocol.SyncProtocol.SyncMultiBulkResponse;
@@ -42,9 +42,9 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Integration test of {@link JredisConnection}
@@ -53,7 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -425,103 +425,103 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptLoadEvalSha() {
 		super.testScriptLoadEvalSha();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaNotFound() {
 		super.testEvalShaNotFound();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayError() {
 		super.testEvalShaArrayError();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalArrayScriptError() {
 		super.testEvalArrayScriptError();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnString() {
 		super.testEvalReturnString();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnNumber() {
 		super.testEvalReturnNumber();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleOK() {
 		super.testEvalReturnSingleOK();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnSingleError() {
 		super.testEvalReturnSingleError();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnFalse() {
 		super.testEvalReturnFalse();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnTrue() {
 		super.testEvalReturnTrue();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayStrings() {
 		super.testEvalReturnArrayStrings();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayNumbers() {
 		super.testEvalReturnArrayNumbers();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayOKs() {
 		super.testEvalReturnArrayOKs();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayFalses() {
 		super.testEvalReturnArrayFalses();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayTrues() {
 		super.testEvalReturnArrayTrues();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptExists() {
 		super.testScriptExists();
 	}
@@ -532,31 +532,31 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testScriptFlush() {
 		connection.scriptFlush();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCount() {
 		super.testSRandMemberCount();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountKeyNotExists() {
 		super.testSRandMemberCountKeyNotExists();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testInfoBySection() throws Exception {
 		super.testInfoBySection();
 	}

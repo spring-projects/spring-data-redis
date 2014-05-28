@@ -22,21 +22,21 @@ import org.junit.runner.RunWith;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Integration test of {@link SrpConnection} pipeline functionality
  * 
  * @author Jennifer Hickey
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("SrpConnectionIntegrationTests-context.xml")
 public class SrpConnectionPipelineIntegrationTests extends AbstractConnectionPipelineIntegrationTests {
 
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalReturnArrayOKs() {
 		// SRP returns the Strings from individual StatusReplys in a
 		// MultiBulkReply, while other clients return as byte[]

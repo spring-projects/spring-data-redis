@@ -30,6 +30,7 @@ import java.util.Set;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -38,6 +39,8 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultSetOperations}
@@ -55,6 +58,8 @@ public class DefaultSetOperationsTests<K, V> {
 	private ObjectFactory<V> valueFactory;
 
 	private SetOperations<K, V> setOps;
+
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	public DefaultSetOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
@@ -200,6 +205,7 @@ public class DefaultSetOperationsTests<K, V> {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testSSCanReadsValuesFully() {
 
 		// TODO: remove this when upgrading to jedis v.2.4.3 as this guard to avoids key serialization

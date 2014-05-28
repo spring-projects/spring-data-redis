@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ import org.springframework.test.annotation.ProfileValueSource;
  * "redisVersion"
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 public class RedisTestProfileValueSource implements ProfileValueSource {
 
 	private static final String REDIS_24 = "2.4";
 	private static final String REDIS_26 = "2.6";
+	private static final String REDIS_28 = "2.8";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
 	private static Version redisVersion;
 	private static final RedisTestProfileValueSource INSTANCE = new RedisTestProfileValueSource();
@@ -43,11 +45,15 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 			RedisConnection connection = connectionFactory.getConnection();
 			redisVersion = RedisVersionUtils.getRedisVersion(connection);
 			connection.close();
+			connectionFactory.destroy();
 		}
 	}
 
 	public String get(String key) {
 		if (REDIS_VERSION_KEY.equals(key)) {
+			if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_28)) >= 0) {
+				return REDIS_28;
+			}
 			if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_26)) >= 0) {
 				return REDIS_26;
 			}
