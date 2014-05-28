@@ -42,13 +42,13 @@ public class JedisConnectionPipelineTxIntegrationTests extends JedisConnectionTr
 	}
 
 	@Test(expected = RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreBadData() {
 		super.testRestoreBadData();
 	}
 
 	@Test(expected = RedisPipelineException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testRestoreExistingKey() {
 		super.testRestoreExistingKey();
 	}

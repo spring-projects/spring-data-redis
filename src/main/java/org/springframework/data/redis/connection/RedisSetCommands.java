@@ -18,6 +18,9 @@ package org.springframework.data.redis.connection;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+
 /**
  * Set-specific commands supported by Redis.
  * 
@@ -166,4 +169,15 @@ public interface RedisSetCommands {
 	 * @return
 	 */
 	List<byte[]> sRandMember(byte[] key, long count);
+
+	/**
+	 * Use a {@link Cursor} to iterate over elements in set at {@code key}.
+	 * 
+	 * @since 1.4
+	 * @see http://redis.io/commands/scan
+	 * @param key
+	 * @param options
+	 * @return
+	 */
+	Cursor<byte[]> sScan(byte[] key, ScanOptions options);
 }

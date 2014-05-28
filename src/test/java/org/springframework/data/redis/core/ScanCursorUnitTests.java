@@ -135,8 +135,7 @@ public class ScanCursorUnitTests {
 
 		assertThat(cursor.next(), is("spring"));
 		assertThat(cursor.getCursorId(), is(1L));
-		assertThat(cursor.hasNext(), is(true));
-
+		
 		// close the cursor
 		cursor.close();
 		assertThat(cursor.isClosed(), is(true));
@@ -144,6 +143,7 @@ public class ScanCursorUnitTests {
 		// reopen cursor at last position
 		cursor.open();
 
+		assertThat(cursor.hasNext(), is(true));
 		assertThat(cursor.next(), is("data"));
 		assertThat(cursor.getCursorId(), is(2L));
 		assertThat(cursor.hasNext(), is(true));

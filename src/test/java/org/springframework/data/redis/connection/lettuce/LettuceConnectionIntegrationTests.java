@@ -39,9 +39,9 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 
@@ -53,7 +53,7 @@ import com.lambdaworks.redis.RedisAsyncConnection;
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -223,7 +223,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6")
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testSRandMemberCountNegative() {
 		super.testSRandMemberCountNegative();
 	}
@@ -293,7 +293,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		connection.set("redis", "supercalifragilisticexpialidocious");
 
 		assertThat(
-				(Iterable<byte[]>)connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
+				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
