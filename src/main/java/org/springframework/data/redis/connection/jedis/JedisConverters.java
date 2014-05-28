@@ -48,6 +48,7 @@ import redis.clients.util.SafeEncoder;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 abstract public class JedisConverters extends Converters {
 
@@ -114,6 +115,10 @@ abstract public class JedisConverters extends Converters {
 	}
 
 	public static byte[] toBytes(Integer source) {
+		return String.valueOf(source).getBytes();
+	}
+
+	public static byte[] toBytes(Long source) {
 		return String.valueOf(source).getBytes();
 	}
 

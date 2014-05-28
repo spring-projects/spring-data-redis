@@ -2975,11 +2975,8 @@ public class JedisConnection implements RedisConnection {
 
 				ScanParams params = prepareScanParams(options);
 
-				// TODO: use binary version of jedis.sscan (in v.2.4.3) to avoid potentially invalid representations.
-				redis.clients.jedis.ScanResult<String> result = jedis.sscan(JedisConverters.toString(key),
-						Long.toString(cursorId), params);
-				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
-						.convert(result.getResult()));
+				redis.clients.jedis.ScanResult<byte[]> result = jedis.sscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
 		}.open();
 	}
