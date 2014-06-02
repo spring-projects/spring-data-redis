@@ -2229,6 +2229,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	/*
+	 * 
+	 */
+	@Override
+	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+		return this.delegate.zScan(key, options);
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#scan(byte[], org.springframework.data.redis.core.ScanOptions)
 	 */
@@ -2322,24 +2330,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#sScan(java.lang.String, org.springframework.data.redis.core.ScanOptions)
-	 */
-	@Override
-	public Cursor<String> sScan(String key, ScanOptions options) {
-
-		return new ConvertingCursor<byte[], String>(this.delegate.sScan(this.serialize(key), options),
-				new Converter<byte[], String>() {
-
-					@Override
-					public String convert(byte[] source) {
-						return serializer.deserialize(source);
-					}
-				});
-
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.StringRedisConnection#hScan(java.lang.String, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
@@ -2354,12 +2344,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 					@Override
 					public String getKey() {
-						return DefaultStringRedisConnection.this.serializer.deserialize(source.getKey());
+						return bytesToString.convert(source.getKey());
 					}
 
 					@Override
 					public String getValue() {
-						return DefaultStringRedisConnection.this.serializer.deserialize(source.getValue());
+						return bytesToString.convert(source.getValue());
 					}
 
 					@Override
@@ -2370,4 +2360,24 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 			}
 		});
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#sScan(java.lang.String, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<String> sScan(String key, ScanOptions options) {
+		return new ConvertingCursor<byte[], String>(this.delegate.sScan(this.serialize(key), options), bytesToString);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zScan(java.lang.String, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<StringTuple> zScan(String key, ScanOptions options) {
+		return new ConvertingCursor<Tuple, StringRedisConnection.StringTuple>(delegate.zScan(this.serialize(key), options),
+				new TupleConverter());
+	}
+
 }

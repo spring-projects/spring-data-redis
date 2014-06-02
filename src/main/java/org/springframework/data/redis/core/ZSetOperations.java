@@ -17,6 +17,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -107,4 +108,12 @@ public interface ZSetOperations<K, V> {
 	Long zCard(K key);
 
 	RedisOperations<K, V> getOperations();
+
+	/**
+	 * @param key
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	Iterator<TypedTuple<V>> scan(K key, ScanOptions options);
 }

@@ -56,6 +56,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -1948,6 +1949,41 @@ public abstract class AbstractConnectionIntegrationTests {
 		}
 
 		assertThat(i, is(itemCount));
+	}
+
+	/**
+	 * @see DATAREDIS-306
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	public void zScanShouldReadEntireValueRange() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("ZSCAN is only available for jedis and lettuce");
+		}
+
+		if (connection.isPipelined() || connection.isQueueing()) {
+			throw new AssumptionViolatedException("ZSCAN is only available in non pipeline | queue mode.");
+		}
+
+		connection.zAdd("myset", 2, "Bob");
+		connection.zAdd("myset", 1, "James");
+		connection.zAdd("myset", 4, "Joe");
+
+		Cursor<StringTuple> tuples = connection.zScan("myset", ScanOptions.NONE);
+
+		int count = 0;
+		while (tuples.hasNext()) {
+
+			StringTuple tuple = tuples.next();
+
+			assertThat(tuple.getValueAsString(), anyOf(equalTo("Bob"), equalTo("James"), equalTo("Joe")));
+			assertThat(tuple.getScore(), anyOf(equalTo(1D), equalTo(2D), equalTo(4D)));
+
+			count++;
+		}
+
+		assertThat(count, equalTo(3));
 	}
 
 	/**

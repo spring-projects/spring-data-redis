@@ -17,8 +17,11 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
@@ -364,5 +367,30 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 				return connection.zUnionStore(rawDestKey, rawKeys);
 			}
 		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Iterator<TypedTuple<V>> scan(K key, final ScanOptions options) {
+
+		final byte[] rawKey = rawKey(key);
+		Cursor<Tuple> cursor = execute(new RedisCallback<Cursor<Tuple>>() {
+
+			@Override
+			public Cursor<Tuple> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.zScan(rawKey, options);
+			}
+		}, true);
+
+		return new ConvertingCursor<Tuple, TypedTuple<V>>(cursor, new Converter<Tuple, TypedTuple<V>>() {
+
+			@Override
+			public TypedTuple<V> convert(Tuple source) {
+				return deserializeTuple(source);
+			}
+		});
 	}
 }

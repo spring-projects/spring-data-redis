@@ -1251,6 +1251,15 @@ public class JredisConnection implements RedisConnection {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+		throw new UnsupportedOperationException("'ZSCAN' command is not supported for jredis.");
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
