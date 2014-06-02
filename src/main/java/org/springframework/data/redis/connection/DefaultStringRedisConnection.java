@@ -2237,9 +2237,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return this.delegate.sScan(key, options);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hscan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
 	@Override
-	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options) {
-		return this.delegate.hscan(key, options);
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
+		return this.delegate.hScan(key, options);
 	}
 
 	/**
@@ -2334,10 +2338,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#hScan(java.lang.String, org.springframework.data.redis.core.ScanOptions)
+	 */
 	@Override
 	public Cursor<Entry<String, String>> hScan(String key, ScanOptions options) {
 
-		return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>(this.delegate.hscan(
+		return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>(this.delegate.hScan(
 				this.serialize(key), options), new Converter<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>() {
 
 			@Override

@@ -160,10 +160,12 @@ public interface RedisHashCommands {
 	Map<byte[], byte[]> hGetAll(byte[] key);
 
 	/**
+	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
+	 * 
 	 * @param key
 	 * @param options
 	 * @return
 	 * @since 1.4
 	 */
-	Cursor<Map.Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options);
+	Cursor<Map.Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Set;
  * Hash operations bound to a certain key.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
@@ -61,5 +62,5 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 1.4
 	 * @return
 	 */
-	Iterator<Map.Entry<HK, HV>> hscan(H key, ScanOptions options);
+	Iterator<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
 }

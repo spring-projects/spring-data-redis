@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * Default implementation of {@link HashOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
 
@@ -232,7 +233,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Iterator<Entry<HK, HV>> hscan(K key, final ScanOptions options) {
+	public Iterator<Entry<HK, HV>> scan(K key, final ScanOptions options) {
 
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
@@ -240,7 +241,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 			@Override
 			public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
 
-				return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hscan(rawKey, options),
+				return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hScan(rawKey, options),
 						new Converter<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>() {
 
 							@Override
@@ -260,7 +261,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 
 									@Override
 									public HV setValue(HV value) {
-										throw new UnsupportedOperationException();
+										throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
 									}
 								};
 

@@ -2357,7 +2357,7 @@ public class SrpConnection implements RedisConnection {
 	 * @see org.springframework.data.redis.connection.RedisHashCommands#hscan(byte[], org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options) {
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
 		throw new UnsupportedOperationException("'HSCAN' command is not supported for Srp.");
 	}
 

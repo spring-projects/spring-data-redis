@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,10 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.After;
@@ -43,6 +41,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * Integration test of {@link DefaultHashOperations}
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  * @param <K> Key type
  * @param <HK> Hash key type
  * @param <HV> Hash value type
@@ -114,10 +113,11 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		HV val2 = hashValueFactory.instance();
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
-		Map<HK, HV> expected = new LinkedHashMap<HK, HV>();
-		expected.put(key1, val1);
-		expected.put(key2, val2);
-		assertThat(hashOps.entries(key), isEqual(expected));
+
+		for (Map.Entry<HK, HV> entry : hashOps.entries(key).entrySet()) {
+			assertThat(entry.getKey(), anyOf(equalTo(key1), equalTo(key2)));
+			assertThat(entry.getValue(), anyOf(equalTo(val1), equalTo(val2)));
+		}
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		Iterator<Map.Entry<HK, HV>> it = hashOps.hscan(key, ScanOptions.scanOptions().count(1).build());
+		Iterator<Map.Entry<HK, HV>> it = hashOps.scan(key, ScanOptions.scanOptions().count(1).build());
 
 		long count = 0;
 		while (it.hasNext()) {

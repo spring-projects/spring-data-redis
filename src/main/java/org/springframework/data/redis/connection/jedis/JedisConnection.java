@@ -2985,7 +2985,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	@Override
-	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options) {
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
 		return hscan(key, 0, options);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.DataType;
  * Default implementation for {@link HashOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H> implements
 		BoundHashOperations<H, HK, HV> {
@@ -110,8 +111,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 * @see org.springframework.data.redis.core.BoundHashOperations#hscan(java.lang.Object)
 	 */
 	@Override
-	public Iterator<Entry<HK, HV>> hscan(H key, ScanOptions options) {
-		return ops.hscan(key, options);
-
+	public Iterator<Entry<HK, HV>> scan(H key, ScanOptions options) {
+		return ops.scan(key, options);
 	}
 }

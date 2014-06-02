@@ -62,5 +62,5 @@ public interface HashOperations<H, HK, HV> {
 	 * @param options
 	 * @return
 	 */
-	Iterator<Map.Entry<HK, HV>> hscan(H key, ScanOptions options);
+	Iterator<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
 }
