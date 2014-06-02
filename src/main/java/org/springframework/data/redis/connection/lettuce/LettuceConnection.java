@@ -3116,11 +3116,21 @@ public class LettuceConnection implements RedisConnection {
 		}.open();
 	}
 
+	/*
+	 * 
+	 */
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options) {
 		return hscan(key, 0, options);
 	}
 
+	/**
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
 	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
 
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
@@ -3138,9 +3148,10 @@ public class LettuceConnection implements RedisConnection {
 
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
-				//
-				// return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((ArrayList<byte[]>) result.get(1)));
-				return null;
+
+				@SuppressWarnings("unchecked")
+				Map<byte[], byte[]> values = LettuceConverters.toMap((List<byte[]>) result.get(1));
+				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
 			}
 		}.open();
 	}
