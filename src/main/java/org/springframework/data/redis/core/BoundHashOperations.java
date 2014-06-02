@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,4 +55,11 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	void delete(Object... keys);
 
 	Map<HK, HV> entries();
+
+	/**
+	 * @param key
+	 * @since 1.4
+	 * @return
+	 */
+	Iterator<Map.Entry<HK, HV>> hscan(H key);
 }

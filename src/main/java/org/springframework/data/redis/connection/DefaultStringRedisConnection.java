@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
@@ -2236,6 +2237,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return this.delegate.sScan(key, options);
 	}
 
+	@Override
+	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options) {
+		return this.delegate.hscan(key, options);
+	}
+
 	/**
 	 * Specifies if pipelined and tx results should be deserialized to Strings. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the underlying connection
@@ -2328,4 +2334,32 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	}
 
+	@Override
+	public Cursor<Entry<String, String>> hScan(String key, ScanOptions options) {
+
+		return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>(this.delegate.hscan(
+				this.serialize(key), options), new Converter<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>() {
+
+			@Override
+			public Entry<String, String> convert(final Entry<byte[], byte[]> source) {
+				return new Map.Entry<String, String>() {
+
+					@Override
+					public String getKey() {
+						return DefaultStringRedisConnection.this.serializer.deserialize(source.getKey());
+					}
+
+					@Override
+					public String getValue() {
+						return DefaultStringRedisConnection.this.serializer.deserialize(source.getValue());
+					}
+
+					@Override
+					public String setValue(String value) {
+						throw new UnsupportedOperationException("Cannot set value for entry in cursor");
+					}
+				};
+			}
+		});
+	}
 }

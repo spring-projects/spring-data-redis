@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
@@ -65,6 +66,7 @@ import redis.clients.jedis.Protocol.Command;
 import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.ZParams;
@@ -2925,6 +2927,7 @@ public class JedisConnection implements RedisConnection {
 	 * @param options
 	 * @return
 	 */
+	@SuppressWarnings("resource")
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
 
 		return new ScanCursor<byte[]>(cursorId, options) {
@@ -2977,6 +2980,30 @@ public class JedisConnection implements RedisConnection {
 
 				redis.clients.jedis.ScanResult<byte[]> result = jedis.sscan(key, JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), result.getResult());
+			}
+		}.open();
+	}
+
+	@Override
+	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options) {
+		return hscan(key, 0, options);
+	}
+
+	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<Map.Entry<byte[], byte[]>>(key, cursorId, options) {
+
+			@Override
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				ScanParams params = prepareScanParams(options);
+
+				ScanResult<Entry<byte[], byte[]>> result = jedis.hscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<Map.Entry<byte[], byte[]>>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
 		}.open();
 	}

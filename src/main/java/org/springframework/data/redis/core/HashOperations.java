@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,4 +55,12 @@ public interface HashOperations<H, HK, HV> {
 	Map<HK, HV> entries(H key);
 
 	RedisOperations<H, ?> getOperations();
+
+	/**
+	 * @param key
+	 * @since 1.4
+	 * @param options
+	 * @return
+	 */
+	Iterator<Map.Entry<HK, HV>> hscan(H key, ScanOptions options);
 }

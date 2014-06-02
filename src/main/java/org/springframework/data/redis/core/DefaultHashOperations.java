@@ -17,9 +17,11 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnection;
@@ -221,5 +223,14 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}, true);
 
 		return deserializeHashMap(entries);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Iterator<Entry<HK, HV>> hscan(K key, ScanOptions options) {
+		throw new UnsupportedOperationException();
 	}
 }

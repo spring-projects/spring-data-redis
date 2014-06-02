@@ -16,8 +16,10 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
@@ -101,5 +103,14 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 
 	public DataType getType() {
 		return DataType.HASH;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundHashOperations#hscan(java.lang.Object)
+	 */
+	@Override
+	public Iterator<Entry<HK, HV>> hscan(H key) {
+		throw new UnsupportedOperationException();
 	}
 }

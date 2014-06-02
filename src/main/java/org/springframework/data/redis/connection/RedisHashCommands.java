@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+
 /**
  * Hash-specific commands supported by Redis.
  * 
@@ -155,4 +158,12 @@ public interface RedisHashCommands {
 	 * @return
 	 */
 	Map<byte[], byte[]> hGetAll(byte[] key);
+
+	/**
+	 * @param key
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	Cursor<Map.Entry<byte[], byte[]>> hscan(byte[] key, ScanOptions options);
 }
