@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -1255,5 +1256,14 @@ public class JredisConnection implements RedisConnection {
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
 		throw new UnsupportedOperationException("'SSCAN' command is not uspported for jredis");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hscan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
+		throw new UnsupportedOperationException("'HSCAN' command is not uspported for jredis");
 	}
 }

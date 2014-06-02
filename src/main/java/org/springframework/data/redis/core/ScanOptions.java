@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.util.StringUtils;
+
 /**
  * Options to be used for with {@literal SCAN} command.
  * 
@@ -29,15 +31,14 @@ public class ScanOptions {
 	private Long count;
 	private String pattern;
 
-	private ScanOptions() {
-	}
+	private ScanOptions() {}
 
 	/**
 	 * Static factory method that returns a new {@link ScanOptionsBuilder}.
 	 *
 	 * @return
 	 */
-	public static ScanOptionsBuilder scanOptions(){
+	public static ScanOptionsBuilder scanOptions() {
 		return new ScanOptionsBuilder();
 	}
 
@@ -47,6 +48,24 @@ public class ScanOptions {
 
 	public String getPattern() {
 		return pattern;
+	}
+
+	public String toOptionString() {
+
+		if (this.equals(ScanOptions.NONE)) {
+			return "";
+		}
+
+		String params = "";
+
+		if (this.count != null) {
+			params += (", 'count', " + count);
+		}
+		if (StringUtils.hasText(this.pattern)) {
+			params += (", 'match' , '" + this.pattern + "'");
+		}
+
+		return params;
 	}
 
 	/**

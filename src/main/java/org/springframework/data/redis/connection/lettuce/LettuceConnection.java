@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
@@ -59,7 +60,6 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
@@ -3063,7 +3063,7 @@ public class LettuceConnection implements RedisConnection {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				String params = " ," + cursorId + prepareScanParams(options);
+				String params = " ," + cursorId + options.toOptionString();
 				String script = "return redis.call('SCAN'" + params + ")";
 
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
@@ -3104,7 +3104,7 @@ public class LettuceConnection implements RedisConnection {
 				}
 
 				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
-						+ prepareScanParams(options);
+						+ options.toOptionString();
 				String script = "return redis.call('SSCAN'" + params + ")";
 
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
@@ -3115,18 +3115,44 @@ public class LettuceConnection implements RedisConnection {
 		}.open();
 	}
 
-	private String prepareScanParams(ScanOptions options) {
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
+		return hscan(key, 0, options);
+	}
 
-		String params = "";
-		if (!options.equals(ScanOptions.NONE)) {
-			if (options.getCount() != null) {
-				params += (", 'count', " + options.getCount());
+	/**
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
+
+			@Override
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
+						+ options.toOptionString();
+				String script = "return redis.call('HSCAN'" + params + ")";
+
+				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
+				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
+
+				@SuppressWarnings("unchecked")
+				Map<byte[], byte[]> values = LettuceConverters.toMap((List<byte[]>) result.get(1));
+				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
 			}
-			if (StringUtils.hasText(options.getPattern())) {
-				params += (", 'match' , '" + options.getPattern() + "'");
-			}
-		}
-		return params;
+		}.open();
 	}
 
 	/**
