@@ -19,8 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -36,6 +39,7 @@ import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.KeyValue;
@@ -62,6 +66,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
+	private static final Converter<List<byte[]>, Map<byte[], byte[]>> BYTES_LIST_TO_MAP;
 
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 
@@ -104,6 +109,26 @@ abstract public class LettuceConverters extends Converters {
 				list.add(source.value);
 				return list;
 			}
+		};
+		BYTES_LIST_TO_MAP = new Converter<List<byte[]>, Map<byte[], byte[]>>() {
+
+			@Override
+			public Map<byte[], byte[]> convert(final List<byte[]> source) {
+
+				if (CollectionUtils.isEmpty(source)) {
+					Collections.emptyMap();
+				}
+
+				Map<byte[], byte[]> target = new LinkedHashMap<byte[], byte[]>();
+
+				Iterator<byte[]> kv = source.iterator();
+				while (kv.hasNext()) {
+					target.put(kv.next(), kv.hasNext() ? kv.next() : null);
+				}
+
+				return target;
+			}
+
 		};
 		SCORED_VALUES_TO_TUPLE_SET = new Converter<List<ScoredValue<byte[]>>, Set<Tuple>>() {
 			public Set<Tuple> convert(List<ScoredValue<byte[]>> source) {
@@ -236,6 +261,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static int toInt(boolean value) {
 		return (value ? 1 : 0);
+	}
+
+	public static Map<byte[], byte[]> toMap(List<byte[]> source) {
+		return BYTES_LIST_TO_MAP.convert(source);
 	}
 
 	public static SortArgs toSortArgs(SortParameters params) {

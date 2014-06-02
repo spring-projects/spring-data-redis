@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,22 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 
 /**
  * Default implementation of {@link HashOperations}.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
 
@@ -221,5 +226,50 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		}, true);
 
 		return deserializeHashMap(entries);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Iterator<Entry<HK, HV>> scan(K key, final ScanOptions options) {
+
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
+
+			@Override
+			public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
+
+				return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hScan(rawKey, options),
+						new Converter<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>() {
+
+							@Override
+							public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
+
+								return new Map.Entry<HK, HV>() {
+
+									@Override
+									public HK getKey() {
+										return deserializeHashKey(source.getKey());
+									}
+
+									@Override
+									public HV getValue() {
+										return deserializeHashValue(source.getValue());
+									}
+
+									@Override
+									public HV setValue(HV value) {
+										throw new UnsupportedOperationException("Values cannot be set when scanning through entries.");
+									}
+								};
+
+							}
+						});
+			}
+
+		}, true);
+
 	}
 }

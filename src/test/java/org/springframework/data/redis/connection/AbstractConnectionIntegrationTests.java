@@ -1979,6 +1979,36 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(6));
 	}
 
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	public void hScanShouldReadEntireValueRange() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("HSCAN is only available for jedis and lettuce");
+		}
+
+		if (connection.isPipelined() || connection.isQueueing()) {
+			throw new AssumptionViolatedException("HSCAN is only available in non pipeline | queue mode.");
+		}
+
+		connection.hSet("hscankey", "bar", "foobar");
+
+		connection.hSet("hscankey", "foo-1", "v-1");
+		connection.hSet("hscankey", "foo-2", "v-2");
+		connection.hSet("hscankey", "foo-3", "v-3");
+
+		Cursor<Map.Entry<String, String>> cursor = connection
+				.hScan("hscankey", scanOptions().count(2).match("fo*").build());
+
+		int i = 0;
+		while (cursor.hasNext()) {
+			assertThat(cursor.next().getKey(), not(containsString("bar")));
+			i++;
+		}
+
+		assertThat(i, is(3));
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}

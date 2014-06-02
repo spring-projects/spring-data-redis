@@ -16,9 +16,9 @@
 package org.springframework.data.redis.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * {@link ScanIteration} holds the values contained in Redis {@literal Multibulk reply} on exectuting {@literal SCAN}
@@ -30,13 +30,13 @@ import java.util.List;
 public class ScanIteration<T> implements Iterable<T> {
 
 	private final long cursorId;
-	private final List<T> items;
+	private final Collection<T> items;
 
 	/**
 	 * @param cursorId
 	 * @param items
 	 */
-	public ScanIteration(long cursorId, List<T> items) {
+	public ScanIteration(long cursorId, Collection<T> items) {
 
 		this.cursorId = cursorId;
 		this.items = (items != null ? new ArrayList<T>(items) : Collections.<T> emptyList());
@@ -56,7 +56,7 @@ public class ScanIteration<T> implements Iterable<T> {
 	 * 
 	 * @return
 	 */
-	public List<T> getItems() {
+	public Collection<T> getItems() {
 		return items;
 	}
 
