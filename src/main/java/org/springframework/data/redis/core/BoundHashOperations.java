@@ -61,5 +61,5 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 1.4
 	 * @return
 	 */
-	Iterator<Map.Entry<HK, HV>> hscan(H key);
+	Iterator<Map.Entry<HK, HV>> hscan(H key, ScanOptions options);
 }

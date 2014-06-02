@@ -110,7 +110,8 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 * @see org.springframework.data.redis.core.BoundHashOperations#hscan(java.lang.Object)
 	 */
 	@Override
-	public Iterator<Entry<HK, HV>> hscan(H key) {
-		throw new UnsupportedOperationException();
+	public Iterator<Entry<HK, HV>> hscan(H key, ScanOptions options) {
+		return ops.hscan(key, options);
+
 	}
 }

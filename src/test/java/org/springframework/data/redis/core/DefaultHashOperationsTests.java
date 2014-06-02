@@ -15,12 +15,13 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,7 +36,8 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultHashOperations}
@@ -70,17 +72,17 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
-		SrpConnectionFactory srConnFactory = new SrpConnectionFactory();
-		srConnFactory.setPort(SettingsUtils.getPort());
-		srConnFactory.setHostName(SettingsUtils.getHost());
-		srConnFactory.afterPropertiesSet();
+		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
+		jedisConnectionFactory.setPort(SettingsUtils.getPort());
+		jedisConnectionFactory.setHostName(SettingsUtils.getHost());
+		jedisConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
-		stringTemplate.setConnectionFactory(srConnFactory);
+		stringTemplate.setConnectionFactory(jedisConnectionFactory);
 		stringTemplate.afterPropertiesSet();
 
 		RedisTemplate<byte[], byte[]> rawTemplate = new RedisTemplate<byte[], byte[]>();
-		rawTemplate.setConnectionFactory(srConnFactory);
+		rawTemplate.setConnectionFactory(jedisConnectionFactory);
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.afterPropertiesSet();
 
@@ -130,4 +132,33 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.delete(key, key1, key2);
 		assertTrue(hashOps.keys(key).isEmpty());
 	}
+
+	/**
+	 * @see DATAREDIS-305
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	public void testHScanReadsValuesFully() {
+
+		K key = keyFactory.instance();
+		HK key1 = hashKeyFactory.instance();
+		HV val1 = hashValueFactory.instance();
+		HK key2 = hashKeyFactory.instance();
+		HV val2 = hashValueFactory.instance();
+		hashOps.put(key, key1, val1);
+		hashOps.put(key, key2, val2);
+
+		Iterator<Map.Entry<HK, HV>> it = hashOps.hscan(key, ScanOptions.scanOptions().count(1).build());
+
+		long count = 0;
+		while (it.hasNext()) {
+			Map.Entry<HK, HV> entry = it.next();
+			assertThat(entry.getKey(), anyOf(equalTo(key1), equalTo(key2)));
+			assertThat(entry.getValue(), anyOf(equalTo(val1), equalTo(val2)));
+			count++;
+		}
+
+		assertThat(count, is(hashOps.size(key)));
+	}
+
 }

@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 
 /**
@@ -230,7 +232,43 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Iterator<Entry<HK, HV>> hscan(K key, ScanOptions options) {
-		throw new UnsupportedOperationException();
+	public Iterator<Entry<HK, HV>> hscan(K key, final ScanOptions options) {
+
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
+
+			@Override
+			public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
+
+				return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>(connection.hscan(rawKey, options),
+						new Converter<Map.Entry<byte[], byte[]>, Map.Entry<HK, HV>>() {
+
+							@Override
+							public Entry<HK, HV> convert(final Entry<byte[], byte[]> source) {
+
+								return new Map.Entry<HK, HV>() {
+
+									@Override
+									public HK getKey() {
+										return deserializeHashKey(source.getKey());
+									}
+
+									@Override
+									public HV getValue() {
+										return deserializeHashValue(source.getValue());
+									}
+
+									@Override
+									public HV setValue(HV value) {
+										throw new UnsupportedOperationException();
+									}
+								};
+
+							}
+						});
+			}
+
+		}, true);
+
 	}
 }
