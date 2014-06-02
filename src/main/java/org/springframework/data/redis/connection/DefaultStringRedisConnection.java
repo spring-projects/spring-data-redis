@@ -2229,6 +2229,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	/*
+	 * 
+	 */
+	@Override
+	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+		return this.delegate.zScan(key, options);
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#scan(byte[], org.springframework.data.redis.core.ScanOptions)
 	 */
@@ -2318,6 +2326,17 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@Override
 	public String getClientName() {
 		return this.delegate.getClientName();
+	}
+
+	/**
+	 * @param key
+	 * @param options
+	 * @return
+	 */
+	@Override
+	public Cursor<StringTuple> zScan(String key, ScanOptions options) {
+		return new ConvertingCursor<Tuple, StringRedisConnection.StringTuple>(delegate.zScan(this.serialize(key), options),
+				new TupleConverter());
 	}
 
 	/*

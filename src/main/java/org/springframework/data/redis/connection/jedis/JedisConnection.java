@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
@@ -2947,6 +2948,43 @@ public class JedisConnection implements RedisConnection {
 
 		}.open();
 
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+		return zScan(key, 0L, options);
+	}
+
+	/**
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	public Cursor<Tuple> zScan(byte[] key, Long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
+
+			@Override
+			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				ScanParams params = prepareScanParams(options);
+
+				ScanResult<redis.clients.jedis.Tuple> result = jedis.zscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<RedisZSetCommands.Tuple>(Long.valueOf(result.getStringCursor()), JedisConverters
+						.tuplesToTuples().convert(result.getResult()));
+			}
+
+		}.open();
 	}
 
 	/*

@@ -17,6 +17,9 @@ package org.springframework.data.redis.connection;
 
 import java.util.Set;
 
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
  * 
@@ -332,4 +335,12 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+
+	/**
+	 * @param key
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	Cursor<Tuple> zScan(byte[] key, ScanOptions options);
 }

@@ -59,6 +59,8 @@ abstract public class JedisConverters extends Converters {
 	private static final SetConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_SET_TO_TUPLE_SET;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
+	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
+	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
 
 	static {
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
@@ -69,17 +71,28 @@ abstract public class JedisConverters extends Converters {
 		STRING_LIST_TO_BYTE_LIST = new ListConverter<String, byte[]>(STRING_TO_BYTES);
 		STRING_SET_TO_BYTE_SET = new SetConverter<String, byte[]>(STRING_TO_BYTES);
 		STRING_MAP_TO_BYTE_MAP = new MapConverter<String, byte[]>(STRING_TO_BYTES);
-		TUPLE_SET_TO_TUPLE_SET = new SetConverter<redis.clients.jedis.Tuple, Tuple>(
-				new Converter<redis.clients.jedis.Tuple, Tuple>() {
-					public Tuple convert(redis.clients.jedis.Tuple source) {
-						return source != null ? new DefaultTuple(source.getBinaryElement(), source.getScore()) : null;
-					}
+		TUPLE_CONVERTER = new Converter<redis.clients.jedis.Tuple, Tuple>() {
+			public Tuple convert(redis.clients.jedis.Tuple source) {
+				return source != null ? new DefaultTuple(source.getBinaryElement(), source.getScore()) : null;
+			}
 
-				});
+		};
+		TUPLE_SET_TO_TUPLE_SET = new SetConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
+		TUPLE_LIST_TO_TUPLE_LIST_CONVERTER = new ListConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
 		return STRING_TO_BYTES;
+	}
+
+	/**
+	 * {@link ListConverter} converting jedis {@link redis.clients.jedis.Tuple} to {@link Tuple}.
+	 * 
+	 * @return
+	 * @since 1.4
+	 */
+	public static ListConverter<redis.clients.jedis.Tuple, Tuple> tuplesToTuples() {
+		return TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
 	}
 
 	public static ListConverter<String, byte[]> stringListToByteList() {

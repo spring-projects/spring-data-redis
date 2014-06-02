@@ -3075,6 +3075,36 @@ public class LettuceConnection implements RedisConnection {
 
 	}
 
+	@Override
+	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+		return zScan(key, 0L, options);
+	}
+
+	private Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
+
+			@Override
+			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
+						+ prepareScanParams(options);
+				String script = "return redis.call('ZSCAN'" + params + ")";
+
+				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
+				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
+
+				// TODO result conversion
+
+				throw new UnsupportedOperationException("Implement me! result conversion");
+			}
+		};
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisSetCommands#sScan(byte[], org.springframework.data.redis.core.ScanOptions)
