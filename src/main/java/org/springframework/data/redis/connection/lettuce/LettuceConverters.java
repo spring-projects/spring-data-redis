@@ -67,6 +67,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
 	private static final Converter<List<byte[]>, Map<byte[], byte[]>> BYTES_LIST_TO_MAP;
+	private static final Converter<List<byte[]>, List<Tuple>> BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
 
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 
@@ -148,7 +149,29 @@ abstract public class LettuceConverters extends Converters {
 			}
 
 		};
+		BYTES_LIST_TO_TUPLE_LIST_CONVERTER = new Converter<List<byte[]>, List<Tuple>>() {
 
+			@Override
+			public List<Tuple> convert(List<byte[]> source) {
+
+				if (CollectionUtils.isEmpty(source)) {
+					return Collections.emptyList();
+				}
+
+				List<Tuple> tuples = new ArrayList<Tuple>();
+				Iterator<byte[]> it = source.iterator();
+				while (it.hasNext()) {
+					tuples.add(new DefaultTuple(it.next(), it.hasNext() ? Double.valueOf(LettuceConverters.toString(it.next()))
+							: null));
+				}
+				return tuples;
+			}
+		};
+
+	}
+
+	public static List<Tuple> toTuple(List<byte[]> list) {
+		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER.convert(list);
 	}
 
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
@@ -301,4 +324,5 @@ abstract public class LettuceConverters extends Converters {
 	public static List<RedisClientInfo> toListOfRedisClientInformation(String clientList) {
 		return stringToRedisClientListConverter().convert(clientList);
 	}
+
 }

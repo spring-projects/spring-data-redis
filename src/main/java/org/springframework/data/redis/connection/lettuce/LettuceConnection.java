@@ -3069,10 +3069,50 @@ public class LettuceConnection implements RedisConnection {
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((ArrayList<byte[]>) result.get(1)));
+				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((List<byte[]>) result.get(1)));
 			}
 		}.open();
 
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
+	@Override
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
+		return hscan(key, 0, options);
+	}
+
+	/**
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 * @since 1.4
+	 */
+	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
+
+		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
+
+			@Override
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
+
+				if (isQueueing() || isPipelined()) {
+					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
+				}
+
+				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
+						+ options.toOptionString();
+				String script = "return redis.call('HSCAN'" + params + ")";
+
+				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
+				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
+
+				@SuppressWarnings("unchecked")
+				Map<byte[], byte[]> values = LettuceConverters.toMap((List<byte[]>) result.get(1));
+				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
+			}
+		}.open();
 	}
 
 	/*
@@ -3115,12 +3155,13 @@ public class LettuceConnection implements RedisConnection {
 		}.open();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisHashCommands#hScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		return hscan(key, 0, options);
+	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
+		return zScan(key, 0L, options);
 	}
 
 	/**
@@ -3130,27 +3171,27 @@ public class LettuceConnection implements RedisConnection {
 	 * @return
 	 * @since 1.4
 	 */
-	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
 
-		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
+		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
+			@SuppressWarnings("unchecked")
 			@Override
-			protected ScanIteration<Entry<byte[], byte[]>> doScan(byte[] key, long cursorId, ScanOptions options) {
+			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
 
 				if (isQueueing() || isPipelined()) {
-					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
+					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
 				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
 						+ options.toOptionString();
-				String script = "return redis.call('HSCAN'" + params + ")";
+				String script = "return redis.call('ZSCAN'" + params + ")";
 
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				@SuppressWarnings("unchecked")
-				Map<byte[], byte[]> values = LettuceConverters.toMap((List<byte[]>) result.get(1));
-				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
+				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), LettuceConverters.toTuple((List<byte[]>) result
+						.get(1)));
 			}
 		}.open();
 	}
