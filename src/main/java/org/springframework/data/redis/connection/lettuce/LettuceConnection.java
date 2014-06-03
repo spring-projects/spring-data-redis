@@ -3075,15 +3075,26 @@ public class LettuceConnection implements RedisConnection {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
 		return zScan(key, 0L, options);
 	}
 
-	private Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
+	/**
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 */
+	public Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
 
 		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
 
@@ -3092,17 +3103,16 @@ public class LettuceConnection implements RedisConnection {
 				}
 
 				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
-						+ prepareScanParams(options);
+						+ options.toOptionString();
 				String script = "return redis.call('ZSCAN'" + params + ")";
 
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				// TODO result conversion
-
-				throw new UnsupportedOperationException("Implement me! result conversion");
+				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), LettuceConverters.toTuple((List<byte[]>) result
+						.get(1)));
 			}
-		};
+		}.open();
 	}
 
 	/*
