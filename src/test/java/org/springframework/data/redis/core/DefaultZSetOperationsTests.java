@@ -15,16 +15,18 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.core.AnyOf.*;
+import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.hamcrest.core.IsEqual;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +36,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link DefaultZSetOperations}
@@ -207,7 +210,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		values.add(new DefaultTypedTuple<V>(value3, 0.8));
 		zSetOps.add(key, values);
 
-		assertThat(zSetOps.zCard(key), IsEqual.equalTo(3L));
+		assertThat(zSetOps.zCard(key), equalTo(3L));
 	}
 
 	@Test
@@ -224,6 +227,39 @@ public class DefaultZSetOperationsTests<K, V> {
 		values.add(new DefaultTypedTuple<V>(value3, 0.8));
 		zSetOps.add(key, values);
 
-		assertThat(zSetOps.size(key), IsEqual.equalTo(3L));
+		assertThat(zSetOps.size(key), equalTo(3L));
+	}
+
+	/**
+	 * @see DATAREDIS-306
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	public void testZScanShouldReadEntireValueRange() {
+
+		K key = keyFactory.instance();
+
+		final TypedTuple<V> tuple1 = new DefaultTypedTuple<V>(valueFactory.instance(), 1.7);
+		final TypedTuple<V> tuple2 = new DefaultTypedTuple<V>(valueFactory.instance(), 3.2);
+		final TypedTuple<V> tuple3 = new DefaultTypedTuple<V>(valueFactory.instance(), 0.8);
+
+		Set<TypedTuple<V>> values = new HashSet<TypedTuple<V>>() {
+			{
+				add(tuple1);
+				add(tuple2);
+				add(tuple3);
+			}
+		};
+
+		zSetOps.add(key, values);
+
+		int count = 0;
+		Iterator<TypedTuple<V>> it = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build());
+		while (it.hasNext()) {
+			assertThat(it.next(), anyOf(equalTo(tuple1), equalTo(tuple2), equalTo(tuple3)));
+			count++;
+		}
+
+		assertThat(count, equalTo(3));
 	}
 }

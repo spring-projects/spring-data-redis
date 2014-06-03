@@ -337,6 +337,8 @@ public interface RedisZSetCommands {
 	Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
 
 	/**
+	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.
+	 * 
 	 * @param key
 	 * @param options
 	 * @return

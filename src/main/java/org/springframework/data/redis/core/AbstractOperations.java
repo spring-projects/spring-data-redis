@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 abstract class AbstractOperations<K, V> {
 
@@ -181,20 +182,24 @@ abstract class AbstractOperations<K, V> {
 		return SerializationUtils.deserialize(rawValues, valueSerializer());
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	Set<TypedTuple<V>> deserializeTupleValues(Set<Tuple> rawValues) {
+	Set<TypedTuple<V>> deserializeTupleValues(Collection<Tuple> rawValues) {
 		if (rawValues == null) {
 			return null;
 		}
 		Set<TypedTuple<V>> set = new LinkedHashSet<TypedTuple<V>>(rawValues.size());
 		for (Tuple rawValue : rawValues) {
-			Object value = rawValue.getValue();
-			if (valueSerializer() != null) {
-				value = valueSerializer().deserialize(rawValue.getValue());
-			}
-			set.add(new DefaultTypedTuple(value, rawValue.getScore()));
+			set.add(deserializeTuple(rawValue));
 		}
 		return set;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	TypedTuple<V> deserializeTuple(Tuple tuple) {
+		Object value = tuple.getValue();
+		if (valueSerializer() != null) {
+			value = valueSerializer().deserialize(tuple.getValue());
+		}
+		return new DefaultTypedTuple(value, tuple.getScore());
 	}
 
 	@SuppressWarnings("unchecked")
