@@ -17,7 +17,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -78,10 +77,10 @@ public interface SetOperations<K, V> {
 	/**
 	 * Iterate over elements in set at {@code key}.
 	 * 
+	 * @since 1.4
 	 * @param key
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
-	Iterator<V> sScan(K key, ScanOptions options);
+	Cursor<V> scan(K key, ScanOptions options);
 }

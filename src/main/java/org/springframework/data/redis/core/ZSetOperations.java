@@ -17,7 +17,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -110,10 +109,10 @@ public interface ZSetOperations<K, V> {
 	RedisOperations<K, V> getOperations();
 
 	/**
+	 * @since 1.4
 	 * @param key
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
-	Iterator<TypedTuple<V>> scan(K key, ScanOptions options);
+	Cursor<TypedTuple<V>> scan(K key, ScanOptions options);
 }

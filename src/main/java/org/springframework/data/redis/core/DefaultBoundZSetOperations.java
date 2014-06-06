@@ -17,7 +17,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
@@ -163,7 +162,7 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 	 * @see org.springframework.data.redis.core.BoundZSetOperations#scan(org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Iterator<TypedTuple<V>> scan(ScanOptions options) {
+	public Cursor<TypedTuple<V>> scan(ScanOptions options) {
 		return ops.scan(getKey(), options);
 	}
 }

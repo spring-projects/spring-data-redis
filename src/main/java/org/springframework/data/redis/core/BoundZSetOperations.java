@@ -17,7 +17,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -97,5 +96,5 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return
 	 * @since 1.4
 	 */
-	Iterator<TypedTuple<V>> scan(ScanOptions options);
+	Cursor<TypedTuple<V>> scan(ScanOptions options);
 }

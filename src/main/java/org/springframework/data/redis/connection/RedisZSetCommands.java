@@ -339,10 +339,11 @@ public interface RedisZSetCommands {
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.
 	 * 
+	 * @since 1.4
+	 * @see http://redis.io/commands/scan
 	 * @param key
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
 	Cursor<Tuple> zScan(byte[] key, ScanOptions options);
 }

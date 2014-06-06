@@ -320,29 +320,29 @@ public interface StringRedisConnection extends RedisConnection {
 	List<RedisClientInfo> getClientList();
 
 	/**
+	 * @since 1.4
 	 * @see RedisHashCommands#hScan(byte[], ScanOptions)
 	 * @param key
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
 	Cursor<Map.Entry<String, String>> hScan(String key, ScanOptions options);
 
 	/**
+	 * @since 1.4
 	 * @see RedisSetCommands#sScan(byte[], ScanOptions)
 	 * @param key
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
 	Cursor<String> sScan(String key, ScanOptions options);
 
 	/**
+	 * @since 1.4
 	 * @see RedisZSetCommands#zScan(byte[], ScanOptions)
 	 * @param key
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
 	Cursor<StringTuple> zScan(String key, ScanOptions options);
 }

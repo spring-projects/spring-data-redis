@@ -62,7 +62,7 @@
 				<row><entry><code>HLEN</code></entry><entry>X</entry></row>
 				<row><entry><code>HMGET</code></entry><entry>X</entry></row>
 				<row><entry><code>HMSET</code></entry><entry>X</entry></row>
-				<row><entry><code>HSCAN</code></entry><entry>-</entry></row>
+				<row><entry><code>HSCAN</code></entry><entry>X</entry></row>
 				<row><entry><code>HSET</code></entry><entry>X</entry></row>
 				<row><entry><code>HSETNX</code></entry><entry>X</entry></row>
 				<row><entry><code>HVALS</code></entry><entry>X</entry></row>
@@ -111,7 +111,7 @@
 				<row><entry><code>RPUSHX</code></entry><entry>X</entry></row>
 				<row><entry><code>SADD</code></entry><entry>X</entry></row>
 				<row><entry><code>SAVE</code></entry><entry>X</entry></row>
-				<row><entry><code>SCAN</code></entry><entry>-</entry></row>
+				<row><entry><code>SCAN</code></entry><entry>X</entry></row>
 				<row><entry><code>SCARD</code></entry><entry>X</entry></row>
 				<row><entry><code>SCRIPT EXITS</code></entry><entry>X</entry></row>
 				<row><entry><code>SCRIPT FLUSH</code></entry><entry>X</entry></row>
@@ -146,7 +146,7 @@
 				<row><entry><code>SPOP</code></entry><entry>X</entry></row>
 				<row><entry><code>SRANDMEMBER</code></entry><entry>X</entry></row>
 				<row><entry><code>SREM</code></entry><entry>X</entry></row>
-				<row><entry><code>SSCAN</code></entry><entry>-</entry></row>
+				<row><entry><code>SSCAN</code></entry><entry>X</entry></row>
 				<row><entry><code>STRLEN</code></entry><entry>X</entry></row>
 				<row><entry><code>SUBSCRIBE</code></entry><entry>X</entry></row>
 				<row><entry><code>SUNION</code></entry><entry>X</entry></row>
@@ -171,7 +171,7 @@
 				<row><entry><code>ZREVRANGE</code></entry><entry>X</entry></row>
 				<row><entry><code>ZREVRANGEBYSCORE</code></entry><entry>X</entry></row>
 				<row><entry><code>ZREVRANK</code></entry><entry>X</entry></row>
-				<row><entry><code>ZSCAN</code></entry><entry>-</entry></row>
+				<row><entry><code>ZSCAN</code></entry><entry>X</entry></row>
 				<row><entry><code>ZSCORE</code></entry><entry>X</entry></row>
 				<row><entry><code>ZUNINONSTORE</code></entry><entry>X</entry></row>
 			</tbody>
