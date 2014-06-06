@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -374,7 +373,7 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	 * @see org.springframework.data.redis.core.ZSetOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Iterator<TypedTuple<V>> scan(K key, final ScanOptions options) {
+	public Cursor<TypedTuple<V>> scan(K key, final ScanOptions options) {
 
 		final byte[] rawKey = rawKey(key);
 		Cursor<Tuple> cursor = execute(new RedisCallback<Cursor<Tuple>>() {

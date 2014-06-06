@@ -16,7 +16,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -111,7 +110,7 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 * @see org.springframework.data.redis.core.BoundHashOperations#hscan(java.lang.Object)
 	 */
 	@Override
-	public Iterator<Entry<HK, HV>> scan(H key, ScanOptions options) {
-		return ops.scan(key, options);
+	public Cursor<Entry<HK, HV>> scan(ScanOptions options) {
+		return ops.scan(getKey(), options);
 	}
 }

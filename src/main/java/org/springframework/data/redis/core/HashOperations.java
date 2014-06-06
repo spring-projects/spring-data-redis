@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +24,7 @@ import java.util.Set;
  * Redis map specific operations working on a hash.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface HashOperations<H, HK, HV> {
 
@@ -57,10 +57,10 @@ public interface HashOperations<H, HK, HV> {
 	RedisOperations<H, ?> getOperations();
 
 	/**
-	 * @param key
 	 * @since 1.4
+	 * @param key
 	 * @param options
 	 * @return
 	 */
-	Iterator<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
+	Cursor<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
 }

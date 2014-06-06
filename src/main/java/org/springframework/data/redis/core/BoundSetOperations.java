@@ -17,7 +17,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -79,5 +78,5 @@ public interface BoundSetOperations<K, V> extends BoundKeyOperations<K> {
 	 * @return
 	 * @since 1.4
 	 */
-	Iterator<V> sScan(ScanOptions options);
+	Cursor<V> scan(ScanOptions options);
 }

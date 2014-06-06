@@ -2910,6 +2910,10 @@ public class JedisConnection implements RedisConnection {
 		}
 	}
 
+	/**
+	 * @since 1.4
+	 * @return
+	 */
 	public Cursor<byte[]> scan() {
 		return scan(ScanOptions.NONE);
 	}
@@ -2928,7 +2932,6 @@ public class JedisConnection implements RedisConnection {
 	 * @param options
 	 * @return
 	 */
-	@SuppressWarnings("resource")
 	public Cursor<byte[]> scan(long cursorId, ScanOptions options) {
 
 		return new ScanCursor<byte[]>(cursorId, options) {
@@ -2960,11 +2963,11 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	/**
+	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
 	public Cursor<Tuple> zScan(byte[] key, Long cursorId, ScanOptions options) {
 
@@ -3022,12 +3025,23 @@ public class JedisConnection implements RedisConnection {
 		}.open();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisHashCommands#hScan(byte[], org.springframework.data.redis.core.ScanOptions)
+	 */
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		return hscan(key, 0, options);
+		return hScan(key, 0, options);
 	}
 
-	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
+	/**
+	 * @since 1.4
+	 * @param key
+	 * @param cursorId
+	 * @param options
+	 * @return
+	 */
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
 
 		return new KeyBoundCursor<Map.Entry<byte[], byte[]>>(key, cursorId, options) {
 

@@ -17,7 +17,6 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -145,7 +144,7 @@ class DefaultBoundSetOperations<K, V> extends DefaultBoundKeyOperations<K> imple
 	 * @see org.springframework.data.redis.core.BoundSetOperations#sScan(org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Iterator<V> sScan(ScanOptions options) {
-		return ops.sScan(getKey(), options);
+	public Cursor<V> scan(ScanOptions options) {
+		return ops.scan(getKey(), options);
 	}
 }

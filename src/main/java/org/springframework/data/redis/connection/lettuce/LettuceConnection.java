@@ -3033,6 +3033,10 @@ public class LettuceConnection implements RedisConnection {
 		}
 	}
 
+	/**
+	 * @since 1.4
+	 * @return
+	 */
 	public Cursor<byte[]> scan() {
 		return scan(0, ScanOptions.NONE);
 	}
@@ -3080,17 +3084,17 @@ public class LettuceConnection implements RedisConnection {
 	 */
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		return hscan(key, 0, options);
+		return hScan(key, 0, options);
 	}
 
 	/**
+	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
-	public Cursor<Entry<byte[], byte[]>> hscan(byte[] key, long cursorId, ScanOptions options) {
+	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, long cursorId, ScanOptions options) {
 
 		return new KeyBoundCursor<Entry<byte[], byte[]>>(key, cursorId, options) {
 
@@ -3165,11 +3169,11 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	/**
+	 * @since 1.4
 	 * @param key
 	 * @param cursorId
 	 * @param options
 	 * @return
-	 * @since 1.4
 	 */
 	public Cursor<Tuple> zScan(byte[] key, long cursorId, ScanOptions options) {
 

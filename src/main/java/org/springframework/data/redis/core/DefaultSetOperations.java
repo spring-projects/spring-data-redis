@@ -253,7 +253,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	 * @see org.springframework.data.redis.core.SetOperations#sScan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
-	public Cursor<V> sScan(K key, final ScanOptions options) {
+	public Cursor<V> scan(K key, final ScanOptions options) {
 
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Cursor<V>>() {

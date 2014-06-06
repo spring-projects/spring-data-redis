@@ -214,7 +214,7 @@ public class DefaultSetOperationsTests<K, V> {
 		V v3 = valueFactory.instance();
 
 		setOps.add(key, v1, v2, v3);
-		Iterator<V> it = setOps.sScan(key, ScanOptions.scanOptions().count(1).build());
+		Iterator<V> it = setOps.scan(key, ScanOptions.scanOptions().count(1).build());
 		long count = 0;
 		while (it.hasNext()) {
 			assertThat(it.next(), anyOf(equalTo(v1), equalTo(v2), equalTo(v3)));
