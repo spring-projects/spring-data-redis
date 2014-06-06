@@ -174,6 +174,10 @@ abstract public class LettuceConverters extends Converters {
 		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER.convert(list);
 	}
 
+	public static Converter<List<byte[]>, List<Tuple>> bytesListToTupleListConverter() {
+		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
+	}
+
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
 		return new Converter<String, List<RedisClientInfo>>() {
 
@@ -288,6 +292,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Map<byte[], byte[]> toMap(List<byte[]> source) {
 		return BYTES_LIST_TO_MAP.convert(source);
+	}
+
+	public static Converter<List<byte[]>, Map<byte[], byte[]>> bytesListToMapConverter() {
+		return BYTES_LIST_TO_MAP;
 	}
 
 	public static SortArgs toSortArgs(SortParameters params) {
