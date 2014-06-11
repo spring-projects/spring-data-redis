@@ -3112,8 +3112,7 @@ public class LettuceConnection implements RedisConnection {
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				@SuppressWarnings("unchecked")
-				Map<byte[], byte[]> values = LettuceConverters.toMap((List<byte[]>) result.get(1));
+				Map<byte[], byte[]> values = failsafeReadScanValues(result, LettuceConverters.bytesListToMapConverter());
 				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
 			}
 		}.open();
@@ -3139,7 +3138,6 @@ public class LettuceConnection implements RedisConnection {
 
 		return new KeyBoundCursor<byte[]>(key, cursorId, options) {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			protected ScanIteration<byte[]> doScan(byte[] key, long cursorId, ScanOptions options) {
 
@@ -3154,7 +3152,8 @@ public class LettuceConnection implements RedisConnection {
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((ArrayList<byte[]>) result.get(1)));
+				List<byte[]> values = failsafeReadScanValues(result, null);
+				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), values);
 			}
 		}.open();
 	}
@@ -3179,7 +3178,6 @@ public class LettuceConnection implements RedisConnection {
 
 		return new KeyBoundCursor<Tuple>(key, cursorId, options) {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			protected ScanIteration<Tuple> doScan(byte[] key, long cursorId, ScanOptions options) {
 
@@ -3194,10 +3192,21 @@ public class LettuceConnection implements RedisConnection {
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), LettuceConverters.toTuple((List<byte[]>) result
-						.get(1)));
+				List<Tuple> values = failsafeReadScanValues(result, LettuceConverters.bytesListToTupleListConverter());
+				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), values);
 			}
 		}.open();
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T failsafeReadScanValues(List<?> source, @SuppressWarnings("rawtypes") Converter converter) {
+
+		try {
+			return (T) (converter != null ? converter.convert(source.get(1)) : source.get(1));
+		} catch (IndexOutOfBoundsException e) {
+			// ignore this one
+		}
+		return null;
 	}
 
 	/**
