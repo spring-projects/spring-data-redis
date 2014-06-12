@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -31,20 +26,36 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.data.redis.test.util.RedisClientRule;
+import org.springframework.data.redis.test.util.RedisDriver;
+import org.springframework.data.redis.test.util.WithRedisDriver;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis ZSet.
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTests<T> {
+
+	public @Rule RedisClientRule clientRule = new RedisClientRule() {
+		public RedisConnectionFactory getConnectionFactory() {
+			return template.getConnectionFactory();
+		}
+	};
+
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	protected RedisZSet<T> zSet;
 
@@ -518,5 +529,29 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 		Object[] array = collection.toArray(new Object[zSet.size()]);
 		assertArrayEquals(new Object[] { t1, t2, t3, t4 }, array);
+	}
+
+	/**
+	 * @see DATAREDIS-314
+	 */
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	@Test
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void testScanWorksCorrectly() {
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		zSet.add(t4, 4);
+
+		Iterator<T> it = zSet.scan();
+		while (it.hasNext()) {
+			assertThat(it.next(), anyOf(equalTo(t1), equalTo(t2), equalTo(t3), equalTo(t4)));
+		}
 	}
 }

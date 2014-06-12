@@ -26,7 +26,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundHashOperations;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
 
 /**
@@ -292,5 +294,23 @@ public class DefaultRedisMap<K, V> implements RedisMap<K, V> {
 		if (obj == null) {
 			throw new IllegalStateException("Cannot read collection with Redis connection in pipeline/multi-exec mode");
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisMap#scan()
+	 */
+	@Override
+	public Cursor<java.util.Map.Entry<K, V>> scan() {
+		return scan(ScanOptions.NONE);
+	}
+
+	/**
+	 * @since 1.4
+	 * @param options
+	 * @return
+	 */
+	private Cursor<java.util.Map.Entry<K, V>> scan(ScanOptions options) {
+		return hashOps.scan(options);
 	}
 }

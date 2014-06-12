@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 package org.springframework.data.redis.support.collections;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
  * Redis extension for the {@link Set} contract. Supports {@link Set} specific operations backed by Redis operations.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -48,4 +50,10 @@ public interface RedisSet<E> extends RedisCollection<E>, Set<E> {
 	RedisSet<E> diffAndStore(RedisSet<?> set, String destKey);
 
 	RedisSet<E> diffAndStore(Collection<? extends RedisSet<?>> sets, String destKey);
+
+	/**
+	 * @since 1.4
+	 * @return
+	 */
+	Iterator<E> scan();
 }

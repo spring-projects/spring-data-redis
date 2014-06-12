@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,13 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundZSetOperations;
+import org.springframework.data.redis.core.ConvertingCursor;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -30,6 +34,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * non-pipeline/multi-exec connections as it requires a reply to be sent right away.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
@@ -229,4 +234,29 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 	public DataType getType() {
 		return DataType.ZSET;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisZSet#scan()
+	 */
+	@Override
+	public Cursor<E> scan() {
+		return new ConvertingCursor<TypedTuple<E>, E>(scan(ScanOptions.NONE), new Converter<TypedTuple<E>, E>() {
+
+			@Override
+			public E convert(TypedTuple<E> source) {
+				return source.getValue();
+			}
+		});
+	}
+
+	/**
+	 * @since 1.4
+	 * @param options
+	 * @return
+	 */
+	public Cursor<TypedTuple<E>> scan(ScanOptions options) {
+		return boundZSetOps.scan(options);
+	}
+
 }

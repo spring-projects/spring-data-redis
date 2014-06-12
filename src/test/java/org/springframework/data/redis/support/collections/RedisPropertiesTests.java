@@ -52,6 +52,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 /**
  * @author Costin Leau
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class RedisPropertiesTests extends RedisMapTests {
 
@@ -220,6 +221,12 @@ public class RedisPropertiesTests extends RedisMapTests {
 		assertTrue(keys.contains(key3));
 	}
 
+	@Override
+	@Test(expected = UnsupportedOperationException.class)
+	public void testScanWorksCorrectly() {
+		super.testScanWorksCorrectly();
+	}
+
 	/**
 	 * @see DATAREDIS-241
 	 */
@@ -371,4 +378,5 @@ public class RedisPropertiesTests extends RedisMapTests {
 				{ stringFactory, stringFactory, xGenericTemplateSrp }, { stringFactory, stringFactory, jsonPersonTemplateSrp },
 				{ stringFactory, stringFactory, jackson2JsonPersonTemplateSrp } });
 	}
+
 }

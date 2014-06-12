@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,16 @@ import java.util.UUID;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.BoundSetOperations;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ScanOptions;
 
 /**
  * Default implementation for {@link RedisSet}. Note that the collection support works only with normal,
  * non-pipeline/multi-exec connections as it requires a reply to be sent right away.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements RedisSet<E> {
 
@@ -161,5 +164,23 @@ public class DefaultRedisSet<E> extends AbstractRedisCollection<E> implements Re
 
 	public DataType getType() {
 		return DataType.SET;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.support.collections.RedisSet#scan()
+	 */
+	@Override
+	public Cursor<E> scan() {
+		return scan(ScanOptions.NONE);
+	}
+
+	/**
+	 * @since 1.4
+	 * @param options
+	 * @return
+	 */
+	public Cursor<E> scan(ScanOptions options) {
+		return boundSetOps.scan(options);
 	}
 }
