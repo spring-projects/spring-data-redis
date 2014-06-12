@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.springframework.data.redis.support.collections;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,19 +26,22 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.support.collections.DefaultRedisSet;
-import org.springframework.data.redis.support.collections.RedisSet;
+import org.springframework.data.redis.test.util.RedisClientRule;
 
 /**
  * Integration test for Redis set.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTests<T> {
+
+	@Rule public RedisClientRule clientRule = RedisClientRule.none();
 
 	protected RedisSet<T> set;
 
@@ -65,7 +68,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		return new DefaultRedisSet<T>((BoundSetOperations<String, T>) set.getOperations().boundSetOps(key));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testDiff() {
 		RedisSet<T> diffSet1 = createSetFor("test:set:diff1");
@@ -87,7 +89,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(diff, hasItem(t1));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testDiffAndStore() {
 		RedisSet<T> diffSet1 = createSetFor("test:set:diff1");
@@ -114,7 +115,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(resultName, diff.getKey());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testIntersect() {
 		RedisSet<T> intSet1 = createSetFor("test:set:int1");
@@ -139,7 +139,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertThat(inter, hasItem(t2));
 	}
 
-	@SuppressWarnings("unchecked")
 	public void testIntersectAndStore() {
 		RedisSet<T> intSet1 = createSetFor("test:set:int1");
 		RedisSet<T> intSet2 = createSetFor("test:set:int2");
@@ -213,7 +212,6 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(resultName, union.getKey());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testIterator() {
 		T t1 = getT();
@@ -289,5 +287,21 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		}
 
 		assertEquals(0, result.size());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testScanWorksCorrectly() {
+
+		clientRule = RedisClientRule.appliedOn(this.template.getConnectionFactory()).jedis().lettuce();
+		clientRule.evaluate();
+
+		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
+		collection.addAll((List<T>) Arrays.asList(expectedArray));
+
+		Iterator<T> it = set.scan();
+		while (it.hasNext()) {
+			assertThat(it.next(), anyOf(equalTo(expectedArray[0]), equalTo(expectedArray[1]), equalTo(expectedArray[2])));
+		}
 	}
 }
