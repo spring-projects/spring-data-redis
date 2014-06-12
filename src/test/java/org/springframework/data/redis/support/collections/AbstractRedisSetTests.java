@@ -289,6 +289,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(0, result.size());
 	}
 
+	/**
+	 * @see DATAREDIS-314
+	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testScanWorksCorrectly() {

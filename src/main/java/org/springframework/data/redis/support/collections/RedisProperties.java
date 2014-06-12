@@ -21,8 +21,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -245,6 +247,11 @@ public class RedisProperties extends Properties implements RedisMap<Object, Obje
 	}
 
 	public synchronized void storeToXML(OutputStream os, String comment) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Iterator<java.util.Map.Entry<Object, Object>> scan() {
 		throw new UnsupportedOperationException();
 	}
 }

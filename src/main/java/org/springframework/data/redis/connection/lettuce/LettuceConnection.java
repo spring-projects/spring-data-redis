@@ -17,6 +17,9 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static com.lambdaworks.redis.protocol.CommandType.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -3105,17 +3108,49 @@ public class LettuceConnection implements RedisConnection {
 					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
-						+ options.toOptionString();
-				String script = "return redis.call('HSCAN'" + params + ")";
-
-				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
+				byte[] script = createBinaryLuaScriptForScan("HSCAN", key, cursorId, options);
+				List<?> result = eval(script, ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
 				Map<byte[], byte[]> values = failsafeReadScanValues(result, LettuceConverters.bytesListToMapConverter());
 				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
 			}
+
 		}.open();
+	}
+
+	private byte[] createBinaryLuaScriptForScan(String command, byte[] key, long cursorId, ScanOptions options) {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+		try {
+
+			outputStream.write(("return redis.call('" + command + "'").getBytes("UTF-8"));
+			outputStream.write(", '".getBytes("UTF-8"));
+			writeFilteredKey(key, outputStream);
+			outputStream.write("', ".getBytes("UTF-8"));
+			outputStream.write(Long.toString(cursorId).getBytes("UTF-8"));
+			outputStream.write(options.toOptionString().getBytes("UTF-8"));
+			outputStream.write(")".getBytes("UTF-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return outputStream.toByteArray();
+	}
+
+	private void writeFilteredKey(byte[] key, OutputStream stream) {
+		byte toBeFiltered = (byte) '\r';
+		for (byte b : key) {
+			try {
+				if (toBeFiltered == b) {
+					stream.write("\\r".getBytes());
+				} else {
+					stream.write(b);
+				}
+			} catch (IOException e) {
+				throw new IllegalArgumentException("Cannot convert key to suitable redis key for lua", e);
+			}
+		}
 	}
 
 	/*
@@ -3145,11 +3180,8 @@ public class LettuceConnection implements RedisConnection {
 					throw new UnsupportedOperationException("'SSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
-						+ options.toOptionString();
-				String script = "return redis.call('SSCAN'" + params + ")";
-
-				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
+				byte[] script = createBinaryLuaScriptForScan("SSCAN", key, cursorId, options);
+				List<?> result = eval(script, ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
 				List<byte[]> values = failsafeReadScanValues(result, null);
@@ -3185,11 +3217,9 @@ public class LettuceConnection implements RedisConnection {
 					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				String params = " ,'" + LettuceConverters.bytesToString().convert(key) + "', " + cursorId
-						+ options.toOptionString();
-				String script = "return redis.call('ZSCAN'" + params + ")";
+				byte[] script = createBinaryLuaScriptForScan("ZSCAN", key, cursorId, options);
+				List<?> result = eval(script, ReturnType.MULTI, 0);
 
-				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
 				List<Tuple> values = failsafeReadScanValues(result, LettuceConverters.bytesListToTupleListConverter());
