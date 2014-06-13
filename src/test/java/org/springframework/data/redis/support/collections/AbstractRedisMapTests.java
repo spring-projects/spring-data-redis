@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,16 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -41,6 +34,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,15 +50,22 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.data.redis.test.util.RedisClientRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis Map.
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractRedisMapTests<K, V> {
+
+	public @Rule RedisClientRule clientRule = RedisClientRule.none();
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	protected RedisMap<K, V> map;
 	protected ObjectFactory<K> keyFactory;
@@ -477,5 +478,32 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test(expected = NullPointerException.class)
 	public void testReplaceNullValue() {
 		map.replace(getKey(), null);
+	}
+
+	/**
+	 * @see DATAREDIS-314
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	public void testScanWorksCorrectly() {
+
+		clientRule = RedisClientRule.appliedOn(this.template.getConnectionFactory()).jedis().lettuce();
+		clientRule.evaluate();
+
+		K k1 = getKey();
+		K k2 = getKey();
+
+		V v1 = getValue();
+		V v2 = getValue();
+
+		map.put(k1, v1);
+		map.put(k2, v2);
+
+		Iterator<Entry<K, V>> it = map.scan();
+		while (it.hasNext()) {
+			Entry<K, V> entry = it.next();
+			assertThat(entry.getKey(), anyOf(equalTo(k1), equalTo(k2)));
+			assertThat(entry.getValue(), anyOf(equalTo(v1), equalTo(v2)));
+		}
 	}
 }
