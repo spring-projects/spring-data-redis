@@ -17,6 +17,7 @@ package org.springframework.data.redis.support.collections;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
@@ -124,4 +125,10 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	 * @throws NoSuchElementException sorted set is empty.
 	 */
 	E last();
+
+	/**
+	 * @since 1.4
+	 * @return
+	 */
+	Iterator<E> scan();
 }

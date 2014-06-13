@@ -15,15 +15,10 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -31,12 +26,14 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.util.RedisClientRule;
 
 /**
  * Integration test for Redis ZSet.
@@ -45,6 +42,8 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * @author Jennifer Hickey
  */
 public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTests<T> {
+
+	@Rule public RedisClientRule clientRule = RedisClientRule.none();
 
 	protected RedisZSet<T> zSet;
 
@@ -518,5 +517,30 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 
 		Object[] array = collection.toArray(new Object[zSet.size()]);
 		assertArrayEquals(new Object[] { t1, t2, t3, t4 }, array);
+	}
+
+	/**
+	 * @see DATAREDIS-314
+	 */
+	@Test
+	public void testScanWorksCorrectly() {
+
+		clientRule = RedisClientRule.appliedOn(this.template.getConnectionFactory()).jedis().lettuce();
+		clientRule.evaluate();
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+		T t4 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		zSet.add(t4, 4);
+
+		Iterator<T> it = zSet.scan();
+		while (it.hasNext()) {
+			assertThat(it.next(), anyOf(equalTo(t1), equalTo(t2), equalTo(t3), equalTo(t4)));
+		}
 	}
 }
