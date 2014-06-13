@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -35,6 +36,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -48,6 +50,9 @@ import org.springframework.test.annotation.IfProfileValue;
  */
 @RunWith(Parameterized.class)
 public class DefaultHashOperationsTests<K, HK, HV> {
+
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
+
 	private RedisTemplate<K, ?> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;

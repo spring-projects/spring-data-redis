@@ -33,7 +33,9 @@ import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClientRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis ZSet.
@@ -43,7 +45,8 @@ import org.springframework.data.redis.test.util.RedisClientRule;
  */
 public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTests<T> {
 
-	@Rule public RedisClientRule clientRule = RedisClientRule.none();
+	public @Rule RedisClientRule clientRule = RedisClientRule.none();
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	protected RedisZSet<T> zSet;
 
@@ -522,6 +525,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	/**
 	 * @see DATAREDIS-314
 	 */
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@Test
 	public void testScanWorksCorrectly() {
 

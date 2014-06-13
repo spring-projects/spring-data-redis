@@ -50,7 +50,9 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClientRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test for Redis Map.
@@ -62,7 +64,8 @@ import org.springframework.data.redis.test.util.RedisClientRule;
 @RunWith(Parameterized.class)
 public abstract class AbstractRedisMapTests<K, V> {
 
-	@Rule public RedisClientRule clientRule = RedisClientRule.none();
+	public @Rule RedisClientRule clientRule = RedisClientRule.none();
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	protected RedisMap<K, V> map;
 	protected ObjectFactory<K> keyFactory;
@@ -481,6 +484,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	 * @see DATAREDIS-314
 	 */
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testScanWorksCorrectly() {
 
 		clientRule = RedisClientRule.appliedOn(this.template.getConnectionFactory()).jedis().lettuce();

@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -36,6 +37,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
@@ -48,6 +50,8 @@ import org.springframework.test.annotation.IfProfileValue;
  */
 @RunWith(Parameterized.class)
 public class DefaultZSetOperationsTests<K, V> {
+
+	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	private RedisTemplate<K, V> redisTemplate;
 
