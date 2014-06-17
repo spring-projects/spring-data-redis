@@ -25,6 +25,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
@@ -33,6 +34,7 @@ import org.springframework.util.Assert;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 @SuppressWarnings("unchecked")
 class RedisCache implements Cache {
@@ -109,23 +111,22 @@ class RedisCache implements Cache {
 	}
 
 	public void put(final Object key, final Object value) {
-		final byte[] k = computeKey(key);
+
+		final byte[] keyBytes = computeKey(key);
+		final byte[] valueBytes = convertToBytesIfNecessary(template.getValueSerializer(), value);
 
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+
 				waitForLock(connection);
+
 				connection.multi();
-				byte[] v;
-				if (template.getValueSerializer() == null && value instanceof byte[]) {
-					v = (byte[]) value;
-				} else {
-					v = template.getValueSerializer().serialize(value);
-				}
-				connection.set(k, v);
-				connection.zAdd(setName, 0, k);
+
+				connection.set(keyBytes, valueBytes);
+				connection.zAdd(setName, 0, keyBytes);
 
 				if (expiration > 0) {
-					connection.expire(k, expiration);
+					connection.expire(keyBytes, expiration);
 					// update the expiration of the set of keys as well
 					connection.expire(setName, expiration);
 				}
@@ -185,20 +186,21 @@ class RedisCache implements Cache {
 	}
 
 	private byte[] computeKey(Object key) {
-		if (template.getKeySerializer() == null && key instanceof byte[]) {
-			return (byte[]) key;
+
+		byte[] keyBytes = convertToBytesIfNecessary(template.getKeySerializer(), key);
+
+		if (prefix == null || prefix.length == 0) {
+			return keyBytes;
 		}
-		byte[] k = template.getKeySerializer().serialize(key);
 
-		if (prefix == null || prefix.length == 0)
-			return k;
+		byte[] result = Arrays.copyOf(prefix, prefix.length + keyBytes.length);
+		System.arraycopy(keyBytes, 0, result, prefix.length, keyBytes.length);
 
-		byte[] result = Arrays.copyOf(prefix, prefix.length + k.length);
-		System.arraycopy(k, 0, result, prefix.length, k.length);
 		return result;
 	}
 
 	private boolean waitForLock(RedisConnection connection) {
+
 		boolean retry;
 		boolean foundLock = false;
 		do {
@@ -208,11 +210,21 @@ class RedisCache implements Cache {
 				try {
 					Thread.sleep(WAIT_FOR_LOCK);
 				} catch (InterruptedException ex) {
-					// ignore
+					Thread.currentThread().interrupt();
 				}
 				retry = true;
 			}
 		} while (retry);
+
 		return foundLock;
+	}
+
+	private byte[] convertToBytesIfNecessary(RedisSerializer<Object> serializer, Object value) {
+
+		if (serializer == null && value instanceof byte[]) {
+			return (byte[]) value;
+		}
+
+		return serializer.serialize(value);
 	}
 }
