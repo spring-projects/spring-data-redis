@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.util.Collection;
 
@@ -32,15 +31,19 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisAtomicLong}
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
-public class RedisAtomicLongTests {
+public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 	private RedisAtomicLong longCounter;
 	private RedisConnectionFactory factory;
@@ -102,5 +105,50 @@ public class RedisAtomicLongTests {
 		longCounter.set(5);
 		RedisAtomicLong keyCopy = new RedisAtomicLong(longCounter.getKey(), factory);
 		assertEquals(longCounter.get(), keyCopy.get());
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldThrowExceptionIfAtomicLongIsUsedWithRedisTemplateAndNoKeySerializer() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("a valid key serializer in template is required");
+
+		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		new RedisAtomicLong("foo", template);
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldThrowExceptionIfAtomicLongIsUsedWithRedisTemplateAndNoValueSerializer() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("a valid value serializer in template is required");
+
+		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		template.setKeySerializer(new StringRedisSerializer());
+		new RedisAtomicLong("foo", template);
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldBeAbleToUseRedisAtomicLongWithProperlyConfiguredRedisTemplate() {
+
+		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		template.setConnectionFactory(factory);
+		template.setKeySerializer(new StringRedisSerializer());
+		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		template.afterPropertiesSet();
+
+		RedisAtomicLong ral = new RedisAtomicLong("DATAREDIS-317.atomicLong", template);
+		ral.set(32L);
+
+		assertThat(ral.get(), is(32L));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
@@ -37,8 +38,11 @@ import org.springframework.util.Assert;
  * 
  * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
+ * @author Thomas Darimont
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
+
+	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
 	private ValueOperations<String, Long> operations;
@@ -94,6 +98,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
+	 * @see #RedisAtomicLong(String, RedisConnectionFactory, long)
 	 */
 	public RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template) {
 		this(redisCounter, template, null);
@@ -101,6 +106,14 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance.
+	 * <p>
+	 * Note: You need to configure the given {@code template} with appropriate {@link RedisSerializer} for the key and
+	 * value. The key serializer must be able to deserialize to a {@link String} and the value serializer must be able to
+	 * deserialize to a {@link Long}.
+	 * <p>
+	 * As an alternative one could use the {@link #RedisAtomicLong(String, RedisConnectionFactory, Long)} constructor
+	 * which uses appropriate default serializers, in this case {@link StringRedisSerializer} for the key and
+	 * {@link GenericToStringSerializer} for the value.
 	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
@@ -111,8 +124,11 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	}
 
 	private RedisAtomicLong(String redisCounter, RedisOperations<String, Long> template, Long initialValue) {
+
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(template, "a valid template is required");
+		Assert.notNull(template.getKeySerializer(), "a valid key serializer in template is required");
+		Assert.notNull(template.getValueSerializer(), "a valid value serializer in template is required");
 
 		this.key = redisCounter;
 		this.generalOps = template;

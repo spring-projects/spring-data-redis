@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 
@@ -36,9 +37,11 @@ import org.springframework.util.Assert;
  * operations.
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
-@SuppressWarnings("serial")
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
+
+	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
 	private ValueOperations<String, Double> operations;
@@ -94,13 +97,17 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
+	 * @see #RedisAtomicDouble(String, RedisConnectionFactory, double)
 	 */
 	public RedisAtomicDouble(String redisCounter, RedisOperations<String, Double> template) {
 		this(redisCounter, template, null);
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicDouble</code> instance.
+	 * Constructs a new <code>RedisAtomicDouble</code> instance. Note: You need to configure the given {@code template}
+	 * with appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
+	 * {@link #RedisAtomicDouble(String, RedisConnectionFactory, Double)} constructor which uses appropriate default
+	 * serializers.
 	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
@@ -111,8 +118,11 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	}
 
 	private RedisAtomicDouble(String redisCounter, RedisOperations<String, Double> template, Double initialValue) {
+
 		Assert.hasText(redisCounter, "a valid counter name is required");
 		Assert.notNull(template, "a valid template is required");
+		Assert.notNull(template.getKeySerializer(), "a valid key serializer in template is required");
+		Assert.notNull(template.getValueSerializer(), "a valid value serializer in template is required");
 
 		this.key = redisCounter;
 		this.generalOps = template;

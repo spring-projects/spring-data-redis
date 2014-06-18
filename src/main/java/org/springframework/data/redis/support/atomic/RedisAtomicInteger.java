@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.Assert;
 
 /**
  * Atomic integer backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
@@ -36,8 +38,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * 
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
+ * @author Thomas Darimont
  */
 public class RedisAtomicInteger extends Number implements Serializable, BoundKeyOperations<String> {
+
+	private static final long serialVersionUID = 1L;
 
 	private volatile String key;
 	private ValueOperations<String, Integer> operations;
@@ -69,13 +74,17 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
+	 * @see #RedisAtomicInteger(String, RedisConnectionFactory, int)
 	 */
 	public RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template) {
 		this(redisCounter, template, null);
 	}
 
 	/**
-	 * Constructs a new <code>RedisAtomicInteger</code> instance.
+	 * Constructs a new <code>RedisAtomicInteger</code> instance. Note: You need to configure the given {@code template}
+	 * with appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
+	 * {@link #RedisAtomicInteger(String, RedisConnectionFactory, Integer)} constructor which uses appropriate default
+	 * serializers.
 	 * 
 	 * @param redisCounter the redis counter
 	 * @param template the template
@@ -107,6 +116,12 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	}
 
 	private RedisAtomicInteger(String redisCounter, RedisOperations<String, Integer> template, Integer initialValue) {
+
+		Assert.hasText(redisCounter, "a valid counter name is required");
+		Assert.notNull(template, "a valid template is required");
+		Assert.notNull(template.getKeySerializer(), "a valid key serializer in template is required");
+		Assert.notNull(template.getValueSerializer(), "a valid value serializer in template is required");
+
 		this.key = redisCounter;
 		this.generalOps = template;
 		this.operations = generalOps.opsForValue();

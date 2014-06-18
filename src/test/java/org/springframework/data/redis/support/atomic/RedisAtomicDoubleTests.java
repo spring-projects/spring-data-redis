@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.util.Collection;
 import java.util.Date;
@@ -37,14 +35,18 @@ import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisAtomicDouble}
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
-public class RedisAtomicDoubleTests {
+public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	private RedisAtomicDouble doubleCounter;
 
@@ -163,5 +165,49 @@ public class RedisAtomicDoubleTests {
 		doubleCounter.rename("foodouble");
 		assertEquals("5.6", new String(factory.getConnection().get("foodouble".getBytes())));
 		assertNull(factory.getConnection().get((getClass().getSimpleName() + ":double").getBytes()));
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoKeySerializer() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("a valid key serializer in template is required");
+
+		new RedisAtomicDouble("foo", new RedisTemplate<String, Double>());
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoValueSerializer() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("a valid value serializer in template is required");
+
+		RedisTemplate<String, Double> template = new RedisTemplate<String, Double>();
+		template.setKeySerializer(new StringRedisSerializer());
+		new RedisAtomicDouble("foo", template);
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldBeAbleToUseRedisAtomicDoubleWithProperlyConfiguredRedisTemplate() {
+
+		RedisTemplate<String, Double> template = new RedisTemplate<String, Double>();
+		template.setConnectionFactory(factory);
+		template.setKeySerializer(new StringRedisSerializer());
+		template.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
+		template.afterPropertiesSet();
+
+		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-317.atomicDouble", template);
+		ral.set(32.23);
+
+		assertThat(ral.get(), is(32.23));
 	}
 }
