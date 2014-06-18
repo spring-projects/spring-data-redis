@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -35,15 +34,19 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisAtomicInteger}
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
-public class RedisAtomicIntegerTests {
+public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 	private RedisAtomicInteger intCounter;
 	private RedisConnectionFactory factory;
@@ -132,5 +135,49 @@ public class RedisAtomicIntegerTests {
 		latch.await();
 
 		assertFalse("counter already modified", failed.get());
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoKeySerializer() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("a valid key serializer in template is required");
+
+		new RedisAtomicInteger("foo", new RedisTemplate<String, Integer>());
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoValueSerializer() {
+
+		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expectMessage("a valid value serializer in template is required");
+
+		RedisTemplate<String, Integer> template = new RedisTemplate<String, Integer>();
+		template.setKeySerializer(new StringRedisSerializer());
+		new RedisAtomicInteger("foo", template);
+	}
+
+	/**
+	 * @see DATAREDIS-317
+	 */
+	@Test
+	public void testShouldBeAbleToUseRedisAtomicIntegerWithProperlyConfiguredRedisTemplate() {
+
+		RedisTemplate<String, Integer> template = new RedisTemplate<String, Integer>();
+		template.setConnectionFactory(factory);
+		template.setKeySerializer(new StringRedisSerializer());
+		template.setValueSerializer(new GenericToStringSerializer<Integer>(Integer.class));
+		template.afterPropertiesSet();
+
+		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-317.atomicInteger", template);
+		ral.set(32);
+
+		assertThat(ral.get(), is(32));
 	}
 }
