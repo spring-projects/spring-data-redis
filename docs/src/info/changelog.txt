@@ -6,6 +6,14 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.3.1.RELEASE (2014-06-30)
+---------------------------------------------
+* DATAREDIS-320 - Release 1.3.1.
+* DATAREDIS-317 - Cannot increment RedisAtomicInteger.
+* DATAREDIS-310 - Lock of RedisCache is not safe.
+* DATAREDIS-307 - Add missing reference documentation for managed transaction support.
+
+
 Changes in version 1.3.0.RELEASE (2014-05-20)
 ---------------------------------------------
 * DATAREDIS-303 - Upgrade to Spring 3.2.9.
