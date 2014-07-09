@@ -55,7 +55,7 @@
 		
 		<section id="get-started:help:community">
   		    <title>Community Support</title>
-			<para>The Spring Data <ulink url="http://forum.spring.io/forum/spring-projects/data/nosql">forum</ulink> is a message board for all Spring Data (not just Redis) users to
+			<para>The Spring Data tag on <ulink url="http://stackoverflow.com/questions/tagged/spring-data">Stackoverflow</ulink> is a message board for all Spring Data (not just Redis) users to
 			share information and help each other. Note that registration is needed <emphasis>only</emphasis> for posting.
 			</para>
 		</section>
@@ -73,8 +73,8 @@
 		<para>For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home 
 		<ulink url="http://spring.io/spring-data">page</ulink>.   
 		</para>
-		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers through the Spring Community 
-		<ulink url="http://forum.spring.io/">forums</ulink>.</para>
+		<para>You can help make Spring Data best serve the needs of the Spring community by interacting with developers on 
+		<ulink url="http://stackoverflow.com/questions/tagged/spring-data">Stackoverflow</ulink>.</para>
 		<para>If you encounter a bug or want to suggest an improvement, 
 		please create a ticket on the Spring Data issue <ulink url="https://jira.springsource.org/browse/DATAREDIS">tracker</ulink>.</para>
 		<para>To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the 
