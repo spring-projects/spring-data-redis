@@ -23,6 +23,6 @@ Please see the reference documentation.
 Additionally the blog at https://spring.io/blog as well as sections of interest in the reference documentation.
 
 5. ADDITIONAL RESOURCES
-Spring Data Homepage: http://projects.spring.io/spring-data-redis/
-Spring Data Forum   : http://forum.spring.io/forum/spring-projects/data/nosql
-Redis Homepage      : http://redis.io
+Spring Data Homepage:			http://projects.spring.io/spring-data-redis/
+Spring Data on Stackoverflow:	http://stackoverflow.com/questions/tagged/spring-data
+Redis Homepage:					http://redis.io
