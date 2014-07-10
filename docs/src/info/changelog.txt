@@ -6,6 +6,23 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.4.0.M1 (2014-07-10)
+----------------------------------------
+* DATAREDIS-323 - Remove links to forum.spring.io.
+* DATAREDIS-322 - Release 1.4 M1.
+* DATAREDIS-321 - Adapt to Spring 4 upgrade.
+* DATAREDIS-314 - Add usage of SCAN commands to Collection types.
+* DATAREDIS-313 - Overhaul naming and return types of SCAN, HSCAN, SSCAN, ZSCAN operations.
+* DATAREDIS-312 - Add travis-ci configuration.
+* DATAREDIS-311 - Add test summary output to the build.
+* DATAREDIS-310 - Lock of RedisCache is not safe.
+* DATAREDIS-309 - Refactor test profiles to support more than 2 versions.
+* DATAREDIS-306 - Add support for ZSCAN.
+* DATAREDIS-305 - Add support for HSCAN.
+* DATAREDIS-296 - Upgrade jedis to recent version.
+* DATAREDIS-290 - Add support for 'SCAN' command.
+
+
 Changes in version 1.3.1.RELEASE (2014-06-30)
 ---------------------------------------------
 * DATAREDIS-320 - Release 1.3.1.
