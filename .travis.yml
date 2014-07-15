@@ -3,6 +3,4 @@ jdk:
   - oraclejdk7
   - openjdk6
   - oraclejdk8
-services:
-  - redis-server
-script: "gradle clean build -DrunLongTests=true"
+script: make test

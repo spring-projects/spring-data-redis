@@ -209,6 +209,21 @@
       
     </section>
     
+    <section id="redis:sentinel">
+      <title>Redis Sentinel Support</title>
+      <para>For dealing with high available Redis there is support for <ulink url="http://redis.io/topics/sentinel">Redis Sentinel</ulink> using <classname>RedisSentinelConfiguration</classname>.</para>
+      <note>Please note that currently only <ulink url="http://github.com/xetorthio/jedis">Jedis</ulink> supports Redis Sentinel.</note>      
+      <programlisting language="java"><![CDATA[@Bean
+public RedisConnectionFactory jedisConnectionFactory() {
+  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
+      .master("mymaster")
+      .sentinel("127.0.0.1", 26379)
+      .sentinel("127.0.0.1", 26380);
+  return new JedisConnectionFactory(sentinelConfig);
+}       
+      ]]></programlisting>
+    </section>
+    
     <section id="redis:template">
       <title>Working with Objects through <classname>RedisTemplate</classname></title>
       

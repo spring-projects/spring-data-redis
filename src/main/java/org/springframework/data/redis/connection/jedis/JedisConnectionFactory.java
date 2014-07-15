@@ -16,6 +16,11 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -26,20 +31,26 @@ import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.Protocol;
+import redis.clients.util.Pool;
 
 /**
  * Connection factory creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
  * 
  * @author Costin Leau
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -53,10 +64,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private int timeout = Protocol.DEFAULT_TIMEOUT;
 	private String password;
 	private boolean usePool = true;
-	private JedisPool pool = null;
+	private Pool<Jedis> pool;
 	private JedisPoolConfig poolConfig = new JedisPoolConfig();
 	private int dbIndex = 0;
 	private boolean convertPipelineAndTxResults = true;
+	private RedisSentinelConfiguration sentinelConfig;
 
 	/**
 	 * Constructs a new <code>JedisConnectionFactory</code> instance with default settings (default connection pooling, no
@@ -80,7 +92,31 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @param poolConfig pool configuration
 	 */
 	public JedisConnectionFactory(JedisPoolConfig poolConfig) {
-		this.poolConfig = poolConfig;
+		this(null, poolConfig);
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
+	 * {@link JedisSentinelPool}.
+	 * 
+	 * @param sentinelConfig
+	 * @since 1.4
+	 */
+	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig) {
+		this(sentinelConfig, null);
+	}
+
+	/**
+	 * Constructs a new {@link JedisConnectionFactory} instance using the given {@link JedisPoolConfig} applied to
+	 * {@link JedisSentinelPool}.
+	 * 
+	 * @param sentinelConfig
+	 * @param poolConfig pool configuration. Defaulted to new instance if {@literal null}.
+	 * @since 1.4
+	 */
+	public JedisConnectionFactory(RedisSentinelConfiguration sentinelConfig, JedisPoolConfig poolConfig) {
+		this.sentinelConfig = sentinelConfig;
+		this.poolConfig = poolConfig != null ? poolConfig : new JedisPoolConfig();
 	}
 
 	/**
@@ -114,6 +150,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return connection;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
 	public void afterPropertiesSet() {
 		if (shardInfo == null) {
 			shardInfo = new JedisShardInfo(hostName, port);
@@ -128,11 +168,46 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		if (usePool) {
-			pool = new JedisPool(poolConfig, shardInfo.getHost(), shardInfo.getPort(), shardInfo.getTimeout(),
-					shardInfo.getPassword());
+			this.pool = createPool();
 		}
 	}
 
+	private Pool<Jedis> createPool() {
+
+		if (isRedisSentinelAware()) {
+			return createRedisSentinelPool(this.sentinelConfig);
+		}
+		return createRedisPool();
+	}
+
+	/**
+	 * Creates {@link JedisSentinelPool}.
+	 * 
+	 * @param config
+	 * @return
+	 * @since 1.4
+	 */
+	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
+		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
+				getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig(), getShardInfo().getTimeout(), getShardInfo()
+						.getPassword());
+	}
+
+	/**
+	 * Creates {@link JedisPool}.
+	 * 
+	 * @return
+	 * @since 1.4
+	 */
+	protected Pool<Jedis> createRedisPool() {
+		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(), getShardInfo()
+				.getTimeout(), getShardInfo().getPassword());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.DisposableBean#destroy()
+	 */
 	public void destroy() {
 		if (usePool && pool != null) {
 			try {
@@ -144,6 +219,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getConnection()
+	 */
 	public JedisConnection getConnection() {
 		Jedis jedis = fetchJedisConnector();
 		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis,
@@ -152,6 +231,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return postProcessConnection(connection);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
+	 */
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
@@ -321,4 +404,28 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
+
+	/**
+	 * @return true when {@link RedisSentinelConfiguration} is present.
+	 * @since 1.4
+	 */
+	public boolean isRedisSentinelAware() {
+		return sentinelConfig != null;
+	}
+
+	private Set<String> convertToJedisSentinelSet(Collection<RedisNode> nodes) {
+
+		if (CollectionUtils.isEmpty(nodes)) {
+			return Collections.emptySet();
+		}
+
+		Set<String> convertedNodes = new LinkedHashSet<String>(nodes.size());
+		for (RedisNode node : nodes) {
+			if (node != null) {
+				convertedNodes.add(node.asString());
+			}
+		}
+		return convertedNodes;
+	}
+
 }
