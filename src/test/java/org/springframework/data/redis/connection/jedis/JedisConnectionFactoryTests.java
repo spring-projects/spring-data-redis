@@ -31,7 +31,7 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
 public class JedisConnectionFactoryTests {
 
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
-			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380).sentinel("127.0.0.1", 26381);
+			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
 	private JedisConnectionFactory factory;
 
 	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();

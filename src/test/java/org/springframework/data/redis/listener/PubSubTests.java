@@ -31,7 +31,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -43,7 +42,6 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
  * Base test class for PubSub integration tests
@@ -54,7 +52,7 @@ import org.springframework.data.redis.test.util.RedisSentinelRule;
 @RunWith(Parameterized.class)
 public class PubSubTests<T> {
 
-	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.withDefaultConfig().sentinelsDisabled();
+	// public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.withDefaultConfig().sentinelsDisabled();
 
 	private static final String CHANNEL = "pubsub::test";
 
