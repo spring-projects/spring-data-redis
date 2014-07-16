@@ -1,158 +1,99 @@
-PATH := ./work/redis-git/src:${PATH}
+# Copyright 2011-2014 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-################## CONFIG ##################
+REDIS_VERSION:=2.8.13
 
-####################
-#      REDIS       #
-####################
+#######
+# Redis
+#######
+.PRECIOUS: work/redis-%.conf
 
-define REDIS_6379_CONF
-port 6379
-daemonize yes
-pidfile ./work/redis_6379.pid
-logfile ./work/redis_6379.log
-save ""
-appendonly no
-endef
+work/redis-%.conf:
+	@mkdir -p $(@D)
 
-define REDIS_6380_CONF
-port 6380
-daemonize yes
-pidfile ./work/redis_6380.pid
-logfile ./work/redis_6380.log
-save ""
-appendonly no
-endef
+	echo port $* >> $@
+	echo daemonize yes >> $@
+	echo pidfile $(shell pwd)/work/redis-$*.pid >> $@
+	echo logfile $(shell pwd)/work/redis-$*.log >> $@
+	echo save \"\" >> $@
+	echo slaveof 127.0.0.1 6379 >> $@
 
-define REDIS_6381_CONF
-port 6381
-daemonize yes
-pidfile ./work/redis_6381.pid
-logfile ./work/redis_6381.log
-save ""
-appendonly no
-endef
+# Handled separately because it's the master and all others are slaves
+work/redis-6379.conf:
+	@mkdir -p $(@D)
 
-####################
-#     CLUSTER      #
-####################
+	echo port 6379 >> $@
+	echo daemonize yes >> $@
+	echo pidfile $(shell pwd)/work/redis-6379.pid >> $@
+	echo logfile $(shell pwd)/work/redis-6379.log >> $@
+	echo save \"\" >> $@
 
-define CLUSTER_7379_CONF
-port 7379
-daemonize yes
-pidfile ./work/cluster_7379.pid
-logfile ./work/cluster_7379.log
-save ""
-appendonly no
-cluster-enabled yes
-cluster-config-file ./work/cluster_7379.conf
-endef
+work/redis-%.pid: work/redis-%.conf work/redis/bin/redis-server
+	work/redis/bin/redis-server $<
 
-define CLUSTER_7380_CONF
-port 7380
-daemonize yes
-pidfile ./work/cluster_7380.pid
-logfile ./work/cluster_7380.log
-save ""
-appendonly no
-cluster-enabled yes
-cluster-config-file ./work/cluster_7380.conf
-endef
+redis-start: work/redis-6379.pid work/redis-6380.pid work/redis-6381.pid
 
-define CLUSTER_7381_CONF
-port 7381
-daemonize yes
-pidfile ./work/cluster_7381.pid
-logfile ./work/cluster_7381.log
-save ""
-appendonly no
-cluster-enabled yes
-cluster-config-file ./work/cluster_7381.conf
-endef
+redis-stop: stop-6379 stop-6380 stop-6381
 
-####################
-#     SENTINEL     #
-####################
+##########
+# Sentinel
+##########
+.PRECIOUS: work/sentinel-%.conf
 
-define SENTINEL_26380_CONF
-port 26380
-daemonize yes
-sentinel monitor mymaster 127.0.0.1 6380 1
-sentinel down-after-milliseconds mymaster 2000
-sentinel failover-timeout mymaster 120000
-sentinel parallel-syncs mymaster 1
-pidfile ./work/sentinel_26380.pid
-logfile ./work/sentinel_26380.log
-endef
+work/sentinel-%.conf:
+	@mkdir -p $(@D)
 
-define SENTINEL_26381_CONF
-port 26381
-daemonize yes
-sentinel monitor mymaster 127.0.0.1 6381 1
-sentinel down-after-milliseconds mymaster 2000
-sentinel failover-timeout mymaster 120000
-sentinel parallel-syncs mymaster 1
-pidfile ./work/sentinel_26381.pid
-logfile ./work/sentinel_26381.log
-endef
+	echo port $* >> $@
+	echo daemonize yes >> $@
+	echo pidfile $(shell pwd)/work/sentinel-$*.pid >> $@
+	echo logfile $(shell pwd)/work/sentinel-$*.log >> $@
+	echo save \"\" >> $@
+	echo sentinel monitor mymaster 127.0.0.1 6379 2 >> $@
 
-################## EXPORT ##################
+work/sentinel-%.pid: work/sentinel-%.conf work/redis-6379.pid work/redis/bin/redis-server
+	work/redis/bin/redis-server $< --sentinel
 
-export REDIS_6379_CONF
-export REDIS_6380_CONF
-export REDIS_6381_CONF
+sentinel-start: work/sentinel-26379.pid work/sentinel-26380.pid work/sentinel-26381.pid
 
-export SENTINEL_26380_CONF
-export SENTINEL_26381_CONF
+sentinel-stop: stop-26379 stop-26380 stop-26381
 
-# export CLUSTER_7379_CONF
-# export CLUSTER_7380_CONF
-# export CLUSTER_7381_CONF
+########
+# Global
+########
+clean:
+	rm -rf work/*.conf work/*.log
 
-################## SCRIPT ##################
+clobber:
+	rm -rf work
 
-cleanup:
-	#- rm -vf ./work/cluster_*.conf 2>/dev/null
-	#- rm dump.rdb appendonly.aof - 2>/dev/null
-	echo 'clean'
+work/redis/bin/redis-cli work/redis/bin/redis-server:
+	@mkdir -p work/redis
 
-start: create-work-dir
-	make cleanup
-	echo "$$REDIS_6379_CONF" > ./work/redis_6379.conf && redis-server ./work/redis_6379.conf
-	echo "$$REDIS_6380_CONF" > ./work/redis_6380.conf && redis-server ./work/redis_6380.conf
-	echo "$$REDIS_6381_CONF" > ./work/redis_6381.conf && redis-server ./work/redis_6381.conf
-	
-	echo "$$SENTINEL_26380_CONF" > ./work/sentinel_26380.conf && redis-sentinel ./work/sentinel_26380.conf
-	echo "$$SENTINEL_26381_CONF" > ./work/sentinel_26381.conf && redis-sentinel ./work/sentinel_26381.conf
+	curl -sSL https://github.com/antirez/redis/archive/$(REDIS_VERSION).tar.gz | tar xzf - -C work
+	$(MAKE) -C work/redis-$(REDIS_VERSION) -j
+	$(MAKE) -C work/redis-$(REDIS_VERSION) PREFIX=$(shell pwd)/work/redis install
+	rm -rf work/redis-$(REDIS_VERSION)
 
-	# echo "$$CLUSTER_7379_CONF" > ./work/cluster_7379.conf && redis-server ./work/cluster_7379.conf
-	# echo "$$CLUSTER_7380_CONF" > ./work/cluster_7380.conf && redis-server ./work/cluster_7380.conf
-	# echo "$$CLUSTER_7381_CONF" > ./work/cluster_7381.conf && redis-server ./work/cluster_7381.conf
+start: redis-start sentinel-start
 
-stop:
-	kill -9 `cat ./work/redis_6379.pid`
-	kill -9 `cat ./work/redis_6380.pid`
-	kill -9 `cat ./work/redis_6381.pid`
-	
-	kill -9 `cat ./work/sentinel_26380.pid`
-	kill -9 `cat ./work/sentinel_26381.pid`
+stop-%: work/redis/bin/redis-cli
+	-work/redis/bin/redis-cli -p $* shutdown
 
-	# kill -9 `cat ./work/cluster_7379.pid`
-	# kill -9 `cat ./work/cluster_7381.pid`
-	# kill -9 `cat ./work/cluster_7382.pid`
+stop: redis-stop sentinel-stop
 
 test:
-	make start
+	$(MAKE) start
 	sleep 2
-	gradle clean build -DrunLongTest=true
-	make stop
-
-get-redis: create-work-dir
-	[ ! -e work/redis-git ] && git clone https://github.com/antirez/redis.git ./work/redis-git && cd work/redis-git || true
-	make -C work/redis-git -j4
-
-create-work-dir:
-	- mkdir -p work
-
-travis-install: get-redis
-	
+	$(PWD)/gradlew clean build -DrunLongTest=true
+	$(MAKE) stop
