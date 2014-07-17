@@ -31,7 +31,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.FutureResult;
 import org.springframework.data.redis.connection.MessageListener;
@@ -89,6 +91,9 @@ public class JedisConnection implements RedisConnection {
 	private static final Method GET_RESPONSE;
 
 	private static final String SHUTDOWN_SCRIPT = "return redis.call('SHUTDOWN','%s')";
+
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
+			JedisConverters.exceptionConverter());
 
 	static {
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
@@ -177,14 +182,17 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	protected DataAccessException convertJedisAccessException(Exception ex) {
+
 		if (ex instanceof NullPointerException) {
 			// An NPE before flush will leave data in the OutputStream of a pooled connection
 			broken = true;
 		}
-		DataAccessException exception = JedisConverters.toDataAccessException(ex);
+
+		DataAccessException exception = EXCEPTION_TRANSLATION.translate(ex);
 		if (exception instanceof RedisConnectionFailureException) {
 			broken = true;
 		}
+
 		return exception;
 	}
 

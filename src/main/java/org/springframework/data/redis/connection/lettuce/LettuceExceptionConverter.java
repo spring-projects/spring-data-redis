@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,25 +31,32 @@ import com.lambdaworks.redis.RedisException;
  * Converts Lettuce Exceptions to {@link DataAccessException}s
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 public class LettuceExceptionConverter implements Converter<Exception, DataAccessException> {
 
 	public DataAccessException convert(Exception ex) {
+
 		if (ex instanceof DataAccessException) {
 			return (DataAccessException) ex;
 		}
+
 		if (ex instanceof RedisCommandInterruptedException) {
 			return new RedisSystemException("Redis command interrupted", ex);
 		}
+
 		if (ex instanceof RedisException) {
 			return new RedisSystemException("Redis exception", ex);
 		}
+
 		if (ex instanceof ChannelException) {
 			return new RedisConnectionFailureException("Redis connection failed", ex);
 		}
+
 		if (ex instanceof TimeoutException) {
 			return new QueryTimeoutException("Redis command timed out", ex);
 		}
-		return new RedisSystemException("Unknown Lettuce exception", ex);
+
+		return null;
 	}
 }
