@@ -241,7 +241,7 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	protected DataAccessException convertSrpAccessException(Exception ex) {
-		return SrpConverters.toDataAccessException(ex);
+		return SrpConverters.toDataAccessException(ex, false);
 	}
 
 	public Object execute(String command, byte[]... args) {

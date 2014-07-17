@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -152,8 +153,24 @@ abstract public class JedisConverters extends Converters {
 		return STRING_TO_CLIENT_INFO_CONVERTER.convert(source.split("\\r?\\n"));
 	}
 
-	public static DataAccessException toDataAccessException(Exception ex) {
-		return EXCEPTION_CONVERTER.convert(ex);
+	/**
+	 * Returns a potentially translated {@link DataAccessException} or {@literal null} if
+	 * {@code returnNullForUnknownExceptions} is {@literal true} and the given {@code ex} cannot be converted to a client
+	 * specific exception.
+	 * 
+	 * @param ex
+	 * @param returnNullForUnknownExceptions
+	 * @return
+	 */
+	public static DataAccessException toDataAccessException(Exception ex, boolean returnNullForUnknownExceptions) {
+
+		DataAccessException convertedException = EXCEPTION_CONVERTER.convert(ex);
+
+		if (convertedException == null) {
+			return returnNullForUnknownExceptions ? null : new RedisSystemException("Unknown jedis exception", ex);
+		}
+
+		return convertedException;
 	}
 
 	public static LIST_POSITION toListPosition(Position source) {

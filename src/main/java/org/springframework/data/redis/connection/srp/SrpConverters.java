@@ -354,7 +354,17 @@ abstract public class SrpConverters extends Converters {
 		return op.name().toUpperCase().getBytes(Charsets.UTF_8);
 	}
 
-	public static DataAccessException toDataAccessException(Exception ex) {
+	/**
+	 * Returns a potentially translated {@link DataAccessException} or {@literal null} if
+	 * {@code returnNullForUnknownExceptions} is {@literal true} and the given {@code ex} cannot be converted to a client
+	 * specific exception.
+	 * 
+	 * @param ex
+	 * @param returnNullForUnknownExceptions
+	 * @return
+	 */
+	public static DataAccessException toDataAccessException(Exception ex, boolean returnNullForUnknownExceptions) {
+
 		if (ex instanceof RedisException) {
 			return new RedisSystemException("redis exception", ex);
 		}
@@ -362,7 +372,7 @@ abstract public class SrpConverters extends Converters {
 			return new RedisConnectionFailureException("Redis connection failed", (IOException) ex);
 		}
 
-		return new RedisSystemException("Unknown SRP exception", ex);
+		return returnNullForUnknownExceptions ? null : new RedisSystemException("Unknown SRP exception", ex);
 	}
 
 	public static byte[][] toByteArrays(Map<byte[], byte[]> source) {

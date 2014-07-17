@@ -268,7 +268,9 @@ public class LettuceConnection implements RedisConnection {
 	}
 
 	protected DataAccessException convertLettuceAccessException(Exception ex) {
-		DataAccessException exception = LettuceConverters.toDataAccessException(ex);
+
+		DataAccessException exception = LettuceConverters.toDataAccessException(ex, false);
+
 		if (exception instanceof RedisConnectionFailureException) {
 			broken = true;
 		}
