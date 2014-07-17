@@ -362,7 +362,7 @@ abstract public class SrpConverters extends Converters {
 			return new RedisConnectionFailureException("Redis connection failed", (IOException) ex);
 		}
 
-		return new RedisSystemException("Unknown SRP exception", ex);
+		return null;
 	}
 
 	public static byte[][] toByteArrays(Map<byte[], byte[]> source) {
