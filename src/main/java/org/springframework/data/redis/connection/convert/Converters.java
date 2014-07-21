@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.convert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -38,6 +39,7 @@ abstract public class Converters {
 	private static final Converter<String, Properties> STRING_TO_PROPS = new StringToPropertiesConverter();
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
 	private static final Converter<String, DataType> STRING_TO_DATA_TYPE = new StringToDataTypeConverter();
+	private static final Converter<Map<?, ?>, Properties> MAP_TO_PROPERTIES = MapToPropertiesConverter.INSTANCE;
 
 	public static Converter<String, Properties> stringToProps() {
 		return STRING_TO_PROPS;
@@ -53,6 +55,10 @@ abstract public class Converters {
 
 	public static Properties toProperties(String source) {
 		return STRING_TO_PROPS.convert(source);
+	}
+
+	public static Properties toProperties(Map<?, ?> source) {
+		return MAP_TO_PROPERTIES.convert(source);
 	}
 
 	public static Boolean toBoolean(Long source) {
@@ -75,7 +81,6 @@ abstract public class Converters {
 		}
 		return tupleArgs;
 	}
-
 
 	/**
 	 * Returns the timestamp constructed from the given {@code seconds} and {@code microseconds}.

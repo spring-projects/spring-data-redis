@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.mockito.ArgumentCaptor;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionPipelineUnitTests;
@@ -115,8 +116,6 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		/**
-		 * <<<<<<< HEAD
-		 * 
 		 * @see DATAREDIS-267
 		 */
 		@Test
@@ -163,6 +162,15 @@ public class JedisConnectionUnitTestSuite {
 			connection.slaveOfNoOne();
 			verifyNativeConnectionInvocation().slaveofNoOne();
 		}
+
+		/**
+		 * @see DATAREDIS-330
+		 */
+		@Test(expected = InvalidDataAccessResourceUsageException.class)
+		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
+			connection.getSentinelConnection();
+		}
+
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {

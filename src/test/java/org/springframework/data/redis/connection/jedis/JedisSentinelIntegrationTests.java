@@ -15,6 +15,12 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+
+import java.util.Collection;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,17 +29,29 @@ import org.junit.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
-
-	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
-			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
+	
+	private static final String MASTER_NAME = "mymaster";
+	private static final RedisServer SENTINEL_0 = new RedisServer("127.0.0.1", 26379);
+	private static final RedisServer SENTINEL_1 = new RedisServer("127.0.0.1", 26380);
+	
+	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
+	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
+	
+	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
+			.master(MASTER_NAME)
+			.sentinel(SENTINEL_0)
+			.sentinel(SENTINEL_1);
 
 	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
 
@@ -102,4 +120,32 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	public void testErrorInTx() {
 		super.testErrorInTx();
 	}
+
+	/**
+	 * @see DATAREDIS-330
+	 */
+	@Test
+	public void shouldReadMastersCorrectly() {
+
+		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
+		assertThat(servers.size(), is(1));
+		assertThat(servers.get(0).getName(),is(MASTER_NAME));
+	}
+	
+	/**
+	 * @see DATAREDIS-330
+	 */
+	@Test
+	public void shouldReadSlavesOfMastersCorrectly() {
+
+		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
+		
+		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
+		assertThat(servers.size(), is(1));
+		
+		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
+		assertThat(slaves.size(), is(2));
+		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+	}
+
 }

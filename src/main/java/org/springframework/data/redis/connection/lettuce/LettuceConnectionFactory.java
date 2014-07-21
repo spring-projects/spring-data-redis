@@ -29,6 +29,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
@@ -337,5 +338,10 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 				hostName, port);
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		return client;
+	}
+
+	@Override
+	public RedisSentinelConnection getSentinelConnection() {
+		throw new UnsupportedOperationException();
 	}
 }

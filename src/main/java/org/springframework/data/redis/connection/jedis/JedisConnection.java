@@ -34,10 +34,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.AbstractRedisConnection;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.FutureResult;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
@@ -85,7 +86,7 @@ import redis.clients.util.Pool;
  * @author Thomas Darimont
  * @author Jungtaek Lim
  */
-public class JedisConnection implements RedisConnection {
+public class JedisConnection extends AbstractRedisConnection {
 
 	private static final Field CLIENT_FIELD;
 	private static final Method SEND_COMMAND;
@@ -234,6 +235,7 @@ public class JedisConnection implements RedisConnection {
 	}
 
 	public void close() throws DataAccessException {
+		super.close();
 		// return the connection to the pool
 		if (pool != null) {
 			if (!broken) {
@@ -3113,5 +3115,36 @@ public class JedisConnection implements RedisConnection {
 		}
 
 		return args;
+	}
+
+	@Override
+	protected boolean isActive(RedisNode node) {
+
+		if (node == null) {
+			return false;
+		}
+
+		Jedis temp = null;
+		try {
+			temp = getJedis(node);
+			temp.connect();
+			return temp.ping().equalsIgnoreCase("pong");
+		} catch (Exception e) {
+			return false;
+		} finally {
+			if (temp != null) {
+				temp.disconnect();
+				temp.close();
+			}
+		}
+	}
+
+	@Override
+	protected JedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
+		return new JedisSentinelConnection(getJedis(sentinel));
+	}
+
+	protected Jedis getJedis(RedisNode node) {
+		return new Jedis(node.getHost(), node.getPort());
 	}
 }

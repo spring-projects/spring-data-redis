@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -33,6 +34,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -411,6 +413,32 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public boolean isRedisSentinelAware() {
 		return sentinelConfig != null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getSentinelConnection()
+	 */
+	@Override
+	public RedisSentinelConnection getSentinelConnection() {
+
+		if (!isRedisSentinelAware()) {
+			throw new InvalidDataAccessResourceUsageException("No Sentinels configured");
+		}
+		
+		return new JedisSentinelConnection(getActiveSentinel());
+	}
+
+	private Jedis getActiveSentinel() {
+
+		Assert.notNull(this.sentinelConfig);
+		for (RedisNode node : this.sentinelConfig.getSentinels()) {
+			Jedis jedis = new Jedis(node.getHost(), node.getPort());
+			if (jedis.ping().equalsIgnoreCase("pong")) {
+				return jedis;
+			}
+		}
+
+		throw new InvalidDataAccessResourceUsageException("no sentinel found");
 	}
 
 	private Set<String> convertToJedisSentinelSet(Collection<RedisNode> nodes) {
