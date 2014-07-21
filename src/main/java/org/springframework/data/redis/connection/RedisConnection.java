@@ -92,4 +92,10 @@ public interface RedisConnection extends RedisCommands {
 	 * @return the result of the executed commands.
 	 */
 	List<Object> closePipeline() throws RedisPipelineException;
+
+	/**
+	 * @return
+	 * @since 1.4
+	 */
+	RedisSentinelConnection getSentinelConnection();
 }

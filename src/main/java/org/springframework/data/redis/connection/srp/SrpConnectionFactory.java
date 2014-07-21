@@ -26,6 +26,7 @@ import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 
 /**
  * Connection factory creating <a href="http://github.com/spullara/redis-protocol">Redis Protocol</a> based connections.
@@ -158,5 +159,10 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
+	}
+
+	@Override
+	public RedisSentinelConnection getSentinelConnection() {
+		throw new UnsupportedOperationException();
 	}
 }

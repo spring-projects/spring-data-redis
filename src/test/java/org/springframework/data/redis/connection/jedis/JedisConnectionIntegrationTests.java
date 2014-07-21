@@ -30,6 +30,7 @@ import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsCollectionContaining;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -40,9 +41,13 @@ import org.springframework.data.redis.connection.DefaultStringTuple;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.test.util.RedisSentinelRule;
+import org.springframework.data.redis.test.util.RedisSentinelRule.SentinelsAvailable;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
+import org.springframework.data.redis.test.util.RequiresRedisSentinel;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -59,6 +64,8 @@ import redis.clients.jedis.JedisPoolConfig;
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
+
+	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.withDefaultConfig().dynamicModeSelection();
 
 	@After
 	public void tearDown() {
@@ -365,5 +372,17 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 
 		assertTrue(String.format("difference between millis=%s and ttl=%s should not be greater than 20ms but is %s",
 				millis, ttl, millis - ttl), millis - ttl < 20L);
+	}
+
+	/**
+	 * @see DATAREDIS-330
+	 */
+	@Test
+	@RequiresRedisSentinel(SentinelsAvailable.ONE_ACTIVE)
+	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
+
+		((JedisConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
+		assertThat(connection.getSentinelConnection(), notNullValue());
 	}
 }

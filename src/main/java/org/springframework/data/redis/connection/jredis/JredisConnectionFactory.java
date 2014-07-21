@@ -28,6 +28,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -200,5 +201,10 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 	 */
 	public boolean getConvertPipelineAndTxResults() {
 		return false;
+	}
+
+	@Override
+	public RedisSentinelConnection getSentinelConnection() {
+		throw new UnsupportedOperationException();
 	}
 }

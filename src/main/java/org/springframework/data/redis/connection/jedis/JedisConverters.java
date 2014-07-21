@@ -15,15 +15,18 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
@@ -36,6 +39,7 @@ import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
@@ -61,6 +65,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
 	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
+	private static final Converter<Properties, RedisServer> PROPERTIES_TO_SENTINEL;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
 
 	static {
@@ -80,6 +85,14 @@ abstract public class JedisConverters extends Converters {
 		};
 		TUPLE_SET_TO_TUPLE_SET = new SetConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
 		TUPLE_LIST_TO_TUPLE_LIST_CONVERTER = new ListConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
+		PROPERTIES_TO_SENTINEL = new Converter<Properties, RedisServer>() {
+
+			@Override
+			public RedisServer convert(Properties source) {
+				return source != null ? RedisServer.newServerFrom(source) : null;
+
+			}
+		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -155,6 +168,28 @@ abstract public class JedisConverters extends Converters {
 			return Collections.emptyList();
 		}
 		return STRING_TO_CLIENT_INFO_CONVERTER.convert(source.split("\\r?\\n"));
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.4
+	 */
+	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
+
+		if (CollectionUtils.isEmpty(source)) {
+			return Collections.emptyList();
+		}
+
+		List<RedisServer> sentinels = new ArrayList<RedisServer>();
+		for (Map<String, String> info : source) {
+			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
+		}
+		return sentinels;
+	}
+
+	public static DataAccessException toDataAccessException(Exception ex) {
+		return EXCEPTION_CONVERTER.convert(ex);
 	}
 
 	public static LIST_POSITION toListPosition(Position source) {
