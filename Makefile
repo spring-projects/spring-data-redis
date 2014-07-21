@@ -95,5 +95,5 @@ stop: redis-stop sentinel-stop
 test:
 	$(MAKE) start
 	sleep 2
-	$(PWD)/gradlew clean build -DrunLongTest=true
+	$(PWD)/gradlew clean build -DrunLongTests=true
 	$(MAKE) stop
