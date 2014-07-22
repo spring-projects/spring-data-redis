@@ -21,6 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
+import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -42,6 +44,8 @@ import redis.clients.jedis.Protocol;
 public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
+			JedisConverters.exceptionConverter());
 
 	private JedisShardInfo shardInfo;
 	private String hostName = "localhost";
@@ -149,7 +153,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return JedisConverters.toDataAccessException(ex, true);
+		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
 	/**

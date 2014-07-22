@@ -31,7 +31,9 @@ import java.util.concurrent.Future;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.FutureResult;
 import org.springframework.data.redis.connection.MessageListener;
@@ -68,6 +70,9 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @author Thomas Darimont
  */
 public class SrpConnection implements RedisConnection {
+
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
+			SrpConverters.exceptionConverter());
 
 	private static final Object[] EMPTY_PARAMS_ARRAY = new Object[0];
 	private static final byte[] WITHSCORES = "WITHSCORES".getBytes(Charsets.UTF_8);
@@ -241,7 +246,7 @@ public class SrpConnection implements RedisConnection {
 	}
 
 	protected DataAccessException convertSrpAccessException(Exception ex) {
-		return SrpConverters.toDataAccessException(ex, false);
+		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
 	public Object execute(String command, byte[]... args) {

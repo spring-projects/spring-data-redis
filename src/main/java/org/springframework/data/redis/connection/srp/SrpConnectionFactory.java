@@ -22,6 +22,8 @@ import java.util.concurrent.BlockingQueue;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
+import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
@@ -32,6 +34,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  * @author Thomas Darimont
  */
 public class SrpConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
+
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
+			SrpConverters.exceptionConverter());
 
 	private String hostName = "localhost";
 	private int port = 6379;
@@ -76,7 +81,7 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return SrpConverters.toDataAccessException(ex, true);
+		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
 	/**

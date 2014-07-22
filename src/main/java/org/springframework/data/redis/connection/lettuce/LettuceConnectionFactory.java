@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.ExceptionTranslationStrategy;
+import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -50,6 +52,9 @@ import com.lambdaworks.redis.RedisException;
  * @author Thomas Darimont
  */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
+
+	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
+			LettuceConverters.exceptionConverter());
 
 	private final Log log = LogFactory.getLog(getClass());
 
@@ -135,7 +140,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
-		return LettuceConverters.toDataAccessException(ex, true);
+		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
 	/**

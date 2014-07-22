@@ -73,6 +73,7 @@ abstract public class SrpConverters extends Converters {
 	private static final Converter<byte[], List<RedisClientInfo>> BYTEARRAY_T0_LIST_OF_CLIENT_INFO;
 	private static final Converter<IntegerReply, Boolean> INTEGER_REPLY_TO_BOOLEAN;
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
+	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER;
 
 	static {
 
@@ -237,6 +238,20 @@ abstract public class SrpConverters extends Converters {
 				return source.data() == 1;
 			}
 		};
+
+		EXCEPTION_CONVERTER = new Converter<Exception, DataAccessException>() {
+
+			@Override
+			public DataAccessException convert(Exception ex) {
+				if (ex instanceof RedisException) {
+					return new RedisSystemException("redis exception", ex);
+				}
+				if (ex instanceof IOException) {
+					return new RedisConnectionFailureException("Redis connection failed", (IOException) ex);
+				}
+				return null;
+			}
+		};
 	}
 
 	public static Converter<Reply[], List<byte[]>> repliesToBytesList() {
@@ -354,27 +369,6 @@ abstract public class SrpConverters extends Converters {
 		return op.name().toUpperCase().getBytes(Charsets.UTF_8);
 	}
 
-	/**
-	 * Returns a potentially translated {@link DataAccessException} or {@literal null} if
-	 * {@code returnNullForUnknownExceptions} is {@literal true} and the given {@code ex} cannot be converted to a client
-	 * specific exception.
-	 * 
-	 * @param ex
-	 * @param returnNullForUnknownExceptions
-	 * @return
-	 */
-	public static DataAccessException toDataAccessException(Exception ex, boolean returnNullForUnknownExceptions) {
-
-		if (ex instanceof RedisException) {
-			return new RedisSystemException("redis exception", ex);
-		}
-		if (ex instanceof IOException) {
-			return new RedisConnectionFailureException("Redis connection failed", (IOException) ex);
-		}
-
-		return returnNullForUnknownExceptions ? null : new RedisSystemException("Unknown SRP exception", ex);
-	}
-
 	public static byte[][] toByteArrays(Map<byte[], byte[]> source) {
 		byte[][] result = new byte[source.size() * 2][];
 		int index = 0;
@@ -411,5 +405,9 @@ abstract public class SrpConverters extends Converters {
 	 */
 	public static Boolean toBoolean(IntegerReply reply) {
 		return INTEGER_REPLY_TO_BOOLEAN.convert(reply);
+	}
+
+	public static Converter<Exception, DataAccessException> exceptionConverter() {
+		return EXCEPTION_CONVERTER;
 	}
 }
