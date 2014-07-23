@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,10 +63,13 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
 	private boolean loadRemoteCachesOnStartup = false;
 	private boolean dynamic = true;
+	private volatile boolean initialized;
 
 	// 0 - never expire
 	private long defaultExpiration = 0;
 	private Map<String, Long> expires = null;
+
+	private Set<String> cacheNames;
 
 	/**
 	 * Construct a {@link RedisCacheManager}.
@@ -101,18 +105,22 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	/**
-	 * Specify the set of cache names for this CacheManager's 'static' mode. <br>
+	 * <<<<<<< HEAD Specify the set of cache names for this CacheManager's 'static' mode. <br>
 	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
-	 * regions at runtime.
+	 * regions at runtime. ======= Specify the set of cache names for this CacheManager's 'static' mode. <br/>
+	 * >>>>>>> DATAREDIS-328 - RedisCacheManager should not instantiate caches in setCacheNames().
 	 */
 	public void setCacheNames(Collection<String> cacheNames) {
 
-		if (!CollectionUtils.isEmpty(cacheNames)) {
-			for (String cacheName : cacheNames) {
-				createAndAddCache(cacheName);
-			}
+		if (!this.initialized && !CollectionUtils.isEmpty(cacheNames)) {
 			this.dynamic = false;
 		}
+
+		Set<String> cacheNameSet = new HashSet<String>(this.cacheNames == null ? Collections.<String> emptySet()
+				: this.cacheNames);
+		cacheNameSet.addAll(cacheNames);
+
+		this.cacheNames = cacheNameSet;
 	}
 
 	public void setUsePrefix(boolean usePrefix) {
@@ -276,5 +284,27 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	protected boolean isUsePrefix() {
 		return usePrefix;
+	}
+
+	/**
+	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
+	 * regions at runtime.
+	 * 
+	 * @see org.springframework.cache.support.AbstractCacheManager#afterPropertiesSet()
+	 */
+	@Override
+	public void afterPropertiesSet() {
+
+		this.initialized = true;
+
+		if (!CollectionUtils.isEmpty(cacheNames)) {
+			this.dynamic = false;
+		}
+
+		for (String cacheName : cacheNames) {
+			createAndAddCache(cacheName);
+		}
+
+		super.afterPropertiesSet();
 	}
 }
