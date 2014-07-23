@@ -152,10 +152,6 @@ abstract public class JedisConverters extends Converters {
 		return STRING_TO_CLIENT_INFO_CONVERTER.convert(source.split("\\r?\\n"));
 	}
 
-	public static DataAccessException toDataAccessException(Exception ex) {
-		return EXCEPTION_CONVERTER.convert(ex);
-	}
-
 	public static LIST_POSITION toListPosition(Position source) {
 		Assert.notNull("list positions are mandatory");
 		return (Position.AFTER.equals(source) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);

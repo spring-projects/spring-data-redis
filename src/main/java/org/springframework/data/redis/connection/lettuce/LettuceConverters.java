@@ -256,10 +256,6 @@ abstract public class LettuceConverters extends Converters {
 		return SCORED_VALUE_TO_TUPLE.convert(source);
 	}
 
-	public static DataAccessException toDataAccessException(Exception ex) {
-		return EXCEPTION_CONVERTER.convert(ex);
-	}
-
 	public static String toString(byte[] source) {
 		return BYTES_TO_STRING.convert(source);
 	}

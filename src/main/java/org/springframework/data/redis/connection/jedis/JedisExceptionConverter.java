@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.RedisSystemException;
 
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
@@ -32,10 +31,12 @@ import redis.clients.jedis.exceptions.JedisException;
  * Converts Exceptions thrown from Jedis to {@link DataAccessException}s
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
  */
 public class JedisExceptionConverter implements Converter<Exception, DataAccessException> {
 
 	public DataAccessException convert(Exception ex) {
+
 		if (ex instanceof DataAccessException) {
 			return (DataAccessException) ex;
 		}
@@ -54,6 +55,7 @@ public class JedisExceptionConverter implements Converter<Exception, DataAccessE
 		if (ex instanceof IOException) {
 			return new RedisConnectionFailureException("Could not connect to Redis server", ex);
 		}
-		return new RedisSystemException("Unknown jedis exception", ex);
+
+		return null;
 	}
 }
