@@ -65,6 +65,7 @@ public class RedisCacheManagerUnitTests {
 		redisTemplate.afterPropertiesSet();
 
 		cacheManager = new RedisCacheManager(redisTemplate);
+		cacheManager.afterPropertiesSet();
 	}
 
 	/**
@@ -92,8 +93,6 @@ public class RedisCacheManagerUnitTests {
 	 */
 	@Test
 	public void testCacheInitSouldNotRequestRemoteKeysByDefault() {
-
-		cacheManager.afterPropertiesSet();
 		Mockito.verifyZeroInteractions(redisConnectionMock);
 	}
 
@@ -103,6 +102,7 @@ public class RedisCacheManagerUnitTests {
 	@Test
 	public void testCacheInitShouldFetchAllCacheKeysWhenLoadingRemoteCachesOnStartupIsEnabled() {
 
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
@@ -122,6 +122,7 @@ public class RedisCacheManagerUnitTests {
 				.serialize("remote-cache~keys")));
 		when(redisConnectionMock.keys(any(byte[].class))).thenReturn(keys);
 
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
@@ -135,6 +136,8 @@ public class RedisCacheManagerUnitTests {
 	public void testCacheInitShouldNotInitialzeCachesWhenLoadingRemoteCachesOnStartupIsEnabledAndNoCachesAvailableOnRemoteServer() {
 
 		when(redisConnectionMock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptySet());
+
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
@@ -147,7 +150,10 @@ public class RedisCacheManagerUnitTests {
 	@Test
 	public void testCacheManagerShouldNotDynamicallyCreateCachesWhenInStaticMode() {
 
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
+		cacheManager.afterPropertiesSet();
+
 		assertThat(cacheManager.getCache("redis"), nullValue());
 	}
 
@@ -157,7 +163,10 @@ public class RedisCacheManagerUnitTests {
 	@Test
 	public void testCacheManagerShouldRetrunRegisteredCacheWhenInStaticMode() {
 
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
+		cacheManager.afterPropertiesSet();
+
 		assertThat(cacheManager.getCache("spring"), notNullValue());
 	}
 
@@ -167,8 +176,11 @@ public class RedisCacheManagerUnitTests {
 	@Test
 	public void testPuttingCacheManagerIntoStaticModeShouldNotRemoveAlreadyRegisteredCaches() {
 
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.getCache("redis");
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
+		cacheManager.afterPropertiesSet();
+
 		assertThat(cacheManager.getCache("redis"), notNullValue());
 	}
 
@@ -178,6 +190,7 @@ public class RedisCacheManagerUnitTests {
 	@Test
 	public void testRetainConfiguredCachesAfterBeanInitialization() {
 
+		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.afterPropertiesSet();
 
@@ -191,10 +204,12 @@ public class RedisCacheManagerUnitTests {
 	@Test
 	public void testRetainConfiguredCachesAfterBeanInitializationWithLoadingOfRemoteKeys() {
 
-		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(redisTemplate.getKeySerializer()
 				.serialize("remote-cache~keys")));
 		when(redisConnectionMock.keys(any(byte[].class))).thenReturn(keys);
+
+		cacheManager = new RedisCacheManager(redisTemplate);
+		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
