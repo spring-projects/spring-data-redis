@@ -135,6 +135,8 @@ abstract public class JedisConverters extends Converters {
 		return String.valueOf(source).getBytes();
 	}
 
+    public static byte[] toBytes(String source) { return SafeEncoder.encode(source); }
+
 	public static String toString(byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
 	}

@@ -2803,8 +2803,8 @@ public class JedisConnection implements RedisConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(scriptSha1, numKeys,
-					JedisConverters.toStrings(keysAndArgs)));
+			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(
+                    JedisConverters.toBytes(scriptSha1), numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
