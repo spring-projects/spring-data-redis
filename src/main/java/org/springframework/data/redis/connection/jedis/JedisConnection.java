@@ -32,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.FutureResult;
 import org.springframework.data.redis.connection.MessageListener;
@@ -83,6 +83,7 @@ import redis.clients.util.Pool;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Jungtaek Lim
  */
 public class JedisConnection implements RedisConnection {
 
@@ -2803,8 +2804,8 @@ public class JedisConnection implements RedisConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(scriptSha1, numKeys,
-					JedisConverters.toStrings(keysAndArgs)));
+			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(JedisConverters.toBytes(scriptSha1),
+					numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
