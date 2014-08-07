@@ -1,0 +1,71 @@
+[[tx]]
+= Redis Transactions
+
+Redis provides support for http://redis.io/topics/transactions[transactions] through the `multi`, `exec`, and `discard` commands. These operations are available on `RedisTemplate`, however `RedisTemplate` is not guaranteed to execute all operations in the transaction using the same connection.
+
+Spring Data Redis provides the `SessionCallback` interface for use when multiple operations need to be performed with the same `connection`, as when using Redis transactions. For example:
+
+[source,java]
+----
+//execute a transaction 
+List<Object> txResults = redisTemplate.execute(new SessionCallback<List<Object>>() { 
+  public List<Object> execute(RedisOperations operations) throws DataAccessException { 
+    operations.multi(); 
+    operations.opsForSet().add("key", "value1"); 
+
+    // This will contain the results of all ops in the transaction 
+    return operations.exec(); 
+  } 
+});
+System.out.println("Number of items added to set: " + txResults.get(0)); 
+----
+
+`RedisTemplate` will use its value, hash key, and hash value serializers to deserialize all results of `exec` before returning. There is an additional `exec` method that allows you to pass a custom serializer for transaction results.
+
+NOTE: An important change has been made to the `exec` methods of `RedisConnection` and `RedisTemplate` in version 1.1. Previously these methods returned the results of transactions directly from the connectors. This means that the data types often differed from those returned from the methods of `RedisConnection`. For example, `zAdd` returns a boolean indicating that the element has been added to the sorted set. Most connectors return this value as a long and Spring Data Redis performs the conversion. Another common difference is that most connectors return a status reply (usually the String "OK") for operations like `set`. These replies are typically discarded by Spring Data Redis. Prior to 1.1, these conversions were not performed on the results of `exec`. Also, results were not deserialized in `RedisTemplate`, so they often included raw byte arrays. If this change breaks your application, you can set `convertPipelineAndTxResults` to false on your `RedisConnectionFactory` to disable this behavior.
+
+[[tx.spring]]
+== @Transactional Support
+
+Transaction Support is disabled by default and has explicitly to be enabled for each `RedisTemplate` in use by setting `setEnableTransactionSupport(true)`. This will force binding the `RedisConnection` in use to the current `Thread` triggering `MULTI`. If the transaction finishes without errors, `EXEC` is called, otherwise `DISCARD`. Once in `MULTI`, `RedisConnection` would queue write operations, all `readonly` operations, such as `KEYS` are piped to a fresh (non thread bound) `RedisConnection`.
+
+[source,java]
+----
+/** Sample Configuration **/
+@Configuration
+public class RedisTxContextConfiguration { 
+  @Bean 
+  public StringRedisTemplate redisTemplate() {
+    StringRedisTemplate template = new StringRedisTemplate(redisConnectionFactory());
+    // explicitly enable transaction support 
+    template.setEnableTransactionSupport(true); 
+    return template;
+  }
+
+  @Bean
+  public PlatformTransactionManager transactionManager() throws SQLException {
+    return new DataSourceTransactionManager(dataSource());
+  } 
+
+  @Bean 
+  public RedisConnectionFactory redisConnectionFactory( // jedis, lettuce, srp,... ); 
+
+  @Bean 
+  public DataSource dataSource() throws SQLException { // ... } 
+} 
+----
+
+[source,java]
+----
+/** Usage Constrainsts **/ 
+
+// executed on thread bound connection 
+template.opsForValue().set("foo", "bar"); 
+
+// read operation executed on a free (not tx-aware) 
+connection template.keys("*"); 
+
+// returns null as values set within transaction are not visible 
+template.opsForValue().get("foo"); 
+----
+

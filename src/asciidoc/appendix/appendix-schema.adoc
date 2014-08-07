@@ -1,0 +1,7 @@
+[[appendix:schema]]
+= Schema
+
+[source,xml]
+-------------------------------------------
+include::/src/main/resources/org/springframework/data/redis/config/spring-redis-1.0.xsd[]
+-------------------------------------------

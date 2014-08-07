@@ -1,0 +1,123 @@
+[[pubsub]]
+= Redis Messaging/PubSub
+
+Spring Data provides dedicated messaging integration for Redis, very similar in functionality and naming to the JMS integration in Spring Framework; in fact, users familiar with the JMS support in Spring should feel right at home.
+
+Redis messaging can be roughly divided into two areas of functionality, namely the production or publication and consumption or subscription of messages, hence the shortcut pubsub (Publish/Subscribe). The `RedisTemplate` class is used for message production. For asynchronous reception similar to Java EE's message-driven bean style, Spring Data provides a dedicated message listener container that is used to create Message-Driven POJOs (MDPs) and for synchronous reception, the `RedisConnection` contract.
+
+The package `org.springframework.data.redis.connection` and `org.springframework.data.redis.listener` provide the core functionality for using Redis messaging.
+
+[[redis:pubsub:publish]]
+== Sending/Publishing messages
+
+To publish a message, one can use, as with the other operations, either the low-level `RedisConnection` or the high-level `RedisTemplate`. Both entities offer the `publish` method that accepts as argument the message that needs to be sent as well as the destination channel. While `RedisConnection` requires raw-data (array of bytes), the `RedisTemplate` allow arbitrary objects to be passed in as messages:
+
+[source,java]
+----
+// send message through connection RedisConnection con = ...
+byte[] msg = ...
+byte[] channel = ...
+con.publish(msg, channel); // send message through RedisTemplate
+RedisTemplate template = ... 
+template.convertAndSend("hello!", "world");
+----
+
+[[redis:pubsub:subscribe]]
+== Receiving/Subscribing for messages
+
+On the receiving side, one can subscribe to one or multiple channels either by naming them directly or by using pattern matching. The latter approach is quite useful as it not only allows multiple subscriptions to be created with one command but to also listen on channels not yet created at subscription time (as long as they match the pattern).
+
+At the low-level, `RedisConnection` offers `subscribe` and `pSubscribe` methods that map the Redis commands for subscribing by channel respectively by pattern. Note that multiple channels or patterns can be used as arguments. To change the subscription of a connection or simply query  whether it is listening or not, `RedisConnection` provides `getSubscription` and `isSubscribed` method.
+
+NOTE: Subscription commands in Spring Data Redis are blocking. That is, calling subscribe on a connection will cause the current thread to block as it will start waiting for messages - the thread will be released only if the subscription is canceled, that is an additional thread invokes `unsubscribe` or `pUnsubscribe` on the *same* connection. See <<null,message listener container>> below for a solution to this problem.
+
+As mentioned above, once subscribed a connection starts waiting for messages. No other commands can be invoked on it except for adding new subscriptions or modifying/canceling the existing ones. That is, invoking anything other then `subscribe`, `pSubscribe`, `unsubscribe`, or `pUnsubscribe` is illegal and will throw an exception.
+
+In order to subscribe for messages, one needs to implement the `MessageListener` callback: each time a new message arrives, the callback gets invoked and the user code executed through `onMessage` method. The interface gives access not only to the actual message but to the channel it has been received through and the pattern (if any) used by the subscription to match the channel. This information allows the callee to differentiate between various messages not just by content but also through data.
+
+[[redis:pubsub:subscribe:containers]]
+=== Message Listener Containers
+
+Due to its blocking nature, low-level subscription is not attractive as it requires connection and thread management for every single listener. To alleviate this problem, Spring Data offers `RedisMessageListenerContainer` which does all the heavy lifting on behalf of the user - users familiar with EJB and JMS should find the concepts familiar as it is designed as close as possible to the support in Spring Framework and its message-driven POJOs (MDPs)
+
+`RedisMessageListenerContainer` acts as a message listener container; it is used to receive messages from a Redis channel and drive the MessageListeners that are injected into it. The listener container is responsible for all threading of message reception and dispatches into the listener for processing. A message listener container is the intermediary between an MDP and a messaging provider, and takes care of registering to receive messages, resource acquisition and release, exception conversion and the like. This allows you as an application developer to write the (possibly complex) business logic associated with receiving a message (and reacting to it), and delegates boilerplate Redis infrastructure concerns to the framework.
+
+Furthermore, to minimize the application footprint, `RedisMessageListenerContainer` allows one connection and one thread to be shared by multiple listeners even though they do not share a subscription. Thus no matter how many listeners or channels an application tracks, the runtime cost will remain the same through out its lifetime. Moreover, the container allows runtime configuration changes so one can add or remove listeners while an application is running without the need for restart. Additionally, the container uses a lazy subscription approach, using a `RedisConnection` only when needed - if all the listeners are unsubscribed, cleanup is automatically performed and the used thread released.
+
+To help with the asynch manner of messages, the container requires a `java.util.concurrent.Executor` ( or Spring's `TaskExecutor`) for dispatching the messages. Depending on the load, the number of listeners or the runtime environment, one should change or tweak the executor to better serve her needs - in particular in managed environments (such as app servers), it is  highly recommended to pick a a proper `TaskExecutor` to take advantage of its runtime.
+
+[[redis:pubsub:subscribe:adapter]]
+=== The MessageListenerAdapter
+
+The `MessageListenerAdapter` class is the final component in Spring's asynchronous messaging support: in a nutshell, it allows you to expose almost *any* class as a MDP (there are of course some constraints).
+
+Consider the following interface definition. Notice that although the interface extends the `MessageListener` interface, it can still be used as a MDP via the use of the `MessageListenerAdapter` class. Notice also how the various message handling methods are strongly typed according to the *contents* of the various `Message` types that they can receive and handle. In addition, the channel or pattern to which a message is sent can be passed in to the method as the second argument of type String:
+
+[source,java]
+----
+public interface MessageDelegate { 
+  void handleMessage(String message);
+  void handleMessage(Map message); void handleMessage(byte[] message); 
+  void handleMessage(Serializable message);
+  // pass the channel/pattern as well 
+  void handleMessage(Serializable message, String channel); 
+ }
+----
+
+[source,java]
+----
+public class DefaultMessageDelegate implements MessageDelegate { 
+  // implementation elided for clarity...
+}
+----
+
+In particular, note how the above implementation of the `MessageDelegate` interface (the above `DefaultMessageDelegate` class) has *no* Redis dependencies at all. It truly is a POJO that we will make into an MDP via the following configuration.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+ <beans xmlns="http://www.springframework.org/schema/beans" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+   xmlns:redis="http://www.springframework.org/schema/redis"
+   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+   http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
+ 
+<!-- the default ConnectionFactory -->
+<redis:listener-container>
+  <!-- the method attribute can be skipped as the default method name is "handleMessage" -->
+  <redis:listener ref="listener" method="handleMessage" topic="chatroom" />
+</redis:listener-container>
+ 
+<bean id="listener" class="redisexample.DefaultMessageDelegate"/>
+ ... 
+<beans>
+----
+
+NOTE: The listener topic can be either a channel (e.g. `topic="chatroom"`) or a pattern (e.g. `topic="*room"`)
+
+The example above uses the Redis namespace to declare the message listener container and automatically register the POJOs as listeners. The full blown, *beans* definition is displayed below:
+
+[source,xml]
+----
+<bean id="messageListener" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter"> 
+  <constructor-arg>
+    <bean class="redisexample.DefaultMessageDelegate"/>
+  </constructor-arg>
+</bean>
+ 
+<bean id="redisContainer" class="org.springframework.data.redis.listener.RedisMessageListenerContainer">
+  <property name="connectionFactory" ref="connectionFactory"/>
+  <property name="messageListeners">
+    <map>
+      <entry key-ref="messageListener">
+        <bean class="org.springframework.data.redis.listener.ChannelTopic"> 
+          <constructor-arg value="chatroom">
+        </bean>
+      </entry>
+    </map>
+  </property>     
+</bean>
+----
+
+Each time a message is received, the adapter automatically performs translation (using the configured `RedisSerializer`) between the low-level format and the required object type transparently. Any exception caused by the method invocation is caught and handled by the container (by default, being logged).
+

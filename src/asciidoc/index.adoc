@@ -1,0 +1,23 @@
+[[spring-data-keyvalue-reference]]
+= Spring Data Redis
+
+include::src/asciidoc/preface.adoc[]
+
+[[introduction]]
+== Introduction
+
+include::src/asciidoc/introduction/introduction.adoc[]
+include::src/asciidoc/introduction/why-sdr.adoc[]
+include::src/asciidoc/introduction/requirements.adoc[]
+include::src/asciidoc/introduction/getting-started.adoc[]
+[[reference]]
+== Reference Documentation
+
+include::src/asciidoc/reference/introduction.adoc[]
+include::src/asciidoc/reference/redis.adoc[]
+[[appendixes]]
+== Appendixes
+
+include::src/asciidoc/appendix/introduction.adoc[]
+include::src/asciidoc/appendix/appendix-schema.adoc[]
+include::src/asciidoc/appendix/appendix-command-reference.adoc[]

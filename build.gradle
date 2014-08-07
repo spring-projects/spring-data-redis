@@ -7,6 +7,8 @@ buildscript {
         classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.4'
         classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
         classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
+        classpath('org.asciidoctor:asciidoctor-gradle-plugin:0.7.0')
+        classpath('org.asciidoctor:asciidoctor-java-integration:0.1.4.preview.1')
     }
 }
 
@@ -26,6 +28,7 @@ apply from: "$rootDir/maven.gradle"
 apply plugin: 'docbook-reference'
 apply plugin: 'bundlor'
 apply plugin: 'javadocHotfix'
+apply plugin: 'asciidoctor'
 
 if (project.hasProperty('platformVersion')) {
     apply plugin: 'spring-io'
@@ -48,6 +51,24 @@ configurations.all {
   }
 }
 
+ asciidoctor {
+        options = [
+          eruby: 'erubis',
+          attributes: [
+              copycss : '',
+              icons : 'font',
+              'source-highlighter': 'prettify',
+              sectanchors : '',
+              toc2: '',
+              idprefix: '',
+              idseparator: '-',
+              doctype: 'book',
+              numbered: '',
+              revnumber : project.version
+          ]
+        ]
+    }
+
 // Common dependencies
 dependencies {
     // Logging
@@ -64,6 +85,7 @@ dependencies {
     compile "org.springframework:spring-tx:$springVersion"
     compile("org.springframework:spring-oxm:$springVersion", optional)
     compile "org.springframework:spring-aop:$springVersion"
+    compile "org.springframework.integration:spring-integration-core:4.0.3.RELEASE"
 
     // Redis Drivers
     compile("redis.clients:jedis:$jedisVersion", optional)
