@@ -1,0 +1,6 @@
+= Document structure
+
+This part of the reference documentation explains the core functionality offered by Spring Data Redis.
+
+<<redis>> introduces the Redis module feature set.
+

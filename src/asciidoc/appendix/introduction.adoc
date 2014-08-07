@@ -1,0 +1,6 @@
+= Document structure
+
+Various appendixes outside the reference documentation.
+
+<<appendix-schema>> defines the schemas provided by Spring Data Redis.
+

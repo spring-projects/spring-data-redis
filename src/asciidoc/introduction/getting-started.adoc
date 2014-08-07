@@ -1,0 +1,53 @@
+[[get-started]]
+= Getting Started
+
+Learning a new framework is not always straight forward. In this section, we (the Spring Data team) tried to provide, what we think is, an easy to follow guide for starting with the Spring Data Redis module. Of course, feel free to create your own learning 'path' as you see fit and, if possible, please report back any improvements to the documentation that can help others.
+
+[[get-started:first-steps]]
+== First Steps
+
+As explained in <<why-spring-redis>>, Spring Data Redis (SDR) provides integration between Spring framework and the Redis key value store. Thus, it is important to become acquainted with both of these  frameworks (storages or environments depending on how you want to name them). Throughout the SDR documentation, each section provides links to resources relevant however, it is best to become familiar with these topics beforehand.
+
+[[get-started:first-steps:spring]]
+=== Knowing Spring
+
+Spring Data uses heavily Spring framework's http://docs.spring.io/spring/docs/current/spring-framework-reference/html/spring-core.html[core] functionality, such as the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html[IoC] container, http://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html[resource] abstract or http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop.html[AOP] infrastructure. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar. That being said, the more knowledge one has about the Spring, the faster she will pick up Spring Data Redis. Besides the very comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework, there are a lot of articles, blog entries and books on the matter - take a look at the Spring Guides http://spring.io/guides[home page] for more information. In general, this should be the starting point for developers wanting to try Spring DR.
+
+[[get-started:first-steps:nosql]]
+=== Knowing NoSQL and Key Value stores
+
+NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worse even the term itself has multiple http://www.google.com/search?q=nosoql+acronym[meanings]). While some of the principles are common, it is crucial that the user is familiar to some degree with the stores supported by SDR. The best way to get acquainted with these solutions is to read their documentation and follow their examples - it usually doesn't take more then 5-10 minutes to go through them and if you are coming from an RDMBS-only background many times these exercises can be an eye opener.
+
+[[get-started:first-steps:samples]]
+=== Trying Out The Samples
+
+One can find various samples for key value stores in the dedicated example repo, at https://github.com/spring-projects/spring-data-keyvalue-examples[http://github.com/spring-projects/spring-data-keyvalue-examples]. For Spring Data Redis, of interest is the `retwisj` sample, a Twitter-clone built on top of Redis which can be run locally or be deployed into the cloud. See its http://static.springsource.org/spring-data/data-keyvalue/examples/retwisj/current/[documentation], the following blog http://blog.springsource.com/2011/04/27/getting-started-redis-spring-cloud-foundry/[entry] or the http://retwisj.cloudfoundry.com/[live instance] for more information.
+
+[[get-started:help]]
+== Need Help?
+
+If you encounter issues or you are just looking for advice, feel free to use one of the links below:
+
+[[get-started:help:community]]
+=== Community Support
+
+The Spring Data tag on http://stackoverflow.com/questions/tagged/spring-data[Stackoverflow] is a message board for all Spring Data (not just Redis) users to share information and help each other. Note that registration is needed *only* for posting.
+
+[[get-started:help:professional]]
+=== Professional Support
+
+Professional, from-the-source support, with guaranteed response time, is available from http://www.gopivotal.com/[Pivotal Software, Inc.], the company behind Spring Data and Spring.
+
+[[get-started:up-to-date]]
+== Following Development
+
+For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home http://spring.io/spring-data[page].
+
+You can help make Spring Data best serve the needs of the Spring community by interacting with developers on http://stackoverflow.com/questions/tagged/spring-data[Stackoverflow].
+
+If you encounter a bug or want to suggest an improvement, please create a ticket on the Spring Data issue https://jira.springsource.org/browse/DATAREDIS[tracker].
+
+To stay up to date with the latest news and announcements in the Spring eco system, subscribe to the Spring Community http://spring.io/[Portal].
+
+Lastly, you can follow the Spring http://spring.io/blog/[blog] or the project team (http://twitter.com/thomasdarimont[Thomas] and http://twitter.com/stroblchristoph[Christoph]) on Twitter.
+
