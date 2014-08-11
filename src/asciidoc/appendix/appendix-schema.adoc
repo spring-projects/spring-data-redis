@@ -1,7 +1,10 @@
 [[appendix:schema]]
 = Schema
+:resourcesDir: ../../main/resources
+
+Core schema
 
 [source,xml]
 -------------------------------------------
-include::/src/main/resources/org/springframework/data/redis/config/spring-redis-1.0.xsd[]
+include::{resourcesDir}/org/springframework/data/redis/config/spring-redis-1.0.xsd[]
 -------------------------------------------

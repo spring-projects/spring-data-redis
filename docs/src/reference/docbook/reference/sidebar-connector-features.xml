@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<sidebar>
-  <title>Connector features</title>
-  
-  <para>Unfortunately, currently, not all connectors support all Redis features.  When invoking a method on the <interfacename>Connection</interfacename> API that is unsupported by the underlying library, a <classname>UnsupportedOperationException</classname>
-  is thrown.
-  This situation is likely to be fixed in the future, as the various connectors mature.
-  </para>
-</sidebar>

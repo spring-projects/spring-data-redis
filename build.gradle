@@ -4,7 +4,6 @@ buildscript {
     }
     dependencies {
         classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
-        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.4'
         classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
         classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
         classpath('org.asciidoctor:asciidoctor-gradle-plugin:0.7.0')
@@ -25,7 +24,6 @@ apply plugin: "java"
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply from: "$rootDir/maven.gradle"
-apply plugin: 'docbook-reference'
 apply plugin: 'bundlor'
 apply plugin: 'javadocHotfix'
 apply plugin: 'asciidoctor'
@@ -52,19 +50,27 @@ configurations.all {
 }
 
  asciidoctor {
+        sourceDocumentName = new File("$sourceDir/index.adoc")
+        outputDir = new File("$buildDir/reference/htmlsingle")
         options = [
           eruby: 'erubis',
           attributes: [
+              linkcss: 'true',
               copycss : '',
               icons : 'font',
               'source-highlighter': 'prettify',
               sectanchors : '',
-              toc2: '',
+              toc: '',
+              toclevels: '4',
               idprefix: '',
               idseparator: '-',
               doctype: 'book',
               numbered: '',
-              revnumber : project.version
+              version: project.version,
+              baseDir: "$sourceDir",
+              stylesheet: "spring.css",
+              resourcesDir: "$rootDir/src/main/resources",
+              referenceDir: "$sourceDir/reference"
           ]
         ]
     }
@@ -177,11 +183,9 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
-reference {
-    sourceDir = file('docs/src/reference/docbook')
-}
-
 task docsZip(type: Zip) {
+    dependsOn asciidoctor
+
     group = 'Distribution'
     classifier = 'docs'
     description = "Builds -${classifier} archive containing api and reference for deployment"
@@ -194,8 +198,14 @@ task docsZip(type: Zip) {
         into 'api'
     }
 
-    from (reference) {
-        into 'reference'
+    from (asciidoctor.outputDir) {
+        include "index.html"
+        into 'reference/htmlsingle'
+    }
+
+    from ("src/main/resources/asciidoc") {
+        include "spring.css"
+        into "reference/htmlsingle"
     }
 }
 

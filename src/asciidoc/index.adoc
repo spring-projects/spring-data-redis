@@ -1,23 +1,48 @@
 [[spring-data-keyvalue-reference]]
 = Spring Data Redis
+Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont
+:baseDir: .
+:toc:
+:spring-data-commons-docs: https://raw.githubusercontent.com/spring-projects/spring-data-commons/master/src/main/asciidoc
 
-include::src/asciidoc/preface.adoc[]
+{version}
 
+(C) 2011-2014 The original authors
+
+NOTE: _Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically._
+
+include::{baseDir}/preface.adoc[]
+
+:numbered:
+:leveloffset: 0
 [[introduction]]
-== Introduction
+= Introduction
 
-include::src/asciidoc/introduction/introduction.adoc[]
-include::src/asciidoc/introduction/why-sdr.adoc[]
-include::src/asciidoc/introduction/requirements.adoc[]
-include::src/asciidoc/introduction/getting-started.adoc[]
+:leveloffset: 2
+include::{baseDir}/introduction/introduction.adoc[]
+include::{baseDir}/introduction/why-sdr.adoc[]
+include::{baseDir}/introduction/requirements.adoc[]
+include::{baseDir}/introduction/getting-started.adoc[]
+
+:leveloffset: 0
 [[reference]]
-== Reference Documentation
+= Reference Documentation
 
-include::src/asciidoc/reference/introduction.adoc[]
-include::src/asciidoc/reference/redis.adoc[]
+:leveloffset: 1
+include::{baseDir}/reference/introduction.adoc[]
+include::{baseDir}/reference/redis.adoc[]
+
+:leveloffset: 0
 [[appendixes]]
-== Appendixes
+= Appendixes
 
-include::src/asciidoc/appendix/introduction.adoc[]
-include::src/asciidoc/appendix/appendix-schema.adoc[]
-include::src/asciidoc/appendix/appendix-command-reference.adoc[]
+:numbered!:
+:leveloffset: 1
+
+include::{baseDir}/appendix/introduction.adoc[]
+
+[appendix]
+include::{baseDir}/appendix/appendix-schema.adoc[]
+
+[appendix]
+include::{baseDir}/appendix/appendix-command-reference.adoc[]

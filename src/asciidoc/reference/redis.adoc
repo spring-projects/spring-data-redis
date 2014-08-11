@@ -1,10 +1,13 @@
 [[redis]]
 = Redis support
+:referenceDir: .
 
-One of the key value stores supported by Spring Data is http://redis.io[Redis]. To quote the project home page: [quote] 
+One of the key value stores supported by Spring Data is http://redis.io[Redis]. To quote the project home page:
+
+[quote]
 Redis is an advanced key-value store. It is similar to memcached but the dataset is not volatile, and values can be strings, exactly like in memcached, but also lists, sets, and ordered sets. All this data types can be manipulated with atomic operations to push/pop elements, add/remove elements, perform server side union, intersection, difference between sets, and so forth. Redis supports different kind of sorting abilities.
 
- Spring Data Redis provides easy configuration and access to Redis from Spring applications. It offers both low-level and high-level abstractions for interacting with the store, freeing the user from infrastructural concerns.
+Spring Data Redis provides easy configuration and access to Redis from Spring applications. It offers both low-level and high-level abstractions for interacting with the store, freeing the user from infrastructural concerns.
 
 [[redis:requirements]]
 == Redis Requirements
@@ -181,20 +184,46 @@ Most users are likely to use `RedisTemplate` and its coresponding package `org.s
 
 Moreover, the template provides operations views (following the grouping from Redis command http://redis.io/commands[reference]) that offer rich, generified interfaces for working against a certain type or certain key (through the `KeyBound` interfaces) as described below:
 
+.Operational views
 [width="80%",cols="<1,<2",options="header"]
-|=========================================================
-|Interface |Description
-|ValueOperations |Redis string (or value) operations 
-|ListOperations |Redis list operations 
-|SetOperations |Redis set operations 
-|ZSetOperations |Redis zset (or sorted set) operations 
-|HashOperations |Redis hash operations 
-|BoundValueOperations |Redis string (or value) key bound operations 
-|BoundListOperations |Redis list key bound operations 
-|BoundSetOperations |Redis set key bound operations 
-|BoundZSetOperations |Redis zset (or sorted set) key bound operations 
-|BoundHashOperations |Redis hash key bound operations      
-|=========================================================
+|====
+|Interface
+|Description
+
+2+^|_Key Type Operations_
+
+|ValueOperations
+|Redis string (or value) operations
+
+|ListOperations
+|Redis list operations
+
+|SetOperations
+|Redis set operations
+
+|ZSetOperations
+|Redis zset (or sorted set) operations
+
+|HashOperations
+|Redis hash operations
+
+2+^|_Key Bound Operations_
+
+|BoundValueOperations
+|Redis string (or value) key bound operations
+
+|BoundListOperations
+|Redis list key bound operations
+
+|BoundSetOperations
+|Redis set key bound operations
+
+|BoundZSetOperations
+|Redis zset (or sorted set) key bound operations
+
+|BoundHashOperations
+|Redis hash key bound operations
+|====
 
 Once configured, the template is thread-safe and can be reused across multiple instances.
 
@@ -289,23 +318,27 @@ public void useCallback() {
 
 From the framework perspective, the data stored in Redis is just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored rather then what it represents. It is up to the user to decide whether the information gets translated into Strings or any other objects. The conversion between the user (custom) types and raw data (and vice-versa) is handled in Spring Data Redis through the `RedisSerializer` interface (package `org.springframework.data.redis.serializer`) which as the name implies, takes care of the serialization process. Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation: the `StringRedisSerializer` and the `JdkSerializationRedisSerializer`. However one can use `OxmSerializer` for Object/XML mapping through Spring 3 http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[OXM] support or either `JacksonJsonRedisSerializer` or `Jackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format. Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions.
 
-include::./redis-messaging.adoc[]
+:leveloffset: 2
+include::{referenceDir}/redis-messaging.adoc[]
 
-include::./redis-transactions.adoc[]
+include::{referenceDir}/redis-transactions.adoc[]
 
-include::./pipelining.adoc[]
+include::{referenceDir}/pipelining.adoc[]
 
-include::./redis-scripting.adoc[]
+include::{referenceDir}/redis-scripting.adoc[]
 
+:leveloffset: 1
 [[redis:support]]
 == Support Classes
 
-Package `org.springframework.data.redis.support` offers various reusable components that rely on Redis as a backing store. Curently the package contains various JDK-based interface implementations on top of Redis such as http://download.oracle.com/javase/6/docs/api/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK `
-        Ulink (Section qName:ulink level:5, chunks:[Collections] attrs:[url:http://download.oracle.com/javase/6/docs/api/java/util/Collection.html])
-      `.
+Package `org.springframework.data.redis.support` offers various reusable components that rely on Redis as a backing store. Currently the package contains various JDK-based
+interface implementations on top of Redis such as http://download.oracle.com/javase/6/docs/api/java/util/concurrent/atomic/package-summary.html[atomic] counters and JDK
+http://download.oracle.com/javase/6/docs/api/java/util/Collection.html[Collections].
 
-The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API leakage: in particular the `RedisSet` and `RedisZSet` interfaces offer easy access to the *set* operations supported by Redis such as `intersection` and `union` while `RedisList` implements the `List`, `Queue` and `Deque` contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a *FIFO (First-In-First-Out)*, *LIFO
-    (Last-In-First-Out)* or *capped collection* with minimal configuration:
+The atomic counters make it easy to wrap Redis key incrementation while the collections allow easy management of Redis keys with minimal storage exposure or API
+leakage: in particular the `RedisSet` and `RedisZSet` interfaces offer easy access to the *set* operations supported by Redis such as `intersection` and `union`
+while `RedisList` implements the `List`, `Queue` and `Deque` contracts (and their equivalent blocking siblings) on top of Redis, exposing the storage as a
+_FIFO (First-In-First-Out)_, _LIFO (Last-In-First-Out)_ or _capped collection_ with minimal configuration:
 
 [source,xml]
 ----
