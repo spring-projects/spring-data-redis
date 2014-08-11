@@ -177,6 +177,8 @@ public RedisConnectionFactory jedisConnectionFactory() {
 } 
 ----
 
+Sometimes direct interaction with the one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
+
 [[redis:template]]
 == Working with Objects through RedisTemplate
 
