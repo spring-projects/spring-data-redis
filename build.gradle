@@ -1,12 +1,14 @@
 buildscript {
     repositories {
         maven { url 'http://repo.spring.io/plugins-release' }
+        jcenter()
     }
     dependencies {
         classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
         classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
         classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
-        classpath('org.asciidoctor:asciidoctor-gradle-plugin:0.7.0')
+        classpath 'io.spring.gradle:docbook-reference-plugin:0.3.0'
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
         classpath('org.asciidoctor:asciidoctor-java-integration:0.1.4.preview.1')
     }
 }
@@ -18,6 +20,7 @@ repositories {
   maven { url "http://repo.spring.io/libs-snapshot" }
   maven { url "http://repo.spring.io/plugins-release" }
   mavenCentral()
+  jcenter()
 }
 
 apply plugin: "java"
@@ -26,7 +29,8 @@ apply plugin: 'idea'
 apply from: "$rootDir/maven.gradle"
 apply plugin: 'bundlor'
 apply plugin: 'javadocHotfix'
-apply plugin: 'asciidoctor'
+apply plugin: 'org.asciidoctor.gradle.asciidoctor'
+apply plugin: 'docbook-reference'
 
 if (project.hasProperty('platformVersion')) {
     apply plugin: 'spring-io'
@@ -49,32 +53,6 @@ configurations.all {
   }
 }
 
- asciidoctor {
-        sourceDocumentName = new File("$sourceDir/index.adoc")
-        outputDir = new File("$buildDir/reference/htmlsingle")
-        options = [
-          eruby: 'erubis',
-          attributes: [
-              linkcss: 'true',
-              copycss : '',
-              icons : 'font',
-              'source-highlighter': 'prettify',
-              sectanchors : '',
-              toc: '',
-              toclevels: '4',
-              idprefix: '',
-              idseparator: '-',
-              doctype: 'book',
-              numbered: '',
-              version: project.version,
-              baseDir: "$sourceDir",
-              stylesheet: "spring.css",
-              resourcesDir: "$rootDir/src/main/resources",
-              referenceDir: "$sourceDir/reference"
-          ]
-        ]
-    }
-
 // Common dependencies
 dependencies {
     // Logging
@@ -91,7 +69,6 @@ dependencies {
     compile "org.springframework:spring-tx:$springVersion"
     compile("org.springframework:spring-oxm:$springVersion", optional)
     compile "org.springframework:spring-aop:$springVersion"
-    compile "org.springframework.integration:spring-integration-core:4.0.3.RELEASE"
 
     // Redis Drivers
     compile("redis.clients:jedis:$jedisVersion", optional)
@@ -150,6 +127,14 @@ javadoc {
   title = "${rootProject.description} ${version} API"
 }
 
+reference {
+    sourceDir = file("$buildDir/asciidoc/docbook")
+}
+
+referencePdf {
+	sourceDir = file("$buildDir/asciidoc/docbook")
+}
+
 bundlor {
    manifestTemplate = file("${projectDir}/template.mf").text
 }
@@ -183,9 +168,8 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
-task docsZip(type: Zip) {
-    dependsOn asciidoctor
-
+task docsZip(type: Zip, dependsOn:['docbook', 'generateHTML']) {
+ 
     group = 'Distribution'
     classifier = 'docs'
     description = "Builds -${classifier} archive containing api and reference for deployment"
@@ -200,12 +184,12 @@ task docsZip(type: Zip) {
 
     from (asciidoctor.outputDir) {
         include "index.html"
+        include "spring.css"
         into 'reference/htmlsingle'
     }
-
-    from ("src/main/resources/asciidoc") {
-        include "spring.css"
-        into "reference/htmlsingle"
+    
+    from ("$buildDir/reference/pdf") {
+    	into 'reference/pdf'
     }
 }
 
@@ -291,6 +275,48 @@ artifacts {
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
     gradleVersion = '1.11'
+}
+
+tasks.withType(org.asciidoctor.gradle.AsciidoctorTask) { docTask ->  
+    options = [  
+        logDocuments: true,  
+        attributes: [  
+            linkcss: 'true',
+            copycss : 'spring.css',
+            stylesheet: "spring.css",
+            icons : 'font',
+            'source-highlighter': 'prettify',
+            sectanchors : '',
+            toc: '',
+            toclevels: '4',
+            idprefix: '',
+            idseparator: '-',
+            doctype: 'book',
+            numbered: '',
+            version: project.version,
+            baseDir: "$sourceDir",
+            resourcesDir: "$rootDir/src/main/resources",
+            referenceDir: "$sourceDir/reference"
+        ]  
+    ]  
+}
+
+task generateHTML (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates single and multiple HTML documentation.', group: 'Documentation') {  
+    backend = 'html5'  
+    outputDir = new File("$buildDir/reference/htmlsingle")
+    options.attributes.doctype = 'book'
+    options.attributes.copycss = 'spring.css'  
+}
+
+task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates DOCBOOK documentation.', group: 'Documentation', dependsOn : ['createEmptyDocbookSourceDirToCheatThePlugin']) {  
+    backend = 'docbook'  
+    outputDir = new File("$buildDir/reference-work")
+    options.attributes.chunkedOutput = 'true'
+    options.attributes.stylesheet = 'chunked'
+}
+
+task createEmptyDocbookSourceDirToCheatThePlugin << {
+    new File("$buildDir/asciidoc/docbook").mkdirs()
 }
 
 assemble.dependsOn = ['jar', 'sourcesJar']
