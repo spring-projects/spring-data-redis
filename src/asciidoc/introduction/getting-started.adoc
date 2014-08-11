@@ -43,7 +43,8 @@ Professional, from-the-source support, with guaranteed response time, is availab
 
 For information on the Spring Data source code repository, nightly builds and snapshot artifacts please see the Spring Data home http://spring.io/spring-data[page].
 
-You can help make Spring Data best serve the needs of the Spring community by interacting with developers on http://stackoverflow.com/questions/tagged/spring-data[Stackoverflow].
+You can help make Spring Data best serve the needs of the Spring community by interacting with developers on Stackoverflow at either
+http://stackoverflow.com/questions/tagged/spring-data[spring-data] or http://stackoverflow.com/questions/tagged/spring-data-redis[spring-data-redis].
 
 If you encounter a bug or want to suggest an improvement, please create a ticket on the Spring Data issue https://jira.springsource.org/browse/DATAREDIS[tracker].
 

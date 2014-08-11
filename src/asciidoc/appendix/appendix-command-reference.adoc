@@ -1,6 +1,7 @@
 [[appendix:command-reference]]
 = Command Reference
 
+.Redis commands supported by RedisTemplate.
 [width="50%",cols="<2,^1",options="header"]
 |=========================================================
 |Command |Template Support
