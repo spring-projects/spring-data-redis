@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.data.redis.listener.adapter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,6 +32,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
@@ -89,26 +90,28 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Costin Leau
  * @author Greg Turnquist
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  * @see org.springframework.jms.listener.adapter.MessageListenerAdapter
  */
 public class MessageListenerAdapter implements InitializingBean, MessageListener {
 
+
 	private class MethodInvoker {
+
 		private final Object delegate;
 		private String methodName;
-
-		private List<Method> methods;
-		private boolean lenient = false;
+		private Set<Method> methods;
+		private boolean lenient;
 
 		MethodInvoker(Object delegate, final String methodName) {
+
 			this.delegate = delegate;
 			this.methodName = methodName;
+			this.lenient = delegate instanceof MessageListener;
+			this.methods = new HashSet<Method>();
 
-			lenient = delegate instanceof MessageListener;
-
-			Class<?> c = delegate.getClass();
-
-			methods = new ArrayList<Method>();
+			final Class<?> c = delegate.getClass();
 
 			ReflectionUtils.doWithMethods(c, new MethodCallback() {
 
@@ -117,17 +120,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 					methods.add(method);
 				}
 
-			}, new MethodFilter() {
-				public boolean matches(Method method) {
-					if (Modifier.isPublic(method.getModifiers()) && methodName.equals(method.getName())) {
-						// check out the argument numbers
-						Class<?>[] parameterTypes = method.getParameterTypes();
-
-						return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
-					}
-					return false;
-				}
-			});
+			}, new MostSpecificMethodFilter(methodName, c));
 
 			Assert.isTrue(lenient || !methods.isEmpty(), "Cannot find a suitable method named [" + c.getName() + "#"
 					+ methodName + "] - is the method public and has the proper arguments?");
@@ -136,10 +129,22 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		void invoke(Object[] arguments) throws InvocationTargetException, IllegalAccessException {
 
 			Object[] message = new Object[] { arguments[0] };
+
 			for (Method m : methods) {
+
 				Class<?>[] types = m.getParameterTypes();
-				Object[] args = (types.length == 2 ? arguments : message);
+				Object[] args = //
+				types.length == 2 //
+						&& types[0].isInstance(arguments[0]) //
+						&& types[1].isInstance(arguments[1]) ? arguments : message;
+
+				if (!types[0].isInstance(args[0])) {
+					continue;
+				}
+
 				m.invoke(delegate, args);
+
+				return;
 			}
 		}
 
@@ -152,7 +157,7 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 			return methodName;
 		}
 	}
-
+	
 	/**
 	 * Out-of-the-box value for the default listener method: "handleMessage".
 	 */
@@ -378,6 +383,36 @@ public class MessageListenerAdapter implements InitializingBean, MessageListener
 		} catch (Throwable ex) {
 			throw new RedisListenerExecutionFailedException("Failed to invoke target method '" + methodName
 					+ "' with arguments " + ObjectUtils.nullSafeToString(arguments), ex);
+		}
+	}
+
+	/**
+	 * @since 1.4
+	 */
+	static final class MostSpecificMethodFilter implements MethodFilter {
+
+		private final String methodName;
+		private final Class<?> c;
+
+		MostSpecificMethodFilter(String methodName, Class<?> c) {
+
+			this.methodName = methodName;
+			this.c = c;
+		}
+
+		public boolean matches(Method method) {
+
+			if (Modifier.isPublic(method.getModifiers()) //
+					&& methodName.equals(method.getName()) //
+					&& method.equals(ClassUtils.getMostSpecificMethod(method, c))) {
+
+				// check out the argument numbers
+				Class<?>[] parameterTypes = method.getParameterTypes();
+
+				return ((parameterTypes.length == 2 && String.class.equals(parameterTypes[1])) || parameterTypes.length == 1);
+			}
+
+			return false;
 		}
 	}
 }

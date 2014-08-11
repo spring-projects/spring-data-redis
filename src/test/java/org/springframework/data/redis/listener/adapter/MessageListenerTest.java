@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ package org.springframework.data.redis.listener.adapter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +26,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * 
  * @author Costin Leau
  * @author Greg Turnquist
+ * @author Thomas Darimont
  */
 public class MessageListenerTest {
 
@@ -156,12 +158,189 @@ public class MessageListenerTest {
 		assertEquals(1, listener.count);
 	}
 
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void defaultConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage("channel1".getBytes(), "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handleMessage(anyString(), anyString());
+	}
+
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void defaultConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.setSerializer(null);
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage("channel1".getBytes(), "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handleMessage(any(byte[].class), anyString());
+	}
+
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void defaultConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.setSerializer(new PojoRedisSerializer());
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage(new byte[0], "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handleMessage(any(Pojo.class), anyString());
+	}
+
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void customConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.setDefaultListenerMethod("handle");
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage("channel1".getBytes(), "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handle(anyString(), anyString());
+	}
+
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void customConcreteMessageOnlyHandlerMethodShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.setDefaultListenerMethod("handleMessageOnly");
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage("channel1".getBytes(), "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handleMessageOnly(anyString());
+	}
+
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void customConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.setDefaultListenerMethod("handle");
+		adapter.setSerializer(null);
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage("channel1".getBytes(), "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handle(any(byte[].class), anyString());
+	}
+
+	/**
+	 * @see DATAREDIS-337
+	 */
+	@Test
+	public void customConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
+
+		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(listener);
+		adapter.setDefaultListenerMethod("handle");
+		adapter.setSerializer(new PojoRedisSerializer());
+		adapter.afterPropertiesSet();
+
+		adapter.onMessage(new DefaultMessage(new byte[0], "body".getBytes()), "".getBytes());
+
+		verify(listener, times(1)).handle(any(Pojo.class), anyString());
+	}
+
 	class SampleListener implements MessageListener {
 
 		int count;
 
 		public void onMessage(Message message, byte[] pattern) {
 			count++;
+		}
+	}
+
+	/**
+	 * @author Thomas Darimont
+	 * @see DATAREDIS-337
+	 */
+	static class AbstractMessageHandler {
+
+		public void handleMessage(Pojo message, String channel) {}
+
+		public void handleMessage(byte[] message, String channel) {}
+
+		public void handleMessage(String message, String channel) {}
+
+		public void handle(Pojo message, String channel) {}
+
+		public void handle(String message, String channel) {}
+
+		public void handle(byte[] message, String channel) {}
+
+		public void handleMessageOnly(String message) {}
+	}
+
+	/**
+	 * @author Thomas Darimont
+	 * @see DATAREDIS-337
+	 */
+	static class ConcreteMessageHandler extends AbstractMessageHandler {
+
+		public void handleMessage(Pojo message, String channel) {}
+
+		public void handleMessage(byte[] message, String channel) {}
+
+		public void handleMessage(String message, String channel) {}
+
+		public void handle(Pojo message, String channel) {}
+
+		public void handle(String message, String channel) {}
+
+		public void handle(byte[] message, String channel) {}
+
+		public void handleMessageOnly(String message) {}
+	}
+
+	static class Pojo {}
+
+	static class PojoRedisSerializer implements RedisSerializer<Pojo> {
+
+		@Override
+		public byte[] serialize(Pojo t) throws SerializationException {
+			return new byte[0];
+		}
+
+		@Override
+		public Pojo deserialize(byte[] bytes) throws SerializationException {
+			return new Pojo();
 		}
 	}
 }
