@@ -23,7 +23,6 @@ import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -46,6 +45,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author David Liu
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {

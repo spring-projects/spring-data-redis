@@ -32,7 +32,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
-public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
+class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
 	DefaultValueOperations(RedisTemplate<K, V> template) {
 		super(template);
