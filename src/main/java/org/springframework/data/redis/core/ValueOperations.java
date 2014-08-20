@@ -66,4 +66,9 @@ public interface ValueOperations<K, V> {
 	Long size(K key);
 
 	RedisOperations<K, V> getOperations();
+	
+	Boolean setBit(K key, long offset, boolean value);
+	
+	Boolean getBit(K key, long offset);
+	
 }

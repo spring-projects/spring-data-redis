@@ -32,7 +32,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  */
-class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
+public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
 	DefaultValueOperations(RedisTemplate<K, V> template) {
 		super(template);
@@ -244,4 +244,27 @@ class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements V
 			}
 		}, true);
 	}
+	
+	@Override
+	public Boolean setBit(K key, final long offset, final boolean value) {
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Boolean>() {
+
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.setBit(rawKey, offset, value);
+			}
+		}, true);
+	}
+
+	@Override
+	public Boolean getBit(K key, final long offset) {
+		final byte[] rawKey = rawKey(key);
+		return execute(new RedisCallback<Boolean>() {
+
+			public Boolean doInRedis(RedisConnection connection) {
+				return connection.getBit(rawKey, offset);
+			}
+		}, true);
+	}
+	
 }

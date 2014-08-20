@@ -23,6 +23,7 @@ import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -274,4 +275,13 @@ public class DefaultValueOperationsTests<K, V> {
 		assumeTrue(key1 instanceof byte[]);
 		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
 	}
+	
+	@Test
+	public void testSetBit() {
+		K key1 = keyFactory.instance();
+		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		valueOps.setBit(key1, 2, true);
+		assertEquals(true, valueOps.getBit(key1, 2));
+	}
+
 }
