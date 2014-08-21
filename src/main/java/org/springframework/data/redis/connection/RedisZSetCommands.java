@@ -346,4 +346,27 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Cursor<Tuple> zScan(byte[] key, ScanOptions options);
+	
+	/**
+	 * Get elements where score is between {@code min} and {@code max} from sorted set.
+	 * 
+	 * @see http://redis.io/commands/zrangebyscore
+	 * @param key
+	 * @param begin
+	 * @param end
+	 * @return
+	 */
+	Set<byte[]> zRangeByScore(byte[] key, String min, String max);
+	
+	/**
+	 * Get elements in range from {@code begin} to {@code end} where score is between {@code min} and {@code max} from
+	 * sorted set.
+	 * 
+	 * @see http://redis.io/commands/zrangebyscore
+	 * @param key
+	 * @param begin
+	 * @param end
+	 * @return
+	 */
+	Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count);
 }

@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author David Liu
  */
 class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 

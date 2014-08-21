@@ -164,6 +164,32 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 		return deserializeValues(rawValues);
 	}
+	
+	public Set<byte[]> rangeByScore(K key, final String min, final String max) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.zRangeByScore(rawKey, min, max);
+			}
+		}, true);
+
+		return rawValues;
+	}
+
+	public Set<byte[]> rangeByScore(K key, final String min, final String max, final long offset, final long count) {
+		final byte[] rawKey = rawKey(key);
+
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.zRangeByScore(rawKey, min, max, offset, count);
+			}
+		}, true);
+
+		return rawValues;
+	}
 
 	public Set<V> reverseRangeByScore(K key, final double min, final double max) {
 		final byte[] rawKey = rawKey(key);

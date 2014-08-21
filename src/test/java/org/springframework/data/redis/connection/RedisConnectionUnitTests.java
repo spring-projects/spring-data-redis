@@ -15,7 +15,12 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.List;
@@ -783,6 +788,17 @@ public class RedisConnectionUnitTests {
 				return this.sentinelConnection;
 			}
 			return null;
+		}
+
+		@Override
+		public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+			return delegate.zRangeByScore(key, min, max);
+		}
+
+		@Override
+		public Set<byte[]> zRangeByScore(byte[] key, String min, String max,
+				long offset, long count) {
+			return delegate.zRangeByScore(key, min, max, offset, count);
 		}
 	}
 }

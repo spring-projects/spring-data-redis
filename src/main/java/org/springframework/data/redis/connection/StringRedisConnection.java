@@ -345,4 +345,9 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 */
 	Cursor<StringTuple> zScan(String key, ScanOptions options);
+
+	Set<byte[]> zRangeByScore(String key, String min, String max);
+
+	Set<byte[]> zRangeByScore(String key, String min, String max, long offset,
+			long count);
 }

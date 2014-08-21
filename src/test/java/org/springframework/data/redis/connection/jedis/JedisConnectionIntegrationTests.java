@@ -16,8 +16,12 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -384,5 +388,19 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		((JedisConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
 		assertThat(connection.getSentinelConnection(), notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-106
+	 */
+	@Test
+	public void zRangeByScoreTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1",
+				"2");
+		assertEquals("two", new String(zRangeByScore.iterator().next()));
 	}
 }

@@ -17,6 +17,7 @@
 package org.springframework.data.redis.connection.srp;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsInstanceOf;
@@ -99,4 +100,19 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		Assert.assertThat(replies[1].data(), Is.<Object> is("cool".getBytes()));
 		Assert.assertThat(replies[2].data(), Is.<Object> is("supercalifragilisticexpialidocious".getBytes()));
 	}
+
+	/**
+	 * @see DATAREDIS-106
+	 */
+	@Test
+	public void zRangeByScoreTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1",
+				"2");
+		Assert.assertEquals("two", new String(zRangeByScore.iterator().next()));
+	}
+
 }

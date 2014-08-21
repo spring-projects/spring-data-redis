@@ -1278,4 +1278,15 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException("'HSCAN' command is not uspported for jredis");
 	}
 
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		throw new UnsupportedOperationException("'zRangeByScore' command is not uspported for jredis");
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max,
+			long offset, long count) {
+		throw new UnsupportedOperationException("'zRangeByScore' command is not uspported for jredis");
+	}
+
 }

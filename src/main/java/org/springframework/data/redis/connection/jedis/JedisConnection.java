@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -3146,5 +3147,52 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	protected Jedis getJedis(RedisNode node) {
 		return new Jedis(node.getHost(), node.getPort());
+	}
+	
+	private static Set<byte[]> convertStr(Set<String> originArray)
+	{
+		Set<byte[]> byteArray = new HashSet<byte[]>();
+		for (String origin : originArray) {
+			byteArray.add(origin.getBytes());
+	    }
+	    return byteArray;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zrangeByScore(keyStr, min, max)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max)));
+				return null;
+			}
+			return convertStr(jedis.zrangeByScore(keyStr, min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max,
+			long offset, long count) {
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
+				return null;
+			}
+			return convertStr(jedis.zrangeByScore(keyStr, min, max,
+					(int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 }
