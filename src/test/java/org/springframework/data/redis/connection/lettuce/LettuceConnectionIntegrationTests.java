@@ -16,12 +16,16 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.core.AllOf;
@@ -297,4 +301,19 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
+
+	/**
+	 * @see DATAREDIS-106
+	 */
+	@Test
+	public void zRangeByScoreTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1",
+				"2");
+		assertEquals("two", new String(zRangeByScore.iterator().next()));
+	}
+
 }
