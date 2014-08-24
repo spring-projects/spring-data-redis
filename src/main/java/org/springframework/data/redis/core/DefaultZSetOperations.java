@@ -22,6 +22,7 @@ import java.util.Set;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
@@ -83,6 +84,21 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 			public Long doInRedis(RedisConnection connection) {
 				return connection.zInterStore(rawDestKey, rawKeys);
+			}
+		}, true);
+	}
+
+	public Long intersectAndStore(K key, K otherKey, Aggregate aggregate, double weight, K destKey) {
+		return intersectAndStore(key, Collections.singleton(otherKey), aggregate, new double[]{ weight }, destKey);
+	}
+
+	public Long intersectAndStore(K key, Collection<K> otherKeys, final Aggregate aggregate, final double[] weights, K destKey) {
+		final byte[][] rawKeys = rawKeys(key, otherKeys);
+		final byte[] rawDestKey = rawKey(destKey);
+		return execute(new RedisCallback<Long>() {
+
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zInterStore(rawDestKey, aggregate, weights, rawKeys);
 			}
 		}, true);
 	}
@@ -364,6 +380,21 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 
 			public Long doInRedis(RedisConnection connection) {
 				return connection.zUnionStore(rawDestKey, rawKeys);
+			}
+		}, true);
+	}
+
+	public Long unionAndStore(K key, K otherKey, Aggregate aggregate, double weight, K destKey) {
+		return unionAndStore(key, Collections.singleton(otherKey), aggregate, new double[]{ weight }, destKey);
+	}
+
+	public Long unionAndStore(K key, Collection<K> otherKeys, final Aggregate aggregate, final double[] weights, K destKey) {
+		final byte[][] rawKeys = rawKeys(key, otherKeys);
+		final byte[] rawDestKey = rawKey(destKey);
+		return execute(new RedisCallback<Long>() {
+
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zUnionStore(rawDestKey, aggregate, weights, rawKeys);
 			}
 		}, true);
 	}

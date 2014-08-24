@@ -2140,7 +2140,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
 		try {
@@ -2486,7 +2486,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		ZStoreArgs storeArgs = zStoreArgs(aggregate, weights);
 
 		try {
@@ -3371,7 +3371,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return new byte[0][0];
 	}
 
-	private ZStoreArgs zStoreArgs(Aggregate aggregate, int[] weights) {
+	private ZStoreArgs zStoreArgs(Aggregate aggregate, double[] weights) {
 		ZStoreArgs args = new ZStoreArgs();
 		if (aggregate != null) {
 			switch (aggregate) {

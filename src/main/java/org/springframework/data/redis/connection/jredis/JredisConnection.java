@@ -913,7 +913,7 @@ public class JredisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -1036,7 +1036,7 @@ public class JredisConnection extends AbstractRedisConnection {
 	// Hash commands
 	//
 
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		throw new UnsupportedOperationException();
 	}
 

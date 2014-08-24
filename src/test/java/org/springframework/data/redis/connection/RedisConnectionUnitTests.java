@@ -757,7 +757,7 @@ public class RedisConnectionUnitTests {
 			return delegate.zUnionStore(destKey, sets);
 		}
 
-		public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		public Long zUnionStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 			return delegate.zUnionStore(destKey, aggregate, weights, sets);
 		}
 
@@ -765,7 +765,7 @@ public class RedisConnectionUnitTests {
 			return delegate.zInterStore(destKey, sets);
 		}
 
-		public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+		public Long zInterStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 			return delegate.zInterStore(destKey, aggregate, weights, sets);
 		}
 

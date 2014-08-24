@@ -314,7 +314,7 @@ public interface RedisZSetCommands {
 	 * @param sets
 	 * @return
 	 */
-	Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+	Long zUnionStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets);
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
@@ -334,7 +334,7 @@ public interface RedisZSetCommands {
 	 * @param sets
 	 * @return
 	 */
-	Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets);
+	Long zInterStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets);
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.

@@ -1520,7 +1520,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 4, "Joe"));
 		actual.add(connection.zAdd("otherset", 1, "Bob"));
 		actual.add(connection.zAdd("otherset", 4, "James"));
-		actual.add(connection.zInterStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
+		actual.add(connection.zInterStore("thirdset", Aggregate.MAX, new double[] { 2, 3 }, "myset", "otherset"));
 
 		actual.add(connection.zRangeWithScores("thirdset", 0, -1));
 		verifyResults(Arrays.asList(new Object[] {
@@ -1745,7 +1745,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.zAdd("myset", 4, "Joe"));
 		actual.add(connection.zAdd("otherset", 1, "Bob"));
 		actual.add(connection.zAdd("otherset", 4, "James"));
-		actual.add(connection.zUnionStore("thirdset", Aggregate.MAX, new int[] { 2, 3 }, "myset", "otherset"));
+		actual.add(connection.zUnionStore("thirdset", Aggregate.MAX, new double[] { 2, 3 }, "myset", "otherset"));
 		actual.add(connection.zRangeWithScores("thirdset", 0, -1));
 		verifyResults(Arrays.asList(new Object[] {
 				true,

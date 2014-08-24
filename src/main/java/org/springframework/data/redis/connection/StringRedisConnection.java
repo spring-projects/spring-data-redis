@@ -260,11 +260,11 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long zUnionStore(String destKey, String... sets);
 
-	Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	Long zUnionStore(String destKey, Aggregate aggregate, double[] weights, String... sets);
 
 	Long zInterStore(String destKey, String... sets);
 
-	Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets);
+	Long zInterStore(String destKey, Aggregate aggregate, double[] weights, String... sets);
 
 	Boolean hSet(String key, String field, String value);
 

@@ -19,6 +19,8 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+
 /**
  * Redis ZSet/sorted set specific operations.
  * 
@@ -40,9 +42,17 @@ public interface ZSetOperations<K, V> {
 
 	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
 
+	Long intersectAndStore(K key, K otherKey, Aggregate aggregat, double weight, K destKey);
+
+	Long intersectAndStore(K key, Collection<K> otherKeys, Aggregate aggregate, double[] weights, K destKey);
+
 	Long unionAndStore(K key, K otherKey, K destKey);
 
 	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	Long unionAndStore(K key, K otherKey, Aggregate aggregat, double weight, K destKey);
+
+	Long unionAndStore(K key, Collection<K> otherKeys, Aggregate aggregat, double[] weights, K destKey);
 
 	Set<V> range(K key, long start, long end);
 
