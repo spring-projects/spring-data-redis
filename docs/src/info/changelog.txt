@@ -6,6 +6,13 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.3.4.RELEASE (2014-08-27)
+---------------------------------------------
+* DATAREDIS-339 - Release 1.3.4.
+* DATAREDIS-337 - MessageListener method should only be invoked once per message.
+* DATAREDIS-333 - EvalSha returns incorrect result.
+
+
 Changes in version 1.4.0.RC1 (2014-08-13)
 -----------------------------------------
 * DATAREDIS-338 - Release 1.4 RC1.
