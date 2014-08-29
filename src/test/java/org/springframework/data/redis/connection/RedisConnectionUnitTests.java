@@ -35,6 +35,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author David Liu
  */
 public class RedisConnectionUnitTests {
 
@@ -783,6 +784,11 @@ public class RedisConnectionUnitTests {
 				return this.sentinelConnection;
 			}
 			return null;
+		}
+
+		@Override
+		public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+			return delegate.evalSha(scriptSha, returnType, numKeys, keysAndArgs);
 		}
 	}
 }

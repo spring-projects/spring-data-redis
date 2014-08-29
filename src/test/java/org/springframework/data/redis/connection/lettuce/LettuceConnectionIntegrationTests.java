@@ -297,4 +297,19 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		getResults();
+		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
+		initConnection();
+		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
+		List<Object> results = getResults();
+		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+	}
+
 }

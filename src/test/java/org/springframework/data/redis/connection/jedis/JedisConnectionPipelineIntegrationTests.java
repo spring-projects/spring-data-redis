@@ -135,6 +135,12 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
+	
+	@Test(expected = UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		super.testEvalShaArrayBytes();
+	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6+")

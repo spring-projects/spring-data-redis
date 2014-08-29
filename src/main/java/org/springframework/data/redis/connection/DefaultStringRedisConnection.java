@@ -1230,6 +1230,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
 	//
 	// String methods
 	//

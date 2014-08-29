@@ -58,6 +58,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author David Liu
  */
 public class JredisConnection extends AbstractRedisConnection {
 
@@ -1180,6 +1181,10 @@ public class JredisConnection extends AbstractRedisConnection {
 	}
 
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 		throw new UnsupportedOperationException();
 	}
 

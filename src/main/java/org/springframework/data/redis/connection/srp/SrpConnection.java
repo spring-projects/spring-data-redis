@@ -68,6 +68,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author David Liu
  */
 public class SrpConnection extends AbstractRedisConnection {
 
@@ -2098,6 +2099,10 @@ public class SrpConnection extends AbstractRedisConnection {
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
+	}
+
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return evalSha(SrpConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
 	//

@@ -99,6 +99,7 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author David Liu
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
@@ -2847,6 +2848,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
+	}
+
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
 	//

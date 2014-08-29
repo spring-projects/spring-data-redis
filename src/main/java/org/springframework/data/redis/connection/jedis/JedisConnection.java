@@ -87,6 +87,7 @@ import redis.clients.util.Pool;
  * @author Thomas Darimont
  * @author Jungtaek Lim
  * @author Konstantin Shchepanovskyi
+ * @author David Liu
  */
 public class JedisConnection extends AbstractRedisConnection {
 
@@ -2799,8 +2800,13 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return evalSha(JedisConverters.toBytes(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+
 		if (isQueueing()) {
 			throw new UnsupportedOperationException();
 		}
@@ -2808,8 +2814,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(JedisConverters.toBytes(scriptSha1),
-					numKeys, keysAndArgs));
+			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(scriptSha1, numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
