@@ -2813,6 +2813,22 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		if (isQueueing()) {
+			throw new UnsupportedOperationException();
+		}
+		if (isPipelined()) {
+			throw new UnsupportedOperationException();
+		}
+		try {
+			return (T) new JedisScriptReturnConverter(returnType).convert(jedis
+					.evalsha(scriptSha1, numKeys, keysAndArgs));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()

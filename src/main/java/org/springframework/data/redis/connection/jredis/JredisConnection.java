@@ -35,6 +35,7 @@ import org.jredis.connector.ConnectionException;
 import org.jredis.connector.NotConnectedException;
 import org.jredis.protocol.Command;
 import org.jredis.ri.alphazero.JRedisSupport;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractRedisConnection;
@@ -1180,6 +1181,11 @@ public class JredisConnection extends AbstractRedisConnection {
 	}
 
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys,
+			byte[]... keysAndArgs) {
 		throw new UnsupportedOperationException();
 	}
 

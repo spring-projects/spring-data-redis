@@ -2099,6 +2099,21 @@ public class SrpConnection extends AbstractRedisConnection {
 			throw convertSrpAccessException(ex);
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpGenericResult(pipeline.evalsha(scriptSha1, numKeys, (Object[]) keysAndArgs),
+						new SrpScriptReturnConverter(returnType)));
+				return null;
+			}
+			return (T) new SrpScriptReturnConverter(returnType).convert(client.evalsha(scriptSha1, numKeys,
+					(Object[]) keysAndArgs).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 
 	//
 	// Pub/Sub functionality
