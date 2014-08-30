@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author David Liu
  */
 abstract class AbstractOperations<K, V> {
 
@@ -117,6 +118,17 @@ abstract class AbstractOperations<K, V> {
 		for (Object value : values) {
 			rawValues[i++] = rawValue(value);
 		}
+		return rawValues;
+	}
+
+	byte[][] rawValues(Collection<V> values) {
+
+		byte[][] rawValues = new byte[values.size()][];
+		int i = 0;
+		for (V value : values) {
+			rawValues[i++] = rawValue(value);
+		}
+
 		return rawValues;
 	}
 
