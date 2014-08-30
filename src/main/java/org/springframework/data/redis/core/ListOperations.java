@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Redis list specific operations.
  * 
  * @author Costin Leau
+ * @author David Liu
  */
 public interface ListOperations<K, V> {
 
@@ -66,4 +68,8 @@ public interface ListOperations<K, V> {
 	V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit);
 
 	RedisOperations<K, V> getOperations();
+	
+	Long rightPushAll(K key, Collection<V> values);
+	
+	Long leftPushAll(K key, Collection<V> values);
 }

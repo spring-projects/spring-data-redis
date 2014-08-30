@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +27,7 @@ import org.springframework.util.CollectionUtils;
  * Default implementation of {@link ListOperations}.
  * 
  * @author Costin Leau
+ * @author David Liu
  */
 class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
@@ -242,6 +244,30 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			protected byte[] inRedis(byte[] rawKey, RedisConnection connection) {
 				connection.lTrim(rawKey, start, end);
 				return null;
+			}
+		}, true);
+	}
+
+	@Override
+	public Long rightPushAll(K key, Collection<V> values) {
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawValues = rawValues(values);
+		System.out.println("--------------------------------------------------");
+		System.out.println(rawValues.length);
+		return execute(new RedisCallback<Long>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.rPush(rawKey, rawValues);
+			}
+		}, true);
+	}
+
+	@Override
+	public Long leftPushAll(K key, Collection<V> values) {
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawValues = rawValues(values);
+		return execute(new RedisCallback<Long>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.lPush(rawKey, rawValues);
 			}
 		}, true);
 	}
