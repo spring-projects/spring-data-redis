@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -79,12 +80,13 @@ import redis.clients.util.Pool;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="http://github.com/xetorthio/jedis">Jedis</a> library.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Jungtaek Lim
+ * @author Konstantin Shchepanovskyi
  */
 public class JedisConnection extends AbstractRedisConnection {
 
@@ -147,7 +149,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance.
-	 * 
+	 *
 	 * @param jedis Jedis entity
 	 */
 	public JedisConnection(Jedis jedis) {
@@ -156,7 +158,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	/**
 	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
-	 * 
+	 *
 	 * @param jedis
 	 * @param pool can be null, if no pool is used
 	 */
@@ -3087,7 +3089,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Jedis driver
-	 * 
+	 *
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
@@ -3106,11 +3108,20 @@ public class JedisConnection extends AbstractRedisConnection {
 	private Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
 
 		Map<byte[], Double> args = new HashMap<byte[], Double>();
-		for (Tuple tuple : tuples) {
-			if (args.containsValue(tuple.getScore()) && !JedisVersionUtil.atLeastJedis24()) {
-				throw new UnsupportedOperationException(
-						"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
+
+		if (!JedisVersionUtil.atLeastJedis24()) {
+			int size = (int) (tuples.size() / 0.75) + 1;
+			Set<Double> scores = new HashSet<Double>(size);
+			for (Tuple tuple : tuples) {
+				if (scores.contains(tuple.getScore())) {
+					throw new UnsupportedOperationException(
+							"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
+				}
+				scores.add(tuple.getScore());
 			}
+		}
+
+		for (Tuple tuple : tuples) {
 			args.put(tuple.getValue(), tuple.getScore());
 		}
 
