@@ -3109,7 +3109,8 @@ public class JedisConnection extends AbstractRedisConnection {
 		Map<byte[], Double> args = new HashMap<byte[], Double>();
 
 		if (!JedisVersionUtil.atLeastJedis24()) {
-			Set<Double> scores = new HashSet<Double>();
+			int size = (int) (tuples.size()/0.75) + 1;
+			Set<Double> scores = new HashSet<Double>(size);
 			for (Tuple tuple : tuples) {
 				if (scores.contains(tuple.getScore())) {
 					throw new UnsupportedOperationException(
