@@ -23,6 +23,10 @@ repositories {
   jcenter()
 }
 
+configurations {
+  sharedResources
+}
+
 apply plugin: "java"
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -48,6 +52,7 @@ if (project.hasProperty('platformVersion')) {
 [compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:-serial", "-Xlint:deprecation"]
 
 configurations.all {
+
   resolutionStrategy {
     force 'org.apache.commons:commons-pool2:2.2'
   }
@@ -94,6 +99,8 @@ dependencies {
     testCompile("javax.annotation:jsr250-api:1.0", optional)
     testCompile("com.thoughtworks.xstream:xstream:1.4.4", optional)
     testCompile("javax.transaction:jta:1.1")
+
+    sharedResources "org.springframework.data.build:spring-data-build-resources:$springDataBuildVersion@zip"
 }
 
 sourceCompatibility = 1.6
@@ -168,7 +175,7 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
-task docsZip(type: Zip, dependsOn:['docbook', 'generateHTML']) {
+task docsZip(type: Zip, dependsOn:['generateDocbook', 'generateHTML', 'referencePdf' ]) {
 
     group = 'Distribution'
     classifier = 'docs'
@@ -182,10 +189,10 @@ task docsZip(type: Zip, dependsOn:['docbook', 'generateHTML']) {
         into 'api'
     }
 
-    from (asciidoctor.outputDir) {
+    from ("$buildDir/reference/html") {
         include "index.html"
         include "spring.css"
-        into 'reference/htmlsingle'
+        into 'reference/html'
     }
 
     from ("$buildDir/reference/pdf") {
@@ -282,29 +289,31 @@ tasks.withType(org.asciidoctor.gradle.AsciidoctorTask) { docTask ->
         logDocuments: true,
         doctype: 'book',
         attributes: [
-            linkcss: 'true',
-            copycss : 'spring.css',
-            stylesheet: "spring.css",
+            linkcss: true,
+            copycss : "$buildDir/shared-resources/asciidoc/spring.css",
+            stylesheet: 'spring.css',
             icons : 'font',
             'source-highlighter': 'prettify',
             toclevels: '4',
             idprefix: '',
             idseparator: '-',
+            sectanchors : true,
             version: project.version,
             baseDir: "$sourceDir",
             resourcesDir: "$rootDir/src/main/resources",
             referenceDir: "$sourceDir/reference"
         ]
     ]
+
+    dependsOn = [ 'extractSharedResources','createEmptyDocbookSourceDirToCheatThePlugin' ]
 }
 
 task generateHTML (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates single and multiple HTML documentation.', group: 'Documentation') {
     backends = [ 'html5' ]
-    outputDir = new File("$buildDir/reference/htmlsingle")
-    options.attributes.copycss = 'spring.css'
+    outputDir = new File("$buildDir/reference/html")
 }
 
-task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates DOCBOOK documentation.', group: 'Documentation', dependsOn : ['createEmptyDocbookSourceDirToCheatThePlugin']) {
+task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates DOCBOOK documentation.', group: 'Documentation') {
     backends = [ 'docbook' ]
     outputDir = new File("$buildDir/reference-work")
     options.attributes.chunkedOutput = 'true'
@@ -313,6 +322,15 @@ task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description:
 
 task createEmptyDocbookSourceDirToCheatThePlugin << {
     new File("$buildDir/asciidoc/docbook").mkdirs()
+}
+
+task extractSharedResources(type: Copy) {
+
+    from { // use of closure defers evaluation until execution time
+        configurations.sharedResources.collect { zipTree(it)} //.matching { include 'asciidoc/*.css'}.files }
+    }
+
+    into "$buildDir/shared-resources"
 }
 
 assemble.dependsOn = ['jar', 'sourcesJar']
