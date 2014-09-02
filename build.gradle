@@ -9,7 +9,7 @@ buildscript {
         classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
         classpath 'io.spring.gradle:docbook-reference-plugin:0.3.0'
         classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
-        classpath('org.asciidoctor:asciidoctor-java-integration:0.1.4.preview.1')
+        classpath('org.asciidoctor:asciidoctorj:1.5.0')
     }
 }
 
@@ -169,7 +169,7 @@ task javadocJar(type: Jar) {
 }
 
 task docsZip(type: Zip, dependsOn:['docbook', 'generateHTML']) {
- 
+
     group = 'Distribution'
     classifier = 'docs'
     description = "Builds -${classifier} archive containing api and reference for deployment"
@@ -187,7 +187,7 @@ task docsZip(type: Zip, dependsOn:['docbook', 'generateHTML']) {
         include "spring.css"
         into 'reference/htmlsingle'
     }
-    
+
     from ("$buildDir/reference/pdf") {
     	into 'reference/pdf'
     }
@@ -254,7 +254,7 @@ tasks.withType(Test) {
 
     testLogging {
         exceptionFormat = 'full'
-        
+
         afterSuite { desc, result ->
             if (!desc.parent) { // will match the outermost suite
                 println "Test Summary: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
@@ -277,39 +277,35 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.11'
 }
 
-tasks.withType(org.asciidoctor.gradle.AsciidoctorTask) { docTask ->  
-    options = [  
-        logDocuments: true,  
-        attributes: [  
+tasks.withType(org.asciidoctor.gradle.AsciidoctorTask) { docTask ->
+    options = [
+        logDocuments: true,
+        doctype: 'book',
+        attributes: [
             linkcss: 'true',
             copycss : 'spring.css',
             stylesheet: "spring.css",
             icons : 'font',
             'source-highlighter': 'prettify',
-            sectanchors : '',
-            toc: '',
             toclevels: '4',
             idprefix: '',
             idseparator: '-',
-            doctype: 'book',
-            numbered: '',
             version: project.version,
             baseDir: "$sourceDir",
             resourcesDir: "$rootDir/src/main/resources",
             referenceDir: "$sourceDir/reference"
-        ]  
-    ]  
+        ]
+    ]
 }
 
-task generateHTML (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates single and multiple HTML documentation.', group: 'Documentation') {  
-    backend = 'html5'  
+task generateHTML (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates single and multiple HTML documentation.', group: 'Documentation') {
+    backends = [ 'html5' ]
     outputDir = new File("$buildDir/reference/htmlsingle")
-    options.attributes.doctype = 'book'
-    options.attributes.copycss = 'spring.css'  
+    options.attributes.copycss = 'spring.css'
 }
 
-task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates DOCBOOK documentation.', group: 'Documentation', dependsOn : ['createEmptyDocbookSourceDirToCheatThePlugin']) {  
-    backend = 'docbook'  
+task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates DOCBOOK documentation.', group: 'Documentation', dependsOn : ['createEmptyDocbookSourceDirToCheatThePlugin']) {
+    backends = [ 'docbook' ]
     outputDir = new File("$buildDir/reference-work")
     options.attributes.chunkedOutput = 'true'
     options.attributes.stylesheet = 'chunked'
