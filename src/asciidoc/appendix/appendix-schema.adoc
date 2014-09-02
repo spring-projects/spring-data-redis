@@ -1,8 +1,9 @@
 [[appendix:schema]]
+[appendix]
 = Schema
 :resourcesDir: ../../main/resources
 
-Core schema
+== Core schema
 
 [source,xml]
 -------------------------------------------
