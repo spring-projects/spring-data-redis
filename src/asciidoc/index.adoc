@@ -13,24 +13,24 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 
 toc::[]
 
-include::{baseDir}/preface.adoc[]
+include::preface.adoc[]
 
 [[introduction]]
 = Introduction
 
 :leveloffset: +1
-include::{baseDir}/introduction/introduction.adoc[]
-include::{baseDir}/introduction/why-sdr.adoc[]
-include::{baseDir}/introduction/requirements.adoc[]
-include::{baseDir}/introduction/getting-started.adoc[]
+include::introduction/introduction.adoc[]
+include::introduction/why-sdr.adoc[]
+include::introduction/requirements.adoc[]
+include::introduction/getting-started.adoc[]
 :leveloffset: -1
 
 [[reference]]
 = Reference Documentation
 
 :leveloffset: +1
-include::{baseDir}/reference/introduction.adoc[]
-include::{baseDir}/reference/redis.adoc[]
+include::reference/introduction.adoc[]
+include::reference/redis.adoc[]
 :leveloffset: -1
 
 [[appendixes]]
@@ -38,6 +38,6 @@ include::{baseDir}/reference/redis.adoc[]
 
 :numbered!:
 :leveloffset: +1
-include::{baseDir}/appendix/introduction.adoc[]
-include::{baseDir}/appendix/appendix-schema.adoc[]
-include::{baseDir}/appendix/appendix-command-reference.adoc[]
+include::appendix/introduction.adoc[]
+include::appendix/appendix-schema.adoc[]
+include::appendix/appendix-command-reference.adoc[]
