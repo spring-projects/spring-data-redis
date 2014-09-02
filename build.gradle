@@ -135,11 +135,34 @@ javadoc {
 }
 
 reference {
-    sourceDir = file("$buildDir/asciidoc/docbook")
+    // Avoid copy with expansions
+    expandPlaceholders = '';
 }
 
 referencePdf {
-	sourceDir = file("$buildDir/asciidoc/docbook")
+	dependsOn = [ 'asciidoctor' ]
+    sourceDir = asciidoctor.outputDir
+}
+
+asciidoctor {
+    dependsOn = [ 'extractSharedResources' ]
+    backends = [ 'html5', 'docbook' ]
+    options = [
+        doctype: 'book',
+        eruby: 'erubis',
+        attributes: [
+            linkcss: true,
+            copycss : "$buildDir/shared-resources/asciidoc/spring.css",
+            icons : 'font',
+            'source-highlighter': 'prettify',
+            sectanchors : true,
+            toclevels: '3',
+            sectids: false,
+            numbered: true,
+            version: project.version,
+            stylesheet: "spring.css",
+        ]
+    ]
 }
 
 bundlor {
@@ -175,7 +198,7 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
-task docsZip(type: Zip, dependsOn:['generateDocbook', 'generateHTML', 'referencePdf' ]) {
+task docsZip(type: Zip, dependsOn:['asciidoctor', 'referencePdf' ]) {
 
     group = 'Distribution'
     classifier = 'docs'
@@ -282,46 +305,6 @@ artifacts {
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
     gradleVersion = '1.11'
-}
-
-tasks.withType(org.asciidoctor.gradle.AsciidoctorTask) { docTask ->
-    options = [
-        logDocuments: true,
-        doctype: 'book',
-        attributes: [
-            linkcss: true,
-            copycss : "$buildDir/shared-resources/asciidoc/spring.css",
-            stylesheet: 'spring.css',
-            icons : 'font',
-            'source-highlighter': 'prettify',
-            toclevels: '4',
-            idprefix: '',
-            idseparator: '-',
-            sectanchors : true,
-            version: project.version,
-            baseDir: "$sourceDir",
-            resourcesDir: "$rootDir/src/main/resources",
-            referenceDir: "$sourceDir/reference"
-        ]
-    ]
-
-    dependsOn = [ 'extractSharedResources','createEmptyDocbookSourceDirToCheatThePlugin' ]
-}
-
-task generateHTML (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates single and multiple HTML documentation.', group: 'Documentation') {
-    backends = [ 'html5' ]
-    outputDir = new File("$buildDir/reference/html")
-}
-
-task generateDocbook (type: org.asciidoctor.gradle.AsciidoctorTask, description: 'Generates DOCBOOK documentation.', group: 'Documentation') {
-    backends = [ 'docbook' ]
-    outputDir = new File("$buildDir/reference-work")
-    options.attributes.chunkedOutput = 'true'
-    options.attributes.stylesheet = 'chunked'
-}
-
-task createEmptyDocbookSourceDirToCheatThePlugin << {
-    new File("$buildDir/asciidoc/docbook").mkdirs()
 }
 
 task extractSharedResources(type: Copy) {
