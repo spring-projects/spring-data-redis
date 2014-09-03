@@ -19,8 +19,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -3107,21 +3107,21 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	private Map<byte[], Double> zAddArgs(Set<Tuple> tuples) {
 
-		Map<byte[], Double> args = new HashMap<byte[], Double>();
+		Map<byte[], Double> args = new LinkedHashMap<byte[], Double>(tuples.size(), 1);
+		Set<Double> scores = new HashSet<Double>(tuples.size(), 1);
 
-		if (!JedisVersionUtil.atLeastJedis24()) {
-			int size = (int) (tuples.size() / 0.75) + 1;
-			Set<Double> scores = new HashSet<Double>(size);
-			for (Tuple tuple : tuples) {
+		boolean isAtLeastJedis24 = JedisVersionUtil.atLeastJedis24();
+
+		for (Tuple tuple : tuples) {
+
+			if (!isAtLeastJedis24) {
 				if (scores.contains(tuple.getScore())) {
 					throw new UnsupportedOperationException(
 							"Bulk add of multiple elements with the same score is not supported. Add the elements individually.");
 				}
 				scores.add(tuple.getScore());
 			}
-		}
 
-		for (Tuple tuple : tuples) {
 			args.put(tuple.getValue(), tuple.getScore());
 		}
 
