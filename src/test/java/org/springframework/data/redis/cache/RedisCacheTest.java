@@ -16,14 +16,17 @@
 
 package org.springframework.data.redis.cache;
 
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
+import static org.hamcrest.core.IsSame.sameInstance;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.*;
+import static org.junit.Assume.assumeThat;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.Collection;
@@ -71,7 +74,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Cache createCache(RedisTemplate nativeCache) {
+	protected RedisCache createCache(RedisTemplate nativeCache) {
 		return new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), nativeCache, TimeUnit.MINUTES.toSeconds(10));
 	}
 
@@ -245,5 +248,32 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 		Object invalidKey = template.getKeySerializer() == null ? "spring-data-redis".getBytes() : "spring-data-redis";
 		assertThat(redisCache.get(invalidKey, value.getClass()), nullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-344
+	 */
+	@Test
+	public void putIfAbsentShouldSetValueOnlyIfNotPresent() {
+
+		assumeThat(cache, instanceOf(RedisCache.class));
+
+		RedisCache redisCache = (RedisCache)cache;
+		
+		Object key = getKey();
+		template.delete(key);
+
+		Object value = getValue();
+		ValueWrapper wrapper = redisCache.putIfAbsent(key, value);
+
+		assertThat(wrapper.get(), sameInstance(value));
+
+		ValueWrapper wrapper2 = redisCache.putIfAbsent(key, value);
+
+		if (!(value instanceof Number)) {
+			assertThat(wrapper2.get(), not(sameInstance(value)));
+		}
+
+		assertThat(wrapper2.get(), equalTo(value));
 	}
 }

@@ -137,6 +137,38 @@ class RedisCache implements Cache {
 		}, true);
 	}
 
+	public ValueWrapper putIfAbsent(Object key, final Object value) {
+
+		final byte[] keyBytes = computeKey(key);
+		final byte[] valueBytes = convertToBytesIfNecessary(template.getValueSerializer(), value);
+
+		return toWrapper(template.execute(new RedisCallback<Object>() {
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+
+				waitForLock(connection);
+
+				Object resultValue = value;
+				boolean valueWasSet = connection.setNX(keyBytes, valueBytes);
+				if (valueWasSet) {
+					connection.zAdd(setName, 0, keyBytes);
+					if (expiration > 0) {
+						connection.expire(keyBytes, expiration);
+						// update the expiration of the set of keys as well
+						connection.expire(setName, expiration);
+					}
+				} else {
+					resultValue = deserializeIfNecessary(template.getValueSerializer(), connection.get(keyBytes));
+				}
+
+				return resultValue;
+			}
+		}, true));
+	}
+
+	private ValueWrapper toWrapper(Object value) {
+		return (value != null ? new SimpleValueWrapper(value) : null);
+	}
+
 	public void evict(Object key) {
 		final byte[] k = computeKey(key);
 
@@ -227,4 +259,14 @@ class RedisCache implements Cache {
 
 		return serializer.serialize(value);
 	}
+
+	private Object deserializeIfNecessary(RedisSerializer<byte[]> serializer, byte[] value) {
+
+		if (serializer != null) {
+			return serializer.deserialize(value);
+		}
+
+		return value;
+	}
+
 }
