@@ -25,7 +25,6 @@ import org.springframework.data.redis.connection.AbstractConnectionTransactionIn
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -38,12 +37,6 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
-
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
-	}
 
 	@Test
 	public void testMove() {

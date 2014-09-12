@@ -141,7 +141,7 @@ Needless to say, the configuration is quite similar to that of the other connect
 [[redis:connectors:lettuce]]
 === Configuring Lettuce connector
 
-https://github.com/wg/lettuce[Lettuce] is the fourth open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
+https://github.com/mp911de/lettuce[Lettuce] is the fourth open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.lettuce` package.
 
 Its configuration is probably easy to guess:
 
@@ -165,7 +165,7 @@ There are also a few Lettuce-specific connection parameters that can be tweaked.
 
 For dealing with high available Redis there is support for http://redis.io/topics/sentinel[Redis Sentinel] using `RedisSentinelConfiguration`.
 
-NOTE: Please note that currently only http://github.com/xetorthio/jedis[Jedis] supports Redis Sentinel.
+NOTE: Please note that currently only http://github.com/xetorthio/jedis[Jedis] and lettuce http://github.com/mp911de/lettuce[Lettuce] support Redis Sentinel.
 
 [source,java]
 ----
@@ -173,7 +173,7 @@ NOTE: Please note that currently only http://github.com/xetorthio/jedis[Jedis] s
 public RedisConnectionFactory jedisConnectionFactory() {
   RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration() .master("mymaster")
   .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
-  return new JedisConnectionFactory(sentinelConfig); 
+  return new JedisConnectionFactory(sentinelConfig);
 } 
 ----
 
@@ -185,6 +185,16 @@ public RedisConnectionFactory jedisConnectionFactory() {
 - `spring.redis.sentinel.master`: name of the master node.
 - `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
 ====
+=======
+[source,java]
+----
+@Bean
+public RedisConnectionFactory lettuceConnectionFactory() {
+  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration() .master("mymaster")
+  .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
+  return new LettuceConnectionFactory(sentinelConfig);
+}
+----
 
 Sometimes direct interaction with the one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 

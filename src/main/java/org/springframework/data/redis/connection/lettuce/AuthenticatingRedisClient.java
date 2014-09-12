@@ -25,7 +25,9 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
  * 
  * @author Jennifer Hickey
+ * @deprecated Use password in RedisURI
  */
+@Deprecated
 public class AuthenticatingRedisClient extends RedisClient {
 
 	private String password;

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +31,9 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
@@ -44,10 +48,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.KeyValue;
+import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.ScoredValue;
 import com.lambdaworks.redis.ScriptOutputType;
 import com.lambdaworks.redis.SortArgs;
-import com.lambdaworks.redis.protocol.Charsets;
+import com.lambdaworks.redis.protocol.LettuceCharsets;
 
 /**
  * Lettuce type converters
@@ -55,35 +60,40 @@ import com.lambdaworks.redis.protocol.Charsets;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 abstract public class LettuceConverters extends Converters {
 
 	private static final Converter<Date, Long> DATE_TO_LONG;
 	private static final Converter<List<byte[]>, Set<byte[]>> BYTES_LIST_TO_BYTES_SET;
 	private static final Converter<byte[], String> BYTES_TO_STRING;
+	private static final Converter<String, byte[]> STRING_TO_BYTES;
 	private static final Converter<Set<byte[]>, List<byte[]>> BYTES_SET_TO_BYTES_LIST;
 	private static final Converter<KeyValue<byte[], byte[]>, List<byte[]>> KEY_VALUE_TO_BYTES_LIST;
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
+	private static final Converter<List<ScoredValue<byte[]>>, List<Tuple>> SCORED_VALUES_TO_TUPLE_LIST;
 	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
 	private static final Converter<List<byte[]>, Map<byte[], byte[]>> BYTES_LIST_TO_MAP;
 	private static final Converter<List<byte[]>, List<Tuple>> BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
-
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
+
+	public static final byte[] PLUS_BYTES;
+	public static final byte[] MINUS_BYTES;
+	public static final byte[] POSITIVE_INFINITY_BYTES;
+	public static final byte[] NEGATIVE_INFINITY_BYTES;
 
 	static {
 		DATE_TO_LONG = new Converter<Date, Long>() {
 			public Long convert(Date source) {
 				return source != null ? source.getTime() : null;
 			}
-
 		};
 		BYTES_LIST_TO_BYTES_SET = new Converter<List<byte[]>, Set<byte[]>>() {
 			public Set<byte[]> convert(List<byte[]> results) {
 				return results != null ? new LinkedHashSet<byte[]>(results) : null;
 			}
-
 		};
 		BYTES_TO_STRING = new Converter<byte[], String>() {
 
@@ -94,7 +104,16 @@ abstract public class LettuceConverters extends Converters {
 				}
 				return new String(source);
 			}
+		};
+		STRING_TO_BYTES = new Converter<String, byte[]>() {
 
+			@Override
+			public byte[] convert(String source) {
+				if (source == null) {
+					return null;
+				}
+				return source.getBytes();
+			}
 		};
 		BYTES_SET_TO_BYTES_LIST = new Converter<Set<byte[]>, List<byte[]>>() {
 			public List<byte[]> convert(Set<byte[]> results) {
@@ -130,7 +149,6 @@ abstract public class LettuceConverters extends Converters {
 
 				return target;
 			}
-
 		};
 		SCORED_VALUES_TO_TUPLE_SET = new Converter<List<ScoredValue<byte[]>>, Set<Tuple>>() {
 			public Set<Tuple> convert(List<ScoredValue<byte[]>> source) {
@@ -144,11 +162,23 @@ abstract public class LettuceConverters extends Converters {
 				return tuples;
 			}
 		};
+
+		SCORED_VALUES_TO_TUPLE_LIST = new Converter<List<ScoredValue<byte[]>>, List<Tuple>>() {
+			public List<Tuple> convert(List<ScoredValue<byte[]>> source) {
+				if (source == null) {
+					return null;
+				}
+				List<Tuple> tuples = new ArrayList<Tuple>(source.size());
+				for (ScoredValue<byte[]> value : source) {
+					tuples.add(LettuceConverters.toTuple(value));
+				}
+				return tuples;
+			}
+		};
 		SCORED_VALUE_TO_TUPLE = new Converter<ScoredValue<byte[]>, Tuple>() {
 			public Tuple convert(ScoredValue<byte[]> source) {
 				return source != null ? new DefaultTuple(source.value, Double.valueOf(source.score)) : null;
 			}
-
 		};
 		BYTES_LIST_TO_TUPLE_LIST_CONVERTER = new Converter<List<byte[]>, List<Tuple>>() {
 
@@ -169,6 +199,10 @@ abstract public class LettuceConverters extends Converters {
 			}
 		};
 
+		PLUS_BYTES = toBytes("+");
+		MINUS_BYTES = toBytes("-");
+		POSITIVE_INFINITY_BYTES = toBytes("+inf");
+		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
 	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
@@ -215,6 +249,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<List<ScoredValue<byte[]>>, Set<Tuple>> scoredValuesToTupleSet() {
 		return SCORED_VALUES_TO_TUPLE_SET;
+	}
+
+	public static Converter<List<ScoredValue<byte[]>>, List<Tuple>> scoredValuesToTupleList() {
+		return SCORED_VALUES_TO_TUPLE_LIST;
 	}
 
 	public static Converter<ScoredValue<byte[]>, Tuple> scoredValueToTuple() {
@@ -301,7 +339,7 @@ abstract public class LettuceConverters extends Converters {
 			return args;
 		}
 		if (params.getByPattern() != null) {
-			args.by(new String(params.getByPattern(), Charsets.ASCII));
+			args.by(new String(params.getByPattern(), LettuceCharsets.ASCII));
 		}
 		if (params.getLimit() != null) {
 			args.limit(params.getLimit().getStart(), params.getLimit().getCount());
@@ -309,7 +347,7 @@ abstract public class LettuceConverters extends Converters {
 		if (params.getGetPattern() != null) {
 			byte[][] pattern = params.getGetPattern();
 			for (byte[] bs : pattern) {
-				args.get(new String(bs, Charsets.ASCII));
+				args.get(new String(bs, LettuceCharsets.ASCII));
 			}
 		}
 		if (params.getOrder() != null) {
@@ -328,6 +366,17 @@ abstract public class LettuceConverters extends Converters {
 
 	public static List<RedisClientInfo> toListOfRedisClientInformation(String clientList) {
 		return stringToRedisClientListConverter().convert(clientList);
+	}
+
+	public static byte[][] subarray(byte[][] input, int index) {
+
+		if (input.length > index) {
+			byte[][] output = new byte[input.length - index][];
+			System.arraycopy(input, index, output, 0, output.length);
+			return output;
+		}
+
+		return null;
 	}
 
 	public static String boundaryToStringForZRange(Boundary boundary, String defaultValue) {
@@ -350,6 +399,128 @@ abstract public class LettuceConverters extends Converters {
 		}
 
 		return prefix + value;
+	}
+
+	/**
+	 * @param source List of Maps containing node details from SENTINEL SLAVES or SENTINEL MASTERS. May be empty or
+	 *          {@literal null}.
+	 * @return List of {@link RedisServer}'s. List is empty if List of Maps is empty.
+	 * @since 1.5
+	 */
+	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
+
+		if (CollectionUtils.isEmpty(source)) {
+			return Collections.emptyList();
+		}
+
+		List<RedisServer> sentinels = new ArrayList<RedisServer>();
+		for (Map<String, String> info : source) {
+			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
+		}
+		return sentinels;
+	}
+
+	/**
+	 * @param sentinelConfiguration the sentinel configuration containing one or more sentinels and a master name. Must
+	 *          not be {@literal null}
+	 * @return A {@link RedisURI} containing Redis Sentinel addresses of {@link RedisSentinelConfiguration}
+	 * @since 1.5
+	 */
+	public static RedisURI sentinelConfigurationToRedisURI(RedisSentinelConfiguration sentinelConfiguration) {
+		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration is required");
+
+		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
+		RedisURI.Builder builder = null;
+		for (RedisNode sentinel : sentinels) {
+
+			if (builder == null) {
+				builder = RedisURI.Builder.sentinel(sentinel.getHost(), sentinel.getPort(), sentinelConfiguration.getMaster()
+						.getName());
+			} else {
+				builder.withSentinel(sentinel.getHost(), sentinel.getPort());
+			}
+		}
+
+		return builder.build();
+	}
+
+	public static byte[] toBytes(String source) {
+		return STRING_TO_BYTES.convert(source);
+	}
+
+	public static byte[] toBytes(Integer source) {
+		return String.valueOf(source).getBytes();
+	}
+
+	public static byte[] toBytes(Long source) {
+		return String.valueOf(source).getBytes();
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.6
+	 */
+	public static byte[] toBytes(Double source) {
+		return toBytes(String.valueOf(source));
+	}
+
+	/**
+	 * Converts a given {@link Boundary} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
+	 * {@literal ZRANGEBYLEX}.
+	 *
+	 * @param boundary
+	 * @param defaultValue
+	 * @return
+	 * @since 1.6
+	 */
+	public static String boundaryToBytesForZRange(Boundary boundary, byte[] defaultValue) {
+
+		if (boundary == null || boundary.getValue() == null) {
+			return toString(defaultValue);
+		}
+
+		return boundaryToBytes(boundary, new byte[] {}, toBytes("("));
+	}
+
+	/**
+	 * Converts a given {@link Boundary} to its binary representation suitable for ZRANGEBYLEX command.
+	 *
+	 * @param boundary
+	 * @return
+	 * @since 1.6
+	 */
+	public static String boundaryToBytesForZRangeByLex(Boundary boundary, byte[] defaultValue) {
+
+		if (boundary == null || boundary.getValue() == null) {
+			return toString(defaultValue);
+		}
+
+		return boundaryToBytes(boundary, toBytes("["), toBytes("("));
+	}
+
+	private static String boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {
+
+		byte[] prefix = boundary.isIncluding() ? inclPrefix : exclPrefix;
+		byte[] value = null;
+		if (boundary.getValue() instanceof byte[]) {
+			value = (byte[]) boundary.getValue();
+		} else if (boundary.getValue() instanceof Double) {
+			value = toBytes((Double) boundary.getValue());
+		} else if (boundary.getValue() instanceof Long) {
+			value = toBytes((Long) boundary.getValue());
+		} else if (boundary.getValue() instanceof Integer) {
+			value = toBytes((Integer) boundary.getValue());
+		} else if (boundary.getValue() instanceof String) {
+			value = toBytes((String) boundary.getValue());
+		} else {
+			throw new IllegalArgumentException(String.format("Cannot convert %s to binary format", boundary.getValue()));
+		}
+
+		ByteBuffer buffer = ByteBuffer.allocate(prefix.length + value.length);
+		buffer.put(prefix);
+		buffer.put(value);
+		return toString(buffer.array());
 	}
 
 }

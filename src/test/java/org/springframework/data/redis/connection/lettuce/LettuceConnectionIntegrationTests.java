@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -38,9 +39,12 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.util.RedisSentinelRule;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
+import org.springframework.data.redis.test.util.RequiresRedisSentinel;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -133,6 +137,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
+		factory2.setShutdownTimeout(0);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
 		// Use the connection to make sure the channel is initialized, else nothing happens on close
@@ -170,6 +175,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	public void testCloseNonPooledConnectionNotShared() {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		factory2.setShutdownTimeout(0);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
@@ -190,6 +196,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
+		factory2.setShutdownTimeout(0);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
@@ -210,6 +217,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
+		factory2.setShutdownTimeout(0);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
 		RedisConnection connection = factory2.getConnection();
@@ -224,12 +232,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		super.testSelect();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
-	}
-
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testScriptKill() throws Exception {
@@ -241,6 +243,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				// Use a different factory to get a non-shared native conn for blocking script
 				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
 						SettingsUtils.getPort());
+				factory2.setShutdownTimeout(0);
 				factory2.afterPropertiesSet();
 				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 				try {
@@ -269,6 +272,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		verifyResults(Arrays.asList(new Object[] { true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
+		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
@@ -313,7 +317,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
 				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-106
 	 */
@@ -323,10 +327,21 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		connection.zAdd("myzset", 1, "one");
 		connection.zAdd("myzset", 2, "two");
 		connection.zAdd("myzset", 3, "three");
-		
+
 		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
-		
+
 		assertEquals("two", new String(zRangeByScore.iterator().next()));
 	}
 
+	/**
+	 * @see DATAREDIS-348
+	 */
+	@Test
+	@RequiresRedisSentinel(RedisSentinelRule.SentinelsAvailable.ONE_ACTIVE)
+	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
+
+		((LettuceConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
+		assertThat(connection.getSentinelConnection(), notNullValue());
+	}
 }
