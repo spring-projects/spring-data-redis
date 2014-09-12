@@ -15,17 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.lambdaworks.redis.KeyValue;
+import com.lambdaworks.redis.ScoredValue;
+import com.lambdaworks.redis.ScriptOutputType;
+import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.protocol.LettuceCharsets;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
@@ -42,12 +38,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.lambdaworks.redis.KeyValue;
-import com.lambdaworks.redis.ScoredValue;
-import com.lambdaworks.redis.ScriptOutputType;
-import com.lambdaworks.redis.SortArgs;
-import com.lambdaworks.redis.protocol.Charsets;
-
 /**
  * Lettuce type converters
  * 
@@ -63,6 +53,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<Set<byte[]>, List<byte[]>> BYTES_SET_TO_BYTES_LIST;
 	private static final Converter<KeyValue<byte[], byte[]>, List<byte[]>> KEY_VALUE_TO_BYTES_LIST;
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
+	private static final Converter<List<ScoredValue<byte[]>>, List<Tuple>> SCORED_VALUES_TO_TUPLE_LIST;
 	private static final Converter<ScoredValue<byte[]>, Tuple> SCORED_VALUE_TO_TUPLE;
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new LettuceExceptionConverter();
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
@@ -143,6 +134,19 @@ abstract public class LettuceConverters extends Converters {
 				return tuples;
 			}
 		};
+
+		SCORED_VALUES_TO_TUPLE_LIST = new Converter<List<ScoredValue<byte[]>>, List<Tuple>>() {
+			public List<Tuple> convert(List<ScoredValue<byte[]>> source) {
+				if (source == null) {
+					return null;
+				}
+				List<Tuple> tuples = new ArrayList<Tuple>(source.size());
+				for (ScoredValue<byte[]> value : source) {
+					tuples.add(LettuceConverters.toTuple(value));
+				}
+				return tuples;
+			}
+		};
 		SCORED_VALUE_TO_TUPLE = new Converter<ScoredValue<byte[]>, Tuple>() {
 			public Tuple convert(ScoredValue<byte[]> source) {
 				return source != null ? new DefaultTuple(source.value, Double.valueOf(source.score)) : null;
@@ -214,6 +218,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<List<ScoredValue<byte[]>>, Set<Tuple>> scoredValuesToTupleSet() {
 		return SCORED_VALUES_TO_TUPLE_SET;
+	}
+
+	public static Converter<List<ScoredValue<byte[]>>, List<Tuple>> scoredValuesToTupleList() {
+		return SCORED_VALUES_TO_TUPLE_LIST;
 	}
 
 	public static Converter<ScoredValue<byte[]>, Tuple> scoredValueToTuple() {
@@ -300,7 +308,7 @@ abstract public class LettuceConverters extends Converters {
 			return args;
 		}
 		if (params.getByPattern() != null) {
-			args.by(new String(params.getByPattern(), Charsets.ASCII));
+			args.by(new String(params.getByPattern(), LettuceCharsets.ASCII));
 		}
 		if (params.getLimit() != null) {
 			args.limit(params.getLimit().getStart(), params.getLimit().getCount());
@@ -308,7 +316,7 @@ abstract public class LettuceConverters extends Converters {
 		if (params.getGetPattern() != null) {
 			byte[][] pattern = params.getGetPattern();
 			for (byte[] bs : pattern) {
-				args.get(new String(bs, Charsets.ASCII));
+				args.get(new String(bs, LettuceCharsets.ASCII));
 			}
 		}
 		if (params.getOrder() != null) {

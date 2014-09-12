@@ -15,8 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
+
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +30,7 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettuceConnectionUnitTests;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettucePipelineConnectionUnitTests;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisAsyncConnectionImpl;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.codec.RedisCodec;
 
@@ -39,13 +42,13 @@ import com.lambdaworks.redis.codec.RedisCodec;
 public class LettuceConnectionUnitTestSuite {
 
 	@SuppressWarnings("rawtypes")
-	public static class LettuceConnectionUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncConnection> {
+	public static class LettuceConnectionUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncConnectionImpl> {
 
 		protected LettuceConnection connection;
 
 		@SuppressWarnings({ "unchecked" })
 		@Before
-		public void setUp() {
+		public void setUp() throws InvocationTargetException, IllegalAccessException {
 
 			RedisClient clientMock = mock(RedisClient.class);
 			when(clientMock.connectAsync((RedisCodec) any())).thenReturn(getNativeRedisConnectionMock());
@@ -138,7 +141,7 @@ public class LettuceConnectionUnitTestSuite {
 
 		@Override
 		@Before
-		public void setUp() {
+		public void setUp() throws InvocationTargetException, IllegalAccessException {
 			super.setUp();
 			this.connection.openPipeline();
 		}

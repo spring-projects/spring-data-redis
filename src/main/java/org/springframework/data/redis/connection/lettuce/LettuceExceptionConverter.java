@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeoutException;
 
-import org.jboss.netty.channel.ChannelException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.QueryTimeoutException;
@@ -26,6 +25,7 @@ import org.springframework.data.redis.RedisSystemException;
 
 import com.lambdaworks.redis.RedisCommandInterruptedException;
 import com.lambdaworks.redis.RedisException;
+import io.netty.channel.ChannelException;
 
 /**
  * Converts Lettuce Exceptions to {@link DataAccessException}s

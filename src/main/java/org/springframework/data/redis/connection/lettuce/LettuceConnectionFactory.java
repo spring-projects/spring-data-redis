@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
+import com.lambdaworks.redis.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -32,12 +33,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisException;
-
 /**
- * Connection factory creating <a href="http://github.com/wg/lettuce">Lettuce</a>-based connections.
+ * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
  * <p>
  * This factory creates a new {@link LettuceConnection} on each call to {@link #getConnection()}. Multiple
  * {@link LettuceConnection}s share a single thread-safe native connection by default.
@@ -131,9 +128,22 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public void validateConnection() {
 		synchronized (this.connectionMonitor) {
-			try {
-				new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(connection).ping();
-			} catch (RedisException e) {
+
+			boolean valid = false;
+
+			if (connection.isOpen()) {
+				try {
+					RedisFuture<String> ping = connection.ping();
+					LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS, ping);
+					if("PONG".equalsIgnoreCase(ping.get())) {
+						valid = true;
+					}
+				} catch (Exception e) {
+
+				}
+			}
+
+			if (!valid) {
 				log.warn("Validation of shared connection failed. Creating a new connection.");
 				initConnection();
 			}
@@ -334,9 +344,13 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		if (pool != null) {
 			return pool.getClient();
 		}
-		RedisClient client = password != null ? new AuthenticatingRedisClient(hostName, port, password) : new RedisClient(
-				hostName, port);
-		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+
+		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
+		if(password != null) {
+			builder.withPassword(password);
+		}
+		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+		RedisClient client = new RedisClient(builder.build());
 		return client;
 	}
 

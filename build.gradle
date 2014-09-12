@@ -17,6 +17,7 @@ description = 'Spring Data Redis'
 group = 'org.springframework.data'
 
 repositories {
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
   maven { url "http://repo.spring.io/libs-snapshot" }
   maven { url "http://repo.spring.io/plugins-release" }
   mavenCentral()
@@ -80,7 +81,7 @@ dependencies {
     compile("com.github.spullara.redis:client:$srpVersion", optional)
     compile("org.jredis:jredis-core-api:$jredisVersion", optional)
     compile("org.jredis:jredis-core-ri:$jredisVersion", optional)
-    compile("com.lambdaworks:lettuce:$lettuceVersion", optional)
+    compile("biz.paluch.redis:lettuce:$lettuceVersion", optional)
 
     // Mappers
     compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
+import com.lambdaworks.redis.RedisURI;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -78,9 +79,12 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
-		this.client = password != null ? new AuthenticatingRedisClient(hostName, port, password) : new RedisClient(
-				hostName, port);
-		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
+		if(password != null) {
+			builder.withPassword(password);
+		}
+		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+		this.client =new RedisClient(builder.build());
 		this.internalPool = new GenericObjectPool<RedisAsyncConnection>(new LettuceFactory(client, dbIndex), poolConfig);
 	}
 
