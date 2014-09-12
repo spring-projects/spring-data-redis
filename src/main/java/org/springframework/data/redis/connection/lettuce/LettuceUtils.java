@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import com.lambdaworks.redis.protocol.LettuceCharsets;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
@@ -43,7 +44,6 @@ import com.lambdaworks.redis.ScriptOutputType;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.protocol.Charsets;
 
 /**
  * Helper class featuring methods for Lettuce connection handling, providing support for exception translation.
@@ -111,7 +111,7 @@ abstract class LettuceUtils {
 		}
 
 		if (params.getByPattern() != null) {
-			args.by(new String(params.getByPattern(), Charsets.ASCII));
+			args.by(new String(params.getByPattern(), LettuceCharsets.ASCII));
 		}
 
 		if (params.getLimit() != null) {
@@ -121,7 +121,7 @@ abstract class LettuceUtils {
 		if (params.getGetPattern() != null) {
 			byte[][] pattern = params.getGetPattern();
 			for (byte[] bs : pattern) {
-				args.get(new String(bs, Charsets.ASCII));
+				args.get(new String(bs, LettuceCharsets.ASCII));
 			}
 		}
 

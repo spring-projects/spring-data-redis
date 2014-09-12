@@ -15,9 +15,14 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import org.jboss.netty.channel.ChannelException;
+import com.lambdaworks.redis.RedisCommandInterruptedException;
+import com.lambdaworks.redis.RedisCommandTimeoutException;
+import com.lambdaworks.redis.RedisConnectionException;
+import com.lambdaworks.redis.RedisException;
+import io.netty.channel.ChannelException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.QueryTimeoutException;
@@ -37,6 +42,14 @@ public class LettuceExceptionConverter implements Converter<Exception, DataAcces
 
 	public DataAccessException convert(Exception ex) {
 
+		if (ex instanceof ExecutionException) {
+
+			if(ex.getCause() != ex && ex.getCause() instanceof Exception) {
+				return convert((Exception) ex.getCause());
+			}
+			return new RedisSystemException("Error in execution", ex);
+		}
+
 		if (ex instanceof DataAccessException) {
 			return (DataAccessException) ex;
 		}
@@ -45,16 +58,16 @@ public class LettuceExceptionConverter implements Converter<Exception, DataAcces
 			return new RedisSystemException("Redis command interrupted", ex);
 		}
 
-		if (ex instanceof RedisException) {
-			return new RedisSystemException("Redis exception", ex);
-		}
-
-		if (ex instanceof ChannelException) {
+		if (ex instanceof ChannelException || ex instanceof RedisConnectionException) {
 			return new RedisConnectionFailureException("Redis connection failed", ex);
 		}
 
-		if (ex instanceof TimeoutException) {
+		if (ex instanceof TimeoutException || ex instanceof RedisCommandTimeoutException) {
 			return new QueryTimeoutException("Redis command timed out", ex);
+		}
+
+		if (ex instanceof RedisException) {
+			return new RedisSystemException("Redis exception", ex);
 		}
 
 		return null;

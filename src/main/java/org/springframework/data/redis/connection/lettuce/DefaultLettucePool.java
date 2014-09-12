@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
+import com.lambdaworks.redis.RedisURI;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -24,6 +25,7 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.PoolException;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
@@ -34,6 +36,7 @@ import com.lambdaworks.redis.RedisClient;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultLettucePool implements LettucePool, InitializingBean {
 
@@ -46,6 +49,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private int port = 6379;
 	private String password;
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+	private RedisSentinelConfiguration sentinelConfiguration;
 
 	/**
 	 * Constructs a new <code>DefaultLettucePool</code> instance with default settings.
@@ -64,6 +68,16 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
+	 * Uses the {@link RedisSentinelConfiguration} and {@link RedisClient} defaults for configuring the connection pool
+	 * based on sentinels.
+	 *
+	 * @param sentinelConfiguration The Sentinel configuration
+	 */
+	public DefaultLettucePool(RedisSentinelConfiguration sentinelConfiguration) {
+		this.sentinelConfiguration = sentinelConfiguration;
+	}
+
+	/**
 	 * Uses the {@link RedisClient} defaults for configuring the connection pool
 	 * 
 	 * @param hostName The Redis host
@@ -76,12 +90,41 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		this.poolConfig = poolConfig;
 	}
 
+	/**
+	 * @return true when {@link RedisSentinelConfiguration} is present.
+	 * @since 1.5
+	 */
+	public boolean isRedisSentinelAware() {
+		return sentinelConfiguration != null;
+	}
+
 	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
-		this.client = password != null ? new AuthenticatingRedisClient(hostName, port, password) : new RedisClient(
-				hostName, port);
+		this.client = new RedisClient(getRedisURI());
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		this.internalPool = new GenericObjectPool<RedisAsyncConnection>(new LettuceFactory(client, dbIndex), poolConfig);
+	}
+
+	/**
+	 *
+	 * @return a RedisURI pointing either to a single Redis host or containing a set of sentinels.
+	 */
+	private RedisURI getRedisURI() {
+
+		if(isRedisSentinelAware()) {
+			return LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+		}
+
+		return createSimpleHostRedisURI();
+	}
+
+	private RedisURI createSimpleHostRedisURI() {
+		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
+		if(password != null) {
+			builder.withPassword(password);
+		}
+		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+		return builder.build();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -118,6 +161,10 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		}
 	}
 
+	/**
+	 *
+	 * @return The Redis client
+	 */
 	public RedisClient getClient() {
 		return client;
 	}

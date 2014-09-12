@@ -44,7 +44,8 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	boolean getConvertPipelineAndTxResults();
 
 	/**
-	 * @return
+	 * Provides a suitable connection for interacting with Redis Sentinel.
+	 * @return connection for interacting with Redis Sentinel.
 	 * @since 1.4
 	 */
 	RedisSentinelConnection getSentinelConnection();
