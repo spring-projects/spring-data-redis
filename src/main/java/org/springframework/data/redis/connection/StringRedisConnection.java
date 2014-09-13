@@ -102,7 +102,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * 
 	 * @see http://redis.io/commands/psetex
 	 * @param key
-	 * @param seconds
+	 * @param milliseconds
 	 * @param value
 	 * @since 1.3
 	 */
