@@ -27,10 +27,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.Pool;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 
 /**
@@ -60,6 +58,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private int port = 6379;
 	private RedisClient client;
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+	private long shutdownTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
 	private RedisAsyncConnection<byte[], byte[]> connection;
@@ -69,6 +68,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private final Object connectionMonitor = new Object();
 	private String password;
 	private boolean convertPipelineAndTxResults = true;
+	private RedisSentinelConfiguration sentinelConfiguration;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
@@ -83,6 +83,16 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.port = port;
 	}
 
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}
+	 *
+	 * @param sentinelConfiguration
+	 * @since 1.5
+	 */
+	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
+		this.sentinelConfiguration = sentinelConfiguration;
+	}
+
 	public LettuceConnectionFactory(LettucePool pool) {
 		this.pool = pool;
 	}
@@ -93,7 +103,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	public void destroy() {
 		resetConnection();
-		client.shutdown();
+		client.shutdown(shutdownTimeout, shutdownTimeout, TimeUnit.MILLISECONDS);
 	}
 
 	public RedisConnection getConnection() {
@@ -291,6 +301,22 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	/**
+	 * Returns the shutdown timeout for shutting down the RedisClient (in milliseconds).
+	 * @return shutdown timeout
+	 */
+	public long getShutdownTimeout() {
+		return shutdownTimeout;
+	}
+
+	/**
+	 * Sets the shutdown timeout for shutting down the RedisClient (in milliseconds).
+	 * @param shutdownTimeout the shutdown timeout
+	 */
+	public void setShutdownTimeout(long shutdownTimeout) {
+		this.shutdownTimeout = shutdownTimeout;
+	}
+
+	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()} will be of the type returned by the
 	 * Lettuce driver
@@ -341,6 +367,12 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	private RedisClient createRedisClient() {
+
+		if(isRedisSentinelAware()) {
+			RedisURI redisURI = getSentinelRedisURI();
+			return new RedisClient(redisURI);
+		}
+
 		if (pool != null) {
 			return pool.getClient();
 		}
@@ -354,8 +386,21 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		return client;
 	}
 
+	private RedisURI getSentinelRedisURI() {
+		return LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+	}
+
+	/**
+	 * @return true when {@link RedisSentinelConfiguration} is present.
+	 * @since 1.5
+	 */
+	public boolean isRedisSentinelAware() {
+		return sentinelConfiguration != null;
+	}
+
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-		throw new UnsupportedOperationException();
+
+		return new LettuceSentinelConnection(client.connectSentinelAsync());
 	}
 }

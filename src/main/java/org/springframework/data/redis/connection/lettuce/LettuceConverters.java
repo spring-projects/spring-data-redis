@@ -17,18 +17,13 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.*;
 
-import com.lambdaworks.redis.KeyValue;
-import com.lambdaworks.redis.ScoredValue;
-import com.lambdaworks.redis.ScriptOutputType;
-import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.*;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.ReturnType;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
@@ -337,4 +332,43 @@ abstract public class LettuceConverters extends Converters {
 		return stringToRedisClientListConverter().convert(clientList);
 	}
 
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.5
+	 */
+	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
+
+		if (CollectionUtils.isEmpty(source)) {
+			return Collections.emptyList();
+		}
+
+		List<RedisServer> sentinels = new ArrayList<RedisServer>();
+		for (Map<String, String> info : source) {
+			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
+		}
+		return sentinels;
+	}
+
+	/**
+	 * @param sentinelConfiguration
+	 * @return
+	 * @since 1.5
+	 */
+	public static RedisURI sentinelConfigurationToRedisURI(RedisSentinelConfiguration sentinelConfiguration) {
+		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
+		RedisURI.Builder builder = null;
+		for (RedisNode sentinel : sentinels) {
+
+			if(builder == null) {
+				builder = RedisURI.Builder.sentinel(sentinel.getHost(), sentinel.getPort(),
+						sentinelConfiguration.getMaster().getName());
+			}
+			else {
+				builder.withSentinel(sentinel.getHost(), sentinel.getPort());
+			}
+		}
+
+		return builder.build();
+	}
 }

@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettuceConnectionUnitTests;
@@ -134,6 +135,14 @@ public class LettuceConnectionUnitTestSuite {
 
 			connection.slaveOfNoOne();
 			verifyNativeConnectionInvocation().slaveofNoOne();
+		}
+
+		/**
+		 * @see DATAREDIS-348
+		 */
+		@Test(expected = InvalidDataAccessResourceUsageException.class)
+		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
+			connection.getSentinelConnection();
 		}
 	}
 

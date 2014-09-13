@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import com.lambdaworks.redis.*;
+import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.output.*;
 import com.lambdaworks.redis.protocol.Command;
@@ -71,7 +72,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private static final TypeHints typeHints = new TypeHints();
 
 	static{
-		SYNC_HANDLER = ReflectionUtils.findMethod(AbstractRedisClient.class, "syncHandler", RedisAsyncConnectionImpl.class, Class[].class);
+		SYNC_HANDLER = ReflectionUtils.findMethod(AbstractRedisClient.class, "syncHandler", RedisChannelHandler.class, Class[].class);
 		ReflectionUtils.makeAccessible(SYNC_HANDLER);
 	}
 
@@ -1232,7 +1233,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@Override
 	public void pSetEx(byte[] key, long milliseconds, byte[] value) {
 
-		byte[][] emptyArgs = new byte[0][0];
 
 		try {
 			if (isPipelined()) {
@@ -1243,7 +1243,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 				transaction(new LettuceTxStatusResult(getConnection().psetex(key, milliseconds, value)));
 				return;
 			}
-			getConnection().setex(key, milliseconds, value);
+			getConnection().psetex(key, milliseconds, value);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1939,9 +1939,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	public List<byte[]> sRandMember(byte[] key, long count) {
-		if (count < 0) {
-			throw new UnsupportedOperationException("sRandMember with a negative count is not supported");
-		}
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().srandmember(key, count),
@@ -3375,6 +3372,36 @@ public class LettuceConnection extends AbstractRedisConnection {
 				throw new InvalidDataAccessApiUsageException(String.format("Validation failed for %s command.", cmd), e);
 			}
 		}
+	}
+
+	@Override
+	protected boolean isActive(RedisNode node) {
+
+		if (node == null) {
+			return false;
+		}
+
+		RedisConnection<String, String> connection = null;
+		try {
+			connection = client.connect(getRedisURI(node));
+			return connection.ping().equalsIgnoreCase("pong");
+		} catch (Exception e) {
+			return false;
+		} finally {
+			if (connection != null) {
+				connection.close();
+			}
+		}
+	}
+
+	private RedisURI getRedisURI(RedisNode node) {
+		return RedisURI.Builder.redis(node.getHost(), node.getPort()).build();
+	}
+
+	@Override
+	protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
+		RedisSentinelAsyncConnection<String, String> connection = client.connectSentinelAsync(getRedisURI(sentinel));
+		return new LettuceSentinelConnection(connection);
 	}
 
 	/**
