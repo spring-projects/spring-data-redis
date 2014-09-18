@@ -49,6 +49,8 @@ import org.springframework.util.Assert;
  */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
+	public static final String PING_REPLY = "PONG";
+
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			LettuceConverters.exceptionConverter());
 
@@ -145,11 +147,11 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 				try {
 					RedisFuture<String> ping = connection.ping();
 					LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS, ping);
-					if("PONG".equalsIgnoreCase(ping.get())) {
+					if(PING_REPLY.equalsIgnoreCase(ping.get())) {
 						valid = true;
 					}
 				} catch (Exception e) {
-
+				   log.debug("Validation failed", e);
 				}
 			}
 
@@ -400,7 +402,6 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-
 		return new LettuceSentinelConnection(client.connectSentinelAsync());
 	}
 }

@@ -3129,10 +3129,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}.open();
 	}
 
-	private com.lambdaworks.redis.ScanCursor getScanCursor(long cursorId) {
-		return com.lambdaworks.redis.ScanCursor.of(Long.toString(cursorId));
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zScan(byte[], org.springframework.data.redis.core.ScanOptions)
@@ -3172,19 +3168,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), values);
 			}
 		}.open();
-	}
-
-	private ScanArgs getScanArgs(ScanOptions options) {
-		if(options == null) {
-			return null;
-		}
-
-		ScanArgs scanArgs = ScanArgs.Builder.matches(options.getPattern());
-		if(options.getCount() != null) {
-			scanArgs.limit(options.getCount());
-		}
-
-		return scanArgs;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -3330,6 +3313,23 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return Arrays.copyOfRange(keysAndArgs, numKeys, keysAndArgs.length);
 		}
 		return new byte[0][0];
+	}
+
+	private com.lambdaworks.redis.ScanCursor getScanCursor(long cursorId) {
+		return com.lambdaworks.redis.ScanCursor.of(Long.toString(cursorId));
+	}
+
+	private ScanArgs getScanArgs(ScanOptions options) {
+		if(options == null) {
+			return null;
+		}
+
+		ScanArgs scanArgs = ScanArgs.Builder.matches(options.getPattern());
+		if(options.getCount() != null) {
+			scanArgs.limit(options.getCount());
+		}
+
+		return scanArgs;
 	}
 
 	private ZStoreArgs zStoreArgs(Aggregate aggregate, int[] weights) {
