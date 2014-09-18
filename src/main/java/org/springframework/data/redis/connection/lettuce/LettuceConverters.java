@@ -333,8 +333,9 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * @param source
-	 * @return
+	 * @param source List of Maps containing node details from SENTINEL SLAVES or SENTINEL MASTERS.
+	 * 					May be empty or {@literal null}.
+	 * @return List of {@link RedisServer}'s. List is empty if List of Maps is empty.
 	 * @since 1.5
 	 */
 	public static List<RedisServer> toListOfRedisServer(List<Map<String, String>> source) {
@@ -351,11 +352,14 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
-	 * @param sentinelConfiguration
-	 * @return
+	 * @param sentinelConfiguration the sentinel configuration containing one or more sentinels and a master name.
+	 * 								Must not be {@literal null}
+	 * @return A {@link RedisURI} containing Redis Sentinel addresses of {@link RedisSentinelConfiguration}
 	 * @since 1.5
 	 */
 	public static RedisURI sentinelConfigurationToRedisURI(RedisSentinelConfiguration sentinelConfiguration) {
+		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration is required");
+
 		Set<RedisNode> sentinels = sentinelConfiguration.getSentinels();
 		RedisURI.Builder builder = null;
 		for (RedisNode sentinel : sentinels) {
