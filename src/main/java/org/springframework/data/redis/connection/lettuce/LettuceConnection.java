@@ -2755,18 +2755,18 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			byte[][] keys = extractScriptKeys(numKeys, keysAndArgs);
 			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
-
+			String convertedScript = LettuceConverters.toString(script);
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().eval(new String(script, "UTF-8"), LettuceConverters.toScriptOutputType(returnType),
+				pipeline(new LettuceResult(getAsyncConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType),
 						keys, args), new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().eval(new String(script, "UTF-8"), LettuceConverters.toScriptOutputType(returnType),
+				transaction(new LettuceTxResult(getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType),
 						keys, args), new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
-			return new LettuceEvalResultsConverter<T>(returnType).convert(getConnection().eval(new String(script, "UTF-8"),
+			return new LettuceEvalResultsConverter<T>(returnType).convert(getConnection().eval(convertedScript,
 					LettuceConverters.toScriptOutputType(returnType), keys, args));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
@@ -2863,19 +2863,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long time() {
+		try {
 
-		/*
-		 * We have to emulate the time command via eval script since the current driver version doesn't
-		 * support the time command natively.
-		 * see https://github.com/wg/lettuce/issues/19
-		 */
-		List<byte[]> result = (List<byte[]>) eval("return redis.call('TIME')".getBytes(), ReturnType.MULTI, 0);
+			List<byte[]> result	= getConnection().time();
 
-		Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
-		Assert.isTrue(result.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
-				+ result.size());
+			Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
+			Assert.isTrue(result.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
+					+ result.size());
 
-		return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
+			return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
+
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	@Override
