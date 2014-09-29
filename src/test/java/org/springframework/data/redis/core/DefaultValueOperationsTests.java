@@ -45,6 +45,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author David Liu
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {
@@ -274,4 +275,13 @@ public class DefaultValueOperationsTests<K, V> {
 		assumeTrue(key1 instanceof byte[]);
 		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
 	}
+	
+	@Test
+	public void testSetBit() {
+		K key1 = keyFactory.instance();
+		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		valueOps.setBit(key1, 2, true);
+		assertEquals(true, valueOps.getBit(key1, 2));
+	}
+
 }
