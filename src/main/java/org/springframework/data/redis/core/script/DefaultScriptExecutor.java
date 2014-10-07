@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.UncategorizedDataAccessException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
@@ -31,6 +33,8 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * executed in a pipeline or transaction.
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Thomas Darimont
  * @param <K> The type of keys that may be passed during script execution
  */
 public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
@@ -71,15 +75,23 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 
 	protected <T> T eval(RedisConnection connection, RedisScript<T> script, ReturnType returnType, int numKeys,
 			byte[][] keysAndArgs, RedisSerializer<T> resultSerializer) {
+		
 		Object result;
 		try {
 			result = connection.evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
 		} catch (Exception e) {
+
+			if (!expectionContainsNoScriptError(e)) {
+				throw e instanceof RuntimeException ? (RuntimeException) e : new RedisSystemException(e.getMessage(), e);
+			}
+
 			result = connection.eval(scriptBytes(script), returnType, numKeys, keysAndArgs);
 		}
+		
 		if (script.getResultType() == null) {
 			return null;
 		}
+		
 		return deserializeResult(resultSerializer, result);
 	}
 
@@ -133,4 +145,25 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	protected RedisSerializer keySerializer() {
 		return template.getKeySerializer();
 	}
+
+	private boolean expectionContainsNoScriptError(Exception e) {
+
+		if (!(e instanceof UncategorizedDataAccessException)) {
+			return false;
+		}
+
+		Throwable current = e;
+		while (current != null) {
+
+			String exMessage = current.getMessage();
+			if (exMessage != null && exMessage.contains("NOSCRIPT")) {
+				return true;
+			}
+
+			current = current.getCause();
+		}
+
+		return false;
+	}
+
 }
