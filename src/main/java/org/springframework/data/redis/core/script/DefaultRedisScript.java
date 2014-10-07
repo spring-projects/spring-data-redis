@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * Singleton to avoid re-calculation of SHA1 on every script execution.
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be null if
  *          the script returns a throw-away status (i.e "OK")
  */
@@ -42,6 +43,23 @@ public class DefaultRedisScript<T> implements RedisScript<T>, InitializingBean {
 	private Class<T> resultType;
 
 	private final Object shaModifiedMonitor = new Object();
+
+	/**
+	 * Creates a new {@link DefaultRedisScript}
+	 */
+	public DefaultRedisScript() {}
+
+	/**
+	 * Creates a new {@link DefaultRedisScript}
+	 * 
+	 * @param script
+	 * @param resultType
+	 */
+	public DefaultRedisScript(String script, Class<T> resultType) {
+
+		this.setScriptText(script);
+		this.resultType = resultType;
+	}
 
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.scriptSource, "Either script, script location," + " or script source is required");
