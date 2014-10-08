@@ -55,7 +55,6 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
-import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.RedisCommand;
@@ -2852,7 +2851,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys,
 			byte[]... keysAndArgs) {
-		return evalSha(JedisConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
+		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
 	}
 
 	//
