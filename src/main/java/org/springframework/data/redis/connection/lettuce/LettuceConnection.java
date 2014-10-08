@@ -2849,6 +2849,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys,
+			byte[]... keysAndArgs) {
+		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
 	//
 	// Pub/Sub functionality
 	//

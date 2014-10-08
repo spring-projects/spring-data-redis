@@ -15,7 +15,12 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,6 +31,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.core.Cursor;
@@ -783,6 +789,12 @@ public class RedisConnectionUnitTests {
 				return this.sentinelConnection;
 			}
 			return null;
+		}
+
+		@Override
+		public <T> T evalSha(byte[] scriptSha, ReturnType returnType,
+				int numKeys, byte[]... keysAndArgs) {
+			return delegate.evalSha(scriptSha, returnType, numKeys, keysAndArgs);
 		}
 	}
 }

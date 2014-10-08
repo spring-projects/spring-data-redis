@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.connection.srp;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractConnectionPipelineIntegrationTests;
 import org.springframework.data.redis.connection.ReturnType;
@@ -68,4 +72,19 @@ public class SrpConnectionPipelineIntegrationTests extends AbstractConnectionPip
 	public void testZUnionStoreAggWeights() {
 		super.testZUnionStoreAggWeights();
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		getResults();
+		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
+		initConnection();
+		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
+		List<Object> results = getResults();
+		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+	}
+	
 }

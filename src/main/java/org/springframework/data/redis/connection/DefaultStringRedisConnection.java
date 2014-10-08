@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.convert.ListConverter;
@@ -1229,6 +1230,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		}
 		return result;
 	}
+	
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
 
 	//
 	// String methods
@@ -2383,6 +2392,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 		return delegate.getSentinelConnection();
+	}
+
+	@Override
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys,
+			String... keysAndArgs) {
+		T result = delegate.evalSha(scriptSha1, returnType, numKeys, serializeMulti(keysAndArgs));
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
 	}
 
 }

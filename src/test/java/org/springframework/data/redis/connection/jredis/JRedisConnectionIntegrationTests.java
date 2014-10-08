@@ -16,7 +16,9 @@
 
 package org.springframework.data.redis.connection.jredis;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +35,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
@@ -434,6 +437,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
+	}
+	
+	@Test(expected = UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		super.testEvalShaArrayBytes();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

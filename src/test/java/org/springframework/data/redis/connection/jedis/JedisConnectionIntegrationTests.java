@@ -16,9 +16,14 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +38,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -85,6 +91,20 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		}
 
 		connection = null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		getResults();
+		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
+		initConnection();
+		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
+		List<Object> results = getResults();
+		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
 
 	@Test

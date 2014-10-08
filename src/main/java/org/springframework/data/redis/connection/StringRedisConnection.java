@@ -303,6 +303,8 @@ public interface StringRedisConnection extends RedisConnection {
 	<T> T eval(String script, ReturnType returnType, int numKeys, String... keysAndArgs);
 
 	<T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs);
+	
+	<T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, String... keysAndArgs);
 
 	/**
 	 * Assign given {@code name} to connection using registered {@link RedisSerializer} for name conversion.

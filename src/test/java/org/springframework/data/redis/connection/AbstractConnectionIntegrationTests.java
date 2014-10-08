@@ -43,6 +43,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
@@ -180,6 +181,20 @@ public abstract class AbstractConnectionIntegrationTests {
 	public void testEvalShaArrayStrings() {
 		getResults();
 		String sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}");
+		initConnection();
+		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
+		List<Object> results = getResults();
+		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		getResults();
+		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
 		initConnection();
 		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1", "arg1"));
 		List<Object> results = getResults();
