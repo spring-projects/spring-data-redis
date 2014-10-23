@@ -2073,9 +2073,9 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		try {
-			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(intWeights(weights)).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.zinterstore(destKey, zparams, sets)));
@@ -2403,9 +2403,9 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		try {
-			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(intWeights(weights)).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.zunionstore(destKey, zparams, sets)));
@@ -3162,5 +3162,22 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	protected Jedis getJedis(RedisNode node) {
 		return new Jedis(node.getHost(), node.getPort());
+	}
+	
+	/**
+	 * Convert double weights to ints.
+	 * TODO Remove asap jedis supports double weights.
+	 * 
+	 * @param weights
+	 *            Double weights.
+	 * @return Int weights.
+	 */
+	@Deprecated
+	private int[] intWeights(double[] weights) {
+		int[] result = new int[weights.length];
+		for (int i = 0; i < weights.length; i++) {
+			result[i] = (int) weights[i];
+		}
+		return result;
 	}
 }

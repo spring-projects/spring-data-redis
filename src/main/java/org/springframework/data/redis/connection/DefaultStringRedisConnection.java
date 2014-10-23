@@ -978,7 +978,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zInterStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		Long result = delegate.zInterStore(destKey, aggregate, weights, sets);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
@@ -1138,7 +1138,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
+	public Long zUnionStore(byte[] destKey, Aggregate aggregate, double[] weights, byte[]... sets) {
 		Long result = delegate.zUnionStore(destKey, aggregate, weights, sets);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
@@ -1943,7 +1943,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Long zInterStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+	public Long zInterStore(String destKey, Aggregate aggregate, double[] weights, String... sets) {
 		Long result = delegate.zInterStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
@@ -2103,7 +2103,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
-	public Long zUnionStore(String destKey, Aggregate aggregate, int[] weights, String... sets) {
+	public Long zUnionStore(String destKey, Aggregate aggregate, double[] weights, String... sets) {
 		Long result = delegate.zUnionStore(serialize(destKey), aggregate, weights, serializeMulti(sets));
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
