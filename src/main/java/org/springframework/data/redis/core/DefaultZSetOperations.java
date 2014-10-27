@@ -29,6 +29,8 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Thomas Darimont
+ * @author David Liu
  */
 class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
@@ -391,5 +393,33 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 				return deserializeTuple(source);
 			}
 		});
+	}
+
+	public Set<byte[]> rangeByScore(K key, final String min, final String max) {
+
+		final byte[] rawKey = rawKey(key);
+
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.zRangeByScore(rawKey, min, max);
+			}
+		}, true);
+
+		return rawValues;
+	}
+
+	public Set<byte[]> rangeByScore(K key, final String min, final String max, final long offset, final long count) {
+
+		final byte[] rawKey = rawKey(key);
+
+		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
+
+			public Set<byte[]> doInRedis(RedisConnection connection) {
+				return connection.zRangeByScore(rawKey, min, max, offset, count);
+			}
+		}, true);
+
+		return rawValues;
 	}
 }

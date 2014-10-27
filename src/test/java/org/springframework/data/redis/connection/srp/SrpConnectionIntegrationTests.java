@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsInstanceOf;
@@ -40,6 +41,8 @@ import redis.reply.Reply;
  * 
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Thomas Darimont
+ * @author David Liu
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -117,4 +120,18 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
 
+	/**
+	 * @see DATAREDIS-106
+	 */
+	@Test
+	public void zRangeByScoreTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+
+		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
+
+		Assert.assertEquals("two", new String(zRangeByScore.iterator().next()));
+	}
 }

@@ -2393,4 +2393,44 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return delegate.getSentinelConnection();
 	}
 
+	@Override
+	public Set<byte[]> zRangeByScore(String key, String min, String max) {
+		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count) {
+		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		
+		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		
+		return results;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+
+		Set<byte[]> results = delegate.zRangeByScore(key, min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		
+		return results;
+	}
+
 }
