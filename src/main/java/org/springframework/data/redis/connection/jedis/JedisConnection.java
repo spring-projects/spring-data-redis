@@ -3163,4 +3163,42 @@ public class JedisConnection extends AbstractRedisConnection {
 	protected Jedis getJedis(RedisNode node) {
 		return new Jedis(node.getHost(), node.getPort());
 	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zrangeByScore(keyStr, min, max)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max)));
+				return null;
+			}
+			return JedisConverters.stringSetToByteSet().convert(jedis.zrangeByScore(keyStr, min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+		
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
+				return null;
+			}
+			return JedisConverters.stringSetToByteSet().convert(jedis.zrangeByScore(keyStr, min, max, (int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 }

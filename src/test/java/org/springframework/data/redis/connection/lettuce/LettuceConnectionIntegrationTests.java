@@ -22,6 +22,7 @@ import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.core.AllOf;
@@ -52,6 +53,7 @@ import com.lambdaworks.redis.RedisAsyncConnection;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author David Liu
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -310,6 +312,21 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
 		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
 				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+	}
+	
+	/**
+	 * @see DATAREDIS-106
+	 */
+	@Test
+	public void zRangeByScoreTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		
+		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
+		
+		assertEquals("two", new String(zRangeByScore.iterator().next()));
 	}
 
 }
