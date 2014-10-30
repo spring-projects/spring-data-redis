@@ -6,6 +6,12 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.4.1.RELEASE (2014-10-30)
+---------------------------------------------
+* DATAREDIS-353 - Release 1.4.1.
+* DATAREDIS-347 - DefaultScriptExecutor always runs script twice if Exception is thrown.
+
+
 Changes in version 1.4.0.RELEASE (2014-09-05)
 ---------------------------------------------
 * DATAREDIS-346 - Update to Spring Version 4.0.7.
