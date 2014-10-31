@@ -15,10 +15,15 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -94,6 +100,19 @@ public class RedisTemplateTests<K, V> {
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
+	}
+	
+
+	
+	@Test
+	public void testGroupRedisCommandsInMulti() {
+		ListOperations<String, String> listOps = (ListOperations<String, String>) redisTemplate
+				.opsForList();
+		redisTemplate.multi();
+		listOps.range("foo:pit", 0, -1);
+		listOps.range("foo:actual", 0, -1);
+		listOps.range("foo:predicted", 0, -1);
+		List<Object> results = redisTemplate.exec();
 	}
 
 	@Test
