@@ -17,7 +17,7 @@ description = 'Spring Data Redis'
 group = 'org.springframework.data'
 
 repositories {
-  maven { url "http://repo.spring.io/libs-release" }
+  maven { url "http://repo.spring.io/libs-snapshot" }
   maven { url "http://repo.spring.io/plugins-release" }
   mavenCentral()
   jcenter()
