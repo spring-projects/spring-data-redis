@@ -16,12 +16,16 @@
 
 package org.springframework.data.redis.connection.jredis;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.hamcrest.core.IsCollectionContaining;
@@ -33,6 +37,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
@@ -42,6 +47,8 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.ZRangeOptions;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -833,4 +840,19 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}
+
+	@Test
+	public void zRangeOptionScoreInclusiveTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+
+		Set<byte[]> zRangeByScore = (Set<byte[]>) connection.zRange("myzset", new ZRangeOptions().score().greaterThanInclusive(1.1)
+				.lessThanInclusive(3.0).build());
+		Iterator<byte[]> iterator = zRangeByScore.iterator();
+		assertEquals("two", JedisConverters.toString(iterator.next()));
+		assertEquals("three", JedisConverters.toString(iterator.next()));
+	}
+
 }

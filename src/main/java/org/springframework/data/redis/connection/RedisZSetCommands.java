@@ -373,4 +373,14 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count);
+
+	/**
+	 * Get elements using ZRangeOptions.
+	 * 
+	 * @param key
+	 * @param method
+	 * @return
+	 */
+
+	Object zRange(byte[] key, TargetMethod method);
 }

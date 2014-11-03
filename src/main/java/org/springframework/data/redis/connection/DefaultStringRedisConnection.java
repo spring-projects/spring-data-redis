@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.convert.ListConverter;
@@ -2430,6 +2431,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 			addResultConverter(identityConverter);
 		}
 		
+		return results;
+	}
+
+	@Override
+	public Object zRange(String string, TargetMethod method) {
+		return zRange(serialize(string), method);
+	}
+
+	@Override
+	public Object zRange(byte[] key, TargetMethod method) {
+		Object results = delegate.zRange(key, method);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
 		return results;
 	}
 
