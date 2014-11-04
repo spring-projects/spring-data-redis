@@ -171,18 +171,20 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		this.pool = pool;
 
-		this.dbIndex = dbIndex;
-
 		// select the db
 		// if this fail, do manual clean-up before propagating the exception
 		// as we're inside the constructor
-		if (dbIndex > 0) {
+		if (dbIndex != jedis.getDB()) {
 			try {
+				this.dbIndex = dbIndex;
 				select(dbIndex);
 			} catch (DataAccessException ex) {
 				close();
 				throw ex;
 			}
+		}
+		else {
+			this.dbIndex = (int) jedis.getDB().longValue();
 		}
 	}
 
@@ -244,9 +246,6 @@ public class JedisConnection extends AbstractRedisConnection {
 			if (!broken) {
 				// reset the connection
 				try {
-					if (dbIndex > 0) {
-						jedis.select(0);
-					}
 					pool.returnResource(jedis);
 					return;
 				} catch (Exception ex) {
