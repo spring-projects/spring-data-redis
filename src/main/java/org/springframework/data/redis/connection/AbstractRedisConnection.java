@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.dao.DataAccessException;
@@ -118,12 +117,11 @@ public abstract class AbstractRedisConnection implements RedisConnection {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Set<Object> zRange(byte[] key, TargetMethod method) {
-		String keyStr;
+	public Object zRange(byte[] key, TargetMethod method) {
 		try {
 			method.getValueList().add(0, key);
 			Method targetMethod = this.getClass().getMethod(method.getMethodName(), method.getTypeList());
-			return (Set<Object>) targetMethod.invoke(this, method.getValueList().toArray(new Object[0]));
+			return targetMethod.invoke(this, method.getValueList().toArray(new Object[0]));
 		}
 		catch (NoSuchMethodException e) {
 			// TODO Auto-generated catch block
