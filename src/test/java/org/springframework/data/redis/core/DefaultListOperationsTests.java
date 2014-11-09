@@ -17,10 +17,11 @@ package org.springframework.data.redis.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeTrue;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -172,6 +174,21 @@ public class DefaultListOperationsTests<K, V> {
 		V v3 = valueFactory.instance();
 		assertEquals(Long.valueOf(2), listOps.rightPushAll(key, v1, v2));
 		assertEquals(Long.valueOf(3), listOps.rightPush(key, v3));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRightPushAllCollection() {
+		K key = keyFactory.instance();
+		Collection<V> collection = new ArrayList<V>();
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		collection.add(v1);
+		collection.add(v2);
+		collection.add(v3);
+		assertEquals(Long.valueOf(3), listOps.rightPushAll(key, collection));
 		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
 	}
 }
