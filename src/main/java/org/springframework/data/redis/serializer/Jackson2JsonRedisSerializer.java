@@ -43,8 +43,22 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
+	 * 
+	 * @param type
+	 */
 	public Jackson2JsonRedisSerializer(Class<T> type) {
-		this.javaType = TypeFactory.defaultInstance().constructType(type);
+		this.javaType = getJavaType(type);
+	}
+
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 * 
+	 * @param type
+	 */
+	public Jackson2JsonRedisSerializer(JavaType javaType) {
+		this.javaType = javaType;
 	}
 
 	@SuppressWarnings("unchecked")
