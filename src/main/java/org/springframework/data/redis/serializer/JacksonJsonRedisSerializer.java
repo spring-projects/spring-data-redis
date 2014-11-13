@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.serializer;
 
+import java.nio.charset.Charset;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.springframework.util.Assert;
-
-import java.nio.charset.Charset;
 
 /**
  * {@link RedisSerializer} that can read and write JSON using <a href="http://jackson.codehaus.org/">Jackson's</a>
@@ -40,8 +40,22 @@ public class JacksonJsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
+	/**
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link Class}.
+	 * 
+	 * @param type
+	 */
 	public JacksonJsonRedisSerializer(Class<T> type) {
-		this.javaType = TypeFactory.defaultInstance().constructType(type);
+		this.javaType = getJavaType(type);
+	}
+
+	/**
+	 * Creates a new {@link JacksonJsonRedisSerializer} for the given target {@link JavaType}.
+	 * 
+	 * @param javaType
+	 */
+	public JacksonJsonRedisSerializer(JavaType javaType) {
+		this.javaType = javaType;
 	}
 
 	@SuppressWarnings("unchecked")
