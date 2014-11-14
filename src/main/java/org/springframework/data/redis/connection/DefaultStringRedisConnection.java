@@ -1230,6 +1230,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		T result = delegate.evalSha(scriptSha1, returnType, numKeys, keysAndArgs);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
 	//
 	// String methods
 	//
@@ -2383,6 +2391,46 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
 		return delegate.getSentinelConnection();
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(String key, String min, String max) {
+		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count) {
+		Set<byte[]> results = delegate.zRangeByScore(serialize(key), min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		
+		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		
+		return results;
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+
+		Set<byte[]> results = delegate.zRangeByScore(key, min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		
+		return results;
 	}
 
 }

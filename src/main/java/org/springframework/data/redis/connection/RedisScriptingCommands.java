@@ -22,6 +22,7 @@ import java.util.List;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author David Liu
  */
 public interface RedisScriptingCommands {
 
@@ -81,4 +82,17 @@ public interface RedisScriptingCommands {
 	 * @return
 	 */
 	<T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
+
+	/**
+	 * Evaluate given {@code scriptSha}.
+	 * 
+	 * @see http://redis.io/commands/evalsha
+	 * @param script
+	 * @param returnType
+	 * @param numKeys
+	 * @param keysAndArgs
+	 * @return
+	 * @since 1.5
+	 */
+	<T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs);
 }

@@ -61,6 +61,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author David Liu
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
@@ -2797,6 +2798,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return evalSha(LettuceConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
 	//
 	// Pub/Sub functionality
 	//
@@ -3602,4 +3607,44 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max),
+						LettuceConverters.bytesListToBytesSet()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().zrangebyscore(key, min, max),
+						LettuceConverters.bytesListToBytesSet()));
+				return null;
+			}
+			return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+		
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max, offset, count),
+						LettuceConverters.bytesListToBytesSet()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().zrangebyscore(key, min, max, offset, count),
+						LettuceConverters.bytesListToBytesSet()));
+				return null;
+			}
+			return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max, offset, count));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+	
 }

@@ -87,6 +87,7 @@ import redis.clients.util.Pool;
  * @author Thomas Darimont
  * @author Jungtaek Lim
  * @author Konstantin Shchepanovskyi
+ * @author David Liu
  */
 public class JedisConnection extends AbstractRedisConnection {
 
@@ -2799,8 +2800,13 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> T evalSha(String scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return evalSha(JedisConverters.toBytes(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+
 		if (isQueueing()) {
 			throw new UnsupportedOperationException();
 		}
@@ -2808,8 +2814,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(JedisConverters.toBytes(scriptSha1),
-					numKeys, keysAndArgs));
+			return (T) new JedisScriptReturnConverter(returnType).convert(jedis.evalsha(scriptSha1, numKeys, keysAndArgs));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -3157,5 +3162,43 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	protected Jedis getJedis(RedisNode node) {
 		return new Jedis(node.getHost(), node.getPort());
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zrangeByScore(keyStr, min, max)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max)));
+				return null;
+			}
+			return JedisConverters.stringSetToByteSet().convert(jedis.zrangeByScore(keyStr, min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+		
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
+				return null;
+			}
+			return JedisConverters.stringSetToByteSet().convert(jedis.zrangeByScore(keyStr, min, max, (int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 }

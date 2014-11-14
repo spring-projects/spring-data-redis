@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=2.8.13
+REDIS_VERSION:=2.8.17
 
 #######
 # Redis
@@ -95,5 +95,5 @@ stop: redis-stop sentinel-stop
 test:
 	$(MAKE) start
 	sleep 2
-	$(PWD)/gradlew clean build -DrunLongTests=true
+	$(PWD)/gradlew clean build -DrunLongTests=true -S
 	$(MAKE) stop

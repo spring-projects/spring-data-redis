@@ -68,6 +68,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author David Liu
  */
 public class SrpConnection extends AbstractRedisConnection {
 
@@ -2100,6 +2101,10 @@ public class SrpConnection extends AbstractRedisConnection {
 		}
 	}
 
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		return evalSha(SrpConverters.toString(scriptSha1), returnType, numKeys, keysAndArgs);
+	}
+
 	//
 	// Pub/Sub functionality
 	//
@@ -2467,4 +2472,35 @@ public class SrpConnection extends AbstractRedisConnection {
 		return arrays.toArray();
 	}
 
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		
+		try {
+			String keyStr = new String(key, "UTF-8");
+			if (isPipelined()) {
+				pipeline(new SrpResult(pipeline.zrangebyscore(keyStr, min, max, null, EMPTY_PARAMS_ARRAY),
+						SrpConverters.repliesToBytesSet()));
+				return null;
+			}
+			return SrpConverters.toBytesSet(client.zrangebyscore(keyStr, min, max, null, EMPTY_PARAMS_ARRAY).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+
+		try {
+			String keyStr = new String(key, "UTF-8");
+			Object[] limit = limitParams(offset, count);
+			if (isPipelined()) {
+				pipeline(new SrpResult(pipeline.zrangebyscore(keyStr, min, max, null, limit), SrpConverters.repliesToBytesSet()));
+				return null;
+			}
+			return SrpConverters.toBytesSet(client.zrangebyscore(keyStr, min, max, null, limit).data());
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
 }

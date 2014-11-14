@@ -19,6 +19,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
@@ -65,6 +66,12 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
+	}
+	
+	@Test(expected = UnsupportedOperationException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		super.testEvalShaArrayBytes();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

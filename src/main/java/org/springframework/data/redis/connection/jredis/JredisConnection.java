@@ -58,6 +58,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author David Liu
  */
 public class JredisConnection extends AbstractRedisConnection {
 
@@ -1183,6 +1184,10 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	public <T> T evalSha(byte[] scriptSha1, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+		throw new UnsupportedOperationException();
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
@@ -1277,5 +1282,14 @@ public class JredisConnection extends AbstractRedisConnection {
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
 		throw new UnsupportedOperationException("'HSCAN' command is not uspported for jredis");
 	}
+	
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+		throw new UnsupportedOperationException("'zRangeByScore' command is not uspported for jredis");
+	}
 
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+		throw new UnsupportedOperationException("'zRangeByScore' command is not uspported for jredis");
+	}
 }

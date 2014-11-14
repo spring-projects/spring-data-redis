@@ -15,10 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -45,6 +49,8 @@ import org.springframework.data.redis.connection.RedisConnection;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author David Liu
+ * @author Thomas Darimont
  */
 @RunWith(Parameterized.class)
 public class DefaultValueOperationsTests<K, V> {
@@ -274,4 +280,20 @@ public class DefaultValueOperationsTests<K, V> {
 		assumeTrue(key1 instanceof byte[]);
 		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
 	}
+	
+	/**
+	 * @see DATAREDIS-197
+	 */
+	@Test
+	public void testSetAndGetBit() {
+		
+		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		
+		K key1 = keyFactory.instance();
+		int bitOffset = 65;
+		valueOps.setBit(key1, bitOffset, true);
+		
+		assertEquals(true, valueOps.getBit(key1, bitOffset));
+	}
+
 }

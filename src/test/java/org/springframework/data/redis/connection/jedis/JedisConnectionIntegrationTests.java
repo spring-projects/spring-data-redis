@@ -19,6 +19,7 @@ package org.springframework.data.redis.connection.jedis;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +61,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author David Liu
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -85,6 +87,20 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		}
 
 		connection = null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testEvalShaArrayBytes() {
+		getResults();
+		byte[] sha1 = connection.scriptLoad("return {KEYS[1],ARGV[1]}").getBytes();
+		initConnection();
+		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
+		List<Object> results = getResults();
+		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
+		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
+				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
 
 	@Test
@@ -384,5 +400,20 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		((JedisConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
 				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
 		assertThat(connection.getSentinelConnection(), notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-106
+	 */
+	@Test
+	public void zRangeByScoreTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		
+		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
+		
+		assertEquals("two", new String(zRangeByScore.iterator().next()));
 	}
 }

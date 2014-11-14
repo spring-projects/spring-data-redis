@@ -35,6 +35,8 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Thomas Darimont
+ * @author David Liu
  */
 public class RedisConnectionUnitTests {
 
@@ -783,6 +785,21 @@ public class RedisConnectionUnitTests {
 				return this.sentinelConnection;
 			}
 			return null;
+		}
+
+		@Override
+		public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+			return delegate.evalSha(scriptSha, returnType, numKeys, keysAndArgs);
+		}
+		
+		@Override
+		public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
+			return delegate.zRangeByScore(key, min, max);
+		}
+
+		@Override
+		public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+			return delegate.zRangeByScore(key, min, max, offset, count);
 		}
 	}
 }

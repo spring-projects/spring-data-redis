@@ -33,6 +33,9 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Thomas Darimont
+ * @author David Liu
+ * 
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -345,4 +348,24 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 */
 	Cursor<StringTuple> zScan(String key, ScanOptions options);
+
+	/**
+	 * @since 1.5
+	 * @param key
+	 * @param min
+	 * @param max
+	 * @return
+	 */
+	Set<byte[]> zRangeByScore(String key, String min, String max);
+
+	/**
+	 * @since 1.5
+	 * @param key
+	 * @param min
+	 * @param max
+	 * @param offset
+	 * @param count
+	 * @return
+	 */
+	Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count);
 }
