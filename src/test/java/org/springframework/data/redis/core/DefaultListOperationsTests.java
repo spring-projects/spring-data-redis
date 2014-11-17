@@ -21,6 +21,7 @@ import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -38,6 +39,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  * @param <K> Key test
  * @param <V> Value test
  */
@@ -178,8 +180,7 @@ public class DefaultListOperationsTests<K, V> {
 	 * @see DATAREDIS-288
 	 */
 	@Test
-	@SuppressWarnings("all")
-	// get rid of varargs warning
+	@SuppressWarnings("unchecked")
 	public void testRightPushAllCollection() {
 
 		K key = keyFactory.instance();
@@ -195,9 +196,33 @@ public class DefaultListOperationsTests<K, V> {
 	/**
 	 * @see DATAREDIS-288
 	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rightPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
+		listOps.rightPushAll(keyFactory.instance(), Collections.<V> emptyList());
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@SuppressWarnings("unchecked")
+	@Test(expected = IllegalArgumentException.class)
+	public void rightPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
+		listOps.rightPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rightPushAllShouldThrowExceptionWhenCalledWithNull() {
+		listOps.rightPushAll(keyFactory.instance(), (Collection<V>) null);
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
 	@Test
-	@SuppressWarnings("all")
-	// get rid of varargs warning
+	@SuppressWarnings("unchecked")
 	public void testLeftPushAllCollection() {
 
 		K key = keyFactory.instance();
@@ -208,5 +233,30 @@ public class DefaultListOperationsTests<K, V> {
 
 		assertEquals(Long.valueOf(3), listOps.leftPushAll(key, Arrays.<V> asList(v1, v2, v3)));
 		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v3, v2, v1 })));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void leftPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
+		listOps.leftPushAll(keyFactory.instance(), Collections.<V> emptyList());
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@SuppressWarnings("unchecked")
+	@Test(expected = IllegalArgumentException.class)
+	public void leftPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
+		listOps.leftPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void leftPushAllShouldThrowExceptionWhenCalledWithNull() {
+		listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null);
 	}
 }

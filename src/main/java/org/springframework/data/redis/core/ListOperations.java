@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author Costin Leau
  * @author David Liu
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public interface ListOperations<K, V> {
 
@@ -39,8 +40,10 @@ public interface ListOperations<K, V> {
 	Long leftPushAll(K key, V... values);
 
 	/**
-	 * @param key
-	 * @param values
+	 * Insert all {@literal values} at the head of the list stored at {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal empty} nor contain {@literal null} values.
 	 * @return
 	 * @since 1.5
 	 */
@@ -55,8 +58,10 @@ public interface ListOperations<K, V> {
 	Long rightPushAll(K key, V... values);
 
 	/**
-	 * @param key
-	 * @param values
+	 * Insert all {@literal values} at the tail of the list stored at {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal empty} nor contain {@literal null} values.
 	 * @return
 	 * @since 1.5
 	 */
