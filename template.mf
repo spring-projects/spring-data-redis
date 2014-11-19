@@ -22,7 +22,7 @@ Import-Template:
  org.w3c.dom.*;version="0",
  javax.xml.transform.*;resolution:="optional";version="0",
  org.jredis.*;resolution:="optional";version="[1.0.0, 2.0.0)",
- redis.clients.*;resolution:="optional";version="[2.6.0, 2.6.0)",
+ redis.clients.*;resolution:="optional";version="[2.6.0, 2.6.1)",
  org.apache.commons.pool2.*;resolution:="optional";version="[1.0, 2.2)",
  org.codehaus.jackson.*;resolution:="optional";version="[1.6, 2.0.0)",
  com.fasterxml.jackson.*;resolution:="optional";version="[2.0.0, 3.0.0)",
