@@ -16,6 +16,9 @@
 package org.springframework.data.redis.connection;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.dao.DataAccessException;
@@ -110,6 +113,38 @@ public abstract class AbstractRedisConnection implements RedisConnection {
 				}
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object zRange(byte[] key, TargetMethod method) {
+		try {
+			method.getValueList().add(0, key);
+			Method targetMethod = this.getClass().getMethod(method.getMethodName(), method.getTypeList());
+			return targetMethod.invoke(this, method.getValueList().toArray(new Object[0]));
+		}
+		catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new HashSet<Object>();
+
 	}
 
 }

@@ -15,11 +15,22 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
-import static org.springframework.data.redis.core.ScanOptions.*;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
+import static org.springframework.data.redis.core.ScanOptions.scanOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +55,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
@@ -55,6 +68,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -2090,4 +2104,20 @@ public abstract class AbstractConnectionIntegrationTests {
 			return (!connection.exists(key));
 		}
 	}
+
+
+	@Test
+	public void zRangeOptionIndex() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+
+		Set<byte[]> zRangeByScore = (Set<byte[]>) connection.zRange("myzset", new ZRangeOptions().start(1).end(3).build());
+		Iterator<byte[]> iterator = zRangeByScore.iterator();
+		assertEquals("two", JedisConverters.toString(iterator.next()));
+		assertEquals("three", JedisConverters.toString(iterator.next()));
+	}
+
+
 }

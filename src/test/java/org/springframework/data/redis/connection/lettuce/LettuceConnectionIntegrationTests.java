@@ -16,11 +16,15 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
-import static org.springframework.data.redis.SpinBarrier.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+import static org.springframework.data.redis.SpinBarrier.waitFor;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +34,7 @@ import org.hamcrest.core.IsCollectionContaining;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.RedisVersionUtils;
@@ -38,8 +43,11 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.ZRangeOptions;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
@@ -327,6 +335,50 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
 		
 		assertEquals("two", new String(zRangeByScore.iterator().next()));
+	}
+
+	@Test
+	public void zRangeOptionScoreInclusiveTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+
+		Set<byte[]> zRangeByScore = (Set<byte[]>) connection.zRange("myzset", new ZRangeOptions().score().greaterThanExclusive(1.1)
+				.lessThanInclusive(3.0).build());
+		Iterator<byte[]> iterator = zRangeByScore.iterator();
+		assertEquals("two", JedisConverters.toString(iterator.next()));
+		assertEquals("three", JedisConverters.toString(iterator.next()));
+	}
+
+	@Test
+	public void zRangeOptionScoreExclusiveLimitWithScoresTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		connection.zAdd("myzset", 4, "four");
+
+		Set<Tuple> zRangeByScore = (Set<Tuple>) connection.zRange("myzset", new ZRangeOptions().score().greaterThanInclusive(1.1)
+				.lessThanInclusive(4.0).withScores().limitedTo().offset(1).count(1).build());
+		assertEquals("three", JedisConverters.toString(zRangeByScore.iterator().next().getValue()));
+		assertEquals(3.0, (double) zRangeByScore.iterator().next().getScore(), 0);
+	}
+
+	@Test
+	public void zRangeOptionRevScoreExclusiveLimitTest() {
+
+		connection.zAdd("myzset", 1, "one");
+		connection.zAdd("myzset", 2, "two");
+		connection.zAdd("myzset", 3, "three");
+		connection.zAdd("myzset", 4, "four");
+
+		Set<byte[]> zRangeByScore = (Set<byte[]>) connection.zRange("myzset", new ZRangeOptions().score().rev().greaterThanInclusive(1.1)
+				.lessThanInclusive(3.0).limitedTo().offset(0).count(2).build());
+
+		Iterator<byte[]> iterator = zRangeByScore.iterator();
+		assertEquals("three", JedisConverters.toString(iterator.next()));
+		assertEquals("two", JedisConverters.toString(iterator.next()));
 	}
 
 }

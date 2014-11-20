@@ -368,4 +368,11 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count);
+	
+	/**
+	* @param string
+	* @param count
+	* @return
+	*/
+	Object zRange(String string, TargetMethod count);
 }
