@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.UncategorizedDataAccessException;
+import org.springframework.dao.NonTransientDataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -75,23 +75,23 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 
 	protected <T> T eval(RedisConnection connection, RedisScript<T> script, ReturnType returnType, int numKeys,
 			byte[][] keysAndArgs, RedisSerializer<T> resultSerializer) {
-		
+
 		Object result;
 		try {
 			result = connection.evalSha(script.getSha1(), returnType, numKeys, keysAndArgs);
 		} catch (Exception e) {
 
-			if (!expectionContainsNoScriptError(e)) {
+			if (!exceptionContainsNoScriptError(e)) {
 				throw e instanceof RuntimeException ? (RuntimeException) e : new RedisSystemException(e.getMessage(), e);
 			}
 
 			result = connection.eval(scriptBytes(script), returnType, numKeys, keysAndArgs);
 		}
-		
+
 		if (script.getResultType() == null) {
 			return null;
 		}
-		
+
 		return deserializeResult(resultSerializer, result);
 	}
 
@@ -146,9 +146,9 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 		return template.getKeySerializer();
 	}
 
-	private boolean expectionContainsNoScriptError(Exception e) {
+	private boolean exceptionContainsNoScriptError(Exception e) {
 
-		if (!(e instanceof UncategorizedDataAccessException)) {
+		if (!(e instanceof NonTransientDataAccessException)) {
 			return false;
 		}
 
