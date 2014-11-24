@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.After;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.Person;
-import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
@@ -39,30 +36,34 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.IfProfileValue;
-import org.springframework.test.annotation.ProfileValueSourceConfiguration;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Integration test of {@link DefaultScriptExecutor}
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  */
-@RunWith(RelaxedJUnit4ClassRunner.class)
-@ContextConfiguration
-@ProfileValueSourceConfiguration(RedisTestProfileValueSource.class)
 @IfProfileValue(name = "redisVersion", value = "2.6+")
-public class DefaultScriptExecutorTests {
+public abstract class AbstractDefaultScriptExecutorTests {
 
-	@Autowired private RedisConnectionFactory connFactory;
+	public static @ClassRule MinimumRedisVersionRule minRedisVersion = new MinimumRedisVersionRule();
 
-	@SuppressWarnings("rawtypes") private RedisTemplate template;
+	@SuppressWarnings("rawtypes")//
+	private RedisTemplate template;
+
+	protected abstract RedisConnectionFactory getConnectionFactory();
 
 	@SuppressWarnings("unchecked")
-	@After
 	public void tearDown() {
+
+		if (template == null) {
+			return;
+		}
+
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
@@ -76,7 +77,7 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecuteLongResult() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript<Long> script = new DefaultRedisScript<Long>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/increment.lua"));
@@ -94,7 +95,7 @@ public class DefaultScriptExecutorTests {
 		this.template = new RedisTemplate<String, Long>();
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript<Boolean> script = new DefaultRedisScript<Boolean>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/cas.lua"));
@@ -110,7 +111,7 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecuteListResultCustomArgsSerializer() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		template.boundListOps("mylist").leftPushAll("a", "b", "c", "d");
 		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
@@ -126,7 +127,7 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecuteMixedListResult() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript<List> script = new DefaultRedisScript<List>();
 		script.setLocation(new ClassPathResource("org/springframework/data/redis/core/script/popandlength.lua"));
@@ -143,7 +144,7 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecuteValueResult() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptText("return redis.call('GET',KEYS[1])");
@@ -159,7 +160,7 @@ public class DefaultScriptExecutorTests {
 		this.template = new RedisTemplate<String, Long>();
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript script = new DefaultRedisScript();
 		script.setScriptText("return redis.call('SET',KEYS[1], ARGV[1])");
@@ -175,7 +176,7 @@ public class DefaultScriptExecutorTests {
 		this.template = new RedisTemplate<String, Person>();
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setValueSerializer(personSerializer);
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptSource(new StaticScriptSource("redis.call('SET',KEYS[1], ARGV[1])\nreturn 'FOO'"));
@@ -192,7 +193,7 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecutePipelined() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptText("return KEYS[1]");
@@ -212,7 +213,7 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecuteTx() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
 		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptText("return 'bar'..KEYS[1]");
@@ -234,14 +235,32 @@ public class DefaultScriptExecutorTests {
 	@Test
 	public void testExecuteCachedNullKeys() {
 		this.template = new StringRedisTemplate();
-		template.setConnectionFactory(connFactory);
+		template.setConnectionFactory(getConnectionFactory());
 		template.afterPropertiesSet();
-		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptText("return 'HELLO'");
 		script.setResultType(String.class);
 		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
 		// Execute script twice, second time should be from cache
 		assertEquals("HELLO", scriptExecutor.execute(script, null));
 		assertEquals("HELLO", scriptExecutor.execute(script, null));
+	}
+
+	/**
+	 * @see DATAREDIS-356
+	 */
+	@Test
+	public void shouldTransparentlyReEvaluateScriptIfNotPresent() throws Exception {
+
+		this.template = new StringRedisTemplate();
+		template.setConnectionFactory(getConnectionFactory());
+		template.afterPropertiesSet();
+
+		DefaultRedisScript<String> script = new DefaultRedisScript<String>();
+		script.setScriptText("return 'BUBU" + System.currentTimeMillis() + "'");
+		script.setResultType(String.class);
+
+		ScriptExecutor<String> scriptExecutor = new DefaultScriptExecutor<String>(template);
+		assertEquals("BUBU", scriptExecutor.execute(script, null).substring(0, 4));
 	}
 }
