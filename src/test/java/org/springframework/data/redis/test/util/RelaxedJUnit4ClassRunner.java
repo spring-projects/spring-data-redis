@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.test.util;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.AnnotatedElement;
 
 import org.junit.Ignore;
 import org.junit.runners.model.FrameworkMethod;
@@ -44,14 +44,16 @@ public class RelaxedJUnit4ClassRunner extends SpringJUnit4ClassRunner {
 
 	@Override
 	protected boolean isTestMethodIgnored(FrameworkMethod frameworkMethod) {
+		return isAnnotatedElementIgnored(frameworkMethod.getMethod());
+	}
 
-		Method method = frameworkMethod.getMethod();
+	private boolean isAnnotatedElementIgnored(AnnotatedElement annotatedElement) {
 
-		if (method.isAnnotationPresent(Ignore.class)) {
+		if (annotatedElement.isAnnotationPresent(Ignore.class)) {
 			return true;
 		}
 
-		IfProfileValue ifProfileValue = method.getAnnotation(IfProfileValue.class);
+		IfProfileValue ifProfileValue = annotatedElement.getAnnotation(IfProfileValue.class);
 		if (ifProfileValue == null) {
 			return false;
 		}
