@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ package org.springframework.data.redis.connection;
  * Interface for the commands supported by Redis.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public interface RedisCommands extends RedisKeyCommands, RedisStringCommands, RedisListCommands, RedisSetCommands,
 		RedisZSetCommands, RedisHashCommands, RedisTxCommands, RedisPubSubCommands, RedisConnectionCommands,
-		RedisServerCommands, RedisScriptingCommands {
+		RedisServerCommands, RedisScriptingCommands, HyperLogLogCommands {
 
 	/**
 	 * 'Native' or 'raw' execution of the given command along-side the given arguments. The command is executed as is,

@@ -51,6 +51,8 @@ import org.springframework.util.Assert;
  */
 public class DefaultStringRedisConnection implements StringRedisConnection {
 
+	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
+
 	private final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
 	private final RedisConnection delegate;
 	private final RedisSerializer<String> serializer;
@@ -1247,6 +1249,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private byte[][] serializeMulti(String... keys) {
+
+		if (keys == null) {
+			return EMPTY_2D_BYTE_ARRAY;
+		}
+
 		byte[][] ret = new byte[keys.length][];
 
 		for (int i = 0; i < ret.length; i++) {
@@ -2413,12 +2420,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		
+
 		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
-		
+
 		return results;
 	}
 
@@ -2429,8 +2436,62 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
-		
+
 		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfAdd(byte[], byte[][])
+	 */
+	@Override
+	public Long pfAdd(byte[] key, byte[]... values) {
+		return delegate.pfAdd(key, values);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pfAdd(java.lang.String, java.lang.String[])
+	 */
+	@Override
+	public Long pfAdd(String key, String... values) {
+		return this.pfAdd(serialize(key), serializeMulti(values));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfCount(byte[][])
+	 */
+	@Override
+	public Long pfCount(byte[]... keys) {
+		return delegate.pfCount(keys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pfCount(java.lang.String[])
+	 */
+	@Override
+	public Long pfCount(String... keys) {
+		return this.pfCount(serializeMulti(keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfMerge(byte[], byte[][])
+	 */
+	@Override
+	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+		delegate.pfMerge(destinationKey, sourceKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pfMerge(java.lang.String, java.lang.String[][])
+	 */
+	@Override
+	public void pfMerge(String destinationKey, String... sourceKeys) {
+		this.pfMerge(serialize(destinationKey), serializeMulti(sourceKeys));
 	}
 
 }

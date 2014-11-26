@@ -1721,6 +1721,38 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	public void pfAddShouldDelegateToNativeConnectionCorrectly() {
+
+		connection.pfAdd("hll", "spring", "data", "redis");
+		verify(nativeConnection, times(1)).pfAdd("hll".getBytes(), "spring".getBytes(), "data".getBytes(),
+				"redis".getBytes());
+	}
+
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	public void pfCountShouldDelegateToNativeConnectionCorrectly() {
+
+		connection.pfCount("hll", "hyperLogLog");
+		verify(nativeConnection, times(1)).pfCount("hll".getBytes(), "hyperLogLog".getBytes());
+	}
+
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	public void pfMergeShouldDelegateToNativeConnectionCorrectly() {
+
+		connection.pfMerge("merged", "spring", "data", "redis");
+		verify(nativeConnection, times(1)).pfMerge("merged".getBytes(), "spring".getBytes(), "data".getBytes(),
+				"redis".getBytes());
+	}
+
+	/**
 	 * @see DATAREDIS-270
 	 */
 	@Test

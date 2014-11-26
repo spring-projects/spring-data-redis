@@ -3166,7 +3166,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		
+
 		try {
 			String keyStr = new String(key, "UTF-8");
 			if (isPipelined()) {
@@ -3185,7 +3185,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
-		
+
 		try {
 			String keyStr = new String(key, "UTF-8");
 			if (isPipelined()) {
@@ -3196,7 +3196,80 @@ public class JedisConnection extends AbstractRedisConnection {
 				transaction(new JedisResult(transaction.zrangeByScore(keyStr, min, max, (int) offset, (int) count)));
 				return null;
 			}
-			return JedisConverters.stringSetToByteSet().convert(jedis.zrangeByScore(keyStr, min, max, (int) offset, (int) count));
+			return JedisConverters.stringSetToByteSet().convert(
+					jedis.zrangeByScore(keyStr, min, max, (int) offset, (int) count));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfAdd(byte[], byte[][])
+	 */
+	@Override
+	public Long pfAdd(byte[] key, byte[]... values) {
+
+		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
+		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
+
+		try {
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.pfadd(key, values)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.pfadd(key, values)));
+				return null;
+			}
+			return jedis.pfadd(key, values);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfCount(byte[][])
+	 */
+	@Override
+	public Long pfCount(byte[]... keys) {
+
+		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
+		Assert.noNullElements(keys, "Keys for PFOUNT must not contain 'null'.");
+
+		try {
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.pfcount(keys)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.pfcount(keys)));
+				return null;
+			}
+			return jedis.pfcount(keys);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfMerge(byte[], byte[][])
+	 */
+	@Override
+	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+
+		try {
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.pfmerge(destinationKey, sourceKeys)));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.pfmerge(destinationKey, sourceKeys)));
+				return;
+			}
+			jedis.pfmerge(destinationKey, sourceKeys);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
