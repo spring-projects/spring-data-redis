@@ -251,6 +251,12 @@ public interface RedisOperations<K, V> {
 	ZSetOperations<K, V> opsForZSet();
 
 	/**
+	 * @return
+	 * @since 1.5
+	 */
+	HyperLogLogOperations<K, V> opsForHyperLogLog();
+
+	/**
 	 * Returns the operations performed on zset values (also known as sorted sets) bound to the given key.
 	 * 
 	 * @param key Redis key

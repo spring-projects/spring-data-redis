@@ -96,6 +96,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private ListOperations<K, V> listOps;
 	private SetOperations<K, V> setOps;
 	private ZSetOperations<K, V> zSetOps;
+	private HyperLogLogOperations<K, V> hllOps;
 
 	/**
 	 * Constructs a new <code>RedisTemplate</code> instance.
@@ -996,6 +997,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return zSetOps;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
+	 */
+	@Override
+	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
+
+		if (hllOps == null) {
+			hllOps = new DefaultHyperLogLogOperations<K, V>(this);
+		}
+		return hllOps;
+	}
+
 	public <HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key) {
 		return new DefaultBoundHashOperations<K, HK, HV>(key, this);
 	}
@@ -1075,4 +1089,5 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public void setEnableTransactionSupport(boolean enableTransactionSupport) {
 		this.enableTransactionSupport = enableTransactionSupport;
 	}
+
 }

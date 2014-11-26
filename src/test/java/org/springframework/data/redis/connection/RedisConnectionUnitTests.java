@@ -791,7 +791,7 @@ public class RedisConnectionUnitTests {
 		public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
 			return delegate.evalSha(scriptSha, returnType, numKeys, keysAndArgs);
 		}
-		
+
 		@Override
 		public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
 			return delegate.zRangeByScore(key, min, max);
@@ -800,6 +800,21 @@ public class RedisConnectionUnitTests {
 		@Override
 		public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
 			return delegate.zRangeByScore(key, min, max, offset, count);
+		}
+
+		@Override
+		public Long pfAdd(byte[] key, byte[]... values) {
+			return delegate.pfAdd(key, values);
+		}
+
+		@Override
+		public Long pfCount(byte[]... keys) {
+			return delegate.pfCount(keys);
+		}
+
+		@Override
+		public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+			delegate.pfMerge(destinationKey, sourceKeys);
 		}
 	}
 }

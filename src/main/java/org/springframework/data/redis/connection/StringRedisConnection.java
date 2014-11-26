@@ -35,7 +35,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author David Liu
- * 
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -368,4 +367,28 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count);
+
+	/**
+	 * Adds given {@literal values} to the HyperLogLog stored at given {@literal key}.
+	 * 
+	 * @param key
+	 * @param values
+	 * @return
+	 * @since 1.5
+	 */
+	Long pfAdd(String key, String... values);
+
+	/**
+	 * @param keys
+	 * @return
+	 * @since 1.5
+	 */
+	Long pfCount(String... keys);
+
+	/**
+	 * @param destinationKey
+	 * @param sourceKeys
+	 * @since 1.5
+	 */
+	void pfMerge(String destinationKey, String... sourceKeys);
 }

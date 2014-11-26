@@ -3618,7 +3618,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		
+
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max),
@@ -3638,7 +3638,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
-		
+
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max, offset, count),
@@ -3655,5 +3655,32 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw convertLettuceAccessException(ex);
 		}
 	}
-	
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfAdd(byte[], byte[][])
+	 */
+	@Override
+	public Long pfAdd(byte[] key, byte[]... values) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfCount(byte[][])
+	 */
+	@Override
+	public Long pfCount(byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfMerge(byte[], byte[][])
+	 */
+	@Override
+	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+		throw new UnsupportedOperationException();
+	}
+
 }
