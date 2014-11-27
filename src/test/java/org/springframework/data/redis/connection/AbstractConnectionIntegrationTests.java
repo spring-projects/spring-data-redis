@@ -2071,6 +2071,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	 * @see DATAREDIS-308
 	 */
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfAddShouldAddToNonExistingKeyCorrectly() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory)) {
@@ -2087,6 +2088,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	 * @see DATAREDIS-308
 	 */
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory)) {
@@ -2107,6 +2109,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	 * @see DATAREDIS-308
 	 */
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfCountShouldReturnCorrectly() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory)) {
@@ -2125,6 +2128,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	 * @see DATAREDIS-308
 	 */
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory)) {
@@ -2145,6 +2149,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	 * @see DATAREDIS-308
 	 */
 	@Test(expected = IllegalArgumentException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
 
 		if (!ConnectionUtils.isJedis(connectionFactory)) {

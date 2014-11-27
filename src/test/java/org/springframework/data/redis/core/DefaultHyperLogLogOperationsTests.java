@@ -22,7 +22,7 @@ import java.util.Collection;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -36,6 +36,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
+@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 public class DefaultHyperLogLogOperationsTests<K, V> {
 
 	private RedisTemplate<K, V> redisTemplate;
@@ -46,7 +47,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 
 	private HyperLogLogOperations<K, V> hyperLogLogOps;
 
-	public @Rule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
+	public static @ClassRule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
 
 	public DefaultHyperLogLogOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
@@ -80,7 +81,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void addShouldAddDistinctValuesCorrectly() {
 
 		K key = keyFactory.instance();
@@ -96,7 +96,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void addShouldNotAddExistingValuesCorrectly() {
 
 		K key = keyFactory.instance();
@@ -113,7 +112,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void sizeShouldCountValuesCorrectly() {
 
 		K key = keyFactory.instance();
@@ -130,7 +128,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void sizeShouldCountValuesOfMultipleKeysCorrectly() {
 
 		K key = keyFactory.instance();
@@ -152,7 +149,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void unionShouldMergeValuesOfMultipleKeysCorrectly() throws InterruptedException {
 
 		K sourceKey_1 = keyFactory.instance();
