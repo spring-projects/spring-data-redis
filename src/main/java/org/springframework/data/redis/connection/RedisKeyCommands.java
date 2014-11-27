@@ -31,8 +31,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Determine if given {@code key} exists.
+	 * <p>
+	 * See http://redis.io/commands/exists
 	 * 
-	 * @see http://redis.io/commands/exists
 	 * @param key
 	 * @return
 	 */
@@ -40,8 +41,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Delete given {@code keys}.
+	 * <p>
+	 * See http://redis.io/commands/del
 	 * 
-	 * @see http://redis.io/commands/del
 	 * @param keys
 	 * @return The number of keys that were removed.
 	 */
@@ -49,8 +51,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Determine the type stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/type
 	 * 
-	 * @see http://redis.io/commands/type
 	 * @param key
 	 * @return
 	 */
@@ -58,19 +61,20 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Find all keys matching the given {@code pattern}.
+	 * <p>
+	 * See http://redis.io/commands/keys
 	 * 
-	 * @see http://redis.io/commands/keys
 	 * @param pattern
 	 * @return
 	 */
 	Set<byte[]> keys(byte[] pattern);
 
 	/**
-	 * Use a {@link Cursor} to iterate over keys. <br />
+	 * Use a {@link Cursor} to iterate over keys.
+	 * <p>
+	 * See http://redis.io/commands/scan
 	 * 
-	 * @see http://redis.io/commands/scan
-	 * @param count
-	 * @param pattern
+	 * @param options
 	 * @return
 	 * @since 1.4
 	 */
@@ -78,16 +82,18 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Return a random key from the keyspace.
+	 * <p>
+	 * See http://redis.io/commands/randomkey
 	 * 
-	 * @see http://redis.io/commands/randomkey
 	 * @return
 	 */
 	byte[] randomKey();
 
 	/**
 	 * Rename key {@code oleName} to {@code newName}.
+	 * <p>
+	 * See http://redis.io/commands/rename
 	 * 
-	 * @see http://redis.io/commands/rename
 	 * @param oldName
 	 * @param newName
 	 */
@@ -95,8 +101,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Rename key {@code oleName} to {@code newName} only if {@code newName} does not exist.
+	 * <p>
+	 * See http://redis.io/commands/renamenx
 	 * 
-	 * @see http://redis.io/commands/renamenx
 	 * @param oldName
 	 * @param newName
 	 * @return
@@ -105,8 +112,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Set time to live for given {@code key} in seconds.
+	 * <p>
+	 * See http://redis.io/commands/expire
 	 * 
-	 * @see http://redis.io/commands/expire
 	 * @param key
 	 * @param seconds
 	 * @return
@@ -115,8 +123,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Set time to live for given {@code key} in milliseconds.
+	 * <p>
+	 * See http://redis.io/commands/pexpire
 	 * 
-	 * @see http://redis.io/commands/pexpire
 	 * @param key
 	 * @param millis
 	 * @return
@@ -125,8 +134,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 * <p>
+	 * See http://redis.io/commands/expireat
 	 * 
-	 * @see http://redis.io/commands/expireat
 	 * @param key
 	 * @param unixTime
 	 * @return
@@ -135,8 +145,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
+	 * <p>
+	 * See http://redis.io/commands/pexpireat
 	 * 
-	 * @see http://redis.io/commands/pexpireat
 	 * @param key
 	 * @param unixTimeInMillis
 	 * @return
@@ -145,8 +156,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Remove the expiration from given {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/persist
 	 * 
-	 * @see http://redis.io/commands/persist
 	 * @param key
 	 * @return
 	 */
@@ -154,8 +166,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Move given {@code key} to database with {@code index}.
+	 * <p>
+	 * See http://redis.io/commands/move
 	 * 
-	 * @see http://redis.io/commands/move
 	 * @param key
 	 * @param dbIndex
 	 * @return
@@ -164,8 +177,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Get the time to live for {@code key} in seconds.
+	 * <p>
+	 * See http://redis.io/commands/ttl
 	 * 
-	 * @see http://redis.io/commands/ttl
 	 * @param key
 	 * @return
 	 */
@@ -173,8 +187,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Get the time to live for {@code key} in milliseconds.
+	 * <p>
+	 * See http://redis.io/commands/pttl
 	 * 
-	 * @see http://redis.io/commands/pttl
 	 * @param key
 	 * @return
 	 */
@@ -182,8 +197,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Sort the elements for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/sort
 	 * 
-	 * @see http://redis.io/commands/sort
 	 * @param key
 	 * @param params
 	 * @return
@@ -192,8 +208,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Sort the elements for {@code key} and store result in {@code storeKey}.
+	 * <p>
+	 * See http://redis.io/commands/sort
 	 * 
-	 * @see http://redis.io/commands/sort
 	 * @param key
 	 * @param params
 	 * @param storeKey
@@ -203,8 +220,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Retrieve serialized version of the value stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/dump
 	 * 
-	 * @see http://redis.io/commands/dump
 	 * @param key
 	 * @return
 	 */
@@ -212,8 +230,9 @@ public interface RedisKeyCommands {
 
 	/**
 	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(byte[])}.
+	 * <p>
+	 * See http://redis.io/commands/restore
 	 * 
-	 * @see http://redis.io/commands/restore
 	 * @param key
 	 * @param ttlInMillis
 	 * @param serializedValue

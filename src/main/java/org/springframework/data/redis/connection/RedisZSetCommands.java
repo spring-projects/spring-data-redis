@@ -41,6 +41,7 @@ public interface RedisZSetCommands {
 	 * ZSet tuple.
 	 */
 	public interface Tuple extends Comparable<Double> {
+
 		byte[] getValue();
 
 		Double getScore();
@@ -48,8 +49,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Add {@code value} to a sorted set at {@code key}, or update its {@code score} if it already exists.
+	 * <p>
+	 * See http://redis.io/commands/zadd
 	 * 
-	 * @see http://redis.io/commands/zadd
 	 * @param key
 	 * @param score
 	 * @param value
@@ -59,8 +61,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} if it already exists.
+	 * <p>
+	 * See http://redis.io/commands/zadd
 	 * 
-	 * @see http://redis.io/commands/zadd
 	 * @param key
 	 * @param tuples
 	 * @return
@@ -69,8 +72,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
+	 * <p>
+	 * See http://redis.io/commands/zrem
 	 * 
-	 * @see http://redis.io/commands/zrem
 	 * @param key
 	 * @param values
 	 * @return
@@ -79,8 +83,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Increment the score of element with {@code value} in sorted set by {@code increment}.
+	 * <p>
+	 * See http://redis.io/commands/zincrby
 	 * 
-	 * @see http://redis.io/commands/zincrby
 	 * @param key
 	 * @param increment
 	 * @param value
@@ -90,8 +95,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrank
 	 * 
-	 * @see http://redis.io/commands/zrank
 	 * @param key
 	 * @param value
 	 * @return
@@ -100,8 +106,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Determine the index of element with {@code value} in a sorted set when scored high to low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrank
 	 * 
-	 * @see http://redis.io/commands/zrevrank
 	 * @param key
 	 * @param value
 	 * @return
@@ -110,8 +117,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get elements between {@code begin} and {@code end} from sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrange
 	 * 
-	 * @see http://redis.io/commands/zrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -121,8 +129,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get set of {@link Tuple}s between {@code begin} and {@code end} from sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrange
 	 * 
-	 * @see http://redis.io/commands/zrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -132,22 +141,24 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, double min, double max);
 
 	/**
 	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
 	 * @return
 	 */
 	Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max);
@@ -155,11 +166,14 @@ public interface RedisZSetCommands {
 	/**
 	 * Get elements in range from {@code begin} to {@code end} where score is between {@code min} and {@code max} from
 	 * sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
+	 * @param offset
+	 * @param count
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count);
@@ -167,19 +181,23 @@ public interface RedisZSetCommands {
 	/**
 	 * Get set of {@link Tuple}s in range from {@code begin} to {@code end} where score is between {@code min} and
 	 * {@code max} from sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
+	 * @param offset
+	 * @param count
 	 * @return
 	 */
 	Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
 
 	/**
 	 * Get elements in range from {@code begin} to {@code end} from sorted set ordered high -> low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrange
 	 * 
-	 * @see http://redis.io/commands/zrevrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -189,8 +207,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code begin} to {@code end} from sorted set ordered high -> low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrange
 	 * 
-	 * @see http://redis.io/commands/zrevrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -200,22 +219,24 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered high -> low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrange
 	 * 
-	 * @see http://redis.io/commands/zrevrange
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
 	 * @return
 	 */
 	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max);
 
 	/**
 	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered high -> low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrange
 	 * 
-	 * @see http://redis.io/commands/zrevrange
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
 	 * @return
 	 */
 	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max);
@@ -223,11 +244,14 @@ public interface RedisZSetCommands {
 	/**
 	 * Get elements in range from {@code begin} to {@code end} where score is between {@code min} and {@code max} from
 	 * sorted set ordered high -> low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zrevrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
+	 * @param offset
+	 * @param count
 	 * @return
 	 */
 	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count);
@@ -235,19 +259,23 @@ public interface RedisZSetCommands {
 	/**
 	 * Get set of {@link Tuple} in range from {@code begin} to {@code end} where score is between {@code min} and
 	 * {@code max} from sorted set ordered high -> low.
+	 * <p>
+	 * See http://redis.io/commands/zrevrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zrevrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
+	 * @param offset
+	 * @param count
 	 * @return
 	 */
 	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
 
 	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
+	 * <p>
+	 * See http://redis.io/commands/zcount
 	 * 
-	 * @see http://redis.io/commands/zcount
 	 * @param key
 	 * @param min
 	 * @param max
@@ -257,8 +285,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get the size of sorted set with {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zcard
 	 * 
-	 * @see http://redis.io/commands/zcard
 	 * @param key
 	 * @return
 	 */
@@ -266,8 +295,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Get the score of element with {@code value} from sorted set with key {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zrem
 	 * 
-	 * @see http://redis.io/commands/zrem
 	 * @param key
 	 * @param value
 	 * @return
@@ -276,8 +306,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Remove elements in range between {@code begin} and {@code end} from sorted set with {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zremrange
 	 * 
-	 * @see http://redis.io/commands/zremrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -287,8 +318,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Remove elements with scores between {@code min} and {@code max} from sorted set with {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zremrangebyscore
 	 * 
-	 * @see http://redis.io/commands/zremrangebyscore
 	 * @param key
 	 * @param min
 	 * @param max
@@ -298,8 +330,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zunionstore
 	 * 
-	 * @see http://redis.io/commands/zunionstore
 	 * @param destKey
 	 * @param sets
 	 * @return
@@ -308,8 +341,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Union sorted {@code sets} and store result in destination {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zunionstore
 	 * 
-	 * @see http://redis.io/commands/zunionstore
 	 * @param destKey
 	 * @param aggregate
 	 * @param weights
@@ -320,8 +354,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zinterstore
 	 * 
-	 * @see http://redis.io/commands/zinterstore
 	 * @param destKey
 	 * @param sets
 	 * @return
@@ -330,8 +365,9 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Intersect sorted {@code sets} and store result in destination {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/zinterstore
 	 * 
-	 * @see http://redis.io/commands/zinterstore
 	 * @param destKey
 	 * @param sets
 	 * @return
@@ -340,23 +376,25 @@ public interface RedisZSetCommands {
 
 	/**
 	 * Use a {@link Cursor} to iterate over elements in sorted set at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/scan
 	 * 
 	 * @since 1.4
-	 * @see http://redis.io/commands/scan
 	 * @param key
 	 * @param options
 	 * @return
 	 */
 	Cursor<Tuple> zScan(byte[] key, ScanOptions options);
-	
+
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrangebyscore
 	 * 
 	 * @since 1.5
-	 * @see http://redis.io/commands/zrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, String min, String max);
@@ -364,12 +402,15 @@ public interface RedisZSetCommands {
 	/**
 	 * Get elements in range from {@code begin} to {@code end} where score is between {@code min} and {@code max} from
 	 * sorted set.
+	 * <p>
+	 * See http://redis.io/commands/zrangebyscore
 	 * 
 	 * @since 1.5
-	 * @see http://redis.io/commands/zrangebyscore
 	 * @param key
-	 * @param begin
-	 * @param end
+	 * @param min
+	 * @param max
+	 * @param offset
+	 * @param count
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count);

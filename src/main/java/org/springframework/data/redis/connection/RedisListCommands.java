@@ -34,8 +34,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Append {@code values} to {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/rpush
 	 * 
-	 * @see http://redis.io/commands/rpush
 	 * @param key
 	 * @param values
 	 * @return
@@ -44,28 +45,31 @@ public interface RedisListCommands {
 
 	/**
 	 * Prepend {@code values} to {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/lpush
 	 * 
-	 * @see http://redis.io/commands/lpush
 	 * @param key
-	 * @param value
+	 * @param values
 	 * @return
 	 */
-	Long lPush(byte[] key, byte[]... value);
+	Long lPush(byte[] key, byte[]... values);
 
 	/**
 	 * Append {@code} values to {@code key} only if the list exists.
+	 * <p>
+	 * See http://redis.io/commands/rpushx
 	 * 
-	 * @see http://redis.io/commands/rpushx
 	 * @param key
-	 * @param values
+	 * @param value
 	 * @return
 	 */
 	Long rPushX(byte[] key, byte[] value);
 
 	/**
-	 * Prepend {@code values} to {@code key} only if the list exits.
+	 * Prepend {@code values} to {@code key} only if the list exists.
+	 * <p>
+	 * See http://redis.io/commands/lpushx
 	 * 
-	 * @see http://redis.io/commands/lpushx
 	 * @param key
 	 * @param value
 	 * @return
@@ -74,8 +78,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Get the size of list stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/llen
 	 * 
-	 * @see http://redis.io/commands/llen
 	 * @param key
 	 * @return
 	 */
@@ -83,8 +88,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Get elements between {@code begin} and {@code end} from list at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/lrange
 	 * 
-	 * @see http://redis.io/commands/lrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -94,8 +100,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Trim list at {@code key} to elements between {@code begin} and {@code end}.
+	 * <p>
+	 * See http://redis.io/commands/ltrim
 	 * 
-	 * @see http://redis.io/commands/ltrim
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -104,8 +111,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Get element at {@code index} form list at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/lindex
 	 * 
-	 * @see http://redis.io/commands/lindex
 	 * @param key
 	 * @param index
 	 * @return
@@ -114,8 +122,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Insert {@code value} {@link Position#BEFORE} or {@link Position#AFTER} existing {@code pivot} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/linsert
 	 * 
-	 * @see http://redis.io/commands/linsert
 	 * @param key
 	 * @param where
 	 * @param pivot
@@ -126,8 +135,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Set the {@code value} list element at {@code index}.
+	 * <p>
+	 * See http://redis.io/commands/lset
 	 * 
-	 * @see http://redis.io/commands/lset
 	 * @param key
 	 * @param index
 	 * @param value
@@ -136,8 +146,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Removes the first {@code count} occurrences of {@code value} from the list stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/lrem
 	 * 
-	 * @see http://redis.io/commands/lrem
 	 * @param key
 	 * @param count
 	 * @param value
@@ -147,8 +158,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Removes and returns first element in list stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/lpop
 	 * 
-	 * @see http://redis.io/commands/lpop
 	 * @param key
 	 * @return
 	 */
@@ -156,18 +168,20 @@ public interface RedisListCommands {
 
 	/**
 	 * Removes and returns last element in list stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/rpop
 	 * 
-	 * @see http://redis.io/commands/rpop
 	 * @param key
 	 * @return
 	 */
 	byte[] rPop(byte[] key);
 
 	/**
-	 * Removes and returns first element from lists stored at {@code keys} (see: {@link #lPop(byte[])}). <br />
+	 * Removes and returns first element from lists stored at {@code keys} (see: {@link #lPop(byte[])}). <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 * <p>
+	 * See http://redis.io/commands/blpop
 	 * 
-	 * @see http://redis.io/commands/blpop
 	 * @param timeout
 	 * @param keys
 	 * @return
@@ -175,10 +189,11 @@ public interface RedisListCommands {
 	List<byte[]> bLPop(int timeout, byte[]... keys);
 
 	/**
-	 * Removes and returns last element from lists stored at {@code keys} (see: {@link #rPop(byte[])}). <br />
+	 * Removes and returns last element from lists stored at {@code keys} (see: {@link #rPop(byte[])}). <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 * <p>
+	 * See http://redis.io/commands/brpop
 	 * 
-	 * @see http://redis.io/commands/brpop
 	 * @param timeout
 	 * @param keys
 	 * @return
@@ -187,8 +202,9 @@ public interface RedisListCommands {
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value.
+	 * <p>
+	 * See http://redis.io/commands/rpoplpush
 	 * 
-	 * @see http://redis.io/commands/rpoplpush
 	 * @param srcKey
 	 * @param dstKey
 	 * @return
@@ -197,10 +213,11 @@ public interface RedisListCommands {
 
 	/**
 	 * Remove the last element from list at {@code srcKey}, append it to {@code dstKey} and return its value (see
-	 * {@link #rPopLPush(byte[], byte[])}). <br />
+	 * {@link #rPopLPush(byte[], byte[])}). <br>
 	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 * <p>
+	 * See http://redis.io/commands/brpoplpush
 	 * 
-	 * @see http://redis.io/commands/brpoplpush
 	 * @param timeout
 	 * @param srcKey
 	 * @param dstKey

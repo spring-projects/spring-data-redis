@@ -39,10 +39,10 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * {@link CacheManager} implementation for Redis. By default saves the keys directly, without appending a prefix (which
- * acts as a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). <br/>
+ * acts as a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). <br>
  * By default {@link RedisCache}s will be lazily initialized for each {@link #getCache(String)} request unless a set of
- * predefined cache names is provided. <br />
- * <br />
+ * predefined cache names is provided. <br>
+ * <br>
  * Setting {@link #setTransactionAware(boolean)} to {@code true} will force Caches to be decorated as
  * {@link TransactionAwareCacheDecorator} so values will only be written to the cache after successful commit of
  * surrounding transaction.
@@ -101,7 +101,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	/**
-	 * Specify the set of cache names for this CacheManager's 'static' mode. <br/>
+	 * Specify the set of cache names for this CacheManager's 'static' mode. <br>
 	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
 	 * regions at runtime.
 	 */
