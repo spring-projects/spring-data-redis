@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.UncategorizedDataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -147,8 +148,7 @@ public class DefaultScriptExecutor<K> implements ScriptExecutor<K> {
 	}
 
 	private boolean expectionContainsNoScriptError(Exception e) {
-
-		if (!(e instanceof UncategorizedDataAccessException)) {
+		if (!(e instanceof UncategorizedDataAccessException) && !(e instanceof InvalidDataAccessApiUsageException)) {
 			return false;
 		}
 
