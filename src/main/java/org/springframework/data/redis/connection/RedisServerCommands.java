@@ -35,8 +35,9 @@ public interface RedisServerCommands {
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
+	 * <p>
+	 * See http://redis.io/commands/bgrewriteaof
 	 * 
-	 * @see http://redis.io/commands/bgrewriteaof
 	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
 	 */
 	@Deprecated
@@ -44,53 +45,56 @@ public interface RedisServerCommands {
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
+	 * <p>
+	 * See http://redis.io/commands/bgrewriteaof
 	 * 
-	 * @see http://redis.io/commands/bgrewriteaof
 	 * @since 1.3
 	 */
 	void bgReWriteAof();
 
 	/**
 	 * Start background saving of db on server.
-	 * 
-	 * @see http://redis.io/commands/bgsave
+	 * <p>
+	 * See http://redis.io/commands/bgsave
 	 */
 	void bgSave();
 
 	/**
 	 * Get time of last {@link #bgSave()} operation in seconds.
+	 * <p>
+	 * See http://redis.io/commands/lastsave
 	 * 
-	 * @see http://redis.io/commands/lastsave
 	 * @return
 	 */
 	Long lastSave();
 
 	/**
 	 * Synchronous save current db snapshot on server.
-	 * 
-	 * @see http://redis.io/commands/save
+	 * <p>
+	 * See http://redis.io/commands/save
 	 */
 	void save();
 
 	/**
 	 * Get the total number of available keys in currently selected database.
+	 * <p>
+	 * See http://redis.io/commands/dbsize
 	 * 
-	 * @see http://redis.io/commands/dbsize
 	 * @return
 	 */
 	Long dbSize();
 
 	/**
 	 * Delete all keys of the currently selected database.
-	 * 
-	 * @see http://redis.io/commands/flushdb
+	 * <p>
+	 * See http://redis.io/commands/flushdb
 	 */
 	void flushDb();
 
 	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
-	 * 
-	 * @see http://redis.io/commands/flushall
+	 * <p>
+	 * See http://redis.io/commands/flushall
 	 */
 	void flushAll();
 
@@ -101,58 +105,63 @@ public interface RedisServerCommands {
 	 * <li>cpu utilization</li>
 	 * <li>replication</li>
 	 * </ul>
+	 * <p>
+	 * See http://redis.io/commands/info
 	 * 
-	 * @see http://redis.io/commands/info
 	 * @return
 	 */
 	Properties info();
 
 	/**
 	 * Load server information for given {@code selection}.
+	 * <p>
+	 * See http://redis.io/commands/info
 	 * 
-	 * @see http://redis.io/commands/info
 	 * @return
 	 */
 	Properties info(String section);
 
 	/**
 	 * Shutdown server.
-	 * 
-	 * @see http://redis.io/commands/shutdown
+	 * <p>
+	 * See http://redis.io/commands/shutdown
 	 */
 	void shutdown();
 
 	/**
 	 * Shutdown server.
+	 * <p>
+	 * See http://redis.io/commands/shutdown
 	 * 
-	 * @see http://redis.io/commands/shutdown
 	 * @since 1.3
 	 */
 	void shutdown(ShutdownOption option);
 
 	/**
 	 * Load configuration parameters for given {@code pattern} from server.
+	 * <p>
+	 * See http://redis.io/commands/config-get
 	 * 
-	 * @see http://redis.io/commands/config-get
 	 * @param pattern
 	 * @return
 	 */
 	List<String> getConfig(String pattern);
 
 	/**
-	 * Set server configuration for {@code key} to {@code value}.
+	 * Set server configuration for {@code param} to {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/config-set
 	 * 
-	 * @see http://redis.io/commands/config-set
 	 * @param param
 	 * @param value
 	 */
 	void setConfig(String param, String value);
 
 	/**
-	 * Reset statistic counters on server. <br />
+	 * Reset statistic counters on server. <br>
 	 * Counters can be retrieved using {@link #info()}.
-	 * 
-	 * @see http://redis.io/commands/config-resetstat
+	 * <p>
+	 * See http://redis.io/commands/config-resetstat
 	 */
 	void resetConfigStats();
 
@@ -165,7 +174,7 @@ public interface RedisServerCommands {
 	Long time();
 
 	/**
-	 * <<<<<<< HEAD Closes a given client connection identified by {@literal ip:port}.
+	 * Closes a given client connection identified by {@literal host:port}.
 	 * 
 	 * @param host of connection to close.
 	 * @param port of connection to close
@@ -176,14 +185,16 @@ public interface RedisServerCommands {
 	/**
 	 * Assign given name to current connection.
 	 * 
+	 * @param name
 	 * @since 1.3
 	 */
 	void setClientName(byte[] name);
 
 	/**
 	 * Returns the name of the current connection.
+	 * <p>
+	 * See http://redis.io/commands/client-getname
 	 * 
-	 * @see http://redis.io/commands/client-getname
 	 * @return
 	 * @since 1.3
 	 */
@@ -191,28 +202,31 @@ public interface RedisServerCommands {
 
 	/**
 	 * Request information and statistics about connected clients.
+	 * <p>
+	 * See http://redis.io/commands/client-list
 	 * 
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
-	 * @see http://redis.io/commands/client-list
 	 */
 	List<RedisClientInfo> getClientList();
 
 	/**
 	 * Change redis replication setting to new master.
+	 * <p>
+	 * See http://redis.io/commands/slaveof
 	 * 
 	 * @param host
 	 * @param port
 	 * @since 1.3
-	 * @see http://redis.io/commands/slaveof
 	 */
 	void slaveOf(String host, int port);
 
 	/**
 	 * Change server into master.
+	 * <p>
+	 * See http://redis.io/commands/slaveof
 	 * 
 	 * @since 1.3
-	 * @see http://redis.io/commands/slaveof
 	 */
 	void slaveOfNoOne();
 }

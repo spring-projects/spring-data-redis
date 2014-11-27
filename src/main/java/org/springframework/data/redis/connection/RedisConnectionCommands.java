@@ -25,16 +25,18 @@ public interface RedisConnectionCommands {
 
 	/**
 	 * Select the DB with given positive {@code dbIndex}.
+	 * <p>
+	 * See http://redis.io/commands/select
 	 * 
-	 * @see http://redis.io/commands/select
 	 * @param dbIndex
 	 */
 	void select(int dbIndex);
 
 	/**
 	 * Returns {@code message} via server roundtrip.
+	 * <p>
+	 * See http://redis.io/commands/echo
 	 * 
-	 * @see http://redis.io/commands/echo
 	 * @param message
 	 * @return
 	 */
@@ -42,8 +44,9 @@ public interface RedisConnectionCommands {
 
 	/**
 	 * Test connection.
+	 * <p>
+	 * See http://redis.io/commands/ping
 	 * 
-	 * @see http://redis.io/commands/ping
 	 * @return Server response message - usually {@literal PONG}.
 	 */
 	String ping();

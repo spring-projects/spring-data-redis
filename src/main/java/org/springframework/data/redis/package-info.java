@@ -1,6 +1,6 @@
 /**
  * Root package for integrating <a href="http://code.google.com/p/redis/">Redis</a> with Spring concepts.
- * <p/>
+ * <p>
  * Provides Redis specific exception hierarchy on top of the {@code org.springframework.dao} package. 
  * 
  */

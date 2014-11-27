@@ -101,10 +101,11 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/psetex
 	 * 
-	 * @see http://redis.io/commands/psetex
 	 * @param key
-	 * @param seconds
+	 * @param milliseconds
 	 * @param value
 	 * @since 1.3
 	 */
@@ -311,7 +312,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * 
 	 * @param name
 	 * @see #setClientName(byte[])
-	 * @sice 1.3
+	 * @since 1.3
 	 */
 	void setClientName(String name);
 

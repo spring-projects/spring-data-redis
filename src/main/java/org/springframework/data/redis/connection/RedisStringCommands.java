@@ -32,8 +32,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Get the value of {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/get
 	 * 
-	 * @see http://redis.io/commands/get
 	 * @param key
 	 * @return
 	 */
@@ -41,8 +42,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set value of {@code key} and return its old value.
+	 * <p>
+	 * See http://redis.io/commands/getset
 	 * 
-	 * @see http://redis.io/commands/getset
 	 * @param key
 	 * @param value
 	 * @return
@@ -51,8 +53,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Get the values of all given {@code keys}.
+	 * <p>
+	 * See http://redis.io/commands/mget
 	 * 
-	 * @see http://redis.io/commands/mget
 	 * @param keys
 	 * @return
 	 */
@@ -60,8 +63,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set {@code value} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/set
 	 * 
-	 * @see http://redis.io/commands/set
 	 * @param key
 	 * @param value
 	 */
@@ -69,8 +73,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
+	 * <p>
+	 * See http://redis.io/commands/setnx
 	 * 
-	 * @see http://redis.io/commands/setnx
 	 * @param key
 	 * @param value
 	 * @return
@@ -79,8 +84,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set the {@code value} and expiration in {@code seconds} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/setex
 	 * 
-	 * @see http://redis.io/commands/setex
 	 * @param key
 	 * @param seconds
 	 * @param value
@@ -89,8 +95,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/psetex
 	 * 
-	 * @see http://redis.io/commands/psetex
 	 * @param key
 	 * @param milliseconds
 	 * @param value
@@ -100,8 +107,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
+	 * <p>
+	 * See http://redis.io/commands/mset
 	 * 
-	 * @see http://redis.io/commands/mset
 	 * @param tuple
 	 */
 	void mSet(Map<byte[], byte[]> tuple);
@@ -109,16 +117,18 @@ public interface RedisStringCommands {
 	/**
 	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
 	 * not exist.
+	 * <p>
+	 * See http://redis.io/commands/msetnx
 	 * 
-	 * @see http://redis.io/commands/msetnx
 	 * @param tuple
 	 */
 	Boolean mSetNX(Map<byte[], byte[]> tuple);
 
 	/**
 	 * Increment value of {@code key} by 1.
+	 * <p>
+	 * See http://redis.io/commands/incr
 	 * 
-	 * @see http://redis.io/commands/incr
 	 * @param key
 	 * @return
 	 */
@@ -126,26 +136,31 @@ public interface RedisStringCommands {
 
 	/**
 	 * Increment value of {@code key} by {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/incrby
 	 * 
-	 * @see http://redis.io/commands/incrby
 	 * @param key
+	 * @param value
 	 * @return
 	 */
 	Long incrBy(byte[] key, long value);
 
 	/**
 	 * Increment value of {@code key} by {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/incrbyfloat
 	 * 
-	 * @see http://redis.io/commands/incrbyfloat
 	 * @param key
+	 * @param value
 	 * @return
 	 */
 	Double incrBy(byte[] key, double value);
 
 	/**
 	 * Decrement value of {@code key} by 1.
+	 * <p>
+	 * See http://redis.io/commands/decr
 	 * 
-	 * @see http://redis.io/commands/decr
 	 * @param key
 	 * @return
 	 */
@@ -153,8 +168,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Increment value of {@code key} by {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/decrby
 	 * 
-	 * @see http://redis.io/commands/decrby
 	 * @param key
 	 * @param value
 	 * @return
@@ -163,8 +179,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Append a {@code value} to {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/append
 	 * 
-	 * @see http://redis.io/commands/append
 	 * @param key
 	 * @param value
 	 * @return
@@ -173,8 +190,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * <p>
+	 * See http://redis.io/commands/getrange
 	 * 
-	 * @see http://redis.io/commands/getrange
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -184,8 +202,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/setrange
 	 * 
-	 * @see http://redis.io/commands/setrange
 	 * @param key
 	 * @param value
 	 * @param offset
@@ -194,8 +213,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Get the bit value at {@code offset} of value at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/getbit
 	 * 
-	 * @see http://redis.io/commands/getbit
 	 * @param key
 	 * @param offset
 	 * @return
@@ -204,8 +224,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Sets the bit at {@code offset} in value stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/setbit
 	 * 
-	 * @see http://redis.io/commands/setbit
 	 * @param key
 	 * @param offset
 	 * @param value
@@ -215,8 +236,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Count the number of set bits (population counting) in value stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/bitcount
 	 * 
-	 * @see http://redis.io/commands/bitcount
 	 * @param key
 	 * @return
 	 */
@@ -225,8 +247,9 @@ public interface RedisStringCommands {
 	/**
 	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code begin} and
 	 * {@code end}.
+	 * <p>
+	 * See http://redis.io/commands/bitcount
 	 * 
-	 * @see http://redis.io/commands/bitcount
 	 * @param key
 	 * @param begin
 	 * @param end
@@ -236,8 +259,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Perform bitwise operations between strings.
+	 * <p>
+	 * See http://redis.io/commands/bitop
 	 * 
-	 * @see http://redis.io/commands/bitop
 	 * @param op
 	 * @param destination
 	 * @param keys
@@ -247,8 +271,9 @@ public interface RedisStringCommands {
 
 	/**
 	 * Get the length of the value stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/strlen
 	 * 
-	 * @see http://redis.io/commands/strlen
 	 * @param key
 	 * @return
 	 */

@@ -26,7 +26,7 @@ import java.util.Iterator;
 public interface Cursor<T> extends Iterator<T>, Closeable {
 
 	/**
-	 * Get the reference cursor. <br />
+	 * Get the reference cursor. <br>
 	 * <strong>NOTE:</strong> the id might change while iterating items.
 	 * 
 	 * @return

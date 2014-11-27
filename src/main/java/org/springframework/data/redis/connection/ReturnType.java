@@ -25,19 +25,29 @@ import java.util.List;
  */
 public enum ReturnType {
 
-	/** Returned as Boolean **/
+	/**
+	 * Returned as Boolean
+	 */
 	BOOLEAN,
 
-	/** Returned as Long **/
+	/**
+	 * Returned as {@link Long}
+	 */
 	INTEGER,
 
-	/** Returned as List<Object> **/
+	/**
+	 * Returned as {@link List<Object>}
+	 */
 	MULTI,
 
-	/** Returned as byte[] **/
+	/**
+	 * Returned as {@literal byte[]}
+	 */
 	STATUS,
 
-	/** Returned as byte[] **/
+	/**
+	 * Returned as {@literal byte[]}
+	 */
 	VALUE;
 
 	public static ReturnType fromJavaType(Class<?> javaType) {

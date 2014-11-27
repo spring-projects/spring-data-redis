@@ -24,7 +24,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 /**
  * Exception thrown when executing/closing a pipeline that contains one or multiple invalid/incorrect statements. The
  * exception might also contain the pipeline result (if the driver returns it), allowing for analysis and tracing.
- * <p/>
+ * <p>
  * Typically, the first exception returned by the pipeline is used as the <i>cause</i> of this exception for easier
  * debugging.
  * 
