@@ -25,7 +25,7 @@ import org.springframework.data.redis.connection.DataType;
  * <p>
  * As the rest of the APIs, if the underlying connection is pipelined or queued/in multi mode, all methods will return
  * null.
- * </p>
+ * <p>
  * 
  * @author Costin Leau
  * @author Christoph Strobl
@@ -78,7 +78,7 @@ public interface BoundKeyOperations<K> {
 	Boolean persist();
 
 	/**
-	 * Renames the key. <br />
+	 * Renames the key. <br>
 	 * <b>Note:</b> The new name for empty collections will be propagated on add of first element.
 	 * 
 	 * @param newKey new key

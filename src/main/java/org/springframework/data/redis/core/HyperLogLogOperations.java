@@ -33,7 +33,7 @@ public interface HyperLogLogOperations<K, V> {
 	/**
 	 * Gets the current number of elements within the {@literal key}.
 	 * 
-	 * @param keys must not be {@literal null) or {@literal empty}.
+	 * @param keys must not be {@literal null} or {@literal empty}.
 	 * @return
 	 */
 	Long size(K... keys);
@@ -42,7 +42,7 @@ public interface HyperLogLogOperations<K, V> {
 	 * Merges all values of given {@literal sourceKeys} into {@literal destination} key.
 	 * 
 	 * @param destination key of HyperLogLog to move source keys into.
-	 * @param sourceKeys must not be {@literal null) or {@literal empty}.
+	 * @param sourceKeys must not be {@literal null} or {@literal empty}.
 	 */
 	Long union(K destination, K... sourceKeys);
 

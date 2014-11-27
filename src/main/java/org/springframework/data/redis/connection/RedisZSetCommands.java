@@ -194,7 +194,7 @@ public interface RedisZSetCommands {
 	Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
 
 	/**
-	 * Get elements in range from {@code begin} to {@code end} from sorted set ordered high -> low.
+	 * Get elements in range from {@code begin} to {@code end} from sorted set ordered from high to low.
 	 * <p>
 	 * See http://redis.io/commands/zrevrange
 	 * 
@@ -206,7 +206,7 @@ public interface RedisZSetCommands {
 	Set<byte[]> zRevRange(byte[] key, long begin, long end);
 
 	/**
-	 * Get set of {@link Tuple}s in range from {@code begin} to {@code end} from sorted set ordered high -> low.
+	 * Get set of {@link Tuple}s in range from {@code begin} to {@code end} from sorted set ordered from high to low.
 	 * <p>
 	 * See http://redis.io/commands/zrevrange
 	 * 
@@ -218,7 +218,7 @@ public interface RedisZSetCommands {
 	Set<Tuple> zRevRangeWithScores(byte[] key, long begin, long end);
 
 	/**
-	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered high -> low.
+	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered from high to low.
 	 * <p>
 	 * See http://redis.io/commands/zrevrange
 	 * 
@@ -230,7 +230,8 @@ public interface RedisZSetCommands {
 	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max);
 
 	/**
-	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered high -> low.
+	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered from high to
+	 * low.
 	 * <p>
 	 * See http://redis.io/commands/zrevrange
 	 * 

@@ -62,7 +62,7 @@ public interface RedisSetCommands {
 	byte[] sPop(byte[] key);
 
 	/**
-	 * Move {@code value} from {@code srcKey} to {@destKey}
+	 * Move {@code value} from {@code srcKey} to {@code destKey}
 	 * <p>
 	 * See http://redis.io/commands/smove
 	 * 

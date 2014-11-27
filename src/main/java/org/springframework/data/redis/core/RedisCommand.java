@@ -324,7 +324,7 @@ public enum RedisCommand {
 	 * Validates given argument count against expected ones.
 	 * 
 	 * @param nrArguments
-	 * @throws {@link IllegalArgumentException} in case argument count does not match expected.
+	 * @exception IllegalArgumentException in case argument count does not match expected.
 	 */
 	public void validateArgumentCount(int nrArguments) {
 
