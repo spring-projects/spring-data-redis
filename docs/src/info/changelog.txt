@@ -6,6 +6,23 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.5.0.M1 (2014-12-01)
+----------------------------------------
+* DATAREDIS-360 - Release 1.5 M1.
+* DATAREDIS-359 - Fix redis javadoc generation.
+* DATAREDIS-356 - Scripts don't try EVAL after EVALSHA fails.
+* DATAREDIS-355 - Upgrade to jedis 2.6.1.
+* DATAREDIS-354 - Jackson2JsonRedisSerializer should allow to customise the JavaType for deserialization via getJavaType().
+* DATAREDIS-351 - Update build to latest redis version.
+* DATAREDIS-350 - Upgrade to Jedis 2.6.x.
+* DATAREDIS-347 - DefaultScriptExecutor always runs script twice if Exception is thrown.
+* DATAREDIS-334 - Provide binary alternative for RedisScriptingCommands.evalSha.
+* DATAREDIS-308 - Add Support for HyperLogLog.
+* DATAREDIS-288 - ListOperations should support using Collections instead of varargs as input.
+* DATAREDIS-197 - Implement Redis bitmap.
+* DATAREDIS-106 - Support for open interval for scores for sorted sets.
+
+
 Changes in version 1.4.1.RELEASE (2014-10-30)
 ---------------------------------------------
 * DATAREDIS-353 - Release 1.4.1.
