@@ -208,12 +208,12 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	@SuppressWarnings("unchecked")
-	private RedisCache createCache(String cacheName) {
+	protected Cache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
 		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), template, expiration);
 	}
 
-	private long computeExpiration(String name) {
+	protected long computeExpiration(String name) {
 		Long expiration = null;
 		if (expires != null) {
 			expiration = expires.get(name);
@@ -221,9 +221,9 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return (expiration != null ? expiration.longValue() : defaultExpiration);
 	}
 
-	private List<RedisCache> loadAndInitRemoteCaches() {
+	protected List<Cache> loadAndInitRemoteCaches() {
 
-		List<RedisCache> caches = new ArrayList<RedisCache>();
+		List<Cache> caches = new ArrayList<Cache>();
 
 		try {
 			Set<String> cacheNames = loadRemoteCacheKeys();
@@ -263,5 +263,17 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 				return cacheKeys;
 			}
 		});
+	}
+
+	protected RedisTemplate getTemplate() {
+		return template;
+	}
+
+	protected boolean isUsePrefix() {
+		return usePrefix;
+	}
+
+	protected RedisCachePrefix getCachePrefix() {
+		return cachePrefix;
 	}
 }
