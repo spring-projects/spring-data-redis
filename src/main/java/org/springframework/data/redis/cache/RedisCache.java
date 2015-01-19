@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  */
 @SuppressWarnings("unchecked")
-class RedisCache implements Cache {
+public class RedisCache implements Cache {
 
 	private static final int PAGE_SIZE = 128;
 	private final String name;
