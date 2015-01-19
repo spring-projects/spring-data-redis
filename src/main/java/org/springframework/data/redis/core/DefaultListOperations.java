@@ -31,7 +31,7 @@ import org.springframework.util.CollectionUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  */
-class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
+public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
 	DefaultListOperations(RedisTemplate<K, V> template) {
 		super(template);
