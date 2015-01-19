@@ -30,7 +30,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
  * @author Costin Leau
  * @author Christoph Strobl
  */
-class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
+public class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZSetOperations<K, V> {
 
 	DefaultZSetOperations(RedisTemplate<K, V> template) {
 		super(template);

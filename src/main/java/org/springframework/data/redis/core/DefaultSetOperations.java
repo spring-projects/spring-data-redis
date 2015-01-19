@@ -31,7 +31,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author Christoph Strobl
  */
-class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
+public class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements SetOperations<K, V> {
 
 	public DefaultSetOperations(RedisTemplate<K, V> template) {
 		super(template);

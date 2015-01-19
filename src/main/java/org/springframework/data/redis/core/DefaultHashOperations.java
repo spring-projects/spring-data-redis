@@ -33,7 +33,7 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author Christoph Strobl
  */
-class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
+public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
 
 	@SuppressWarnings("unchecked")
 	DefaultHashOperations(RedisTemplate<K, ?> template) {
