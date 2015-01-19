@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  */
 @SuppressWarnings("unchecked")
-class RedisCache implements Cache {
+public class RedisCache implements Cache {
 
 	private static final int PAGE_SIZE = 128;
 	private final String name;
@@ -56,7 +56,8 @@ class RedisCache implements Cache {
 	 * @param template
 	 * @param expiration
 	 */
-	RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template, long expiration) {
+	public RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template,
+			long expiration) {
 
 		Assert.hasText(name, "non-empty cache name is required");
 		this.name = name;
