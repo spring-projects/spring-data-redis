@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,7 +176,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * @param caches must not be {@literal null}
 	 * @return
 	 */
-	private Collection<? extends Cache> addConfiguredCachesIfNecessary(Collection<? extends Cache> caches) {
+	protected Collection<? extends Cache> addConfiguredCachesIfNecessary(Collection<? extends Cache> caches) {
 
 		Assert.notNull(caches, "Caches must not be null!");
 
@@ -202,18 +202,18 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return result;
 	}
 
-	private Cache createAndAddCache(String cacheName) {
+	protected Cache createAndAddCache(String cacheName) {
 		addCache(createCache(cacheName));
 		return super.getCache(cacheName);
 	}
 
 	@SuppressWarnings("unchecked")
-	private RedisCache createCache(String cacheName) {
+	protected RedisCache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
 		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), template, expiration);
 	}
 
-	private long computeExpiration(String name) {
+	protected long computeExpiration(String name) {
 		Long expiration = null;
 		if (expires != null) {
 			expiration = expires.get(name);
@@ -221,9 +221,9 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return (expiration != null ? expiration.longValue() : defaultExpiration);
 	}
 
-	private List<RedisCache> loadAndInitRemoteCaches() {
+	protected List<Cache> loadAndInitRemoteCaches() {
 
-		List<RedisCache> caches = new ArrayList<RedisCache>();
+		List<Cache> caches = new ArrayList<Cache>();
 
 		try {
 			Set<String> cacheNames = loadRemoteCacheKeys();
@@ -244,7 +244,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	@SuppressWarnings("unchecked")
-	private Set<String> loadRemoteCacheKeys() {
+	protected Set<String> loadRemoteCacheKeys() {
 		return (Set<String>) template.execute(new RedisCallback<Set<String>>() {
 
 			@Override
@@ -263,5 +263,18 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 				return cacheKeys;
 			}
 		});
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected RedisTemplate getTemplate() {
+		return template;
+	}
+
+	protected RedisCachePrefix getCachePrefix() {
+		return cachePrefix;
+	}
+
+	protected boolean isUsePrefix() {
+		return usePrefix;
 	}
 }
