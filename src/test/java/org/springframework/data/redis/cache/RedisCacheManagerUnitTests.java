@@ -177,10 +177,9 @@ public class RedisCacheManagerUnitTests {
 	public void testPuttingCacheManagerIntoStaticModeShouldNotRemoveAlreadyRegisteredCaches() {
 
 		cacheManager = new RedisCacheManager(redisTemplate);
+		cacheManager.getCache("redis");
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.afterPropertiesSet();
-
-		cacheManager.getCache("redis");
 
 		assertThat(cacheManager.getCache("redis"), notNullValue());
 	}

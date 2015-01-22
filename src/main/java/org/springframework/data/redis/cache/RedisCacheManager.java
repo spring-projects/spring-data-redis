@@ -63,13 +63,12 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
 	private boolean loadRemoteCachesOnStartup = false;
 	private boolean dynamic = true;
-	private volatile boolean initialized;
 
 	// 0 - never expire
 	private long defaultExpiration = 0;
 	private Map<String, Long> expires = null;
 
-	private Set<String> cacheNames;
+	private Set<String> configuredCacheNames;
 
 	/**
 	 * Construct a {@link RedisCacheManager}.
@@ -105,22 +104,17 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	/**
-	 * <<<<<<< HEAD Specify the set of cache names for this CacheManager's 'static' mode. <br>
+	 * Specify the set of cache names for this CacheManager's 'static' mode. <br>
 	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
-	 * regions at runtime. ======= Specify the set of cache names for this CacheManager's 'static' mode. <br/>
-	 * >>>>>>> DATAREDIS-328 - RedisCacheManager should not instantiate caches in setCacheNames().
+	 * regions at runtime.
 	 */
 	public void setCacheNames(Collection<String> cacheNames) {
 
-		if (!this.initialized && !CollectionUtils.isEmpty(cacheNames)) {
-			this.dynamic = false;
-		}
+		Set<String> newCacheNames = CollectionUtils.isEmpty(cacheNames) ? Collections.<String> emptySet()
+				: new HashSet<String>(cacheNames);
 
-		Set<String> cacheNameSet = new HashSet<String>(this.cacheNames == null ? Collections.<String> emptySet()
-				: this.cacheNames);
-		cacheNameSet.addAll(cacheNames);
-
-		this.cacheNames = cacheNameSet;
+		this.configuredCacheNames = newCacheNames;
+		this.dynamic = newCacheNames.isEmpty();
 	}
 
 	public void setUsePrefix(boolean usePrefix) {
@@ -295,14 +289,13 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	@Override
 	public void afterPropertiesSet() {
 
-		this.initialized = true;
+		if (!CollectionUtils.isEmpty(configuredCacheNames)) {
 
-		if (!CollectionUtils.isEmpty(cacheNames)) {
-			this.dynamic = false;
-		}
+			for (String cacheName : configuredCacheNames) {
+				createAndAddCache(cacheName);
+			}
 
-		for (String cacheName : cacheNames) {
-			createAndAddCache(cacheName);
+			configuredCacheNames.clear();
 		}
 
 		super.afterPropertiesSet();
