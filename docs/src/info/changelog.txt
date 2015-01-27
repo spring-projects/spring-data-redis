@@ -6,6 +6,11 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.3.5.RELEASE (2015-01-27)
+---------------------------------------------
+* DATAREDIS-365 - Release 1.3.5.
+
+
 Changes in version 1.5.0.M1 (2014-12-01)
 ----------------------------------------
 * DATAREDIS-360 - Release 1.5 M1.
