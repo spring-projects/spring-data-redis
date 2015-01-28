@@ -23,6 +23,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -39,6 +40,8 @@ import org.springframework.util.Assert;
 @SuppressWarnings("unchecked")
 public class RedisCache implements Cache {
 
+	private static final byte[] REMOVE_KEYS_BY_PATTERN_LUA = new StringRedisSerializer()
+			.serialize("local keys = redis.call('KEYS', ARGV[1]); local keysCount = table.getn(keys); if(keysCount > 0) then for _, key in ipairs(keys) do redis.call('del', key); end; end; return keysCount;");
 	private static final int PAGE_SIZE = 128;
 	private final String name;
 	@SuppressWarnings("rawtypes") private final RedisTemplate template;
@@ -124,12 +127,17 @@ public class RedisCache implements Cache {
 				connection.multi();
 
 				connection.set(keyBytes, valueBytes);
-				connection.zAdd(setName, 0, keyBytes);
 
+				if (shouldTrackKeys()) {
+					connection.zAdd(setName, 0, keyBytes);
+				}
 				if (expiration > 0) {
 					connection.expire(keyBytes, expiration);
 					// update the expiration of the set of keys as well
-					connection.expire(setName, expiration);
+
+					if (shouldTrackKeys()) {
+						connection.expire(setName, expiration);
+					}
 				}
 				connection.exec();
 
@@ -151,11 +159,18 @@ public class RedisCache implements Cache {
 				Object resultValue = value;
 				boolean valueWasSet = connection.setNX(keyBytes, valueBytes);
 				if (valueWasSet) {
-					connection.zAdd(setName, 0, keyBytes);
+
+					if (shouldTrackKeys()) {
+						connection.zAdd(setName, 0, keyBytes);
+					}
 					if (expiration > 0) {
+
 						connection.expire(keyBytes, expiration);
 						// update the expiration of the set of keys as well
-						connection.expire(setName, expiration);
+
+						if (shouldTrackKeys()) {
+							connection.expire(setName, expiration);
+						}
 					}
 				} else {
 					resultValue = deserializeIfNecessary(template.getValueSerializer(), connection.get(keyBytes));
@@ -177,7 +192,9 @@ public class RedisCache implements Cache {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.del(k);
 				// remove key from set
-				connection.zRem(setName, k);
+				if (shouldTrackKeys()) {
+					connection.zRem(setName, k);
+				}
 				return null;
 			}
 		}, true);
@@ -198,19 +215,27 @@ public class RedisCache implements Cache {
 					int offset = 0;
 					boolean finished = false;
 
-					do {
-						// need to paginate the keys
-						Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
-						finished = keys.size() < PAGE_SIZE;
-						offset++;
-						if (!keys.isEmpty()) {
-							connection.del(keys.toArray(new byte[keys.size()][]));
-						}
-					} while (!finished);
+					if (shouldTrackKeys()) {
+						do {
+							// need to paginate the keys
+							Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
+							finished = keys.size() < PAGE_SIZE;
+							offset++;
+							if (!keys.isEmpty()) {
+								connection.del(keys.toArray(new byte[keys.size()][]));
+							}
+						} while (!finished);
 
-					connection.del(setName);
+						connection.del(setName);
+					} else {
+
+						byte[] wildCard = new StringRedisSerializer().serialize("*");
+						byte[] prefixToUse = Arrays.copyOf(prefix, prefix.length + wildCard.length);
+						System.arraycopy(wildCard, 0, prefixToUse, prefix.length, wildCard.length);
+
+						connection.eval(REMOVE_KEYS_BY_PATTERN_LUA, ReturnType.INTEGER, 0, prefixToUse);
+					}
 					return null;
-
 				} finally {
 					connection.del(cacheLockName);
 				}
@@ -268,6 +293,17 @@ public class RedisCache implements Cache {
 		}
 
 		return value;
+	}
+
+	/**
+	 * A set of keys needs to be maintained in case no prefix is provided. Clear cache depends on either a pattern to
+	 * identify keys to remove or a maintained set of known keys, otherwise the entire db would be flushed potentially
+	 * removing non cache entry values.
+	 * 
+	 * @return
+	 */
+	private boolean shouldTrackKeys() {
+		return (prefix == null || prefix.length == 0);
 	}
 
 }
