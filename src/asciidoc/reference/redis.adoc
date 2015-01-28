@@ -399,6 +399,8 @@ NOTE: By default `RedisCacheManager` will lazily initialize `RedisCache` wheneve
 
 NOTE: By default `RedisCacheManager` will not participate in any ongoing transaction. Use `setTransactionAware` to enable transaction support.
 
+NOTE: By default `RedisCacheManager` does not prefix keys for cache regions, which can lead to an unexpected growth of a `ZSET` used to maintain known keys. It's highly recommended to enable the usage of prefixes in order to avoid this unexpected growth and potential key clashes using more than one cache region.
+
 [[redis:future]]
 == Roadmap ahead
 
