@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.4.2.RELEASE (2015-01-28)
+---------------------------------------------
+* DATAREDIS-366 - Release 1.4.2.
+* DATAREDIS-364 - Add extension possibility to RedisCacheManager.
+* DATAREDIS-361 - Fix gradle docsZip not picking up reference html.
+* DATAREDIS-356 - Scripts don't try EVAL after EVALSHA fails.
+* DATAREDIS-354 - Jackson2JsonRedisSerializer should allow to customise the JavaType for deserialization via getJavaType().
+
+
 Changes in version 1.3.5.RELEASE (2015-01-27)
 ---------------------------------------------
 * DATAREDIS-365 - Release 1.3.5.
