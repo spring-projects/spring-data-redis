@@ -23,6 +23,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -40,7 +41,10 @@ import org.springframework.util.SerializationUtils;
 @SuppressWarnings("unchecked")
 public class RedisCache implements Cache {
 
+	private static final String DEFAULT_REMOVE_DEAD_KEYS_SCRIPT = "local keys = redis.call('zrange', ARGV[1], 0, -1); local keysCount = table.getn(keys); local deletedCount = 0; if(keysCount > 0) then for _, key in ipairs(keys) do if (not (redis.call('exists', key) == 1)) then redis.call('zrem', ARGV[1], key); deletedCount = deletedCount + 1; end;end;end;return deletedCount;";
 	private static final int PAGE_SIZE = 128;
+	private static final byte[] DEFAULT_REMOVE_DEAD_KEYS_SCRIPT_BYTES = DEFAULT_REMOVE_DEAD_KEYS_SCRIPT.getBytes();
+
 	private final String name;
 	@SuppressWarnings("rawtypes") private final RedisTemplate template;
 	private final byte[] prefix;
@@ -117,6 +121,8 @@ public class RedisCache implements Cache {
 		final byte[] keyBytes = computeKey(key);
 		final byte[] valueBytes = convertToBytesIfNecessary(template.getValueSerializer(), value);
 
+		removePotentiallyDeadKeysFromKnownCacheKeySet();
+
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
@@ -130,7 +136,7 @@ public class RedisCache implements Cache {
 				if (expiration > 0) {
 					connection.expire(keyBytes, expiration);
 					// update the expiration of the set of keys as well
-					// connection.expire(setName, expiration);
+					connection.expire(setName, expiration);
 				}
 				connection.exec();
 
@@ -144,6 +150,8 @@ public class RedisCache implements Cache {
 		final byte[] keyBytes = computeKey(key);
 		final byte[] valueBytes = convertToBytesIfNecessary(template.getValueSerializer(), value);
 
+		removePotentiallyDeadKeysFromKnownCacheKeySet();
+
 		return toWrapper(template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
@@ -156,7 +164,7 @@ public class RedisCache implements Cache {
 					if (expiration > 0) {
 						connection.expire(keyBytes, expiration);
 						// update the expiration of the set of keys as well
-						// connection.expire(setName, expiration);
+						connection.expire(setName, expiration);
 					}
 				} else {
 					resultValue = deserializeIfNecessary(template.getValueSerializer(), connection.get(keyBytes));
@@ -184,59 +192,42 @@ public class RedisCache implements Cache {
 		}, true);
 	}
 
+	protected void removePotentiallyDeadKeysFromKnownCacheKeySet() {
+
+		template.execute(new RedisCallback<Long>() {
+			@Override
+			public Long doInRedis(RedisConnection connection) {
+				return (Long) connection.eval(DEFAULT_REMOVE_DEAD_KEYS_SCRIPT_BYTES, ReturnType.INTEGER, 0, setName);
+			}
+		}, true);
+	}
+
 	public void clear() {
+
 		// need to del each key individually
 		template.execute(new RedisCallback<Object>() {
+
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				// another clear is on-going
 				if (connection.exists(cacheLockName)) {
 					return null;
 				}
 
-				// we could use a scan command to iterate the keys with and remove all those
-
 				try {
 					connection.set(cacheLockName, cacheLockName);
 
-					byte[] keyBytes = "*".getBytes();
+					int offset = 0;
+					boolean finished = false;
 
-					byte[] result = Arrays.copyOf(prefix, prefix.length + keyBytes.length);
-					System.arraycopy(keyBytes, 0, result, prefix.length, keyBytes.length);
-
-					Set<byte[]> keys = connection.keys(result);
-					for (byte[] key : keys) {
-						// System.out.println("remove " + template.getKeySerializer().deserialize(key));
-						connection.del(key);
-					}
-
-					// int offset = 0;
-					// boolean finished = false;
-					//
-					// System.out.println(name);
-					// System.out.println(new String(computeKey("")));
-					//
-					// Cursor<byte[]> x = connection.scan(ScanOptions.scanOptions().match(new String(computeKey("")) +
-					// "*").build());
-					//
-					// while (x.hasNext()) {
-					// try {
-					// Object key = template.getKeySerializer().deserialize(x.next());
-					// System.out.println("remove " + key);
-					// connection.del(computeKey(key));
-					// } catch (NoSuchElementException nse) {
-					// System.out.println(nse);
-					// }
-					// }
-
-					// do {
-					// // need to paginate the keys
-					// Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
-					// finished = keys.size() < PAGE_SIZE;
-					// offset++;
-					// if (!keys.isEmpty()) {
-					// connection.del(keys.toArray(new byte[keys.size()][]));
-					// }
-					// } while (!finished);
+					do {
+						// need to paginate the keys
+						Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
+						finished = keys.size() < PAGE_SIZE;
+						offset++;
+						if (!keys.isEmpty()) {
+							connection.del(keys.toArray(new byte[keys.size()][]));
+						}
+					} while (!finished);
 
 					connection.del(setName);
 					return null;
@@ -302,5 +293,4 @@ public class RedisCache implements Cache {
 
 		return value;
 	}
-
 }
