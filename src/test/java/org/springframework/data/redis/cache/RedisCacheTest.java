@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +42,6 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * @author Costin Leau
@@ -276,48 +273,5 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		}
 
 		assertThat(wrapper2.get(), equalTo(value));
-	}
-
-	/**
-	 * @see DATAREDIS-369
-	 */
-	@Test
-	public void shouldCleanUpDeadKeysDuringPut() throws Exception {
-
-		// TODO make sure that it works JdkSerilaizationRedisSerializer, OxmSerializer...
-		Assume.assumeTrue(template.getKeySerializer() == null
-				|| template.getKeySerializer() instanceof StringRedisSerializer);
-
-		RedisCache redisCache = new RedisCache(CACHE_NAME, CACHE_NAME.concat(":").getBytes(), template,
-				TimeUnit.SECONDS.toSeconds(3));
-		ZSetOperations zsetOps = template.opsForZSet();
-		String knownCacheKeys = CACHE_NAME + "~" + "keys";
-		Object knownCacheKeysValue = template.isEnableDefaultSerializer() ? knownCacheKeys : knownCacheKeys.getBytes();
-
-		template.delete(knownCacheKeysValue);
-
-		Object key1 = getKey();
-		Object key2 = getKey();
-		Object key3 = getKey();
-
-		Object value = getValue();
-
-		redisCache.put(key1, value);
-		redisCache.put(key2, value);
-		redisCache.put(key3, value);
-
-		Long size = zsetOps.size(knownCacheKeysValue);
-		assertTrue("There should be 3 entries but there were: " + size, size == 3);
-
-		TimeUnit.SECONDS.sleep(1);
-
-		// keep key1 alive
-		for (int i = 0; i < 4; i++) {
-			TimeUnit.MILLISECONDS.sleep(500);
-			redisCache.put(key1, value);
-		}
-
-		size = zsetOps.size(knownCacheKeysValue);
-		assertTrue("There should be only one cache key left key1, but size was: " + size, size == 1);
 	}
 }

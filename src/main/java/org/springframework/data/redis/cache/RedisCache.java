@@ -29,7 +29,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
-import org.springframework.util.SerializationUtils;
 
 /**
  * Cache implementation on top of Redis.
@@ -41,10 +40,9 @@ import org.springframework.util.SerializationUtils;
 @SuppressWarnings("unchecked")
 public class RedisCache implements Cache {
 
-	private static final String DEFAULT_REMOVE_DEAD_KEYS_SCRIPT = "local keys = redis.call('zrange', ARGV[1], 0, -1); local keysCount = table.getn(keys); local deletedCount = 0; if(keysCount > 0) then for _, key in ipairs(keys) do if (not (redis.call('exists', key) == 1)) then redis.call('zrem', ARGV[1], key); deletedCount = deletedCount + 1; end;end;end;return deletedCount;";
+	private static final byte[] REMOVE_KEYS_BY_PATTERN_LUA = "local keys = redis.call('KEYS', ARGV[1]); local keysCount = table.getn(keys); if(keysCount > 0) then for _, key in ipairs(keys) do redis.call('del', key); end; end; return keysCount;"
+			.getBytes();
 	private static final int PAGE_SIZE = 128;
-	private static final byte[] DEFAULT_REMOVE_DEAD_KEYS_SCRIPT_BYTES = DEFAULT_REMOVE_DEAD_KEYS_SCRIPT.getBytes();
-
 	private final String name;
 	@SuppressWarnings("rawtypes") private final RedisTemplate template;
 	private final byte[] prefix;
@@ -121,8 +119,6 @@ public class RedisCache implements Cache {
 		final byte[] keyBytes = computeKey(key);
 		final byte[] valueBytes = convertToBytesIfNecessary(template.getValueSerializer(), value);
 
-		removePotentiallyDeadKeysFromKnownCacheKeySet();
-
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
@@ -131,12 +127,17 @@ public class RedisCache implements Cache {
 				connection.multi();
 
 				connection.set(keyBytes, valueBytes);
-				connection.zAdd(setName, 0, keyBytes);
 
+				if (shouldTrackKeys()) {
+					connection.zAdd(setName, 0, keyBytes);
+				}
 				if (expiration > 0) {
 					connection.expire(keyBytes, expiration);
 					// update the expiration of the set of keys as well
-					connection.expire(setName, expiration);
+
+					if (shouldTrackKeys()) {
+						connection.expire(setName, expiration);
+					}
 				}
 				connection.exec();
 
@@ -150,8 +151,6 @@ public class RedisCache implements Cache {
 		final byte[] keyBytes = computeKey(key);
 		final byte[] valueBytes = convertToBytesIfNecessary(template.getValueSerializer(), value);
 
-		removePotentiallyDeadKeysFromKnownCacheKeySet();
-
 		return toWrapper(template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
@@ -160,11 +159,18 @@ public class RedisCache implements Cache {
 				Object resultValue = value;
 				boolean valueWasSet = connection.setNX(keyBytes, valueBytes);
 				if (valueWasSet) {
-					connection.zAdd(setName, 0, keyBytes);
+
+					if (shouldTrackKeys()) {
+						connection.zAdd(setName, 0, keyBytes);
+					}
 					if (expiration > 0) {
+
 						connection.expire(keyBytes, expiration);
 						// update the expiration of the set of keys as well
-						connection.expire(setName, expiration);
+
+						if (shouldTrackKeys()) {
+							connection.expire(setName, expiration);
+						}
 					}
 				} else {
 					resultValue = deserializeIfNecessary(template.getValueSerializer(), connection.get(keyBytes));
@@ -186,27 +192,17 @@ public class RedisCache implements Cache {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.del(k);
 				// remove key from set
-				connection.zRem(setName, k);
+				if (shouldTrackKeys()) {
+					connection.zRem(setName, k);
+				}
 				return null;
 			}
 		}, true);
 	}
 
-	protected void removePotentiallyDeadKeysFromKnownCacheKeySet() {
-
-		template.execute(new RedisCallback<Long>() {
-			@Override
-			public Long doInRedis(RedisConnection connection) {
-				return (Long) connection.eval(DEFAULT_REMOVE_DEAD_KEYS_SCRIPT_BYTES, ReturnType.INTEGER, 0, setName);
-			}
-		}, true);
-	}
-
 	public void clear() {
-
 		// need to del each key individually
 		template.execute(new RedisCallback<Object>() {
-
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				// another clear is on-going
 				if (connection.exists(cacheLockName)) {
@@ -219,19 +215,27 @@ public class RedisCache implements Cache {
 					int offset = 0;
 					boolean finished = false;
 
-					do {
-						// need to paginate the keys
-						Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
-						finished = keys.size() < PAGE_SIZE;
-						offset++;
-						if (!keys.isEmpty()) {
-							connection.del(keys.toArray(new byte[keys.size()][]));
-						}
-					} while (!finished);
+					if (shouldTrackKeys()) {
+						do {
+							// need to paginate the keys
+							Set<byte[]> keys = connection.zRange(setName, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
+							finished = keys.size() < PAGE_SIZE;
+							offset++;
+							if (!keys.isEmpty()) {
+								connection.del(keys.toArray(new byte[keys.size()][]));
+							}
+						} while (!finished);
 
-					connection.del(setName);
+						connection.del(setName);
+					} else {
+
+						byte[] wildCard = "*".getBytes();
+						byte[] prefixToUse = Arrays.copyOf(prefix, prefix.length + wildCard.length);
+						System.arraycopy(wildCard, 0, prefixToUse, prefix.length, wildCard.length);
+
+						connection.eval(REMOVE_KEYS_BY_PATTERN_LUA, ReturnType.INTEGER, 0, prefixToUse);
+					}
 					return null;
-
 				} finally {
 					connection.del(cacheLockName);
 				}
@@ -279,9 +283,6 @@ public class RedisCache implements Cache {
 			return (byte[]) value;
 		}
 
-		if (serializer == null) {
-			return SerializationUtils.serialize(value);
-		}
 		return serializer.serialize(value);
 	}
 
@@ -293,4 +294,16 @@ public class RedisCache implements Cache {
 
 		return value;
 	}
+
+	/**
+	 * A set of keys needs to be maintained in case no prefix is provided. Clear cache depends on either a pattern to
+	 * identify keys to remove or a maintained set of known keys, otherwise the entire db would be flushed potentially
+	 * removing non cache entry values.
+	 * 
+	 * @return
+	 */
+	private boolean shouldTrackKeys() {
+		return (prefix == null || prefix.length == 0);
+	}
+
 }
