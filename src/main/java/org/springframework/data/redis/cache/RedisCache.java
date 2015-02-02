@@ -16,6 +16,9 @@
 
 package org.springframework.data.redis.cache;
 
+import static org.springframework.util.Assert.*;
+import static org.springframework.util.ObjectUtils.*;
+
 import java.util.Arrays;
 import java.util.Set;
 
@@ -28,8 +31,6 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Cache implementation on top of Redis.
@@ -41,16 +42,10 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("unchecked")
 public class RedisCache implements Cache {
 
-	private static final byte[] REMOVE_KEYS_BY_PATTERN_LUA = "local keys = redis.call('KEYS', ARGV[1]); local keysCount = table.getn(keys); if(keysCount > 0) then for _, key in ipairs(keys) do redis.call('del', key); end; end; return keysCount;"
-			.getBytes();
-	private static final int PAGE_SIZE = 128;
-	private final String name;
-	@SuppressWarnings("rawtypes") private final RedisTemplate template;
-	private final byte[] prefix;
-	private final byte[] setOfKnownKeys;
-	private final byte[] cacheLockName;
-	private long WAIT_FOR_LOCK = 300;
-	private final long expiration;
+	@SuppressWarnings("rawtypes")//
+	private final RedisTemplate template;
+	private final RedisCacheMetadata cacheMetadata;
+	private final CacheValueAccessor cacheValueAccessor;
 
 	/**
 	 * Constructs a new <code>RedisCache</code> instance.
@@ -63,41 +58,12 @@ public class RedisCache implements Cache {
 	public RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template,
 			long expiration) {
 
-		Assert.hasText(name, "non-empty cache name is required");
-		this.name = name;
+		hasText(name, "non-empty cache name is required");
+		this.cacheMetadata = new RedisCacheMetadata(name, prefix);
+		this.cacheMetadata.setDefaultExpiration(expiration);
+
 		this.template = template;
-		this.prefix = prefix;
-		this.expiration = expiration;
-
-		StringRedisSerializer stringSerializer = new StringRedisSerializer();
-
-		// name of the set holding the keys
-		this.setOfKnownKeys = stringSerializer.serialize(name + "~keys");
-		this.cacheLockName = stringSerializer.serialize(name + "~lock");
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * {@inheritDoc} This implementation simply returns the RedisTemplate used for configuring the cache, giving access to
-	 * the underlying Redis store.
-	 */
-	public Object getNativeCache() {
-		return template;
-	}
-
-	public ValueWrapper get(final Object key) {
-		return (ValueWrapper) template.execute(new RedisCallback<ValueWrapper>() {
-
-			public ValueWrapper doInRedis(RedisConnection connection) throws DataAccessException {
-				waitForLock(connection);
-				byte[] bs = connection.get(computeKey(key));
-				Object value = template.getValueSerializer() != null ? template.getValueSerializer().deserialize(bs) : bs;
-				return (bs == null ? null : new SimpleValueWrapper(value));
-			}
-		}, true);
+		this.cacheValueAccessor = new CacheValueAccessor(template.getValueSerializer());
 	}
 
 	/**
@@ -117,20 +83,58 @@ public class RedisCache implements Cache {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.cache.Cache#put(java.lang.Object, java.lang.Object)
+	 * @see org.springframework.cache.Cache#get(java.lang.Object)
 	 */
-	public void put(final Object key, final Object value) {
-
-		put(new RedisCacheElement(convertToBytesIfNecessary(template.getKeySerializer(), key), value).usePrefix(prefix)
-				.expireAfter(expiration));
+	@Override
+	public ValueWrapper get(Object key) {
+		return get(new RedisCacheKey(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
+				template.getKeySerializer()));
 	}
 
 	/**
+	 * Return the value to which this cache maps the specified key.
+	 * 
+	 * @param cacheKey the key whose associated value is to be returned via its binary representation.
+	 * @return the {@link RedisCacheElement} stored at given key or {@literal null} if no value found for key.
+	 * @since 1.5
+	 */
+	public RedisCacheElement get(final RedisCacheKey cacheKey) {
+
+		return (RedisCacheElement) template.execute(new AbstractRedisCacheCallback<RedisCacheElement>(
+				new RedisCacheElement(cacheKey, null), cacheMetadata) {
+
+			@Override
+			public RedisCacheElement doInRedis(RedisCacheElement element, RedisConnection connection)
+					throws DataAccessException {
+
+				byte[] bs = connection.get(element.getKeyBytes());
+				Object value = template.getValueSerializer() != null ? template.getValueSerializer().deserialize(bs) : bs;
+				return (bs == null ? null : new RedisCacheElement(element.getKey(), value));
+			}
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#put(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public void put(final Object key, final Object value) {
+
+		put(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
+				template.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+	}
+
+	/**
+	 * Add the element by adding {@link RedisCacheElement#get()} at {@link RedisCacheElement#getKeyBytes()}. If the cache
+	 * previously contained a mapping for this {@link RedisCacheElement#getKeyBytes()}, the old value is replaced by
+	 * {@link RedisCacheElement#get()}.
+	 * 
 	 * @param element
 	 * @since 1.5
 	 */
 	public void put(final RedisCacheElement element) {
-		template.execute(new RedisCachePutCallback(element), true);
+		template.execute(new RedisCachePutCallback(element, cacheValueAccessor, cacheMetadata), true);
 	}
 
 	/*
@@ -139,154 +143,221 @@ public class RedisCache implements Cache {
 	 */
 	public ValueWrapper putIfAbsent(Object key, final Object value) {
 
-		return putIfAbsent(new RedisCacheElement(convertToBytesIfNecessary(template.getKeySerializer(), key), value)
-				.usePrefix(prefix).expireAfter(expiration));
+		return putIfAbsent(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix())
+				.withKeySerializer(template.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
-	 * @param element
+	 * Add the element as long as no element exists at {@link RedisCacheElement#getKeyBytes()}. If a value is present for
+	 * {@link RedisCacheElement#getKeyBytes()} this one is returned.
+	 * 
+	 * @param element must not be {@literal null}.
 	 * @return
 	 * @since 1.5
 	 */
 	public ValueWrapper putIfAbsent(final RedisCacheElement element) {
-		return toWrapper(template.execute(new RedisCachePutIfAbsentCallback(element), true));
+		return toWrapper(template.execute(new RedisCachePutIfAbsentCallback(element, cacheValueAccessor, cacheMetadata),
+				true));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#evict(java.lang.Object)
+	 */
+	public void evict(Object key) {
+		evict(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
+				template.getKeySerializer()), null));
+	}
+
+	/**
+	 * @param element {@link RedisCacheElement#getKeyBytes()}
+	 * @since 1.5
+	 */
+	public void evict(final RedisCacheElement element) {
+		template.execute(new RedisCacheEvictCallback(element, cacheMetadata));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#clear()
+	 */
+	public void clear() {
+		template.execute(cacheMetadata.usesKeyPrefix() ? new RedisCacheCleanByPrefixCallback(cacheMetadata)
+				: new RedisCacheCleanByKeysCallback(cacheMetadata), true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.Cache#getName()
+	 */
+	public String getName() {
+		return cacheMetadata.getCacheName();
+	}
+
+	/**
+	 * {@inheritDoc} This implementation simply returns the RedisTemplate used for configuring the cache, giving access to
+	 * the underlying Redis store.
+	 */
+	public Object getNativeCache() {
+		return template;
 	}
 
 	private ValueWrapper toWrapper(Object value) {
 		return (value != null ? new SimpleValueWrapper(value) : null);
 	}
 
-	public void evict(Object key) {
-		final byte[] k = computeKey(key);
+	/**
+	 * Metadata required to maintain {@link RedisCache}. Keeps track of additional data structures required for processing
+	 * cache operations.
+	 * 
+	 * @author Christoph Strobl
+	 * @since 1.5
+	 */
+	static class RedisCacheMetadata {
 
-		template.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				connection.del(k);
-				// remove key from set
-				if (shouldTrackKeys()) {
-					connection.zRem(setOfKnownKeys, k);
-				}
-				return null;
-			}
-		}, true);
-	}
+		private final String cacheName;
+		private final byte[] keyPrefix;
+		private final byte[] setOfKnownKeys;
+		private final byte[] cacheLockName;
+		private long defaultExpiration = 0;
 
-	public void clear() {
-		// need to del each key individually
-		template.execute(new RedisCallback<Object>() {
-			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				// another clear is on-going
-				if (connection.exists(cacheLockName)) {
-					return null;
-				}
+		/**
+		 * @param cacheName must not be {@literal null} or empty.
+		 * @param keyPrefix can be {@literal null}.
+		 */
+		public RedisCacheMetadata(String cacheName, byte[] keyPrefix) {
 
-				try {
-					connection.set(cacheLockName, cacheLockName);
+			hasText(cacheName, "CacheName must not be null or empty!");
+			this.cacheName = cacheName;
+			this.keyPrefix = keyPrefix;
 
-					int offset = 0;
-					boolean finished = false;
+			StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
-					if (shouldTrackKeys()) {
-						do {
-							// need to paginate the keys
-							Set<byte[]> keys = connection.zRange(setOfKnownKeys, (offset) * PAGE_SIZE, (offset + 1) * PAGE_SIZE - 1);
-							finished = keys.size() < PAGE_SIZE;
-							offset++;
-							if (!keys.isEmpty()) {
-								connection.del(keys.toArray(new byte[keys.size()][]));
-							}
-						} while (!finished);
-
-						connection.del(setOfKnownKeys);
-					} else {
-
-						byte[] wildCard = "*".getBytes();
-						byte[] prefixToUse = Arrays.copyOf(prefix, prefix.length + wildCard.length);
-						System.arraycopy(wildCard, 0, prefixToUse, prefix.length, wildCard.length);
-
-						connection.eval(REMOVE_KEYS_BY_PATTERN_LUA, ReturnType.INTEGER, 0, prefixToUse);
-					}
-					return null;
-				} finally {
-					connection.del(cacheLockName);
-				}
-			}
-		}, true);
-	}
-
-	private byte[] computeKey(Object key) {
-
-		byte[] keyBytes = convertToBytesIfNecessary(template.getKeySerializer(), key);
-
-		if (prefix == null || prefix.length == 0) {
-			return keyBytes;
+			// name of the set holding the keys
+			this.setOfKnownKeys = usesKeyPrefix() ? new byte[] {} : stringSerializer.serialize(cacheName + "~keys");
+			this.cacheLockName = stringSerializer.serialize(cacheName + "~lock");
 		}
 
-		byte[] result = Arrays.copyOf(prefix, prefix.length + keyBytes.length);
-		System.arraycopy(keyBytes, 0, result, prefix.length, keyBytes.length);
-
-		return result;
-	}
-
-	private boolean waitForLock(RedisConnection connection) {
-
-		boolean retry;
-		boolean foundLock = false;
-		do {
-			retry = false;
-			if (connection.exists(cacheLockName)) {
-				foundLock = true;
-				try {
-					Thread.sleep(WAIT_FOR_LOCK);
-				} catch (InterruptedException ex) {
-					Thread.currentThread().interrupt();
-				}
-				retry = true;
-			}
-		} while (retry);
-
-		return foundLock;
-	}
-
-	private byte[] convertToBytesIfNecessary(RedisSerializer<Object> serializer, Object value) {
-
-		if (serializer == null && value instanceof byte[]) {
-			return (byte[]) value;
+		/**
+		 * @return true if the {@link RedisCache} uses a prefix for key ranges.
+		 */
+		public boolean usesKeyPrefix() {
+			return (keyPrefix != null && keyPrefix.length > 0);
 		}
 
-		return serializer.serialize(value);
-	}
-
-	private Object deserializeIfNecessary(RedisSerializer<byte[]> serializer, byte[] value) {
-
-		if (serializer != null) {
-			return serializer.deserialize(value);
+		/**
+		 * Get the binary representation of the key prefix.
+		 * 
+		 * @return never {@literal null}.
+		 */
+		public byte[] getKeyPrefix() {
+			return this.keyPrefix;
 		}
 
-		return value;
+		/**
+		 * Get the binary representation of the key identifying the data structure used to maintain known keys.
+		 * 
+		 * @return never {@literal null}.
+		 */
+		public byte[] getSetOfKnownKeysKey() {
+			return setOfKnownKeys;
+		}
+
+		/**
+		 * Get the binary representation of the key identifying the data structure used to lock the cache.
+		 * 
+		 * @return never {@literal null}.
+		 */
+		public byte[] getCacheLockKey() {
+			return cacheLockName;
+		}
+
+		/**
+		 * Get the name of the cache.
+		 * 
+		 * @return
+		 */
+		public String getCacheName() {
+			return cacheName;
+		}
+
+		/**
+		 * Set the default expiration time in seconds
+		 * 
+		 * @param defaultExpiration
+		 */
+		public void setDefaultExpiration(long seconds) {
+			this.defaultExpiration = seconds;
+		}
+
+		/**
+		 * Get the default expiration time in seconds.
+		 * 
+		 * @return
+		 */
+		public long getDefaultExpiration() {
+			return defaultExpiration;
+		}
+
 	}
 
 	/**
-	 * A set of keys needs to be maintained in case no prefix is provided. Clear cache depends on either a pattern to
-	 * identify keys to remove or a maintained set of known keys, otherwise the entire db would be flushed potentially
-	 * removing non cache entry values.
-	 * 
-	 * @return
+	 * @author Christoph Strobl
+	 * @since 1.5
 	 */
-	private boolean shouldTrackKeys() {
-		return (prefix == null || prefix.length == 0);
-	}
+	static class CacheValueAccessor {
 
-	abstract class AbstractRedisPutCallback<T> implements RedisCallback<T> {
+		@SuppressWarnings("rawtypes")//
+		private final RedisSerializer valueSerializer;
 
-		private final RedisCacheElement element;
-
-		public AbstractRedisPutCallback(RedisCacheElement element) {
-			this.element = element;
+		@SuppressWarnings("rawtypes")
+		CacheValueAccessor(RedisSerializer valueRedisSerializer) {
+			valueSerializer = valueRedisSerializer;
 		}
 
+		byte[] convertToBytesIfNecessary(Object value) {
+
+			if (valueSerializer == null && value instanceof byte[]) {
+				return (byte[]) value;
+			}
+
+			return valueSerializer.serialize(value);
+		}
+
+		Object deserializeIfNecessary(byte[] value) {
+
+			if (valueSerializer != null) {
+				return valueSerializer.deserialize(value);
+			}
+
+			return value;
+		}
+
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.5
+	 * @param <T>
+	 */
+	static abstract class AbstractRedisCacheCallback<T> implements RedisCallback<T> {
+
+		private long WAIT_FOR_LOCK_TIMEOUT = 300;
+		private final RedisCacheElement element;
+		private final RedisCacheMetadata cacheMetadata;
+
+		public AbstractRedisCacheCallback(RedisCacheElement element, RedisCacheMetadata metadata) {
+			this.element = element;
+			this.cacheMetadata = metadata;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.RedisCallback#doInRedis(org.springframework.data.redis.connection.RedisConnection)
+		 */
 		@Override
 		public T doInRedis(RedisConnection connection) throws DataAccessException {
+			waitForLock(connection);
 			return doInRedis(element, connection);
 		}
 
@@ -294,29 +365,173 @@ public class RedisCache implements Cache {
 
 		protected void processKeyExpiration(RedisCacheElement element, RedisConnection connection) {
 			if (!element.isEternal()) {
-				connection.expire(element.getKey(), element.getTimeToLive());
+				connection.expire(element.getKeyBytes(), element.getTimeToLive());
 			}
 		}
 
 		protected void maintainKnownKeys(RedisCacheElement element, RedisConnection connection) {
 
 			if (!element.hasKeyPrefix()) {
-				connection.zAdd(setOfKnownKeys, 0, element.getKey());
-				connection.expire(setOfKnownKeys, element.getTimeToLive());
+				connection.zAdd(cacheMetadata.getSetOfKnownKeysKey(), 0, element.getKeyBytes());
+				connection.expire(cacheMetadata.getSetOfKnownKeysKey(), element.getTimeToLive());
 			}
 		}
 
-		protected abstract Object put(RedisCacheElement element, RedisConnection connection);
+		protected void cleanKnownKeys(RedisCacheElement element, RedisConnection connection) {
+
+			if (!element.hasKeyPrefix()) {
+				connection.zRem(cacheMetadata.getSetOfKnownKeysKey(), element.getKeyBytes());
+			}
+		}
+
+		protected boolean waitForLock(RedisConnection connection) {
+
+			boolean retry;
+			boolean foundLock = false;
+			do {
+				retry = false;
+				if (connection.exists(cacheMetadata.getCacheLockKey())) {
+					foundLock = true;
+					try {
+						Thread.sleep(WAIT_FOR_LOCK_TIMEOUT);
+					} catch (InterruptedException ex) {
+						Thread.currentThread().interrupt();
+					}
+					retry = true;
+				}
+			} while (retry);
+
+			return foundLock;
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @param <T>
+	 * @since 1.5
+	 */
+	static abstract class LockingRedisCacheCallback<T> implements RedisCallback<T> {
+
+		private final RedisCacheMetadata metadata;
+
+		public LockingRedisCacheCallback(RedisCacheMetadata metadata) {
+			this.metadata = metadata;
+		}
+
+		@Override
+		public T doInRedis(RedisConnection connection) throws DataAccessException {
+
+			if (connection.exists(metadata.getCacheLockKey())) {
+				return null;
+			}
+			try {
+				connection.set(metadata.getCacheLockKey(), metadata.getCacheLockKey());
+				return doInLock(connection);
+			} finally {
+				connection.del(metadata.getCacheLockKey());
+			}
+		}
+
+		public abstract T doInLock(RedisConnection connection);
+
 	}
 
 	/**
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	class RedisCachePutCallback extends AbstractRedisPutCallback<Void> {
+	static class RedisCacheCleanByKeysCallback extends LockingRedisCacheCallback<Void> {
 
-		public RedisCachePutCallback(RedisCacheElement element) {
-			super(element);
+		private static final int PAGE_SIZE = 128;
+		private final RedisCacheMetadata metadata;
+
+		RedisCacheCleanByKeysCallback(RedisCacheMetadata metadata) {
+			super(metadata);
+			this.metadata = metadata;
+		}
+
+		@Override
+		public Void doInLock(RedisConnection connection) {
+
+			int offset = 0;
+			boolean finished = false;
+
+			do {
+				// need to paginate the keys
+				Set<byte[]> keys = connection.zRange(metadata.getSetOfKnownKeysKey(), (offset) * PAGE_SIZE, (offset + 1)
+						* PAGE_SIZE - 1);
+				finished = keys.size() < PAGE_SIZE;
+				offset++;
+				if (!keys.isEmpty()) {
+					connection.del(keys.toArray(new byte[keys.size()][]));
+				}
+			} while (!finished);
+
+			connection.del(metadata.getSetOfKnownKeysKey());
+			return null;
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.5
+	 */
+	static class RedisCacheCleanByPrefixCallback extends LockingRedisCacheCallback<Void> {
+
+		private static final byte[] REMOVE_KEYS_BY_PATTERN_LUA = new StringRedisSerializer()
+				.serialize("local keys = redis.call('KEYS', ARGV[1]); local keysCount = table.getn(keys); if(keysCount > 0) then for _, key in ipairs(keys) do redis.call('del', key); end; end; return keysCount;");
+		private static final byte[] WILD_CARD = new StringRedisSerializer().serialize("*");
+		private final RedisCacheMetadata metadata;
+
+		public RedisCacheCleanByPrefixCallback(RedisCacheMetadata metadata) {
+			super(metadata);
+			this.metadata = metadata;
+		}
+
+		@Override
+		public Void doInLock(RedisConnection connection) throws DataAccessException {
+
+			byte[] prefixToUse = Arrays.copyOf(metadata.getKeyPrefix(), metadata.getKeyPrefix().length + WILD_CARD.length);
+			System.arraycopy(WILD_CARD, 0, prefixToUse, metadata.getKeyPrefix().length, WILD_CARD.length);
+
+			connection.eval(REMOVE_KEYS_BY_PATTERN_LUA, ReturnType.INTEGER, 0, prefixToUse);
+
+			return null;
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.5
+	 */
+	static class RedisCacheEvictCallback extends AbstractRedisCacheCallback<Void> {
+
+		public RedisCacheEvictCallback(RedisCacheElement element, RedisCacheMetadata metadata) {
+			super(element, metadata);
+		}
+
+		@Override
+		public Void doInRedis(RedisCacheElement element, RedisConnection connection) throws DataAccessException {
+
+			connection.del(element.getKeyBytes());
+			cleanKnownKeys(element, connection);
+			return null;
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.5
+	 */
+	static class RedisCachePutCallback extends AbstractRedisCacheCallback<Void> {
+
+		private final CacheValueAccessor valueAccessor;
+
+		public RedisCachePutCallback(RedisCacheElement element, CacheValueAccessor valueAccessor,
+				RedisCacheMetadata metadata) {
+
+			super(element, metadata);
+			this.valueAccessor = valueAccessor;
 		}
 
 		/*
@@ -326,10 +541,9 @@ public class RedisCache implements Cache {
 		@Override
 		public Void doInRedis(RedisCacheElement element, RedisConnection connection) throws DataAccessException {
 
-			waitForLock(connection);
 			connection.multi();
 
-			put(element, connection);
+			connection.set(element.getKeyBytes(), valueAccessor.convertToBytesIfNecessary(element.get()));
 
 			processKeyExpiration(element, connection);
 			maintainKnownKeys(element, connection);
@@ -337,28 +551,21 @@ public class RedisCache implements Cache {
 			connection.exec();
 			return null;
 		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.cache.RedisCache.AbstractRedisPutCallback#put(org.springframework.data.redis.cache.RedisCache.RedisCacheElement, org.springframework.data.redis.connection.RedisConnection)
-		 */
-		@Override
-		protected Object put(RedisCacheElement element, RedisConnection connection) {
-
-			connection.set(element.getKey(), convertToBytesIfNecessary(template.getValueSerializer(), element.get()));
-			return null;
-		}
-
 	}
 
 	/**
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	class RedisCachePutIfAbsentCallback extends AbstractRedisPutCallback<Object> {
+	static class RedisCachePutIfAbsentCallback extends AbstractRedisCacheCallback<Object> {
 
-		public RedisCachePutIfAbsentCallback(RedisCacheElement element) {
-			super(element);
+		private final CacheValueAccessor valueAccessor;
+
+		public RedisCachePutIfAbsentCallback(RedisCacheElement element, CacheValueAccessor valueAccessor,
+				RedisCacheMetadata metadata) {
+
+			super(element, metadata);
+			this.valueAccessor = valueAccessor;
 		}
 
 		/*
@@ -371,7 +578,7 @@ public class RedisCache implements Cache {
 			waitForLock(connection);
 			Object resultValue = put(element, connection);
 
-			if (ObjectUtils.nullSafeEquals(element.get(), resultValue)) {
+			if (nullSafeEquals(element.get(), resultValue)) {
 				processKeyExpiration(element, connection);
 				maintainKnownKeys(element, connection);
 			}
@@ -379,91 +586,12 @@ public class RedisCache implements Cache {
 			return resultValue;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.cache.RedisCache.AbstractRedisPutCallback#put(org.springframework.data.redis.cache.RedisCache.RedisCacheElement, org.springframework.data.redis.connection.RedisConnection)
-		 */
-		@Override
-		protected Object put(RedisCacheElement element, RedisConnection connection) {
+		private Object put(RedisCacheElement element, RedisConnection connection) {
 
-			boolean valueWasSet = connection.setNX(element.getKey(),
-					convertToBytesIfNecessary(template.getValueSerializer(), element.get()));
-			return valueWasSet ? element.get() : deserializeIfNecessary(template.getValueSerializer(),
-					connection.get(element.getKey()));
+			boolean valueWasSet = connection.setNX(element.getKeyBytes(),
+					valueAccessor.convertToBytesIfNecessary(element.get()));
+			return valueWasSet ? element.get() : valueAccessor.deserializeIfNecessary(connection.get(element.getKeyBytes()));
 		}
-	}
-
-	/**
-	 * @author Christoph Strobl
-	 * @since 1.5
-	 */
-	public static class RedisCacheElement extends SimpleValueWrapper {
-
-		private final byte[] rawKey;
-		private byte[] prefix;
-		private long timeToLive;
-
-		public RedisCacheElement(byte[] key, Object value) {
-			super(value);
-			this.rawKey = key;
-		}
-
-		public byte[] getKey() {
-			return computeKey();
-		}
-
-		public byte[] getRawKey() {
-			return rawKey;
-		}
-
-		public void setPrefix(byte[] prefix) {
-			this.prefix = prefix;
-		}
-
-		public byte[] getPrefix() {
-			return prefix;
-		}
-
-		public void setTimeToLive(long timeToLive) {
-			this.timeToLive = timeToLive;
-		}
-
-		public long getTimeToLive() {
-			return timeToLive;
-		}
-
-		public boolean hasKeyPrefix() {
-			return (prefix != null && prefix.length > 0);
-		}
-
-		public boolean isEternal() {
-			return 0 == timeToLive;
-		}
-
-		public RedisCacheElement usePrefix(byte[] prefix) {
-
-			setPrefix(prefix);
-			return this;
-		}
-
-		public RedisCacheElement expireAfter(long seconds) {
-
-			setTimeToLive(seconds);
-			return this;
-		}
-
-		protected byte[] computeKey() {
-
-			if (!hasKeyPrefix()) {
-				return rawKey;
-			}
-
-			byte[] prefixedKey = Arrays.copyOf(prefix, prefix.length + rawKey.length);
-			System.arraycopy(rawKey, 0, prefixedKey, prefix.length, rawKey.length);
-
-			return prefixedKey;
-		}
-
 	}
 
 }
