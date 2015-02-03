@@ -91,6 +91,9 @@ dependencies {
     // Pool
     compile("org.apache.commons:commons-pool2:2.2", optional)
 
+    //Retry
+    compile("org.springframework.retry:spring-retry:$springRetryVersion")
+
     // Testing
     testCompile "junit:junit:$junitVersion"
     testCompile "org.springframework:spring-test:$springVersion"

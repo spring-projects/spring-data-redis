@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,10 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryOperations;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -71,6 +75,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Thomas Darimont
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -97,6 +102,9 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private SetOperations<K, V> setOps;
 	private ZSetOperations<K, V> zSetOps;
 	private HyperLogLogOperations<K, V> hllOps;
+
+	private RetryOperations retryOperations;
+	private RecoveryCallback<?> recoveryCallback;
 
 	/**
 	 * Constructs a new <code>RedisTemplate</code> instance.
@@ -163,9 +171,27 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	 * @param pipeline whether to pipeline or not the connection for the execution
 	 * @return object returned by the action
 	 */
-	public <T> T execute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
+	public <T> T execute(final RedisCallback<T> action, final boolean exposeConnection, final boolean pipeline) {
+
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
+
+		if (retryOperations != null) {
+
+			return getRetryOperations().<T, DataAccessException> execute(new RetryCallback<T, DataAccessException>() {
+
+				@Override
+				public T doWithRetry(RetryContext context) throws DataAccessException {
+					return doExecute(action, exposeConnection, pipeline);
+				}
+
+			}, this.<T> getRecoveryCallback());
+		}
+
+		return doExecute(action, exposeConnection, pipeline);
+	}
+
+	private <T> T doExecute(RedisCallback<T> action, boolean exposeConnection, boolean pipeline) {
 
 		RedisConnectionFactory factory = getConnectionFactory();
 		RedisConnection conn = null;
@@ -1090,4 +1116,20 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		this.enableTransactionSupport = enableTransactionSupport;
 	}
 
+	public RetryOperations getRetryOperations() {
+		return retryOperations;
+	}
+
+	public void setRetryOperations(RetryOperations retryOperations) {
+		this.retryOperations = retryOperations;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> RecoveryCallback<T> getRecoveryCallback() {
+		return (RecoveryCallback<T>) recoveryCallback;
+	}
+
+	public <T> void setRecoveryCallback(RecoveryCallback<T> recoveryCallback) {
+		this.recoveryCallback = recoveryCallback;
+	}
 }
