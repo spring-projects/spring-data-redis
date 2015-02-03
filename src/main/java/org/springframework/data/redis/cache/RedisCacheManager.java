@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private long defaultExpiration = 0;
 	private Map<String, Long> expires = null;
 
+	private Set<String> configuredCacheNames;
+
 	/**
 	 * Construct a {@link RedisCacheManager}.
 	 * 
@@ -107,12 +110,11 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	public void setCacheNames(Collection<String> cacheNames) {
 
-		if (!CollectionUtils.isEmpty(cacheNames)) {
-			for (String cacheName : cacheNames) {
-				createAndAddCache(cacheName);
-			}
-			this.dynamic = false;
-		}
+		Set<String> newCacheNames = CollectionUtils.isEmpty(cacheNames) ? Collections.<String> emptySet()
+				: new HashSet<String>(cacheNames);
+
+		this.configuredCacheNames = newCacheNames;
+		this.dynamic = newCacheNames.isEmpty();
 	}
 
 	public void setUsePrefix(boolean usePrefix) {
@@ -263,5 +265,39 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 				return cacheKeys;
 			}
 		});
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected RedisTemplate getTemplate() {
+		return template;
+	}
+
+	protected RedisCachePrefix getCachePrefix() {
+		return cachePrefix;
+	}
+
+	protected boolean isUsePrefix() {
+		return usePrefix;
+	}
+
+	/**
+	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
+	 * regions at runtime.
+	 * 
+	 * @see org.springframework.cache.support.AbstractCacheManager#afterPropertiesSet()
+	 */
+	@Override
+	public void afterPropertiesSet() {
+
+		if (!CollectionUtils.isEmpty(configuredCacheNames)) {
+
+			for (String cacheName : configuredCacheNames) {
+				createAndAddCache(cacheName);
+			}
+
+			configuredCacheNames.clear();
+		}
+
+		super.afterPropertiesSet();
 	}
 }
