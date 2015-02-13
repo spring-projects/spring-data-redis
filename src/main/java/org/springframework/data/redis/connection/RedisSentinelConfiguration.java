@@ -15,11 +15,14 @@
  */
 package org.springframework.data.redis.connection;
 
+import static org.springframework.util.Assert.*;
+import static org.springframework.util.StringUtils.*;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.util.Assert;
+import org.springframework.core.env.PropertySource;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
@@ -30,6 +33,9 @@ import org.springframework.util.Assert;
  * @since 1.4
  */
 public class RedisSentinelConfiguration {
+
+	private static final String REDIS_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
+	private static final String REDIS_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
 
 	private NamedNode master;
 	private Set<RedisNode> sentinels;
@@ -42,13 +48,63 @@ public class RedisSentinelConfiguration {
 	}
 
 	/**
+	 * Creates {@link RedisSentinelConfiguration} for given hostPort combinations.
+	 * 
+	 * <pre>
+	 * <code>
+	 * sentinelHostAndPorts[0] = 127.0.0.1:23679
+	 * sentinelHostAndPorts[1] = 127.0.0.1:23680
+	 * ...
+	 * </code>
+	 * </pre>
+	 * 
+	 * @param hostAndPorts must not be {@literal null}.
+	 * @since 1.5
+	 */
+	public RedisSentinelConfiguration(String master, Iterable<String> sentinelHostAndPorts) {
+
+		this();
+		notNull(sentinelHostAndPorts, "HostAndPorts must not be null!");
+
+		setMaster(master);
+		appendSentinels(sentinelHostAndPorts);
+	}
+
+	/**
+	 * Creates {@link RedisSentinelConfiguration} looking up values in given {@link PropertySource}.
+	 * 
+	 * <pre>
+	 * <code>
+	 * spring.redis.sentinel.master=myMaster
+	 * spring.redis.sentinel.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
+	 * </code>
+	 * </pre>
+	 * 
+	 * @param propertySource must not be {@literal null}.
+	 * @since 1.5
+	 */
+	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
+
+		this();
+		notNull(propertySource, "PropertySource must not be null!");
+
+		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
+			this.setMaster(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY).toString());
+		}
+		if (propertySource.containsProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)) {
+			appendSentinels(commaDelimitedListToSet(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)
+					.toString()));
+		}
+	}
+
+	/**
 	 * Set {@literal Sentinels} to connect to.
 	 * 
 	 * @param sentinels must not be {@literal null}.
 	 */
 	public void setSentinels(Iterable<RedisNode> sentinels) {
 
-		Assert.notNull(sentinels, "Cannot set sentinels to 'null'.");
+		notNull(sentinels, "Cannot set sentinels to 'null'.");
 		this.sentinels.clear();
 		for (RedisNode sentinel : sentinels) {
 			addSentinel(sentinel);
@@ -71,7 +127,7 @@ public class RedisSentinelConfiguration {
 	 */
 	public void addSentinel(RedisNode sentinel) {
 
-		Assert.notNull(sentinel, "Sentinel must not be 'null'.");
+		notNull(sentinel, "Sentinel must not be 'null'.");
 		this.sentinels.add(sentinel);
 	}
 
@@ -82,7 +138,7 @@ public class RedisSentinelConfiguration {
 	 */
 	public void setMaster(final String name) {
 
-		Assert.notNull(name, "Name of sentinel master must not be null.");
+		notNull(name, "Name of sentinel master must not be null.");
 		setMaster(new NamedNode() {
 
 			@Override
@@ -99,7 +155,7 @@ public class RedisSentinelConfiguration {
 	 */
 	public void setMaster(NamedNode master) {
 
-		Assert.notNull("Sentinel master node must not be 'null'.");
+		notNull("Sentinel master node must not be 'null'.");
 		this.master = master;
 	}
 
@@ -151,4 +207,21 @@ public class RedisSentinelConfiguration {
 	public RedisSentinelConfiguration sentinel(String host, Integer port) {
 		return sentinel(new RedisNode(host, port));
 	}
+
+	private void appendSentinels(Iterable<String> hostAndPorts) {
+
+		for (String hostAndPort : hostAndPorts) {
+			addSentinel(readHostAndPortFromString(hostAndPort));
+		}
+	}
+
+	private RedisNode readHostAndPortFromString(String hostAndPort) {
+
+		String[] args = split(hostAndPort, ":");
+
+		notNull(args, "HostAndPort need to be seperated by  ':'.");
+		isTrue(args.length == 2, "Host and Port String needs to specified as host:port");
+		return new RedisNode(args[0], Integer.valueOf(args[1]).intValue());
+	}
+
 }
