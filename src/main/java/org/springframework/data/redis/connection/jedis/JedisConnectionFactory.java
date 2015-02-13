@@ -16,6 +16,7 @@
 
 package org.springframework.data.redis.connection.jedis;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.Jedis;
@@ -59,6 +61,27 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private final static Log log = LogFactory.getLog(JedisConnectionFactory.class);
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
+
+	private static final Method SET_TIMEOUT_METHOD;
+	private static final Method GET_TIMEOUT_METHOD;
+
+	static {
+
+		// We need to configure Jedis socket timeout via reflection since the method-name was changed between releases.
+		Method setTimeoutMethodCandidate = ReflectionUtils.findMethod(JedisShardInfo.class, "setTimeout", int.class);
+		if (setTimeoutMethodCandidate == null) {
+			// Jedis V 2.7.x changed the setTimeout method to setSoTimeout
+			setTimeoutMethodCandidate = ReflectionUtils.findMethod(JedisShardInfo.class, "setSoTimeout", int.class);
+		}
+		SET_TIMEOUT_METHOD = setTimeoutMethodCandidate;
+
+		Method getTimeoutMethodCandidate = ReflectionUtils.findMethod(JedisShardInfo.class, "getTimeout");
+		if (getTimeoutMethodCandidate == null) {
+			getTimeoutMethodCandidate = ReflectionUtils.findMethod(JedisShardInfo.class, "getSoTimeout");
+		}
+
+		GET_TIMEOUT_METHOD = getTimeoutMethodCandidate;
+	}
 
 	private JedisShardInfo shardInfo;
 	private String hostName = "localhost";
@@ -165,13 +188,21 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			}
 
 			if (timeout > 0) {
-				shardInfo.setTimeout(timeout);
+				setTimeoutOn(shardInfo, timeout);
 			}
 		}
 
 		if (usePool) {
 			this.pool = createPool();
 		}
+	}
+
+	private static void setTimeoutOn(JedisShardInfo shardInfo, int timeout) {
+		ReflectionUtils.invokeMethod(SET_TIMEOUT_METHOD, shardInfo, timeout);
+	}
+
+	private static int getTimeoutFrom(JedisShardInfo shardInfo) {
+		return (Integer) ReflectionUtils.invokeMethod(GET_TIMEOUT_METHOD, shardInfo);
 	}
 
 	private Pool<Jedis> createPool() {
@@ -191,8 +222,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
-				getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig(), getShardInfo().getTimeout(), getShardInfo()
-						.getPassword());
+				getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig(), getTimeoutFrom(getShardInfo()),
+				getShardInfo().getPassword());
 	}
 
 	/**
@@ -202,8 +233,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @since 1.4
 	 */
 	protected Pool<Jedis> createRedisPool() {
-		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(), getShardInfo()
-				.getTimeout(), getShardInfo().getPassword());
+		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
+				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword());
 	}
 
 	/*
@@ -424,7 +455,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		if (!isRedisSentinelAware()) {
 			throw new InvalidDataAccessResourceUsageException("No Sentinels configured");
 		}
-		
+
 		return new JedisSentinelConnection(getActiveSentinel());
 	}
 
