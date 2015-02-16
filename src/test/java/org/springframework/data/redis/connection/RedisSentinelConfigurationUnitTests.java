@@ -22,6 +22,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 
 import org.junit.Test;
 import org.springframework.core.env.PropertySource;
@@ -44,7 +45,8 @@ public class RedisSentinelConfigurationUnitTests {
 	@Test
 	public void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndSingleHostAndPortString() {
 
-		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Arrays.asList(HOST_AND_PORT_1));
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster",
+				Collections.singleton(HOST_AND_PORT_1));
 
 		assertThat(config.getSentinels().size(), is(1));
 		assertThat(config.getSentinels(), hasItems(new RedisNode("127.0.0.1", 123)));
@@ -56,8 +58,8 @@ public class RedisSentinelConfigurationUnitTests {
 	@Test
 	public void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndMultipleHostAndPortStrings() {
 
-		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Arrays.asList(HOST_AND_PORT_1,
-				HOST_AND_PORT_2, HOST_AND_PORT_3));
+		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", new HashSet<String>(Arrays.asList(
+				HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
 		assertThat(config.getSentinels().size(), is(3));
 		assertThat(config.getSentinels(),
@@ -69,7 +71,7 @@ public class RedisSentinelConfigurationUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowExecptionOnInvalidHostAndPortString() {
-		new RedisSentinelConfiguration("mymaster", Arrays.asList(HOST_AND_NO_PORT));
+		new RedisSentinelConfiguration("mymaster", Collections.singleton(HOST_AND_NO_PORT));
 	}
 
 	/**
@@ -77,7 +79,7 @@ public class RedisSentinelConfigurationUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
-		new RedisSentinelConfiguration("mymaster", (Iterable<String>) null);
+		new RedisSentinelConfiguration("mymaster", Collections.<String> singleton(null));
 	}
 
 	/**

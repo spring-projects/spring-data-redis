@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@ import static org.springframework.util.Assert.*;
 import static org.springframework.util.StringUtils.*;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.StringUtils;
 
 /**
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
@@ -30,6 +34,7 @@ import org.springframework.core.env.PropertySource;
  * environment.
  * 
  * @author Christoph Strobl
+ * @author Thomas Darimont
  * @since 1.4
  */
 public class RedisSentinelConfiguration {
@@ -44,30 +49,24 @@ public class RedisSentinelConfiguration {
 	 * Creates new {@link RedisSentinelConfiguration}.
 	 */
 	public RedisSentinelConfiguration() {
-		this.sentinels = new LinkedHashSet<RedisNode>();
+		this(new MapPropertySource("RedisSentinelConfiguration", Collections.<String, Object> emptyMap()));
 	}
 
 	/**
 	 * Creates {@link RedisSentinelConfiguration} for given hostPort combinations.
 	 * 
 	 * <pre>
-	 * <code>
 	 * sentinelHostAndPorts[0] = 127.0.0.1:23679
 	 * sentinelHostAndPorts[1] = 127.0.0.1:23680
 	 * ...
-	 * </code>
-	 * </pre>
 	 * 
-	 * @param hostAndPorts must not be {@literal null}.
+	 * <pre>
+	 * 
+	 * @param sentinelHostAndPorts must not be {@literal null}.
 	 * @since 1.5
 	 */
-	public RedisSentinelConfiguration(String master, Iterable<String> sentinelHostAndPorts) {
-
-		this();
-		notNull(sentinelHostAndPorts, "HostAndPorts must not be null!");
-
-		setMaster(master);
-		appendSentinels(sentinelHostAndPorts);
+	public RedisSentinelConfiguration(String master, Set<String> sentinelHostAndPorts) {
+		this(new MapPropertySource("RedisSentinelConfiguration", asMap(master, sentinelHostAndPorts)));
 	}
 
 	/**
@@ -85,12 +84,14 @@ public class RedisSentinelConfiguration {
 	 */
 	public RedisSentinelConfiguration(PropertySource<?> propertySource) {
 
-		this();
 		notNull(propertySource, "PropertySource must not be null!");
+
+		this.sentinels = new LinkedHashSet<RedisNode>();
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY)) {
 			this.setMaster(propertySource.getProperty(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY).toString());
 		}
+
 		if (propertySource.containsProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)) {
 			appendSentinels(commaDelimitedListToSet(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)
 					.toString()));
@@ -105,7 +106,9 @@ public class RedisSentinelConfiguration {
 	public void setSentinels(Iterable<RedisNode> sentinels) {
 
 		notNull(sentinels, "Cannot set sentinels to 'null'.");
+
 		this.sentinels.clear();
+
 		for (RedisNode sentinel : sentinels) {
 			addSentinel(sentinel);
 		}
@@ -208,7 +211,7 @@ public class RedisSentinelConfiguration {
 		return sentinel(new RedisNode(host, port));
 	}
 
-	private void appendSentinels(Iterable<String> hostAndPorts) {
+	private void appendSentinels(Set<String> hostAndPorts) {
 
 		for (String hostAndPort : hostAndPorts) {
 			addSentinel(readHostAndPortFromString(hostAndPort));
@@ -224,4 +227,20 @@ public class RedisSentinelConfiguration {
 		return new RedisNode(args[0], Integer.valueOf(args[1]).intValue());
 	}
 
+	/**
+	 * @param master must not be {@literal null} or empty.
+	 * @param sentinelHostAndPorts must not be {@literal null}.
+	 * @return
+	 */
+	private static Map<String, Object> asMap(String master, Set<String> sentinelHostAndPorts) {
+
+		hasText(master, "Master address must not be null or empty!");
+		notNull(sentinelHostAndPorts, "SentinelHostAndPorts must not be null!");
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(REDIS_SENTINEL_MASTER_CONFIG_PROPERTY, master);
+		map.put(REDIS_SENTINEL_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(sentinelHostAndPorts));
+
+		return map;
+	}
 }
