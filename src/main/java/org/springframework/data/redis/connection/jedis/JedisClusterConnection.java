@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
@@ -47,6 +49,7 @@ import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -64,7 +67,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	private static final Field CONNECTION_HANDLER;
 	private final JedisCluster cluster;
-	private final JedisClusterConnectionHandler connectionHandler;
+	private final ThreadPoolTaskExecutor executor;
 
 	static {
 
@@ -77,7 +80,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		notNull(cluster);
 		this.cluster = cluster;
-		connectionHandler = (JedisClusterConnectionHandler) getField(CONNECTION_HANDLER, cluster);
+
+		executor = new ThreadPoolTaskExecutor();
+		this.executor.initialize();
 	}
 
 	@Override
@@ -251,7 +256,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Boolean pExpire(final byte[] key, final long millis) {
 
-		return runClusterCommand(new JedisClusterCommand<Boolean>(this.connectionHandler, 1, 5) {
+		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1, 5) {
 			@Override
 			public Boolean execute(Jedis connection) {
 				return JedisConverters.toBoolean(connection.pexpire(key, millis));
@@ -272,7 +277,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Boolean pExpireAt(final byte[] key, final long unixTimeInMillis) {
 
-		return runClusterCommand(new JedisClusterCommand<Boolean>(this.connectionHandler, 1, 5) {
+		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1, 5) {
 
 			@Override
 			public Boolean execute(Jedis connection) {
@@ -309,7 +314,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long pTtl(final byte[] key) {
 
-		return runClusterCommand(new JedisClusterCommand<Long>(this.connectionHandler, 5, 1) {
+		return runClusterCommand(new JedisClusterCommand<Long>(getClusterConnectionHandler(), 5, 1) {
 
 			@Override
 			public Long execute(Jedis connection) {
@@ -337,7 +342,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] dump(final byte[] key) {
 
-		return runClusterCommand(new JedisClusterCommand<byte[]>(this.connectionHandler, 5, 1) {
+		return runClusterCommand(new JedisClusterCommand<byte[]>(getClusterConnectionHandler(), 5, 1) {
 
 			@Override
 			public byte[] execute(Jedis connection) {
@@ -353,7 +358,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new UnsupportedOperationException();
 		}
 
-		runClusterCommand(new JedisClusterCommand<Void>(this.connectionHandler, 5, 1) {
+		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5, 1) {
 
 			@Override
 			public Void execute(Jedis connection) {
@@ -430,7 +435,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new IllegalArgumentException("Milliseconds have cannot exceed Integer.MAX_VALUE!");
 		}
 
-		runClusterCommand(new JedisClusterCommand<Void>(this.connectionHandler, 1, 5) {
+		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 1, 5) {
 
 			@Override
 			public Void execute(Jedis connection) {
@@ -476,7 +481,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Double incrBy(final byte[] key, final double value) {
 
-		return runClusterCommand(new JedisClusterCommand<Double>(this.connectionHandler, 5, 1) {
+		return runClusterCommand(new JedisClusterCommand<Double>(getClusterConnectionHandler(), 5, 1) {
 
 			@Override
 			public Double execute(Jedis connection) {
@@ -653,7 +658,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void lTrim(final byte[] key, final long begin, final long end) {
 
-		runClusterCommand(new JedisClusterCommand<Void>(this.connectionHandler, 5, 1) {
+		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5, 1) {
 
 			@Override
 			public Void execute(Jedis connection) {
@@ -1188,7 +1193,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] echo(final byte[] message) {
 
-		return new JedisClusterCommand<byte[]>(this.connectionHandler, 1, 5) {
+		return new JedisClusterCommand<byte[]>(getClusterConnectionHandler(), 1, 5) {
 
 			@Override
 			public byte[] execute(Jedis connection) {
@@ -1467,7 +1472,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				return null;
 			}
 		});
-
 	}
 
 	@Override
@@ -1491,14 +1495,12 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public List<String> getConfig(String pattern) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Cannot get config from multiple Nodes since return type does not match");
 	}
 
 	@Override
 	public void setConfig(String param, String value) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException("Cannot get config from multiple Nodes since return type does not match");
 	}
 
 	@Override
@@ -1509,109 +1511,112 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Long time() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Need to use a single host to do so");
 	}
 
 	@Override
 	public void killClient(String host, int port) {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Requires to have a specific client.");
 
 	}
 
 	@Override
 	public void setClientName(byte[] name) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public String getClientName() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public List<RedisClientInfo> getClientList() {
-		// TODO Auto-generated method stub
-		return null;
+
+		Map<RedisNode, List<RedisClientInfo>> map = runCommandOnAllNodes(new JedisCommandCallback<List<RedisClientInfo>>() {
+
+			@Override
+			public List<RedisClientInfo> doInJedis(Jedis jedis) {
+				return JedisConverters.toListOfRedisClientInformation(jedis.clientList());
+			}
+		});
+
+		ArrayList<RedisClientInfo> result = new ArrayList<RedisClientInfo>();
+		for (List<RedisClientInfo> infos : map.values()) {
+			result.addAll(infos);
+		}
+		return result;
+
 	}
 
 	@Override
 	public void slaveOf(String host, int port) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void slaveOfNoOne() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void scriptFlush() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void scriptKill() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public String scriptLoad(byte[] script) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public List<Boolean> scriptExists(String... scriptShas) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public <T> T eval(byte[] script, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public <T> T evalSha(String scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public <T> T evalSha(byte[] scriptSha, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.pfadd(JedisConverters.toString(key), JedisConverters.toStrings(values));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long pfCount(byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("well that would work if keys are on same slot");
 	}
 
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException("well that would work if keys are on same slot");
 	}
 
 	@Override
 	public Boolean exists(final byte[] key) {
-		return runClusterCommand(new JedisClusterCommand<Boolean>(this.connectionHandler, 1, 5) {
+		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1, 5) {
 
 			@Override
 			public Boolean execute(Jedis connection) {
@@ -1654,12 +1659,38 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 	}
 
-	private <T> Map<RedisNode, T> runCommandOnAllNodes(JedisCommandCallback<T> cmd) {
+	private <T> Map<RedisNode, T> runCommandOnAllNodes(final JedisCommandCallback<T> cmd) {
 
-		// this would be great if we could kick this of for parallel execution and the merge when all finished...
-		Map<RedisNode, T> result = new LinkedHashMap<RedisNode, T>();
-		for (RedisNode node : getClusterNodes()) {
-			result.put(node, runCommandOnSingleNode(cmd, node));
+		List<RedisNode> nodes = getClusterNodes();
+		// TODO: check for which number of nodes it makes sense to run this async
+		return runCommandAsyncOnAllNodes(cmd, nodes);
+	}
+
+	private <T> Map<RedisNode, T> runCommandAsyncOnAllNodes(final JedisCommandCallback<T> cmd, Iterable<RedisNode> nodes) {
+
+		final Map<RedisNode, T> result = new LinkedHashMap<RedisNode, T>();
+		List<Future<T>> futures = new ArrayList<Future<T>>();
+		for (final RedisNode node : nodes) {
+
+			futures.add(executor.submit(new Callable<T>() {
+
+				@Override
+				public T call() throws Exception {
+					return result.put(node, runCommandOnSingleNode(cmd, node));
+				}
+
+			}));
+		}
+
+		boolean done = false;
+		while (!done) {
+
+			done = true;
+			for (Future<T> future : futures) {
+				if (!future.isDone()) {
+					done = false;
+				}
+			}
 		}
 		return result;
 	}
@@ -1690,6 +1721,10 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			return clusterNodes.get(node.asString());
 		}
 		return null;
+	}
+
+	private JedisClusterConnectionHandler getClusterConnectionHandler() {
+		return (JedisClusterConnectionHandler) getField(CONNECTION_HANDLER, cluster);
 	}
 
 	interface JedisCommandCallback<T> {
