@@ -37,9 +37,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -112,30 +114,22 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void openPipeline() {
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public List<Object> closePipeline() throws RedisPipelineException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object execute(String command, byte[]... args) {
-		// return new JedisClusterCommand(this.connectionHandler, 1, 5){
-		//
-		// @Override
-		// public Object execute(Jedis connection) {
-		// jedis.e
-		// }};
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -203,7 +197,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] randomKey() {
 
-		List<RedisNode> nodes = getClusterNodes();
+		List<RedisNode> nodes = readClusterNodesFromDriver();
 		int iteration = 0;
 		do {
 			RedisNode node = nodes.get(new Random().nextInt(nodes.size()));
@@ -298,7 +292,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException(
+				"Cluster mode does not allow moving keys since there is only one db available.");
 	}
 
 	@Override
@@ -733,12 +728,32 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public List<byte[]> bLPop(int timeout, byte[]... keys) {
-		throw new UnsupportedOperationException();
+
+		List<byte[]> result = new ArrayList<byte[]>();
+		try {
+			for (byte[] key : keys) {
+				result.addAll(JedisConverters.stringListToByteList().convert(
+						cluster.blpop(timeout, JedisConverters.toString(key))));
+			}
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+		return result;
 	}
 
 	@Override
 	public List<byte[]> bRPop(int timeout, byte[]... keys) {
-		throw new UnsupportedOperationException();
+
+		List<byte[]> result = new ArrayList<byte[]>();
+		try {
+			for (byte[] key : keys) {
+				result.addAll(JedisConverters.stringListToByteList().convert(
+						cluster.brpop(timeout, JedisConverters.toString(key))));
+			}
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+		return result;
 	}
 
 	@Override
@@ -797,392 +812,559 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Boolean sIsMember(byte[] key, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.sismember(JedisConverters.toString(key), JedisConverters.toString(value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Only works when keys map to same slot");
 	}
 
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Only works when keys map to same slot");
 	}
 
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Only works when keys map to same slot");
 	}
 
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Only works when keys map to same slot");
 	}
 
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Only works when keys map to same slot");
 	}
 
 	@Override
 	public Set<byte[]> sMembers(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(cluster.smembers(JedisConverters.toString(key)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public byte[] sRandMember(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toBytes(cluster.srandmember(JedisConverters.toString(key)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public List<byte[]> sRandMember(byte[] key, long count) {
-		// TODO Auto-generated method stub
-		return null;
+
+		if (count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count have cannot exceed Integer.MAX_VALUE!");
+		}
+
+		try {
+			return JedisConverters.stringListToByteList().convert(
+					cluster.srandmember(JedisConverters.toString(key), Long.valueOf(count).intValue()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("cluster.sscan(key, cursor) should be possible");
 	}
 
 	@Override
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toBoolean(cluster.zadd(JedisConverters.toString(key), score,
+					JedisConverters.toString(value)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO: need to move the tuple conversion form jedisconnection.
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long zRem(byte[] key, byte[]... values) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zrem(JedisConverters.toString(key), JedisConverters.toStrings(values));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+
 	}
 
 	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return cluster.zincrby(JedisConverters.toString(key), increment, JedisConverters.toString(value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zRank(byte[] key, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zrank(JedisConverters.toString(key), JedisConverters.toString(value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zRevRank(byte[] key, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zrevrank(JedisConverters.toString(key), JedisConverters.toString(value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> zRange(byte[] key, long begin, long end) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(cluster.zrange(JedisConverters.toString(key), begin, end));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long begin, long end) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("need to convert from string to Tuple manually....");
 	}
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(
+					cluster.zrangeByScore(JedisConverters.toString(key), min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toTupleSet(cluster.zrangeByScoreWithScores(JedisConverters.toString(key), min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		// TODO Auto-generated method stub
-		return null;
+
+		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count/Offset cannot exceed Integer.MAX_VALUE!");
+		}
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(
+					cluster.zrangeByScore(JedisConverters.toString(key), min, max, Long.valueOf(offset).intValue(),
+							Long.valueOf(count).intValue()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		// TODO Auto-generated method stub
-		return null;
+
+		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count/Offset cannot exceed Integer.MAX_VALUE!");
+		}
+
+		try {
+			return JedisConverters.toTupleSet(cluster.zrangeByScoreWithScores(JedisConverters.toString(key), min, max, Long
+					.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> zRevRange(byte[] key, long begin, long end) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(cluster.zrevrange(JedisConverters.toString(key), begin, end));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long begin, long end) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("need to convert from string to Tuple manually....");
 	}
 
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(
+					cluster.zrevrangeByScore(JedisConverters.toString(key), min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(JedisConverters.toString(key), min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		// TODO Auto-generated method stub
-		return null;
+
+		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count/Offset cannot exceed Integer.MAX_VALUE!");
+		}
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(
+					cluster.zrevrangeByScore(JedisConverters.toString(key), min, max, Long.valueOf(offset).intValue(), Long
+							.valueOf(count).intValue()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		// TODO Auto-generated method stub
-		return null;
+
+		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count/Offset cannot exceed Integer.MAX_VALUE!");
+		}
+
+		try {
+			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(JedisConverters.toString(key), min, max,
+					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zCount(byte[] key, double min, double max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zcount(JedisConverters.toString(key), min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zCard(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zcard(JedisConverters.toString(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Double zScore(byte[] key, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zscore(JedisConverters.toString(key), JedisConverters.toString(value));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zRemRange(byte[] key, long begin, long end) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zremrangeByScore(JedisConverters.toString(key), begin, end);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.zremrangeByScore(JedisConverters.toString(key), min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("this seems to be possible need to check cursor callback impl.");
 	}
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(
+					cluster.zrangeByScore(JedisConverters.toString(key), min, max));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
-		// TODO Auto-generated method stub
-		return null;
+
+		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count/Offset cannot exceed Integer.MAX_VALUE!");
+		}
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(
+					cluster.zrangeByScore(JedisConverters.toString(key), min, max, Long.valueOf(offset).intValue(),
+							Long.valueOf(count).intValue()));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toBoolean(cluster.hset(JedisConverters.toString(key), JedisConverters.toString(field),
+					JedisConverters.toString(value)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toBoolean(cluster.hsetnx(JedisConverters.toString(key), JedisConverters.toString(field),
+					JedisConverters.toString(value)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public byte[] hGet(byte[] key, byte[] field) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.toBytes(cluster.hget(JedisConverters.toString(key), JedisConverters.toString(field)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringListToByteList().convert(
+					cluster.hmget(JedisConverters.toString(key), JedisConverters.toStrings(fields)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException("Need to add map converter for bytes to string");
 	}
 
 	@Override
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.hincrBy(JedisConverters.toString(key), JedisConverters.toString(field), delta);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Boolean hExists(byte[] key, byte[] field) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.hexists(JedisConverters.toString(key), JedisConverters.toString(field));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long hDel(byte[] key, byte[]... fields) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.hdel(JedisConverters.toString(key), JedisConverters.toStrings(fields));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Long hLen(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return cluster.hlen(JedisConverters.toString(key));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> hKeys(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringSetToByteSet().convert(cluster.hkeys(JedisConverters.toString(key)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public List<byte[]> hVals(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringListToByteList().convert(cluster.hvals(JedisConverters.toString(key)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			return JedisConverters.stringMapToByteMap().convert(cluster.hgetAll(JedisConverters.toString(key)));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("TODO: check implementation using callbacks.");
 	}
 
 	@Override
 	public void multi() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(
+				"Well not really its just that all subsequent ops have to use same connection und must be performed on same slot");
 	}
 
 	@Override
 	public List<Object> exec() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException(
+				"Well not really its just that all subsequent ops have to use same connection und must be performed on same slot");
 	}
 
 	@Override
 	public void discard() {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(
+				"Well not really its just that all subsequent ops have to use same connection und must be performed on same slot");
 	}
 
 	@Override
 	public void watch(byte[]... keys) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException(
+				"Well not really its just that all subsequent ops have to use same connection und must be performed on same slot");
 	}
 
 	@Override
 	public void unwatch() {
-		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException(
+				"Well not really its just that all subsequent ops have to use same connection und must be performed on same slot");
 
 	}
 
 	@Override
 	public boolean isSubscribed() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public Subscription getSubscription() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Long publish(byte[] channel, byte[] message) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void subscribe(MessageListener listener, byte[]... channels) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void pSubscribe(MessageListener listener, byte[]... patterns) {
-		// TODO Auto-generated method stub
-
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -1457,8 +1639,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Properties info(String section) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -1633,6 +1814,12 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 	}
 
+	private <T> T runCommandOnArbitraryNode(JedisCommandCallback<T> cmd) {
+
+		List<RedisNode> nodes = readClusterNodesFromDriver();
+		return runCommandOnSingleNode(cmd, nodes.get(new Random().nextInt(nodes.size())));
+	}
+
 	private <T> T runCommandOnSingleNode(JedisCommandCallback<T> cmd, RedisNode node) {
 
 		JedisPool pool = getResourcePoolForSpecificNode(node);
@@ -1661,7 +1848,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	private <T> Map<RedisNode, T> runCommandOnAllNodes(final JedisCommandCallback<T> cmd) {
 
-		List<RedisNode> nodes = getClusterNodes();
+		List<RedisNode> nodes = readClusterNodesFromDriver();
 		// TODO: check for which number of nodes it makes sense to run this async
 		return runCommandAsyncOnAllNodes(cmd, nodes);
 	}
@@ -1699,8 +1886,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
 
-	@Override
-	public List<RedisNode> getClusterNodes() {
+	private List<RedisNode> readClusterNodesFromDriver() {
 
 		List<RedisNode> nodes = new ArrayList<RedisNode>();
 		Map<String, JedisPool> clusterNodes = cluster.getClusterNodes();
@@ -1731,4 +1917,71 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		T doInJedis(Jedis jedis);
 	}
 
+	/*
+	 * --> Cluster Commands
+	 */
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterSlotForKey(byte[])
+	 */
+	@Override
+	public Long getClusterSlotForKey(final byte[] key) {
+
+		return runCommandOnArbitraryNode(new JedisCommandCallback<Long>() {
+
+			@Override
+			public Long doInJedis(Jedis jedis) {
+				return jedis.clusterKeySlot(JedisConverters.toString(key));
+			}
+		});
+	}
+
+	@Override
+	public RedisClusterNode getClusterNodeForSlot(Long slot) {
+
+		for (RedisClusterNode node : getClusterNodes()) {
+			if (node.servesSlot(slot)) {
+				return node;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<RedisClusterNode> getClusterNodes() {
+
+		return runCommandOnArbitraryNode(new JedisCommandCallback<List<RedisClusterNode>>() {
+
+			@Override
+			public List<RedisClusterNode> doInJedis(Jedis jedis) {
+
+				List<Object> slotAssignment = jedis.clusterSlots();
+
+				List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(slotAssignment.size());
+				for (Object nodeAndSlot : slotAssignment) {
+					nodes.add(JedisConverters.toNode(nodeAndSlot));
+				}
+				return nodes;
+			}
+		});
+	}
+
+	@Override
+	public RedisClusterNode getClusterNodeForKey(byte[] key) {
+		return getClusterNodeForSlot(getClusterSlotForKey(key));
+	}
+
+	@Override
+	public ClusterInfo getClusterInfo() {
+
+		return runCommandOnArbitraryNode(new JedisCommandCallback<ClusterInfo>() {
+
+			@Override
+			public ClusterInfo doInJedis(Jedis jedis) {
+				return new ClusterInfo(JedisConverters.toProperties(jedis.clusterInfo()));
+			}
+		});
+	}
 }

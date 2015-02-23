@@ -20,6 +20,14 @@ package org.springframework.data.redis.connection;
  */
 public interface RedisClusterCommands {
 
-	Iterable<RedisNode> getClusterNodes();
+	Iterable<RedisClusterNode> getClusterNodes();
+
+	Long getClusterSlotForKey(byte[] key);
+
+	RedisNode getClusterNodeForSlot(Long slot);
+
+	RedisNode getClusterNodeForKey(byte[] key);
+
+	ClusterInfo getClusterInfo();
 
 }

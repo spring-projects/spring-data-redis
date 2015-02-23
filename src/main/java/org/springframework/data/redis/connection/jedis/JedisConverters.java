@@ -26,6 +26,7 @@ import java.util.Set;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -69,6 +70,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
 	private static final Converter<Properties, RedisServer> PROPERTIES_TO_SENTINEL;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
+	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
 
 	static {
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
@@ -93,6 +95,20 @@ abstract public class JedisConverters extends Converters {
 			public RedisServer convert(Properties source) {
 				return source != null ? RedisServer.newServerFrom(source) : null;
 
+			}
+		};
+
+		OBJECT_TO_CLUSTER_NODE_CONVERTER = new Converter<Object, RedisClusterNode>() {
+
+			@Override
+			public RedisClusterNode convert(Object infos) {
+
+				List<Object> values = (List<Object>) infos;
+				RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).longValue(),
+						((Number) values.get(1)).longValue());
+				List<Object> nodeInfo = (List<Object>) values.get(2);
+				return new RedisClusterNode(JedisConverters.toString((byte[]) nodeInfo.get(0)),
+						((Number) nodeInfo.get(1)).intValue(), range);
 			}
 		};
 	}
@@ -157,6 +173,15 @@ abstract public class JedisConverters extends Converters {
 
 	public static String toString(byte[] source) {
 		return source == null ? null : SafeEncoder.encode(source);
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.5
+	 */
+	public static RedisClusterNode toNode(Object source) {
+		return OBJECT_TO_CLUSTER_NODE_CONVERTER.convert(source);
 	}
 
 	/**
