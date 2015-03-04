@@ -300,4 +300,25 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 		super.afterPropertiesSet();
 	}
+
+	/* (non-Javadoc)
+	* @see
+	org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager#decorateCache(org.springframework.cache.Cache)
+	*/
+	@Override
+	protected Cache decorateCache(Cache cache) {
+
+		/*
+		* DATAREDIS-375 - Avoid decorating caches multiple times.
+		*/
+		if (isCacheAlreadyDecorated(cache)) {
+			return cache;
+		}
+
+		return super.decorateCache(cache);
+	}
+
+	protected boolean isCacheAlreadyDecorated(Cache cache) {
+		return isTransactionAware() && cache instanceof TransactionAwareCacheDecorator;
+	}
 }
