@@ -177,7 +177,17 @@ public RedisConnectionFactory jedisConnectionFactory() {
 } 
 ----
 
+[TIP]
+====
+`RedisSentinelConfiguration` can also be defined via `PropertySource`.
+
+.Configuration Properties
+- `spring.redis.sentinel.master`: name of the master node.
+- `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
+====
+
 Sometimes direct interaction with the one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
+
 
 [[redis:template]]
 == Working with Objects through RedisTemplate
@@ -208,6 +218,9 @@ Moreover, the template provides operations views (following the grouping from Re
 
 |HashOperations
 |Redis hash operations
+
+|HyperLogLogOperations
+|Redis HyperLogLog operations like (pfadd, pfcount,...)
 
 2+^|_Key Bound Operations_
 
