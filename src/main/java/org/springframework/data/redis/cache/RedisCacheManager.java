@@ -106,7 +106,9 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Specify the set of cache names for this CacheManager's 'static' mode. <br>
 	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
-	 * regions at runtime.
+	 * regions at runtime. <br>
+	 * Calling this with a {@code null} or empty collection argument resets the mode to 'dynamic', allowing for further
+	 * creation of caches again.
 	 */
 	public void setCacheNames(Collection<String> cacheNames) {
 
