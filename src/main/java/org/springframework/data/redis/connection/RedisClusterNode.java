@@ -32,7 +32,7 @@ public class RedisClusterNode extends RedisNode {
 		return slotRange;
 	}
 
-	public boolean servesSlot(Long slot) {
+	public boolean servesSlot(int slot) {
 		return slotRange.contains(slot);
 	}
 
@@ -43,20 +43,20 @@ public class RedisClusterNode extends RedisNode {
 
 	public static class SlotRange {
 
-		private final Long lowerBound;
-		private final Long upperBound;
+		private final Integer lowerBound;
+		private final Integer upperBound;
 
-		public SlotRange(Long lowerBound, Long upperBound) {
+		public SlotRange(Integer lowerBound, Integer upperBound) {
 			super();
 			this.lowerBound = lowerBound;
 			this.upperBound = upperBound;
 		}
 
-		public Long getLowerBound() {
+		public Integer getLowerBound() {
 			return lowerBound;
 		}
 
-		public Long getUpperBound() {
+		public Integer getUpperBound() {
 			return upperBound;
 		}
 
@@ -65,7 +65,7 @@ public class RedisClusterNode extends RedisNode {
 			return "[" + lowerBound + "-" + upperBound + "]";
 		}
 
-		public boolean contains(Long slot) {
+		public boolean contains(int slot) {
 			return lowerBound <= slot && slot < upperBound;
 		}
 

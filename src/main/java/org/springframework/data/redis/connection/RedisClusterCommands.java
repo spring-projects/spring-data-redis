@@ -15,19 +15,116 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.util.List;
+
 /**
  * @author Christoph Strobl
+ * @since 1.6
  */
 public interface RedisClusterCommands {
 
+	/**
+	 * Retrieve cluster node information such as {@literal id}, {@literal host}, {@literal port} and {@literal slots}.
+	 * 
+	 * @return
+	 */
 	Iterable<RedisClusterNode> getClusterNodes();
 
-	Long getClusterSlotForKey(byte[] key);
+	/**
+	 * Find the slot for a given {@code key}.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	Integer getClusterSlotForKey(byte[] key);
 
-	RedisNode getClusterNodeForSlot(Long slot);
+	/**
+	 * Find the {@link RedisNode} serving given {@literal slot}.
+	 * 
+	 * @param slot
+	 * @return
+	 */
+	RedisNode getClusterNodeForSlot(int slot);
 
+	/**
+	 * Find the {@link RedisNode} serving given {@literal key}.
+	 * 
+	 * @param key
+	 * @return
+	 */
 	RedisNode getClusterNodeForKey(byte[] key);
 
+	/**
+	 * Get cluster information.
+	 * 
+	 * @return
+	 */
 	ClusterInfo getClusterInfo();
+
+	/**
+	 * Assign slots to given {@link RedisNode}.
+	 * 
+	 * @param node
+	 * @param slots
+	 */
+	void addSlots(RedisNode node, int... slots);
+
+	/**
+	 * Count the number of keys assigned to one {@literal slot}.
+	 * 
+	 * @param slot
+	 * @return
+	 */
+	Long countKeys(int slot);
+
+	/**
+	 * Remove slots from {@link RedisNode}.
+	 * 
+	 * @param node
+	 * @param slots
+	 */
+	void deleteSlots(RedisNode node, int... slots);
+
+	/**
+	 * Remove given {@literal node} from cluster.
+	 * 
+	 * @param node
+	 */
+	void clusterForget(RedisNode node);
+
+	/**
+	 * Add given {@literal node} to cluster.
+	 * 
+	 * @param node
+	 */
+	void clusterMeet(RedisNode node);
+
+	/**
+	 * @param node
+	 * @param slot
+	 * @param mode
+	 */
+	void clusterSetSlot(RedisNode node, int slot, AddSlots mode);
+
+	/**
+	 * Get {@literal keys} served by slot.
+	 * 
+	 * @param slot
+	 * @param count
+	 * @return
+	 */
+	List<byte[]> getKeysInSlot(int slot, Integer count);
+
+	/**
+	 * Assign a {@literal slave} to given {@literal master}.
+	 * 
+	 * @param master
+	 * @param slave
+	 */
+	void clusterReplicate(RedisNode master, RedisNode slave);
+
+	public enum AddSlots {
+		MIGRATING, IMPORTING, STABLE, NODE
+	}
 
 }

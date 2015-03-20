@@ -21,11 +21,11 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Thomas Darimont
- * 
  * @since 1.4
  */
 public class RedisNode implements NamedNode {
 
+	private String id;
 	private String name;
 	private String host;
 	private int port;
@@ -37,9 +37,9 @@ public class RedisNode implements NamedNode {
 	 * @param port
 	 */
 	public RedisNode(String host, int port) {
-		
-		Assert.notNull(host,"host must not be null!");
-		
+
+		Assert.notNull(host, "host must not be null!");
+
 		this.host = host;
 		this.port = port;
 	}
@@ -108,9 +108,16 @@ public class RedisNode implements NamedNode {
 		return true;
 	}
 
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	/**
 	 * @author Christoph Strobl
-	 * 
 	 * @since 1.4
 	 */
 	public static class RedisNodeBuilder {
@@ -134,9 +141,20 @@ public class RedisNode implements NamedNode {
 			return this;
 		}
 
+		public RedisNodeBuilder withId(String id) {
+
+			node.id = id;
+			return this;
+		}
+
 		public RedisNode build() {
 			return this.node;
 		}
+	}
+
+	public RedisNode withId(String id) {
+		this.id = id;
+		return this;
 	}
 
 }

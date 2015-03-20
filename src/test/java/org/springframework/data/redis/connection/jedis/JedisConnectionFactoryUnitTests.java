@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -81,10 +83,11 @@ public class JedisConnectionFactoryUnitTests {
 	}
 
 	/**
+	 * @throws IOException
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void shouldClostClusterCorrectlyOnFactoryDestruction() {
+	public void shouldClostClusterCorrectlyOnFactoryDestruction() throws IOException {
 
 		JedisCluster clusterMock = mock(JedisCluster.class);
 		JedisConnectionFactory factory = new JedisConnectionFactory();

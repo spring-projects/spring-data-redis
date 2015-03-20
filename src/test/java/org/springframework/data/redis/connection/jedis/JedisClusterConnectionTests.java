@@ -81,7 +81,7 @@ public class JedisClusterConnectionTests {
 	}
 
 	@After
-	public void tearDown() {
+	public void tearDown() throws IOException {
 
 		for (JedisPool pool : nativeConnection.getClusterNodes().values()) {
 			pool.getResource().flushDB();

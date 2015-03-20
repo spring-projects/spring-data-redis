@@ -2075,7 +2075,9 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
-			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+
+			ZParams zparams = new ZParams().weights(convertWeightsToDouble(weights)).aggregate(
+					ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.zinterstore(destKey, zparams, sets)));
@@ -2089,6 +2091,14 @@ public class JedisConnection extends AbstractRedisConnection {
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
+	}
+
+	private double[] convertWeightsToDouble(int[] weights) {
+		double[] dWeights = new double[weights.length];
+		for (int i = 0; i < weights.length; i++) {
+			dWeights[i] = (double) weights[i];
+		}
+		return dWeights;
 	}
 
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
@@ -2460,7 +2470,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 		try {
-			ZParams zparams = new ZParams().weights(weights).aggregate(ZParams.Aggregate.valueOf(aggregate.name()));
+			ZParams zparams = new ZParams().weights(convertWeightsToDouble(weights)).aggregate(
+					ZParams.Aggregate.valueOf(aggregate.name()));
 
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.zunionstore(destKey, zparams, sets)));
@@ -3018,7 +3029,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 				ScanParams params = prepareScanParams(options);
 				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), params);
-				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
+				return new ScanIteration<byte[]>(Long.valueOf(result.getCursor()), JedisConverters.stringListToByteList()
 						.convert(result.getResult()));
 			}
 
@@ -3056,7 +3067,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				ScanParams params = prepareScanParams(options);
 
 				ScanResult<redis.clients.jedis.Tuple> result = jedis.zscan(key, JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<RedisZSetCommands.Tuple>(Long.valueOf(result.getStringCursor()), JedisConverters
+				return new ScanIteration<RedisZSetCommands.Tuple>(Long.valueOf(result.getCursor()), JedisConverters
 						.tuplesToTuples().convert(result.getResult()));
 			}
 
@@ -3093,7 +3104,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				ScanParams params = prepareScanParams(options);
 
 				redis.clients.jedis.ScanResult<byte[]> result = jedis.sscan(key, JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), result.getResult());
+				return new ScanIteration<byte[]>(Long.valueOf(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}
@@ -3128,7 +3139,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				ScanParams params = prepareScanParams(options);
 
 				ScanResult<Entry<byte[], byte[]>> result = jedis.hscan(key, JedisConverters.toBytes(cursorId), params);
-				return new ScanIteration<Map.Entry<byte[], byte[]>>(Long.valueOf(result.getStringCursor()), result.getResult());
+				return new ScanIteration<Map.Entry<byte[], byte[]>>(Long.valueOf(result.getCursor()), result.getResult());
 			}
 		}.open();
 	}

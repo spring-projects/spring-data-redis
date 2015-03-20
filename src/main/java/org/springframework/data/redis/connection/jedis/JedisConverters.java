@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -71,6 +72,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Properties, RedisServer> PROPERTIES_TO_SENTINEL;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
 	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
+	private static final Converter<String, RedisClusterNode> STRING_TO_CLUSTER_NODE_CONVERTER;
 
 	static {
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
@@ -104,12 +106,31 @@ abstract public class JedisConverters extends Converters {
 			public RedisClusterNode convert(Object infos) {
 
 				List<Object> values = (List<Object>) infos;
-				RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).longValue(),
-						((Number) values.get(1)).longValue());
+				RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
+						((Number) values.get(1)).intValue());
 				List<Object> nodeInfo = (List<Object>) values.get(2);
 				return new RedisClusterNode(JedisConverters.toString((byte[]) nodeInfo.get(0)),
 						((Number) nodeInfo.get(1)).intValue(), range);
 			}
+		};
+
+		STRING_TO_CLUSTER_NODE_CONVERTER = new Converter<String, RedisClusterNode>() {
+
+			@Override
+			public RedisClusterNode convert(String source) {
+
+				String[] args = source.split(" ");
+
+				String[] hostAndPort = StringUtils.split(args[1], ":");
+				String[] slotRange = StringUtils.split(args[args.length - 1], "-");
+
+				RedisClusterNode node = new RedisClusterNode(hostAndPort[0], Integer.valueOf(hostAndPort[1]),
+						new RedisClusterNode.SlotRange(Integer.valueOf(slotRange[0]), Integer.valueOf(slotRange[1])));
+
+				node.setId(args[0]);
+				return node;
+			}
+
 		};
 	}
 
@@ -213,6 +234,27 @@ abstract public class JedisConverters extends Converters {
 			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
 		}
 		return sentinels;
+	}
+
+	/**
+	 * @param clusterNodes
+	 * @return
+	 * @since 1.6
+	 */
+	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
+
+		if (StringUtils.isEmpty(clusterNodes)) {
+			return Collections.emptySet();
+		}
+
+		String[] lines = clusterNodes.split(System.getProperty("line.separator"));
+		Set<RedisClusterNode> nodes = new HashSet<RedisClusterNode>(lines.length);
+
+		for (String line : lines) {
+			nodes.add(STRING_TO_CLUSTER_NODE_CONVERTER.convert(line));
+		}
+
+		return nodes;
 	}
 
 	public static DataAccessException toDataAccessException(Exception ex) {

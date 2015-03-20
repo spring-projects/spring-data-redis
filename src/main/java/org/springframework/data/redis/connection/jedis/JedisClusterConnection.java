@@ -18,10 +18,12 @@ package org.springframework.data.redis.connection.jedis;
 import static org.springframework.util.Assert.*;
 import static org.springframework.util.ReflectionUtils.*;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,12 +33,15 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.ClusterCommandExecutionFailureException;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.MessageListener;
@@ -52,6 +57,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -63,13 +69,15 @@ import redis.clients.jedis.JedisPool;
 
 public class JedisClusterConnection implements RedisClusterConnection {
 
-	// TODO: move this to common class since copied from JedisCOnnection
+	// TODO: move this to common class since copied from JedisConnection
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			JedisConverters.exceptionConverter());
 
 	private static final Field CONNECTION_HANDLER;
 	private final JedisCluster cluster;
 	private final ThreadPoolTaskExecutor executor;
+
+	private boolean closed;
 
 	static {
 
@@ -85,16 +93,22 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		executor = new ThreadPoolTaskExecutor();
 		this.executor.initialize();
+		closed = false;
 	}
 
 	@Override
 	public void close() throws DataAccessException {
-		cluster.close();
+		try {
+			cluster.close();
+			closed = true;
+		} catch (IOException e) {
+			throw new DataAccessResourceFailureException(e.getMessage(), e);
+		}
 	}
 
 	@Override
 	public boolean isClosed() {
-		return false;
+		return closed;
 	}
 
 	@Override
@@ -138,7 +152,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		noNullElements(keys, "Keys must not be null or contain null key!");
 		try {
 			for (byte[] key : keys) {
-				cluster.del(JedisConverters.toString(key));
+				cluster.del(key);
 			}
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
@@ -149,7 +163,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public DataType type(byte[] key) {
 		try {
-			return JedisConverters.toDataType(cluster.type(JedisConverters.toString(key)));
+			return JedisConverters.toDataType(cluster.type(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -198,16 +212,22 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] randomKey() {
 
 		List<RedisNode> nodes = readClusterNodesFromDriver();
-		int iteration = 0;
+		Set<RedisNode> inspectedNodes = new HashSet<RedisNode>(nodes.size());
+
 		do {
+
 			RedisNode node = nodes.get(new Random().nextInt(nodes.size()));
+
+			while (inspectedNodes.contains(node)) {
+				node = nodes.get(new Random().nextInt(nodes.size()));
+			}
+			inspectedNodes.add(node);
 			byte[] key = randomKey(node);
 
 			if (key != null && key.length > 0) {
 				return key;
 			}
-			iteration++;
-		} while (iteration < nodes.size());
+		} while (nodes.size() != inspectedNodes.size());
 
 		return null;
 	}
@@ -241,7 +261,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new UnsupportedOperationException();
 		}
 		try {
-			return JedisConverters.toBoolean(cluster.expire(JedisConverters.toString(key), Long.valueOf(seconds).intValue()));
+			return JedisConverters.toBoolean(cluster.expire(key, Long.valueOf(seconds).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -262,7 +282,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean expireAt(byte[] key, long unixTime) {
 
 		try {
-			return JedisConverters.toBoolean(cluster.expireAt(JedisConverters.toString(key), unixTime));
+			return JedisConverters.toBoolean(cluster.expireAt(key, unixTime));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -284,7 +304,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean persist(byte[] key) {
 
 		try {
-			return JedisConverters.toBoolean(cluster.persist(JedisConverters.toString(key)));
+			return JedisConverters.toBoolean(cluster.persist(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -300,7 +320,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long ttl(byte[] key) {
 
 		try {
-			return cluster.ttl(JedisConverters.toString(key));
+			return cluster.ttl(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -322,8 +342,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public List<byte[]> sort(byte[] key, SortParameters params) {
 
 		try {
-			List<String> sorted = cluster.sort(JedisConverters.toString(key), JedisConverters.toSortingParams(params));
-			return JedisConverters.stringListToByteList().convert(sorted);
+			return cluster.sort(key, JedisConverters.toSortingParams(params));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -368,7 +387,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] get(byte[] key) {
 
 		try {
-			return JedisConverters.toBytes(cluster.get(JedisConverters.toString(key)));
+			return cluster.get(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -378,7 +397,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] getSet(byte[] key, byte[] value) {
 
 		try {
-			return JedisConverters.toBytes(cluster.getSet(JedisConverters.toString(key), JedisConverters.toString(value)));
+			return cluster.getSet(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -386,14 +405,14 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public List<byte[]> mGet(byte[]... keys) {
-		throw new UnsupportedOperationException("Move is not supported in cluster mode");
+		throw new UnsupportedOperationException("MGET is not supported in cluster mode");
 	}
 
 	@Override
 	public void set(byte[] key, byte[] value) {
 
 		try {
-			JedisConverters.toBytes(cluster.set(JedisConverters.toString(key), JedisConverters.toString(value)));
+			cluster.set(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -403,7 +422,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean setNX(byte[] key, byte[] value) {
 
 		try {
-			return JedisConverters.toBoolean(cluster.setnx(JedisConverters.toString(key), JedisConverters.toString(value)));
+			return JedisConverters.toBoolean(cluster.setnx(key, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -417,7 +436,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			cluster.setex(JedisConverters.toString(key), Long.valueOf(seconds).intValue(), JedisConverters.toString(value));
+			cluster.setex(key, Long.valueOf(seconds).intValue(), value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -457,7 +476,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long incr(byte[] key) {
 
 		try {
-			return cluster.incr(JedisConverters.toString(key));
+			return cluster.incr(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -467,7 +486,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long incrBy(byte[] key, long value) {
 
 		try {
-			return cluster.incrBy(JedisConverters.toString(key), value);
+			return cluster.incrBy(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -489,7 +508,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long decr(byte[] key) {
 
 		try {
-			return cluster.decr(JedisConverters.toString(key));
+			return cluster.decr(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -499,7 +518,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long decrBy(byte[] key, long value) {
 
 		try {
-			return cluster.decrBy(JedisConverters.toString(key), value);
+			return cluster.decrBy(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -509,7 +528,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long append(byte[] key, byte[] value) {
 
 		try {
-			return cluster.append(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.append(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -519,7 +538,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] getRange(byte[] key, long begin, long end) {
 
 		try {
-			return JedisConverters.toBytes(cluster.getrange(JedisConverters.toString(key), begin, end));
+			return cluster.getrange(key, begin, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -529,7 +548,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public void setRange(byte[] key, byte[] value, long offset) {
 
 		try {
-			cluster.setrange(JedisConverters.toString(key), offset, JedisConverters.toString(value));
+			cluster.setrange(key, offset, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -539,7 +558,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean getBit(byte[] key, long offset) {
 
 		try {
-			return cluster.getbit(JedisConverters.toString(key), offset);
+			return cluster.getbit(key, offset);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -549,7 +568,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean setBit(byte[] key, long offset, boolean value) {
 
 		try {
-			return cluster.setbit(JedisConverters.toString(key), offset, value);
+			return cluster.setbit(key, offset, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -559,7 +578,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long bitCount(byte[] key) {
 
 		try {
-			return cluster.bitcount(JedisConverters.toString(key));
+			return cluster.bitcount(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -569,7 +588,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long bitCount(byte[] key, long begin, long end) {
 
 		try {
-			return cluster.bitcount(JedisConverters.toString(key), begin, end);
+			return cluster.bitcount(key, begin, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -584,7 +603,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long strLen(byte[] key) {
 
 		try {
-			return cluster.strlen(JedisConverters.toString(key));
+			return cluster.strlen(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -594,7 +613,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long rPush(byte[] key, byte[]... values) {
 
 		try {
-			return cluster.rpush(JedisConverters.toString(key), JedisConverters.toStrings(values));
+			return cluster.rpush(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -604,7 +623,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long lPush(byte[] key, byte[]... values) {
 
 		try {
-			return cluster.lpush(JedisConverters.toString(key), JedisConverters.toStrings(values));
+			return cluster.lpush(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -614,7 +633,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long rPushX(byte[] key, byte[] value) {
 
 		try {
-			return cluster.rpushx(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.rpushx(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -624,7 +643,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long lPushX(byte[] key, byte[] value) {
 
 		try {
-			return cluster.lpushx(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.lpushx(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -634,7 +653,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long lLen(byte[] key) {
 
 		try {
-			return cluster.llen(JedisConverters.toString(key));
+			return cluster.llen(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -644,7 +663,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public List<byte[]> lRange(byte[] key, long begin, long end) {
 
 		try {
-			return JedisConverters.stringListToByteList().convert(cluster.lrange(JedisConverters.toString(key), begin, end));
+			return cluster.lrange(key, begin, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -669,7 +688,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] lIndex(byte[] key, long index) {
 
 		try {
-			return JedisConverters.toBytes(cluster.lindex(JedisConverters.toString(key), index));
+			return cluster.lindex(key, index);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -679,8 +698,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 
 		try {
-			return cluster.linsert(JedisConverters.toString(key), JedisConverters.toListPosition(where),
-					JedisConverters.toString(pivot), JedisConverters.toString(value));
+			return cluster.linsert(key, JedisConverters.toListPosition(where), pivot, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -690,7 +708,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public void lSet(byte[] key, long index, byte[] value) {
 
 		try {
-			cluster.lset(JedisConverters.toString(key), index, JedisConverters.toString(value));
+			cluster.lset(key, index, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -700,7 +718,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long lRem(byte[] key, long count, byte[] value) {
 
 		try {
-			return cluster.lrem(JedisConverters.toString(key), count, JedisConverters.toString(value));
+			return cluster.lrem(key, count, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -710,7 +728,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] lPop(byte[] key) {
 
 		try {
-			return JedisConverters.toBytes(cluster.lpop(JedisConverters.toString(key)));
+			return cluster.lpop(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -720,7 +738,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] rPop(byte[] key) {
 
 		try {
-			return JedisConverters.toBytes(cluster.rpop(JedisConverters.toString(key)));
+			return cluster.rpop(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -747,6 +765,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		List<byte[]> result = new ArrayList<byte[]>();
 		try {
 			for (byte[] key : keys) {
+
 				result.addAll(JedisConverters.stringListToByteList().convert(
 						cluster.brpop(timeout, JedisConverters.toString(key))));
 			}
@@ -770,7 +789,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long sAdd(byte[] key, byte[]... values) {
 
 		try {
-			return cluster.sadd(JedisConverters.toString(key), JedisConverters.toStrings(values));
+			return cluster.sadd(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -780,7 +799,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long sRem(byte[] key, byte[]... values) {
 
 		try {
-			return cluster.srem(JedisConverters.toString(key), JedisConverters.toStrings(values));
+			return cluster.srem(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -789,7 +808,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] sPop(byte[] key) {
 		try {
-			return JedisConverters.toBytes(cluster.spop(JedisConverters.toString(key)));
+			return cluster.spop(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -804,7 +823,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long sCard(byte[] key) {
 
 		try {
-			return cluster.scard(JedisConverters.toString(key));
+			return cluster.scard(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -814,7 +833,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean sIsMember(byte[] key, byte[] value) {
 
 		try {
-			return cluster.sismember(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.sismember(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -854,7 +873,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> sMembers(byte[] key) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(cluster.smembers(JedisConverters.toString(key)));
+			return cluster.smembers(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -864,7 +883,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] sRandMember(byte[] key) {
 
 		try {
-			return JedisConverters.toBytes(cluster.srandmember(JedisConverters.toString(key)));
+			return cluster.srandmember(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -878,8 +897,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.stringListToByteList().convert(
-					cluster.srandmember(JedisConverters.toString(key), Long.valueOf(count).intValue()));
+			return cluster.srandmember(key, Long.valueOf(count).intValue());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -894,8 +912,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean zAdd(byte[] key, double score, byte[] value) {
 
 		try {
-			return JedisConverters.toBoolean(cluster.zadd(JedisConverters.toString(key), score,
-					JedisConverters.toString(value)));
+			return JedisConverters.toBoolean(cluster.zadd(key, score, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -911,7 +928,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zRem(byte[] key, byte[]... values) {
 
 		try {
-			return cluster.zrem(JedisConverters.toString(key), JedisConverters.toStrings(values));
+			return cluster.zrem(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -921,7 +938,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		try {
-			return cluster.zincrby(JedisConverters.toString(key), increment, JedisConverters.toString(value));
+			return cluster.zincrby(key, increment, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -931,7 +948,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zRank(byte[] key, byte[] value) {
 
 		try {
-			return cluster.zrank(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.zrank(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -941,7 +958,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zRevRank(byte[] key, byte[] value) {
 
 		try {
-			return cluster.zrevrank(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.zrevrank(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -951,7 +968,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> zRange(byte[] key, long begin, long end) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(cluster.zrange(JedisConverters.toString(key), begin, end));
+			return cluster.zrange(key, begin, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -966,8 +983,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(
-					cluster.zrangeByScore(JedisConverters.toString(key), min, max));
+			return cluster.zrangeByScore(key, min, max);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -977,7 +993,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
 
 		try {
-			return JedisConverters.toTupleSet(cluster.zrangeByScoreWithScores(JedisConverters.toString(key), min, max));
+			return JedisConverters.toTupleSet(cluster.zrangeByScoreWithScores(key, min, max));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -991,9 +1007,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(
-					cluster.zrangeByScore(JedisConverters.toString(key), min, max, Long.valueOf(offset).intValue(),
-							Long.valueOf(count).intValue()));
+			return cluster.zrangeByScore(key, min, max, Long.valueOf(offset).intValue(), Long.valueOf(count).intValue());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1007,8 +1021,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.toTupleSet(cluster.zrangeByScoreWithScores(JedisConverters.toString(key), min, max, Long
-					.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
+			return JedisConverters.toTupleSet(cluster.zrangeByScoreWithScores(key, min, max, Long.valueOf(offset).intValue(),
+					Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1018,7 +1032,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> zRevRange(byte[] key, long begin, long end) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(cluster.zrevrange(JedisConverters.toString(key), begin, end));
+			return cluster.zrevrange(key, begin, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1033,8 +1047,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(
-					cluster.zrevrangeByScore(JedisConverters.toString(key), min, max));
+			return cluster.zrevrangeByScore(key, min, max);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1044,7 +1057,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 
 		try {
-			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(JedisConverters.toString(key), min, max));
+			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(key, min, max));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1058,9 +1071,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(
-					cluster.zrevrangeByScore(JedisConverters.toString(key), min, max, Long.valueOf(offset).intValue(), Long
-							.valueOf(count).intValue()));
+			return cluster.zrevrangeByScore(key, min, max, Long.valueOf(offset).intValue(), Long.valueOf(count).intValue());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1074,8 +1085,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(JedisConverters.toString(key), min, max,
-					Long.valueOf(offset).intValue(), Long.valueOf(count).intValue()));
+			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(key, min, max, Long.valueOf(offset)
+					.intValue(), Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1085,7 +1096,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zCount(byte[] key, double min, double max) {
 
 		try {
-			return cluster.zcount(JedisConverters.toString(key), min, max);
+			return cluster.zcount(key, min, max);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1095,7 +1106,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zCard(byte[] key) {
 
 		try {
-			return cluster.zcard(JedisConverters.toString(key));
+			return cluster.zcard(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1105,7 +1116,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Double zScore(byte[] key, byte[] value) {
 
 		try {
-			return cluster.zscore(JedisConverters.toString(key), JedisConverters.toString(value));
+			return cluster.zscore(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1115,7 +1126,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zRemRange(byte[] key, long begin, long end) {
 
 		try {
-			return cluster.zremrangeByScore(JedisConverters.toString(key), begin, end);
+			return cluster.zremrangeByScore(key, begin, end);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1125,7 +1136,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 
 		try {
-			return cluster.zremrangeByScore(JedisConverters.toString(key), min, max);
+			return cluster.zremrangeByScore(key, min, max);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1160,8 +1171,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(
-					cluster.zrangeByScore(JedisConverters.toString(key), min, max));
+			return cluster.zrangeByScore(key, JedisConverters.toBytes(min), JedisConverters.toBytes(max));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1175,9 +1185,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(
-					cluster.zrangeByScore(JedisConverters.toString(key), min, max, Long.valueOf(offset).intValue(),
-							Long.valueOf(count).intValue()));
+			return cluster.zrangeByScore(key, JedisConverters.toBytes(min), JedisConverters.toBytes(max), Long
+					.valueOf(offset).intValue(), Long.valueOf(count).intValue());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1187,8 +1196,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean hSet(byte[] key, byte[] field, byte[] value) {
 
 		try {
-			return JedisConverters.toBoolean(cluster.hset(JedisConverters.toString(key), JedisConverters.toString(field),
-					JedisConverters.toString(value)));
+			return JedisConverters.toBoolean(cluster.hset(key, field, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1198,8 +1206,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean hSetNX(byte[] key, byte[] field, byte[] value) {
 
 		try {
-			return JedisConverters.toBoolean(cluster.hsetnx(JedisConverters.toString(key), JedisConverters.toString(field),
-					JedisConverters.toString(value)));
+			return JedisConverters.toBoolean(cluster.hsetnx(key, field, value));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1209,7 +1216,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public byte[] hGet(byte[] key, byte[] field) {
 
 		try {
-			return JedisConverters.toBytes(cluster.hget(JedisConverters.toString(key), JedisConverters.toString(field)));
+			return cluster.hget(key, field);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1219,8 +1226,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public List<byte[]> hMGet(byte[] key, byte[]... fields) {
 
 		try {
-			return JedisConverters.stringListToByteList().convert(
-					cluster.hmget(JedisConverters.toString(key), JedisConverters.toStrings(fields)));
+			return cluster.hmget(key, fields);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1235,7 +1241,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long hIncrBy(byte[] key, byte[] field, long delta) {
 
 		try {
-			return cluster.hincrBy(JedisConverters.toString(key), JedisConverters.toString(field), delta);
+			return cluster.hincrBy(key, field, delta);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1250,7 +1256,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean hExists(byte[] key, byte[] field) {
 
 		try {
-			return cluster.hexists(JedisConverters.toString(key), JedisConverters.toString(field));
+			return cluster.hexists(key, field);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1260,7 +1266,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long hDel(byte[] key, byte[]... fields) {
 
 		try {
-			return cluster.hdel(JedisConverters.toString(key), JedisConverters.toStrings(fields));
+			return cluster.hdel(key, fields);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1270,7 +1276,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long hLen(byte[] key) {
 
 		try {
-			return cluster.hlen(JedisConverters.toString(key));
+			return cluster.hlen(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1280,7 +1286,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<byte[]> hKeys(byte[] key) {
 
 		try {
-			return JedisConverters.stringSetToByteSet().convert(cluster.hkeys(JedisConverters.toString(key)));
+			return cluster.hkeys(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1290,7 +1296,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public List<byte[]> hVals(byte[] key) {
 
 		try {
-			return JedisConverters.stringListToByteList().convert(cluster.hvals(JedisConverters.toString(key)));
+			return new ArrayList<byte[]>(cluster.hvals(key));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1300,7 +1306,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Map<byte[], byte[]> hGetAll(byte[] key) {
 
 		try {
-			return JedisConverters.stringMapToByteMap().convert(cluster.hgetAll(JedisConverters.toString(key)));
+			return cluster.hgetAll(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1779,7 +1785,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Long pfAdd(byte[] key, byte[]... values) {
 
 		try {
-			return cluster.pfadd(JedisConverters.toString(key), JedisConverters.toStrings(values));
+			return cluster.pfadd(key, values);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1806,21 +1812,211 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}, key);
 	}
 
+	@Override
+	public void clusterSetSlot(RedisNode node, final int slot, final AddSlots mode) {
+
+		runCommandOnSingleNode(new JedisCommandCallback<Void>() {
+
+			@Override
+			public Void doInJedis(Jedis jedis) {
+				throw new RuntimeException();
+			}
+		}, node);
+
+	}
+
+	@Override
+	public List<byte[]> getKeysInSlot(final int slot, final Integer count) {
+
+		RedisClusterNode node = getClusterNodeForSlot(slot);
+
+		runCommandOnSingleNode(new JedisCommandCallback<List<byte[]>>() {
+
+			@Override
+			public List<byte[]> doInJedis(Jedis jedis) {
+				return JedisConverters.stringListToByteList().convert(
+						jedis.clusterGetKeysInSlot(slot, count != null ? count.intValue() : Integer.MAX_VALUE));
+			}
+		}, node);
+		return null;
+	}
+
+	/*
+	 * --> Cluster Commands
+	 */
+
+	@Override
+	public void addSlots(RedisNode node, final int... slots) {
+
+		runCommandOnSingleNode(new JedisCommandCallback<String>() {
+
+			@Override
+			public String doInJedis(Jedis jedis) {
+
+				return jedis.clusterAddSlots(slots);
+			}
+		}, node);
+
+	}
+
+	@Override
+	public Long countKeys(final int slot) {
+
+		RedisNode node = getClusterNodeForSlot(slot);
+
+		return runCommandOnSingleNode(new JedisCommandCallback<Long>() {
+
+			@Override
+			public Long doInJedis(Jedis jedis) {
+
+				return jedis.clusterCountKeysInSlot(slot);
+			}
+		}, node);
+
+	}
+
+	@Override
+	public void deleteSlots(RedisNode node, final int... slots) {
+
+		runCommandOnSingleNode(new JedisCommandCallback<String>() {
+
+			@Override
+			public String doInJedis(Jedis jedis) {
+				return jedis.clusterDelSlots(slots);
+			}
+		}, node);
+
+	}
+
+	@Override
+	public void clusterForget(final RedisNode node) {
+
+		List<RedisNode> nodes = readClusterNodesFromDriver();
+		nodes.remove(node);
+
+		// need to find a way to determine the redis node hash
+		Set<RedisClusterNode> clusterNodes = getClusterNodes();
+		clusterNodes.remove(node);
+
+		runCommandAsyncOnNodes(new JedisCommandCallback<String>() {
+
+			@Override
+			public String doInJedis(Jedis jedis) {
+				return jedis.clusterForget(node.getId());
+			}
+		}, nodes);
+
+	}
+
+	@Override
+	public void clusterMeet(final RedisNode node) {
+
+		Assert.notNull(node, "Node to meet cluster must not be null!");
+
+		runCommandOnAllNodes(new JedisCommandCallback<Void>() {
+
+			@Override
+			public Void doInJedis(Jedis jedis) {
+
+				jedis.clusterMeet(node.getHost(), node.getPort());
+				return null;
+			}
+		});
+	}
+
+	@Override
+	public void clusterReplicate(final RedisNode master, RedisNode slave) {
+
+		runCommandOnSingleNode(new JedisCommandCallback<Void>() {
+
+			@Override
+			public Void doInJedis(Jedis jedis) {
+
+				jedis.clusterReplicate(master.getId());
+				return null;
+			}
+		}, slave);
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterSlotForKey(byte[])
+	 */
+	@Override
+	public Integer getClusterSlotForKey(final byte[] key) {
+
+		return runCommandOnArbitraryNode(new JedisCommandCallback<Integer>() {
+
+			@Override
+			public Integer doInJedis(Jedis jedis) {
+				return jedis.clusterKeySlot(JedisConverters.toString(key)).intValue();
+			}
+		});
+	}
+
+	@Override
+	public RedisClusterNode getClusterNodeForSlot(int slot) {
+
+		for (RedisClusterNode node : getClusterNodes()) {
+			if (node.servesSlot(slot)) {
+				return node;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public Set<RedisClusterNode> getClusterNodes() {
+
+		return runCommandOnArbitraryNode(new JedisCommandCallback<Set<RedisClusterNode>>() {
+
+			@Override
+			public Set<RedisClusterNode> doInJedis(Jedis jedis) {
+				return JedisConverters.toSetOfRedisClusterNodes(jedis.clusterNodes());
+			}
+		});
+	}
+
+	@Override
+	public RedisClusterNode getClusterNodeForKey(byte[] key) {
+		return getClusterNodeForSlot(getClusterSlotForKey(key));
+	}
+
+	@Override
+	public ClusterInfo getClusterInfo() {
+
+		return runCommandOnArbitraryNode(new JedisCommandCallback<ClusterInfo>() {
+
+			@Override
+			public ClusterInfo doInJedis(Jedis jedis) {
+				return new ClusterInfo(JedisConverters.toProperties(jedis.clusterInfo()));
+			}
+		});
+	}
+
+	/*
+	 * --> Little helpers to make it work
+	 */
+
 	private <T> T runClusterCommand(JedisClusterCommand<T> cmd, byte[] key) {
 		try {
-			return cmd.run(JedisConverters.toString(key));
+			return cmd.runBinary(key);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
 	}
 
-	private <T> T runCommandOnArbitraryNode(JedisCommandCallback<T> cmd) {
+	protected <T> T runCommandOnArbitraryNode(JedisCommandCallback<T> cmd) {
 
 		List<RedisNode> nodes = readClusterNodesFromDriver();
 		return runCommandOnSingleNode(cmd, nodes.get(new Random().nextInt(nodes.size())));
 	}
 
-	private <T> T runCommandOnSingleNode(JedisCommandCallback<T> cmd, RedisNode node) {
+	protected <T> T runCommandOnSingleNode(JedisCommandCallback<T> cmd, RedisNode node) {
+
+		notNull(cmd, "Callback must not be null!");
 
 		JedisPool pool = getResourcePoolForSpecificNode(node);
 		notNull(pool, "Node not know in cluster. Is your cluster info up to date");
@@ -1850,34 +2046,64 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		List<RedisNode> nodes = readClusterNodesFromDriver();
 		// TODO: check for which number of nodes it makes sense to run this async
-		return runCommandAsyncOnAllNodes(cmd, nodes);
+		return runCommandAsyncOnNodes(cmd, nodes);
 	}
 
-	private <T> Map<RedisNode, T> runCommandAsyncOnAllNodes(final JedisCommandCallback<T> cmd, Iterable<RedisNode> nodes) {
+	protected <T> Map<RedisNode, T> runCommandAsyncOnNodes(final JedisCommandCallback<T> callback,
+			Iterable<RedisNode> nodes) {
 
-		final Map<RedisNode, T> result = new LinkedHashMap<RedisNode, T>();
-		List<Future<T>> futures = new ArrayList<Future<T>>();
+		Assert.notNull(callback, "Callback must not be null!");
+		Assert.notNull(nodes, "Nodes must not be null!");
+
+		Map<RedisNode, Future<T>> futures = new LinkedHashMap<RedisNode, Future<T>>();
 		for (final RedisNode node : nodes) {
 
-			futures.add(executor.submit(new Callable<T>() {
+			futures.put(node, executor.submit(new Callable<T>() {
 
 				@Override
 				public T call() throws Exception {
-					return result.put(node, runCommandOnSingleNode(cmd, node));
+					return runCommandOnSingleNode(callback, node);
 				}
-
 			}));
 		}
 
+		return collectResults(futures);
+	}
+
+	private <T> Map<RedisNode, T> collectResults(Map<RedisNode, Future<T>> futures) {
+
 		boolean done = false;
+
+		Map<RedisNode, T> result = new HashMap<RedisNode, T>();
+		Map<RedisNode, Throwable> exceptions = new HashMap<RedisNode, Throwable>();
 		while (!done) {
 
 			done = true;
-			for (Future<T> future : futures) {
-				if (!future.isDone()) {
+			for (Map.Entry<RedisNode, Future<T>> entry : futures.entrySet()) {
+
+				if (!entry.getValue().isDone() && !entry.getValue().isCancelled()) {
 					done = false;
+				} else {
+					if (!result.containsKey(entry.getKey()) && !exceptions.containsKey(entry.getKey())) {
+						try {
+							result.put(entry.getKey(), entry.getValue().get());
+						} catch (ExecutionException e) {
+							exceptions.put(entry.getKey(), convertJedisAccessException((Exception) e.getCause()));
+						} catch (InterruptedException e) {
+							exceptions.put(entry.getKey(), convertJedisAccessException((Exception) e.getCause()));
+						}
+					}
 				}
 			}
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// ignore this one
+			}
+		}
+
+		if (!exceptions.isEmpty()) {
+			throw new ClusterCommandExecutionFailureException(new ArrayList<Throwable>(exceptions.values()));
 		}
 		return result;
 	}
@@ -1901,11 +2127,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	protected JedisPool getResourcePoolForSpecificNode(RedisNode node) {
 
-		notNull(node);
+		notNull(node, "Cannot get Pool for 'null' node!");
+
 		Map<String, JedisPool> clusterNodes = cluster.getClusterNodes();
 		if (clusterNodes.containsKey(node.asString())) {
 			return clusterNodes.get(node.asString());
 		}
+
 		return null;
 	}
 
@@ -1913,75 +2141,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		return (JedisClusterConnectionHandler) getField(CONNECTION_HANDLER, cluster);
 	}
 
-	interface JedisCommandCallback<T> {
+	protected interface JedisCommandCallback<T> {
 		T doInJedis(Jedis jedis);
 	}
 
-	/*
-	 * --> Cluster Commands
-	 */
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterSlotForKey(byte[])
-	 */
-	@Override
-	public Long getClusterSlotForKey(final byte[] key) {
-
-		return runCommandOnArbitraryNode(new JedisCommandCallback<Long>() {
-
-			@Override
-			public Long doInJedis(Jedis jedis) {
-				return jedis.clusterKeySlot(JedisConverters.toString(key));
-			}
-		});
-	}
-
-	@Override
-	public RedisClusterNode getClusterNodeForSlot(Long slot) {
-
-		for (RedisClusterNode node : getClusterNodes()) {
-			if (node.servesSlot(slot)) {
-				return node;
-			}
-		}
-
-		return null;
-	}
-
-	@Override
-	public List<RedisClusterNode> getClusterNodes() {
-
-		return runCommandOnArbitraryNode(new JedisCommandCallback<List<RedisClusterNode>>() {
-
-			@Override
-			public List<RedisClusterNode> doInJedis(Jedis jedis) {
-
-				List<Object> slotAssignment = jedis.clusterSlots();
-
-				List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(slotAssignment.size());
-				for (Object nodeAndSlot : slotAssignment) {
-					nodes.add(JedisConverters.toNode(nodeAndSlot));
-				}
-				return nodes;
-			}
-		});
-	}
-
-	@Override
-	public RedisClusterNode getClusterNodeForKey(byte[] key) {
-		return getClusterNodeForSlot(getClusterSlotForKey(key));
-	}
-
-	@Override
-	public ClusterInfo getClusterInfo() {
-
-		return runCommandOnArbitraryNode(new JedisCommandCallback<ClusterInfo>() {
-
-			@Override
-			public ClusterInfo doInJedis(Jedis jedis) {
-				return new ClusterInfo(JedisConverters.toProperties(jedis.clusterInfo()));
-			}
-		});
-	}
 }
