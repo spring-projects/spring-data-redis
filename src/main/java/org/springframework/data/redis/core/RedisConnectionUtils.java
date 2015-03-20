@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,11 +154,12 @@ public abstract class RedisConnectionUtils {
 
 			if (!connHolder.isTransactionSyncronisationActive()) {
 				connHolder.setTransactionSyncronisationActive(true);
-				
+
 				RedisConnection conn = connHolder.getConnection();
 				conn.multi();
 
-				TransactionSynchronizationManager.registerSynchronization(new RedisTransactionSynchronizer(connHolder, conn));
+				TransactionSynchronizationManager.registerSynchronization(new RedisTransactionSynchronizer(connHolder, conn,
+						factory));
 			}
 		}
 	}
@@ -252,26 +253,31 @@ public abstract class RedisConnectionUtils {
 	}
 
 	/**
-	 * A {@link TransactionSynchronizationAdapter} that makes sure that the associated RedisConnection is released after the transaction completes.
+	 * A {@link TransactionSynchronizationAdapter} that makes sure that the associated RedisConnection is released after
+	 * the transaction completes.
 	 * 
 	 * @author Christoph Strobl
 	 * @author Thomas Darimont
 	 */
 	private static class RedisTransactionSynchronizer extends TransactionSynchronizationAdapter {
-		
+
 		private final RedisConnectionHolder connHolder;
 		private final RedisConnection connection;
+		private final RedisConnectionFactory factory;
 
 		/**
 		 * Creates a new {@link RedisTransactionSynchronizer}.
 		 * 
 		 * @param connHolder
 		 * @param connection
+		 * @param factory
 		 */
-		private RedisTransactionSynchronizer(RedisConnectionHolder connHolder, RedisConnection connection) {
-			
+		private RedisTransactionSynchronizer(RedisConnectionHolder connHolder, RedisConnection connection,
+				RedisConnectionFactory factory) {
+
 			this.connHolder = connHolder;
 			this.connection = connection;
+			this.factory = factory;
 		}
 
 		@Override
@@ -294,9 +300,10 @@ public abstract class RedisConnectionUtils {
 				if (log.isDebugEnabled()) {
 					log.debug("Closing bound connection after transaction completed with " + status);
 				}
-				
+
 				connHolder.setTransactionSyncronisationActive(false);
 				connection.close();
+				TransactionSynchronizationManager.unbindResource(factory);
 			}
 		}
 	}
