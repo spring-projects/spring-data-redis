@@ -21,6 +21,7 @@ repositories {
   maven { url "https://repo.spring.io/plugins-release" }
   mavenCentral()
   jcenter()
+  mavenLocal()
 }
 
 configurations {
