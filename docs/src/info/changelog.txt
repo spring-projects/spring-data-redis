@@ -6,6 +6,16 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.5.0.RELEASE (2015-03-23)
+---------------------------------------------
+* DATAREDIS-385 - Release 1.5 GA.
+* DATAREDIS-384 - Remove Java6 build for Travis-CI.
+* DATAREDIS-383 - Improve JavaDoc of RedisCacheManager.
+* DATAREDIS-380 - Use Redis 2.8.19 for tests.
+* DATAREDIS-379 - Update reference documentation.
+* DATAREDIS-374 - Adapt JedisConnectionFactory for changes in Jedis 2.7.
+
+
 Changes in version 1.5.0.RC1 (2015-03-05)
 -----------------------------------------
 * DATAREDIS-377 - Release 1.5 RC1.
