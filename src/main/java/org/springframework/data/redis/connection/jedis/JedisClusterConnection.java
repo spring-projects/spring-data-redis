@@ -246,12 +246,16 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void rename(byte[] oldName, byte[] newName) {
-		throw new UnsupportedOperationException();
+
+		// TODO: check if we can do this using dump -> restore.
+		throw new UnsupportedOperationException("RENAME is not supported in cluster mode");
 	}
 
 	@Override
 	public Boolean renameNX(byte[] oldName, byte[] newName) {
-		throw new UnsupportedOperationException();
+
+		// TODO: check if we can do this using dump -> restore.
+		throw new UnsupportedOperationException("RENAMENX is not supported in cluster mode");
 	}
 
 	@Override
@@ -976,7 +980,12 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long begin, long end) {
-		throw new UnsupportedOperationException("need to convert from string to Tuple manually....");
+
+		try {
+			return JedisConverters.toTupleSet(cluster.zrangeWithScores(key, begin, end));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -1040,14 +1049,19 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Set<Tuple> zRevRangeWithScores(byte[] key, long begin, long end) {
-		throw new UnsupportedOperationException("need to convert from string to Tuple manually....");
+
+		try {
+			return JedisConverters.toTupleSet(cluster.zrevrangeWithScores(key, begin, end));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 
 		try {
-			return cluster.zrevrangeByScore(key, min, max);
+			return cluster.zrevrangeByScore(key, max, min);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1057,7 +1071,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
 
 		try {
-			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(key, min, max));
+			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(key, max, min));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1071,7 +1085,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return cluster.zrevrangeByScore(key, min, max, Long.valueOf(offset).intValue(), Long.valueOf(count).intValue());
+			return cluster.zrevrangeByScore(key, max, min, Long.valueOf(offset).intValue(), Long.valueOf(count).intValue());
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1085,7 +1099,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 
 		try {
-			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(key, min, max, Long.valueOf(offset)
+			return JedisConverters.toTupleSet(cluster.zrevrangeByScoreWithScores(key, max, min, Long.valueOf(offset)
 					.intValue(), Long.valueOf(count).intValue()));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);

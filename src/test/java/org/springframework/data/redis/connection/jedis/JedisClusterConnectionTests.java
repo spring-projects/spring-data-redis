@@ -32,8 +32,10 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.connection.DefaultSortParameters;
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -44,6 +46,8 @@ import redis.clients.jedis.JedisPool;
  * @author Christoph Strobl
  */
 public class JedisClusterConnectionTests {
+
+	private static final byte[] VALUE_3_BYTES = JedisConverters.toBytes("value-3");
 
 	static final List<HostAndPort> CLUSTER_NODES = Arrays.asList(new HostAndPort("127.0.0.1", 6379), new HostAndPort(
 			"127.0.0.1", 6380), new HostAndPort("127.0.0.1", 6381));
@@ -806,9 +810,284 @@ public class JedisClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
+	public void sRandMamberWithCountShouldReturnValueCorrectly() {
+
+		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
+
+		assertThat(clusterConnection.sRandMember(KEY_1_BYTES, 3), notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
 	@Ignore
 	public void sscanShouldRetrieveAllValuesInSetCorrectly() {
 		// TODO implement it
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zAddShouldAddValueWithScoreCorrectly() {
+
+		clusterConnection.zAdd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		clusterConnection.zAdd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(nativeConnection.zcard(KEY_1_BYTES), is(2L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRemShouldRemoveValueWithScoreCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		clusterConnection.zRem(KEY_1_BYTES, VALUE_1_BYTES);
+
+		assertThat(nativeConnection.zcard(KEY_1_BYTES), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zIncrByShouldIncScoreForValueCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		clusterConnection.zIncrBy(KEY_1_BYTES, 100D, VALUE_1_BYTES);
+
+		assertThat(nativeConnection.zrank(KEY_1_BYTES, VALUE_1_BYTES), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRankShouldReturnPositionForValueCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zRank(KEY_1_BYTES, VALUE_2_BYTES), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRankShouldReturnReversePositionForValueCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zRevRank(KEY_1_BYTES, VALUE_2_BYTES), is(0L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeShouldReturnValuesCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRange(KEY_1_BYTES, 1, 2), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeWithScoresShouldReturnValuesAndScoreCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRangeWithScores(KEY_1_BYTES, 1, 2),
+				hasItems((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D), (Tuple) new DefaultTuple(VALUE_2_BYTES, 20D)));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeByScoreShouldReturnValuesCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRangeByScore(KEY_1_BYTES, 10, 20), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeByScoreWithScoresShouldReturnValuesAndScoreCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRangeByScoreWithScores(KEY_1_BYTES, 10, 20),
+				hasItems((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D), (Tuple) new DefaultTuple(VALUE_2_BYTES, 20D)));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeByScoreShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRangeByScore(KEY_1_BYTES, 10D, 20D, 0L, 1L), hasItems(VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeByScoreWithScoresShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRangeByScoreWithScores(KEY_1_BYTES, 10D, 20D, 0L, 1L),
+				hasItems((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D)));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRevRangeShouldReturnValuesCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRevRange(KEY_1_BYTES, 1, 2), hasItems(VALUE_3_BYTES, VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRevRangeWithScoresShouldReturnValuesAndScoreCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRevRangeWithScores(KEY_1_BYTES, 1, 2),
+				hasItems((Tuple) new DefaultTuple(VALUE_3_BYTES, 5D), (Tuple) new DefaultTuple(VALUE_1_BYTES, 10D)));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRevRangeByScoreShouldReturnValuesCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRevRangeByScore(KEY_1_BYTES, 10D, 20D), hasItems(VALUE_2_BYTES, VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRevRangeByScoreWithScoresShouldReturnValuesAndScoreCorrectly() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRevRangeByScoreWithScores(KEY_1_BYTES, 10D, 20D),
+				hasItems((Tuple) new DefaultTuple(VALUE_2_BYTES, 20D), (Tuple) new DefaultTuple(VALUE_1_BYTES, 10D)));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRevRangeByScoreShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRevRangeByScore(KEY_1_BYTES, 10D, 20D, 0L, 1L), hasItems(VALUE_2_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRevRangeByScoreWithScoresShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zRevRangeByScoreWithScores(KEY_1_BYTES, 10D, 20D, 0L, 1L),
+				hasItems((Tuple) new DefaultTuple(VALUE_2_BYTES, 20D)));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zCountShouldCountValuesInRange() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zCount(KEY_1_BYTES, 10, 20), is(2L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zCardShouldReturnTotalNumberOfValues() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 5D, VALUE_3_BYTES);
+
+		assertThat(clusterConnection.zCard(KEY_1_BYTES), is(3L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zScoreShouldRetrieveScoreForValue() {
+
+		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
+		nativeConnection.zadd(KEY_1_BYTES, 20D, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.zScore(KEY_1_BYTES, VALUE_2_BYTES), is(20D));
 	}
 
 	/**
@@ -873,8 +1152,12 @@ public class JedisClusterConnectionTests {
 		assertThat(clusterConnection.getClientList().isEmpty(), is(false));
 	}
 
+	/**
+	 * @see DATAREDIS-315
+	 */
 	@Test
 	public void getClusterNodeForKeyShouldReturnNodeCorrectly() {
 		assertThat((RedisNode) clusterConnection.getClusterNodeForKey(KEY_1_BYTES), is(new RedisNode("127.0.0.1", 6380)));
 	}
+
 }
