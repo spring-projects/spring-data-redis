@@ -22,8 +22,10 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assume;
@@ -36,6 +38,8 @@ import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -47,22 +51,24 @@ import redis.clients.jedis.JedisPool;
  */
 public class JedisClusterConnectionTests {
 
-	private static final byte[] VALUE_3_BYTES = JedisConverters.toBytes("value-3");
-
 	static final List<HostAndPort> CLUSTER_NODES = Arrays.asList(new HostAndPort("127.0.0.1", 6379), new HostAndPort(
 			"127.0.0.1", 6380), new HostAndPort("127.0.0.1", 6381));
 
 	static final String KEY_1 = "key1";
 	static final String KEY_2 = "key2";
+	static final String KEY_3 = "key3";
 
 	static final byte[] KEY_1_BYTES = JedisConverters.toBytes(KEY_1);
 	static final byte[] KEY_2_BYTES = JedisConverters.toBytes(KEY_2);
+	static final byte[] KEY_3_BYTES = JedisConverters.toBytes(KEY_3);
 
 	static final String VALUE_1 = "value1";
 	static final String VALUE_2 = "value2";
+	static final String VALUE_3 = "value3";
 
 	static final byte[] VALUE_1_BYTES = JedisConverters.toBytes(VALUE_1);
 	static final byte[] VALUE_2_BYTES = JedisConverters.toBytes(VALUE_2);
+	static final byte[] VALUE_3_BYTES = JedisConverters.toBytes(VALUE_3);
 
 	JedisCluster nativeConnection;
 	JedisClusterConnection clusterConnection;
@@ -821,9 +827,20 @@ public class JedisClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	@Ignore
 	public void sscanShouldRetrieveAllValuesInSetCorrectly() {
-		// TODO implement it
+
+		for (int i = 0; i < 30; i++) {
+			nativeConnection.sadd(KEY_1_BYTES, JedisConverters.toBytes(Integer.valueOf(i)));
+		}
+
+		int count = 0;
+		Cursor<byte[]> cursor = clusterConnection.sScan(KEY_1_BYTES, ScanOptions.NONE);
+		while (cursor.hasNext()) {
+			count++;
+			cursor.next();
+		}
+
+		assertThat(count, is(30));
 	}
 
 	/**
@@ -1094,8 +1111,179 @@ public class JedisClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
+	public void hSetShouldSetValueCorrectly() {
+
+		clusterConnection.hSet(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+
+		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_2_BYTES), is(VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hSetNXShouldSetValueCorrectly() {
+
+		clusterConnection.hSetNX(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+
+		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_2_BYTES), is(VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hSetNXShouldNotSetValueWhenAlreadyExists() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+
+		clusterConnection.hSetNX(KEY_1_BYTES, KEY_2_BYTES, VALUE_2_BYTES);
+
+		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_2_BYTES), is(VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hGetShouldRetrieveValueCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+
+		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES), is(VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hMGetShouldRetrieveValueCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+		nativeConnection.hset(KEY_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.hMGet(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hMSetShouldAddValuesCorrectly() {
+
+		Map<byte[], byte[]> hashes = new HashMap<byte[], byte[]>();
+		hashes.put(KEY_2_BYTES, VALUE_1_BYTES);
+		hashes.put(KEY_3_BYTES, VALUE_2_BYTES);
+
+		clusterConnection.hMSet(KEY_1_BYTES, hashes);
+
+		assertThat(nativeConnection.hmget(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hExistsShouldReturnPresenceOfFieldCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_2_BYTES), is(true));
+		assertThat(clusterConnection.hExists(KEY_1_BYTES, KEY_3_BYTES), is(false));
+		assertThat(clusterConnection.hExists(JedisConverters.toBytes("foo"), KEY_2_BYTES), is(false));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hDelShouldRemoveFieldsCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+		nativeConnection.hset(KEY_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+
+		clusterConnection.hDel(KEY_1_BYTES, KEY_2_BYTES);
+
+		assertThat(nativeConnection.hexists(KEY_1_BYTES, KEY_2_BYTES), is(false));
+		assertThat(nativeConnection.hexists(KEY_1_BYTES, KEY_3_BYTES), is(true));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hLenShouldRetrieveSizeCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+		nativeConnection.hset(KEY_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.hLen(KEY_1_BYTES), is(2L));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hKeysShouldRetrieveKeysCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+		nativeConnection.hset(KEY_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.hKeys(KEY_1_BYTES), hasItems(KEY_2_BYTES, KEY_3_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hValsShouldRetrieveValuesCorrectly() {
+
+		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
+		nativeConnection.hset(KEY_1_BYTES, KEY_3_BYTES, VALUE_2_BYTES);
+
+		assertThat(clusterConnection.hVals(KEY_1_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void hGetAllShouldRetrieveEntriesCorrectly() {
+
+		Map<byte[], byte[]> hashes = new HashMap<byte[], byte[]>();
+		hashes.put(KEY_2_BYTES, VALUE_1_BYTES);
+		hashes.put(KEY_3_BYTES, VALUE_2_BYTES);
+
+		nativeConnection.hmset(KEY_1_BYTES, hashes);
+
+		Map<byte[], byte[]> hGetAll = clusterConnection.hGetAll(KEY_1_BYTES);
+
+		assertThat(hGetAll.containsKey(KEY_2_BYTES), is(true));
+		assertThat(hGetAll.containsKey(KEY_3_BYTES), is(true));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void echoShouldReturnInputCorrectly() {
+		assertThat(clusterConnection.echo(VALUE_1_BYTES), is(VALUE_1_BYTES));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
 	public void pingShouldRetrunPongForExistingNode() {
 		assertThat(clusterConnection.ping(new RedisNode("127.0.0.1", 6379)), is("PONG"));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void pingShouldRetrunPong() {
+		assertThat(clusterConnection.ping(), is("PONG"));
 	}
 
 	/**

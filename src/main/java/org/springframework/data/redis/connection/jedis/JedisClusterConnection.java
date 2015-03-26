@@ -54,6 +54,8 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -205,7 +207,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Cursor<byte[]> scan(ScanOptions options) {
-		throw new UnsupportedOperationException();
+
+		// TODO: add scan(RedisNode node, ScanOptions options) since we can scan keys at a single node.
+		throw new UnsupportedOperationException("Scan is not supported accros multiple nodes within a cluster");
 	}
 
 	@Override
@@ -262,7 +266,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public Boolean expire(byte[] key, long seconds) {
 
 		if (seconds > Integer.MAX_VALUE) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("Jedis does not support seconds exceeding Integer.MAX_VALUE.");
 		}
 		try {
 			return JedisConverters.toBoolean(cluster.expire(key, Long.valueOf(seconds).intValue()));
@@ -316,8 +320,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Boolean move(byte[] key, int dbIndex) {
-		throw new UnsupportedOperationException(
-				"Cluster mode does not allow moving keys since there is only one db available.");
+		throw new UnsupportedOperationException("Cluster mode does not allow moving keys.");
 	}
 
 	@Override
@@ -354,7 +357,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Long sort(byte[] key, SortParameters params, byte[] storeKey) {
-		throw new UnsupportedOperationException("Maybe we could sort and then store using new key");
+
+		// TODO: Maybe we could sort and then store using new key
+		throw new UnsupportedOperationException("Storing sort result is not supported in cluster mode");
 	}
 
 	@Override
@@ -373,7 +378,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public void restore(final byte[] key, final long ttlInMillis, final byte[] serializedValue) {
 
 		if (ttlInMillis > Integer.MAX_VALUE) {
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
 		}
 
 		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5, 1) {
@@ -409,6 +414,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public List<byte[]> mGet(byte[]... keys) {
+
+		// TODO: we could fetch those one by one and combine the results in code.
 		throw new UnsupportedOperationException("MGET is not supported in cluster mode");
 	}
 
@@ -466,14 +473,18 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void mSet(Map<byte[], byte[]> tuple) {
-		throw new UnsupportedOperationException(
-				"Need to check this since it should be possibel if key prefix is correct. see http://redis.io/topics/cluster-spec#multiple-keys-operations");
+
+		// TODO: Need to check this since it should be possibel if key prefix is correct. see
+		// http://redis.io/topics/cluster-spec#multiple-keys-operations
+		throw new UnsupportedOperationException("MSET is not supported in cluster mode.");
 	}
 
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
-		throw new UnsupportedOperationException(
-				"Need to check this since it should be possibel if key prefix is correct. see http://redis.io/topics/cluster-spec#multiple-keys-operations");
+
+		// TODO: Need to check this since it should be possibel if key prefix is correct. see
+		// http://redis.io/topics/cluster-spec#multiple-keys-operations
+		throw new UnsupportedOperationException("MSETNX is not supported in cluster mode.");
 	}
 
 	@Override
@@ -600,7 +611,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
-		throw new UnsupportedOperationException("not allowed on multiple keys, but one on same host would be ok");
+
+		// TODO: not allowed on multiple keys, but one on same host would be ok"
+		throw new UnsupportedOperationException("BITOP is not supported in cluster mode");
 	}
 
 	@Override
@@ -781,12 +794,16 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public byte[] rPopLPush(byte[] srcKey, byte[] dstKey) {
-		throw new UnsupportedOperationException("this is only possible of both keys map to the same slot");
+
+		// TODO: this is only possible of both keys map to the same slot
+		throw new UnsupportedOperationException("RPOPLPUSH is not supported in cluster mode.");
 	}
 
 	@Override
 	public byte[] bRPopLPush(int timeout, byte[] srcKey, byte[] dstKey) {
-		throw new UnsupportedOperationException("this is only possible of both keys map to the same slot");
+
+		// TODO: this is only possible of both keys map to the same slot
+		throw new UnsupportedOperationException("BRPOPLPUSH is not supported in cluster mode.");
 	}
 
 	@Override
@@ -820,7 +837,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Boolean sMove(byte[] srcKey, byte[] destKey, byte[] value) {
-		throw new UnsupportedOperationException("Only possible if both map to the same slot");
+
+		// TODO: Only possible if both map to the same slot
+		throw new UnsupportedOperationException("SMOVE is not supported in cluster mode.");
 	}
 
 	@Override
@@ -845,32 +864,44 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Set<byte[]> sInter(byte[]... keys) {
-		throw new UnsupportedOperationException("Only works when keys map to same slot");
+
+		// TODO: Only works when keys map to same slot
+		throw new UnsupportedOperationException("SINTER is not supported in cluster mode.");
 	}
 
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
-		throw new UnsupportedOperationException("Only works when keys map to same slot");
+
+		// TODO: Only works when keys map to same slot
+		throw new UnsupportedOperationException("SINTERSTORE is not supported in cluster mode.");
 	}
 
 	@Override
 	public Set<byte[]> sUnion(byte[]... keys) {
-		throw new UnsupportedOperationException();
+
+		// TODO: Only works when keys map to same slot
+		throw new UnsupportedOperationException("SUNION is not supported in cluster mode.");
 	}
 
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
-		throw new UnsupportedOperationException("Only works when keys map to same slot");
+
+		// TODO: Only works when keys map to same slot
+		throw new UnsupportedOperationException("SUNIONSTORE is not supported in cluster mode.");
 	}
 
 	@Override
 	public Set<byte[]> sDiff(byte[]... keys) {
-		throw new UnsupportedOperationException("Only works when keys map to same slot");
+
+		// TODO: Only works when keys map to same slot
+		throw new UnsupportedOperationException("SDIFF is not supported in cluster mode.");
 	}
 
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
-		throw new UnsupportedOperationException("Only works when keys map to same slot");
+
+		// TODO: Only works when keys map to same slot
+		throw new UnsupportedOperationException("SDIFFSTORE is not supported in cluster mode.");
 	}
 
 	@Override
@@ -908,8 +939,19 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {
-		throw new UnsupportedOperationException("cluster.sscan(key, cursor) should be possible");
+	public Cursor<byte[]> sScan(final byte[] key, ScanOptions options) {
+
+		return new ScanCursor<byte[]>(options) {
+
+			@Override
+			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
+
+				redis.clients.jedis.ScanResult<String> result = cluster.sscan(JedisConverters.toString(key),
+						Long.toString(cursorId));
+				return new ScanIteration<byte[]>(Long.valueOf(result.getCursor()), JedisConverters.stringListToByteList()
+						.convert(result.getResult()));
+			}
+		}.open();
 	}
 
 	@Override
@@ -924,6 +966,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Long zAdd(byte[] key, Set<Tuple> tuples) {
+
 		// TODO: need to move the tuple conversion form jedisconnection.
 		throw new UnsupportedOperationException();
 	}
@@ -1248,7 +1291,12 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void hMSet(byte[] key, Map<byte[], byte[]> hashes) {
-		throw new UnsupportedOperationException("Need to add map converter for bytes to string");
+
+		try {
+			cluster.hmset(key, hashes);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -1263,7 +1311,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Double hIncrBy(byte[] key, byte[] field, double delta) {
-		throw new UnsupportedOperationException();
+		try {
+			return cluster.hincrByFloat(key, field, delta);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	@Override
@@ -1327,8 +1379,15 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
-		throw new UnsupportedOperationException("TODO: check implementation using callbacks.");
+	public Cursor<Entry<byte[], byte[]>> hScan(final byte[] key, ScanOptions options) {
+
+		return new ScanCursor<Map.Entry<byte[], byte[]>>(options) {
+
+			@Override
+			protected ScanIteration<Entry<byte[], byte[]>> doScan(long cursorId, ScanOptions options) {
+				throw new UnsupportedOperationException("Jedis does currently not support binary hscan");
+			}
+		}.open();
 	}
 
 	@Override
@@ -1395,13 +1454,13 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] echo(final byte[] message) {
 
-		return new JedisClusterCommand<byte[]>(getClusterConnectionHandler(), 1, 5) {
+		return runCommandOnArbitraryNode(new JedisCommandCallback<byte[]>() {
 
 			@Override
-			public byte[] execute(Jedis connection) {
-				return connection.echo(message);
+			public byte[] doInJedis(Jedis jedis) {
+				return jedis.echo(message);
 			}
-		}.run(null);
+		});
 	}
 
 	@Override
