@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import static org.springframework.util.Assert.*;
 import static org.springframework.util.StringUtils.*;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -67,7 +68,7 @@ public class RedisClusterConfiguration {
 	 * @param cluster must not be {@literal null}.
 	 * @since 1.5
 	 */
-	public RedisClusterConfiguration(Set<String> clusterNodes) {
+	public RedisClusterConfiguration(Collection<String> clusterNodes) {
 		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1, -1)));
 	}
 
@@ -193,7 +194,7 @@ public class RedisClusterConfiguration {
 	 * @param clusterHostAndPorts must not be {@literal null}.
 	 * @return
 	 */
-	private static Map<String, Object> asMap(Set<String> clusterHostAndPorts, long timeout, int redirects) {
+	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, long timeout, int redirects) {
 
 		notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
 

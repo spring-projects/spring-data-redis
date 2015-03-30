@@ -34,6 +34,7 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	private static final String REDIS_24 = "2.4";
 	private static final String REDIS_26 = "2.6";
 	private static final String REDIS_28 = "2.8";
+	private static final String REDIS_30 = "3.0";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
 
 	private static RedisTestProfileValueSource INSTANCE;
@@ -73,7 +74,9 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 		if (!REDIS_VERSION_KEY.equals(key)) {
 			return System.getProperty(key);
 		}
-
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_30)) >= 0) {
+			return REDIS_30;
+		}
 		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_28)) >= 0) {
 			return REDIS_28;
 		}
@@ -88,6 +91,9 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	}
 
 	public static boolean matches(String key, String value) {
+		if (INSTANCE == null) {
+			INSTANCE = new RedisTestProfileValueSource();
+		}
 		return INSTANCE.get(key) != null ? INSTANCE.get(key).equals(value) : value == null;
 	}
 }

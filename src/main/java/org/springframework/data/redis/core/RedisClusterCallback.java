@@ -13,39 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.connection;
+package org.springframework.data.redis.core;
 
-import java.util.Properties;
-import java.util.Set;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 
 /**
  * @author Christoph Strobl
- * @since 1.5
+ * @since 1.6
+ * @param <T>
  */
-public interface RedisClusterConnection extends RedisConnection, RedisClusterCommands {
+public interface RedisClusterCallback<T> {
 
-	String ping(RedisNode node);
-
-	void bgRewriteAof(RedisNode node);
-
-	void bgSave(RedisNode node);
-
-	Long lastSave(RedisNode node);
-
-	void save(RedisNode node);
-
-	Long dbSize(RedisNode node);
-
-	void flushDb(RedisNode node);
-
-	void flushAll(RedisNode node);
-
-	Properties info(RedisNode node);
-
-	Set<byte[]> keys(RedisNode node, byte[] pattern);
-
-	byte[] randomKey(RedisNode node);
-
-	void shutdown(RedisNode node);
-
+	T doInRedis(RedisClusterConnection connection) throws DataAccessException;
 }

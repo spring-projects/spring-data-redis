@@ -337,18 +337,18 @@ public class JedisClusterConnectionUnitTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void closeShouldDelegateToClusterClose() throws IOException {
+	public void closeShouldNotCloseUnderlyingClusterPool() throws IOException {
 
 		connection.close();
 
-		verify(clusterMock, times(1)).close();
+		verify(clusterMock, never()).close();
 	}
 
 	/**
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void isClosedShouldRetrunConnectionStateCorrectly() {
+	public void isClosedShouldReturnConnectionStateCorrectly() {
 
 		assertThat(connection.isClosed(), is(false));
 
@@ -361,7 +361,7 @@ public class JedisClusterConnectionUnitTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void getNativeConnectionShouldRetrunJedisCluster() {
+	public void getNativeConnectionShouldReturnJedisCluster() {
 		assertThat(connection.getNativeConnection(), is((Object) clusterMock));
 	}
 
@@ -428,7 +428,7 @@ public class JedisClusterConnectionUnitTests {
 
 		byte[] pattern = JedisConverters.toBytes("*");
 
-		connection.keys(pattern, CLUSTER_NODE_2);
+		connection.keys(CLUSTER_NODE_2, pattern);
 
 		verify(clusterConnection1Mock, never()).keys(pattern);
 		verify(clusterConnection2Mock, times(1)).keys(pattern);

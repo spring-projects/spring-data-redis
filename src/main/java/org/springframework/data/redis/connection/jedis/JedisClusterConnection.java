@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.jedis;
 import static org.springframework.util.Assert.*;
 import static org.springframework.util.ReflectionUtils.*;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +36,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -100,12 +98,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public void close() throws DataAccessException {
-		try {
-			cluster.close();
-			closed = true;
-		} catch (IOException e) {
-			throw new DataAccessResourceFailureException(e.getMessage(), e);
-		}
+		closed = true;
 	}
 
 	@Override
@@ -192,7 +185,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Set<byte[]> keys(final byte[] pattern, RedisNode node) {
+	public Set<byte[]> keys(RedisNode node, final byte[] pattern) {
 
 		notNull(pattern, "Pattern must not be null!");
 
@@ -474,7 +467,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void mSet(Map<byte[], byte[]> tuple) {
 
-		// TODO: Need to check this since it should be possibel if key prefix is correct. see
+		// TODO: Need to check this since it should be possible if key prefix is correct. see
 		// http://redis.io/topics/cluster-spec#multiple-keys-operations
 		throw new UnsupportedOperationException("MSET is not supported in cluster mode.");
 	}
@@ -482,7 +475,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Boolean mSetNX(Map<byte[], byte[]> tuple) {
 
-		// TODO: Need to check this since it should be possibel if key prefix is correct. see
+		// TODO: Need to check this since it should be possible if key prefix is correct. see
 		// http://redis.io/topics/cluster-spec#multiple-keys-operations
 		throw new UnsupportedOperationException("MSETNX is not supported in cluster mode.");
 	}
