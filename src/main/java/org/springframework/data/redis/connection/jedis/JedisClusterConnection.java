@@ -1960,10 +1960,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		List<RedisNode> nodes = readClusterNodesFromDriver();
 		nodes.remove(node);
 
-		// need to find a way to determine the redis node hash
-		Set<RedisClusterNode> clusterNodes = getClusterNodes();
-		clusterNodes.remove(node);
-
 		runCommandAsyncOnNodes(new JedisCommandCallback<String>() {
 
 			@Override
@@ -2043,6 +2039,18 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				return JedisConverters.toSetOfRedisClusterNodes(jedis.clusterNodes());
 			}
 		});
+	}
+
+	@Override
+	public Set<RedisClusterNode> getClusterSlaves(final RedisNode master) {
+
+		return runCommandOnSingleNode(new JedisCommandCallback<Set<RedisClusterNode>>() {
+
+			@Override
+			public Set<RedisClusterNode> doInJedis(Jedis jedis) {
+				return JedisConverters.toSetOfRedisClusterNodes(jedis.clusterSlaves(master.getId()));
+			}
+		}, master);
 	}
 
 	@Override

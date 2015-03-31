@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection;
 
 /**
  * @author Christoph Strobl
- * @since 1.5
+ * @since 1.6
  */
 public class RedisClusterNode extends RedisNode {
 
@@ -33,12 +33,16 @@ public class RedisClusterNode extends RedisNode {
 	}
 
 	public boolean servesSlot(int slot) {
+
+		if (slotRange == null) {
+			return false;
+		}
 		return slotRange.contains(slot);
 	}
 
 	@Override
 	public String toString() {
-		return "RedisClusterNode [" + getHost() + ":" + getPort() + ", slotRange=" + slotRange + "]";
+		return super.toString();
 	}
 
 	public static class SlotRange {

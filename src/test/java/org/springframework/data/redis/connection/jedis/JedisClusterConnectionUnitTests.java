@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
@@ -38,7 +40,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.ClusterCommandExecutionFailureException;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection.JedisCommandCallback;
 
 import redis.clients.jedis.Jedis;
@@ -472,6 +476,28 @@ public class JedisClusterConnectionUnitTests {
 		when(clusterConnection3Mock.randomBinaryKey()).thenReturn(null);
 
 		assertThat(connection.randomKey(), nullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void clusterSlavesShouldReturnNodesCorrectly() {
+
+		List<String> clusterSlavesReply = Collections
+				.singletonList("8cad73f63eb996fedba89f041636f17d88cda075 127.0.0.1:7369 slave ef570f86c7b1a953846668debc177a3a16733420 0 1427717782045 1 connected");
+
+		when(clusterConnection1Mock.clusterSlaves(eq(CLUSTER_NODE_1.getId()))).thenReturn(clusterSlavesReply);
+
+		Set<RedisClusterNode> slaves = connection.getClusterSlaves(CLUSTER_NODE_1);
+
+		RedisClusterNode node = slaves.iterator().next();
+		assertThat(node.getId(), is("8cad73f63eb996fedba89f041636f17d88cda075"));
+		assertThat(node.getHost(), is("127.0.0.1"));
+		assertThat(node.getPort(), is(7369));
+		assertThat(node.getType(), is(NodeType.SLAVE));
+		assertThat(node.getMasterId(), is("ef570f86c7b1a953846668debc177a3a16733420"));
+		assertThat(node.getSlotRange(), nullValue());
 	}
 
 }

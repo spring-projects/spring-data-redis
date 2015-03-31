@@ -31,6 +31,14 @@ public interface RedisClusterCommands {
 	Iterable<RedisClusterNode> getClusterNodes();
 
 	/**
+	 * Retrieve information about connected slaves for given master node.
+	 * 
+	 * @param node
+	 * @return
+	 */
+	Iterable<RedisClusterNode> getClusterSlaves(RedisNode master);
+
+	/**
 	 * Find the slot for a given {@code key}.
 	 * 
 	 * @param key
