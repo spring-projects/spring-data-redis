@@ -45,14 +45,15 @@ import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 /**
  * @author Christoph Strobl
  */
 public class JedisClusterConnectionTests {
 
-	static final List<HostAndPort> CLUSTER_NODES = Arrays.asList(new HostAndPort("127.0.0.1", 6379), new HostAndPort(
-			"127.0.0.1", 6380), new HostAndPort("127.0.0.1", 6381));
+	static final List<HostAndPort> CLUSTER_NODES = Arrays.asList(new HostAndPort("127.0.0.1", 7379), new HostAndPort(
+			"127.0.0.1", 7380), new HostAndPort("127.0.0.1", 7381));
 
 	static final String KEY_1 = "key1";
 	static final String KEY_2 = "key2";
@@ -76,7 +77,7 @@ public class JedisClusterConnectionTests {
 	@BeforeClass
 	public static void before() {
 
-		Jedis jedis = new Jedis("127.0.0.1", 6379);
+		Jedis jedis = new Jedis("127.0.0.1", 7379);
 		String mode = JedisConverters.toProperties(jedis.info()).getProperty("redis_mode");
 		jedis.close();
 
@@ -94,7 +95,11 @@ public class JedisClusterConnectionTests {
 	public void tearDown() throws IOException {
 
 		for (JedisPool pool : nativeConnection.getClusterNodes().values()) {
-			pool.getResource().flushDB();
+			try {
+				pool.getResource().flushDB();
+			} catch (JedisDataException e) {
+				// ignore this one since we cannot remove data from slaves
+			}
 		}
 		nativeConnection.close();
 	}
@@ -243,9 +248,9 @@ public class JedisClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		assertThat(clusterConnection.dbSize(new RedisNode("127.0.0.1", 6379)), is(1L));
-		assertThat(clusterConnection.dbSize(new RedisNode("127.0.0.1", 6380)), is(1L));
-		assertThat(clusterConnection.dbSize(new RedisNode("127.0.0.1", 6381)), is(0L));
+		assertThat(clusterConnection.dbSize(new RedisNode("127.0.0.1", 7379)), is(1L));
+		assertThat(clusterConnection.dbSize(new RedisNode("127.0.0.1", 7380)), is(1L));
+		assertThat(clusterConnection.dbSize(new RedisNode("127.0.0.1", 7381)), is(0L));
 	}
 
 	/**
@@ -1275,7 +1280,7 @@ public class JedisClusterConnectionTests {
 	 */
 	@Test
 	public void pingShouldRetrunPongForExistingNode() {
-		assertThat(clusterConnection.ping(new RedisNode("127.0.0.1", 6379)), is("PONG"));
+		assertThat(clusterConnection.ping(new RedisNode("127.0.0.1", 7379)), is("PONG"));
 	}
 
 	/**
@@ -1318,7 +1323,7 @@ public class JedisClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		clusterConnection.flushDb(new RedisNode("127.0.0.1", 6379));
+		clusterConnection.flushDb(new RedisNode("127.0.0.1", 7379));
 
 		assertThat(nativeConnection.get(KEY_1), notNullValue());
 		assertThat(nativeConnection.get(KEY_2), nullValue());
@@ -1345,7 +1350,7 @@ public class JedisClusterConnectionTests {
 	 */
 	@Test
 	public void getClusterNodeForKeyShouldReturnNodeCorrectly() {
-		assertThat((RedisNode) clusterConnection.getClusterNodeForKey(KEY_1_BYTES), is(new RedisNode("127.0.0.1", 6380)));
+		assertThat((RedisNode) clusterConnection.getClusterNodeForKey(KEY_1_BYTES), is(new RedisNode("127.0.0.1", 7380)));
 	}
 
 }

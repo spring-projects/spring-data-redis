@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
@@ -23,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
@@ -36,6 +39,7 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
@@ -43,16 +47,28 @@ import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
+import redis.clients.jedis.Jedis;
+
 /**
  * @author Christoph Strobl
  */
 public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
-	static final List<String> CLUSTER_NODES = Arrays.asList("127.0.0.1:6379", "127.0.0.1:6380", "127.0.0.1:6381");
+	static final List<String> CLUSTER_NODES = Arrays.asList("127.0.0.1:7379", "127.0.0.1:7380", "127.0.0.1:7381");
 
 	public RedisClusterTemplateTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
 		super(redisTemplate, keyFactory, valueFactory);
+	}
+
+	@BeforeClass
+	public static void before() {
+
+		Jedis jedis = new Jedis("127.0.0.1", 7379);
+		String mode = JedisConverters.toProperties(jedis.info()).getProperty("redis_mode");
+		jedis.close();
+
+		Assume.assumeThat(mode, is("cluster"));
 	}
 
 	@Test

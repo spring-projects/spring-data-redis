@@ -2119,6 +2119,15 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	private <T> Map<RedisNode, T> runCommandOnAllNodes(final JedisCommandCallback<T> cmd) {
 
 		List<RedisNode> nodes = readClusterNodesFromDriver();
+
+		Set<RedisClusterNode> clusterNodeInfos = getClusterNodes();
+
+		for (RedisClusterNode info : clusterNodeInfos) {
+			if (info.isSlave()) {
+				nodes.remove(info);
+			}
+		}
+
 		// TODO: check for which number of nodes it makes sense to run this async
 		return runCommandAsyncOnNodes(cmd, nodes);
 	}
