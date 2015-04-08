@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.util.Assert;
 
 /**
  * ZSet(SortedSet)-specific commands supported by Redis.
@@ -45,6 +46,163 @@ public interface RedisZSetCommands {
 		byte[] getValue();
 
 		Double getScore();
+	}
+
+	/**
+	 * {@link Range} defines {@literal min} and {@literal max} values to retrieve from a {@literal ZSET}.
+	 * 
+	 * @author Christoph Strobl
+	 * @since 1.6
+	 */
+	public class Range {
+
+		Boundary min;
+		Boundary max;
+
+		/**
+		 * @return new {@link Range}
+		 */
+		public static Range range() {
+			return new Range();
+		}
+
+		/**
+		 * @return new {@link Range} with {@literal min} and {@literal max} set to {@link Boundary#infinite()}.
+		 */
+		public static Range unbounded() {
+
+			Range range = new Range();
+			range.min = Boundary.infinite();
+			range.max = Boundary.infinite();
+			return range;
+		}
+
+		/**
+		 * Greater Than Equals
+		 * 
+		 * @param min
+		 * @return
+		 */
+		public Range gte(Object min) {
+
+			Assert.notNull(min, "Min already set for range.");
+			this.min = new Boundary(min, true);
+			return this;
+		}
+
+		/**
+		 * Greater Than
+		 * 
+		 * @param min
+		 * @return
+		 */
+		public Range gt(Object min) {
+
+			Assert.notNull(min, "Min already set for range.");
+			this.min = new Boundary(min, false);
+			return this;
+		}
+
+		/**
+		 * Less Then Equals
+		 * 
+		 * @param max
+		 * @return
+		 */
+		public Range lte(Object max) {
+
+			Assert.notNull(max, "Max already set for range.");
+			this.max = new Boundary(max, true);
+			return this;
+		}
+
+		/**
+		 * Less Than
+		 * 
+		 * @param max
+		 * @return
+		 */
+		public Range lt(Object max) {
+
+			Assert.notNull(max, "Max already set for range.");
+			this.max = new Boundary(max, false);
+			return this;
+		}
+
+		/**
+		 * @return {@literal null} if not set.
+		 */
+		public Boundary getMin() {
+			return min;
+		}
+
+		/**
+		 * @return {@literal null} if not set.
+		 */
+		public Boundary getMax() {
+			return max;
+		}
+
+		/**
+		 * @author Christoph Strobl
+		 * @since 1.6
+		 */
+		public static class Boundary {
+
+			Object value;
+			boolean including;
+
+			static Boundary infinite() {
+				return new Boundary(null, true);
+			}
+
+			Boundary(Object value, boolean including) {
+				this.value = value;
+				this.including = including;
+			}
+
+			public Object getValue() {
+				return value;
+			}
+
+			public boolean isIncluding() {
+				return including;
+			}
+		}
+
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.6
+	 */
+	public class Limit {
+
+		int offset;
+		int count;
+
+		public static Limit limit() {
+			return new Limit();
+		}
+
+		public Limit offset(int offset) {
+			this.offset = offset;
+			return this;
+		}
+
+		public Limit count(int count) {
+			this.count = count;
+			return this;
+		}
+
+		public int getCount() {
+			return count;
+		}
+
+		public int getOffset() {
+			return offset;
+		}
+
 	}
 
 	/**
@@ -415,4 +573,36 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count);
+
+	/**
+	 * Get all the elements in the sorted set at {@literal key} in lexicographical ordering.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRangeByLex(byte[] key);
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRangeByLex(byte[] key, Range range);
+
+	/**
+	 * Get all the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is
+	 * limited via {@link Limit}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param range can be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit);
+
 }
