@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
@@ -248,5 +250,38 @@ abstract public class JedisConverters extends Converters {
 			default:
 				throw new IllegalArgumentException();
 		}
+	}
+
+	/**
+	 * Converts a given {@link Boundary} to its binary representation suitable for ZRANGEBYLEX command.
+	 * 
+	 * @param boundary
+	 * @return
+	 * @since 1.6
+	 */
+	public static byte[] boundaryToBytesForZRangeByLex(Boundary boundary, byte[] defaultValue) {
+
+		if (boundary == null || boundary.getValue() == null) {
+			return defaultValue;
+		}
+
+		byte[] prefix = boundary.isIncluding() ? toBytes("[") : toBytes("(");
+		byte[] value = null;
+		if (boundary.getValue() instanceof byte[]) {
+			value = (byte[]) boundary.getValue();
+		} else if (boundary.getValue() instanceof Long) {
+			value = toBytes((Long) boundary.getValue());
+		} else if (boundary.getValue() instanceof Integer) {
+			value = toBytes((Integer) boundary.getValue());
+		} else if (boundary.getValue() instanceof String) {
+			value = toBytes((String) boundary.getValue());
+		} else {
+			throw new IllegalArgumentException(String.format("Cannot convert %s to binary format", boundary.getValue()));
+		}
+
+		ByteBuffer buffer = ByteBuffer.allocate(prefix.length + value.length);
+		buffer.put(prefix);
+		buffer.put(value);
+		return buffer.array();
 	}
 }

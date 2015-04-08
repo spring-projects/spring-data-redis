@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1318,5 +1318,32 @@ public class JredisConnection extends AbstractRedisConnection {
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[])
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for jredis.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for jredis.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for jredis.");
 	}
 }

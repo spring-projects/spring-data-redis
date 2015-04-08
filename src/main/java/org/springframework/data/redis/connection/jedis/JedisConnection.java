@@ -2139,6 +2139,61 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[])
+	 */
+	public Set<byte[]> zRangeByLex(byte[] key) {
+		return zRangeByLex(key, Range.unbounded());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		return zRangeByLex(key, range, null);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(range, "Range cannot be null for ZRANGEBYLEX.");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.toBytes("-"));
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.toBytes("+"));
+
+		try {
+			if (isPipelined()) {
+				if (limit != null) {
+					pipeline(new JedisResult(pipeline.zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
+				} else {
+					pipeline(new JedisResult(pipeline.zrangeByLex(key, min, max)));
+				}
+				return null;
+			}
+
+			if (isQueueing()) {
+				if (limit != null) {
+					transaction(new JedisResult(transaction.zrangeByLex(key, min, max, limit.getOffset(), limit.getCount())));
+				} else {
+					transaction(new JedisResult(transaction.zrangeByLex(key, min, max)));
+				}
+				return null;
+			}
+
+			if (limit != null) {
+				return jedis.zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
+			}
+			return jedis.zrangeByLex(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		try {
 			if (isPipelined()) {
