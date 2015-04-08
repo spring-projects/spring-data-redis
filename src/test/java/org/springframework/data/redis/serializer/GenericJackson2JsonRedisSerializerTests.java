@@ -18,12 +18,15 @@ package org.springframework.data.redis.serializer;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.redis.Address;
 import org.springframework.data.redis.AddressObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
@@ -44,6 +47,8 @@ public class GenericJackson2JsonRedisSerializerTests {
 	@SuppressWarnings("unchecked")
 	public void setUp() {
 
+		Map<Class<?>, String> aliases = new HashMap<Class<?>, String>();
+		aliases.put(Address.class, "adr");
 		this.serializer = new GenericJackson2JsonRedisSerializer();
 		this.objectFactories = Arrays.<ObjectFactory<? extends Object>> asList(new PersonObjectFactory(),
 				new AddressObjectFactory());

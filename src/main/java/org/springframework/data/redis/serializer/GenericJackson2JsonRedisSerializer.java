@@ -17,6 +17,9 @@ package org.springframework.data.redis.serializer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -34,7 +37,7 @@ import com.fasterxml.jackson.databind.ser.SerializerFactory;
  * <p>
  * The serialized form consists of:
  * <ol>
- * <li>Payload type name length (int, 4 bytes)</li>
+ * <li>Payload type name length (short, 2 bytes)</li>
  * <li>Payload type name in bytes encoded with UTF-8</li>
  * <li>Payload data bytes</li>
  * </ol>
@@ -47,6 +50,36 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
 	private ObjectMapper objectMapper = new ObjectMapper();
+
+	private final Map<String, Class<?>> typeKeyToClass;
+	private final Map<Class<?>, String> classToTypeKey;
+
+	/**
+	 * Creates a new {@link GenericJackson2JsonRedisSerializer}.
+	 */
+	public GenericJackson2JsonRedisSerializer() {
+		this(Collections.<Class<?>, String> emptyMap());
+	}
+
+	/**
+	 * Creates a new {@link GenericJackson2JsonRedisSerializer} with support for type aliases.
+	 * <p>
+	 * The type alias mappings based on the given {@link Map} of {@link Class} to {@link String} aliases will be honored
+	 * during serialization and deserialization.
+	 * 
+	 * @param classAliases must not be {@literal null}
+	 */
+	public GenericJackson2JsonRedisSerializer(Map<Class<?>, String> classAliases) {
+
+		Assert.notNull(classAliases, "Class aliases mus not be null!");
+
+		this.classToTypeKey = new HashMap<Class<?>, String>(classAliases);
+		this.typeKeyToClass = new HashMap<String, Class<?>>(classAliases.size());
+
+		for (Map.Entry<Class<?>, String> entry : classAliases.entrySet()) {
+			this.typeKeyToClass.put(entry.getValue(), entry.getKey());
+		}
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.serializer.RedisSerializer#deserialize(byte[])
@@ -62,12 +95,16 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 
 			ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
-			int typeLength = buffer.getInt();
+			int typeLength = buffer.getShort();
 			byte[] typeBytes = new byte[typeLength];
 			buffer.get(typeBytes);
 
 			// resolve valuetype first to allow early exit on unresolveable types
-			Class<?> valueType = resolveTypeFrom(typeBytes);
+			String typeKey = new String(typeBytes, DEFAULT_CHARSET);
+			Class<?> valueType = this.typeKeyToClass.get(typeKey);
+			if (valueType == null) {
+				valueType = ClassUtils.resolveClassName(typeKey, getClass().getClassLoader());
+			}
 
 			byte[] valueBytes = new byte[buffer.remaining()];
 			buffer.get(valueBytes);
@@ -76,19 +113,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
-	}
-
-	/**
-	 * Resolves the {@link Class} to be used from the given {@code typeBytes}.
-	 * <p>
-	 * This can be overridden to cache type lookups.
-	 * 
-	 * @param typeBytes
-	 * @return
-	 * @throws ClassNotFoundException
-	 */
-	protected Class<?> resolveTypeFrom(byte[] typeBytes) throws ClassNotFoundException {
-		return ClassUtils.resolveClassName(new String(typeBytes, DEFAULT_CHARSET), getClass().getClassLoader());
 	}
 
 	/* (non-Javadoc)
@@ -104,10 +128,15 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		try {
 
 			byte[] valueBytes = this.objectMapper.writeValueAsBytes(value);
-			byte[] typeBytes = convertTypeToBytes(value.getClass());
+			String typeKey = this.classToTypeKey.get(value.getClass());
+			if (typeKey == null) {
+				typeKey = value.getClass().getName();
+			}
 
-			ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + typeBytes.length + valueBytes.length);
-			buffer.putInt(typeBytes.length);
+			byte[] typeBytes = typeKey.getBytes(DEFAULT_CHARSET);
+
+			ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES + typeBytes.length + valueBytes.length);
+			buffer.putShort((short) typeBytes.length);
 			buffer.put(typeBytes);
 			buffer.put(valueBytes);
 
@@ -115,18 +144,6 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		} catch (Exception ex) {
 			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
 		}
-	}
-
-	/**
-	 * Converts a given {@code Class} type to a {@code byte[]} representation.
-	 * <p>
-	 * Note that the representation must be readable from {@link #resolveTypeFrom(byte[])}.
-	 * 
-	 * @param type
-	 * @return
-	 */
-	protected byte[] convertTypeToBytes(Class<?> type) {
-		return type.getName().getBytes(DEFAULT_CHARSET);
 	}
 
 	/**
