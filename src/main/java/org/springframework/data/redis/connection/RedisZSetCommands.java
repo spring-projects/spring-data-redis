@@ -310,6 +310,16 @@ public interface RedisZSetCommands {
 	Set<byte[]> zRangeByScore(byte[] key, double min, double max);
 
 	/**
+	 * Get set of {@link Tuple}s where score is between {@code Range#min} and {@code Range#max} from sorted set.
+	 * 
+	 * @param key
+	 * @param range
+	 * @return
+	 * @since 1.6
+	 */
+	Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range);
+
+	/**
 	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set.
 	 * <p>
 	 * See http://redis.io/commands/zrangebyscore
@@ -352,6 +362,18 @@ public interface RedisZSetCommands {
 	Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
 
 	/**
+	 * Get set of {@link Tuple}s in range from {@code Limit#offset} to {@code Limit#offset + Limit#count} where score is
+	 * between {@code Range#min} and {@code Range#max} from sorted set.
+	 * 
+	 * @param key
+	 * @param range
+	 * @param limit
+	 * @return
+	 * @since 1.6
+	 */
+	Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit);
+
+	/**
 	 * Get elements in range from {@code begin} to {@code end} from sorted set ordered from high to low.
 	 * <p>
 	 * See http://redis.io/commands/zrevrange
@@ -388,6 +410,17 @@ public interface RedisZSetCommands {
 	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max);
 
 	/**
+	 * Get elements where score is between {@code Range#min} and {@code Range#max} from sorted set ordered from high to
+	 * low.
+	 * 
+	 * @param key
+	 * @param range
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRevRangeByScore(byte[] key, Range range);
+
+	/**
 	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered from high to
 	 * low.
 	 * <p>
@@ -416,6 +449,18 @@ public interface RedisZSetCommands {
 	Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count);
 
 	/**
+	 * Get elements in range from {@code Limit#offset} to {@code Limit#offset + Limit#count} where score is between
+	 * {@code Range#min} and {@code Range#max} from sorted set ordered high -> low.
+	 * 
+	 * @param key
+	 * @param range
+	 * @param limit
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit);
+
+	/**
 	 * Get set of {@link Tuple} in range from {@code begin} to {@code end} where score is between {@code min} and
 	 * {@code max} from sorted set ordered high -> low.
 	 * <p>
@@ -431,6 +476,29 @@ public interface RedisZSetCommands {
 	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count);
 
 	/**
+	 * Get set of {@link Tuple} where score is between {@code Range#min} and {@code Range#max} from sorted set ordered
+	 * from high to low.
+	 * 
+	 * @param key
+	 * @param range
+	 * @return
+	 * @since 1.6
+	 */
+	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range);
+
+	/**
+	 * Get set of {@link Tuple} in range from {@code Limit#offset} to {@code Limit#count} where score is between
+	 * {@code Range#min} and {@code Range#max} from sorted set ordered high -> low.
+	 * 
+	 * @param key
+	 * @param range
+	 * @param limit
+	 * @return
+	 * @since 1.6
+	 */
+	Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit);
+
+	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
 	 * <p>
 	 * See http://redis.io/commands/zcount
@@ -441,6 +509,17 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Long zCount(byte[] key, double min, double max);
+
+	/**
+	 * Count number of elements within sorted set with scores between {@code Range#min} and {@code Range#max}.
+	 * 
+	 * @param key
+	 * @param min
+	 * @param max
+	 * @return
+	 * @since 1.6
+	 */
+	Long zCount(byte[] key, Range range);
 
 	/**
 	 * Get the size of sorted set with {@code key}.
@@ -486,6 +565,16 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Long zRemRangeByScore(byte[] key, double min, double max);
+
+	/**
+	 * Remove elements with scores between {@code Range#min} and {@code Range#max} from sorted set with {@code key}.
+	 * 
+	 * @param key
+	 * @param range
+	 * @return
+	 * @since 1.6
+	 */
+	Long zRemRangeByScore(byte[] key, Range range);
 
 	/**
 	 * Union sorted {@code sets} and store result in destination {@code key}.
@@ -559,6 +648,16 @@ public interface RedisZSetCommands {
 	Set<byte[]> zRangeByScore(byte[] key, String min, String max);
 
 	/**
+	 * Get elements where score is between {@code Range#min} and {@code Range#max} from sorted set.
+	 * 
+	 * @param key
+	 * @param range
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRangeByScore(byte[] key, Range range);
+
+	/**
 	 * Get elements in range from {@code begin} to {@code end} where score is between {@code min} and {@code max} from
 	 * sorted set.
 	 * <p>
@@ -573,6 +672,18 @@ public interface RedisZSetCommands {
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count);
+
+	/**
+	 * Get elements in range from {@code Limit#count} to {@code Limit#offset} where score is between {@code Range#min} and
+	 * {@code Range#max} from sorted set.
+	 * 
+	 * @param key
+	 * @param range
+	 * @param limit
+	 * @return
+	 * @since 1.6
+	 */
+	Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit);
 
 	/**
 	 * Get all the elements in the sorted set at {@literal key} in lexicographical ordering.

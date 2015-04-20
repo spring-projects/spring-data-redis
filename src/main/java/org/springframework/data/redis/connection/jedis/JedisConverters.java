@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -50,7 +49,7 @@ import redis.clients.jedis.SortingParams;
 import redis.clients.util.SafeEncoder;
 
 /**
- * Jedis type converters
+ * Jedis type converters.
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -67,10 +66,15 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Exception, DataAccessException> EXCEPTION_CONVERTER = new JedisExceptionConverter();
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
 	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
-	private static final Converter<Properties, RedisServer> PROPERTIES_TO_SENTINEL;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
 
+	public static final byte[] PLUS_BYTES;
+	public static final byte[] MINUS_BYTES;
+	public static final byte[] POSITIVE_INFINITY_BYTES;
+	public static final byte[] NEGATIVE_INFINITY_BYTES;
+	
 	static {
+		
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
 			public byte[] convert(String source) {
 				return source == null ? null : SafeEncoder.encode(source);
@@ -87,14 +91,11 @@ abstract public class JedisConverters extends Converters {
 		};
 		TUPLE_SET_TO_TUPLE_SET = new SetConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
 		TUPLE_LIST_TO_TUPLE_LIST_CONVERTER = new ListConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
-		PROPERTIES_TO_SENTINEL = new Converter<Properties, RedisServer>() {
-
-			@Override
-			public RedisServer convert(Properties source) {
-				return source != null ? RedisServer.newServerFrom(source) : null;
-
-			}
-		};
+		
+		PLUS_BYTES = toBytes("+");
+		MINUS_BYTES = toBytes("-");
+		POSITIVE_INFINITY_BYTES = toBytes("+inf");
+		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -149,6 +150,15 @@ abstract public class JedisConverters extends Converters {
 
 	public static byte[] toBytes(Long source) {
 		return String.valueOf(source).getBytes();
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.6
+	 */
+	public static byte[] toBytes(Double source) {
+		return toBytes(String.valueOf(source));
 	}
 
 	public static byte[] toBytes(String source) {
@@ -253,6 +263,24 @@ abstract public class JedisConverters extends Converters {
 	}
 
 	/**
+	 * Converts a given {@link Boundary} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
+	 * {@literal ZRANGEBYLEX}.
+	 * 
+	 * @param boundary
+	 * @param defaultValue
+	 * @return
+	 * @since 1.6
+	 */
+	public static byte[] boundaryToBytesForZRange(Boundary boundary, byte[] defaultValue) {
+
+		if (boundary == null || boundary.getValue() == null) {
+			return defaultValue;
+		}
+
+		return boundaryToBytes(boundary, new byte[] {}, toBytes("("));
+	}
+
+	/**
 	 * Converts a given {@link Boundary} to its binary representation suitable for ZRANGEBYLEX command.
 	 * 
 	 * @param boundary
@@ -265,10 +293,17 @@ abstract public class JedisConverters extends Converters {
 			return defaultValue;
 		}
 
-		byte[] prefix = boundary.isIncluding() ? toBytes("[") : toBytes("(");
+		return boundaryToBytes(boundary, toBytes("["), toBytes("("));
+	}
+
+	private static byte[] boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {
+
+		byte[] prefix = boundary.isIncluding() ? inclPrefix : exclPrefix;
 		byte[] value = null;
 		if (boundary.getValue() instanceof byte[]) {
 			value = (byte[]) boundary.getValue();
+		} else if (boundary.getValue() instanceof Double) {
+			value = toBytes((Double) boundary.getValue());
 		} else if (boundary.getValue() instanceof Long) {
 			value = toBytes((Long) boundary.getValue());
 		} else if (boundary.getValue() instanceof Integer) {
@@ -283,5 +318,6 @@ abstract public class JedisConverters extends Converters {
 		buffer.put(prefix);
 		buffer.put(value);
 		return buffer.array();
+
 	}
 }

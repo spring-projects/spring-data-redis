@@ -30,6 +30,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
@@ -327,6 +328,28 @@ abstract public class LettuceConverters extends Converters {
 
 	public static List<RedisClientInfo> toListOfRedisClientInformation(String clientList) {
 		return stringToRedisClientListConverter().convert(clientList);
+	}
+
+	public static String boundaryToStringForZRange(Boundary boundary, String defaultValue) {
+
+		if (boundary == null || boundary.getValue() == null) {
+			return defaultValue;
+		}
+
+		return boundaryToString(boundary, "", "(");
+	}
+
+	private static String boundaryToString(Boundary boundary, String inclPrefix, String exclPrefix) {
+
+		String prefix = boundary.isIncluding() ? inclPrefix : exclPrefix;
+		String value = null;
+		if (boundary.getValue() instanceof byte[]) {
+			value = toString((byte[]) boundary.getValue());
+		} else {
+			value = boundary.getValue().toString();
+		}
+
+		return prefix + value;
 	}
 
 }
