@@ -972,6 +972,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zCount(byte[] key, Range range) {
+
+		Long result = delegate.zCount(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		Double result = delegate.zIncrBy(key, increment, value);
 		if (isFutureConversion()) {
@@ -1012,6 +1026,48 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
+
+		Set<byte[]> results = delegate.zRangeByScore(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Set<byte[]> results = delegate.zRangeByScore(key, range, limit);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
 		if (isFutureConversion()) {
@@ -1022,6 +1078,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, range, limit);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1052,6 +1122,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+
+		Set<byte[]> results = delegate.zRevRangeByScore(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max);
 		if (isFutureConversion()) {
@@ -1060,8 +1144,50 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Set<byte[]> results = delegate.zRevRangeByScore(key, range, limit);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, range, limit);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1102,6 +1228,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		Long result = delegate.zRemRangeByScore(key, min, max);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public Long zRemRangeByScore(byte[] key, Range range) {
+		Long result = delegate.zRemRangeByScore(key, range);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}

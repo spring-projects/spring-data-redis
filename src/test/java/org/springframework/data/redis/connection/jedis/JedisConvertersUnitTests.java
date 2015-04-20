@@ -187,6 +187,77 @@ public class JedisConvertersUnitTests {
 		JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(new Date()).getMin(), null);
 	}
 
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(null, defaultValue), is(defaultValue));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryValueIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.unbounded().getMax(), defaultValue), is(defaultValue));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
+
+		assertThat(
+				JedisConverters.boundaryToBytesForZRange(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
+				is(JedisConverters.toBytes("a")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null),
+				is(JedisConverters.toBytes("(a")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsAString() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt("a").getMin(), null),
+				is(JedisConverters.toBytes("(a")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(1L).getMin(), null),
+				is(JedisConverters.toBytes("(1")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
+		JedisConverters.boundaryToBytesForZRange(Range.range().gt(new Date()).getMin(), null);
+	}
+
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {
 
 		for (Map.Entry<String, String> entry : values.entrySet()) {

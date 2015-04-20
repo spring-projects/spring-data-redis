@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.srp;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -32,6 +33,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
@@ -412,5 +414,43 @@ abstract public class SrpConverters extends Converters {
 
 	public static Converter<Exception, DataAccessException> exceptionConverter() {
 		return EXCEPTION_CONVERTER;
+	}
+
+	/**
+	 * Converts a given {@link Boundary} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
+	 * {@literal ZRANGEBYLEX}.
+	 * 
+	 * @param boundary
+	 * @param defaultValue
+	 * @return
+	 * @since 1.6
+	 */
+	public static byte[] boundaryToBytesForZRange(Boundary boundary, byte[] defaultValue) {
+
+		if (boundary == null || boundary.getValue() == null) {
+			return defaultValue;
+		}
+		return boundaryToBytes(boundary, new byte[] {}, "(".getBytes(Charsets.UTF_8));
+	}
+
+	public static byte[] toBytes(String source) {
+		return source.getBytes(Charsets.UTF_8);
+	}
+
+	private static byte[] boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {
+
+		byte[] prefix = boundary.isIncluding() ? inclPrefix : exclPrefix;
+		byte[] value = null;
+		if (boundary.getValue() instanceof byte[]) {
+			value = (byte[]) boundary.getValue();
+		} else {
+			value = toBytes(boundary.getValue().toString());
+		}
+
+		ByteBuffer buffer = ByteBuffer.allocate(prefix.length + value.length);
+		buffer.put(prefix);
+		buffer.put(value);
+		return buffer.array();
+
 	}
 }
