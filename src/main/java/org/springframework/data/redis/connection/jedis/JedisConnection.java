@@ -247,19 +247,20 @@ public class JedisConnection extends AbstractRedisConnection {
 					if (dbIndex > 0) {
 						jedis.select(0);
 					}
-					pool.returnResource(jedis);
+					pool.returnResourceObject(jedis);
 					return;
 				} catch (Exception ex) {
 					DataAccessException dae = convertJedisAccessException(ex);
+
 					if (broken) {
-						pool.returnBrokenResource(jedis);
+						JedisUtils.returnBrokenResourceToPool(jedis, pool);
 					} else {
-						pool.returnResource(jedis);
+						pool.returnResourceObject(jedis);
 					}
 					throw dae;
 				}
 			} else {
-				pool.returnBrokenResource(jedis);
+				JedisUtils.returnBrokenResourceToPool(jedis, pool);
 				return;
 			}
 		}

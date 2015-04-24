@@ -188,7 +188,7 @@ public class JedisClusterConnectionUnitTests {
 
 		connection.runCommandOnSingleNode(mock(JedisCommandCallback.class), CLUSTER_NODE_1);
 
-		verify(connectionPool1Mock, times(1)).returnResource(clusterConnection1Mock);
+		verify(connectionPool1Mock, times(1)).returnResourceObject(clusterConnection1Mock);
 	}
 
 	/**
@@ -207,7 +207,7 @@ public class JedisClusterConnectionUnitTests {
 			// just catch this one as we want to check resource pool
 		}
 
-		verify(connectionPool1Mock, times(1)).returnResource(clusterConnection1Mock);
+		verify(connectionPool1Mock, times(1)).returnResourceObject(any(Jedis.class));
 	}
 
 	/**
@@ -226,7 +226,7 @@ public class JedisClusterConnectionUnitTests {
 			// just catch this one as we want to check resource pool
 		}
 
-		verify(connectionPool1Mock, times(1)).returnBrokenResource(clusterConnection1Mock);
+		verify(connectionPool1Mock, never()).returnResourceObject(clusterConnection1Mock);
 	}
 
 	/**

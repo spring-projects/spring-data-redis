@@ -271,7 +271,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Boolean pExpire(final byte[] key, final long millis) {
 
-		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1, 5) {
+		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1) {
 			@Override
 			public Boolean execute(Jedis connection) {
 				return JedisConverters.toBoolean(connection.pexpire(key, millis));
@@ -292,7 +292,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Boolean pExpireAt(final byte[] key, final long unixTimeInMillis) {
 
-		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1, 5) {
+		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1) {
 
 			@Override
 			public Boolean execute(Jedis connection) {
@@ -329,7 +329,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long pTtl(final byte[] key) {
 
-		return runClusterCommand(new JedisClusterCommand<Long>(getClusterConnectionHandler(), 5, 1) {
+		return runClusterCommand(new JedisClusterCommand<Long>(getClusterConnectionHandler(), 5) {
 
 			@Override
 			public Long execute(Jedis connection) {
@@ -358,7 +358,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] dump(final byte[] key) {
 
-		return runClusterCommand(new JedisClusterCommand<byte[]>(getClusterConnectionHandler(), 5, 1) {
+		return runClusterCommand(new JedisClusterCommand<byte[]>(getClusterConnectionHandler(), 5) {
 
 			@Override
 			public byte[] execute(Jedis connection) {
@@ -374,7 +374,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new UnsupportedOperationException("Jedis does not support ttlInMillis exceeding Integer.MAX_VALUE.");
 		}
 
-		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5, 1) {
+		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5) {
 
 			@Override
 			public Void execute(Jedis connection) {
@@ -453,7 +453,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw new IllegalArgumentException("Milliseconds have cannot exceed Integer.MAX_VALUE!");
 		}
 
-		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 1, 5) {
+		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 1) {
 
 			@Override
 			public Void execute(Jedis connection) {
@@ -503,7 +503,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Double incrBy(final byte[] key, final double value) {
 
-		return runClusterCommand(new JedisClusterCommand<Double>(getClusterConnectionHandler(), 5, 1) {
+		return runClusterCommand(new JedisClusterCommand<Double>(getClusterConnectionHandler(), 5) {
 
 			@Override
 			public Double execute(Jedis connection) {
@@ -682,7 +682,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void lTrim(final byte[] key, final long begin, final long end) {
 
-		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5, 1) {
+		runClusterCommand(new JedisClusterCommand<Void>(getClusterConnectionHandler(), 5) {
 
 			@Override
 			public Void execute(Jedis connection) {
@@ -1869,7 +1869,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	@Override
 	public Boolean exists(final byte[] key) {
-		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 1, 5) {
+		return runClusterCommand(new JedisClusterCommand<Boolean>(getClusterConnectionHandler(), 5) {
 
 			@Override
 			public Boolean execute(Jedis connection) {
@@ -2109,9 +2109,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw translatedException;
 		} finally {
 			if (broken) {
-				pool.returnBrokenResource(jedis);
+				JedisUtils.returnBrokenResourceToPool(jedis, pool);
 			} else {
-				pool.returnResource(jedis);
+				pool.returnResourceObject(jedis);
 			}
 		}
 	}

@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,21 +35,24 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.SortParameters.Range;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BinaryJedisPubSub;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.util.Pool;
 import redis.clients.util.SafeEncoder;
 
 /**
@@ -310,6 +314,13 @@ public abstract class JedisUtils {
 			return convertedResults;
 		}
 		return result;
+	}
+
+	static void returnBrokenResourceToPool(Jedis jedis, Pool pool) {
+
+		Method m = ReflectionUtils.findMethod(Pool.class, "returnBrokenResourceObject", Object.class);
+		m.setAccessible(true);
+		ReflectionUtils.invokeMethod(m, pool, jedis);
 	}
 
 }
