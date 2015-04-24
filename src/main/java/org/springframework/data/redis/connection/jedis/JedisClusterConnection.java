@@ -1015,6 +1015,34 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
+	public Set<byte[]> zRangeByLex(byte[] key) {
+		return zRangeByLex(key, Range.unbounded());
+	}
+
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		return zRangeByLex(key, range, null);
+	}
+
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(range, "Range cannot be null for ZRANGEBYLEX.");
+
+		byte[] min = JedisConverters.boundaryToBytesForZRangeByLex(range.getMin(), JedisConverters.toBytes("-"));
+		byte[] max = JedisConverters.boundaryToBytesForZRangeByLex(range.getMax(), JedisConverters.toBytes("+"));
+
+		try {
+			if (limit != null) {
+				return cluster.zrangeByLex(key, min, max, limit.getOffset(), limit.getCount());
+			}
+			return cluster.zrangeByLex(key, min, max);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
 	public Set<Tuple> zRangeWithScores(byte[] key, long begin, long end) {
 
 		try {

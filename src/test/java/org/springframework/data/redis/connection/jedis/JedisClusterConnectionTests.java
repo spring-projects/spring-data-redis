@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -26,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assume;
@@ -37,6 +36,7 @@ import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -1327,6 +1327,49 @@ public class JedisClusterConnectionTests {
 
 		assertThat(nativeConnection.get(KEY_1), notNullValue());
 		assertThat(nativeConnection.get(KEY_2), nullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void zRangeByLexShouldReturnResultCorrectly() {
+
+		nativeConnection.zadd(KEY_1, 0, "a");
+		nativeConnection.zadd(KEY_1, 0, "b");
+		nativeConnection.zadd(KEY_1, 0, "c");
+		nativeConnection.zadd(KEY_1, 0, "d");
+		nativeConnection.zadd(KEY_1, 0, "e");
+		nativeConnection.zadd(KEY_1, 0, "f");
+		nativeConnection.zadd(KEY_1, 0, "g");
+
+		Set<byte[]> values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lte("c"));
+
+		assertThat(values,
+				hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"), JedisConverters.toBytes("c")));
+		assertThat(
+				values,
+				not(hasItems(JedisConverters.toBytes("d"), JedisConverters.toBytes("e"), JedisConverters.toBytes("f"),
+						JedisConverters.toBytes("g"))));
+
+		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
+		assertThat(values, hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b")));
+		assertThat(values, not(hasItem(JedisConverters.toBytes("c"))));
+
+		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
+		assertThat(
+				values,
+				hasItems(JedisConverters.toBytes("b"), JedisConverters.toBytes("c"), JedisConverters.toBytes("d"),
+						JedisConverters.toBytes("e"), JedisConverters.toBytes("f")));
+		assertThat(values, not(hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("g"))));
+
+		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("e"));
+		assertThat(values,
+				hasItems(JedisConverters.toBytes("e"), JedisConverters.toBytes("f"), JedisConverters.toBytes("g")));
+		assertThat(
+				values,
+				not(hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"), JedisConverters.toBytes("c"),
+						JedisConverters.toBytes("d"))));
 	}
 
 	/**
