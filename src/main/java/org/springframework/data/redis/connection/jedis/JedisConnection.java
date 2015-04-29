@@ -68,6 +68,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.Protocol.Command;
+import redis.clients.jedis.ProtocolCommand;
 import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
@@ -88,6 +89,7 @@ import redis.clients.util.Pool;
  * @author Jungtaek Lim
  * @author Konstantin Shchepanovskyi
  * @author David Liu
+ * @author zhouyanming (zhouyanming@gmail.com)
  */
 public class JedisConnection extends AbstractRedisConnection {
 
@@ -103,8 +105,12 @@ public class JedisConnection extends AbstractRedisConnection {
 	static {
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
-		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { Command.class,
+		Method sendCommand = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { Command.class,
+			byte[][].class });
+		if( sendCommand == null )
+			sendCommand = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { ProtocolCommand.class,
 				byte[][].class });
+		SEND_COMMAND = sendCommand;
 		ReflectionUtils.makeAccessible(SEND_COMMAND);
 		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
 		ReflectionUtils.makeAccessible(GET_RESPONSE);
