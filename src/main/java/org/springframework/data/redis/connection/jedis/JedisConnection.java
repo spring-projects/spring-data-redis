@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Protocol;
 import redis.clients.jedis.Protocol.Command;
+import redis.clients.jedis.ProtocolCommand;
 import redis.clients.jedis.Queable;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
@@ -102,8 +103,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	static {
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
-		ReflectionUtils.makeAccessible(CLIENT_FIELD);
-		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { Command.class,
+		ReflectionUtils.makeAccessible(CLIENT_FIELD);		
+		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { ProtocolCommand.class,
 				byte[][].class });
 		ReflectionUtils.makeAccessible(SEND_COMMAND);
 		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
