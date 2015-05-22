@@ -422,7 +422,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	 * @see DATAREDIS-378
 	 */
 	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	@IfProfileValue(name = "redisVersion", value = "2.9+")
 	public void zRangeByLexTest() {
 
 		connection.zAdd("myzset", 0, "a");
