@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -110,10 +111,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 		@SuppressWarnings("unchecked")
 		@Override
 		public Object get() {
-			if (convertPipelineAndTxResults && converter != null) {
-				return converter.convert(resultHolder.get());
+			try {
+				if (convertPipelineAndTxResults && converter != null) {
+                    return converter.convert(resultHolder.get());
+                }
+				return resultHolder.get();
+			} catch (ExecutionException e) {
+				throw LettuceConverters.exceptionConverter().convert(e);
 			}
-			return resultHolder.get();
 		}
 	}
 

@@ -19,6 +19,7 @@ import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.codec.RedisCodec;
+import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 import com.lambdaworks.redis.pubsub.RedisPubSubConnectionImpl;
 
 /**
@@ -57,8 +58,8 @@ public class AuthenticatingRedisClient extends RedisClient {
 	}
 
 	@Override
-	public <K, V> com.lambdaworks.redis.pubsub.RedisPubSubConnectionImpl<K, V> connectPubSub(RedisCodec<K, V> codec) {
-		RedisPubSubConnectionImpl<K, V> conn = super.connectPubSub(codec);
+	public <K, V> com.lambdaworks.redis.pubsub.RedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
+		RedisPubSubConnection<K, V> conn = super.connectPubSub(codec);
 		conn.auth(password);
 		return conn;
 	}
