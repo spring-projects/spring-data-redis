@@ -129,4 +129,16 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, times(1)).eval(any(byte[].class), eq(ReturnType.INTEGER), eq(0),
 				eq((PREFIX + "*").getBytes()));
 	}
+
+	/**
+	 * @see DATAREDIS-402
+	 */
+	@Test
+	public void putShouldNotExpireKnownKeysSetWhenTtlIsZero() {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+		cache.put(KEY, VALUE);
+
+		verify(connectionMock, never()).expire(eq(KNOWN_KEYS_SET_NAME_BYTES), anyLong());
+	}
 }
