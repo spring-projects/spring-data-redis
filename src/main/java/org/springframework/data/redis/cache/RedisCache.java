@@ -28,7 +28,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -43,7 +43,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisCache implements Cache {
 
 	@SuppressWarnings("rawtypes")//
-	private final RedisTemplate template;
+	private final RedisOperations redisOperations;
 	private final RedisCacheMetadata cacheMetadata;
 	private final CacheValueAccessor cacheValueAccessor;
 
@@ -52,18 +52,18 @@ public class RedisCache implements Cache {
 	 * 
 	 * @param name cache name
 	 * @param prefix
-	 * @param template
+	 * @param redisOperations
 	 * @param expiration
 	 */
-	public RedisCache(String name, byte[] prefix, RedisTemplate<? extends Object, ? extends Object> template,
+	public RedisCache(String name, byte[] prefix, RedisOperations<? extends Object, ? extends Object> redisOperations,
 			long expiration) {
 
 		hasText(name, "non-empty cache name is required");
 		this.cacheMetadata = new RedisCacheMetadata(name, prefix);
 		this.cacheMetadata.setDefaultExpiration(expiration);
 
-		this.template = template;
-		this.cacheValueAccessor = new CacheValueAccessor(template.getValueSerializer());
+		this.redisOperations = redisOperations;
+		this.cacheValueAccessor = new CacheValueAccessor(redisOperations.getValueSerializer());
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class RedisCache implements Cache {
 	@Override
 	public ValueWrapper get(Object key) {
 		return get(new RedisCacheKey(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
-				template.getKeySerializer()));
+				redisOperations.getKeySerializer()));
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class RedisCache implements Cache {
 	public RedisCacheElement get(final RedisCacheKey cacheKey) {
 
 		notNull(cacheKey, "CacheKey must not be null!");
-		return (RedisCacheElement) template.execute(new AbstractRedisCacheCallback<RedisCacheElement>(
+		return (RedisCacheElement) redisOperations.execute(new AbstractRedisCacheCallback<RedisCacheElement>(
 				new RedisCacheElement(cacheKey, null), cacheMetadata) {
 
 			@Override
@@ -109,10 +109,10 @@ public class RedisCache implements Cache {
 					throws DataAccessException {
 
 				byte[] bs = connection.get(element.getKeyBytes());
-				Object value = template.getValueSerializer() != null ? template.getValueSerializer().deserialize(bs) : bs;
+				Object value = redisOperations.getValueSerializer() != null ? redisOperations.getValueSerializer().deserialize(bs) : bs;
 				return (bs == null ? null : new RedisCacheElement(element.getKey(), value));
 			}
-		}, true);
+		});
 	}
 
 	/*
@@ -123,7 +123,7 @@ public class RedisCache implements Cache {
 	public void put(final Object key, final Object value) {
 
 		put(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
-				template.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+				redisOperations.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class RedisCache implements Cache {
 	public void put(RedisCacheElement element) {
 
 		notNull(element, "Element must not be null!");
-		template.execute(new RedisCachePutCallback(element, cacheValueAccessor, cacheMetadata), true);
+		redisOperations.execute(new RedisCachePutCallback(element, cacheValueAccessor, cacheMetadata));
 	}
 
 	/*
@@ -147,7 +147,7 @@ public class RedisCache implements Cache {
 	public ValueWrapper putIfAbsent(Object key, final Object value) {
 
 		return putIfAbsent(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix())
-				.withKeySerializer(template.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+				.withKeySerializer(redisOperations.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
@@ -161,8 +161,7 @@ public class RedisCache implements Cache {
 	public ValueWrapper putIfAbsent(RedisCacheElement element) {
 
 		notNull(element, "Element must not be null!");
-		return toWrapper(template.execute(new RedisCachePutIfAbsentCallback(element, cacheValueAccessor, cacheMetadata),
-				true));
+		return toWrapper(redisOperations.execute(new RedisCachePutIfAbsentCallback(element, cacheValueAccessor, cacheMetadata)));
 	}
 
 	/*
@@ -171,7 +170,7 @@ public class RedisCache implements Cache {
 	 */
 	public void evict(Object key) {
 		evict(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
-				template.getKeySerializer()), null));
+				redisOperations.getKeySerializer()), null));
 	}
 
 	/**
@@ -181,7 +180,7 @@ public class RedisCache implements Cache {
 	public void evict(final RedisCacheElement element) {
 
 		notNull(element, "Element must not be null!");
-		template.execute(new RedisCacheEvictCallback(element, cacheMetadata));
+		redisOperations.execute(new RedisCacheEvictCallback(element, cacheMetadata));
 	}
 
 	/*
@@ -189,8 +188,8 @@ public class RedisCache implements Cache {
 	 * @see org.springframework.cache.Cache#clear()
 	 */
 	public void clear() {
-		template.execute(cacheMetadata.usesKeyPrefix() ? new RedisCacheCleanByPrefixCallback(cacheMetadata)
-				: new RedisCacheCleanByKeysCallback(cacheMetadata), true);
+		redisOperations.execute(cacheMetadata.usesKeyPrefix() ? new RedisCacheCleanByPrefixCallback(cacheMetadata)
+				: new RedisCacheCleanByKeysCallback(cacheMetadata));
 	}
 
 	/*
@@ -206,7 +205,7 @@ public class RedisCache implements Cache {
 	 * the underlying Redis store.
 	 */
 	public Object getNativeCache() {
-		return template;
+		return redisOperations;
 	}
 
 	private ValueWrapper toWrapper(Object value) {
