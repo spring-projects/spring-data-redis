@@ -378,8 +378,12 @@ public class RedisCache implements Cache {
 		protected void maintainKnownKeys(RedisCacheElement element, RedisConnection connection) {
 
 			if (!element.hasKeyPrefix()) {
+
 				connection.zAdd(cacheMetadata.getSetOfKnownKeysKey(), 0, element.getKeyBytes());
-				connection.expire(cacheMetadata.getSetOfKnownKeysKey(), element.getTimeToLive());
+
+				if (!element.isEternal()) {
+					connection.expire(cacheMetadata.getSetOfKnownKeysKey(), element.getTimeToLive());
+				}
 			}
 		}
 
