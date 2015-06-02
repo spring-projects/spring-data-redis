@@ -106,13 +106,23 @@ dependencies {
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+      tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+      }
+    }
+  }
+
 javadoc {
+  dependsOn = [ 'extractSharedResources' ]
+
   ext.srcDir = file("${projectDir}/docs/src/api")
   destinationDir = file("${buildDir}/api")
   ext.tmpDir = file("${buildDir}/api-work")
 
   configure(options) {
-      stylesheetFile = file("${srcDir}/spring-javadoc.css")
+      stylesheetFile = file("$buildDir/shared-resources/javadoc/spring-javadoc.css")
       overview = "${srcDir}/overview.html"
       docFilesSubDirs = true
       outputLevel = org.gradle.external.javadoc.JavadocOutputLevel.QUIET
@@ -212,7 +222,7 @@ task docsZip(type: Zip, dependsOn:['asciidoctor', 'referencePdf' ]) {
         into 'api'
     }
 
-    from ("$asciidoctor.outputDir") {
+    from (asciidoctor.outputDir) {
         include "index.html"
         include "spring.css"
         into 'reference/html'
