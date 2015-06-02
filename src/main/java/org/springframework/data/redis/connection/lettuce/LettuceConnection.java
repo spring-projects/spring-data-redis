@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -72,6 +73,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
 import org.springframework.data.redis.core.RedisCommand;
@@ -168,10 +170,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 		@SuppressWarnings("unchecked")
 		@Override
 		public Object get() {
-			if (convertPipelineAndTxResults && converter != null) {
-				return converter.convert(resultHolder.get());
+			try {
+				if (convertPipelineAndTxResults && converter != null) {
+                    return converter.convert(resultHolder.get());
+                }
+				return resultHolder.get();
+			} catch (ExecutionException e) {
+				throw EXCEPTION_TRANSLATION.translate(e);
 			}
-			return resultHolder.get();
 		}
 	}
 
@@ -1999,9 +2005,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	public List<byte[]> sRandMember(byte[] key, long count) {
-		if (count < 0) {
-			throw new UnsupportedOperationException("sRandMember with a negative count is not supported");
-		}
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().srandmember(key, count),
@@ -3630,6 +3633,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZREMRANGEBYSCORE, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZREVRANK, IntegerOutput.class);
 			COMMAND_OUTPUT_TYPE_MAPPING.put(ZUNIONSTORE, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(PFCOUNT, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(PFMERGE, IntegerOutput.class);
+			COMMAND_OUTPUT_TYPE_MAPPING.put(PFADD, IntegerOutput.class);
 
 			// DOUBLE
 			COMMAND_OUTPUT_TYPE_MAPPING.put(HINCRBYFLOAT, DoubleOutput.class);
@@ -3819,8 +3825,42 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long pfAdd(byte[] key, byte[]... values) {
-		throw new UnsupportedOperationException();
+
+		Assert.notEmpty(values, "PFADD requires at least one non 'null' value.");
+		Assert.noNullElements(values, "Values for PFADD must not contain 'null'.");
+
+		try {
+			if (isPipelined()) {
+				if(values.length == 1){
+					pipeline(new LettuceResult(getAsyncConnection().pfadd(key, values[0])));
+				}
+				else {
+					pipeline(new LettuceResult(getAsyncConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
+				}
+				return null;
+			}
+			if (isQueueing()) {
+				if(values.length == 1){
+					transaction(new LettuceTxResult(getConnection().pfadd(key, values[0])));
+				}
+				else {
+					transaction(new LettuceTxResult(getConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
+				}
+
+				return null;
+			}
+
+			if(values.length == 1){
+				return getConnection().pfadd(key, values[0]);
+			}
+
+			return getConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
+
+
 
 	/*
 	 * (non-Javadoc)
@@ -3828,7 +3868,38 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long pfCount(byte[]... keys) {
-		throw new UnsupportedOperationException();
+
+		Assert.notEmpty(keys, "PFCOUNT requires at least one non 'null' key.");
+		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
+		try {
+			if (isPipelined()) {
+				if(keys.length == 1){
+					pipeline(new LettuceResult(getAsyncConnection().pfcount(keys[0])));
+				}
+				else {
+					pipeline(new LettuceResult(getAsyncConnection().pfcount(keys[0], LettuceConverters.subarray(keys, 1))));
+				}
+				return null;
+			}
+			if (isQueueing()) {
+				if(keys.length == 1){
+					transaction(new LettuceTxResult(getConnection().pfcount(keys[0])));
+				}
+				else {
+					transaction(new LettuceTxResult(getConnection().pfcount(keys[0], LettuceConverters.subarray(keys, 1))));
+				}
+
+				return null;
+			}
+
+			if(keys.length == 1){
+				return getConnection().pfcount(keys[0]);
+			}
+
+			return getConnection().pfcount(keys[0], LettuceConverters.subarray(keys, 1));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	/*
@@ -3837,7 +3908,37 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
-		throw new UnsupportedOperationException();
+
+		Assert.notEmpty(sourceKeys, "PFMERGE requires at least one non 'null' source key.");
+		Assert.noNullElements(sourceKeys, "source key for PFMERGE must not contain 'null'.");
+
+		try {
+			if (isPipelined()) {
+				if(sourceKeys.length == 1){
+					pipeline(new LettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys[0])));
+				}
+				else {
+					pipeline(new LettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1))));
+				}
+			}
+			if (isQueueing()) {
+				if(sourceKeys.length == 1){
+					transaction(new LettuceTxResult(getConnection().pfmerge(destinationKey, sourceKeys[0])));
+				}
+				else {
+					transaction(new LettuceTxResult(getConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1))));
+				}
+			}
+
+			if(sourceKeys.length == 1){
+				getConnection().pfmerge(destinationKey,sourceKeys[0]);
+			}
+			else {
+				getConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1));
+			}
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	/*
@@ -3846,7 +3947,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key) {
-		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for lettuce.");
+		return zRangeByLex(key, Range.unbounded());
 	}
 
 	/*
@@ -3855,7 +3956,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
-		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for lettuce.");
+		return zRangeByLex(key, range, null);
 	}
 
 	/*
@@ -3864,7 +3965,44 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
-		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for lettuce.");
+
+		Assert.notNull(range, "Range cannot be null for ZRANGEBYLEX.");
+
+		String min = LettuceConverters.boundaryToBytesForZRangeByLex(range.getMin(), LettuceConverters.MINUS_BYTES);
+		String max = LettuceConverters.boundaryToBytesForZRangeByLex(range.getMax(), LettuceConverters.PLUS_BYTES);
+
+		try {
+			if (isPipelined()) {
+				if (limit != null) {
+					pipeline(new LettuceResult(getAsyncConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				else{
+					pipeline(new LettuceResult(getAsyncConnection().zrangebylex(key, min, max),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				return null;
+			}
+			if (isQueueing()) {
+				if (limit != null) {
+					transaction(new LettuceTxResult(getConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				else{
+					transaction(new LettuceTxResult(getConnection().zrangebylex(key, min, max),
+							LettuceConverters.bytesListToBytesSet()));
+				}
+				return null;
+			}
+
+			if (limit != null) {
+				return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()));
+			}
+
+			return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrangebylex(key, min, max));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 }

@@ -75,12 +75,6 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		super.tearDown();
 	}
 
-	@Test
-	@Ignore
-	public void testScriptKill() throws Exception {
-		super.testScriptKill();
-	}
-
 	/**
 	 * @see DATAREDIS-348
 	 */

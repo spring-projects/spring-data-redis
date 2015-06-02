@@ -39,8 +39,10 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.util.RedisSentinelRule;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.data.redis.test.util.RequiresRedisSentinel;
 import org.springframework.test.annotation.IfProfileValue;
@@ -228,12 +230,6 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
 	}
 
 	@Test
