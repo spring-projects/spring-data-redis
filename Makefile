@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=2.8.17
+REDIS_VERSION:=2.8.19
 
 #######
 # Redis

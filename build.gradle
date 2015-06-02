@@ -17,8 +17,8 @@ description = 'Spring Data Redis'
 group = 'org.springframework.data'
 
 repositories {
-  maven { url "http://repo.spring.io/libs-snapshot" }
-  maven { url "http://repo.spring.io/plugins-release" }
+  maven { url "https://repo.spring.io/libs-snapshot" }
+  maven { url "https://repo.spring.io/plugins-release" }
   mavenCentral()
   jcenter()
 }
@@ -212,7 +212,7 @@ task docsZip(type: Zip, dependsOn:['asciidoctor', 'referencePdf' ]) {
         into 'api'
     }
 
-    from ("$buildDir/reference/html") {
+    from ("$asciidoctor.outputDir") {
         include "index.html"
         include "spring.css"
         into 'reference/html'

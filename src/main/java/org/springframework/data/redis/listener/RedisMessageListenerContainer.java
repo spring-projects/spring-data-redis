@@ -15,7 +15,12 @@
  */
 package org.springframework.data.redis.listener;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executor;
@@ -30,7 +35,12 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ConnectionUtils;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -43,13 +53,13 @@ import org.springframework.util.ErrorHandler;
 /**
  * Container providing asynchronous behaviour for Redis message listeners. Handles the low level details of listening,
  * converting and message dispatching.
- * <p/>
+ * <p>
  * As oppose to the low level Redis (one connection per subscription), the container uses only one connection that is
  * 'multiplexed' for all registered listeners, the message dispatch being done through the task executor.
- * <p/>
+ * <p>
  * Note the container uses the connection in a lazy fashion (the connection is used only if at least one listener is
  * configured).
- * <p/>
+ * <p>
  * Adding and removing listeners at the same time has undefined results. It is strongly recommended to synchronize/order
  * these methods accordingly.
  * 
@@ -313,7 +323,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	 * Sets the task execution used for subscribing to Redis channels. By default, if no executor is set, the
 	 * {@link #setTaskExecutor(Executor)} will be used. In some cases, this might be undersired as the listening to the
 	 * connection is a long running task.
-	 * <p/>
+	 * <p>
 	 * Note: This implementation uses at most one long running thread (depending on whether there are any listeners
 	 * registered or not) and up to two threads during the initial registration.
 	 * 
@@ -343,7 +353,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 	/**
 	 * Attaches the given listeners (and their topics) to the container.
-	 * <p/>
+	 * <p>
 	 * Note: it's possible to call this method while the container is running forcing a reinitialization of the container.
 	 * Note however that this might cause some messages to be lost (while the container reinitializes) - hence calling
 	 * this method at runtime is considered advanced usage.
@@ -380,7 +390,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * Removes a message listener from the given topics. If the container is running, the listener stops receiving
 	 * (matching) messages as soon as possible.
-	 * <p/>
+	 * <p>
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels. Similarly a null listener will unsubscribe all listeners from the given topic.
 	 * 
@@ -394,7 +404,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 	/**
 	 * Removes a message listener from the from the given topic. If the container is running, the listener stops receiving
 	 * (matching) messages as soon as possible.
-	 * <p/>
+	 * <p>
 	 * Note that this method obeys the Redis (p)unsubscribe semantics - meaning an empty/null collection will remove
 	 * listener from all channels. Similarly a null listener will unsubscribe all listeners from the given topic.
 	 * 

@@ -2067,6 +2067,98 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(3));
 	}
 
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	public void pfAddShouldAddToNonExistingKeyCorrectly() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
+		}
+
+		actual.add(connection.pfAdd("hll", "a", "b", "c"));
+
+		List<Object> results = getResults();
+		assertThat((Long) results.get(0), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
+		}
+
+		actual.add(connection.pfAdd("hll", "a", "b", "c"));
+		actual.add(connection.pfAdd("hll2", "c", "d", "e"));
+		actual.add(connection.pfAdd("hll2", "e"));
+
+		List<Object> results = getResults();
+		assertThat((Long) results.get(0), is(1L));
+		assertThat((Long) results.get(1), is(1L));
+		assertThat((Long) results.get(2), is(0L));
+	}
+
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	public void pfCountShouldReturnCorrectly() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
+		}
+
+		actual.add(connection.pfAdd("hll", "a", "b", "c"));
+		actual.add(connection.pfCount("hll"));
+
+		List<Object> results = getResults();
+		assertThat((Long) results.get(0), is(1L));
+		assertThat((Long) results.get(1), is(3L));
+	}
+
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
+		}
+
+		actual.add(connection.pfAdd("hll", "a", "b", "c"));
+		actual.add(connection.pfAdd("hll2", "d", "e", "f"));
+		actual.add(connection.pfCount("hll", "hll2"));
+
+		List<Object> results = getResults();
+		assertThat((Long) results.get(0), is(1L));
+		assertThat((Long) results.get(1), is(1L));
+		assertThat((Long) results.get(2), is(6L));
+	}
+
+	/**
+	 * @see DATAREDIS-308
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	public void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
+
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
+		}
+
+		actual.add(connection.pfCount((String[]) null));
+	}
+
 	protected void verifyResults(List<Object> expected) {
 		assertEquals(expected, getResults());
 	}

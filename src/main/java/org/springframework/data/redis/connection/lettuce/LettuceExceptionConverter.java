@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import com.lambdaworks.redis.RedisCommandInterruptedException;
@@ -28,6 +29,9 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 
+import com.lambdaworks.redis.RedisCommandInterruptedException;
+import com.lambdaworks.redis.RedisException;
+
 /**
  * Converts Lettuce Exceptions to {@link DataAccessException}s
  * 
@@ -37,6 +41,14 @@ import org.springframework.data.redis.RedisSystemException;
 public class LettuceExceptionConverter implements Converter<Exception, DataAccessException> {
 
 	public DataAccessException convert(Exception ex) {
+
+		if (ex instanceof ExecutionException) {
+
+			if(ex.getCause() != ex && ex.getCause() instanceof Exception) {
+				return convert((Exception) ex.getCause());
+			}
+			return new RedisSystemException("Error in execution", ex);
+		}
 
 		if (ex instanceof DataAccessException) {
 			return (DataAccessException) ex;

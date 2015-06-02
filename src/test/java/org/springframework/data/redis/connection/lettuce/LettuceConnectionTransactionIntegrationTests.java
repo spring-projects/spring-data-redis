@@ -25,6 +25,7 @@ import org.springframework.data.redis.connection.AbstractConnectionTransactionIn
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 
 /**

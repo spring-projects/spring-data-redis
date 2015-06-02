@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1574,6 +1574,15 @@ public class SrpConnection extends AbstractRedisConnection {
 	}
 
 	public Long zCount(byte[] key, double min, double max) {
+		return zCount(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Long zCount(byte[] key, Range range) {
+
+		byte[] min = SrpConverters.boundaryToBytesForZRange(range.getMin(), SrpConverters.toBytes("-inf"));
+		byte[] max = SrpConverters.boundaryToBytesForZRange(range.getMax(), SrpConverters.toBytes("+inf"));
+
 		try {
 			if (isPipelined()) {
 				pipeline(new SrpResult(pipeline.zcount(key, min, max)));
@@ -1638,26 +1647,61 @@ public class SrpConnection extends AbstractRedisConnection {
 	}
 
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
+		return zRangeByScore(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
+		return zRangeByScore(key, range, null);
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(range, "Range for ZRANGEBYSCORE must not be null!");
+
+		byte[] min = SrpConverters.boundaryToBytesForZRange(range.getMin(), SrpConverters.toBytes("-inf"));
+		byte[] max = SrpConverters.boundaryToBytesForZRange(range.getMax(), SrpConverters.toBytes("+inf"));
+
+		Object[] params = limit != null ? limitParams(limit.getOffset(), limit.getCount()) : EMPTY_PARAMS_ARRAY;
+
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrangebyscore(key, min, max, null, EMPTY_PARAMS_ARRAY),
-						SrpConverters.repliesToBytesSet()));
+				pipeline(new SrpResult(pipeline.zrangebyscore(key, min, max, null, params), SrpConverters.repliesToBytesSet()));
 				return null;
 			}
-			return SrpConverters.toBytesSet(client.zrangebyscore(key, min, max, null, EMPTY_PARAMS_ARRAY).data());
+			return SrpConverters.toBytesSet(client.zrangebyscore(key, min, max, null, params).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
 	}
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
+		return zRangeByScoreWithScores(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+		return zRangeByScoreWithScores(key, range, null);
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
+
+		byte[] min = SrpConverters.boundaryToBytesForZRange(range.getMin(), SrpConverters.toBytes("-inf"));
+		byte[] max = SrpConverters.boundaryToBytesForZRange(range.getMax(), SrpConverters.toBytes("+inf"));
+
+		Object[] params = limit != null ? limitParams(limit.getOffset(), limit.getCount()) : EMPTY_PARAMS_ARRAY;
+
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrangebyscore(key, min, max, WITHSCORES, EMPTY_PARAMS_ARRAY),
+				pipeline(new SrpResult(pipeline.zrangebyscore(key, min, max, WITHSCORES, params),
 						SrpConverters.repliesToTupleSet()));
 				return null;
 			}
-			return SrpConverters.toTupleSet(client.zrangebyscore(key, min, max, WITHSCORES, EMPTY_PARAMS_ARRAY).data());
+			return SrpConverters.toTupleSet(client.zrangebyscore(key, min, max, WITHSCORES, params).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1675,81 +1719,91 @@ public class SrpConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		try {
-			Object[] limit = limitParams(offset, count);
-			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrangebyscore(key, min, max, null, limit), SrpConverters.repliesToBytesSet()));
-				return null;
-			}
-			return SrpConverters.toBytesSet(client.zrangebyscore(key, min, max, null, limit).data());
-		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
-		}
+
+		return zRangeByScore(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
 	}
 
+	@Override
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		try {
-			Object[] limit = limitParams(offset, count);
-			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrangebyscore(key, min, max, WITHSCORES, limit),
-						SrpConverters.repliesToTupleSet()));
-				return null;
-			}
-			return SrpConverters.toTupleSet(client.zrangebyscore(key, min, max, WITHSCORES, limit).data());
-		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
-		}
+
+		return zRangeByScoreWithScores(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
 	}
 
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		try {
-			Object[] limit = limitParams(offset, count);
-			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, null, limit), SrpConverters.repliesToBytesSet()));
-				return null;
-			}
-			return SrpConverters.toBytesSet(client.zrevrangebyscore(key, max, min, null, limit).data());
-		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
-		}
+		return zRevRangeByScore(key, new Range().gte(min).lte(max), new Limit().offset(Long.valueOf(offset).intValue())
+				.count(Long.valueOf(count).intValue()));
+
 	}
 
+	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
+		return zRevRangeByScore(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
+		return zRevRangeByScoreWithScores(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+		return zRevRangeByScoreWithScores(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+		return zRevRangeByScore(key, range, null);
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
+
+		byte[] min = SrpConverters.boundaryToBytesForZRange(range.getMin(), SrpConverters.toBytes("-inf"));
+		byte[] max = SrpConverters.boundaryToBytesForZRange(range.getMax(), SrpConverters.toBytes("+inf"));
+
+		Object[] params = limit != null ? limitParams(limit.getOffset(), limit.getCount()) : EMPTY_PARAMS_ARRAY;
+
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, null, EMPTY_PARAMS_ARRAY),
+				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, null, params),
 						SrpConverters.repliesToBytesSet()));
 				return null;
 			}
-			return SrpConverters.toBytesSet(client.zrevrangebyscore(key, max, min, null, EMPTY_PARAMS_ARRAY).data());
+			return SrpConverters.toBytesSet(client.zrevrangebyscore(key, max, min, null, params).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
 	}
 
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
-		try {
-			Object[] limit = limitParams(offset, count);
-			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, WITHSCORES, limit),
-						SrpConverters.repliesToTupleSet()));
-				return null;
-			}
-			return SrpConverters.toTupleSet(client.zrevrangebyscore(key, max, min, WITHSCORES, limit).data());
-		} catch (Exception ex) {
-			throw convertSrpAccessException(ex);
-		}
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+		return zRevRangeByScoreWithScores(key, range, null);
 	}
 
-	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max) {
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+
+		Assert.notNull(range, "Range for ZRANGEBYSCOREWITHSCORES must not be null!");
+
+		byte[] min = SrpConverters.boundaryToBytesForZRange(range.getMin(), SrpConverters.toBytes("-inf"));
+		byte[] max = SrpConverters.boundaryToBytesForZRange(range.getMax(), SrpConverters.toBytes("+inf"));
+
+		Object[] params = limit != null ? limitParams(limit.getOffset(), limit.getCount()) : EMPTY_PARAMS_ARRAY;
+
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, WITHSCORES, EMPTY_PARAMS_ARRAY),
+				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, WITHSCORES, params),
 						SrpConverters.repliesToTupleSet()));
 				return null;
 			}
-			return SrpConverters.toTupleSet(client.zrevrangebyscore(key, max, min, WITHSCORES, EMPTY_PARAMS_ARRAY).data());
+			return SrpConverters.toTupleSet(client.zrevrangebyscore(key, max, min, WITHSCORES, params).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -1792,6 +1846,15 @@ public class SrpConnection extends AbstractRedisConnection {
 	}
 
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
+		return zRemRangeByScore(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Long zRemRangeByScore(byte[] key, Range range) {
+
+		byte[] min = SrpConverters.boundaryToBytesForZRange(range.getMin(), SrpConverters.toBytes("-inf"));
+		byte[] max = SrpConverters.boundaryToBytesForZRange(range.getMax(), SrpConverters.toBytes("+inf"));
+
 		try {
 			if (isPipelined()) {
 				pipeline(new SrpResult(pipeline.zremrangebyscore(key, min, max)));
@@ -2474,7 +2537,7 @@ public class SrpConnection extends AbstractRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		
+
 		try {
 			String keyStr = new String(key, "UTF-8");
 			if (isPipelined()) {
@@ -2503,4 +2566,59 @@ public class SrpConnection extends AbstractRedisConnection {
 			throw convertSrpAccessException(ex);
 		}
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfAdd(byte[], byte[][])
+	 */
+	@Override
+	public Long pfAdd(byte[] key, byte[]... values) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfCount(byte[][])
+	 */
+	@Override
+	public Long pfCount(byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfMerge(byte[], byte[][])
+	 */
+	@Override
+	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[])
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for srp.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for srp.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for srp.");
+	}
+
 }

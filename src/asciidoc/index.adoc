@@ -14,6 +14,7 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 toc::[]
 
 include::preface.adoc[]
+include::new-features.adoc[]
 
 [[introduction]]
 = Introduction

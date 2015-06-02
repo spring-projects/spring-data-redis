@@ -17,21 +17,33 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
-import com.lambdaworks.redis.*;
-import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.util.Assert;
+
+import com.lambdaworks.redis.KeyValue;
+import com.lambdaworks.redis.RedisCommandInterruptedException;
+import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.ScoredValue;
+import com.lambdaworks.redis.ScriptOutputType;
+import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.ZStoreArgs;
+import com.lambdaworks.redis.codec.RedisCodec;
 
 /**
  * Helper class featuring methods for Lettuce connection handling, providing support for exception translation.

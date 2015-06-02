@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.cache;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +40,10 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * {@link CacheManager} implementation for Redis. By default saves the keys directly, without appending a prefix (which
- * acts as a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). <br/>
+ * acts as a namespace). To avoid clashes, it is recommended to change this (by setting 'usePrefix' to 'true'). <br>
  * By default {@link RedisCache}s will be lazily initialized for each {@link #getCache(String)} request unless a set of
- * predefined cache names is provided. <br />
- * <br />
+ * predefined cache names is provided. <br>
+ * <br>
  * Setting {@link #setTransactionAware(boolean)} to {@code true} will force Caches to be decorated as
  * {@link TransactionAwareCacheDecorator} so values will only be written to the cache after successful commit of
  * surrounding transaction.
@@ -66,6 +67,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	// 0 - never expire
 	private long defaultExpiration = 0;
 	private Map<String, Long> expires = null;
+
+	private Set<String> configuredCacheNames;
 
 	/**
 	 * Construct a {@link RedisCacheManager}.
@@ -101,18 +104,19 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	/**
-	 * Specify the set of cache names for this CacheManager's 'static' mode. <br/>
+	 * Specify the set of cache names for this CacheManager's 'static' mode. <br>
 	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
-	 * regions at runtime.
+	 * regions at runtime. <br>
+	 * Calling this with a {@code null} or empty collection argument resets the mode to 'dynamic', allowing for further
+	 * creation of caches again.
 	 */
 	public void setCacheNames(Collection<String> cacheNames) {
 
-		if (!CollectionUtils.isEmpty(cacheNames)) {
-			for (String cacheName : cacheNames) {
-				createAndAddCache(cacheName);
-			}
-			this.dynamic = false;
-		}
+		Set<String> newCacheNames = CollectionUtils.isEmpty(cacheNames) ? Collections.<String> emptySet()
+				: new HashSet<String>(cacheNames);
+
+		this.configuredCacheNames = newCacheNames;
+		this.dynamic = newCacheNames.isEmpty();
 	}
 
 	public void setUsePrefix(boolean usePrefix) {
@@ -176,7 +180,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 * @param caches must not be {@literal null}
 	 * @return
 	 */
-	private Collection<? extends Cache> addConfiguredCachesIfNecessary(Collection<? extends Cache> caches) {
+	protected Collection<? extends Cache> addConfiguredCachesIfNecessary(Collection<? extends Cache> caches) {
 
 		Assert.notNull(caches, "Caches must not be null!");
 
@@ -202,18 +206,18 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return result;
 	}
 
-	private Cache createAndAddCache(String cacheName) {
+	protected Cache createAndAddCache(String cacheName) {
 		addCache(createCache(cacheName));
 		return super.getCache(cacheName);
 	}
 
 	@SuppressWarnings("unchecked")
-	private RedisCache createCache(String cacheName) {
+	protected RedisCache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
 		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), template, expiration);
 	}
 
-	private long computeExpiration(String name) {
+	protected long computeExpiration(String name) {
 		Long expiration = null;
 		if (expires != null) {
 			expiration = expires.get(name);
@@ -221,9 +225,9 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return (expiration != null ? expiration.longValue() : defaultExpiration);
 	}
 
-	private List<RedisCache> loadAndInitRemoteCaches() {
+	protected List<Cache> loadAndInitRemoteCaches() {
 
-		List<RedisCache> caches = new ArrayList<RedisCache>();
+		List<Cache> caches = new ArrayList<Cache>();
 
 		try {
 			Set<String> cacheNames = loadRemoteCacheKeys();
@@ -244,7 +248,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	@SuppressWarnings("unchecked")
-	private Set<String> loadRemoteCacheKeys() {
+	protected Set<String> loadRemoteCacheKeys() {
 		return (Set<String>) template.execute(new RedisCallback<Set<String>>() {
 
 			@Override
@@ -263,5 +267,57 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 				return cacheKeys;
 			}
 		});
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected RedisTemplate getTemplate() {
+		return template;
+	}
+
+	protected RedisCachePrefix getCachePrefix() {
+		return cachePrefix;
+	}
+
+	protected boolean isUsePrefix() {
+		return usePrefix;
+	}
+
+	/**
+	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
+	 * regions at runtime.
+	 * 
+	 * @see org.springframework.cache.support.AbstractCacheManager#afterPropertiesSet()
+	 */
+	@Override
+	public void afterPropertiesSet() {
+
+		if (!CollectionUtils.isEmpty(configuredCacheNames)) {
+
+			for (String cacheName : configuredCacheNames) {
+				createAndAddCache(cacheName);
+			}
+
+			configuredCacheNames.clear();
+		}
+
+		super.afterPropertiesSet();
+	}
+
+	/* (non-Javadoc)
+	* @see
+	org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager#decorateCache(org.springframework.cache.Cache)
+	*/
+	@Override
+	protected Cache decorateCache(Cache cache) {
+
+		if (isCacheAlreadyDecorated(cache)) {
+			return cache;
+		}
+
+		return super.decorateCache(cache);
+	}
+
+	protected boolean isCacheAlreadyDecorated(Cache cache) {
+		return isTransactionAware() && cache instanceof TransactionAwareCacheDecorator;
 	}
 }

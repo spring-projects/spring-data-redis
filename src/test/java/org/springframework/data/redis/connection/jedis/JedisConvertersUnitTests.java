@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,14 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
@@ -110,6 +112,150 @@ public class JedisConvertersUnitTests {
 	@Test
 	public void convertsRedisServersCorrectlyWhenGivenNull() {
 		assertThat(JedisConverters.toListOfRedisServer(null), notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(null, defaultValue), is(defaultValue));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryValueIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.unbounded().getMax(), defaultValue),
+				is(defaultValue));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
+
+		assertThat(
+				JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
+				is(JedisConverters.toBytes("[a")));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
+
+		assertThat(
+				JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null),
+				is(JedisConverters.toBytes("(a")));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsAString() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt("a").getMin(), null),
+				is(JedisConverters.toBytes("(a")));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(1L).getMin(), null),
+				is(JedisConverters.toBytes("(1")));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void boundaryToBytesForZRangeByLexShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
+		JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(new Date()).getMin(), null);
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(null, defaultValue), is(defaultValue));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryValueIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.unbounded().getMax(), defaultValue), is(defaultValue));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
+
+		assertThat(
+				JedisConverters.boundaryToBytesForZRange(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
+				is(JedisConverters.toBytes("a")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null),
+				is(JedisConverters.toBytes("(a")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsAString() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt("a").getMin(), null),
+				is(JedisConverters.toBytes("(a")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test
+	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(1L).getMin(), null),
+				is(JedisConverters.toBytes("(1")));
+	}
+
+	/**
+	 * @see DATAREDIS-352
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
+		JedisConverters.boundaryToBytesForZRange(Range.range().gt(new Date()).getMin(), null);
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {

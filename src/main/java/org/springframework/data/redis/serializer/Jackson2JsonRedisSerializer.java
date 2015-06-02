@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 /**
  * {@link RedisSerializer} that can read and write JSON using <a
  * href="https://github.com/FasterXML/jackson-core">Jackson's</a> and <a
- * href="https://github.com/FasterXML/jackson-databind">Jackson Databind<a> {@link ObjectMapper}.
+ * href="https://github.com/FasterXML/jackson-databind">Jackson Databind</a> {@link ObjectMapper}.
  * <p>
  * This converter can be used to bind to typed beans, or untyped {@link java.util.HashMap HashMap} instances.
  * <b>Note:</b>Null objects are serialized as empty arrays and vice versa.
@@ -43,8 +43,22 @@ public class Jackson2JsonRedisSerializer<T> implements RedisSerializer<T> {
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link Class}.
+	 * 
+	 * @param type
+	 */
 	public Jackson2JsonRedisSerializer(Class<T> type) {
-		this.javaType = TypeFactory.defaultInstance().constructType(type);
+		this.javaType = getJavaType(type);
+	}
+
+	/**
+	 * Creates a new {@link Jackson2JsonRedisSerializer} for the given target {@link JavaType}.
+	 * 
+	 * @param javaType
+	 */
+	public Jackson2JsonRedisSerializer(JavaType javaType) {
+		this.javaType = javaType;
 	}
 
 	@SuppressWarnings("unchecked")

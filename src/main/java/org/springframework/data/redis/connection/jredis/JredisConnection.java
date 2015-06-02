@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -899,6 +899,17 @@ public class JredisConnection extends AbstractRedisConnection {
 	}
 
 	public Long zCount(byte[] key, double min, double max) {
+		return zCount(key, new Range().gte(min).lte(max));
+	}
+
+	@Override
+	public Long zCount(byte[] key, Range range) {
+
+		Assert.notNull(range, "Range for ZCOUNT must not be null!");
+
+		double min = ((Double) range.getMin().getValue()).doubleValue();
+		double max = ((Double) range.getMax().getValue()).doubleValue();
+
 		try {
 			return jredis.zcount(key, min, max);
 		} catch (Exception ex) {
@@ -943,6 +954,16 @@ public class JredisConnection extends AbstractRedisConnection {
 	}
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -1282,7 +1303,7 @@ public class JredisConnection extends AbstractRedisConnection {
 	public Cursor<Entry<byte[], byte[]>> hScan(byte[] key, ScanOptions options) {
 		throw new UnsupportedOperationException("'HSCAN' command is not uspported for jredis");
 	}
-	
+
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
 		throw new UnsupportedOperationException("'zRangeByScore' command is not uspported for jredis");
@@ -1291,5 +1312,94 @@ public class JredisConnection extends AbstractRedisConnection {
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
 		throw new UnsupportedOperationException("'zRangeByScore' command is not uspported for jredis");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfAdd(byte[], byte[][])
+	 */
+	@Override
+	public Long pfAdd(byte[] key, byte[]... values) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfCount(byte[][])
+	 */
+	@Override
+	public Long pfCount(byte[]... keys) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfMerge(byte[], byte[][])
+	 */
+	@Override
+	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[])
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for jredis.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for jredis.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for jredis.");
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Long zRemRangeByScore(byte[] key, Range range) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+		throw new UnsupportedOperationException();
 	}
 }

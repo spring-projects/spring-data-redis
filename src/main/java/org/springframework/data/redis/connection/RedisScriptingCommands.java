@@ -28,23 +28,24 @@ public interface RedisScriptingCommands {
 
 	/**
 	 * Flush lua script cache.
-	 * 
-	 * @see http://redis.io/commands/script-flush
+	 * <p>
+	 * See http://redis.io/commands/script-flush
 	 */
 	void scriptFlush();
 
 	/**
 	 * Kill current lua script execution.
-	 * 
-	 * @see http://redis.io/commands/script-kill
+	 * <p>
+	 * See http://redis.io/commands/script-kill
 	 */
 	void scriptKill();
 
 	/**
-	 * Load lua script into scripts cache, without executing it.<br />
+	 * Load lua script into scripts cache, without executing it.<br>
 	 * Execute the script by calling {@link #evalSha(String, ReturnType, int, byte[])}.
+	 * <p>
+	 * See http://redis.io/commands/script-load
 	 * 
-	 * @see http://redis.io/commands/script-load
 	 * @param script
 	 * @return
 	 */
@@ -52,8 +53,9 @@ public interface RedisScriptingCommands {
 
 	/**
 	 * Check if given {@code scriptShas} exist in script cache.
+	 * <p>
+	 * See http://redis.io/commands/script-exits
 	 * 
-	 * @see http://redis.io/commands/script-exits
 	 * @param scriptShas
 	 * @return one entry per given scriptSha in returned list.
 	 */
@@ -61,8 +63,9 @@ public interface RedisScriptingCommands {
 
 	/**
 	 * Evaluate given {@code script}.
+	 * <p>
+	 * See http://redis.io/commands/eval
 	 * 
-	 * @see http://redis.io/commands/eval
 	 * @param script
 	 * @param returnType
 	 * @param numKeys
@@ -73,9 +76,10 @@ public interface RedisScriptingCommands {
 
 	/**
 	 * Evaluate given {@code scriptSha}.
+	 * <p>
+	 * See http://redis.io/commands/evalsha
 	 * 
-	 * @see http://redis.io/commands/evalsha
-	 * @param script
+	 * @param scriptSha
 	 * @param returnType
 	 * @param numKeys
 	 * @param keysAndArgs
@@ -85,9 +89,10 @@ public interface RedisScriptingCommands {
 
 	/**
 	 * Evaluate given {@code scriptSha}.
+	 * <p>
+	 * See http://redis.io/commands/evalsha
 	 * 
-	 * @see http://redis.io/commands/evalsha
-	 * @param script
+	 * @param scriptSha
 	 * @param returnType
 	 * @param numKeys
 	 * @param keysAndArgs

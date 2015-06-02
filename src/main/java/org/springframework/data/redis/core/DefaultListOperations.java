@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +27,9 @@ import org.springframework.util.CollectionUtils;
  * Default implementation of {@link ListOperations}.
  * 
  * @author Costin Leau
+ * @author David Liu
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
@@ -76,6 +80,23 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 	public Long leftPushAll(K key, V... values) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawValues = rawValues(values);
+		return execute(new RedisCallback<Long>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.lPush(rawKey, rawValues);
+			}
+		}, true);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPushAll(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Long leftPushAll(K key, Collection<V> values) {
+
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawValues = rawValues(values);
+
 		return execute(new RedisCallback<Long>() {
 			public Long doInRedis(RedisConnection connection) {
 				return connection.lPush(rawKey, rawValues);
@@ -178,6 +199,23 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 		}, true);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPushAll(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Long rightPushAll(K key, Collection<V> values) {
+
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawValues = rawValues(values);
+
+		return execute(new RedisCallback<Long>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.rPush(rawKey, rawValues);
+			}
+		}, true);
+	}
+
 	public Long rightPushIfPresent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -245,4 +283,5 @@ class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements Li
 			}
 		}, true);
 	}
+
 }

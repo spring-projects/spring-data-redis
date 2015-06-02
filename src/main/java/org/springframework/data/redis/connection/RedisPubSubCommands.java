@@ -48,7 +48,7 @@ public interface RedisPubSubCommands {
 	/**
 	 * Subscribes the connection to the given channels. Once subscribed, a connection enters listening mode and can only
 	 * subscribe to other channels or unsubscribe. No other commands are accepted until the connection is unsubscribed.
-	 * <p/>
+	 * <p>
 	 * Note that this operation is blocking and the current thread starts waiting for new messages immediately.
 	 * 
 	 * @param listener message listener
@@ -60,7 +60,7 @@ public interface RedisPubSubCommands {
 	 * Subscribes the connection to all channels matching the given patterns. Once subscribed, a connection enters
 	 * listening mode and can only subscribe to other channels or unsubscribe. No other commands are accepted until the
 	 * connection is unsubscribed.
-	 * <p/>
+	 * <p>
 	 * Note that this operation is blocking and the current thread starts waiting for new messages immediately.
 	 * 
 	 * @param listener message listener

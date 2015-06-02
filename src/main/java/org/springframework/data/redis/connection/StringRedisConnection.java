@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author David Liu
- * 
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -102,8 +101,9 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * Set the {@code value} and expiration in {@code milliseconds} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/psetex
 	 * 
-	 * @see http://redis.io/commands/psetex
 	 * @param key
 	 * @param milliseconds
 	 * @param value
@@ -312,7 +312,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * 
 	 * @param name
 	 * @see #setClientName(byte[])
-	 * @sice 1.3
+	 * @since 1.3
 	 */
 	void setClientName(String name);
 
@@ -368,4 +368,60 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @return
 	 */
 	Set<byte[]> zRangeByScore(String key, String min, String max, long offset, long count);
+
+	/**
+	 * Adds given {@literal values} to the HyperLogLog stored at given {@literal key}.
+	 * 
+	 * @param key
+	 * @param values
+	 * @return
+	 * @since 1.5
+	 */
+	Long pfAdd(String key, String... values);
+
+	/**
+	 * @param keys
+	 * @return
+	 * @since 1.5
+	 */
+	Long pfCount(String... keys);
+
+	/**
+	 * @param destinationKey
+	 * @param sourceKeys
+	 * @since 1.5
+	 */
+	void pfMerge(String destinationKey, String... sourceKeys);
+
+	/**
+	 * Get all elements in the sorted set at {@literal key} in lexicographical ordering.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	Set<String> zRangeByLex(String key);
+
+	/**
+	 * Get the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	Set<String> zRangeByLex(String key, Range range);
+
+	/**
+	 * Get the elements in {@link Range} from the sorted set at {@literal key} in lexicographical ordering. Result is
+	 * limited via {@link Limit}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @param range can be {@literal null}.
+	 * @return
+	 * @since 1.6
+	 */
+	Set<String> zRangeByLex(String key, Range range, Limit limit);
+
 }

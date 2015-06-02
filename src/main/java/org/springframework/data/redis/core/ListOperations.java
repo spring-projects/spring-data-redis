@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -22,6 +23,9 @@ import java.util.concurrent.TimeUnit;
  * Redis list specific operations.
  * 
  * @author Costin Leau
+ * @author David Liu
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public interface ListOperations<K, V> {
 
@@ -35,6 +39,16 @@ public interface ListOperations<K, V> {
 
 	Long leftPushAll(K key, V... values);
 
+	/**
+	 * Insert all {@literal values} at the head of the list stored at {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal empty} nor contain {@literal null} values.
+	 * @return
+	 * @since 1.5
+	 */
+	Long leftPushAll(K key, Collection<V> values);
+
 	Long leftPushIfPresent(K key, V value);
 
 	Long leftPush(K key, V pivot, V value);
@@ -42,6 +56,16 @@ public interface ListOperations<K, V> {
 	Long rightPush(K key, V value);
 
 	Long rightPushAll(K key, V... values);
+
+	/**
+	 * Insert all {@literal values} at the tail of the list stored at {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param values must not be {@literal empty} nor contain {@literal null} values.
+	 * @return
+	 * @since 1.5
+	 */
+	Long rightPushAll(K key, Collection<V> values);
 
 	Long rightPushIfPresent(K key, V value);
 

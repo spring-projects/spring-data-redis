@@ -26,42 +26,43 @@ import java.util.List;
 public interface RedisTxCommands {
 
 	/**
-	 * Mark the start of a transaction block. <br />
+	 * Mark the start of a transaction block. <br>
 	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
-	 * .
-	 * 
-	 * @see http://redis.io/commands/multi
+	 * <p>
+	 * See http://redis.io/commands/multi
 	 */
 	void multi();
 
 	/**
-	 * Executes all queued commands in a transaction started with {@link #multi()}. <br />
+	 * Executes all queued commands in a transaction started with {@link #multi()}. <br>
 	 * If used along with {@link #watch(byte[])} the operation will fail if any of watched keys has been modified.
+	 * <p>
+	 * See http://redis.io/commands/exec
 	 * 
-	 * @see http://redis.io/commands/exec
 	 * @return List of replies for each executed command.
 	 */
 	List<Object> exec();
 
 	/**
 	 * Discard all commands issued after {@link #multi()}.
-	 * 
-	 * @see http://redis.io/commands/discard
+	 * <p>
+	 * See http://redis.io/commands/discard
 	 */
 	void discard();
 
 	/**
 	 * Watch given {@code keys} for modifications during transaction started with {@link #multi()}.
+	 * <p>
+	 * See http://redis.io/commands/watch
 	 * 
-	 * @see http://redis.io/commands/watch
 	 * @param keys
 	 */
 	void watch(byte[]... keys);
 
 	/**
 	 * Flushes all the previously {@link #watch(byte[])} keys.
-	 * 
-	 * @see http://redis.io/commands/unwatch
+	 * <p>
+	 * See http://redis.io/commands/unwatch
 	 */
 	void unwatch();
 }

@@ -15,11 +15,13 @@
  */
 package org.springframework.data.redis.test.util;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.AnnotatedElement;
 
 import org.junit.Ignore;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.springframework.data.redis.Version;
+import org.springframework.data.redis.VersionParser;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSource;
 import org.springframework.test.annotation.ProfileValueUtils;
@@ -42,14 +44,16 @@ public class RelaxedJUnit4ClassRunner extends SpringJUnit4ClassRunner {
 
 	@Override
 	protected boolean isTestMethodIgnored(FrameworkMethod frameworkMethod) {
+		return isAnnotatedElementIgnored(frameworkMethod.getMethod());
+	}
 
-		Method method = frameworkMethod.getMethod();
+	private boolean isAnnotatedElementIgnored(AnnotatedElement annotatedElement) {
 
-		if (method.isAnnotationPresent(Ignore.class)) {
+		if (annotatedElement.isAnnotationPresent(Ignore.class)) {
 			return true;
 		}
 
-		IfProfileValue ifProfileValue = method.getAnnotation(IfProfileValue.class);
+		IfProfileValue ifProfileValue = annotatedElement.getAnnotation(IfProfileValue.class);
 		if (ifProfileValue == null) {
 			return false;
 		}
@@ -64,8 +68,8 @@ public class RelaxedJUnit4ClassRunner extends SpringJUnit4ClassRunner {
 
 			if (value.endsWith("+")) {
 
-				String expected = value.replace("+", "");
-				if (expected.compareTo(environmentValue) <= 0) {
+				Version expected = VersionParser.parseVersion(value.replace("+", ""));
+				if (expected.compareTo(VersionParser.parseVersion(environmentValue)) <= 0) {
 					return true;
 				}
 

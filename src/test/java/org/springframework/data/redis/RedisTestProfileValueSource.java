@@ -16,7 +16,7 @@
 package org.springframework.data.redis;
 
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.test.annotation.ProfileValueSource;
 
 /**
@@ -27,6 +27,7 @@ import org.springframework.test.annotation.ProfileValueSource;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Thomas Darimont
  */
 public class RedisTestProfileValueSource implements ProfileValueSource {
 
@@ -34,35 +35,56 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	private static final String REDIS_26 = "2.6";
 	private static final String REDIS_28 = "2.8";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
-	private static Version redisVersion;
-	private static final RedisTestProfileValueSource INSTANCE = new RedisTestProfileValueSource();
+
+	private static RedisTestProfileValueSource INSTANCE;
+
+	private static final Version redisVersion;
+
+	static {
+		redisVersion = tryDetectRedisVersionOrReturn(new Version(9, 9, 9));
+	}
+
+	private static Version tryDetectRedisVersionOrReturn(Version fallbackVersion) {
+
+		try {
+			JedisConnectionFactory factory = new JedisConnectionFactory();
+			factory.afterPropertiesSet();
+
+			RedisConnection connection = factory.getConnection();
+			Version redisVersion = RedisVersionUtils.getRedisVersion(connection);
+
+			connection.close();
+			factory.destroy();
+
+			return redisVersion;
+		} catch (Exception ex) {
+			System.err.println("Couldn't detect redis version!");
+		}
+
+		return fallbackVersion;
+	}
 
 	public RedisTestProfileValueSource() {
-		if (redisVersion == null) {
-			LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(SettingsUtils.getHost(),
-					SettingsUtils.getPort());
-			connectionFactory.afterPropertiesSet();
-			RedisConnection connection = connectionFactory.getConnection();
-			redisVersion = RedisVersionUtils.getRedisVersion(connection);
-			connection.close();
-			connectionFactory.destroy();
-		}
+		INSTANCE = this;
 	}
 
 	public String get(String key) {
-		if (REDIS_VERSION_KEY.equals(key)) {
-			if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_28)) >= 0) {
-				return REDIS_28;
-			}
-			if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_26)) >= 0) {
-				return REDIS_26;
-			}
-			if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_24)) >= 0) {
-				return REDIS_24;
-			}
-			throw new UnsupportedOperationException("Only Redis 2.4 and higher are supported");
+
+		if (!REDIS_VERSION_KEY.equals(key)) {
+			return System.getProperty(key);
 		}
-		return System.getProperty(key);
+
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_28)) >= 0) {
+			return REDIS_28;
+		}
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_26)) >= 0) {
+			return REDIS_26;
+		}
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_24)) >= 0) {
+			return REDIS_24;
+		}
+
+		throw new UnsupportedOperationException("Only Redis 2.4 and higher are supported");
 	}
 
 	public static boolean matches(String key, String value) {

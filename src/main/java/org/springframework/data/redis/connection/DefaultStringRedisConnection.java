@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ import org.springframework.util.Assert;
  * @author Thomas Darimont
  */
 public class DefaultStringRedisConnection implements StringRedisConnection {
+
+	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
 
 	private final Log log = LogFactory.getLog(DefaultStringRedisConnection.class);
 	private final RedisConnection delegate;
@@ -970,6 +972,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zCount(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Long zCount(byte[] key, Range range) {
+
+		Long result = delegate.zCount(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
 	public Double zIncrBy(byte[] key, double increment, byte[] value) {
 		Double result = delegate.zIncrBy(key, increment, value);
 		if (isFutureConversion()) {
@@ -1010,6 +1026,48 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range) {
+
+		Set<byte[]> results = delegate.zRangeByScore(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Set<byte[]> results = delegate.zRangeByScore(key, range, limit);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range) {
+
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
 	public Set<byte[]> zRangeByScore(byte[] key, double min, double max) {
 		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
 		if (isFutureConversion()) {
@@ -1020,6 +1078,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Set<Tuple> zRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<Tuple> zRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+
+		Set<Tuple> results = delegate.zRangeByScoreWithScores(key, range, limit);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1050,6 +1122,20 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range) {
+
+		Set<byte[]> results = delegate.zRevRangeByScore(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max) {
 		Set<byte[]> results = delegate.zRevRangeByScore(key, min, max);
 		if (isFutureConversion()) {
@@ -1058,8 +1144,50 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScore(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRevRangeByScore(byte[] key, Range range, Limit limit) {
+
+		Set<byte[]> results = delegate.zRevRangeByScore(key, range, limit);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
 	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, double min, double max, long offset, long count) {
 		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, min, max, offset, count);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
+
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, range);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRevRangeByScoreWithScores(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range, Limit limit) {
+
+		Set<Tuple> results = delegate.zRevRangeByScoreWithScores(key, range, limit);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1100,6 +1228,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	public Long zRemRangeByScore(byte[] key, double min, double max) {
 		Long result = delegate.zRemRangeByScore(key, min, max);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public Long zRemRangeByScore(byte[] key, Range range) {
+		Long result = delegate.zRemRangeByScore(key, range);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
@@ -1247,6 +1384,11 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	}
 
 	private byte[][] serializeMulti(String... keys) {
+
+		if (keys == null) {
+			return EMPTY_2D_BYTE_ARRAY;
+		}
+
 		byte[][] ret = new byte[keys.length][];
 
 		for (int i = 0; i < ret.length; i++) {
@@ -2413,12 +2555,12 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max) {
-		
+
 		Set<byte[]> results = delegate.zRangeByScore(key, min, max);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
-		
+
 		return results;
 	}
 
@@ -2429,8 +2571,121 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
-		
+
 		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfAdd(byte[], byte[][])
+	 */
+	@Override
+	public Long pfAdd(byte[] key, byte[]... values) {
+		return delegate.pfAdd(key, values);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pfAdd(java.lang.String, java.lang.String[])
+	 */
+	@Override
+	public Long pfAdd(String key, String... values) {
+		return this.pfAdd(serialize(key), serializeMulti(values));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfCount(byte[][])
+	 */
+	@Override
+	public Long pfCount(byte[]... keys) {
+		return delegate.pfCount(keys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pfCount(java.lang.String[])
+	 */
+	@Override
+	public Long pfCount(String... keys) {
+		return this.pfCount(serializeMulti(keys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.HyperLogLogCommands#pfMerge(byte[], byte[][])
+	 */
+	@Override
+	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
+		delegate.pfMerge(destinationKey, sourceKeys);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pfMerge(java.lang.String, java.lang.String[][])
+	 */
+	@Override
+	public void pfMerge(String destinationKey, String... sourceKeys) {
+		this.pfMerge(serialize(destinationKey), serializeMulti(sourceKeys));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[])
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key) {
+		return delegate.zRangeByLex(key);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range) {
+		return delegate.zRangeByLex(key, range);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisZSetCommands#zRangeByLex(byte[], org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
+		return delegate.zRangeByLex(key, range, limit);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByLex(java.lang.String)
+	 */
+	@Override
+	public Set<String> zRangeByLex(String key) {
+		return this.zRangeByLex(key, Range.unbounded());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByLex(java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
+	@Override
+	public Set<String> zRangeByLex(String key, Range range) {
+		return this.zRangeByLex(key, range, null);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#zRangeByLex(java.lang.String, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Set<String> zRangeByLex(String key, Range range, Limit limit) {
+
+		Set<byte[]> results = delegate.zRangeByLex(serialize(key), range);
+		if (isFutureConversion()) {
+			addResultConverter(byteSetToStringSet);
+		}
+		return byteSetToStringSet.convert(results);
 	}
 
 }

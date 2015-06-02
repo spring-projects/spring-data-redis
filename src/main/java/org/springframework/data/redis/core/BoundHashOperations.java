@@ -57,9 +57,9 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Map<HK, HV> entries();
 
 	/**
-	 * @since 1.4
-	 * @param key
+	 * @param options
 	 * @return
+	 * @since 1.4
 	 */
 	Cursor<Map.Entry<HK, HV>> scan(ScanOptions options);
 }

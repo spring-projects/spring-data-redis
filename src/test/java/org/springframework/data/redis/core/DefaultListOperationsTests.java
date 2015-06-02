@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
-import static org.junit.Assert.assertThat;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -39,6 +38,8 @@ import org.springframework.data.redis.connection.RedisConnection;
  * Integration test of {@link DefaultListOperations}
  * 
  * @author Jennifer Hickey
+ * @author Thomas Darimont
+ * @author Christoph Strobl
  * @param <K> Key test
  * @param <V> Value test
  */
@@ -173,5 +174,89 @@ public class DefaultListOperationsTests<K, V> {
 		assertEquals(Long.valueOf(2), listOps.rightPushAll(key, v1, v2));
 		assertEquals(Long.valueOf(3), listOps.rightPush(key, v3));
 		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRightPushAllCollection() {
+
+		K key = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		assertEquals(Long.valueOf(3), listOps.rightPushAll(key, Arrays.<V> asList(v1, v2, v3)));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rightPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
+		listOps.rightPushAll(keyFactory.instance(), Collections.<V> emptyList());
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@SuppressWarnings("unchecked")
+	@Test(expected = IllegalArgumentException.class)
+	public void rightPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
+		listOps.rightPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void rightPushAllShouldThrowExceptionWhenCalledWithNull() {
+		listOps.rightPushAll(keyFactory.instance(), (Collection<V>) null);
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testLeftPushAllCollection() {
+
+		K key = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+
+		assertEquals(Long.valueOf(3), listOps.leftPushAll(key, Arrays.<V> asList(v1, v2, v3)));
+		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v3, v2, v1 })));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void leftPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
+		listOps.leftPushAll(keyFactory.instance(), Collections.<V> emptyList());
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@SuppressWarnings("unchecked")
+	@Test(expected = IllegalArgumentException.class)
+	public void leftPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
+		listOps.leftPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
+	}
+
+	/**
+	 * @see DATAREDIS-288
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void leftPushAllShouldThrowExceptionWhenCalledWithNull() {
+		listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null);
 	}
 }

@@ -6,6 +6,77 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.0.M1 (2015-06-02)
+----------------------------------------
+* DATAREDIS-400 - Release 1.6 M1 (Gosling).
+* DATAREDIS-396 - Update Jedis driver to version 2.7.2.
+* DATAREDIS-393 - Update Spring Version to 4.1.6.
+* DATAREDIS-388 - Upgrade to Jedis 2.7.
+* DATAREDIS-378 - Add support for  ZRANGEBYLEX.
+* DATAREDIS-352 - Enhance range options for zSetOperations.
+* DATAREDIS-332 - @Transactional Using multiple connections.
+
+
+Changes in version 1.5.0.RELEASE (2015-03-23)
+---------------------------------------------
+* DATAREDIS-385 - Release 1.5 GA.
+* DATAREDIS-384 - Remove Java6 build for Travis-CI.
+* DATAREDIS-383 - Improve JavaDoc of RedisCacheManager.
+* DATAREDIS-380 - Use Redis 2.8.19 for tests.
+* DATAREDIS-379 - Update reference documentation.
+* DATAREDIS-374 - Adapt JedisConnectionFactory for changes in Jedis 2.7.
+
+
+Changes in version 1.5.0.RC1 (2015-03-05)
+-----------------------------------------
+* DATAREDIS-377 - Release 1.5 RC1.
+* DATAREDIS-375 - A transactional RedisCacheManager decorates the cache with the TransactionAwareCacheDecorator twice.
+* DATAREDIS-372 - Allow easier RedisSentinelConfig.
+* DATAREDIS-371 - Upgrade Spring to 4.0.9.RELEASE.
+* DATAREDIS-369 - RedisCache zset leak.
+* DATAREDIS-364 - Add extension possibility to RedisCacheManager.
+* DATAREDIS-363 - Upgrade to jedis to 2.6.2.
+* DATAREDIS-361 - Fix gradle docsZip not picking up reference html.
+* DATAREDIS-328 - RedisCacheManager should not instantiate caches in setCacheNames().
+
+
+Changes in version 1.4.2.RELEASE (2015-01-28)
+---------------------------------------------
+* DATAREDIS-366 - Release 1.4.2.
+* DATAREDIS-364 - Add extension possibility to RedisCacheManager.
+* DATAREDIS-361 - Fix gradle docsZip not picking up reference html.
+* DATAREDIS-356 - Scripts don't try EVAL after EVALSHA fails.
+* DATAREDIS-354 - Jackson2JsonRedisSerializer should allow to customise the JavaType for deserialization via getJavaType().
+
+
+Changes in version 1.3.5.RELEASE (2015-01-27)
+---------------------------------------------
+* DATAREDIS-365 - Release 1.3.5.
+
+
+Changes in version 1.5.0.M1 (2014-12-01)
+----------------------------------------
+* DATAREDIS-360 - Release 1.5 M1.
+* DATAREDIS-359 - Fix redis javadoc generation.
+* DATAREDIS-356 - Scripts don't try EVAL after EVALSHA fails.
+* DATAREDIS-355 - Upgrade to jedis 2.6.1.
+* DATAREDIS-354 - Jackson2JsonRedisSerializer should allow to customise the JavaType for deserialization via getJavaType().
+* DATAREDIS-351 - Update build to latest redis version.
+* DATAREDIS-350 - Upgrade to Jedis 2.6.x.
+* DATAREDIS-347 - DefaultScriptExecutor always runs script twice if Exception is thrown.
+* DATAREDIS-334 - Provide binary alternative for RedisScriptingCommands.evalSha.
+* DATAREDIS-308 - Add Support for HyperLogLog.
+* DATAREDIS-288 - ListOperations should support using Collections instead of varargs as input.
+* DATAREDIS-197 - Implement Redis bitmap.
+* DATAREDIS-106 - Support for open interval for scores for sorted sets.
+
+
+Changes in version 1.4.1.RELEASE (2014-10-30)
+---------------------------------------------
+* DATAREDIS-353 - Release 1.4.1.
+* DATAREDIS-347 - DefaultScriptExecutor always runs script twice if Exception is thrown.
+
+
 Changes in version 1.4.0.RELEASE (2014-09-05)
 ---------------------------------------------
 * DATAREDIS-346 - Update to Spring Version 4.0.7.

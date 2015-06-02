@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author David Liu
  */
 abstract class AbstractOperations<K, V> {
 
@@ -117,6 +118,25 @@ abstract class AbstractOperations<K, V> {
 		for (Object value : values) {
 			rawValues[i++] = rawValue(value);
 		}
+		return rawValues;
+	}
+
+	/**
+	 * @param values must not be {@literal empty} nor contain {@literal null} values.
+	 * @return
+	 * @since 1.5
+	 */
+	byte[][] rawValues(Collection<V> values) {
+
+		Assert.notEmpty(values, "Values must not be 'null' or empty.");
+		Assert.noNullElements(values.toArray(), "Values must not contain 'null' value.");
+
+		byte[][] rawValues = new byte[values.size()][];
+		int i = 0;
+		for (V value : values) {
+			rawValues[i++] = rawValue(value);
+		}
+
 		return rawValues;
 	}
 
