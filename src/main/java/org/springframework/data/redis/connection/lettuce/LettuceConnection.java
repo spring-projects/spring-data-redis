@@ -17,23 +17,40 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static com.lambdaworks.redis.protocol.CommandType.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.*;
+import com.lambdaworks.redis.AbstractRedisClient;
+import com.lambdaworks.redis.KeyScanCursor;
+import com.lambdaworks.redis.LettuceFutures;
+import com.lambdaworks.redis.MapScanCursor;
+import com.lambdaworks.redis.RedisAsyncConnectionImpl;
+import com.lambdaworks.redis.RedisChannelHandler;
+import com.lambdaworks.redis.RedisClusterConnection;
 import com.lambdaworks.redis.RedisConnection;
-import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.output.*;
-import com.lambdaworks.redis.protocol.Command;
-import com.lambdaworks.redis.protocol.CommandArgs;
-import com.lambdaworks.redis.protocol.CommandOutput;
-import com.lambdaworks.redis.protocol.CommandType;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.RedisSentinelAsyncConnection;
+import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.ScanArgs;
+import com.lambdaworks.redis.ScoredValue;
+import com.lambdaworks.redis.ScoredValueScanCursor;
+import com.lambdaworks.redis.ValueScanCursor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -42,15 +59,55 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.AbstractRedisConnection;
+import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.FutureResult;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPipelineException;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyBoundCursor;
+import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
+
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.ScriptOutputType;
+import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.ZStoreArgs;
+import com.lambdaworks.redis.codec.RedisCodec;
+import com.lambdaworks.redis.output.BooleanOutput;
+import com.lambdaworks.redis.output.ByteArrayOutput;
+import com.lambdaworks.redis.output.DateOutput;
+import com.lambdaworks.redis.output.DoubleOutput;
+import com.lambdaworks.redis.output.IntegerOutput;
+import com.lambdaworks.redis.output.KeyListOutput;
+import com.lambdaworks.redis.output.KeyValueOutput;
+import com.lambdaworks.redis.output.MapOutput;
+import com.lambdaworks.redis.output.MultiOutput;
+import com.lambdaworks.redis.output.StatusOutput;
+import com.lambdaworks.redis.output.ValueListOutput;
+import com.lambdaworks.redis.output.ValueOutput;
+import com.lambdaworks.redis.output.ValueSetOutput;
+import com.lambdaworks.redis.protocol.Command;
+import com.lambdaworks.redis.protocol.CommandArgs;
+import com.lambdaworks.redis.protocol.CommandOutput;
+import com.lambdaworks.redis.protocol.CommandType;
+import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -73,7 +130,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private static final TypeHints typeHints = new TypeHints();
 
 	static{
-		SYNC_HANDLER = ReflectionUtils.findMethod(AbstractRedisClient.class, "syncHandler", RedisChannelHandler.class, Class[].class);
+		SYNC_HANDLER = ReflectionUtils.findMethod(AbstractRedisClient.class, "syncHandler",
+				RedisChannelHandler.class, Class[].class);
 		ReflectionUtils.makeAccessible(SYNC_HANDLER);
 	}
 
@@ -1228,6 +1286,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	/**
+	 *
 	 * @since 1.3
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#pSetEx(byte[], long, byte[])
 	 */
@@ -1940,6 +1999,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	public List<byte[]> sRandMember(byte[] key, long count) {
+		if (count < 0) {
+			throw new UnsupportedOperationException("sRandMember with a negative count is not supported");
+		}
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().srandmember(key, count),

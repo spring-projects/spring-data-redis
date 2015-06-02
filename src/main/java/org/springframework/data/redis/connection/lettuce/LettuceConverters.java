@@ -15,16 +15,30 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.lambdaworks.redis.*;
+import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
@@ -33,6 +47,11 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import com.lambdaworks.redis.KeyValue;
+import com.lambdaworks.redis.ScoredValue;
+import com.lambdaworks.redis.ScriptOutputType;
+import com.lambdaworks.redis.SortArgs;
 
 /**
  * Lettuce type converters

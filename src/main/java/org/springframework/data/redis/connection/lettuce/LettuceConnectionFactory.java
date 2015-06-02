@@ -18,7 +18,9 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.*;
+import com.lambdaworks.redis.LettuceFutures;
+import com.lambdaworks.redis.RedisFuture;
+import com.lambdaworks.redis.RedisURI;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -27,9 +29,16 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.Pool;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
+
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisException;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.

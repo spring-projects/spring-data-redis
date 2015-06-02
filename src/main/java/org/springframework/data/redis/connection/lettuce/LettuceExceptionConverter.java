@@ -28,6 +28,9 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 
+import com.lambdaworks.redis.RedisCommandInterruptedException;
+import com.lambdaworks.redis.RedisException;
+
 /**
  * Converts Lettuce Exceptions to {@link DataAccessException}s
  * 

@@ -100,8 +100,8 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
-
 		this.client = new RedisClient(getRedisURI());
+		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		this.internalPool = new GenericObjectPool<RedisAsyncConnection>(new LettuceFactory(client, dbIndex), poolConfig);
 	}
 
