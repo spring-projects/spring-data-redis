@@ -19,13 +19,15 @@ import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.pubsub.RedisPubSubConnectionImpl;
 
 /**
  * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
  * 
  * @author Jennifer Hickey
+ * @deprecated Use password in RedisURI
  */
+@Deprecated
 public class AuthenticatingRedisClient extends RedisClient {
 
 	private String password;
@@ -55,8 +57,8 @@ public class AuthenticatingRedisClient extends RedisClient {
 	}
 
 	@Override
-	public <K, V> RedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
-		RedisPubSubConnection<K, V> conn = super.connectPubSub(codec);
+	public <K, V> com.lambdaworks.redis.pubsub.RedisPubSubConnectionImpl<K, V> connectPubSub(RedisCodec<K, V> codec) {
+		RedisPubSubConnectionImpl<K, V> conn = super.connectPubSub(codec);
 		conn.auth(password);
 		return conn;
 	}

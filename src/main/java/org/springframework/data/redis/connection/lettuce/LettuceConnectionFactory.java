@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
+import com.lambdaworks.redis.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -26,18 +27,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.Pool;
+import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisException;
-
 /**
- * Connection factory creating <a href="http://github.com/wg/lettuce">Lettuce</a>-based connections.
+ * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
  * <p>
  * This factory creates a new {@link LettuceConnection} on each call to {@link #getConnection()}. Multiple
  * {@link LettuceConnection}s share a single thread-safe native connection by default.
@@ -54,6 +49,8 @@ import com.lambdaworks.redis.RedisException;
  */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
+	public static final String PING_REPLY = "PONG";
+
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new PassThroughExceptionTranslationStrategy(
 			LettuceConverters.exceptionConverter());
 
@@ -63,6 +60,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private int port = 6379;
 	private RedisClient client;
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
+	private long shutdownTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
 	private RedisAsyncConnection<byte[], byte[]> connection;
@@ -72,6 +70,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private final Object connectionMonitor = new Object();
 	private String password;
 	private boolean convertPipelineAndTxResults = true;
+	private RedisSentinelConfiguration sentinelConfiguration;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
@@ -86,6 +85,16 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.port = port;
 	}
 
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}
+	 *
+	 * @param sentinelConfiguration
+	 * @since 1.5
+	 */
+	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
+		this.sentinelConfiguration = sentinelConfiguration;
+	}
+
 	public LettuceConnectionFactory(LettucePool pool) {
 		this.pool = pool;
 	}
@@ -96,7 +105,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	public void destroy() {
 		resetConnection();
-		client.shutdown();
+		client.shutdown(shutdownTimeout, shutdownTimeout, TimeUnit.MILLISECONDS);
 	}
 
 	public RedisConnection getConnection() {
@@ -131,9 +140,22 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public void validateConnection() {
 		synchronized (this.connectionMonitor) {
-			try {
-				new com.lambdaworks.redis.RedisConnection<byte[], byte[]>(connection).ping();
-			} catch (RedisException e) {
+
+			boolean valid = false;
+
+			if (connection.isOpen()) {
+				try {
+					RedisFuture<String> ping = connection.ping();
+					LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS, ping);
+					if(PING_REPLY.equalsIgnoreCase(ping.get())) {
+						valid = true;
+					}
+				} catch (Exception e) {
+				   log.debug("Validation failed", e);
+				}
+			}
+
+			if (!valid) {
 				log.warn("Validation of shared connection failed. Creating a new connection.");
 				initConnection();
 			}
@@ -281,6 +303,22 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	/**
+	 * Returns the shutdown timeout for shutting down the RedisClient (in milliseconds).
+	 * @return shutdown timeout
+	 */
+	public long getShutdownTimeout() {
+		return shutdownTimeout;
+	}
+
+	/**
+	 * Sets the shutdown timeout for shutting down the RedisClient (in milliseconds).
+	 * @param shutdownTimeout the shutdown timeout
+	 */
+	public void setShutdownTimeout(long shutdownTimeout) {
+		this.shutdownTimeout = shutdownTimeout;
+	}
+
+	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()} will be of the type returned by the
 	 * Lettuce driver
@@ -331,17 +369,39 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	private RedisClient createRedisClient() {
+
+		if(isRedisSentinelAware()) {
+			RedisURI redisURI = getSentinelRedisURI();
+			return new RedisClient(redisURI);
+		}
+
 		if (pool != null) {
 			return pool.getClient();
 		}
-		RedisClient client = password != null ? new AuthenticatingRedisClient(hostName, port, password) : new RedisClient(
-				hostName, port);
-		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
+
+		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
+		if(password != null) {
+			builder.withPassword(password);
+		}
+		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+		RedisClient client = new RedisClient(builder.build());
 		return client;
+	}
+
+	private RedisURI getSentinelRedisURI() {
+		return LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+	}
+
+	/**
+	 * @return true when {@link RedisSentinelConfiguration} is present.
+	 * @since 1.5
+	 */
+	public boolean isRedisSentinelAware() {
+		return sentinelConfiguration != null;
 	}
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
-		throw new UnsupportedOperationException();
+		return new LettuceSentinelConnection(client.connectSentinelAsync());
 	}
 }

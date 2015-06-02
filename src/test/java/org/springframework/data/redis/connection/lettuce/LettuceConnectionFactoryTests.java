@@ -46,6 +46,7 @@ public class LettuceConnectionFactoryTests {
 	public void setUp() {
 		factory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory.afterPropertiesSet();
+		factory.setShutdownTimeout(0);
 		connection = new DefaultStringRedisConnection(factory.getConnection());
 	}
 
@@ -109,6 +110,7 @@ public class LettuceConnectionFactoryTests {
 	@Test
 	public void testSelectDb() {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
 		StringRedisConnection connection2 = new DefaultStringRedisConnection(factory2.getConnection());
@@ -177,7 +179,9 @@ public class LettuceConnectionFactoryTests {
 		newConnection.close();
 	}
 
+	@Test
 	public void testGetConnectionException() {
+		factory.resetConnection();
 		factory.setHostName("fakeHost");
 		factory.afterPropertiesSet();
 		try {
@@ -207,6 +211,7 @@ public class LettuceConnectionFactoryTests {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
+		factory2.setShutdownTimeout(0);
 		factory2.afterPropertiesSet();
 		RedisConnection conn2 = factory2.getConnection();
 		conn2.close();
