@@ -6,6 +6,17 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.0.M1 (2015-06-02)
+----------------------------------------
+* DATAREDIS-400 - Release 1.6 M1 (Gosling).
+* DATAREDIS-396 - Update Jedis driver to version 2.7.2.
+* DATAREDIS-393 - Update Spring Version to 4.1.6.
+* DATAREDIS-388 - Upgrade to Jedis 2.7.
+* DATAREDIS-378 - Add support for  ZRANGEBYLEX.
+* DATAREDIS-352 - Enhance range options for zSetOperations.
+* DATAREDIS-332 - @Transactional Using multiple connections.
+
+
 Changes in version 1.5.0.RELEASE (2015-03-23)
 ---------------------------------------------
 * DATAREDIS-385 - Release 1.5 GA.
