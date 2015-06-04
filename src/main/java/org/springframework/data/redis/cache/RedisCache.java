@@ -87,8 +87,7 @@ public class RedisCache implements Cache {
 	 */
 	@Override
 	public ValueWrapper get(Object key) {
-		return get(new RedisCacheKey(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
-				template.getKeySerializer()));
+		return get(getRedisCacheKey(key));
 	}
 
 	/**
@@ -122,8 +121,7 @@ public class RedisCache implements Cache {
 	@Override
 	public void put(final Object key, final Object value) {
 
-		put(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
-				template.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+		put(new RedisCacheElement(getRedisCacheKey(key), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
@@ -146,8 +144,7 @@ public class RedisCache implements Cache {
 	 */
 	public ValueWrapper putIfAbsent(Object key, final Object value) {
 
-		return putIfAbsent(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix())
-				.withKeySerializer(template.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+		return putIfAbsent(new RedisCacheElement(getRedisCacheKey(key), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
@@ -170,8 +167,7 @@ public class RedisCache implements Cache {
 	 * @see org.springframework.cache.Cache#evict(java.lang.Object)
 	 */
 	public void evict(Object key) {
-		evict(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
-				template.getKeySerializer()), null));
+		evict(new RedisCacheElement(getRedisCacheKey(key), null));
 	}
 
 	/**
@@ -209,6 +205,11 @@ public class RedisCache implements Cache {
 		return template;
 	}
 
+	protected RedisCacheKey getRedisCacheKey(Object key) {
+		return new RedisCacheKey(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
+				template.getKeySerializer());
+	}
+
 	private ValueWrapper toWrapper(Object value) {
 		return (value != null ? new SimpleValueWrapper(value) : null);
 	}
@@ -220,7 +221,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCacheMetadata {
+	protected static class RedisCacheMetadata {
 
 		private final String cacheName;
 		private final byte[] keyPrefix;
@@ -312,7 +313,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class CacheValueAccessor {
+	protected static class CacheValueAccessor {
 
 		@SuppressWarnings("rawtypes")//
 		private final RedisSerializer valueSerializer;
@@ -346,7 +347,7 @@ public class RedisCache implements Cache {
 	 * @since 1.5
 	 * @param <T>
 	 */
-	static abstract class AbstractRedisCacheCallback<T> implements RedisCallback<T> {
+	protected static abstract class AbstractRedisCacheCallback<T> implements RedisCallback<T> {
 
 		private long WAIT_FOR_LOCK_TIMEOUT = 300;
 		private final RedisCacheElement element;
@@ -416,7 +417,7 @@ public class RedisCache implements Cache {
 	 * @param <T>
 	 * @since 1.5
 	 */
-	static abstract class LockingRedisCacheCallback<T> implements RedisCallback<T> {
+	protected static abstract class LockingRedisCacheCallback<T> implements RedisCallback<T> {
 
 		private final RedisCacheMetadata metadata;
 
@@ -449,7 +450,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCacheCleanByKeysCallback extends LockingRedisCacheCallback<Void> {
+	protected static class RedisCacheCleanByKeysCallback extends LockingRedisCacheCallback<Void> {
 
 		private static final int PAGE_SIZE = 128;
 		private final RedisCacheMetadata metadata;
@@ -489,7 +490,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCacheCleanByPrefixCallback extends LockingRedisCacheCallback<Void> {
+	protected static class RedisCacheCleanByPrefixCallback extends LockingRedisCacheCallback<Void> {
 
 		private static final byte[] REMOVE_KEYS_BY_PATTERN_LUA = new StringRedisSerializer()
 				.serialize("local keys = redis.call('KEYS', ARGV[1]); local keysCount = table.getn(keys); if(keysCount > 0) then for _, key in ipairs(keys) do redis.call('del', key); end; end; return keysCount;");
@@ -521,7 +522,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCacheEvictCallback extends AbstractRedisCacheCallback<Void> {
+	protected static class RedisCacheEvictCallback extends AbstractRedisCacheCallback<Void> {
 
 		public RedisCacheEvictCallback(RedisCacheElement element, RedisCacheMetadata metadata) {
 			super(element, metadata);
@@ -544,7 +545,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCachePutCallback extends AbstractRedisCacheCallback<Void> {
+	protected static class RedisCachePutCallback extends AbstractRedisCacheCallback<Void> {
 
 		private final CacheValueAccessor valueAccessor;
 
@@ -578,7 +579,7 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCachePutIfAbsentCallback extends AbstractRedisCacheCallback<Object> {
+	protected static class RedisCachePutIfAbsentCallback extends AbstractRedisCacheCallback<Object> {
 
 		private final CacheValueAccessor valueAccessor;
 
