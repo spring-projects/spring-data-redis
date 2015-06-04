@@ -210,6 +210,14 @@ public class RedisCache implements Cache {
 				template.getKeySerializer());
 	}
 
+    protected RedisCacheMetadata getCacheMetadata() {
+        return cacheMetadata;
+    }
+
+    protected CacheValueAccessor getCacheValueAccessor() {
+        return cacheValueAccessor;
+    }
+
 	private ValueWrapper toWrapper(Object value) {
 		return (value != null ? new SimpleValueWrapper(value) : null);
 	}
