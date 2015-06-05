@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsCollectionContaining;
 import org.hamcrest.core.IsInstanceOf;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DataAccessException;
@@ -62,6 +63,8 @@ import com.lambdaworks.redis.RedisAsyncConnection;
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
 public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegrationTests {
+
+	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.withDefaultConfig().dynamicModeSelection();
 
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")

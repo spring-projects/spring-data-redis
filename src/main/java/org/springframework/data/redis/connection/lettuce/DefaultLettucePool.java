@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.RedisURI;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -30,6 +29,7 @@ import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisURI;
 
 /**
  * Default implementation of {@link LettucePool}.
@@ -72,6 +72,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	 * based on sentinels.
 	 *
 	 * @param sentinelConfiguration The Sentinel configuration
+	 * @since 1.6
 	 */
 	public DefaultLettucePool(RedisSentinelConfiguration sentinelConfiguration) {
 		this.sentinelConfiguration = sentinelConfiguration;
@@ -92,7 +93,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	/**
 	 * @return true when {@link RedisSentinelConfiguration} is present.
-	 * @since 1.5
+	 * @since 1.6
 	 */
 	public boolean isRedisSentinelAware() {
 		return sentinelConfiguration != null;
@@ -106,12 +107,11 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
-	 *
 	 * @return a RedisURI pointing either to a single Redis host or containing a set of sentinels.
 	 */
 	private RedisURI getRedisURI() {
 
-		if(isRedisSentinelAware()) {
+		if (isRedisSentinelAware()) {
 			return LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 		}
 
@@ -120,7 +120,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	private RedisURI createSimpleHostRedisURI() {
 		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
-		if(password != null) {
+		if (password != null) {
 			builder.withPassword(password);
 		}
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
@@ -162,7 +162,6 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
-	 *
 	 * @return The Redis client
 	 */
 	public RedisClient getClient() {

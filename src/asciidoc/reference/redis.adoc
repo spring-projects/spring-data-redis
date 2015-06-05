@@ -169,12 +169,25 @@ NOTE: Please note that currently only http://github.com/xetorthio/jedis[Jedis] a
 
 [source,java]
 ----
+/**
+ * jedis
+ */
 @Bean 
 public RedisConnectionFactory jedisConnectionFactory() {
   RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration() .master("mymaster")
   .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
   return new JedisConnectionFactory(sentinelConfig);
 } 
+
+/**
+ * lettuce
+ */
+@Bean
+public RedisConnectionFactory lettuceConnectionFactory() {
+  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration().master("mymaster")
+  .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
+  return new LettuceConnectionFactory(sentinelConfig);
+}
 ----
 
 [TIP]
@@ -185,16 +198,6 @@ public RedisConnectionFactory jedisConnectionFactory() {
 - `spring.redis.sentinel.master`: name of the master node.
 - `spring.redis.sentinel.nodes`: Comma delimited list of host:port pairs.
 ====
-=======
-[source,java]
-----
-@Bean
-public RedisConnectionFactory lettuceConnectionFactory() {
-  RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration() .master("mymaster")
-  .sentinel("127.0.0.1", 26379) .sentinel("127.0.0.1", 26380);
-  return new LettuceConnectionFactory(sentinelConfig);
-}
-----
 
 Sometimes direct interaction with the one of the Sentinels is required. Using `RedisConnectionFactory.getSentinelConnection()` or `RedisConnection.getSentinelCommands()` gives you access to the first active Sentinel configured.
 

@@ -44,7 +44,6 @@ import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -220,7 +219,6 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k1, v1);
 		try {
 			Long value = map.increment(k1, 1);
-			System.out.println("Value is " + value);
 		} catch (InvalidDataAccessApiUsageException ex) {
 			// expected
 		} catch (RedisSystemException ex) {
@@ -238,9 +236,9 @@ public abstract class AbstractRedisMapTests<K, V> {
 	}
 
 	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testIncrementDouble() {
-		assumeTrue(RedisVersionUtils.atLeast("2.6", template.getConnectionFactory().getConnection())
-				&& valueFactory instanceof DoubleAsStringObjectFactory);
+		assumeTrue(valueFactory instanceof DoubleAsStringObjectFactory);
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);

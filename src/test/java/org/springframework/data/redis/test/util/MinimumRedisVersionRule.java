@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.test.util;
 
+import java.io.IOException;
+
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -22,11 +24,11 @@ import org.junit.runners.model.Statement;
 import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.Version;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.util.StringUtils;
+
+import redis.clients.jedis.Jedis;
 
 /**
  * {@link MinimumRedisVersionRule} is a custom {@link TestRule} validating {@literal redisVersion} given in
@@ -38,29 +40,46 @@ import org.springframework.util.StringUtils;
 public class MinimumRedisVersionRule implements TestRule {
 
 	private static final String PROFILE_NAME = "redisVersion";
-	private Version redisVersion;
+	private static final Version redisVersion;
 
-	public MinimumRedisVersionRule() {
-		this.redisVersion = readServerVersion();
+	public MinimumRedisVersionRule() {}
+
+	static {
+		redisVersion = readServerVersion();
 	}
 
-	private Version readServerVersion() {
+	private static synchronized Version readServerVersion() {
 
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setHostName(SettingsUtils.getHost());
-		connectionFactory.setPort(SettingsUtils.getPort());
-		connectionFactory.setTimeout(100);
-
-		connectionFactory.afterPropertiesSet();
-		RedisConnection connection = connectionFactory.getConnection();
+		Jedis jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort());
 
 		Version version = Version.UNKNOWN;
 
 		try {
-			version = RedisVersionUtils.getRedisVersion(connection);
-			connection.close();
+
+			jedis.connect();
+			String info = jedis.info();
+			String versionString = (String) JedisConverters.stringToProps().convert(info).get("redis_version");
+
+			version = RedisVersionUtils.parseVersion(versionString);
 		} finally {
-			connectionFactory.destroy();
+			try {
+
+				jedis.disconnect();
+				if (jedis.getClient().getSocket().isConnected()) {
+					// force socket to be closed
+					jedis.getClient().getSocket().close();
+					try {
+						// need to wait a bit
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						// just ignore it
+					}
+				}
+
+			} catch (IOException e1) {
+				// ignore as well
+			}
+			jedis.close();
 		}
 
 		return version;

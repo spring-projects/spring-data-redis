@@ -25,7 +25,7 @@ public abstract class SettingsUtils {
 	private static final Properties SETTINGS;
 
 	static {
-		DEFAULTS.put("host", "localhost");
+		DEFAULTS.put("host", "127.0.0.1");
 		DEFAULTS.put("port", "6379");
 
 		SETTINGS = new Properties(DEFAULTS);

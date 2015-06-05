@@ -3568,6 +3568,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return RedisURI.Builder.redis(node.getHost(), node.getPort()).build();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.AbstractRedisConnection#getSentinelConnection(org.springframework.data.redis.connection.RedisNode)
+	 */
 	@Override
 	protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
 		RedisSentinelAsyncConnection<String, String> connection = client.connectSentinelAsync(getRedisURI(sentinel));

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -29,9 +29,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.connection.RedisServer;
-import org.springframework.data.redis.connection.jedis.JedisSentinelConnection;
-
-import redis.clients.jedis.Jedis;
 
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisFuture;
@@ -45,8 +42,9 @@ import com.lambdaworks.redis.RedisSentinelAsyncConnection;
 public class LettuceSentinelConnectionUnitTests {
 
 	public static final String MASTER_ID = "mymaster";
+
 	private @Mock RedisClient redisClientMock;
-	
+
 	private @Mock RedisSentinelAsyncConnection<String, String> connectionMock;
 
 	private @Mock RedisFuture<List<Map<String, String>>> redisFutureMock;
@@ -66,21 +64,6 @@ public class LettuceSentinelConnectionUnitTests {
 	@Test
 	public void shouldConnectAfterCreation() {
 		verify(redisClientMock, times(1)).connectSentinelAsync();
-	}
-
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@SuppressWarnings("resource")
-	@Test
-	public void shouldNotConnectIfAlreadyConnected() {
-
-		Jedis yetAnotherJedisMock = mock(Jedis.class);
-		when(yetAnotherJedisMock.isConnected()).thenReturn(true);
-
-		new JedisSentinelConnection(yetAnotherJedisMock);
-
-		verify(yetAnotherJedisMock, never()).connect();
 	}
 
 	/**
