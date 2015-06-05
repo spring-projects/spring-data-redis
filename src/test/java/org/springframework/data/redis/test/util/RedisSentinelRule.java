@@ -161,8 +161,9 @@ public class RedisSentinelRule implements TestRule {
 			jedis = new Jedis(node.getHost(), node.getPort());
 			jedis.connect();
 			jedis.ping();
-		} catch (Exception e) {
 
+			return true;
+		} catch (Exception e) {
 			return false;
 		} finally {
 
@@ -170,14 +171,16 @@ public class RedisSentinelRule implements TestRule {
 				try {
 
 					jedis.disconnect();
+					if (jedis.getClient().getSocket().isConnected()) {
+						jedis.getClient().getSocket().close();
+						Thread.sleep(100);
+					}
+
 					jedis.close();
 				} catch (Exception e) {
-
 					e.printStackTrace();
 				}
 			}
 		}
-
-		return true;
 	}
 }

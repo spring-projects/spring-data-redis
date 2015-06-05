@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisConnection;
+import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 
@@ -25,7 +26,9 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
  * 
  * @author Jennifer Hickey
- * @deprecated Use password in RedisURI
+ * @author Mar Paluch
+ * @author Christoph Strobl
+ * @deprecated since 1.6 - Please use {@link RedisURI#setPassword(String)}
  */
 @Deprecated
 public class AuthenticatingRedisClient extends RedisClient {

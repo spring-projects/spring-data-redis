@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.LettuceFutures;
-import com.lambdaworks.redis.RedisFuture;
-import com.lambdaworks.redis.RedisURI;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -36,9 +33,12 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 
+import com.lambdaworks.redis.LettuceFutures;
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.RedisFuture;
+import com.lambdaworks.redis.RedisURI;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -55,6 +55,7 @@ import com.lambdaworks.redis.RedisException;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -98,7 +99,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}
 	 *
 	 * @param sentinelConfiguration
-	 * @since 1.5
+	 * @since 1.6
 	 */
 	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
 		this.sentinelConfiguration = sentinelConfiguration;
@@ -156,11 +157,11 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 				try {
 					RedisFuture<String> ping = connection.ping();
 					LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS, ping);
-					if(PING_REPLY.equalsIgnoreCase(ping.get())) {
+					if (PING_REPLY.equalsIgnoreCase(ping.get())) {
 						valid = true;
 					}
 				} catch (Exception e) {
-				   log.debug("Validation failed", e);
+					log.debug("Validation failed", e);
 				}
 			}
 
@@ -313,7 +314,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the shutdown timeout for shutting down the RedisClient (in milliseconds).
+	 * 
 	 * @return shutdown timeout
+	 * @since 1.6
 	 */
 	public long getShutdownTimeout() {
 		return shutdownTimeout;
@@ -321,7 +324,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the shutdown timeout for shutting down the RedisClient (in milliseconds).
+	 * 
 	 * @param shutdownTimeout the shutdown timeout
+	 * @since 1.6
 	 */
 	public void setShutdownTimeout(long shutdownTimeout) {
 		this.shutdownTimeout = shutdownTimeout;
@@ -379,7 +384,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	private RedisClient createRedisClient() {
 
-		if(isRedisSentinelAware()) {
+		if (isRedisSentinelAware()) {
 			RedisURI redisURI = getSentinelRedisURI();
 			return new RedisClient(redisURI);
 		}
@@ -389,7 +394,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		}
 
 		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
-		if(password != null) {
+		if (password != null) {
 			builder.withPassword(password);
 		}
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);

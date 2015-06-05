@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,7 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
@@ -62,6 +64,9 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.util.RedisClientRule;
+import org.springframework.data.redis.test.util.RedisDriver;
+import org.springframework.data.redis.test.util.WithRedisDriver;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 
@@ -88,8 +93,15 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	protected RedisConnection byteConnection;
 
+	public @Rule RedisClientRule clientRule = new RedisClientRule() {
+		public RedisConnectionFactory getConnectionFactory() {
+			return connectionFactory;
+		}
+	};
+
 	@Before
 	public void setUp() {
+
 		byteConnection = connectionFactory.getConnection();
 		connection = new DefaultStringRedisConnection(byteConnection);
 		((DefaultStringRedisConnection) connection).setDeserializePipelineAndTxResults(true);
@@ -2072,11 +2084,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfAddShouldAddToNonExistingKeyCorrectly() {
-
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
-		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
 
@@ -2089,11 +2098,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
-
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
-		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
 		actual.add(connection.pfAdd("hll2", "c", "d", "e"));
@@ -2110,11 +2116,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountShouldReturnCorrectly() {
-
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
-		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
 		actual.add(connection.pfCount("hll"));
@@ -2129,11 +2132,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
-
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
-		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
 		actual.add(connection.pfAdd("hll2", "d", "e", "f"));
@@ -2150,13 +2150,51 @@ public abstract class AbstractConnectionIntegrationTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
-
-		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
-		}
-
 		actual.add(connection.pfCount((String[]) null));
+	}
+
+	/**
+	 * @see DATAREDIS-378
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void zRangeByLexTest() {
+
+		actual.add(connection.zAdd("myzset", 0, "a"));
+		actual.add(connection.zAdd("myzset", 0, "b"));
+		actual.add(connection.zAdd("myzset", 0, "c"));
+		actual.add(connection.zAdd("myzset", 0, "d"));
+		actual.add(connection.zAdd("myzset", 0, "e"));
+		actual.add(connection.zAdd("myzset", 0, "f"));
+		actual.add(connection.zAdd("myzset", 0, "g"));
+
+		actual.add(connection.zRangeByLex("myzset", Range.range().lte("c")));
+		actual.add(connection.zRangeByLex("myzset", Range.range().lt("c")));
+		actual.add(connection.zRangeByLex("myzset", Range.range().gte("aaa").lt("g")));
+		actual.add(connection.zRangeByLex("myzset", Range.range().gte("e")));
+
+		List<Object> results = getResults();
+
+		Set<String> values = (Set<String>) results.get(7);
+
+		assertThat(values, hasItems("a", "b", "c"));
+		assertThat(values, not(hasItems("d", "e", "f", "g")));
+
+		values = (Set<String>) results.get(8);
+		assertThat(values, hasItems("a", "b"));
+		assertThat(values, not(hasItem("c")));
+
+		values = (Set<String>) results.get(9);
+		assertThat(values, hasItems("b", "c", "d", "e", "f"));
+		assertThat(values, not(hasItems("a", "g")));
+
+		values = (Set<String>) results.get(10);
+		assertThat(values, hasItems("e", "f", "g"));
+		assertThat(values, not(hasItems("a", "b", "c", "d")));
 	}
 
 	protected void verifyResults(List<Object> expected) {

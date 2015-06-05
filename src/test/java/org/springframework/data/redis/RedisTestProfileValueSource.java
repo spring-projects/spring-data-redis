@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,12 @@
  */
 package org.springframework.data.redis;
 
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import java.io.IOException;
+
+import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.test.annotation.ProfileValueSource;
+
+import redis.clients.jedis.Jedis;
 
 /**
  * Implementation of {@link ProfileValueSource} that handles profile value name "redisVersion" by checking the current
@@ -34,6 +37,7 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	private static final String REDIS_24 = "2.4";
 	private static final String REDIS_26 = "2.6";
 	private static final String REDIS_28 = "2.8";
+	private static final String REDIS_30 = "3.0";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
 
 	private static RedisTestProfileValueSource INSTANCE;
@@ -46,22 +50,35 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 
 	private static Version tryDetectRedisVersionOrReturn(Version fallbackVersion) {
 
+		Version version = fallbackVersion;
+
+		Jedis jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort(), 100);
 		try {
-			JedisConnectionFactory factory = new JedisConnectionFactory();
-			factory.afterPropertiesSet();
 
-			RedisConnection connection = factory.getConnection();
-			Version redisVersion = RedisVersionUtils.getRedisVersion(connection);
+			jedis.connect();
+			String info = jedis.info();
+			String versionString = (String) JedisConverters.stringToProps().convert(info).get("redis_version");
 
-			connection.close();
-			factory.destroy();
+			version = RedisVersionUtils.parseVersion(versionString);
+		} finally {
 
-			return redisVersion;
-		} catch (Exception ex) {
-			System.err.println("Couldn't detect redis version!");
+			try {
+				// force socket to be closed
+				jedis.getClient().quit();
+				jedis.getClient().getSocket().close();
+				try {
+					// need to wait a bit
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// just ignore it
+				}
+			} catch (IOException e1) {
+				// ignore as well
+			}
+			jedis.close();
+
 		}
-
-		return fallbackVersion;
+		return version;
 	}
 
 	public RedisTestProfileValueSource() {
@@ -72,6 +89,10 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 
 		if (!REDIS_VERSION_KEY.equals(key)) {
 			return System.getProperty(key);
+		}
+
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_30)) >= 0) {
+			return REDIS_30;
 		}
 
 		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_28)) >= 0) {

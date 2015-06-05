@@ -43,7 +43,6 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
@@ -416,38 +415,5 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
 
 		assertEquals("two", new String(zRangeByScore.iterator().next()));
-	}
-
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test
-	@IfProfileValue(name = "redisVersion", value = "2.9+")
-	public void zRangeByLexTest() {
-
-		connection.zAdd("myzset", 0, "a");
-		connection.zAdd("myzset", 0, "b");
-		connection.zAdd("myzset", 0, "c");
-		connection.zAdd("myzset", 0, "d");
-		connection.zAdd("myzset", 0, "e");
-		connection.zAdd("myzset", 0, "f");
-		connection.zAdd("myzset", 0, "g");
-
-		Set<String> values = connection.zRangeByLex("myzset", Range.range().lte("c"));
-
-		assertThat(values, hasItems("a", "b", "c"));
-		assertThat(values, not(hasItems("d", "e", "f", "g")));
-
-		values = connection.zRangeByLex("myzset", Range.range().lt("c"));
-		assertThat(values, hasItems("a", "b"));
-		assertThat(values, not(hasItem("c")));
-
-		values = connection.zRangeByLex("myzset", Range.range().gte("aaa").lt("g"));
-		assertThat(values, hasItems("b", "c", "d", "e", "f"));
-		assertThat(values, not(hasItems("a", "g")));
-
-		values = connection.zRangeByLex("myzset", Range.range().gte("e"));
-		assertThat(values, hasItems("e", "f", "g"));
-		assertThat(values, not(hasItems("a", "b", "c", "d")));
 	}
 }

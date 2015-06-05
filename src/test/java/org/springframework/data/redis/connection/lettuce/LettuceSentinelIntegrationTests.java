@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,51 +21,41 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.*;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.connection.*;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
-import org.springframework.test.annotation.IfProfileValue;
 
 /**
- * @author Christoph Strobl
- * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
-	
+
 	private static final String MASTER_NAME = "mymaster";
 	private static final RedisServer SENTINEL_0 = new RedisServer("127.0.0.1", 26379);
 	private static final RedisServer SENTINEL_1 = new RedisServer("127.0.0.1", 26380);
-	
+
 	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
 	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
-	
+
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
-			.master(MASTER_NAME)
-			.sentinel(SENTINEL_0)
-			.sentinel(SENTINEL_1);
+			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
 
 	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
 
-	private static LettuceConnectionFactory lettuceConnectionFactory;
+	@Before
+	public void setUp() {
 
-	@BeforeClass
-	public static void beforeClass(){
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG);
 		lettuceConnectionFactory.setShareNativeConnection(false);
 		lettuceConnectionFactory.afterPropertiesSet();
-		LettuceSentinelIntegrationTests.lettuceConnectionFactory = lettuceConnectionFactory;
-	}
 
-	@AfterClass
-	public static void afterClass(){
-		LettuceSentinelIntegrationTests.lettuceConnectionFactory.destroy();
-	}
-
-	@Before
-	public void setUp() {
 		connectionFactory = lettuceConnectionFactory;
 		super.setUp();
 	}
@@ -73,6 +63,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	@After
 	public void tearDown() {
 		super.tearDown();
+		((LettuceConnectionFactory) connectionFactory).destroy();
 	}
 
 	/**
@@ -83,9 +74,9 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
 		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(),is(MASTER_NAME));
+		assertThat(servers.get(0).getName(), is(MASTER_NAME));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-348
 	 */
@@ -93,10 +84,10 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
-		
+
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
 		assertThat(servers.size(), is(1));
-		
+
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
 		assertThat(slaves.size(), is(2));
 		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
