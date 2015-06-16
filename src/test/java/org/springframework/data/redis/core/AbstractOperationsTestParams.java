@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 - 2014 the original author or authors.
+ * Copyright 2013 - 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
@@ -115,6 +116,12 @@ abstract public class AbstractOperationsTestParams {
 		jackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplate.afterPropertiesSet();
 
+		GenericJackson2JsonRedisSerializer genericJackson2JsonSerializer = new GenericJackson2JsonRedisSerializer();
+		RedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
+		genericJackson2JsonPersonTemplate.setConnectionFactory(jedisConnectionFactory);
+		genericJackson2JsonPersonTemplate.setValueSerializer(genericJackson2JsonSerializer);
+		genericJackson2JsonPersonTemplate.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { //
 				{ stringTemplate, stringFactory, stringFactory }, //
 						{ longTemplate, stringFactory, longFactory }, //
@@ -124,7 +131,7 @@ abstract public class AbstractOperationsTestParams {
 						{ xstreamStringTemplate, stringFactory, stringFactory }, //
 						{ xstreamPersonTemplate, stringFactory, personFactory }, //
 						{ jsonPersonTemplate, stringFactory, personFactory }, //
-						{ jackson2JsonPersonTemplate, stringFactory, personFactory } //
-				});
+						{ jackson2JsonPersonTemplate, stringFactory, personFactory }, //
+						{ genericJackson2JsonPersonTemplate, stringFactory, personFactory } });
 	}
 }
