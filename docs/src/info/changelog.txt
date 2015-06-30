@@ -6,6 +6,14 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.5.1.RELEASE (2015-06-30)
+---------------------------------------------
+* DATAREDIS-410 - Release 1.5.1 (Fowler).
+* DATAREDIS-403 - Fix JavaDoc stylesheet.
+* DATAREDIS-402 - RedisCache should not expire known keys in case ttl of element is not set.
+* DATAREDIS-332 - @Transactional Using multiple connections.
+
+
 Changes in version 1.6.0.M1 (2015-06-02)
 ----------------------------------------
 * DATAREDIS-400 - Release 1.6 M1 (Gosling).
