@@ -6,6 +6,17 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.4.3.RELEASE (2015-07-01)
+---------------------------------------------
+* DATAREDIS-409 - Release 1.4.3 (Evans).
+* DATAREDIS-403 - Fix JavaDoc stylesheet.
+* DATAREDIS-383 - Improve JavaDoc of RedisCacheManager.
+* DATAREDIS-375 - A transactional RedisCacheManager decorates the cache with the TransactionAwareCacheDecorator twice.
+* DATAREDIS-369 - RedisCache zset leak.
+* DATAREDIS-332 - @Transactional Using multiple connections.
+* DATAREDIS-328 - RedisCacheManager should not instantiate caches in setCacheNames().
+
+
 Changes in version 1.5.1.RELEASE (2015-06-30)
 ---------------------------------------------
 * DATAREDIS-410 - Release 1.5.1 (Fowler).
