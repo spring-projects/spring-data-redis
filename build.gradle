@@ -31,7 +31,7 @@ if (project.hasProperty('platformVersion')) {
     apply plugin: 'spring-io'
 
     repositories {
-        maven { url "https://repo.spring.io/libs-release" }
+        maven { url "https://repo.spring.io/libs-snapshot" }
     }
 
     dependencies {
