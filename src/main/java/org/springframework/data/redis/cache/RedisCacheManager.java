@@ -34,7 +34,7 @@ import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -57,7 +57,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private final Log logger = LogFactory.getLog(RedisCacheManager.class);
 
 	@SuppressWarnings("rawtypes")//
-	private final RedisTemplate template;
+	private final RedisOperations redisOperations;
 
 	private boolean usePrefix = false;
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
@@ -73,23 +73,23 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	/**
 	 * Construct a {@link RedisCacheManager}.
 	 * 
-	 * @param template
+	 * @param redisOperations
 	 */
 	@SuppressWarnings("rawtypes")
-	public RedisCacheManager(RedisTemplate template) {
-		this(template, Collections.<String> emptyList());
+	public RedisCacheManager(RedisOperations redisOperations) {
+		this(redisOperations, Collections.<String> emptyList());
 	}
 
 	/**
 	 * Construct a static {@link RedisCacheManager}, managing caches for the specified cache names only.
 	 * 
-	 * @param template
+	 * @param redisOperations
 	 * @param cacheNames
 	 * @since 1.2
 	 */
 	@SuppressWarnings("rawtypes")
-	public RedisCacheManager(RedisTemplate template, Collection<String> cacheNames) {
-		this.template = template;
+	public RedisCacheManager(RedisOperations redisOperations, Collection<String> cacheNames) {
+		this.redisOperations = redisOperations;
 		setCacheNames(cacheNames);
 	}
 
@@ -168,7 +168,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	@Override
 	protected Collection<? extends Cache> loadCaches() {
 
-		Assert.notNull(this.template, "A redis template is required in order to interact with data store");
+		Assert.notNull(this.redisOperations, "A redis template is required in order to interact with data store");
 		return addConfiguredCachesIfNecessary(loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : Collections
 				.<Cache> emptyList());
 	}
@@ -214,7 +214,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	@SuppressWarnings("unchecked")
 	protected RedisCache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
-		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), template, expiration);
+		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), redisOperations, expiration);
 	}
 
 	protected long computeExpiration(String name) {
@@ -249,18 +249,18 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	@SuppressWarnings("unchecked")
 	protected Set<String> loadRemoteCacheKeys() {
-		return (Set<String>) template.execute(new RedisCallback<Set<String>>() {
+		return (Set<String>) redisOperations.execute(new RedisCallback<Set<String>>() {
 
 			@Override
 			public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
 
 				// we are using the ~keys postfix as defined in RedisCache#setName
-				Set<byte[]> keys = connection.keys(template.getKeySerializer().serialize("*~keys"));
+				Set<byte[]> keys = connection.keys(redisOperations.getKeySerializer().serialize("*~keys"));
 				Set<String> cacheKeys = new LinkedHashSet<String>();
 
 				if (!CollectionUtils.isEmpty(keys)) {
 					for (byte[] key : keys) {
-						cacheKeys.add(template.getKeySerializer().deserialize(key).toString().replace("~keys", ""));
+						cacheKeys.add(redisOperations.getKeySerializer().deserialize(key).toString().replace("~keys", ""));
 					}
 				}
 
@@ -270,8 +270,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected RedisTemplate getTemplate() {
-		return template;
+	protected RedisOperations getRedisOperations() {
+		return redisOperations;
 	}
 
 	protected RedisCachePrefix getCachePrefix() {
