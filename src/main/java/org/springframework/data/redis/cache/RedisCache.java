@@ -87,8 +87,8 @@ public class RedisCache implements Cache {
 	 */
 	@Override
 	public ValueWrapper get(Object key) {
-		return get(new RedisCacheKey(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
-				redisOperations.getKeySerializer()));
+		return get(RedisCacheKey.builder(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
+				redisOperations.getKeySerializer()).build());
 	}
 
 	/**
@@ -101,18 +101,19 @@ public class RedisCache implements Cache {
 	public RedisCacheElement get(final RedisCacheKey cacheKey) {
 
 		notNull(cacheKey, "CacheKey must not be null!");
-		return (RedisCacheElement) redisOperations.execute(new AbstractRedisCacheCallback<RedisCacheElement>(
+		final RedisCacheElement element = new RedisCacheElement(cacheKey, null);
+		byte[] bs = (byte[]) redisOperations.execute(new AbstractRedisCacheCallback<byte[]>(
 				new RedisCacheElement(cacheKey, null), cacheMetadata) {
 
 			@Override
-			public RedisCacheElement doInRedis(RedisCacheElement element, RedisConnection connection)
+			public byte[] doInRedis(RedisCacheElement element, RedisConnection connection)
 					throws DataAccessException {
 
-				byte[] bs = connection.get(element.getKeyBytes());
-				Object value = redisOperations.getValueSerializer() != null ? redisOperations.getValueSerializer().deserialize(bs) : bs;
-				return (bs == null ? null : new RedisCacheElement(element.getKey(), value));
+				return connection.get(element.getKeyBytes());
 			}
 		});
+		Object value = redisOperations.getValueSerializer() != null ? redisOperations.getValueSerializer().deserialize(bs) : bs;
+		return (bs == null ? null : new RedisCacheElement(element.getKey(), value));
 	}
 
 	/*
@@ -122,8 +123,8 @@ public class RedisCache implements Cache {
 	@Override
 	public void put(final Object key, final Object value) {
 
-		put(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
-				redisOperations.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+		put(new RedisCacheElement(RedisCacheKey.builder(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
+				redisOperations.getKeySerializer()).build(), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
@@ -146,8 +147,8 @@ public class RedisCache implements Cache {
 	 */
 	public ValueWrapper putIfAbsent(Object key, final Object value) {
 
-		return putIfAbsent(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix())
-				.withKeySerializer(redisOperations.getKeySerializer()), value).expireAfter(cacheMetadata.getDefaultExpiration()));
+		return putIfAbsent(new RedisCacheElement(RedisCacheKey.builder(key).usePrefix(cacheMetadata.getKeyPrefix())
+				.withKeySerializer(redisOperations.getKeySerializer()).build(), value).expireAfter(cacheMetadata.getDefaultExpiration()));
 	}
 
 	/**
@@ -169,8 +170,8 @@ public class RedisCache implements Cache {
 	 * @see org.springframework.cache.Cache#evict(java.lang.Object)
 	 */
 	public void evict(Object key) {
-		evict(new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
-				redisOperations.getKeySerializer()), null));
+		evict(new RedisCacheElement(RedisCacheKey.builder(key).usePrefix(cacheMetadata.getKeyPrefix()).withKeySerializer(
+				redisOperations.getKeySerializer()).build(), null));
 	}
 
 	/**
@@ -549,13 +550,13 @@ public class RedisCache implements Cache {
 	 */
 	static class RedisCachePutCallback extends AbstractRedisCacheCallback<Void> {
 
-		private final CacheValueAccessor valueAccessor;
+		private final byte[] valueBytes;
 
 		public RedisCachePutCallback(RedisCacheElement element, CacheValueAccessor valueAccessor,
 				RedisCacheMetadata metadata) {
 
 			super(element, metadata);
-			this.valueAccessor = valueAccessor;
+			this.valueBytes = valueAccessor.convertToBytesIfNecessary(element.get());
 		}
 
 		/*
@@ -567,7 +568,7 @@ public class RedisCache implements Cache {
 
 			connection.multi();
 
-			connection.set(element.getKeyBytes(), valueAccessor.convertToBytesIfNecessary(element.get()));
+			connection.set(element.getKeyBytes(), valueBytes);
 
 			processKeyExpiration(element, connection);
 			maintainKnownKeys(element, connection);
