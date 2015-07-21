@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -55,6 +56,7 @@ import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -101,18 +103,31 @@ public class JedisConnection extends AbstractRedisConnection {
 			JedisConverters.exceptionConverter());
 
 	static {
+
 		CLIENT_FIELD = ReflectionUtils.findField(BinaryJedis.class, "client", Client.class);
 		ReflectionUtils.makeAccessible(CLIENT_FIELD);
+
+		try {
+			Class<?> commandType = ClassUtils.isPresent("redis.clients.jedis.ProtocolCommand", null) ? ClassUtils.forName(
+					"redis.clients.jedis.ProtocolCommand", null) : ClassUtils.forName("redis.clients.jedis.Protocol$Command",
+					null);
+
 		SEND_COMMAND = ReflectionUtils.findMethod(Connection.class, "sendCommand", new Class[] { Command.class,
 				byte[][].class });
+		} catch (Exception e) {
+			throw new NoClassDefFoundError(
+					"Could not find required flavor of command required by 'redis.clients.jedis.Connection#sendCommand'.");
+		}
+
 		ReflectionUtils.makeAccessible(SEND_COMMAND);
+
 		GET_RESPONSE = ReflectionUtils.findMethod(Queable.class, "getResponse", Builder.class);
 		ReflectionUtils.makeAccessible(GET_RESPONSE);
 	}
 
 	private final Jedis jedis;
 	private final Client client;
-	private final Transaction transaction;
+	private Transaction transaction;
 	private final Pool<Jedis> pool;
 	/** flag indicating whether the connection needs to be dropped or not */
 	private boolean broken = false;
@@ -167,7 +182,6 @@ public class JedisConnection extends AbstractRedisConnection {
 		this.jedis = jedis;
 		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
-		transaction = new Transaction(client);
 
 		this.pool = pool;
 
@@ -726,6 +740,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			throw convertJedisAccessException(ex);
 		} finally {
 			txResults.clear();
+			transaction = null;
 		}
 	}
 
@@ -736,6 +751,10 @@ public class JedisConnection extends AbstractRedisConnection {
 						new LinkedList<FutureResult<Response<?>>>(txResults), JedisConverters.exceptionConverter())));
 				return null;
 			}
+
+			if (transaction == null) {
+				throw new InvalidDataAccessApiUsageException("No ongoing transaction. Did you forget to call multi?");
+			}
 			List<Object> results = transaction.exec();
 			return convertPipelineAndTxResults ? new TransactionResultConverter<Response<?>>(txResults,
 					JedisConverters.exceptionConverter()).convert(results) : results;
@@ -743,6 +762,7 @@ public class JedisConnection extends AbstractRedisConnection {
 			throw convertJedisAccessException(ex);
 		} finally {
 			txResults.clear();
+			transaction = null;
 		}
 	}
 
@@ -831,7 +851,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				pipeline.multi();
 				return;
 			}
-			jedis.multi();
+			this.transaction = jedis.multi();
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
