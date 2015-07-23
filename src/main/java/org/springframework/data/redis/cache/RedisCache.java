@@ -101,18 +101,17 @@ public class RedisCache implements Cache {
 	public RedisCacheElement get(final RedisCacheKey cacheKey) {
 
 		notNull(cacheKey, "CacheKey must not be null!");
-		return (RedisCacheElement) template.execute(new AbstractRedisCacheCallback<RedisCacheElement>(
-				new RedisCacheElement(cacheKey, null), cacheMetadata) {
+
+		byte[] bytes = (byte[]) template.execute(new AbstractRedisCacheCallback<byte[]>(new BinaryRedisCacheElement(
+				new RedisCacheElement(cacheKey, null), cacheValueAccessor), cacheMetadata) {
 
 			@Override
-			public RedisCacheElement doInRedis(RedisCacheElement element, RedisConnection connection)
-					throws DataAccessException {
-
-				byte[] bs = connection.get(element.getKeyBytes());
-				Object value = template.getValueSerializer() != null ? template.getValueSerializer().deserialize(bs) : bs;
-				return (bs == null ? null : new RedisCacheElement(element.getKey(), value));
+			public byte[] doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
+				return connection.get(element.getKeyBytes());
 			}
 		}, true);
+
+		return (bytes == null ? null : new RedisCacheElement(cacheKey, cacheValueAccessor.deserializeIfNecessary(bytes)));
 	}
 
 	/*
@@ -137,7 +136,9 @@ public class RedisCache implements Cache {
 	public void put(RedisCacheElement element) {
 
 		notNull(element, "Element must not be null!");
-		template.execute(new RedisCachePutCallback(element, cacheValueAccessor, cacheMetadata), true);
+
+		template.execute(
+				new RedisCachePutCallback(new BinaryRedisCacheElement(element, cacheValueAccessor), cacheMetadata), true);
 	}
 
 	/*
@@ -161,8 +162,12 @@ public class RedisCache implements Cache {
 	public ValueWrapper putIfAbsent(RedisCacheElement element) {
 
 		notNull(element, "Element must not be null!");
-		return toWrapper(template.execute(new RedisCachePutIfAbsentCallback(element, cacheValueAccessor, cacheMetadata),
-				true));
+
+		new RedisCachePutIfAbsentCallback(new BinaryRedisCacheElement(element, cacheValueAccessor), cacheMetadata);
+
+		return toWrapper(cacheValueAccessor.deserializeIfNecessary((byte[]) template.execute(
+				new RedisCachePutIfAbsentCallback(new BinaryRedisCacheElement(element, cacheValueAccessor), cacheMetadata),
+				true)));
 	}
 
 	/*
@@ -181,7 +186,8 @@ public class RedisCache implements Cache {
 	public void evict(final RedisCacheElement element) {
 
 		notNull(element, "Element must not be null!");
-		template.execute(new RedisCacheEvictCallback(element, cacheMetadata));
+		template.execute(new RedisCacheEvictCallback(new BinaryRedisCacheElement(element, cacheValueAccessor),
+				cacheMetadata), true);
 	}
 
 	/*
@@ -324,6 +330,10 @@ public class RedisCache implements Cache {
 
 		byte[] convertToBytesIfNecessary(Object value) {
 
+			if (value == null) {
+				return new byte[0];
+			}
+
 			if (valueSerializer == null && value instanceof byte[]) {
 				return (byte[]) value;
 			}
@@ -343,16 +353,62 @@ public class RedisCache implements Cache {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.6
+	 */
+	static class BinaryRedisCacheElement extends RedisCacheElement {
+
+		private byte[] keyBytes;
+		private byte[] valueBytes;
+		private RedisCacheElement element;
+
+		public BinaryRedisCacheElement(RedisCacheElement element, CacheValueAccessor accessor) {
+
+			super(element.getKey(), element.get());
+			this.element = element;
+			this.keyBytes = element.getKeyBytes();
+			this.valueBytes = accessor.convertToBytesIfNecessary(element.get());
+		}
+
+		@Override
+		public byte[] getKeyBytes() {
+			return keyBytes;
+		}
+
+		public long getTimeToLive() {
+			return element.getTimeToLive();
+		}
+
+		public boolean hasKeyPrefix() {
+			return element.hasKeyPrefix();
+		}
+
+		public boolean isEternal() {
+			return element.isEternal();
+		}
+
+		public RedisCacheElement expireAfter(long seconds) {
+			return element.expireAfter(seconds);
+		}
+
+		@Override
+		public byte[] get() {
+			return valueBytes;
+		}
+
+	}
+
+	/**
+	 * @author Christoph Strobl
 	 * @since 1.5
 	 * @param <T>
 	 */
 	static abstract class AbstractRedisCacheCallback<T> implements RedisCallback<T> {
 
 		private long WAIT_FOR_LOCK_TIMEOUT = 300;
-		private final RedisCacheElement element;
+		private final BinaryRedisCacheElement element;
 		private final RedisCacheMetadata cacheMetadata;
 
-		public AbstractRedisCacheCallback(RedisCacheElement element, RedisCacheMetadata metadata) {
+		public AbstractRedisCacheCallback(BinaryRedisCacheElement element, RedisCacheMetadata metadata) {
 			this.element = element;
 			this.cacheMetadata = metadata;
 		}
@@ -367,7 +423,7 @@ public class RedisCache implements Cache {
 			return doInRedis(element, connection);
 		}
 
-		public abstract T doInRedis(RedisCacheElement element, RedisConnection connection) throws DataAccessException;
+		public abstract T doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException;
 
 		protected void processKeyExpiration(RedisCacheElement element, RedisConnection connection) {
 			if (!element.isEternal()) {
@@ -527,7 +583,7 @@ public class RedisCache implements Cache {
 	 */
 	static class RedisCacheEvictCallback extends AbstractRedisCacheCallback<Void> {
 
-		public RedisCacheEvictCallback(RedisCacheElement element, RedisCacheMetadata metadata) {
+		public RedisCacheEvictCallback(BinaryRedisCacheElement element, RedisCacheMetadata metadata) {
 			super(element, metadata);
 		}
 
@@ -536,7 +592,7 @@ public class RedisCache implements Cache {
 		 * @see org.springframework.data.redis.cache.RedisCache.AbstractRedisCacheCallback#doInRedis(org.springframework.data.redis.cache.RedisCacheElement, org.springframework.data.redis.connection.RedisConnection)
 		 */
 		@Override
-		public Void doInRedis(RedisCacheElement element, RedisConnection connection) throws DataAccessException {
+		public Void doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
 
 			connection.del(element.getKeyBytes());
 			cleanKnownKeys(element, connection);
@@ -550,13 +606,9 @@ public class RedisCache implements Cache {
 	 */
 	static class RedisCachePutCallback extends AbstractRedisCacheCallback<Void> {
 
-		private final CacheValueAccessor valueAccessor;
-
-		public RedisCachePutCallback(RedisCacheElement element, CacheValueAccessor valueAccessor,
-				RedisCacheMetadata metadata) {
+		public RedisCachePutCallback(BinaryRedisCacheElement element, RedisCacheMetadata metadata) {
 
 			super(element, metadata);
-			this.valueAccessor = valueAccessor;
 		}
 
 		/*
@@ -564,11 +616,11 @@ public class RedisCache implements Cache {
 		 * @see org.springframework.data.redis.cache.RedisCache.AbstractRedisPutCallback#doInRedis(org.springframework.data.redis.cache.RedisCache.RedisCacheElement, org.springframework.data.redis.connection.RedisConnection)
 		 */
 		@Override
-		public Void doInRedis(RedisCacheElement element, RedisConnection connection) throws DataAccessException {
+		public Void doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
 
 			connection.multi();
 
-			connection.set(element.getKeyBytes(), valueAccessor.convertToBytesIfNecessary(element.get()));
+			connection.set(element.getKeyBytes(), element.get());
 
 			processKeyExpiration(element, connection);
 			maintainKnownKeys(element, connection);
@@ -582,15 +634,10 @@ public class RedisCache implements Cache {
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
-	static class RedisCachePutIfAbsentCallback extends AbstractRedisCacheCallback<Object> {
+	static class RedisCachePutIfAbsentCallback extends AbstractRedisCacheCallback<byte[]> {
 
-		private final CacheValueAccessor valueAccessor;
-
-		public RedisCachePutIfAbsentCallback(RedisCacheElement element, CacheValueAccessor valueAccessor,
-				RedisCacheMetadata metadata) {
-
+		public RedisCachePutIfAbsentCallback(BinaryRedisCacheElement element, RedisCacheMetadata metadata) {
 			super(element, metadata);
-			this.valueAccessor = valueAccessor;
 		}
 
 		/*
@@ -598,10 +645,10 @@ public class RedisCache implements Cache {
 		 * @see org.springframework.data.redis.cache.RedisCache.AbstractRedisPutCallback#doInRedis(org.springframework.data.redis.cache.RedisCache.RedisCacheElement, org.springframework.data.redis.connection.RedisConnection)
 		 */
 		@Override
-		public Object doInRedis(RedisCacheElement element, RedisConnection connection) throws DataAccessException {
+		public byte[] doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
 
 			waitForLock(connection);
-			Object resultValue = put(element, connection);
+			byte[] resultValue = put(element, connection);
 
 			if (nullSafeEquals(element.get(), resultValue)) {
 				processKeyExpiration(element, connection);
@@ -611,11 +658,10 @@ public class RedisCache implements Cache {
 			return resultValue;
 		}
 
-		private Object put(RedisCacheElement element, RedisConnection connection) {
+		private byte[] put(BinaryRedisCacheElement element, RedisConnection connection) {
 
-			boolean valueWasSet = connection.setNX(element.getKeyBytes(),
-					valueAccessor.convertToBytesIfNecessary(element.get()));
-			return valueWasSet ? null : valueAccessor.deserializeIfNecessary(connection.get(element.getKeyBytes()));
+			boolean valueWasSet = connection.setNX(element.getKeyBytes(), element.get());
+			return valueWasSet ? null : connection.get(element.getKeyBytes());
 		}
 	}
 
