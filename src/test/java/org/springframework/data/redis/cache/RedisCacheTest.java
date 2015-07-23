@@ -250,6 +250,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 	/**
 	 * @see DATAREDIS-344
+	 * @see DATAREDIS-416
 	 */
 	@Test
 	public void putIfAbsentShouldSetValueOnlyIfNotPresent() {
@@ -262,16 +263,15 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		template.delete(key);
 
 		Object value = getValue();
+
+		assertThat(redisCache.putIfAbsent(key, value), nullValue());
+
 		ValueWrapper wrapper = redisCache.putIfAbsent(key, value);
 
-		assertThat(wrapper.get(), sameInstance(value));
-
-		ValueWrapper wrapper2 = redisCache.putIfAbsent(key, value);
-
 		if (!(value instanceof Number)) {
-			assertThat(wrapper2.get(), not(sameInstance(value)));
+			assertThat(wrapper.get(), not(sameInstance(value)));
 		}
 
-		assertThat(wrapper2.get(), equalTo(value));
+		assertThat(wrapper.get(), equalTo(value));
 	}
 }
