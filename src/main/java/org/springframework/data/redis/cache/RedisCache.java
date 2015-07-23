@@ -614,7 +614,7 @@ public class RedisCache implements Cache {
 
 			boolean valueWasSet = connection.setNX(element.getKeyBytes(),
 					valueAccessor.convertToBytesIfNecessary(element.get()));
-			return valueWasSet ? element.get() : valueAccessor.deserializeIfNecessary(connection.get(element.getKeyBytes()));
+			return valueWasSet ? null : valueAccessor.deserializeIfNecessary(connection.get(element.getKeyBytes()));
 		}
 	}
 
