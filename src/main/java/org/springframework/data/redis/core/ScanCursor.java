@@ -164,7 +164,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
-		if (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
+		while (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
 			scan(cursorId);
 		}
 
