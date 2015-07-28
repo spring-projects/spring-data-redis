@@ -34,6 +34,15 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	RedisConnection getConnection();
 
 	/**
+	 * Provides a suitable connection for interacting with Redis Cluster.
+	 * 
+	 * @return
+	 * @throws
+	 * @since 1.7
+	 */
+	RedisClusterConnection getClusterConnection();
+
+	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link RedisConnection#closePipeline()} and {RedisConnection#exec()} will be of the type returned by the underlying
 	 * driver This method is mostly for backwards compatibility with 1.0. It is generally always a good idea to allow
@@ -45,6 +54,7 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
 	/**
 	 * Provides a suitable connection for interacting with Redis Sentinel.
+	 * 
 	 * @return connection for interacting with Redis Sentinel.
 	 * @since 1.4
 	 */

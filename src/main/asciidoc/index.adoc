@@ -33,6 +33,7 @@ include::introduction/getting-started.adoc[]
 :leveloffset: +1
 include::reference/introduction.adoc[]
 include::reference/redis.adoc[]
+include::reference/redis-cluster.adoc[]
 :leveloffset: -1
 
 [[appendixes]]

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -81,6 +82,15 @@ public class SrpConnectionFactory implements InitializingBean, DisposableBean, R
 				: new SrpConnection(hostName, port, trackedConnections);
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getClusterConnection()
+	 */
+	@Override
+	public RedisClusterConnection getClusterConnection() {
+		throw new UnsupportedOperationException("Srp does not support Redis Cluster.");
 	}
 
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {

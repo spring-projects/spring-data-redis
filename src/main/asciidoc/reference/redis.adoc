@@ -427,8 +427,4 @@ NOTE: By default `RedisCacheManager` will not participate in any ongoing transac
 
 NOTE: By default `RedisCacheManager` does not prefix keys for cache regions, which can lead to an unexpected growth of a `ZSET` used to maintain known keys. It's highly recommended to enable the usage of prefixes in order to avoid this unexpected growth and potential key clashes using more than one cache region.
 
-[[redis:future]]
-== Roadmap ahead
-
-Spring Data Redis project is in its early stages. We are interested in feedback, knowing what your use cases are, what are the common patters you encounter so that the Redis module better serves your needs. Do contact us using the channels <<null,mentioned>> above, we are interested in hearing from you!
 

@@ -38,6 +38,7 @@ import org.springframework.data.redis.connection.AbstractRedisConnection;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.FutureResult;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPipelineException;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.ReturnType;
@@ -2621,6 +2622,24 @@ public class SrpConnection extends AbstractRedisConnection {
 	@Override
 	public Set<byte[]> zRangeByLex(byte[] key, Range range, Limit limit) {
 		throw new UnsupportedOperationException("ZRANGEBYLEX is no supported for srp.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
+	 */
+	@Override
+	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
+	 */
+	@Override
+	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+		throw new UnsupportedOperationException();
 	}
 
 }

@@ -881,5 +881,15 @@ public class RedisConnectionUnitTests {
 		public Set<Tuple> zRevRangeByScoreWithScores(byte[] key, Range range) {
 			return delegate.zRevRangeByScoreWithScores(key, range);
 		}
+
+		@Override
+		public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+			delegate.migrate(key, target, dbIndex, option);
+		}
+
+		@Override
+		public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+			delegate.migrate(key, target, dbIndex, option, timeout);
+		}
 	}
 }

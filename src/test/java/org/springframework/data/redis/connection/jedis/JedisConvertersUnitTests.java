@@ -115,7 +115,6 @@ public class JedisConvertersUnitTests {
 	}
 
 	/**
-	 * @see DATAREDIS-378
 	 */
 	@Test
 	public void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryIsNull() {

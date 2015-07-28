@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Internal base class used by various RedisTemplate XXXOperations implementations.
@@ -286,6 +288,23 @@ abstract class AbstractOperations<K, V> {
 			return (K) value;
 		}
 		return (K) keySerializer().deserialize(value);
+	}
+
+	/**
+	 * @param keys
+	 * @return
+	 * @since 1.7
+	 */
+	Set<K> deserializeKeys(Set<byte[]> keys) {
+
+		if (CollectionUtils.isEmpty(keys)) {
+			return Collections.emptySet();
+		}
+		Set<K> result = new LinkedHashSet<K>(keys.size());
+		for (byte[] key : keys) {
+			result.add(deserializeKey(key));
+		}
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")

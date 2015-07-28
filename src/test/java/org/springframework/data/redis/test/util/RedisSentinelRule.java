@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.test.util;
 
-import org.junit.internal.AssumptionViolatedException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -38,6 +41,8 @@ public class RedisSentinelRule implements TestRule {
 
 	private RedisSentinelConfiguration sentinelConfig;
 	private SentinelsAvailable requiredSentinels;
+
+	private Map<Object, Boolean> cache = new HashMap<Object, Boolean>();
 
 	protected RedisSentinelRule(RedisSentinelConfiguration config) {
 		this.sentinelConfig = config;
@@ -128,7 +133,12 @@ public class RedisSentinelRule implements TestRule {
 
 		int failed = 0;
 		for (RedisNode node : sentinelConfig.getSentinels()) {
-			if (!isAvailable(node)) {
+
+			if (cache.isEmpty() || !cache.containsKey(node.asString())) {
+				cache.put(node.asString(), isAvailable(node));
+			}
+
+			if (!cache.get(node.asString())) {
 				failed++;
 			}
 		}
@@ -159,7 +169,6 @@ public class RedisSentinelRule implements TestRule {
 		try {
 
 			jedis = new Jedis(node.getHost(), node.getPort());
-			jedis.connect();
 			jedis.ping();
 
 			return true;
@@ -173,7 +182,7 @@ public class RedisSentinelRule implements TestRule {
 					jedis.disconnect();
 					if (jedis.getClient().getSocket().isConnected()) {
 						jedis.getClient().getSocket().close();
-						Thread.sleep(100);
+						Thread.sleep(5);
 					}
 
 					jedis.close();

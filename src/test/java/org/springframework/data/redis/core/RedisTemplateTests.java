@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.core.IsNot;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -42,6 +43,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
@@ -68,17 +70,19 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @RunWith(Parameterized.class)
 public class RedisTemplateTests<K, V> {
 
-	@Autowired private RedisTemplate<K, V> redisTemplate;
+	@Autowired protected RedisTemplate<K, V> redisTemplate;
 
-	private ObjectFactory<K> keyFactory;
+	protected ObjectFactory<K> keyFactory;
 
-	private ObjectFactory<V> valueFactory;
+	protected ObjectFactory<V> valueFactory;
 
 	public RedisTemplateTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
+
+		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@After
@@ -89,6 +93,11 @@ public class RedisTemplateTests<K, V> {
 				return null;
 			}
 		});
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Parameters
@@ -445,16 +454,16 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testExpireMillisNotSupported() throws Exception {
+
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof JredisConnectionFactory);
+
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
+
 		assumeTrue(key1 instanceof String && value1 instanceof String);
-		// JRedis does not support pExpire
-		JredisConnectionFactory factory = new JredisConnectionFactory();
-		factory.setHostName(SettingsUtils.getHost());
-		factory.setPort(SettingsUtils.getPort());
-		factory.afterPropertiesSet();
-		final StringRedisTemplate template2 = new StringRedisTemplate(factory);
+
+		final StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
 		template2.boundValueOps((String) key1).set((String) value1);
 		template2.expire((String) key1, 10, TimeUnit.MILLISECONDS);
 		Thread.sleep(15);
@@ -489,15 +498,15 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testGetExpireMillisNotSupported() {
+
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory);
+
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
+
 		assumeTrue(key1 instanceof String && value1 instanceof String);
-		// Jedis does not support pTtl
-		JedisConnectionFactory factory = new JedisConnectionFactory();
-		factory.setHostName(SettingsUtils.getHost());
-		factory.setPort(SettingsUtils.getPort());
-		factory.afterPropertiesSet();
-		final StringRedisTemplate template2 = new StringRedisTemplate(factory);
+
+		final StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
 		template2.boundValueOps((String) key1).set((String) value1);
 		template2.expire((String) key1, 5, TimeUnit.SECONDS);
 		long expire = template2.getExpire((String) key1, TimeUnit.MILLISECONDS);
@@ -520,16 +529,16 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testExpireAtMillisNotSupported() {
+
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory);
+
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
+
 		assumeTrue(key1 instanceof String && value1 instanceof String);
-		// Jedis does not support pExpireAt
-		JedisConnectionFactory factory = new JedisConnectionFactory();
-		factory.setHostName(SettingsUtils.getHost());
-		factory.setPort(SettingsUtils.getPort());
-		factory.afterPropertiesSet();
-		final StringRedisTemplate template2 = new StringRedisTemplate(factory);
+
+		final StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
 		template2.boundValueOps((String) key1).set((String) value1);
 		template2.expireAt((String) key1, new Date(System.currentTimeMillis() + 5l));
 		// Just ensure this works as expected, pExpireAt just adds some precision over expireAt

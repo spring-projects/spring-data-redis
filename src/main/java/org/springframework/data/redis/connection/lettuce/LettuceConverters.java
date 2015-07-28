@@ -30,8 +30,13 @@ import java.util.Set;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisClusterNode.Flag;
+import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
+import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
@@ -52,6 +57,8 @@ import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.ScoredValue;
 import com.lambdaworks.redis.ScriptOutputType;
 import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.cluster.models.partitions.Partitions;
+import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
 
 /**
@@ -78,6 +85,8 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<List<byte[]>, Map<byte[], byte[]>> BYTES_LIST_TO_MAP;
 	private static final Converter<List<byte[]>, List<Tuple>> BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
+	private static final Converter<Partitions, List<RedisClusterNode>> PARTITIONS_TO_CLUSTER_NODES;
+	private static Converter<com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode, RedisClusterNode> CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -197,6 +206,74 @@ abstract public class LettuceConverters extends Converters {
 				}
 				return tuples;
 			}
+		};
+
+		PARTITIONS_TO_CLUSTER_NODES = new Converter<Partitions, List<RedisClusterNode>>() {
+
+			@Override
+			public List<RedisClusterNode> convert(Partitions source) {
+
+				if (source == null) {
+					return Collections.emptyList();
+				}
+				List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>();
+				for (com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode node : source.getPartitions()) {
+					nodes.add(CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(node));
+				}
+
+				return nodes;
+			};
+
+		};
+
+		CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER = new Converter<com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode, RedisClusterNode>() {
+
+			@Override
+			public RedisClusterNode convert(com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode source) {
+
+				Set<Flag> flags = parseFlags(source.getFlags());
+
+				return RedisClusterNode.newRedisClusterNode().listeningAt(source.getUri().getHost(), source.getUri().getPort())
+						.withId(source.getNodeId()).promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE)
+						.serving(new SlotRange(source.getSlots())).withFlags(flags)
+						.linkState(source.isConnected() ? LinkState.CONNECTED : LinkState.DISCONNECTED)
+						.slaveOf(source.getSlaveOf()).build();
+			}
+
+			private Set<Flag> parseFlags(Set<NodeFlag> source) {
+
+				Set<Flag> flags = new LinkedHashSet<Flag>(source != null ? source.size() : 8, 1);
+				for (NodeFlag flag : source) {
+					switch (flag) {
+						case NOFLAGS:
+							flags.add(Flag.NOFLAGS);
+							break;
+						case EVENTUAL_FAIL:
+							flags.add(Flag.PFAIL);
+							break;
+						case FAIL:
+							flags.add(Flag.FAIL);
+							break;
+						case HANDSHAKE:
+							flags.add(Flag.HANDSHAKE);
+							break;
+						case MASTER:
+							flags.add(Flag.MASTER);
+							break;
+						case MYSELF:
+							flags.add(Flag.MYSELF);
+							break;
+						case NOADDR:
+							flags.add(Flag.NOADDR);
+							break;
+						case SLAVE:
+							flags.add(Flag.SLAVE);
+							break;
+					}
+				}
+				return flags;
+			}
+
 		};
 
 		PLUS_BYTES = toBytes("+");
@@ -521,6 +598,20 @@ abstract public class LettuceConverters extends Converters {
 		buffer.put(prefix);
 		buffer.put(value);
 		return toString(buffer.array());
+	}
+
+	public static List<RedisClusterNode> partitionsToClusterNodes(Partitions partitions) {
+		return PARTITIONS_TO_CLUSTER_NODES.convert(partitions);
+	}
+
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.7
+	 */
+	public static RedisClusterNode toRedisClusterNode(
+			com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode source) {
+		return CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(source);
 	}
 
 }

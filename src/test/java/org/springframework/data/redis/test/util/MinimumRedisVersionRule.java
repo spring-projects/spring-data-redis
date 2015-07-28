@@ -17,7 +17,7 @@ package org.springframework.data.redis.test.util;
 
 import java.io.IOException;
 
-import org.junit.internal.AssumptionViolatedException;
+import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -50,36 +50,36 @@ public class MinimumRedisVersionRule implements TestRule {
 
 	private static synchronized Version readServerVersion() {
 
-		Jedis jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort());
-
 		Version version = Version.UNKNOWN;
 
+		Jedis jedis = null;
 		try {
-
-			jedis.connect();
+			jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort());
 			String info = jedis.info();
 			String versionString = (String) JedisConverters.stringToProps().convert(info).get("redis_version");
 
 			version = RedisVersionUtils.parseVersion(versionString);
 		} finally {
-			try {
+			if (jedis != null) {
+				try {
 
-				jedis.disconnect();
-				if (jedis.getClient().getSocket().isConnected()) {
-					// force socket to be closed
-					jedis.getClient().getSocket().close();
-					try {
-						// need to wait a bit
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						// just ignore it
+					jedis.disconnect();
+					if (jedis.getClient().getSocket().isConnected()) {
+						// force socket to be closed
+						jedis.getClient().getSocket().close();
+						try {
+							// need to wait a bit
+							Thread.sleep(5);
+						} catch (InterruptedException e) {
+							Thread.interrupted();
+						}
 					}
-				}
 
-			} catch (IOException e1) {
-				// ignore as well
+				} catch (IOException e1) {
+					// ignore as well
+				}
+				jedis.close();
 			}
-			jedis.close();
 		}
 
 		return version;

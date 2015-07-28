@@ -3538,4 +3538,41 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
+	 */
+	@Override
+	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
+	 */
+	@Override
+	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+
+		final int timeoutToUse = timeout <= Integer.MAX_VALUE ? (int) timeout : Integer.MAX_VALUE;
+
+		try {
+			if (isPipelined()) {
+
+				pipeline(new JedisResult(pipeline.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key,
+						dbIndex, timeoutToUse)));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(),
+						key, dbIndex, timeoutToUse)));
+				return;
+			}
+			jedis.migrate(JedisConverters.toBytes(target.getHost()), target.getPort(), key, dbIndex, timeoutToUse);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+
+	}
+
 }

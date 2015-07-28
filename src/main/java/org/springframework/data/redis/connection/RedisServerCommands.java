@@ -34,6 +34,13 @@ public interface RedisServerCommands {
 	}
 
 	/**
+	 * @since 1.7
+	 */
+	public enum MigrateOption {
+		COPY, REPLACE
+	}
+
+	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
 	 * <p>
 	 * See http://redis.io/commands/bgrewriteaof
@@ -229,4 +236,23 @@ public interface RedisServerCommands {
 	 * @since 1.3
 	 */
 	void slaveOfNoOne();
+
+	/**
+	 * @param key must not be {@literal null}.
+	 * @param target must not be {@literal null}.
+	 * @param dbIndex
+	 * @param option can be {@literal null}. Defaulted to {@link MigrateOption#COPY}.
+	 * @since 1.7
+	 */
+	void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option);
+
+	/**
+	 * @param key must not be {@literal null}.
+	 * @param target must not be {@literal null}.
+	 * @param dbIndex
+	 * @param option can be {@literal null}. Defaulted to {@link MigrateOption#COPY}.
+	 * @param timeout
+	 * @since 1.7
+	 */
+	void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout);
 }
