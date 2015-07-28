@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,6 +282,14 @@ public interface RedisOperations<K, V> {
 	 * @return hash operations bound to the given key.
 	 */
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
+
+	/**
+	 * Returns the cluster specific operations interface.
+	 * 
+	 * @return never {@literal null}.
+	 * @since 1.7
+	 */
+	ClusterOperations<K, V> opsForCluster();
 
 	List<V> sort(SortQuery<K> query);
 

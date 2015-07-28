@@ -1018,6 +1018,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForCluster()
+	 */
+	public ClusterOperations<K, V> opsForCluster() {
+		return new DefaultClusterOperations<K, V>(this);
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.core.RedisOperations#killClient(java.lang.Object)
 	 */
 	@Override

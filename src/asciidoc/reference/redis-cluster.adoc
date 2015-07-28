@@ -1,0 +1,136 @@
+[[cluster]]
+= Redis Cluster
+
+Working with http://redis.io/topics/cluster-spec[Redis Cluster] requires a Redis Server version 3.0+ and provides a very own set of features and capabilities. Please refer to the http://redis.io/topics/cluster-tutorial[Cluster Tutorial] for more information.
+
+TIP: Redis Cluster is only supported by <<redis:connectors:jedis,jedis>> and <<redis:connectors:lettuce,lettuce>>.
+
+== Enabling Redis Cluster
+
+Cluster support is based on the very same building blocks as non clustered communication. `RedisClusterConnection` and extension to `RedisConnection` handles the communication with the Redis Cluster and translates errors into the Spring DAO exception hierarchy.
+`RedisClusterConnection` 's are created via the `RedisConnectionFactory` which has to be set up with the according `RedisClusterConfiguration`.
+
+.Sample RedisConnectionFactory Configuration for Redis Cluster
+====
+[source,java]
+----
+@Configuration
+public class AppConfig {
+
+    /*
+     * spring.redis.cluster.nodes[0] = 127.0.0.1:7379
+     * spring.redis.cluster.nodes[1] = 127.0.0.1:7380
+     * ...
+     */
+    @Value("${spring.redis.cluster.nodes}")
+    private Collection<String> initialClusterNodes;
+
+    public @Bean RedisConnectionFactory connectionFactory() {
+
+        return new JedisConnectionFactory(
+            new RedisClusterConfiguration(initialClusterNodes));
+    }
+}
+----
+====
+
+NOTE: The initial configuration points driver libraries to an initial set of cluster nodes. Changes resulting from live cluster reconfiguration will only be kept in the native driver and not be written back to the configuration. 
+
+== Working With Redis Cluster Connection
+
+As mentioned above Redis Cluster behaves different from single node Redis or even a Sentinel monitored master slave environment. This is reasoned by the automatic sharding that maps a key to one of 16384 slots which are distributed across the nodes. Therefore commands that involve more than one key must assert that all keys map to the exact same slot in order to avoid cross slot execution errors.
+Further on, hence a single cluster node, only servers a dedicated set of keys, commands issued against one particular server only return results for those keys served by the server. As a very simple example take the `KEYS` command. When issued to a server in cluster environment it only returns the keys served by the node the request is sent to and not necessarily all keys within the cluster. So to get all keys in cluster environment it is necessary to read the keys from at least all known master nodes.
+
+While redirects for to a specific keys to the corresponding slot serving node are handled by the driver libraries, higher level functions like collecting information across nodes, or sending commands to all nodes in the cluster that are covered by `RedisClusterConnection`. Picking up the keys example from just before, this means, that the `keys(pattern)` method picks up every master node in cluster and simultaneously executes the `KEYS` command on every single one, while picking up the results and returning the cumulated set of keys. To just request the keys of a single node `RedisClusterConnection` provides overloads for those (like `keys(node, pattern)` ). 
+
+.Sample of Running Commands Across the Cluster
+====
+[source,text]
+----
+redis-cli@127.0.0.1:7379 > cluster nodes
+
+6b38bb... 127.0.0.1:7379 master - 0 0 25 connected 0-5460                      <1>
+7bb78c... 127.0.0.1:7380 master - 0 1449730618304 2 connected 5461-10922       <2>
+164888... 127.0.0.1:7381 master - 0 1449730618304 3 connected 10923-16383      <3>
+b8b5ee... 127.0.0.1:7382 slave 6b38bb... 0 1449730618304 25 connected          <4>
+----
+
+[source,java]
+----
+RedisClusterConnection connection = connectionFactory.getClusterConnnection();
+
+connection.set("foo", value);                                                  <5>
+connection.set("bar", value);                                                  <6>
+
+connection.keys("*");                                                          <7>
+
+connection.keys(NODE_7379, "*");                                               <8>
+connection.keys(NODE_7380, "*");                                               <9>
+connection.keys(NODE_7381, "*");                                               <10>
+connection.keys(NODE_7382, "*");                                               <11>
+----
+<1> Master node serving slots 0 to 5460 replicated to slave at 7382
+<2> Master node serving slots 5461 to 10922
+<3> Master node serving slots 10923 to 16383
+<4> Slave node holding replicates of master at 7379
+<5> Request routed to node at 7381 serving slot 12182
+<6> Request routed to node at 7379 serving slot 5061
+<7> Request routed to nodes at 7379, 7380, 7381 -> [foo, bar]
+<8> Request routed to node at 7379 -> [bar]
+<9> Request routed to node at 7380 -> []
+<10> Request routed to node at 7381 -> [foo]
+<11> Request routed to node at 7382 -> [bar]
+====
+
+Cross slot requests such as `MGET` are automatically served by the native driver library when all keys map to the same slot. However once this is not the case `RedisClusterConnection` executes multiple parallel `GET` commands against the slot serving nodes and again returns a cumulated result. Obviously this is less performing than the single slot execution and therefore should be used with care. In doubt please consider pinning keys to the same slot by providing a prefix in curly brackets like `{my-prefix}.foo` and `{my-prefix}.bar` which will both map to the same slot number.
+
+.Sample of Cross Slot Request Handling
+====
+[source,text]
+----
+redis-cli@127.0.0.1:7379 > cluster nodes
+
+6b38bb... 127.0.0.1:7379 master - 0 0 25 connected 0-5460                      <1>
+7bb...
+----
+
+[source,java]
+----
+RedisClusterConnection connection = connectionFactory.getClusterConnnection();
+
+connection.set("foo", value);         // slot: 12182
+connection.set("{foo}.bar", value);   // slot: 12182
+connection.set("bar", value);         // slot:  5461
+
+connection.mGet("foo", "{foo}.bar");                                           <2>
+
+connection.mGet("foo", "bar");                                                 <3>
+----
+<1> Same Configuration as in the sample before.
+<2> Keys map to same slot -> 127.0.0.1:7381 MGET foo {foo}.bar
+<3> Keys map to different slots and get split up into single slot ones routed to the according nodes +
+ -> 127.0.0.1:7379 GET bar +
+ -> 127.0.0.1:7381 GET foo
+====
+
+TIP: The above provides simple examples to demonstrate the general strategy followed by Spring Data Redis. Be aware that some operations might require loading huge amounts of data into memory in order to compute the desired command. Additionally not all cross slot requests can safely be ported to multiple single slot requests and will error if misused (eg. `PFCOUNT` ).
+
+== Working With RedisTemplate and ClusterOperations
+
+Please refer to the section <<redis:template>> to read about general purpose, configuration and usage of `RedisTemplate`.
+
+WARNING: Please be careful when setting up `RedisTemplate#keySerializer` using any of the Json `RedisSerializers` as changing json structure has immediate influence on hash slot calculation.
+
+`RedisTemplate` provides access to cluster specific operations via the `ClusterOperations` interface that can be obtained via `RedisTemplate.opsForCluster()`. This allows to execute commands explicitly on a single node within the cluster while retaining de-/serialization features configured for the template and provides administrative commands such as `CLUSTER MEET` or more high level operations for eg. resharding.
+
+
+.Accessing RedisClusterConnection via RedisTemplate
+====
+[source,text]
+----
+ClusterOperations clusterOps = redisTemplate.opsForCluster();
+clusterOps.shutdown(NODE_7379);                                              <1>
+----
+<1> Shut down node at 7379 and cross fingers there is a slave in place that can take over.
+====
+

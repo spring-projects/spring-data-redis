@@ -52,30 +52,34 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 
 		Version version = fallbackVersion;
 
-		Jedis jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort(), 100);
+		Jedis jedis = null;
 		try {
 
-			jedis.connect();
+			jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort(), 100);
+			// jedis.connect();
 			String info = jedis.info();
 			String versionString = (String) JedisConverters.stringToProps().convert(info).get("redis_version");
 
 			version = RedisVersionUtils.parseVersion(versionString);
 		} finally {
 
-			try {
-				// force socket to be closed
-				jedis.getClient().quit();
-				jedis.getClient().getSocket().close();
+			if (jedis != null) {
 				try {
-					// need to wait a bit
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					// just ignore it
+					// force socket to be closed
+					jedis.getClient().quit();
+					jedis.getClient().getSocket().close();
+					try {
+						// need to wait a bit
+						Thread.sleep(5);
+					} catch (InterruptedException e) {
+						// just ignore it
+						Thread.interrupted();
+					}
+				} catch (IOException e1) {
+					// ignore as well
 				}
-			} catch (IOException e1) {
-				// ignore as well
+				jedis.close();
 			}
-			jedis.close();
 
 		}
 		return version;

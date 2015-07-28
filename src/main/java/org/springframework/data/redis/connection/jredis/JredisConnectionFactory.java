@@ -26,6 +26,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.Pool;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
@@ -105,6 +106,15 @@ public class JredisConnectionFactory implements InitializingBean, DisposableBean
 			connection = new JredisConnection(new JRedisClient(connectionSpec), null);
 		}
 		return postProcessConnection(connection);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getClusterConnection()
+	 */
+	@Override
+	public RedisClusterConnection getClusterConnection() {
+		throw new UnsupportedOperationException("Jredis does not support Redis Cluster.");
 	}
 
 	/**

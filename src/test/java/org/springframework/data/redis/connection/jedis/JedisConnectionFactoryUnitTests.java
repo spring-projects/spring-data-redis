@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,16 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.mockito.Matchers;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
@@ -32,6 +38,9 @@ public class JedisConnectionFactoryUnitTests {
 
 	private static final RedisSentinelConfiguration SINGLE_SENTINEL_CONFIG = new RedisSentinelConfiguration().master(
 			"mymaster").sentinel("127.0.0.1", 26379);
+
+	private static final RedisClusterConfiguration CLUSTER_CONFIG = new RedisClusterConfiguration().clusterNode(
+			"127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
 
 	/**
 	 * @see DATAREDIS-324
@@ -52,11 +61,41 @@ public class JedisConnectionFactoryUnitTests {
 	@Test
 	public void shouldInitJedisPoolWhenNoSentinelConfigPresent() {
 
-		connectionFactory = initSpyedConnectionFactory(null, new JedisPoolConfig());
+		connectionFactory = initSpyedConnectionFactory((RedisSentinelConfiguration) null, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
 
 		verify(connectionFactory, times(1)).createRedisPool();
 		verify(connectionFactory, never()).createRedisSentinelPool(Matchers.any(RedisSentinelConfiguration.class));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void shouldInitConnectionCorrectlyWhenClusterConfigPresent() {
+
+		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
+		connectionFactory.afterPropertiesSet();
+
+		verify(connectionFactory, times(1)).createCluster(Matchers.eq(CLUSTER_CONFIG),
+				Matchers.any(GenericObjectPoolConfig.class));
+		verify(connectionFactory, never()).createRedisPool();
+	}
+
+	/**
+	 * @throws IOException
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void shouldClostClusterCorrectlyOnFactoryDestruction() throws IOException {
+
+		JedisCluster clusterMock = mock(JedisCluster.class);
+		JedisConnectionFactory factory = new JedisConnectionFactory();
+		ReflectionTestUtils.setField(factory, "cluster", clusterMock);
+
+		factory.destroy();
+
+		verify(clusterMock, times(1)).close();
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
@@ -65,6 +104,16 @@ public class JedisConnectionFactoryUnitTests {
 		// we have to use a spy here as jedis would start connecting to redis sentinels when the pool is created.
 		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(sentinelConfig, poolConfig));
 		doReturn(null).when(factorySpy).createRedisSentinelPool(Matchers.any(RedisSentinelConfiguration.class));
+		doReturn(null).when(factorySpy).createRedisPool();
+		return factorySpy;
+	}
+
+	private JedisConnectionFactory initSpyedConnectionFactory(RedisClusterConfiguration clusterConfig,
+			JedisPoolConfig poolConfig) {
+
+		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(clusterConfig));
+		doReturn(null).when(factorySpy).createCluster(Matchers.any(RedisClusterConfiguration.class),
+				Matchers.any(GenericObjectPoolConfig.class));
 		doReturn(null).when(factorySpy).createRedisPool();
 		return factorySpy;
 	}

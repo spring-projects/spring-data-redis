@@ -149,7 +149,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean isPipelined = false;
 	private List<LettuceResult> ppline;
 	private Queue<FutureResult<?>> txResults = new LinkedList<FutureResult<?>>();
-	private RedisClient client;
+	private AbstractRedisClient client;
 	private volatile LettuceSubscription subscription;
 	private LettucePool pool;
 	/** flag indicating whether the connection needs to be dropped or not */
@@ -310,7 +310,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @since 1.7
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
-			RedisClient client, LettucePool pool, int defaultDbIndex) {
+			AbstractRedisClient client, LettucePool pool, int defaultDbIndex) {
 
 		this.asyncSharedConn = sharedConnection;
 		this.timeout = timeout;
@@ -3398,7 +3398,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private RedisPubSubConnection<byte[], byte[]> switchToPubSub() {
 		close();
 		// open a pubsub one
-		return client.connectPubSub(CODEC);
+		return ((RedisClient) client).connectPubSub(CODEC);
 	}
 
 	private void pipeline(LettuceResult result) {
@@ -3423,7 +3423,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return getAsyncDedicatedConnection();
 	}
 
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getConnection() {
+	protected com.lambdaworks.redis.RedisConnection<byte[], byte[]> getConnection() {
 		if (isQueueing()) {
 			return getDedicatedConnection();
 		}
@@ -3433,17 +3433,26 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return getDedicatedConnection();
 	}
 
-	private RedisAsyncConnection<byte[], byte[]> getAsyncDedicatedConnection() {
+	protected RedisAsyncConnection<byte[], byte[]> getAsyncDedicatedConnection() {
 		if (asyncDedicatedConn == null) {
-			if (this.pool != null) {
-				this.asyncDedicatedConn = pool.getResource();
-			} else {
 
-				this.asyncDedicatedConn = client.connectAsync(CODEC);
+			asyncDedicatedConn = doGetAsyncDedicatedConnection();
+
+			if (this.pool == null) {
 				this.asyncDedicatedConn.select(dbIndex);
 			}
+
 		}
 		return asyncDedicatedConn;
+	}
+
+	protected RedisAsyncConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
+
+		if (this.pool != null) {
+			return pool.getResource();
+		} else {
+			return ((RedisClient) client).connectAsync(CODEC);
+		}
 	}
 
 	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getDedicatedConnection() {
@@ -3581,7 +3590,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		RedisConnection<String, String> connection = null;
 		try {
-			connection = client.connect(getRedisURI(node));
+			connection = ((RedisClient) client).connect(getRedisURI(node));
 			return connection.ping().equalsIgnoreCase("pong");
 		} catch (Exception e) {
 			return false;
@@ -3602,7 +3611,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
-		RedisSentinelAsyncConnection<String, String> connection = client.connectSentinelAsync(getRedisURI(sentinel));
+		RedisSentinelAsyncConnection<String, String> connection = ((RedisClient) client)
+				.connectSentinelAsync(getRedisURI(sentinel));
 		return new LettuceSentinelConnection(connection);
 	}
 
@@ -4020,6 +4030,39 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 
 			return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrangebylex(key, min, max));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption)
+	 */
+	@Override
+	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option) {
+		migrate(key, target, dbIndex, option, Long.MAX_VALUE);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#migrate(byte[], org.springframework.data.redis.connection.RedisNode, int, org.springframework.data.redis.connection.RedisServerCommands.MigrateOption, long)
+	 */
+	@Override
+	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex,
+						timeout)));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex,
+						timeout)));
+				return;
+			}
+			getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.jedis;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import java.util.Set;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.DefaultTuple;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -67,14 +69,15 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
 	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
+	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
 	public static final byte[] POSITIVE_INFINITY_BYTES;
 	public static final byte[] NEGATIVE_INFINITY_BYTES;
-	
+
 	static {
-		
+
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
 			public byte[] convert(String source) {
 				return source == null ? null : SafeEncoder.encode(source);
@@ -91,11 +94,24 @@ abstract public class JedisConverters extends Converters {
 		};
 		TUPLE_SET_TO_TUPLE_SET = new SetConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
 		TUPLE_LIST_TO_TUPLE_LIST_CONVERTER = new ListConverter<redis.clients.jedis.Tuple, Tuple>(TUPLE_CONVERTER);
-		
 		PLUS_BYTES = toBytes("+");
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
+
+		OBJECT_TO_CLUSTER_NODE_CONVERTER = new Converter<Object, RedisClusterNode>() {
+
+			@Override
+			public RedisClusterNode convert(Object infos) {
+
+				List<Object> values = (List<Object>) infos;
+				RedisClusterNode.SlotRange range = new RedisClusterNode.SlotRange(((Number) values.get(0)).intValue(),
+						((Number) values.get(1)).intValue());
+				List<Object> nodeInfo = (List<Object>) values.get(2);
+				return new RedisClusterNode(JedisConverters.toString((byte[]) nodeInfo.get(0)),
+						((Number) nodeInfo.get(1)).intValue(), range);
+			}
+		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -172,6 +188,15 @@ abstract public class JedisConverters extends Converters {
 	/**
 	 * @param source
 	 * @return
+	 * @since 1.7
+	 */
+	public static RedisClusterNode toNode(Object source) {
+		return OBJECT_TO_CLUSTER_NODE_CONVERTER.convert(source);
+	}
+
+	/**
+	 * @param source
+	 * @return
 	 * @since 1.3
 	 */
 	public static List<RedisClientInfo> toListOfRedisClientInformation(String source) {
@@ -198,6 +223,21 @@ abstract public class JedisConverters extends Converters {
 			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
 		}
 		return sentinels;
+	}
+
+	/**
+	 * @param clusterNodes
+	 * @return
+	 * @since 1.7
+	 */
+	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
+
+		if (StringUtils.isEmpty(clusterNodes)) {
+			return Collections.emptySet();
+		}
+
+		String[] lines = clusterNodes.split(System.getProperty("line.separator"));
+		return toSetOfRedisClusterNodes(Arrays.asList(lines));
 	}
 
 	public static DataAccessException toDataAccessException(Exception ex) {
