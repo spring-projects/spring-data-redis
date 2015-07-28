@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Duobiao Ou
  * @param <T>
  * @since 1.4
  */
@@ -164,7 +165,7 @@ public abstract class ScanCursor<T> implements Cursor<T> {
 
 		assertCursorIsOpen();
 
-		if (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
+		while (!delegate.hasNext() && !CursorState.FINISHED.equals(state)) {
 			scan(cursorId);
 		}
 
