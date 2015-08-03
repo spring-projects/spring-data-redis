@@ -39,12 +39,6 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration("LettuceConnectionIntegrationTests-context.xml")
 public class LettuceConnectionTransactionIntegrationTests extends AbstractConnectionTransactionIntegrationTests {
 
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
-	}
-
 	@Test
 	public void testMove() {
 		connection.set("foo", "bar");

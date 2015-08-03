@@ -2074,8 +2074,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfAddShouldAddToNonExistingKeyCorrectly() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis");
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
 		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2091,8 +2091,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis");
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
 		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2112,8 +2112,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfCountShouldReturnCorrectly() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis");
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
 		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2131,8 +2131,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis");
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
 		}
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2152,8 +2152,8 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	public void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
 
-		if (!ConnectionUtils.isJedis(connectionFactory)) {
-			throw new AssumptionViolatedException("PFADD is only available for jedis");
+		if (!ConnectionUtils.isJedis(connectionFactory) && !ConnectionUtils.isLettuce(connectionFactory)) {
+			throw new AssumptionViolatedException("PFADD is only available for jedis and lettuce");
 		}
 
 		actual.add(connection.pfCount((String[]) null));

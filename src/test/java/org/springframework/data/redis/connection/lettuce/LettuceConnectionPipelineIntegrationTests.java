@@ -52,12 +52,6 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		super.testSelect();
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	@IfProfileValue(name = "redisVersion", value = "2.6+")
-	public void testSRandMemberCountNegative() {
-		super.testSRandMemberCountNegative();
-	}
-
 	@Test
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testScriptKill() throws Exception {

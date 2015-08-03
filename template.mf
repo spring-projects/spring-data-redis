@@ -29,5 +29,5 @@ Import-Template:
  org.apache.commons.beanutils.*;resolution:="optional";version=1.8.5,
  redis.*;resolution:="optional";version="[0.2, 1.0)",
  com.google.common.*;resolution:="optional";version="[11.0.0, 20.0.0)",
- com.lambdaworks.*;resolution:="optional";version="[2.2.0, 3.0.0)",
- org.jboss.netty.*;resolution:="optional";version="[3.0.0, 4.0.0)"
+ com.lambdaworks.redis.*;resolution:="optional";version="[3.0.0, 4.0.0)",
+ io.netty.channel.*;resolution:="optional";version="[4.0.0, 5.0.0)"

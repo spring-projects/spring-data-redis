@@ -23,6 +23,7 @@ import org.springframework.data.redis.RedisVersionUtils;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.Version;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.util.StringUtils;
@@ -45,7 +46,7 @@ public class MinimumRedisVersionRule implements TestRule {
 
 	private Version readServerVersion() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setHostName(SettingsUtils.getHost());
 		connectionFactory.setPort(SettingsUtils.getPort());
 		connectionFactory.setTimeout(100);
