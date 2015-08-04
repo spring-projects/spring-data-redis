@@ -6,6 +6,19 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.0.RC1 (2015-08-04)
+-----------------------------------------
+* DATAREDIS-420 - Release 1.6 RC1 (Gosling).
+* DATAREDIS-416 - RedisCache.putIfAbsent(…) breaks contract defined by org.springframework.cache.Cache.
+* DATAREDIS-414 - Serialization occurs while pooled connection can be released.
+* DATAREDIS-413 - Use the latest version of the Spring IO Plugin.
+* DATAREDIS-412 - Support for Jedis 2.7.1, 2.7.2 and 2.7.3.
+* DATAREDIS-403 - Fix JavaDoc stylesheet.
+* DATAREDIS-402 - RedisCache should not expire known keys in case ttl of element is not set.
+* DATAREDIS-401 - RedisCacheManager should operate upon RedisOperations instead of RedisTemplate.
+* DATAREDIS-348 - Upgrade Lettuce to 3.x release.
+
+
 Changes in version 1.5.2.RELEASE (2015-07-28)
 ---------------------------------------------
 * DATAREDIS-418 - Release 1.5.2 (Fowler).
