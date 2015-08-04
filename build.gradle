@@ -17,7 +17,7 @@ description = 'Spring Data Redis'
 group = 'org.springframework.data'
 
 repositories {
-  maven { url "https://repo.spring.io/libs-snapshot" }
+  maven { url "https://repo.spring.io/libs-milestone" }
   maven { url "https://repo.spring.io/plugins-release" }
   maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
   mavenCentral()
@@ -41,7 +41,7 @@ if (project.hasProperty('platformVersion')) {
     apply plugin: 'spring-io'
 
     repositories {
-        maven { url "https://repo.spring.io/libs-snapshot" }
+        maven { url "https://repo.spring.io/libs-milestone" }
     }
 
     dependencyManagement {
