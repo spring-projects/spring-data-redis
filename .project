@@ -2,15 +2,17 @@
 <projectDescription>
 	<name>spring-data-redis</name>
 	<comment>Spring Data Redis</comment>
-	<projects/>
-	<natures>
-		<nature>org.eclipse.jdt.core.javanature</nature>
-	</natures>
+	<projects>
+	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
-			<arguments/>
+			<arguments>
+			</arguments>
 		</buildCommand>
 	</buildSpec>
-	<linkedResources/>
+	<natures>
+		<nature>org.springsource.ide.eclipse.gradle.core.nature</nature>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
 </projectDescription>
