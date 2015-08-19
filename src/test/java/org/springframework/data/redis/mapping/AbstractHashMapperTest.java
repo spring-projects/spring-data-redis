@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ import static org.junit.Assert.*;
 
 import java.util.Map;
 
+import org.hamcrest.core.IsCollectionContaining;
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.IsNot;
+import org.hamcrest.core.IsNull;
 import org.junit.Test;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
@@ -26,24 +30,43 @@ import org.springframework.data.redis.hash.HashMapper;
 
 /**
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public abstract class AbstractHashMapperTest {
-	protected abstract HashMapper mapperFor(Class t);
 
-	private void test(Object o) {
-		HashMapper<Object, Object, Object> mapper = mapperFor(o.getClass());
+	@SuppressWarnings("rawtypes")
+	protected abstract <T> HashMapper mapperFor(Class<T> t);
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected void assertBackAndForwardMapping(Object o) {
+
+		HashMapper mapper = mapperFor(o.getClass());
 		Map hash = mapper.toHash(o);
-		System.out.println("object hash " + hash.size() + " is " + hash);
-		assertEquals(o, mapper.fromHash(hash));
+		assertThat(mapper.fromHash(hash), IsEqual.equalTo(o));
 	}
 
 	@Test
 	public void testSimpleBean() throws Exception {
-		test(new Address("Broadway", 1));
+		assertBackAndForwardMapping(new Address("Broadway", 1));
 	}
 
 	@Test
 	public void testNestedBean() throws Exception {
-		test(new Person("George", "Enescu", 74, new Address("liveni", 19)));
+		assertBackAndForwardMapping(new Person("George", "Enescu", 74, new Address("liveni", 19)));
+	}
+
+	/**
+	 * @see DATAREDIS-421
+	 */
+	@Test
+	public void toHashShouldTreatNullValuesCorrectly() {
+
+		Person source = new Person("rand", null, 19);
+
+		assertBackAndForwardMapping(source);
+
+		assertThat((Iterable<Object>) mapperFor(Person.class).toHash(source).values(),
+				IsNot.not(IsCollectionContaining.hasItems(IsNull.nullValue())));
+
 	}
 }

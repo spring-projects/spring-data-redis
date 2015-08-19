@@ -15,17 +15,19 @@
  */
 package org.springframework.data.redis.hash;
 
+import java.util.Map;
+
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
-import java.util.Map;
-
 /**
- * Mapper based on Jackson library. Supports nested properties (rich objects).
+ * {@link HashMapper} based on Jackson library. Supports nested properties (rich objects).
  * 
  * @author Costin Leau
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 
@@ -34,11 +36,19 @@ public class JacksonHashMapper<T> implements HashMapper<T, String, Object> {
 	private final JavaType mapType = TypeFactory.defaultInstance()
 			.constructMapType(Map.class, String.class, Object.class);
 
+	/**
+	 * Creates new {@link JacksonHashMapper}.
+	 * 
+	 * @param type
+	 */
 	public JacksonHashMapper(Class<T> type) {
+
 		this(type, new ObjectMapper());
+		mapper.getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
 	}
 
 	public JacksonHashMapper(Class<T> type, ObjectMapper mapper) {
+
 		this.mapper = mapper;
 		this.userType = TypeFactory.defaultInstance().constructType(type);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,16 @@
  */
 package org.springframework.data.redis.mapping;
 
-import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.data.redis.hash.JacksonHashMapper;
 
+/**
+ * @author Costin Leau
+ * @author Christoph Strobl
+ */
 public class JacksonHashMapperTest extends AbstractHashMapperTest {
 
-	protected HashMapper mapperFor(Class t) {
-		return new JacksonHashMapper(t);
+	protected <T> JacksonHashMapper<T> mapperFor(Class<T> t) {
+		return new JacksonHashMapper<T>(t);
 	}
+
 }
