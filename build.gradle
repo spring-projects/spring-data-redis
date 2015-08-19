@@ -84,7 +84,7 @@ dependencies {
 
     // Mappers
     compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
-    compile("commons-beanutils:commons-beanutils-core:1.8.3", optional)
+    compile("commons-beanutils:commons-beanutils:1.9.2", optional)
     compile("com.fasterxml.jackson.core:jackson-core:$fasterXmlJacksonVersion", optional)
     compile("com.fasterxml.jackson.core:jackson-databind:$fasterXmlJacksonDatabindVersion", optional)
 
@@ -95,6 +95,7 @@ dependencies {
     testCompile "junit:junit:$junitVersion"
     testCompile "org.springframework:spring-test:$springVersion"
     testCompile "org.springframework:spring-jdbc:$springVersion"
+    testCompile 'org.testinfected.hamcrest-matchers:core-matchers:1.8'
     testCompile "org.mockito:mockito-core:$mockitoVersion"
     testCompile("javax.annotation:jsr250-api:1.0", optional)
     testCompile("com.thoughtworks.xstream:xstream:1.4.4", optional)

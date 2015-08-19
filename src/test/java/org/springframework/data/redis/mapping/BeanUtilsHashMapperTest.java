@@ -17,19 +17,20 @@ package org.springframework.data.redis.mapping;
 
 import org.junit.Test;
 import org.springframework.data.redis.hash.BeanUtilsHashMapper;
-import org.springframework.data.redis.hash.HashMapper;
 
 /**
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class BeanUtilsHashMapperTest extends AbstractHashMapperTest {
 
-	protected HashMapper mapperFor(Class t) {
-		return new BeanUtilsHashMapper(t);
+	protected <T> BeanUtilsHashMapper<T> mapperFor(Class<T> t) {
+		return new BeanUtilsHashMapper<T>(t);
 	}
 
 	@Test(expected = Exception.class)
 	public void testNestedBean() throws Exception {
 		super.testNestedBean();
 	}
+
 }
