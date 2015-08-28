@@ -54,9 +54,6 @@ dependencies {
 }
 ~~~~~
 
-Latest GA release is _1.2.1.RELEASE_  
-Latest nightly is _1.3.0.BUILD-SNAPSHOT_
-
 # Usage (for the impatient)
 
 * Configure the Redis connector to use (here [jedis](https://github.com/xetorthio/jedis)):
@@ -120,5 +117,5 @@ Github is for social coding: if you want to write code, we encourage contributio
 
 # Staying in touch
 
-Follow the project team ([@thomasdarimont](http://twitter.com/thomasdarimont), [@stroblchristoph](http://twitter.com/stroblchristoph)) on Twitter. In-depth articles can be
+Follow the project team ([@SpringData](http://twitter.com/springdata)) on Twitter. In-depth articles can be
 found at the Spring [team blog](https://spring.io/blog), and releases are announced via our [news feed](https://spring.io/blog/category/news).
