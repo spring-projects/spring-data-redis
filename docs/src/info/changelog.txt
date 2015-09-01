@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.0.RELEASE (2015-09-01)
+---------------------------------------------
+* DATAREDIS-429 - Release 1.6 GA (Gosling).
+* DATAREDIS-426 - Upgrade to lettuce 3.3.
+* DATAREDIS-424 - Update Reference Documentation.
+* DATAREDIS-421 - NullPointerException when saving null values.
+* DATAREDIS-392 - Jackson2RedisSerializer cannot deserialize ObjectId fields.
+
+
 Changes in version 1.6.0.RC1 (2015-08-04)
 -----------------------------------------
 * DATAREDIS-420 - Release 1.6 RC1 (Gosling).
