@@ -27,9 +27,9 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
-import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
+import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
@@ -101,11 +101,11 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
-	 * {@link KeyValueRepositoryFactoryBean}.
+	 * {@link RedisRepositoryFactoryBean}.
 	 * 
 	 * @return
 	 */
-	Class<?> repositoryFactoryBeanClass() default KeyValueRepositoryFactoryBean.class;
+	Class<?> repositoryFactoryBeanClass() default RedisRepositoryFactoryBean.class;
 
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.

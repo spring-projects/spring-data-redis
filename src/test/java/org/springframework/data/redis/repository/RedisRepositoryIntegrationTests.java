@@ -88,6 +88,8 @@ public class RedisRepositoryIntegrationTests {
 
 		assertThat(repo.findByFirstname("rand").size(), is(1));
 		assertThat(repo.findByFirstname("rand"), hasItem(rand));
+
+		assertThat(repo.findByLastname("al'thor"), hasItem(rand));
 	}
 
 	/**
