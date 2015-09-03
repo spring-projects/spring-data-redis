@@ -42,11 +42,13 @@ public class RedisData {
 
 	private Map<ByteArrayWrapper, byte[]> data;
 	private Set<ByteArrayWrapper> simpleIndexKeys;
+	private Set<ByteArrayWrapper> indexPaths;
 
 	public RedisData() {
 
 		this.data = new LinkedHashMap<ByteArrayWrapper, byte[]>();
 		this.simpleIndexKeys = new HashSet<ByteArrayWrapper>();
+		this.indexPaths = new HashSet<ByteArrayWrapper>();
 	}
 
 	public RedisData(Map<byte[], byte[]> raw) {
@@ -137,10 +139,23 @@ public class RedisData {
 		this.simpleIndexKeys.add(new ByteArrayWrapper(bytes));
 	}
 
+	public void addIndexPath(byte[] path) {
+		this.indexPaths.add(new ByteArrayWrapper(path));
+	}
+
 	public Set<byte[]> getSimpleIndexKeys() {
 
 		Set<byte[]> target = new HashSet<byte[]>();
 		for (ByteArrayWrapper wrapper : this.simpleIndexKeys) {
+			target.add(ByteUtils.concatAll(keyspace, PATH_SEPERATOR, wrapper.getArray()));
+		}
+		return target;
+	}
+
+	public Set<byte[]> getIndexPaths() {
+
+		Set<byte[]> target = new HashSet<byte[]>();
+		for (ByteArrayWrapper wrapper : this.indexPaths) {
 			target.add(ByteUtils.concatAll(keyspace, PATH_SEPERATOR, wrapper.getArray()));
 		}
 		return target;

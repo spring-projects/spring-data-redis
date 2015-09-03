@@ -343,23 +343,31 @@ public class MappingRedisConverter implements RedisConverter {
 							.getTypeInformation().getActualType(), sink);
 				} else {
 
-					if (indexConfiguration.hasIndexFor(entity.getKeySpace(), persistentProperty.getName())) {
+					Object propertyValue = accessor.getProperty(persistentProperty);
 
-						// TODO: check all index types and add accordingly
-						sink.addSimpleIndexKey(toBytes(persistentProperty.getName() + ":"
-								+ accessor.getProperty(persistentProperty)));
+					if (indexConfiguration.hasIndexFor(entity.getKeySpace(), propertyStringPath)) {
+
+						if (propertyValue != null) {
+							sink.addSimpleIndexKey(toBytes(propertyStringPath + ":" + propertyValue));
+						}
+
+						sink.addIndexPath(toBytes(propertyStringPath));
 					}
 
 					else if (persistentProperty.isAnnotationPresent(Indexed.class)) {
 
 						// TOOD: read index type from annotation
-						indexConfiguration.addIndexDefinition(new RedisIndexDefinition(entity.getKeySpace(), persistentProperty
-								.getName(), IndexType.SIMPLE));
+						indexConfiguration.addIndexDefinition(new RedisIndexDefinition(entity.getKeySpace(), propertyStringPath,
+								IndexType.SIMPLE));
 
-						sink.addSimpleIndexKey(toBytes(persistentProperty.getName() + ":"
-								+ accessor.getProperty(persistentProperty)));
+						if (propertyValue != null) {
+							sink.addSimpleIndexKey(toBytes(propertyStringPath + ":" + propertyValue));
+						}
+
+						sink.addIndexPath(toBytes(propertyStringPath));
 					}
-					sink.addDataEntry(toBytes(propertyStringPath), toBytes(accessor.getProperty(persistentProperty)));
+
+					sink.addDataEntry(toBytes(propertyStringPath), toBytes(propertyValue));
 				}
 			}
 		});
