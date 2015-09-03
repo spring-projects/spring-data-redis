@@ -34,6 +34,7 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 
 /**
@@ -88,6 +89,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 		final RedisData rdo = new RedisData();
 		converter.write(item, rdo);
 
+		final byte[] indexPostFixPattern = converter.toBytes(":*");
+
 		redisOps.execute(new RedisCallback<Object>() {
 
 			@Override
@@ -96,7 +99,18 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 				connection.hMSet(rdo.getKey(), rdo.getData());
 				connection.sAdd(rdo.getKeyspace(), rdo.getId());
 
+				// remove id from potential indexes since those might be invalid with the new data
+				for (byte[] potentialIndex : rdo.getIndexPaths()) {
+
+					Set<byte[]> existingKeys = connection.keys(ByteUtils.concat(potentialIndex, indexPostFixPattern));
+
+					for (byte[] existingKey : existingKeys) {
+						connection.sRem(existingKey, rdo.getId());
+					}
+				}
+
 				if (!rdo.getSimpleIndexKeys().isEmpty()) {
+
 					for (byte[] index : rdo.getSimpleIndexKeys()) {
 						connection.sAdd(index, rdo.getId());
 					}
