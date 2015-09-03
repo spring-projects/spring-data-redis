@@ -27,6 +27,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
@@ -126,6 +127,13 @@ public @interface EnableRedisRepositories {
 	 * repositories infrastructure.
 	 */
 	boolean considerNestedRepositories() default false;
+
+	/**
+	 * Configures the bean name of the {@link RedisOperations} to be used. Defaulted to {@literal redisTemplate}.
+	 * 
+	 * @return
+	 */
+	String redisTemplateRef() default "redisTemplate";
 
 	/**
 	 * TODO: explain configuration options
