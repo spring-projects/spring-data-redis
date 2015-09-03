@@ -79,7 +79,7 @@ dependencies {
     compile "org.springframework:spring-tx:$springVersion"
     compile("org.springframework:spring-oxm:$springVersion", optional)
     compile "org.springframework:spring-aop:$springVersion"
-    compile "org.springframework.data:spring-data-keyvalue:1.0.0.BUILD-SNAPSHOT"
+    compile "org.springframework.data:spring-data-keyvalue:1.1.0.DATAKV-112-SNAPSHOT"
 
     // Redis Drivers
     compile("redis.clients:jedis:$jedisVersion", optional)
