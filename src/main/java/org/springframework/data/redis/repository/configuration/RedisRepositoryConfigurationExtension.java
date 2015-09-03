@@ -17,6 +17,7 @@ package org.springframework.data.redis.repository.configuration;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -25,6 +26,7 @@ import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
@@ -75,6 +77,14 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 		indexConfiguration.setBeanClass(aa.getClass("indexConfiguration"));
 
 		ConstructorArgumentValues constructorArgumentValuesForRedisKeyValueAdapter = new ConstructorArgumentValues();
+
+		String redisTemplateRef = configurationSource.getAttribute("redisTemplateRef");
+		if (StringUtils.hasText(redisTemplateRef)) {
+
+			constructorArgumentValuesForRedisKeyValueAdapter.addGenericArgumentValue(new RuntimeBeanReference(
+					redisTemplateRef));
+		}
+
 		constructorArgumentValuesForRedisKeyValueAdapter.addGenericArgumentValue(indexConfiguration);
 		redisKeyValueAdapterDefinition.setConstructorArgumentValues(constructorArgumentValuesForRedisKeyValueAdapter);
 

@@ -29,11 +29,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.RedisIndexDefinition;
@@ -52,6 +55,18 @@ public class RedisRepositoryIntegrationTests {
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class)
 	static class Config {
+
+		@Bean
+		RedisTemplate<?, ?> redisTemplate() {
+
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+			connectionFactory.afterPropertiesSet();
+
+			RedisTemplate<byte[], byte[]> template = new RedisTemplate<byte[], byte[]>();
+			template.setConnectionFactory(connectionFactory);
+
+			return template;
+		}
 
 	}
 
