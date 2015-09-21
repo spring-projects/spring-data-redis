@@ -118,8 +118,13 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		client.shutdown(shutdownTimeout, shutdownTimeout, TimeUnit.MILLISECONDS);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getConnection()
+	 */
 	public RedisConnection getConnection() {
-		LettuceConnection connection = new LettuceConnection(getSharedConnection(), timeout, client, pool);
+
+		LettuceConnection connection = new LettuceConnection(getSharedConnection(), timeout, client, pool, dbIndex);
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}

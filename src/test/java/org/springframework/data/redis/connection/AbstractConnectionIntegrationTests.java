@@ -111,7 +111,9 @@ public abstract class AbstractConnectionIntegrationTests {
 	@After
 	public void tearDown() {
 		try {
-			connection.flushDb();
+
+			// since we use more than one db we're required to flush them all
+			connection.flushAll();
 		} catch (Exception e) {
 			// Connection may be closed in certain cases, like after pub/sub
 			// tests

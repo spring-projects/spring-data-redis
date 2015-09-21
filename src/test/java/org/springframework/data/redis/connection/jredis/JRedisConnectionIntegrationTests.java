@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	@After
 	public void tearDown() {
 		try {
-			connection.flushDb();
+			connection.flushAll();
 			connection.close();
 		} catch (DataAccessException e) {
 			// Jredis closes a connection on Exception (which some tests
@@ -435,7 +435,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
-	
+
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayBytes() {

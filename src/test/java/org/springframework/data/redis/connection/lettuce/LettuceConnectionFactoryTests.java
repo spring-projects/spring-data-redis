@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisException;
+import static org.hamcrest.core.IsNull.*;
+import static org.junit.Assert.*;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -28,13 +29,15 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
-import static org.junit.Assert.*;
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisException;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class LettuceConnectionFactoryTests {
 
@@ -44,6 +47,7 @@ public class LettuceConnectionFactoryTests {
 
 	@Before
 	public void setUp() {
+
 		factory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory.afterPropertiesSet();
 		factory.setShutdownTimeout(0);
@@ -249,5 +253,29 @@ public class LettuceConnectionFactoryTests {
 		conn.ping();
 		conn.bLPop(1, "key".getBytes());
 		conn.close();
+	}
+
+	/**
+	 * @see DATAREDIS-431
+	 */
+	@Test
+	public void dbIndexShouldBePropagatedCorrectly() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory();
+		factory.setDatabase(2);
+		factory.afterPropertiesSet();
+
+		StringRedisConnection connectionToDbIndex2 = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+
+			String key = "key-in-db-2";
+			connectionToDbIndex2.set(key, "the wheel of time");
+
+			assertThat(connection.get(key), nullValue());
+			assertThat(connectionToDbIndex2.get(key), notNullValue());
+		} finally {
+			connectionToDbIndex2.close();
+		}
 	}
 }
