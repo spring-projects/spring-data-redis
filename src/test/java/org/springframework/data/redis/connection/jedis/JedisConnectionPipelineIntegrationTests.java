@@ -49,7 +49,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	@After
 	public void tearDown() {
 		try {
-			connection.flushDb();
+			connection.flushAll();
 			connection.close();
 		} catch (Exception e) {
 			// Jedis leaves some incomplete data in OutputStream on NPE caused
@@ -135,7 +135,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	public void testEvalShaArrayStrings() {
 		super.testEvalShaArrayStrings();
 	}
-	
+
 	@Test(expected = UnsupportedOperationException.class)
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testEvalShaArrayBytes() {

@@ -46,12 +46,13 @@ public class LettuceConnectionUnitTestSuite {
 	public static class LettuceConnectionUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncConnectionImpl> {
 
 		protected LettuceConnection connection;
+		private RedisClient clientMock;
 
 		@SuppressWarnings({ "unchecked" })
 		@Before
 		public void setUp() throws InvocationTargetException, IllegalAccessException {
 
-			RedisClient clientMock = mock(RedisClient.class);
+			clientMock = mock(RedisClient.class);
 			when(clientMock.connectAsync((RedisCodec) any())).thenReturn(getNativeRedisConnectionMock());
 			connection = new LettuceConnection(0, clientMock);
 		}
@@ -141,6 +142,18 @@ public class LettuceConnectionUnitTestSuite {
 		@Test(expected = InvalidDataAccessResourceUsageException.class)
 		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
 			connection.getSentinelConnection();
+		}
+
+		/**
+		 * @see DATAREDIS-431
+		 */
+		@Test
+		public void dbIndexShouldBeSetWhenOptainingConnection() {
+
+			connection = new LettuceConnection(null, 0, clientMock, null, 1);
+			connection.getNativeConnection();
+
+			verify(getNativeRedisConnectionMock(), times(1)).select(1);
 		}
 	}
 
