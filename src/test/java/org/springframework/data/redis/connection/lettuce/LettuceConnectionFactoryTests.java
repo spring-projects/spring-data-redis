@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisException;
+import static org.hamcrest.core.IsNull.*;
+import static org.junit.Assert.*;
+
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
@@ -28,13 +31,15 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
-import static org.junit.Assert.*;
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisException;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class LettuceConnectionFactoryTests {
 
@@ -44,6 +49,7 @@ public class LettuceConnectionFactoryTests {
 
 	@Before
 	public void setUp() {
+
 		factory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory.afterPropertiesSet();
 		factory.setShutdownTimeout(0);
@@ -57,6 +63,11 @@ public class LettuceConnectionFactoryTests {
 		if (connection != null) {
 			connection.close();
 		}
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -109,10 +120,14 @@ public class LettuceConnectionFactoryTests {
 
 	@Test
 	public void testSelectDb() {
+
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		StringRedisConnection connection2 = new DefaultStringRedisConnection(factory2.getConnection());
 		connection2.flushDb();
 		// put an item in database 0
@@ -213,6 +228,9 @@ public class LettuceConnectionFactoryTests {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		RedisConnection conn2 = factory2.getConnection();
 		conn2.close();
 		factory2.destroy();
@@ -228,6 +246,9 @@ public class LettuceConnectionFactoryTests {
 		pool.afterPropertiesSet();
 		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		for (int i = 1; i < 1000; i++) {
 			Thread th = new Thread(new Runnable() {
 				public void run() {
@@ -249,5 +270,31 @@ public class LettuceConnectionFactoryTests {
 		conn.ping();
 		conn.bLPop(1, "key".getBytes());
 		conn.close();
+	}
+
+	/**
+	 * @see DATAREDIS-431
+	 */
+	@Test
+	public void dbIndexShouldBePropagatedCorrectly() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory();
+		factory.setDatabase(2);
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		StringRedisConnection connectionToDbIndex2 = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+
+			String key = "key-in-db-2";
+			connectionToDbIndex2.set(key, "the wheel of time");
+
+			assertThat(connection.get(key), nullValue());
+			assertThat(connectionToDbIndex2.get(key), notNullValue());
+		} finally {
+			connectionToDbIndex2.close();
+		}
 	}
 }

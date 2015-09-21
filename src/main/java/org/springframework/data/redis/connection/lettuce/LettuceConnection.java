@@ -127,6 +127,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			LettuceConverters.exceptionConverter());
 	private static final TypeHints typeHints = new TypeHints();
 
+	private final int defaultDbIndex;
+	private int dbIndex;
+
 	static {
 		SYNC_HANDLER = ReflectionUtils.findMethod(AbstractRedisClient.class, "syncHandler", RedisChannelHandler.class,
 				Class[].class);
@@ -293,11 +296,29 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
 			RedisClient client, LettucePool pool) {
+
+		this(sharedConnection, timeout, client, pool, 0);
+	}
+
+	/**
+	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
+	 *          used for transactions or blocking operations
+	 * @param timeout The connection timeout (in milliseconds)
+	 * @param client The {@link RedisClient} to use when making pub/sub connections.
+	 * @param pool The connection pool to use for blocking and tx operations.
+	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
+	 * @since 1.7
+	 */
+	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
+			RedisClient client, LettucePool pool, int defaultDbIndex) {
+
 		this.asyncSharedConn = sharedConnection;
 		this.timeout = timeout;
 		this.client = client;
 		this.sharedConn = sharedConnection != null ? syncConnection(asyncSharedConn) : null;
 		this.pool = pool;
+		this.defaultDbIndex = defaultDbIndex;
+		this.dbIndex = this.defaultDbIndex;
 	}
 
 	protected DataAccessException convertLettuceAccessException(Exception ex) {
@@ -404,6 +425,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 			subscription = null;
 		}
+
+		this.dbIndex = defaultDbIndex;
 	}
 
 	public boolean isClosed() {
@@ -1075,6 +1098,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	public void select(int dbIndex) {
+
 		if (asyncSharedConn != null) {
 			throw new UnsupportedOperationException("Selecting a new database not supported due to shared connection. "
 					+ "Use separate ConnectionFactorys to work with multiple databases");
@@ -1083,6 +1107,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException("Lettuce blocks for #select");
 		}
 		try {
+
+			this.dbIndex = dbIndex;
 			if (isQueueing()) {
 				transaction(new LettuceTxStatusResult(getConnection().select(dbIndex)));
 				return;
@@ -3412,7 +3438,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			if (this.pool != null) {
 				this.asyncDedicatedConn = pool.getResource();
 			} else {
+
 				this.asyncDedicatedConn = client.connectAsync(CODEC);
+				this.asyncDedicatedConn.select(dbIndex);
 			}
 		}
 		return asyncDedicatedConn;
