@@ -19,9 +19,11 @@ import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.SettingsUtils;
@@ -61,6 +63,11 @@ public class LettuceConnectionFactoryTests {
 		if (connection != null) {
 			connection.close();
 		}
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -113,10 +120,14 @@ public class LettuceConnectionFactoryTests {
 
 	@Test
 	public void testSelectDb() {
+
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		StringRedisConnection connection2 = new DefaultStringRedisConnection(factory2.getConnection());
 		connection2.flushDb();
 		// put an item in database 0
@@ -217,6 +228,9 @@ public class LettuceConnectionFactoryTests {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		RedisConnection conn2 = factory2.getConnection();
 		conn2.close();
 		factory2.destroy();
@@ -232,6 +246,9 @@ public class LettuceConnectionFactoryTests {
 		pool.afterPropertiesSet();
 		final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		for (int i = 1; i < 1000; i++) {
 			Thread th = new Thread(new Runnable() {
 				public void run() {
@@ -264,6 +281,8 @@ public class LettuceConnectionFactoryTests {
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
 		factory.setDatabase(2);
 		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
 
 		StringRedisConnection connectionToDbIndex2 = new DefaultStringRedisConnection(factory.getConnection());
 

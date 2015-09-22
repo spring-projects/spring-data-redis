@@ -305,8 +305,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 *          used for transactions or blocking operations
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when making pub/sub connections.
-	 * @param pool he connection pool to use for blocking and tx operations.
-	 * @param defaultDbIndex db index to use along with {@link RedisClient} when establishing a dedicated connection.
+	 * @param pool The connection pool to use for blocking and tx operations.
+	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 1.7
 	 */
 	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
