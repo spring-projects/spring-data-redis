@@ -15,15 +15,11 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.nio.charset.Charset;
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
-import org.springframework.data.redis.connection.util.ByteArrayWrapper;
-import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * Data object holding flat hash values, to be stored in Redis hash, representing the domain object. Index information
@@ -33,178 +29,66 @@ import org.springframework.data.redis.util.ByteUtils;
  */
 public class RedisData {
 
-	private static final Charset CHARSET = Charset.forName("UTF-8");
+	private String keyspace;
+	private Serializable id;
 
-	private byte[] keyspace;
-	private byte[] id;
-	public static final byte[] ID_SEPERATOR = ":".getBytes(CHARSET);
-	public static final byte[] PATH_SEPERATOR = ".".getBytes(CHARSET);
-
-	private Map<ByteArrayWrapper, byte[]> data;
-	private Set<ByteArrayWrapper> simpleIndexKeys;
-	private Set<ByteArrayWrapper> indexPaths;
+	private Bucket bucket;
+	private Set<IndexedData> indexedData;
 
 	public RedisData() {
-
-		this.data = new LinkedHashMap<ByteArrayWrapper, byte[]>();
-		this.simpleIndexKeys = new HashSet<ByteArrayWrapper>();
-		this.indexPaths = new HashSet<ByteArrayWrapper>();
+		this(Collections.<byte[], byte[]> emptyMap());
 	}
 
 	public RedisData(Map<byte[], byte[]> raw) {
-
-		this();
-
-		for (Entry<byte[], byte[]> entry : raw.entrySet()) {
-			addDataEntry(entry.getKey(), entry.getValue());
-		}
+		this(Bucket.newBucketFromRawMap(raw));
 	}
 
-	/**
-	 * Create new {@link RedisData} from key/value pairs of given source {@link Map} by applying {@literal UTF-8}
-	 * {@link String} to {@code byte[]} conversion.
-	 * 
-	 * @param source can be {@literal null}.
-	 * @return
-	 */
-	public static RedisData newRedisDataFromStringMap(Map<String, String> source) {
+	public RedisData(Bucket bucket) {
 
-		RedisData rdo = new RedisData();
-		if (source == null) {
-			return rdo;
-		}
-
-		for (Entry<String, String> entry : source.entrySet()) {
-			rdo.addDataEntry(entry.getKey().getBytes(CHARSET), entry.getValue().getBytes(CHARSET));
-		}
-		return rdo;
+		this.bucket = bucket;
+		this.indexedData = new HashSet<IndexedData>();
 	}
 
-	/**
-	 * Adds given key and value overriding existing values if the key matches an already existing one. {@literal null} key
-	 * or values are be silently ignored.
-	 * 
-	 * @param key
-	 * @param value
-	 */
-	public void addDataEntry(byte[] key, byte[] value) {
-
-		if (hasValue(key) && hasValue(value)) {
-			data.put(new ByteArrayWrapper(key), value);
-		}
-	}
-
-	/**
-	 * Get the key representing the {@link RedisData}.
-	 * 
-	 * @return never {@literal null}.
-	 */
-	public byte[] getKey() {
-		return ByteUtils.concatAll(keyspace != null ? keyspace : new byte[] {}, ID_SEPERATOR, id != null ? id
-				: new byte[] {});
-	}
-
-	public void setId(byte[] id) {
+	public void setId(Serializable id) {
 		this.id = id;
 	}
 
-	public byte[] getId() {
+	public Serializable getId() {
 		return this.id;
 	}
 
-	public byte[] getDataForKey(byte[] key) {
-		return data.get(new ByteArrayWrapper(key));
-	}
-
 	/**
-	 * Get raw data wrapped in {@link RedisData}.
-	 * 
-	 * @return
+	 * @param index
 	 */
-	public Map<byte[], byte[]> getData() {
-
-		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
-		for (Entry<ByteArrayWrapper, byte[]> entry : data.entrySet()) {
-			map.put(entry.getKey().getArray(), entry.getValue());
-		}
-		return map;
+	public void addIndexedData(IndexedData index) {
+		this.indexedData.add(index);
 	}
 
-	/**
-	 * Add keys the id of the current object is added to on save.
-	 * 
-	 * @param bytes
-	 */
-	public void addSimpleIndexKey(byte[] bytes) {
-		this.simpleIndexKeys.add(new ByteArrayWrapper(bytes));
-	}
-
-	public void addIndexPath(byte[] path) {
-		this.indexPaths.add(new ByteArrayWrapper(path));
-	}
-
-	public Set<byte[]> getSimpleIndexKeys() {
-
-		Set<byte[]> target = new HashSet<byte[]>();
-		for (ByteArrayWrapper wrapper : this.simpleIndexKeys) {
-			target.add(ByteUtils.concatAll(keyspace, PATH_SEPERATOR, wrapper.getArray()));
-		}
-		return target;
-	}
-
-	public Set<byte[]> getIndexPaths() {
-
-		Set<byte[]> target = new HashSet<byte[]>();
-		for (ByteArrayWrapper wrapper : this.indexPaths) {
-			target.add(ByteUtils.concatAll(keyspace, PATH_SEPERATOR, wrapper.getArray()));
-		}
-		return target;
+	public Set<IndexedData> getIndexedData() {
+		return Collections.unmodifiableSet(this.indexedData);
 	}
 
 	/**
 	 * @return
 	 */
-	public byte[] getKeyspace() {
+	public String getKeyspace() {
 		return keyspace;
 	}
 
 	/**
 	 * @param keyspace
 	 */
-	public void setKeyspace(byte[] keyspace) {
+	public void setKeyspace(String keyspace) {
 		this.keyspace = keyspace;
 	}
 
-	/**
-	 * @return
-	 */
-	public Map<String, String> getDataAsUtf8String() {
-
-		Map<String, String> map = new LinkedHashMap<String, String>();
-		for (Entry<ByteArrayWrapper, byte[]> entry : data.entrySet()) {
-			map.put(new String(entry.getKey().getArray(), CHARSET), new String(entry.getValue(), CHARSET));
-		}
-		return map;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getKeyAsUtf8String() {
-
-		if (getKey() == null) {
-			return null;
-		}
-		return new String(getKey(), CHARSET);
-	}
-
-	private boolean hasValue(byte[] source) {
-		return source != null && source.length != 0;
-	}
+	public Bucket getBucket() {
+		return bucket;
+	};
 
 	@Override
 	public String toString() {
-		return "RedisDataObject [key=" + getKeyAsUtf8String() + ", hash=" + getDataAsUtf8String() + "]";
+		return "RedisDataObject [key=" + keyspace + ":" + id + ", hash=" + bucket + "]";
 	}
 
 }

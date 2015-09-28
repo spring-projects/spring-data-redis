@@ -49,10 +49,15 @@ public class IndexConfiguration {
 		return false;
 	}
 
-	public RedisIndexDefinition getIndexDefinition(Serializable keyspace, String path, IndexType type) {
+	private RedisIndexDefinition getIndexDefinition(Serializable keyspace, String path, IndexType type) {
 
-		RedisIndexDefinition def = new RedisIndexDefinition(keyspace, path, type);
-		return definitions.contains(def) ? def : null;
+		for (RedisIndexDefinition indexDef : definitions) {
+			if (indexDef.getKeyspace().equals(keyspace) && indexDef.getPath().equals(path) && indexDef.getType().equals(type)) {
+				return indexDef;
+			}
+		}
+
+		return null;
 	}
 
 	public List<RedisIndexDefinition> getIndexDefinitionsFor(Serializable keyspace, String path) {

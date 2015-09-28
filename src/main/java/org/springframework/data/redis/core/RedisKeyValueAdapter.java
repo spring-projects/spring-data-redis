@@ -26,6 +26,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
+import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -34,7 +35,6 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 
 /**
@@ -48,11 +48,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 
 	private MappingRedisConverter converter;
 
-	public RedisKeyValueAdapter() {
+	RedisKeyValueAdapter() {
 		this((IndexConfiguration) null);
 	}
 
-	public RedisKeyValueAdapter(IndexConfiguration indexConfiguration) {
+	RedisKeyValueAdapter(IndexConfiguration indexConfiguration) {
 
 		super(new RedisQueryEngine());
 
@@ -86,35 +86,33 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 	 */
 	public Object put(final Serializable id, final Object item, final Serializable keyspace) {
 
-		final RedisData rdo = new RedisData();
-		converter.write(item, rdo);
+		final RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
+		if (!(item instanceof RedisData)) {
+			converter.write(item, rdo);
+		}
 
-		final byte[] indexPostFixPattern = converter.toBytes(":*");
+		if (rdo.getId() == null) {
+
+			rdo.setId(id);
+			KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass())
+					.getIdProperty();
+			converter.getMappingContext().getPersistentEntity(item.getClass()).getPropertyAccessor(item)
+					.setProperty(idProperty, id);
+
+		}
 
 		redisOps.execute(new RedisCallback<Object>() {
 
 			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
-				connection.hMSet(rdo.getKey(), rdo.getData());
-				connection.sAdd(rdo.getKeyspace(), rdo.getId());
+				byte[] key = converter.toBytes(rdo.getId());
 
-				// remove id from potential indexes since those might be invalid with the new data
-				for (byte[] potentialIndex : rdo.getIndexPaths()) {
+				connection.del(createKey(rdo.getKeyspace(), rdo.getId()));
+				connection.hMSet(createKey(rdo.getKeyspace(), rdo.getId()), rdo.getBucket().rawMap());
+				connection.sAdd(converter.toBytes(rdo.getKeyspace()), key);
 
-					Set<byte[]> existingKeys = connection.keys(ByteUtils.concat(potentialIndex, indexPostFixPattern));
-
-					for (byte[] existingKey : existingKeys) {
-						connection.sRem(existingKey, rdo.getId());
-					}
-				}
-
-				if (!rdo.getSimpleIndexKeys().isEmpty()) {
-
-					for (byte[] index : rdo.getSimpleIndexKeys()) {
-						connection.sAdd(index, rdo.getId());
-					}
-				}
+				new IndexDataWriter(rdo.getKeyspace(), connection, converter).updateIndexes(key, rdo.getIndexedData());
 				return null;
 			}
 		});
@@ -145,7 +143,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 	 */
 	public Object get(Serializable id, Serializable keyspace) {
 
-		final byte[] binId = converter.convertToId(keyspace, id);
+		final byte[] binId = createKey(keyspace, id);
 
 		Map<byte[], byte[]> raw = redisOps.execute(new RedisCallback<Map<byte[], byte[]>>() {
 
@@ -176,18 +174,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 				@Override
 				public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
-					connection.del(converter.convertToId(binKeyspace, binId));
+					connection.del(createKey(keyspace, id));
 					connection.sRem(binKeyspace, binId);
 
-					Set<byte[]> potentialIndex = connection.keys(converter.toBytes(keyspace + ".*"));
-
-					for (byte[] indexKey : potentialIndex) {
-						try {
-							connection.sRem(indexKey, binId);
-						} catch (Exception e) {
-							System.err.println(e);
-						}
-					}
+					new IndexDataWriter(keyspace, connection, converter).removeKeyFromIndexes(binId);
 					return null;
 				}
 			});
@@ -214,7 +204,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 				Set<byte[]> members = connection.sMembers(binKeyspace);
 
 				for (byte[] id : members) {
-					rawData.add(connection.hGetAll(converter.convertToId(binKeyspace, id)));
+					rawData.add(connection.hGetAll(createKey(binKeyspace, id)));
 				}
 
 				return rawData;
@@ -241,12 +231,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
 				connection.del(converter.toBytes(keyspace));
-
-				Set<byte[]> potentialIndex = connection.keys(converter.toBytes(keyspace + ".*"));
-
-				for (byte[] indexKey : potentialIndex) {
-					connection.del(indexKey);
-				}
+				new IndexDataWriter(keyspace, connection, converter).removeAllIndexes();
 				return null;
 			}
 		});
@@ -299,6 +284,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 
 	public void clear() {
 		// nothing to do
+	}
+
+	public byte[] createKey(Serializable keyspace, Serializable id) {
+		return this.converter.toBytes(keyspace + ":" + id);
 	}
 
 	/*
