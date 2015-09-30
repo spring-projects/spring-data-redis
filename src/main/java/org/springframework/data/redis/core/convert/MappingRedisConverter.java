@@ -46,7 +46,6 @@ import org.springframework.data.mapping.model.PersistentEntityParameterValueProv
 import org.springframework.data.mapping.model.PropertyValueProvider;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
-import org.springframework.data.redis.core.index.RedisIndexDefinition;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -99,14 +98,13 @@ public class MappingRedisConverter implements RedisConverter {
 	private final EntityInstantiators entityInstantiators;
 	private final TypeMapper<RedisData> typeMapper;
 	private final ReferenceResolver referenceResolver;
-
-	private final IndexConfiguration indexConfiguration;
+	private final IndexResolver indexResolver;
 
 	/**
-	 * @param indexConfiguration can be {@literal null}.
+	 * @param indexResolver can be {@literal null}.
 	 * @param referenceResolver must not be {@literal null}.
 	 */
-	public MappingRedisConverter(IndexConfiguration indexConfiguration, ReferenceResolver referenceResolver) {
+	public MappingRedisConverter(IndexResolver indexResolver, ReferenceResolver referenceResolver) {
 
 		Assert.notNull(referenceResolver, "ReferenceResolver must not be null!");
 
@@ -127,8 +125,8 @@ public class MappingRedisConverter implements RedisConverter {
 
 		typeMapper = new DefaultTypeMapper<RedisData>(new RedisTypeAliasAccessor(this.conversionService));
 
-		this.indexConfiguration = indexConfiguration != null ? indexConfiguration : new IndexConfiguration();
 		this.referenceResolver = referenceResolver;
+		this.indexResolver = indexResolver != null ? indexResolver : new IndexResolverImpl(new IndexConfiguration());
 	}
 
 	/*
@@ -345,26 +343,10 @@ public class MappingRedisConverter implements RedisConverter {
 
 					Object propertyValue = accessor.getProperty(persistentProperty);
 
-					if (indexConfiguration.hasIndexFor(entity.getKeySpace(), propertyStringPath)) {
-
-						sink.addIndexedData(new SimpleIndexedPropertyValue(propertyStringPath, propertyValue));
-					}
-
-					else if (persistentProperty.isAnnotationPresent(Indexed.class)) {
-
-						Indexed indexed = persistentProperty.findAnnotation(Indexed.class);
-
-						indexConfiguration.addIndexDefinition(new RedisIndexDefinition(entity.getKeySpace(), propertyStringPath,
-								indexed.type()));
-
-						switch (indexed.type()) {
-							case SIMPLE:
-								sink.addIndexedData(new SimpleIndexedPropertyValue(propertyStringPath, propertyValue));
-								break;
-							default:
-								throw new IllegalArgumentException(String.format("Unsupported index type '%s' for path '%s'.",
-										indexed.type(), propertyStringPath));
-						}
+					IndexedData index = indexResolver.resolveIndex(keyspace, propertyStringPath, persistentProperty,
+							propertyValue);
+					if (index != null) {
+						sink.addIndexedData(index);
 					}
 
 					sink.getBucket().put(propertyStringPath, toBytes(propertyValue));

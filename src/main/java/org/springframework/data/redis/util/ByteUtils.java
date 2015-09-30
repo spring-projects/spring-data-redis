@@ -26,28 +26,6 @@ public final class ByteUtils {
 
 	private ByteUtils() {}
 
-	public static boolean startsWith(byte[] source, byte[] prefix) {
-
-		if (source == null && prefix == null) {
-			return true;
-		}
-
-		if (source == null || prefix == null) {
-			return false;
-		}
-
-		if (prefix.length > source.length) {
-			return false;
-		}
-
-		for (int i = 0; i < prefix.length; i++) {
-			if (source[i] != prefix[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public static byte[] concat(byte[] arg1, byte[] arg2) {
 
 		byte[] result = Arrays.copyOf(arg1, arg1.length + arg2.length);
@@ -58,34 +36,17 @@ public final class ByteUtils {
 
 	public static byte[] concatAll(byte[]... args) {
 
+		if (args.length == 0) {
+			return new byte[] {};
+		}
+		if (args.length == 1) {
+			return args[0];
+		}
+
 		byte[] cur = concat(args[0], args[1]);
 		for (int i = 2; i < args.length; i++) {
 			cur = concat(cur, args[i]);
 		}
 		return cur;
-
-	}
-
-	public static byte[] extract(byte[] source, byte[] prefix, byte[] postfix) {
-
-		if (prefix.length > source.length) {
-			return new byte[] {};
-		}
-
-		for (int i = 0; i < prefix.length; i++) {
-			if (source[i] != prefix[i]) {
-				return new byte[] {};
-			}
-		}
-
-		for (int i = 0; i < postfix.length; i++) {
-			for (int j = prefix.length + i; j < source.length; j++) {
-				if (source[j] == postfix[i]) {
-					return Arrays.copyOfRange(source, prefix.length, j);
-				}
-			}
-		}
-
-		return new byte[] {};
 	}
 }

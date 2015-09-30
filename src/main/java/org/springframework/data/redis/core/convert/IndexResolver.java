@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.index;
+package org.springframework.data.redis.core.convert;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 
 /**
  * @author Christoph Strobl
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
-public @interface Indexed {
+public interface IndexResolver {
 
-	IndexType type() default IndexType.SIMPLE;
+	IndexedData resolveIndex(String keyspace, String path, KeyValuePersistentProperty property, Object value);
 
 }

@@ -24,17 +24,26 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Christoph Strobl
  */
-class IndexDataWriter {
+class IndexWriter {
 
 	private final RedisConnection connection;
 	private final RedisConverter converter;
-	private final Serializable keyspace;
 
-	public IndexDataWriter(Serializable keyspace, RedisConnection connection, RedisConverter converter) {
+	private final String prefix;
+
+	/**
+	 * Creates new {@link IndexWriter}.
+	 * 
+	 * @param keyspace The key space to write index values to. Must not be {@literal null}.
+	 * @param connection must not be {@literal null}.
+	 * @param converter must not be {@literal null}.
+	 */
+	public IndexWriter(Serializable keyspace, RedisConnection connection, RedisConverter converter) {
 
 		Assert.notNull(keyspace, "Keyspace cannot be null!");
 		Assert.notNull(connection, "RedisConnection cannot be null!");
@@ -42,9 +51,16 @@ class IndexDataWriter {
 
 		this.connection = connection;
 		this.converter = converter;
-		this.keyspace = keyspace;
+
+		this.prefix = keyspace + ":";
 	}
 
+	/**
+	 * Updates indexes by first removing key from existing one and then persisting new index data.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param indexValues can be {@literal null}.
+	 */
 	public void updateIndexes(Object key, Iterable<IndexedData> indexValues) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -58,21 +74,29 @@ class IndexDataWriter {
 		addKeyToIndexes(binKey, indexValues);
 	}
 
+	/**
+	 * Removes a key from all available indexes.
+	 * 
+	 * @param key must not be {@literal null}.
+	 */
 	public void removeKeyFromIndexes(Object key) {
 
 		Assert.notNull(key, "Key must not be null!");
 		byte[] binKey = toBytes(key);
 
-		Set<byte[]> potentialIndex = connection.keys(toBytes(keyspace + ".*"));
+		Set<byte[]> potentialIndex = connection.keys(toBytes(prefix + "*"));
 		for (byte[] indexKey : potentialIndex) {
 			connection.sRem(indexKey, binKey);
 		}
 
 	}
 
+	/**
+	 * Removes all indexes.
+	 */
 	public void removeAllIndexes() {
 
-		Set<byte[]> potentialIndex = connection.keys(toBytes(keyspace + ".*"));
+		Set<byte[]> potentialIndex = connection.keys(toBytes(prefix + "*"));
 
 		if (!potentialIndex.isEmpty()) {
 			connection.del(potentialIndex.toArray(new byte[potentialIndex.size()][]));
@@ -86,11 +110,21 @@ class IndexDataWriter {
 		}
 	}
 
-	private void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
+	/**
+	 * Remove given key from all indexes matching {@link IndexedData#getPath()}:
+	 * 
+	 * @param key
+	 * @param indexedData
+	 */
+	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
-		Set<byte[]> existingKeys = connection.keys(toBytes(keyspace + "." + indexedData.getPath() + ":*"));
-		for (byte[] existingKey : existingKeys) {
-			connection.sRem(existingKey, key);
+		Assert.notNull(indexedData, "IndexedData must not be null!");
+		Set<byte[]> existingKeys = connection.keys(toBytes(prefix + indexedData.getPath() + ":*"));
+
+		if (!CollectionUtils.isEmpty(existingKeys)) {
+			for (byte[] existingKey : existingKeys) {
+				connection.sRem(existingKey, key);
+			}
 		}
 	}
 
@@ -101,7 +135,16 @@ class IndexDataWriter {
 		}
 	}
 
-	private void addKeyToIndex(byte[] key, IndexedData indexedData) {
+	/**
+	 * Adds a given key to the index for {@link IndexedData#getPath()}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param indexedData must not be {@literal null}.
+	 */
+	protected void addKeyToIndex(byte[] key, IndexedData indexedData) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(indexedData, "IndexedData must not be null!");
 
 		if (indexedData instanceof SimpleIndexedPropertyValue) {
 
@@ -111,11 +154,12 @@ class IndexDataWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(keyspace + "." + indexedData.getPath() + ":");
+			byte[] indexKey = toBytes(prefix + indexedData.getPath() + ":");
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
 		} else {
-			throw new IllegalArgumentException("Cannot index data");
+			throw new IllegalArgumentException(String.format("Cannot write index data for unknown index type %s",
+					indexedData.getClass()));
 		}
 	}
 
@@ -131,5 +175,4 @@ class IndexDataWriter {
 
 		return converter.getConversionService().convert(source, byte[].class);
 	}
-
 }

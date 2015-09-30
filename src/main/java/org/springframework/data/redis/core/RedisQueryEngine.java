@@ -58,7 +58,7 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 			@Override
 			public List<Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
 
-				String key = keyspace + ".";
+				String key = keyspace + ":";
 				byte[][] keys = new byte[criteria.getSismember().size()][];
 				int i = 0;
 				for (Object o : criteria.getSismember()) {
@@ -105,7 +105,7 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 			@Override
 			public Long doInRedis(RedisConnection connection) throws DataAccessException {
 
-				String key = keyspace + ".";
+				String key = keyspace + ":";
 				byte[][] keys = new byte[criteria.getSismember().size()][];
 				int i = 0;
 				for (Object o : criteria.getSismember()) {
