@@ -108,8 +108,8 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		assertThat(template.keys("persons*"), hasItem("persons.firstname:rand"));
-		assertThat(template.opsForSet().members("persons.firstname:rand"), hasItems("1"));
+		assertThat(template.keys("persons*"), hasItem("persons:firstname:rand"));
+		assertThat(template.opsForSet().members("persons:firstname:rand"), hasItems("1"));
 	}
 
 	/**
@@ -140,8 +140,8 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		assertThat(template.keys("persons*"), hasItem("persons.address.country:Andor"));
-		assertThat(template.opsForSet().members("persons.address.country:Andor"), hasItems("1"));
+		assertThat(template.keys("persons*"), hasItem("persons:address.country:Andor"));
+		assertThat(template.opsForSet().members("persons:address.country:Andor"), hasItems("1"));
 	}
 
 	/**
@@ -224,11 +224,11 @@ public class RedisKeyValueAdapterTests {
 		map.put("address.country", "Andor");
 		template.opsForHash().putAll("persons:1", map);
 		template.opsForSet().add("persons", "1");
-		template.opsForSet().add("persons.firstname:rand", "1");
+		template.opsForSet().add("persons:firstname:rand", "1");
 
 		adapter.delete("1", "persons");
 
-		assertThat(template.opsForSet().members("persons.firstname:rand"), not(hasItem("1")));
+		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
 	}
 
 	@KeySpace("persons")

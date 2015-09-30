@@ -30,6 +30,7 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.convert.IndexResolverImpl;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
@@ -56,7 +57,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 
 		super(new RedisQueryEngine());
 
-		converter = new MappingRedisConverter(indexConfiguration, new ReferenceResolverImpl(this));
+		converter = new MappingRedisConverter(new IndexResolverImpl(indexConfiguration), new ReferenceResolverImpl(this));
 
 		JedisConnectionFactory conFactory = new JedisConnectionFactory();
 		conFactory.afterPropertiesSet();
@@ -76,7 +77,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 
 		super(new RedisQueryEngine());
 
-		converter = new MappingRedisConverter(indexConfiguration, new ReferenceResolverImpl(this));
+		converter = new MappingRedisConverter(new IndexResolverImpl(indexConfiguration), new ReferenceResolverImpl(this));
 		this.redisOps = redisOps;
 	}
 
@@ -112,7 +113,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 				connection.hMSet(createKey(rdo.getKeyspace(), rdo.getId()), rdo.getBucket().rawMap());
 				connection.sAdd(converter.toBytes(rdo.getKeyspace()), key);
 
-				new IndexDataWriter(rdo.getKeyspace(), connection, converter).updateIndexes(key, rdo.getIndexedData());
+				new IndexWriter(rdo.getKeyspace(), connection, converter).updateIndexes(key, rdo.getIndexedData());
 				return null;
 			}
 		});
@@ -177,7 +178,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 					connection.del(createKey(keyspace, id));
 					connection.sRem(binKeyspace, binId);
 
-					new IndexDataWriter(keyspace, connection, converter).removeKeyFromIndexes(binId);
+					new IndexWriter(keyspace, connection, converter).removeKeyFromIndexes(binId);
 					return null;
 				}
 			});
@@ -231,7 +232,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
 				connection.del(converter.toBytes(keyspace));
-				new IndexDataWriter(keyspace, connection, converter).removeAllIndexes();
+				new IndexWriter(keyspace, connection, converter).removeAllIndexes();
 				return null;
 			}
 		});
