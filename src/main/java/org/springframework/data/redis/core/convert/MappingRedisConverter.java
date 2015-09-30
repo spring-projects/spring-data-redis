@@ -44,6 +44,7 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
 import org.springframework.data.mapping.model.PropertyValueProvider;
+import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.util.ClassTypeInformation;
@@ -294,6 +295,11 @@ public class MappingRedisConverter implements RedisConverter {
 
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
 		sink.setId((Serializable) entity.getIdentifierAccessor(source).getIdentifier());
+
+		RedisHash hash = entity.findAnnotation(RedisHash.class);
+		if (hash != null && hash.timeToLive() > 0) {
+			sink.setTimeToLive(hash.timeToLive());
+		}
 	}
 
 	/**

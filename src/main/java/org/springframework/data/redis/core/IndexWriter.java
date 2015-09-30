@@ -82,13 +82,15 @@ class IndexWriter {
 	public void removeKeyFromIndexes(Object key) {
 
 		Assert.notNull(key, "Key must not be null!");
-		byte[] binKey = toBytes(key);
 
-		Set<byte[]> potentialIndex = connection.keys(toBytes(prefix + "*"));
-		for (byte[] indexKey : potentialIndex) {
+		byte[] binKey = toBytes(key);
+		byte[] indexHelperKey = ByteUtils.concatAll(toBytes(prefix), binKey, toBytes(":idx"));
+
+		for (byte[] indexKey : connection.sMembers(indexHelperKey)) {
 			connection.sRem(indexKey, binKey);
 		}
 
+		connection.del(indexHelperKey);
 	}
 
 	/**
@@ -157,6 +159,9 @@ class IndexWriter {
 			byte[] indexKey = toBytes(prefix + indexedData.getPath() + ":");
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
+
+			// keep track of indexes used for the object
+			connection.sAdd(ByteUtils.concatAll(toBytes(prefix), key, toBytes(":idx")), indexKey);
 		} else {
 			throw new IllegalArgumentException(String.format("Cannot write index data for unknown index type %s",
 					indexedData.getClass()));

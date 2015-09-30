@@ -22,11 +22,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -36,6 +43,9 @@ import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 
 /**
@@ -43,16 +53,21 @@ import org.springframework.data.util.CloseableIterator;
  * 
  * @author Christoph Strobl
  */
-public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
+public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements ApplicationContextAware,
+		ApplicationListener<RedisKeyspaceEvent> {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RedisKeyValueAdapter.class);
 
 	private RedisOperations<?, ?> redisOps;
-
 	private MappingRedisConverter converter;
+	private RedisMessageListenerContainer messageListenerContainer;
+	private KeyExpirationEventMessageListener expirationListener;
 
 	RedisKeyValueAdapter() {
 		this((IndexConfiguration) null);
 	}
 
+	// TODO: remove this constructor!
 	RedisKeyValueAdapter(IndexConfiguration indexConfiguration) {
 
 		super(new RedisQueryEngine());
@@ -67,6 +82,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 		template.afterPropertiesSet();
 
 		this.redisOps = template;
+
+		initKeyExpirationListener();
 	}
 
 	/**
@@ -79,6 +96,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 
 		converter = new MappingRedisConverter(new IndexResolverImpl(indexConfiguration), new ReferenceResolverImpl(this));
 		this.redisOps = redisOps;
+
+		initKeyExpirationListener();
 	}
 
 	/*
@@ -95,11 +114,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 		if (rdo.getId() == null) {
 
 			rdo.setId(id);
-			KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass())
-					.getIdProperty();
-			converter.getMappingContext().getPersistentEntity(item.getClass()).getPropertyAccessor(item)
-					.setProperty(idProperty, id);
 
+			if (!(item instanceof RedisData)) {
+				KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass())
+						.getIdProperty();
+				converter.getMappingContext().getPersistentEntity(item.getClass()).getPropertyAccessor(item)
+						.setProperty(idProperty, id);
+			}
 		}
 
 		redisOps.execute(new RedisCallback<Object>() {
@@ -108,9 +129,23 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
 				byte[] key = converter.toBytes(rdo.getId());
+				byte[] objectKey = createKey(rdo.getKeyspace(), rdo.getId());
 
-				connection.del(createKey(rdo.getKeyspace(), rdo.getId()));
-				connection.hMSet(createKey(rdo.getKeyspace(), rdo.getId()), rdo.getBucket().rawMap());
+				connection.del(objectKey);
+
+				connection.hMSet(objectKey, rdo.getBucket().rawMap());
+
+				if (rdo.getTimeToLive() != null && rdo.getTimeToLive().longValue() > 0) {
+
+					connection.expire(objectKey, rdo.getTimeToLive().longValue());
+
+					// add phantom key so values can be restored
+					byte[] phantomKey = ByteUtils.concat(objectKey, converter.toBytes(":phantom"));
+					connection.del(phantomKey);
+					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
+					connection.expire(phantomKey, rdo.getTimeToLive().longValue() + 300);
+				}
+
 				connection.sAdd(converter.toBytes(rdo.getKeyspace()), key);
 
 				new IndexWriter(rdo.getKeyspace(), connection, converter).updateIndexes(key, rdo.getIndexedData());
@@ -302,6 +337,121 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter {
 			if (connectionFactory instanceof DisposableBean) {
 				((DisposableBean) connectionFactory).destroy();
 			}
+		}
+
+		this.expirationListener.destroy();
+		this.messageListenerContainer.destroy();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.context.ApplicationListener#onApplicationEvent(org.springframework.context.ApplicationEvent)
+	 */
+	@Override
+	public void onApplicationEvent(RedisKeyspaceEvent event) {
+
+		LOGGER.debug("Received %s .", event);
+
+		if (event instanceof RedisKeyExpiredEvent) {
+
+			final RedisKeyExpiredEvent expiredEvent = (RedisKeyExpiredEvent) event;
+
+			redisOps.execute(new RedisCallback<Void>() {
+
+				@Override
+				public Void doInRedis(RedisConnection connection) throws DataAccessException {
+
+					LOGGER.debug("Cleaning up expired key '%s' data structures in keyspace '%s'.", expiredEvent.getSource(),
+							expiredEvent.getKeyspace());
+
+					connection.sRem(converter.toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
+					new IndexWriter(expiredEvent.getKeyspace(), connection, converter).removeKeyFromIndexes(expiredEvent.getId());
+					return null;
+				}
+			});
+
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
+	 */
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.expirationListener.setApplicationEventPublisher(applicationContext);
+	}
+
+	private void initKeyExpirationListener() {
+
+		this.messageListenerContainer = new RedisMessageListenerContainer();
+		messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getConnectionFactory());
+		messageListenerContainer.afterPropertiesSet();
+		messageListenerContainer.start();
+
+		this.expirationListener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
+				this.converter);
+		this.expirationListener.init();
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 */
+	static class MappingExpirationListener extends KeyExpirationEventMessageListener {
+
+		private final RedisOperations<?, ?> ops;
+		private final RedisConverter converter;
+
+		public MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
+				RedisConverter converter) {
+
+			super(listenerContainer);
+			this.ops = ops;
+			this.converter = converter;
+		}
+
+		@Override
+		public void onMessage(Message message, byte[] pattern) {
+
+			if (!isKeyExpirationMessage(message)) {
+				return;
+			}
+
+			byte[] key = message.getBody();
+
+			final byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService()
+					.convert(":phantom", byte[].class));
+
+			Map<byte[], byte[]> hash = ops.execute(new RedisCallback<Map<byte[], byte[]>>() {
+
+				@Override
+				public Map<byte[], byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+
+					Map<byte[], byte[]> hash = connection.hGetAll(phantomKey);
+
+					if (!org.springframework.util.CollectionUtils.isEmpty(hash)) {
+						connection.del(phantomKey);
+					}
+					return hash;
+				}
+			});
+
+			Object value = converter.read(Object.class, new RedisData(hash));
+			publishEvent(new RedisKeyExpiredEvent(key, value));
+		}
+
+		private boolean isKeyExpirationMessage(Message message) {
+
+			if (message == null || message.getChannel() == null || message.getBody() == null) {
+				return false;
+			}
+
+			byte[][] args = ByteUtils.split(message.getBody(), ':');
+			if (args.length != 2) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 

@@ -35,6 +35,8 @@ public class RedisData {
 	private Bucket bucket;
 	private Set<IndexedData> indexedData;
 
+	private Long timeToLive;
+
 	public RedisData() {
 		this(Collections.<byte[], byte[]> emptyMap());
 	}
@@ -55,6 +57,10 @@ public class RedisData {
 
 	public Serializable getId() {
 		return this.id;
+	}
+
+	public Long getTimeToLive() {
+		return timeToLive;
 	}
 
 	/**
@@ -84,7 +90,11 @@ public class RedisData {
 
 	public Bucket getBucket() {
 		return bucket;
-	};
+	}
+
+	public void setTimeToLive(Long timeToLive) {
+		this.timeToLive = timeToLive;
+	}
 
 	@Override
 	public String toString() {

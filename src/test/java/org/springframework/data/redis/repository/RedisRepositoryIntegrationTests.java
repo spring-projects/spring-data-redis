@@ -33,9 +33,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
@@ -184,7 +184,7 @@ public class RedisRepositoryIntegrationTests {
 		}
 	}
 
-	@KeySpace("persons")
+	@RedisHash("persons")
 	@SuppressWarnings("serial")
 	public static class Person implements Serializable {
 
@@ -270,7 +270,7 @@ public class RedisRepositoryIntegrationTests {
 
 	}
 
-	@KeySpace("cities")
+	@RedisHash("cities")
 	public static class City {
 		@Id String id;
 		String name;

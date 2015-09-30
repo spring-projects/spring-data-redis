@@ -36,6 +36,7 @@ import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.convert.Bucket;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 
@@ -224,11 +225,34 @@ public class RedisKeyValueAdapterTests {
 		map.put("address.country", "Andor");
 		template.opsForHash().putAll("persons:1", map);
 		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
 		template.opsForSet().add("persons:firstname:rand", "1");
 
 		adapter.delete("1", "persons");
 
 		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void keyExpiredEventShouldRemoveHelperStructures() {
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("_class", Person.class.getName());
+		map.put("firstname", "rand");
+		map.put("address.country", "Andor");
+
+		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:firstname:rand", "1");
+		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
+
+		adapter.onApplicationEvent(new RedisKeyExpiredEvent("persons:1".getBytes(Bucket.CHARSET)));
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(false));
+		assertThat(template.hasKey("persons:1:idx"), is(false));
+		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
 	}
 
 	@KeySpace("persons")
@@ -283,4 +307,5 @@ public class RedisKeyValueAdapterTests {
 		@Id String id;
 		String name;
 	}
+
 }
