@@ -43,7 +43,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
-import org.springframework.data.keyvalue.annotation.KeySpace;
+import org.springframework.data.redis.core.RedisHash;
 
 /**
  * @author Christoph Strobl
@@ -721,6 +721,32 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.visited.get(2), is(tear));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeSetsAnnotatedTimeToLiveCorrectly() {
+
+		ExipringPerson birgitte = new ExipringPerson();
+		birgitte.id = "birgitte";
+		birgitte.name = "Birgitte Silverbow";
+
+		assertThat(write(birgitte).getTimeToLive(), is(5L));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeDoesNotTTLWhenNotPresent() {
+
+		Location tear = new Location();
+		tear.id = "tear";
+		tear.name = "Tear";
+
+		assertThat(write(tear).getTimeToLive(), nullValue());
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
@@ -728,7 +754,7 @@ public class MappingRedisConverterUnitTests {
 		return rdo;
 	}
 
-	@KeySpace("persons")
+	@RedisHash("persons")
 	static class Person {
 
 		@Id String id;
@@ -774,8 +800,15 @@ public class MappingRedisConverterUnitTests {
 
 	}
 
-	@KeySpace("locations")
+	@RedisHash("locations")
 	static class Location {
+
+		@Id String id;
+		String name;
+	}
+
+	@RedisHash(timeToLive = 5)
+	static class ExipringPerson {
 
 		@Id String id;
 		String name;

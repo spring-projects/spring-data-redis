@@ -68,6 +68,8 @@ public class IndexWriterUnitTests {
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue("firstname", "Rand"));
 
 		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
+		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
+				eq("persons:firstname:Rand".getBytes(CHARSET)));
 	}
 
 	/**

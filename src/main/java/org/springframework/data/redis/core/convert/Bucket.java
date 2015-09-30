@@ -139,6 +139,10 @@ public class Bucket {
 	public static Bucket newBucketFromRawMap(Map<byte[], byte[]> source) {
 
 		Bucket bucket = new Bucket();
+		if (source == null) {
+			return bucket;
+		}
+
 		for (Map.Entry<byte[], byte[]> entry : source.entrySet()) {
 			bucket.put(new String(entry.getKey(), CHARSET), entry.getValue());
 		}

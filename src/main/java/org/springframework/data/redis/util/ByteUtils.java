@@ -15,7 +15,9 @@
  */
 package org.springframework.data.redis.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Some handy methods for dealing with byte arrays.
@@ -48,5 +50,29 @@ public final class ByteUtils {
 			cur = concat(cur, args[i]);
 		}
 		return cur;
+	}
+
+	public static byte[][] split(byte[] source, int c) {
+
+		if (source == null || source.length == 0) {
+			return new byte[][] {};
+		}
+
+		List<byte[]> bytes = new ArrayList<byte[]>();
+		int offset = 0;
+		for (int i = 0; i <= source.length; i++) {
+
+			if (i == source.length) {
+
+				bytes.add(Arrays.copyOfRange(source, offset, i));
+				break;
+			}
+
+			if (source[i] == c) {
+				bytes.add(Arrays.copyOfRange(source, offset, i));
+				offset = i + 1;
+			}
+		}
+		return bytes.toArray(new byte[bytes.size()][]);
 	}
 }
