@@ -37,8 +37,11 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.convert.Bucket;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
+import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 
 /**
  * @author Christoph Strobl
@@ -59,7 +62,10 @@ public class RedisKeyValueAdapterTests {
 		template = new StringRedisTemplate(connectionFactory);
 		template.afterPropertiesSet();
 
-		adapter = new RedisKeyValueAdapter(template, new IndexConfiguration());
+		RedisMappingContext mappingContext = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(),
+				new KeyspaceConfiguration()));
+
+		adapter = new RedisKeyValueAdapter(template, mappingContext);
 
 		template.execute(new RedisCallback<Void>() {
 

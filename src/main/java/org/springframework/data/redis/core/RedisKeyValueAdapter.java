@@ -36,17 +36,17 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.convert.IndexResolverImpl;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
-import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
+import org.springframework.util.Assert;
 
 /**
  * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis.
@@ -63,38 +63,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	private RedisMessageListenerContainer messageListenerContainer;
 	private KeyExpirationEventMessageListener expirationListener;
 
-	RedisKeyValueAdapter() {
-		this((IndexConfiguration) null);
-	}
-
-	// TODO: remove this constructor!
-	RedisKeyValueAdapter(IndexConfiguration indexConfiguration) {
-
-		super(new RedisQueryEngine());
-
-		converter = new MappingRedisConverter(new IndexResolverImpl(indexConfiguration), new ReferenceResolverImpl(this));
-
-		JedisConnectionFactory conFactory = new JedisConnectionFactory();
-		conFactory.afterPropertiesSet();
-
-		RedisTemplate<byte[], byte[]> template = new RedisTemplate<byte[], byte[]>();
-		template.setConnectionFactory(conFactory);
-		template.afterPropertiesSet();
-
-		this.redisOps = template;
-
-		initKeyExpirationListener();
-	}
-
 	/**
-	 * @param redisOps
-	 * @param indexConfiguration
+	 * @param redisOps must not be {@literal null}.
+	 * @param mappingContext must not be {@literal null}.
 	 */
-	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, IndexConfiguration indexConfiguration) {
+	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext) {
 
 		super(new RedisQueryEngine());
 
-		converter = new MappingRedisConverter(new IndexResolverImpl(indexConfiguration), new ReferenceResolverImpl(this));
+		Assert.notNull(redisOps, "RedisOperations must not be null!");
+		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
+
+		converter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(mappingContext
+				.getMappingConfiguration().getIndexConfiguration()), new ReferenceResolverImpl(this));
 		this.redisOps = redisOps;
 
 		initKeyExpirationListener();
@@ -148,7 +129,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 				connection.sAdd(converter.toBytes(rdo.getKeyspace()), key);
 
-				new IndexWriter(rdo.getKeyspace(), connection, converter).updateIndexes(key, rdo.getIndexedData());
+				new IndexWriter(connection, converter).updateIndexes(key, rdo.getIndexedData());
 				return null;
 			}
 		});
@@ -213,7 +194,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 					connection.del(createKey(keyspace, id));
 					connection.sRem(binKeyspace, binId);
 
-					new IndexWriter(keyspace, connection, converter).removeKeyFromIndexes(binId);
+					new IndexWriter(connection, converter).removeKeyFromIndexes(keyspace.toString(), binId);
 					return null;
 				}
 			});
@@ -267,7 +248,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
 				connection.del(converter.toBytes(keyspace));
-				new IndexWriter(keyspace, connection, converter).removeAllIndexes();
+				new IndexWriter(connection, converter).removeAllIndexes(keyspace.toString());
 				return null;
 			}
 		});
@@ -365,7 +346,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 							expiredEvent.getKeyspace());
 
 					connection.sRem(converter.toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
-					new IndexWriter(expiredEvent.getKeyspace(), connection, converter).removeKeyFromIndexes(expiredEvent.getId());
+					new IndexWriter(connection, converter).removeKeyFromIndexes(expiredEvent.getKeyspace(), expiredEvent.getId());
 					return null;
 				}
 			});

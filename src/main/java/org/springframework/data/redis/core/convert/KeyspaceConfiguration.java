@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -26,48 +27,48 @@ import org.springframework.util.ClassUtils;
  */
 public class KeyspaceConfiguration {
 
-	private Map<Class<?>, KeyspaceAssignment> assignmentMap;
+	private Map<Class<?>, KeyspaceSettings> settingsMap;
 
 	public KeyspaceConfiguration() {
 
-		this.assignmentMap = new ConcurrentHashMap<Class<?>, KeyspaceAssignment>();
-		for (KeyspaceAssignment initial : initialConfiguration()) {
-			assignmentMap.put(initial.type, initial);
+		this.settingsMap = new ConcurrentHashMap<Class<?>, KeyspaceSettings>();
+		for (KeyspaceSettings initial : initialConfiguration()) {
+			settingsMap.put(initial.type, initial);
 		}
 	}
 
-	public boolean hasAssignmentFor(Class<?> type) {
+	public boolean hasSettingsFor(Class<?> type) {
 
-		if (assignmentMap.containsKey(type)) {
+		if (settingsMap.containsKey(type)) {
 
-			if (assignmentMap.get(type) instanceof DefaultKeyspaceAssignment) {
+			if (settingsMap.get(type) instanceof DefaultKeyspaceSetting) {
 				return false;
 			}
 
 			return true;
 		}
 
-		for (KeyspaceAssignment assignment : assignmentMap.values()) {
+		for (KeyspaceSettings assignment : settingsMap.values()) {
 			if (assignment.inherit) {
 				if (ClassUtils.isAssignable(assignment.type, type)) {
-					assignmentMap.put(type, assignment.cloneFor(type));
+					settingsMap.put(type, assignment.cloneFor(type));
 					return true;
 				}
 			}
 		}
 
-		assignmentMap.put(type, new DefaultKeyspaceAssignment(type));
+		settingsMap.put(type, new DefaultKeyspaceSetting(type));
 		return false;
 	}
 
-	public KeyspaceAssignment getKeyspaceAssignment(Class<?> type) {
+	public KeyspaceSettings getKeyspaceSettings(Class<?> type) {
 
-		KeyspaceAssignment assignment = assignmentMap.get(type);
-		if (assignment == null || assignment instanceof DefaultKeyspaceAssignment) {
+		KeyspaceSettings settings = settingsMap.get(type);
+		if (settings == null || settings instanceof DefaultKeyspaceSetting) {
 			return null;
 		}
 
-		return assignment;
+		return settings;
 	}
 
 	/**
@@ -75,29 +76,30 @@ public class KeyspaceConfiguration {
 	 * 
 	 * @return must not return {@literal null}.
 	 */
-	protected Iterable<KeyspaceAssignment> initialConfiguration() {
+	protected Iterable<KeyspaceSettings> initialConfiguration() {
 		return Collections.emptySet();
 	}
 
-	public static class KeyspaceAssignment {
+	public static class KeyspaceSettings {
 
 		private final String keyspace;
 		private final Class<?> type;
 		private final boolean inherit;
+		private Long timeToLive;
 
-		public KeyspaceAssignment(Class<?> type, String keyspace) {
+		public KeyspaceSettings(Class<?> type, String keyspace) {
 			this(type, keyspace, true);
 		}
 
-		public KeyspaceAssignment(Class<?> type, String keyspace, boolean inherit) {
+		public KeyspaceSettings(Class<?> type, String keyspace, boolean inherit) {
 
 			this.type = type;
 			this.keyspace = keyspace;
 			this.inherit = inherit;
 		}
 
-		KeyspaceAssignment cloneFor(Class<?> type) {
-			return new KeyspaceAssignment(type, this.keyspace, false);
+		KeyspaceSettings cloneFor(Class<?> type) {
+			return new KeyspaceSettings(type, this.keyspace, false);
 		}
 
 		public String getKeyspace() {
@@ -108,13 +110,27 @@ public class KeyspaceConfiguration {
 			return type;
 		}
 
+		public void setTimeToLive(Long timeToLive) {
+			this.timeToLive = timeToLive;
+		}
+
+		public Long getTimeToLive() {
+			return timeToLive;
+		}
+
 	}
 
-	static class DefaultKeyspaceAssignment extends KeyspaceAssignment {
+	static class DefaultKeyspaceSetting extends KeyspaceSettings {
 
-		public DefaultKeyspaceAssignment(Class<?> type) {
+		public DefaultKeyspaceSetting(Class<?> type) {
 			super(type, "#default#", false);
 		}
 
+	}
+
+	public void addKeyspaceSettings(KeyspaceSettings keyspaceSettings) {
+
+		Assert.notNull(keyspaceSettings);
+		this.settingsMap.put(keyspaceSettings.getType(), keyspaceSettings);
 	}
 }

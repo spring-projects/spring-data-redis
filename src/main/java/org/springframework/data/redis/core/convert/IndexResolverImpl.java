@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.RedisIndexDefinition;
@@ -42,10 +42,10 @@ public class IndexResolverImpl implements IndexResolver {
 	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndex(java.lang.String, java.lang.String, org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty, java.lang.Object)
 	 */
 	@Override
-	public IndexedData resolveIndex(String keyspace, String path, KeyValuePersistentProperty property, Object value) {
+	public IndexedData resolveIndex(String keyspace, String path, PersistentProperty<?> property, Object value) {
 
 		if (indexConfiguration.hasIndexFor(keyspace, path)) {
-			return new SimpleIndexedPropertyValue(path, value);
+			return new SimpleIndexedPropertyValue(keyspace, path, value);
 		}
 
 		else if (property.isAnnotationPresent(Indexed.class)) {
@@ -56,7 +56,7 @@ public class IndexResolverImpl implements IndexResolver {
 
 			switch (indexed.type()) {
 				case SIMPLE:
-					return new SimpleIndexedPropertyValue(path, value);
+					return new SimpleIndexedPropertyValue(keyspace, path, value);
 				default:
 					throw new IllegalArgumentException(String.format("Unsupported index type '%s' for path '%s'.",
 							indexed.type(), path));

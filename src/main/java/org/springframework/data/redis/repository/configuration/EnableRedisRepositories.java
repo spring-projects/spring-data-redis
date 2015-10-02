@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
@@ -136,10 +137,17 @@ public @interface EnableRedisRepositories {
 	String redisTemplateRef() default "redisTemplate";
 
 	/**
-	 * TODO: explain configuration options
+	 * Set up index patterns using simple configuration class.
 	 * 
 	 * @return
 	 */
 	Class<? extends IndexConfiguration> indexConfiguration() default IndexConfiguration.class;
+
+	/**
+	 * Set up keyspaces for specific types.
+	 * 
+	 * @return
+	 */
+	Class<? extends KeyspaceConfiguration> keyspaceConfiguration() default KeyspaceConfiguration.class;
 
 }

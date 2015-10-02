@@ -15,12 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.io.Serializable;
-import java.util.List;
-
-import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceAssignment;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.index.RedisIndexDefinition;
 
 /**
  * @author Christoph Strobl
@@ -36,13 +31,11 @@ public class MappingConfiguration {
 		this.keyspaceConfiguration = keyspaceConfiguration;
 	}
 
-	public String getKeyspaceFor(Class<?> type) {
-
-		KeyspaceAssignment assignment = keyspaceConfiguration.getKeyspaceAssignment(type);
-		return assignment != null ? assignment.getKeyspace() : null;
+	public IndexConfiguration getIndexConfiguration() {
+		return indexConfiguration;
 	}
 
-	public List<RedisIndexDefinition> getIndexDefinitionsFor(Serializable keyspace, String path) {
-		return indexConfiguration.getIndexDefinitionsFor(keyspace, path);
+	public KeyspaceConfiguration getKeyspaceConfiguration() {
+		return keyspaceConfiguration;
 	}
 }

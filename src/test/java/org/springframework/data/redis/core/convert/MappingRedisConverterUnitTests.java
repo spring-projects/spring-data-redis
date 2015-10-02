@@ -44,6 +44,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 
 /**
  * @author Christoph Strobl
@@ -58,7 +59,7 @@ public class MappingRedisConverterUnitTests {
 	@Before
 	public void setUp() {
 
-		converter = new MappingRedisConverter(null, resolverMock);
+		converter = new MappingRedisConverter(null, null, resolverMock);
 		rand = new Person();
 
 	}
@@ -745,6 +746,39 @@ public class MappingRedisConverterUnitTests {
 		tear.name = "Tear";
 
 		assertThat(write(tear).getTimeToLive(), nullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldConsiderKeyspaceConfiguration() {
+
+		this.converter.getMappingContext().getMappingConfiguration().getKeyspaceConfiguration()
+				.addKeyspaceSettings(new KeyspaceSettings(Address.class, "o_O"));
+
+		Address address = new Address();
+		address.city = "Tear";
+
+		assertThat(write(address).getKeyspace(), is("o_O"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldConsiderTimeToLiveConfiguration() {
+
+		KeyspaceSettings assignment = new KeyspaceSettings(Address.class, "o_O");
+		assignment.setTimeToLive(5L);
+
+		this.converter.getMappingContext().getMappingConfiguration().getKeyspaceConfiguration()
+				.addKeyspaceSettings(assignment);
+
+		Address address = new Address();
+		address.city = "Tear";
+
+		assertThat(write(address).getTimeToLive(), is(5L));
 	}
 
 	private RedisData write(Object source) {

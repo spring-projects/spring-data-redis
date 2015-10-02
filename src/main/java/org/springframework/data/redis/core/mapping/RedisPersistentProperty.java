@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.convert;
+package org.springframework.data.redis.core.mapping;
 
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+
+import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.mapping.model.SimpleTypeHolder;
 
 /**
+ * Redis specific {@link PersistentProperty} implementation.
+ * 
  * @author Christoph Strobl
  */
-public interface IndexResolver {
+public class RedisPersistentProperty extends KeyValuePersistentProperty {
 
-	IndexedData resolveIndex(String keyspace, String path, PersistentProperty<?> property, Object value);
+	public RedisPersistentProperty(Field field, PropertyDescriptor propertyDescriptor,
+			PersistentEntity<?, KeyValuePersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
+		super(field, propertyDescriptor, owner, simpleTypeHolder);
+	}
 
 }

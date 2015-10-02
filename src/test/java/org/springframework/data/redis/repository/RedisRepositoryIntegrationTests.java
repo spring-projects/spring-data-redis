@@ -37,6 +37,7 @@ import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.RedisIndexDefinition;
@@ -53,7 +54,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class RedisRepositoryIntegrationTests {
 
 	@Configuration
-	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class)
+	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
+			keyspaceConfiguration = MyKeyspaceConfiguration.class)
 	static class Config {
 
 		@Bean
@@ -160,6 +162,7 @@ public class RedisRepositoryIntegrationTests {
 		// find and assert the location is gone
 		Person reLoaded = repo.findOne(moiraine.getId());
 		assertThat(reLoaded.city, IsNull.nullValue());
+
 	}
 
 	public static interface PersonRepository extends CrudRepository<Person, String> {
@@ -181,6 +184,19 @@ public class RedisRepositoryIntegrationTests {
 		@Override
 		protected Iterable<RedisIndexDefinition> initialConfiguration() {
 			return Collections.singleton(new RedisIndexDefinition("persons", "lastname"));
+		}
+	}
+
+	/**
+	 * Custom Redis {@link IndexConfiguration} forcing index of {@link Person#lastname}.
+	 * 
+	 * @author Christoph Strobl
+	 */
+	static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
+
+		@Override
+		protected Iterable<KeyspaceSettings> initialConfiguration() {
+			return Collections.singleton(new KeyspaceSettings(City.class, "cities"));
 		}
 	}
 
@@ -270,7 +286,6 @@ public class RedisRepositoryIntegrationTests {
 
 	}
 
-	@RedisHash("cities")
 	public static class City {
 		@Id String id;
 		String name;

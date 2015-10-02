@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 
 /**
  * @author Christoph Strobl
@@ -55,7 +56,9 @@ public class IndexWriterUnitTests {
 	@Before
 	public void setUp() {
 
-		writer = new IndexWriter(KEYSPACE, connectionMock, new MappingRedisConverter(new IndexResolverImpl(),
+		RedisMappingContext mappingContex = new RedisMappingContext();
+
+		writer = new IndexWriter(connectionMock, new MappingRedisConverter(mappingContex, new IndexResolverImpl(),
 				referenceResolverMock));
 	}
 
@@ -65,7 +68,7 @@ public class IndexWriterUnitTests {
 	@Test
 	public void addKeyToIndexShouldInvokeSaddCorrectly() {
 
-		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue("firstname", "Rand"));
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"));
 
 		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
 		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
@@ -130,7 +133,7 @@ public class IndexWriterUnitTests {
 		when(connectionMock.keys(any(byte[].class))).thenReturn(
 				new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
 
-		writer.removeAllIndexes();
+		writer.removeAllIndexes(KEYSPACE);
 
 		ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 
@@ -143,6 +146,11 @@ public class IndexWriterUnitTests {
 		@Override
 		public String getPath() {
 			return "address.city";
+		}
+
+		@Override
+		public String getKeySpace() {
+			return KEYSPACE;
 		}
 
 	}
