@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import java.io.Serializable;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnection;
@@ -34,8 +33,6 @@ class IndexWriter {
 	private final RedisConnection connection;
 	private final RedisConverter converter;
 
-	private final String prefix;
-
 	/**
 	 * Creates new {@link IndexWriter}.
 	 * 
@@ -43,16 +40,13 @@ class IndexWriter {
 	 * @param connection must not be {@literal null}.
 	 * @param converter must not be {@literal null}.
 	 */
-	public IndexWriter(Serializable keyspace, RedisConnection connection, RedisConverter converter) {
+	public IndexWriter(RedisConnection connection, RedisConverter converter) {
 
-		Assert.notNull(keyspace, "Keyspace cannot be null!");
 		Assert.notNull(connection, "RedisConnection cannot be null!");
 		Assert.notNull(converter, "RedisConverter cannot be null!");
 
 		this.connection = connection;
 		this.converter = converter;
-
-		this.prefix = keyspace + ":";
 	}
 
 	/**
@@ -79,12 +73,12 @@ class IndexWriter {
 	 * 
 	 * @param key must not be {@literal null}.
 	 */
-	public void removeKeyFromIndexes(Object key) {
+	public void removeKeyFromIndexes(String keyspace, Object key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
 		byte[] binKey = toBytes(key);
-		byte[] indexHelperKey = ByteUtils.concatAll(toBytes(prefix), binKey, toBytes(":idx"));
+		byte[] indexHelperKey = ByteUtils.concatAll(toBytes(keyspace + ":"), binKey, toBytes(":idx"));
 
 		for (byte[] indexKey : connection.sMembers(indexHelperKey)) {
 			connection.sRem(indexKey, binKey);
@@ -96,9 +90,9 @@ class IndexWriter {
 	/**
 	 * Removes all indexes.
 	 */
-	public void removeAllIndexes() {
+	public void removeAllIndexes(String keyspace) {
 
-		Set<byte[]> potentialIndex = connection.keys(toBytes(prefix + "*"));
+		Set<byte[]> potentialIndex = connection.keys(toBytes(keyspace + ":*"));
 
 		if (!potentialIndex.isEmpty()) {
 			connection.del(potentialIndex.toArray(new byte[potentialIndex.size()][]));
@@ -121,7 +115,7 @@ class IndexWriter {
 	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
 		Assert.notNull(indexedData, "IndexedData must not be null!");
-		Set<byte[]> existingKeys = connection.keys(toBytes(prefix + indexedData.getPath() + ":*"));
+		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.getKeySpace() + ":" + indexedData.getPath() + ":*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
@@ -156,12 +150,12 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(prefix + indexedData.getPath() + ":");
+			byte[] indexKey = toBytes(indexedData.getKeySpace() + ":" + indexedData.getPath() + ":");
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(prefix), key, toBytes(":idx")), indexKey);
+			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeySpace() + ":"), key, toBytes(":idx")), indexKey);
 		} else {
 			throw new IllegalArgumentException(String.format("Cannot write index data for unknown index type %s",
 					indexedData.getClass()));

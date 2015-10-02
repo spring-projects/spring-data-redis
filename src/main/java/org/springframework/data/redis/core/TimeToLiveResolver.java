@@ -13,36 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.convert;
+package org.springframework.data.redis.core;
 
 /**
+ * {@link TimeToLiveResolver} extracts the objects time to live used for {@code EXPIRE}.
+ * 
  * @author Christoph Strobl
  */
-public class SimpleIndexedPropertyValue implements IndexedData {
+public interface TimeToLiveResolver {
 
-	private final String keyspace;
-	private final String path;
-	private final Object value;
-
-	public SimpleIndexedPropertyValue(String keyspace, String path, Object value) {
-
-		this.keyspace = keyspace;
-		this.path = path;
-		this.value = value;
-	}
-
-	@Override
-	public String getPath() {
-		return path;
-	}
-
-	public Object getValue() {
-		return value;
-	}
-
-	@Override
-	public String getKeySpace() {
-		return this.keyspace;
-	}
-
+	/**
+	 * @param type must not be {@literal null}.
+	 * @return {@literal null} if not configured.
+	 */
+	Long resolveTimeToLive(Class<?> type);
 }

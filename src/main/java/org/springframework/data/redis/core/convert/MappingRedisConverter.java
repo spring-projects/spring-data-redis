@@ -33,20 +33,20 @@ import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.convert.TypeAliasAccessor;
 import org.springframework.data.convert.TypeMapper;
+import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
-import org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingContext;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
 import org.springframework.data.mapping.model.PropertyValueProvider;
-import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -94,7 +94,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class MappingRedisConverter implements RedisConverter {
 
-	private final KeyValueMappingContext mappingContext;
+	private final RedisMappingContext mappingContext;
 	private final GenericConversionService conversionService;
 	private final EntityInstantiators entityInstantiators;
 	private final TypeMapper<RedisData> typeMapper;
@@ -102,14 +102,17 @@ public class MappingRedisConverter implements RedisConverter {
 	private final IndexResolver indexResolver;
 
 	/**
+	 * @param mappingContext can be {@literal null}.
 	 * @param indexResolver can be {@literal null}.
 	 * @param referenceResolver must not be {@literal null}.
 	 */
-	public MappingRedisConverter(IndexResolver indexResolver, ReferenceResolver referenceResolver) {
+	public MappingRedisConverter(RedisMappingContext mappingContext, IndexResolver indexResolver,
+			ReferenceResolver referenceResolver) {
 
 		Assert.notNull(referenceResolver, "ReferenceResolver must not be null!");
 
-		mappingContext = new KeyValueMappingContext();
+		this.mappingContext = mappingContext != null ? mappingContext : new RedisMappingContext();
+
 		entityInstantiators = new EntityInstantiators();
 
 		this.conversionService = new DefaultConversionService();
@@ -148,11 +151,11 @@ public class MappingRedisConverter implements RedisConverter {
 		TypeInformation<?> readType = typeMapper.readType(source);
 		TypeInformation<?> typeToUse = readType != null ? readType : ClassTypeInformation.from(type);
 
-		final KeyValuePersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
+		final RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
 
 		EntityInstantiator instantiator = entityInstantiators.getInstantiatorFor(entity);
 
-		Object instance = instantiator.createInstance((KeyValuePersistentEntity<?>) entity,
+		Object instance = instantiator.createInstance((RedisPersistentEntity<?>) entity,
 				new PersistentEntityParameterValueProvider<KeyValuePersistentProperty>(entity,
 						new ConverterAwareParameterValueProvider(source, conversionService), null));
 
@@ -288,7 +291,7 @@ public class MappingRedisConverter implements RedisConverter {
 	 */
 	public void write(Object source, final RedisData sink) {
 
-		final KeyValuePersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
+		final RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
 
 		typeMapper.writeType(ClassUtils.getUserClass(source), sink);
 		sink.setKeyspace(entity.getKeySpace());
@@ -296,10 +299,10 @@ public class MappingRedisConverter implements RedisConverter {
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
 		sink.setId((Serializable) entity.getIdentifierAccessor(source).getIdentifier());
 
-		RedisHash hash = entity.findAnnotation(RedisHash.class);
-		if (hash != null && hash.timeToLive() > 0) {
-			sink.setTimeToLive(hash.timeToLive());
+		if (entity.getTimeToLive() != null && entity.getTimeToLive() > 0) {
+			sink.setTimeToLive(entity.getTimeToLive());
 		}
+
 	}
 
 	/**
@@ -622,7 +625,7 @@ public class MappingRedisConverter implements RedisConverter {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityConverter#getMappingContext()
 	 */
-	public MappingContext<? extends KeyValuePersistentEntity<?>, KeyValuePersistentProperty> getMappingContext() {
+	public RedisMappingContext getMappingContext() {
 		return this.mappingContext;
 	}
 
@@ -682,6 +685,22 @@ public class MappingRedisConverter implements RedisConverter {
 		@Override
 		public void writeTypeTo(RedisData sink, Object alias) {
 			sink.getBucket().put(typeKey, conversionService.convert(alias, byte[].class));
+		}
+	}
+
+	enum ClassNameKeySpaceResolver implements KeySpaceResolver {
+
+		INSTANCE;
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.keyvalue.core.KeySpaceResolver#resolveKeySpace(java.lang.Class)
+		 */
+		@Override
+		public String resolveKeySpace(Class<?> type) {
+
+			Assert.notNull(type, "Type must not be null!");
+			return ClassUtils.getUserClass(type).getName();
 		}
 	}
 

@@ -27,4 +27,9 @@ public interface IndexedData {
 	 */
 	String getPath();
 
+	/**
+	 * @return
+	 */
+	String getKeySpace();
+
 }

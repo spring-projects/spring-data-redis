@@ -13,36 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.convert;
+package org.springframework.data.redis.core.mapping;
+
+import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
+import org.springframework.data.mapping.PersistentEntity;
 
 /**
+ * Redis specific {@link PersistentEntity} implementation.
+ * 
  * @author Christoph Strobl
+ * @param <T>
  */
-public class SimpleIndexedPropertyValue implements IndexedData {
+public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T> {
 
-	private final String keyspace;
-	private final String path;
-	private final Object value;
-
-	public SimpleIndexedPropertyValue(String keyspace, String path, Object value) {
-
-		this.keyspace = keyspace;
-		this.path = path;
-		this.value = value;
-	}
-
-	@Override
-	public String getPath() {
-		return path;
-	}
-
-	public Object getValue() {
-		return value;
-	}
-
-	@Override
-	public String getKeySpace() {
-		return this.keyspace;
-	}
+	/**
+	 * Get the expiration time in seconds.
+	 * 
+	 * @return {@literal null} if not set.
+	 */
+	Long getTimeToLive();
 
 }
