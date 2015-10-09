@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
@@ -43,7 +44,6 @@ import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
 import org.springframework.data.mapping.model.PropertyValueProvider;
-import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
@@ -52,6 +52,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link RedisConverter} implementation creating flat binary map structure out of a given domain type. Considers
@@ -92,14 +93,19 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Christoph Strobl
  */
-public class MappingRedisConverter implements RedisConverter {
+public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	private final RedisMappingContext mappingContext;
 	private final GenericConversionService conversionService;
 	private final EntityInstantiators entityInstantiators;
 	private final TypeMapper<RedisData> typeMapper;
-	private final ReferenceResolver referenceResolver;
-	private final IndexResolver indexResolver;
+	private ReferenceResolver referenceResolver;
+	private IndexResolver indexResolver;
+	private CustomConversions customConversions;
+
+	MappingRedisConverter(RedisMappingContext context) {
+		this(context, null, null);
+	}
 
 	/**
 	 * @param mappingContext can be {@literal null}.
@@ -109,28 +115,36 @@ public class MappingRedisConverter implements RedisConverter {
 	public MappingRedisConverter(RedisMappingContext mappingContext, IndexResolver indexResolver,
 			ReferenceResolver referenceResolver) {
 
-		Assert.notNull(referenceResolver, "ReferenceResolver must not be null!");
+		// Assert.notNull(referenceResolver, "ReferenceResolver must not be null!");
 
 		this.mappingContext = mappingContext != null ? mappingContext : new RedisMappingContext();
 
 		entityInstantiators = new EntityInstantiators();
 
+		this.customConversions = new CustomConversions();
 		this.conversionService = new DefaultConversionService();
-		this.conversionService.addConverter(new BinaryConverters.StringToBytesConverter());
-		this.conversionService.addConverter(new BinaryConverters.BytesToStringConverter());
-		this.conversionService.addConverter(new BinaryConverters.NumberToBytesConverter());
-		this.conversionService.addConverterFactory(new BinaryConverters.BytesToNumberConverterFactory());
-		this.conversionService.addConverter(new BinaryConverters.EnumToBytesConverter());
-		this.conversionService.addConverterFactory(new BinaryConverters.BytesToEnumConverterFactory());
-		this.conversionService.addConverter(new BinaryConverters.BooleanToBytesConverter());
-		this.conversionService.addConverter(new BinaryConverters.BytesToBooleanConverter());
-		this.conversionService.addConverter(new BinaryConverters.DateToBytesConverter());
-		this.conversionService.addConverter(new BinaryConverters.BytesToDateConverter());
 
 		typeMapper = new DefaultTypeMapper<RedisData>(new RedisTypeAliasAccessor(this.conversionService));
 
 		this.referenceResolver = referenceResolver;
-		this.indexResolver = indexResolver != null ? indexResolver : new IndexResolverImpl(new IndexConfiguration());
+
+		this.indexResolver = indexResolver != null ? indexResolver : new IndexResolverImpl(this.mappingContext
+				.getMappingConfiguration().getIndexConfiguration());
+	}
+
+	/**
+	 * @param customConversions
+	 */
+	public void setCustomConversions(CustomConversions customConversions) {
+		this.customConversions = customConversions != null ? customConversions : new CustomConversions();
+	}
+
+	public void setReferenceResolver(ReferenceResolver referenceResolver) {
+		this.referenceResolver = referenceResolver;
+	}
+
+	public void setIndexResolver(IndexResolver indexResolver) {
+		this.indexResolver = indexResolver;
 	}
 
 	/*
@@ -150,6 +164,11 @@ public class MappingRedisConverter implements RedisConverter {
 
 		TypeInformation<?> readType = typeMapper.readType(source);
 		TypeInformation<?> typeToUse = readType != null ? readType : ClassTypeInformation.from(type);
+
+		if (conversionService.canConvert(byte[].class, typeToUse.getType())) {
+			return (R) conversionService.convert(source.getBucket().get(StringUtils.hasText(path) ? path : "_raw"),
+					typeToUse.getType());
+		}
 
 		final RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
 
@@ -203,7 +222,11 @@ public class MappingRedisConverter implements RedisConverter {
 										.getTypeInformation().getComponentType().getActualType().getType(), source.getBucket()));
 					}
 
-				} else if (persistentProperty.isEntity()) {
+				} else if (persistentProperty.isEntity()
+						&& !conversionService.canConvert(byte[].class, persistentProperty.getTypeInformation().getActualType()
+								.getType())) {
+
+					Class<?> targetType = persistentProperty.getTypeInformation().getActualType().getType();
 
 					Bucket bucket = source.getBucket().extract(currentPath + ".");
 
@@ -214,10 +237,7 @@ public class MappingRedisConverter implements RedisConverter {
 						source.getBucket().put("_class", type);
 					}
 
-					Class<?> myType = persistentProperty.getTypeInformation().getActualType().getType();
-
-					accessor.setProperty(persistentProperty, readInternal(currentPath, myType, source));
-
+					accessor.setProperty(persistentProperty, readInternal(currentPath, targetType, source));
 				} else {
 					accessor.setProperty(persistentProperty,
 							fromBytes(source.getBucket().get(currentPath), persistentProperty.getActualType()));
@@ -316,6 +336,13 @@ public class MappingRedisConverter implements RedisConverter {
 			final RedisData sink) {
 
 		if (value == null) {
+			return;
+		}
+
+		if (conversionService.canConvert(value.getClass(), byte[].class)) {
+			sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
+
+			// TODO: we must not return here but rather check if there's index values there
 			return;
 		}
 
@@ -635,6 +662,15 @@ public class MappingRedisConverter implements RedisConverter {
 	 */
 	public ConversionService getConversionService() {
 		return this.conversionService;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		initializeConverters();
+	}
+
+	private void initializeConverters() {
+		customConversions.registerConvertersIn(conversionService);
 	}
 
 	/**

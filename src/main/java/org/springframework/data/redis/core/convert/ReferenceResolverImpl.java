@@ -18,7 +18,6 @@ package org.springframework.data.redis.core.convert;
 import java.io.Serializable;
 
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
-import org.springframework.util.Assert;
 
 /**
  * Default {@link ReferenceResolver} implementation;
@@ -27,14 +26,22 @@ import org.springframework.util.Assert;
  */
 public class ReferenceResolverImpl implements ReferenceResolver {
 
-	private final RedisKeyValueAdapter adapter;
+	private RedisKeyValueAdapter adapter;
+
+	ReferenceResolverImpl() {
+
+	}
 
 	/**
 	 * @param adapter must not be {@literal null}.
 	 */
 	public ReferenceResolverImpl(RedisKeyValueAdapter adapter) {
 
-		Assert.notNull(adapter, "KeyValueAdapter must not be null!");
+		// Assert.notNull(adapter, "KeyValueAdapter must not be null!");
+		this.adapter = adapter;
+	}
+
+	public void setAdapter(RedisKeyValueAdapter adapter) {
 		this.adapter = adapter;
 	}
 
