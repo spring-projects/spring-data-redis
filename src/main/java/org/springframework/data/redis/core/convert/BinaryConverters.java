@@ -22,6 +22,8 @@ import java.util.Date;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.NumberUtils;
 
 /**
@@ -60,6 +62,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@WritingConverter
 	static class StringToBytesConverter extends StringBasedConverter implements Converter<String, byte[]> {
 
 		@Override
@@ -71,6 +74,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@ReadingConverter
 	static class BytesToStringConverter extends StringBasedConverter implements Converter<byte[], String> {
 
 		@Override
@@ -83,6 +87,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@WritingConverter
 	static class NumberToBytesConverter extends StringBasedConverter implements Converter<Number, byte[]> {
 
 		@Override
@@ -99,6 +104,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@WritingConverter
 	static class EnumToBytesConverter extends StringBasedConverter implements Converter<Enum<?>, byte[]> {
 
 		@Override
@@ -116,6 +122,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@ReadingConverter
 	static final class BytesToEnumConverterFactory implements ConverterFactory<byte[], Enum<?>> {
 
 		@Override
@@ -159,6 +166,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@ReadingConverter
 	static class BytesToNumberConverterFactory implements ConverterFactory<byte[], Number> {
 
 		@Override
@@ -190,6 +198,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@WritingConverter
 	static class BooleanToBytesConverter extends StringBasedConverter implements Converter<Boolean, byte[]> {
 
 		final byte[] _true = fromString("1");
@@ -209,6 +218,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@ReadingConverter
 	static class BytesToBooleanConverter extends StringBasedConverter implements Converter<byte[], Boolean> {
 
 		@Override
@@ -226,6 +236,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@WritingConverter
 	static class DateToBytesConverter extends StringBasedConverter implements Converter<Date, byte[]> {
 
 		@Override
@@ -242,6 +253,7 @@ final class BinaryConverters {
 	/**
 	 * @author Christoph Strobl
 	 */
+	@ReadingConverter
 	static class BytesToDateConverter extends StringBasedConverter implements Converter<byte[], Date> {
 
 		@Override

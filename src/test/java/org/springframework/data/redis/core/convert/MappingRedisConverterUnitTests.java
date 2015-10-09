@@ -41,10 +41,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Christoph Strobl
@@ -60,6 +67,8 @@ public class MappingRedisConverterUnitTests {
 	public void setUp() {
 
 		converter = new MappingRedisConverter(null, null, resolverMock);
+		converter.afterPropertiesSet();
+
 		rand = new Person();
 
 	}
@@ -781,6 +790,86 @@ public class MappingRedisConverterUnitTests {
 		assertThat(write(address).getTimeToLive(), is(5L));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldHonorCustomConversionOnRootType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		converter.afterPropertiesSet();
+
+		Address address = new Address();
+		address.country = "Tel'aran'rhiod";
+		address.city = "unknown";
+
+		assertThat(write(address).getBucket(),
+				isBucket().containingUtf8String("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldHonorCustomConversionOnNestedype() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		converter.afterPropertiesSet();
+
+		Address address = new Address();
+		address.country = "Tel'aran'rhiod";
+		address.city = "unknown";
+		rand.address = address;
+
+		assertThat(write(rand).getBucket(),
+				isBucket().containingUtf8String("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readShouldHonorCustomConversionOnRootType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
+		converter.afterPropertiesSet();
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+
+		Address target = converter.read(Address.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target.city, is("unknown"));
+		assertThat(target.country, is("Tel'aran'rhiod"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readShouldHonorCustomConversionOnNestedType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
+		converter.afterPropertiesSet();
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
+
+		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target.address, notNullValue());
+		assertThat(target.address.city, is("unknown"));
+		assertThat(target.address.country, is("Tel'aran'rhiod"));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
@@ -846,6 +935,52 @@ public class MappingRedisConverterUnitTests {
 
 		@Id String id;
 		String name;
+	}
+
+	@WritingConverter
+	static class AddressToBytesConverter implements Converter<Address, byte[]> {
+
+		private final ObjectMapper mapper;
+		private final Jackson2JsonRedisSerializer<Address> serializer;
+
+		AddressToBytesConverter() {
+
+			mapper = new ObjectMapper();
+			mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+					.withFieldVisibility(Visibility.ANY).withGetterVisibility(Visibility.NONE)
+					.withSetterVisibility(Visibility.NONE).withCreatorVisibility(Visibility.NONE));
+
+			serializer = new Jackson2JsonRedisSerializer<Address>(Address.class);
+			serializer.setObjectMapper(mapper);
+		}
+
+		@Override
+		public byte[] convert(Address value) {
+			return serializer.serialize(value);
+		}
+	}
+
+	@ReadingConverter
+	static class BytesToAddressConverter implements Converter<byte[], Address> {
+
+		private final ObjectMapper mapper;
+		private final Jackson2JsonRedisSerializer<Address> serializer;
+
+		BytesToAddressConverter() {
+
+			mapper = new ObjectMapper();
+			mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+					.withFieldVisibility(Visibility.ANY).withGetterVisibility(Visibility.NONE)
+					.withSetterVisibility(Visibility.NONE).withCreatorVisibility(Visibility.NONE));
+
+			serializer = new Jackson2JsonRedisSerializer<Address>(Address.class);
+			serializer.setObjectMapper(mapper);
+		}
+
+		@Override
+		public Address convert(byte[] value) {
+			return serializer.deserialize(value);
+		}
 	}
 
 }

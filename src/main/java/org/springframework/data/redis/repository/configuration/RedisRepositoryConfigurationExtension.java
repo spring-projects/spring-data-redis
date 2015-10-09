@@ -16,6 +16,7 @@
 package org.springframework.data.redis.repository.configuration;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -27,7 +28,10 @@ import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
+import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
+import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.util.StringUtils;
@@ -36,6 +40,11 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  */
 public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryConfigurationExtension {
+
+	private static final String REDIS_CONVERTER_BEAN_NAME = "redisConverter";
+	private static final String REDIS_REFERENCE_RESOLVER_BEAN_NAME = "redisReferenceResolver";
+	private static final String REDIS_ADAPTER_BEAN_NAME = "redisKeyValueAdapter";
+	private static final String REDIS_CUSTOM_CONVERSIONS_BEAN_NAME = "redisCustomConversions";
 
 	/*
 	 * (non-Javadoc)
@@ -72,7 +81,54 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 		registerIfNotAlreadyRegistered(mappingContextDefinition, registry, MAPPING_CONTEXT_BEAN_NAME, configurationSource);
 
+		// register coustom conversions
+		RootBeanDefinition customConversions = new RootBeanDefinition(CustomConversions.class);
+		registerIfNotAlreadyRegistered(customConversions, registry, REDIS_CUSTOM_CONVERSIONS_BEAN_NAME, configurationSource);
+
+		// Register referenceResolver
+		RootBeanDefinition redisReferenceResolver = createRedisReferenceResolverDefinition();
+		redisReferenceResolver.setSource(configurationSource.getSource());
+		registerIfNotAlreadyRegistered(redisReferenceResolver, registry, REDIS_REFERENCE_RESOLVER_BEAN_NAME,
+				configurationSource);
+
+		// Register converter
+		RootBeanDefinition redisConverterDefinition = createRedisConverterDefinition();
+		redisConverterDefinition.setSource(configurationSource.getSource());
+
+		registerIfNotAlreadyRegistered(redisConverterDefinition, registry, REDIS_CONVERTER_BEAN_NAME, configurationSource);
+
+		// register Adapter
+		RootBeanDefinition redisKeyValueAdapterDefinition = new RootBeanDefinition(RedisKeyValueAdapter.class);
+
+		ConstructorArgumentValues constructorArgumentValuesForRedisKeyValueAdapter = new ConstructorArgumentValues();
+
+		String redisTemplateRef = configurationSource.getAttribute("redisTemplateRef");
+		if (StringUtils.hasText(redisTemplateRef)) {
+
+			constructorArgumentValuesForRedisKeyValueAdapter.addIndexedArgumentValue(0, new RuntimeBeanReference(
+					redisTemplateRef));
+		}
+
+		constructorArgumentValuesForRedisKeyValueAdapter.addIndexedArgumentValue(1, new RuntimeBeanReference(
+				REDIS_CONVERTER_BEAN_NAME));
+
+		redisKeyValueAdapterDefinition.setConstructorArgumentValues(constructorArgumentValuesForRedisKeyValueAdapter);
+		registerIfNotAlreadyRegistered(redisKeyValueAdapterDefinition, registry, REDIS_ADAPTER_BEAN_NAME,
+				configurationSource);
+
 		super.registerBeansForRoot(registry, configurationSource);
+	}
+
+	private RootBeanDefinition createRedisReferenceResolverDefinition() {
+
+		RootBeanDefinition beanDef = new RootBeanDefinition();
+		beanDef.setBeanClass(ReferenceResolverImpl.class);
+
+		MutablePropertyValues props = new MutablePropertyValues();
+		props.add("adapter", new RuntimeBeanReference(REDIS_ADAPTER_BEAN_NAME));
+		beanDef.setPropertyValues(props);
+
+		return beanDef;
 	}
 
 	private RootBeanDefinition createRedisMappingContext(RepositoryConfigurationSource configurationSource) {
@@ -116,31 +172,34 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 	protected AbstractBeanDefinition getDefaultKeyValueTemplateBeanDefinition(
 			RepositoryConfigurationSource configurationSource) {
 
-		RootBeanDefinition redisKeyValueAdapterDefinition = new RootBeanDefinition(RedisKeyValueAdapter.class);
-
-		ConstructorArgumentValues constructorArgumentValuesForRedisKeyValueAdapter = new ConstructorArgumentValues();
-
-		String redisTemplateRef = configurationSource.getAttribute("redisTemplateRef");
-		if (StringUtils.hasText(redisTemplateRef)) {
-
-			constructorArgumentValuesForRedisKeyValueAdapter.addIndexedArgumentValue(0, new RuntimeBeanReference(
-					redisTemplateRef));
-		}
-
-		constructorArgumentValuesForRedisKeyValueAdapter.addIndexedArgumentValue(1, new RuntimeBeanReference(
-				MAPPING_CONTEXT_BEAN_NAME));
-		redisKeyValueAdapterDefinition.setConstructorArgumentValues(constructorArgumentValuesForRedisKeyValueAdapter);
-
 		RootBeanDefinition keyValueTemplateDefinition = new RootBeanDefinition(RedisKeyValueTemplate.class);
 
 		ConstructorArgumentValues constructorArgumentValuesForKeyValueTemplate = new ConstructorArgumentValues();
-		constructorArgumentValuesForKeyValueTemplate.addIndexedArgumentValue(0, redisKeyValueAdapterDefinition);
+		constructorArgumentValuesForKeyValueTemplate.addIndexedArgumentValue(0, new RuntimeBeanReference(
+				REDIS_ADAPTER_BEAN_NAME));
 		constructorArgumentValuesForKeyValueTemplate.addIndexedArgumentValue(1, new RuntimeBeanReference(
 				MAPPING_CONTEXT_BEAN_NAME));
 
 		keyValueTemplateDefinition.setConstructorArgumentValues(constructorArgumentValuesForKeyValueTemplate);
 
 		return keyValueTemplateDefinition;
+	}
+
+	private RootBeanDefinition createRedisConverterDefinition() {
+
+		RootBeanDefinition beanDef = new RootBeanDefinition();
+		beanDef.setBeanClass(MappingRedisConverter.class);
+
+		ConstructorArgumentValues args = new ConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, new RuntimeBeanReference(MAPPING_CONTEXT_BEAN_NAME));
+		beanDef.setConstructorArgumentValues(args);
+
+		MutablePropertyValues props = new MutablePropertyValues();
+		props.add("referenceResolver", new RuntimeBeanReference(REDIS_REFERENCE_RESOLVER_BEAN_NAME));
+		props.add("customConversions", new RuntimeBeanReference(REDIS_CUSTOM_CONVERSIONS_BEAN_NAME));
+		beanDef.setPropertyValues(props);
+
+		return beanDef;
 	}
 
 }

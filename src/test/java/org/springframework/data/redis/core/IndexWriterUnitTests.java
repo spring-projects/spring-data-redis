@@ -56,10 +56,11 @@ public class IndexWriterUnitTests {
 	@Before
 	public void setUp() {
 
-		RedisMappingContext mappingContex = new RedisMappingContext();
+		MappingRedisConverter converter = new MappingRedisConverter(new RedisMappingContext(), new IndexResolverImpl(),
+				referenceResolverMock);
+		converter.afterPropertiesSet();
 
-		writer = new IndexWriter(connectionMock, new MappingRedisConverter(mappingContex, new IndexResolverImpl(),
-				referenceResolverMock));
+		writer = new IndexWriter(connectionMock, converter);
 	}
 
 	/**

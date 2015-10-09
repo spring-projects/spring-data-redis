@@ -29,6 +29,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
@@ -36,12 +38,8 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.convert.IndexResolverImpl;
-import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
-import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
-import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
@@ -59,7 +57,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	private static final Logger LOGGER = LoggerFactory.getLogger(RedisKeyValueAdapter.class);
 
 	private RedisOperations<?, ?> redisOps;
-	private MappingRedisConverter converter;
+	private RedisConverter converter;
 	private RedisMessageListenerContainer messageListenerContainer;
 	private KeyExpirationEventMessageListener expirationListener;
 
@@ -67,15 +65,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
-	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext) {
+	// TODO: change context to RedisConverter
+	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisConverter redisConverter) {
 
 		super(new RedisQueryEngine());
 
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
-		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
+		// Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
+		//
+		// MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(
+		// mappingContext.getMappingConfiguration().getIndexConfiguration()), new ReferenceResolverImpl(this));
+		// mappingConverter.afterPropertiesSet();
 
-		converter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(mappingContext
-				.getMappingConfiguration().getIndexConfiguration()), new ReferenceResolverImpl(this));
+		converter = redisConverter;
 		this.redisOps = redisOps;
 
 		initKeyExpirationListener();
@@ -109,7 +111,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			@Override
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 
-				byte[] key = converter.toBytes(rdo.getId());
+				byte[] key = toBytes(rdo.getId());
 				byte[] objectKey = createKey(rdo.getKeyspace(), rdo.getId());
 
 				connection.del(objectKey);
@@ -121,13 +123,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 					connection.expire(objectKey, rdo.getTimeToLive().longValue());
 
 					// add phantom key so values can be restored
-					byte[] phantomKey = ByteUtils.concat(objectKey, converter.toBytes(":phantom"));
+					byte[] phantomKey = ByteUtils.concat(objectKey, toBytes(":phantom"));
 					connection.del(phantomKey);
 					connection.hMSet(phantomKey, rdo.getBucket().rawMap());
 					connection.expire(phantomKey, rdo.getTimeToLive().longValue() + 300);
 				}
 
-				connection.sAdd(converter.toBytes(rdo.getKeyspace()), key);
+				connection.sAdd(toBytes(rdo.getKeyspace()), key);
 
 				new IndexWriter(connection, converter).updateIndexes(key, rdo.getIndexedData());
 				return null;
@@ -147,7 +149,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 			@Override
 			public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.sIsMember(converter.toBytes(keyspace), converter.toBytes(id));
+				return connection.sIsMember(toBytes(keyspace), toBytes(id));
 			}
 		});
 
@@ -179,8 +181,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	 */
 	public Object delete(final Serializable id, final Serializable keyspace) {
 
-		final byte[] binId = converter.toBytes(id);
-		final byte[] binKeyspace = converter.toBytes(keyspace);
+		final byte[] binId = toBytes(id);
+		final byte[] binKeyspace = toBytes(keyspace);
 
 		Object o = get(id, keyspace);
 
@@ -209,7 +211,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	 */
 	public List<?> getAllOf(final Serializable keyspace) {
 
-		final byte[] binKeyspace = converter.toBytes(keyspace);
+		final byte[] binKeyspace = toBytes(keyspace);
 
 		List<Map<byte[], byte[]>> raw = redisOps.execute(new RedisCallback<List<Map<byte[], byte[]>>>() {
 
@@ -247,7 +249,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			@Override
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
-				connection.del(converter.toBytes(keyspace));
+				connection.del(toBytes(keyspace));
 				new IndexWriter(connection, converter).removeAllIndexes(keyspace.toString());
 				return null;
 			}
@@ -272,7 +274,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 			@Override
 			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.sCard(converter.toBytes(keyspace));
+				return connection.sCard(toBytes(keyspace));
 			}
 		});
 
@@ -304,7 +306,23 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	}
 
 	public byte[] createKey(Serializable keyspace, Serializable id) {
-		return this.converter.toBytes(keyspace + ":" + id);
+		return toBytes(keyspace + ":" + id);
+	}
+
+	/**
+	 * Convert given source to binary representation using the underlying {@link ConversionService}.
+	 * 
+	 * @param source
+	 * @return
+	 * @throws ConverterNotFoundException
+	 */
+	public byte[] toBytes(Object source) {
+
+		if (source instanceof byte[]) {
+			return (byte[]) source;
+		}
+
+		return converter.getConversionService().convert(source, byte[].class);
 	}
 
 	/*
@@ -345,7 +363,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 					LOGGER.debug("Cleaning up expired key '%s' data structures in keyspace '%s'.", expiredEvent.getSource(),
 							expiredEvent.getKeyspace());
 
-					connection.sRem(converter.toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
+					connection.sRem(toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
 					new IndexWriter(connection, converter).removeKeyFromIndexes(expiredEvent.getKeyspace(), expiredEvent.getId());
 					return null;
 				}
