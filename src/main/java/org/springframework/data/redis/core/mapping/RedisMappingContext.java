@@ -30,7 +30,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.data.redis.core.TimeToLiveResolver;
+import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
@@ -47,7 +47,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 	private MappingConfiguration mappingConfiguration;
 	private KeySpaceResolver fallbackKeySpaceResolver;
-	private TimeToLiveResolver timeToLiveResolver;
+	private TimeToLiveAccessor timeToLiveAccessor;
 
 	/**
 	 * Creates new {@link RedisMappingContext} with empty {@link MappingConfiguration}.
@@ -67,7 +67,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				new IndexConfiguration(), new KeyspaceConfiguration());
 
 		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(mappingConfiguration.getKeyspaceConfiguration()));
-		this.timeToLiveResolver = new ConfigAwareTimeToLiveResolver(mappingConfiguration.getKeyspaceConfiguration(), this);
+		this.timeToLiveAccessor = new ConfigAwareTimeToLiveAccessor(mappingConfiguration.getKeyspaceConfiguration(), this);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	 */
 	@Override
 	protected <T> RedisPersistentEntity<T> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new BasicRedisPersistentEntity<T>(typeInformation, fallbackKeySpaceResolver, timeToLiveResolver);
+		return new BasicRedisPersistentEntity<T>(typeInformation, fallbackKeySpaceResolver, timeToLiveAccessor);
 	}
 
 	/*
@@ -180,11 +180,11 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	}
 
 	/**
-	 * {@link TimeToLiveResolver} implementation considering {@link KeyspaceConfiguration}.
+	 * {@link TimeToLiveAccessor} implementation considering {@link KeyspaceConfiguration}.
 	 * 
 	 * @author Christoph Strobl
 	 */
-	static class ConfigAwareTimeToLiveResolver implements TimeToLiveResolver {
+	static class ConfigAwareTimeToLiveAccessor implements TimeToLiveAccessor {
 
 		private final Map<Class<?>, Long> defaultTimeouts;
 		private final Map<Class<?>, PersistentProperty<?>> timeoutProperties;
@@ -192,12 +192,12 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		private final RedisMappingContext mappingContext;
 
 		/**
-		 * Creates new {@link ConfigAwareTimeToLiveResolver}
+		 * Creates new {@link ConfigAwareTimeToLiveAccessor}
 		 * 
 		 * @param keyspaceConfig must not be {@literal null}.
 		 * @param mappingContext must not be {@literal null}.
 		 */
-		public ConfigAwareTimeToLiveResolver(KeyspaceConfiguration keyspaceConfig, RedisMappingContext mappingContext) {
+		public ConfigAwareTimeToLiveAccessor(KeyspaceConfiguration keyspaceConfig, RedisMappingContext mappingContext) {
 
 			Assert.notNull(keyspaceConfig, "KeyspaceConfiguration must not be null!");
 			Assert.notNull(mappingContext, "MappingContext must not be null!");
@@ -214,7 +214,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		 */
 		@Override
 		@SuppressWarnings({ "rawtypes" })
-		public Long resolveTimeToLive(Object source) {
+		public Long getTimeToLive(Object source) {
 
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source : source.getClass();
 

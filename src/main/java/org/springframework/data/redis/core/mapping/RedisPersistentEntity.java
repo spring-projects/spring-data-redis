@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.mapping;
 
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.redis.core.TimeToLiveAccessor;
 
 /**
  * Redis specific {@link PersistentEntity} implementation.
@@ -27,11 +28,10 @@ import org.springframework.data.mapping.PersistentEntity;
 public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T> {
 
 	/**
-	 * Get the objects time to live.
+	 * Get the {@link TimeToLiveAccessor} associated with the entity.
 	 * 
-	 * @param source must not be {@literal null}.
-	 * @return {@literal null} if not set.
+	 * @return never {@literal null}.
 	 */
-	Long getTimeToLive(T source);
+	TimeToLiveAccessor getTimeToLiveAccessor();
 
 }

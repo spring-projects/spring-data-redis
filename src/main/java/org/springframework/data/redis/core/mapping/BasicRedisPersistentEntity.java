@@ -17,7 +17,7 @@ package org.springframework.data.redis.core.mapping;
 
 import org.springframework.data.keyvalue.core.mapping.BasicKeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
-import org.springframework.data.redis.core.TimeToLiveResolver;
+import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  */
 public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity<T> implements RedisPersistentEntity<T> {
 
-	private TimeToLiveResolver ttlResolver;
+	private TimeToLiveAccessor timeToLiveAccessor;
 
 	/**
 	 * Creates new {@link BasicRedisPersistentEntity}.
@@ -39,19 +39,20 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	 * @param timeToLiveResolver can be {@literal null}.
 	 */
 	public BasicRedisPersistentEntity(TypeInformation<T> information, KeySpaceResolver fallbackKeySpaceResolver,
-			TimeToLiveResolver timeToLiveResolver) {
+			TimeToLiveAccessor timeToLiveAccessor) {
 		super(information, fallbackKeySpaceResolver);
 
-		this.ttlResolver = timeToLiveResolver;
+		Assert.notNull(timeToLiveAccessor, "TimeToLiveAccessor must not be null");
+		this.timeToLiveAccessor = timeToLiveAccessor;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getTimeToLive(java.lang.Object)
+	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getTimeToLiveAccessor()
 	 */
-	public Long getTimeToLive(T source) {
-
-		Assert.notNull(source, "Source for retrieving time to live must not be null!");
-		return ttlResolver.resolveTimeToLive(source);
+	@Override
+	public TimeToLiveAccessor getTimeToLiveAccessor() {
+		return this.timeToLiveAccessor;
 	}
+
 }
