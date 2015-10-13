@@ -50,6 +50,7 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
+import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -835,6 +836,25 @@ public class MappingRedisConverterUnitTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
+	public void writeShouldHonorIndexAnnotationsOnWhenCustomConversionOnNestedype() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		converter.afterPropertiesSet();
+
+		Address address = new Address();
+		address.country = "Tel'aran'rhiod";
+		address.city = "unknown";
+		rand.address = address;
+
+		assertThat(write(rand).getIndexedData().isEmpty(), is(false));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
 	public void readShouldHonorCustomConversionOnRootType() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
@@ -929,7 +949,7 @@ public class MappingRedisConverterUnitTests {
 	static class Address {
 
 		String city;
-		String country;
+		@Indexed String country;
 	}
 
 	static class AddressWithId extends Address {

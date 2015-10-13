@@ -60,7 +60,7 @@ import org.springframework.util.StringUtils;
  * 
  * <pre>
  * <code>
- * &#64;KeySpace("persons")
+ * &#64;RedisHash("persons")
  * class Person {
  * 
  *   &#64;Id String id;
@@ -309,7 +309,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityWriter#write(java.lang.Object, java.lang.Object)
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public void write(Object source, final RedisData sink) {
 
 		final RedisPersistentEntity entity = mappingContext.getPersistentEntity(source.getClass());
@@ -320,7 +320,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
 		sink.setId((Serializable) entity.getIdentifierAccessor(source).getIdentifier());
 
-		Long ttl = entity.getTimeToLive(source);
+		Long ttl = entity.getTimeToLiveAccessor().getTimeToLive(source);
 		if (ttl != null && ttl > 0) {
 			sink.setTimeToLive(ttl);
 		}
@@ -344,7 +344,26 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		if (conversionService.canConvert(value.getClass(), byte[].class)) {
 			sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
 
-			// TODO: we must not return here but rather check if there's index values there
+			final KeyValuePersistentEntity<?> entity = mappingContext.getPersistentEntity(value.getClass());
+			final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
+			entity.doWithProperties(new PropertyHandler<KeyValuePersistentProperty>() {
+
+				@Override
+				public void doWithPersistentProperty(KeyValuePersistentProperty persistentProperty) {
+
+					String propertyStringPath = (!path.isEmpty() ? path + "." : "") + persistentProperty.getName();
+
+					Object propertyValue = accessor.getProperty(persistentProperty);
+
+					IndexedData index = indexResolver.resolveIndex(keyspace, propertyStringPath, persistentProperty,
+							propertyValue);
+					if (index != null) {
+						sink.addIndexedData(index);
+					}
+				}
+
+			});
+
 			return;
 		}
 

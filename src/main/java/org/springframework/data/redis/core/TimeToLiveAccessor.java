@@ -16,15 +16,15 @@
 package org.springframework.data.redis.core;
 
 /**
- * {@link TimeToLiveResolver} extracts the objects time to live used for {@code EXPIRE}.
+ * {@link TimeToLiveAccessor} extracts the objects time to live used for {@code EXPIRE}.
  * 
  * @author Christoph Strobl
  */
-public interface TimeToLiveResolver {
+public interface TimeToLiveAccessor {
 
 	/**
 	 * @param source must not be {@literal null}.
 	 * @return {@literal null} if not configured.
 	 */
-	Long resolveTimeToLive(Object source);
+	Long getTimeToLive(Object source);
 }
