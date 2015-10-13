@@ -17,20 +17,28 @@ package org.springframework.data.redis.core.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingContext;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveResolver;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
@@ -59,7 +67,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				new IndexConfiguration(), new KeyspaceConfiguration());
 
 		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(mappingConfiguration.getKeyspaceConfiguration()));
-		this.timeToLiveResolver = new ConfigAwareTimeToLiveResolver(mappingConfiguration.getKeyspaceConfiguration());
+		this.timeToLiveResolver = new ConfigAwareTimeToLiveResolver(mappingConfiguration.getKeyspaceConfiguration(), this);
 	}
 
 	/**
@@ -178,30 +186,110 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	 */
 	static class ConfigAwareTimeToLiveResolver implements TimeToLiveResolver {
 
+		private final Map<Class<?>, Long> defaultTimeouts;
+		private final Map<Class<?>, PersistentProperty<?>> timeoutProperties;
 		private final KeyspaceConfiguration keyspaceConfig;
+		private final RedisMappingContext mappingContext;
 
 		/**
 		 * Creates new {@link ConfigAwareTimeToLiveResolver}
 		 * 
 		 * @param keyspaceConfig must not be {@literal null}.
+		 * @param mappingContext must not be {@literal null}.
 		 */
-		public ConfigAwareTimeToLiveResolver(KeyspaceConfiguration keyspaceConfig) {
+		public ConfigAwareTimeToLiveResolver(KeyspaceConfiguration keyspaceConfig, RedisMappingContext mappingContext) {
 
 			Assert.notNull(keyspaceConfig, "KeyspaceConfiguration must not be null!");
+			Assert.notNull(mappingContext, "MappingContext must not be null!");
+
+			this.defaultTimeouts = new HashMap<Class<?>, Long>();
+			this.timeoutProperties = new HashMap<Class<?>, PersistentProperty<?>>();
 			this.keyspaceConfig = keyspaceConfig;
+			this.mappingContext = mappingContext;
 		}
 
 		/*
 		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.TimeToLiveResolver#resolveTimeToLive(java.lang.Class)
+		 * @see org.springframework.data.redis.core.TimeToLiveResolver#resolveTimeToLive(java.lang.Object)
 		 */
 		@Override
-		public Long resolveTimeToLive(Class<?> type) {
+		@SuppressWarnings({ "rawtypes" })
+		public Long resolveTimeToLive(Object source) {
+
+			Class<?> type = source instanceof Class<?> ? (Class<?>) source : source.getClass();
+
+			Long defaultTimeout = resolveDefaultTimeOut(type);
+			TimeUnit unit = TimeUnit.SECONDS;
+
+			PersistentProperty<?> ttlProperty = resolveTtlProperty(type);
+
+			if (ttlProperty != null) {
+
+				if (ttlProperty.findAnnotation(TimeToLive.class) != null) {
+					unit = ttlProperty.findAnnotation(TimeToLive.class).unit();
+				}
+
+				RedisPersistentEntity entity = mappingContext.getPersistentEntity(type);
+				Long timeout = (Long) entity.getPropertyAccessor(source).getProperty(ttlProperty);
+				if (timeout != null) {
+					return TimeUnit.SECONDS.convert(timeout, unit);
+				}
+			}
+
+			return defaultTimeout;
+		}
+
+		private Long resolveDefaultTimeOut(Class<?> type) {
+
+			if (this.defaultTimeouts.containsKey(type)) {
+				return defaultTimeouts.get(type);
+			}
+
+			Long defaultTimeout = null;
 
 			if (keyspaceConfig.hasSettingsFor(type)) {
-				return keyspaceConfig.getKeyspaceSettings(type).getTimeToLive();
+				defaultTimeout = keyspaceConfig.getKeyspaceSettings(type).getTimeToLive();
 			}
+
+			RedisHash hash = mappingContext.getPersistentEntity(type).findAnnotation(RedisHash.class);
+			if (hash != null && hash.timeToLive() > 0) {
+				defaultTimeout = hash.timeToLive();
+			}
+
+			defaultTimeouts.put(type, defaultTimeout);
+			return defaultTimeout;
+		}
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		private PersistentProperty<?> resolveTtlProperty(Class<?> type) {
+
+			if (timeoutProperties.containsKey(type)) {
+				return timeoutProperties.get(type);
+			}
+
+			RedisPersistentEntity entity = mappingContext.getPersistentEntity(type);
+			PersistentProperty<?> ttlProperty = entity.getPersistentProperty(TimeToLive.class);
+
+			if (ttlProperty != null) {
+
+				timeoutProperties.put(type, ttlProperty);
+				return ttlProperty;
+			}
+
+			if (keyspaceConfig.hasSettingsFor(type)) {
+
+				KeyspaceSettings settings = keyspaceConfig.getKeyspaceSettings(type);
+				if (StringUtils.hasText(settings.getTimeToLivePropertyName())) {
+
+					ttlProperty = entity.getPersistentProperty(settings.getTimeToLivePropertyName());
+					timeoutProperties.put(type, ttlProperty);
+					return ttlProperty;
+				}
+			}
+
+			timeoutProperties.put(type, null);
 			return null;
+
 		}
 	}
 

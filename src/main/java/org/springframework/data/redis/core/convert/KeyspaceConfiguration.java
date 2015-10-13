@@ -86,6 +86,7 @@ public class KeyspaceConfiguration {
 		private final Class<?> type;
 		private final boolean inherit;
 		private Long timeToLive;
+		private String timeToLivePropertyName;
 
 		public KeyspaceSettings(Class<?> type, String keyspace) {
 			this(type, keyspace, true);
@@ -116,6 +117,14 @@ public class KeyspaceConfiguration {
 
 		public Long getTimeToLive() {
 			return timeToLive;
+		}
+
+		public void setTimeToLivePropertyName(String propertyName) {
+			timeToLivePropertyName = propertyName;
+		}
+
+		public String getTimeToLivePropertyName() {
+			return timeToLivePropertyName;
 		}
 
 	}
