@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,7 @@ import org.springframework.data.annotation.Reference;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
@@ -737,7 +739,7 @@ public class MappingRedisConverterUnitTests {
 	@Test
 	public void writeSetsAnnotatedTimeToLiveCorrectly() {
 
-		ExipringPerson birgitte = new ExipringPerson();
+		ExpiringPerson birgitte = new ExpiringPerson();
 		birgitte.id = "birgitte";
 		birgitte.name = "Birgitte Silverbow";
 
@@ -870,6 +872,31 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.address.country, is("Tel'aran'rhiod"));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldPickUpTimeToLiveFromPropertyIfPresent() {
+
+		ExipringPersonWithExplicitProperty aviendha = new ExipringPersonWithExplicitProperty();
+		aviendha.id = "aviendha";
+		aviendha.ttl = 2L;
+
+		assertThat(write(aviendha).getTimeToLive(), is(120L));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldUseDefaultTimeToLiveIfPropertyIsPresentButNull() {
+
+		ExipringPersonWithExplicitProperty aviendha = new ExipringPersonWithExplicitProperty();
+		aviendha.id = "aviendha";
+
+		assertThat(write(aviendha).getTimeToLive(), is(5L));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
@@ -931,10 +958,15 @@ public class MappingRedisConverterUnitTests {
 	}
 
 	@RedisHash(timeToLive = 5)
-	static class ExipringPerson {
+	static class ExpiringPerson {
 
 		@Id String id;
 		String name;
+	}
+
+	static class ExipringPersonWithExplicitProperty extends ExpiringPerson {
+
+		@TimeToLive(unit = TimeUnit.MINUTES) Long ttl;
 	}
 
 	@WritingConverter

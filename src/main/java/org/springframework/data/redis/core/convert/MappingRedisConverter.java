@@ -309,9 +309,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityWriter#write(java.lang.Object, java.lang.Object)
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void write(Object source, final RedisData sink) {
 
-		final RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
+		final RedisPersistentEntity entity = mappingContext.getPersistentEntity(source.getClass());
 
 		typeMapper.writeType(ClassUtils.getUserClass(source), sink);
 		sink.setKeyspace(entity.getKeySpace());
@@ -319,8 +320,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
 		sink.setId((Serializable) entity.getIdentifierAccessor(source).getIdentifier());
 
-		if (entity.getTimeToLive() != null && entity.getTimeToLive() > 0) {
-			sink.setTimeToLive(entity.getTimeToLive());
+		Long ttl = entity.getTimeToLive(source);
+		if (ttl != null && ttl > 0) {
+			sink.setTimeToLive(ttl);
 		}
 
 	}

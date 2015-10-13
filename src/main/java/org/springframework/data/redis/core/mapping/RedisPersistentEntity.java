@@ -27,10 +27,11 @@ import org.springframework.data.mapping.PersistentEntity;
 public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T> {
 
 	/**
-	 * Get the expiration time in seconds.
+	 * Get the objects time to live.
 	 * 
+	 * @param source must not be {@literal null}.
 	 * @return {@literal null} if not set.
 	 */
-	Long getTimeToLive();
+	Long getTimeToLive(T source);
 
 }

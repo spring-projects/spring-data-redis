@@ -23,8 +23,8 @@ package org.springframework.data.redis.core;
 public interface TimeToLiveResolver {
 
 	/**
-	 * @param type must not be {@literal null}.
+	 * @param source must not be {@literal null}.
 	 * @return {@literal null} if not configured.
 	 */
-	Long resolveTimeToLive(Class<?> type);
+	Long resolveTimeToLive(Object source);
 }
