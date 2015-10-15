@@ -1978,6 +1978,27 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	/**
+	 * @see DATAREDIS-417
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.8+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
+
+		connection.execute("DEBUG", "POPULATE".getBytes(), "100".getBytes());
+
+		Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions().match("key*9").count(10).build());
+
+		int i = 0;
+		while (cursor.hasNext()) {
+			assertThat(new String(cursor.next()), containsString("key:"));
+			i++;
+		}
+
+		assertThat(i, is(10));
+	}
+
+	/**
 	 * @see DATAREDIS-306
 	 */
 	@Test
