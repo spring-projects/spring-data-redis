@@ -16,11 +16,15 @@
 package org.springframework.data.redis.core;
 
 import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Stack;
@@ -163,6 +167,83 @@ public class ScanCursorUnitTests {
 		assertThat(cursor.getPosition(), is(2L));
 	}
 
+	/**
+	 * @see DATAREDIS-417
+	 */
+	@Test
+	public void hasNextShouldCallScanUntilFinishedWhenScanResultIsAnEmptyCollection() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2));
+		values.add(createIteration(3));
+		values.add(createIteration(4));
+		values.add(createIteration(5));
+		values.add(createIteration(0, "redis"));
+		Cursor<String> cursor = initCursor(values);
+
+		List<String> result = new ArrayList<String>();
+		while (cursor.hasNext()) {
+			result.add(cursor.next());
+		}
+
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems("spring", "redis"));
+	}
+
+	/**
+	 * @see DATAREDIS-417
+	 */
+	@Test
+	public void hasNextShouldStopWhenScanResultIsAnEmptyCollectionAndStateIsFinished() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		values.add(createIteration(1, "spring"));
+		values.add(createIteration(2));
+		values.add(createIteration(3));
+		values.add(createIteration(4));
+		values.add(createIteration(5));
+		values.add(createIteration(6));
+		values.add(createIteration(7, "data"));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values);
+
+		List<String> result = new ArrayList<String>();
+		while (cursor.hasNext()) {
+			result.add(cursor.next());
+		}
+
+		assertThat(result.size(), is(2));
+		assertThat(result, hasItems("spring", "data"));
+	}
+
+	/**
+	 * @see DATAREDIS-417
+	 */
+	@Test
+	public void hasNextShouldStopCorrectlyWhenWholeScanIterationDoesNotReturnResultsAndStateIsFinished() {
+
+		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
+		values.add(createIteration(1));
+		values.add(createIteration(2));
+		values.add(createIteration(3));
+		values.add(createIteration(4));
+		values.add(createIteration(5));
+		values.add(createIteration(0));
+		Cursor<String> cursor = initCursor(values);
+
+		assertThat(cursor.getPosition(), is(0L));
+
+		int loops = 0;
+		while (cursor.hasNext()) {
+			cursor.next();
+			loops++;
+		}
+
+		assertThat(loops, is(0));
+		assertThat(cursor.getCursorId(), is(0L));
+	}
+
 	private CapturingCursorDummy initCursor(Queue<ScanIteration<String>> values) {
 		CapturingCursorDummy cursor = new CapturingCursorDummy(values);
 		cursor.open();
@@ -170,7 +251,8 @@ public class ScanCursorUnitTests {
 	}
 
 	private ScanIteration<String> createIteration(long cursorId, String... values) {
-		return new ScanIteration<String>(cursorId, Arrays.asList(values));
+		return new ScanIteration<String>(cursorId, values.length > 0 ? Arrays.asList(values)
+				: Collections.<String> emptyList());
 	}
 
 	private class CapturingCursorDummy extends ScanCursor<String> {

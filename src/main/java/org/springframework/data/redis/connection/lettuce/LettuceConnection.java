@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3090,7 +3090,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				List<?> result = eval(script.getBytes(), ReturnType.MULTI, 0);
 				String nextCursorId = LettuceConverters.bytesToString().convert((byte[]) result.get(0));
 
-				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), ((List<byte[]>) result.get(1)));
+				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId),
+						result.size() <= 1 ? Collections.<byte[]> emptyList() : ((List<byte[]>) result.get(1)));
 			}
 		}.open();
 

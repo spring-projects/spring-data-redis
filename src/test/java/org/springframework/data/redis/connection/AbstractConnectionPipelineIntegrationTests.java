@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package org.springframework.data.redis.connection;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.test.annotation.IfProfileValue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Base test class for integration tests that execute each operation of a Connection while a pipeline is open, verifying
@@ -34,6 +33,7 @@ import static org.junit.Assert.assertTrue;
  * test overrides {@link AbstractConnectionIntegrationTests} when result types are different
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
  */
 abstract public class AbstractConnectionPipelineIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -118,6 +118,16 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		getResults();
 		List<Object> results = connection.closePipeline();
 		assertTrue(results.isEmpty());
+	}
+
+	/**
+	 * @see DATAREDIS-417
+	 */
+	@Test
+	@Ignore
+	@Override
+	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
+		super.scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection();
 	}
 
 	protected void initConnection() {
