@@ -22,6 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.annotation.ReadOnlyProperty;
+
 /**
  * {@link TimeToLive} marks a single numeric property on aggregate root to be used for setting expirations in Redis..
  * The annotated property supersedes any other timeout configuration.
@@ -42,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Target(value = { ElementType.FIELD, ElementType.METHOD })
+@ReadOnlyProperty
 public @interface TimeToLive {
 
 	TimeUnit unit() default TimeUnit.SECONDS;
