@@ -144,14 +144,24 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		private final KeyspaceConfiguration keyspaceConfig;
 
 		public ConfigAwareKeySpaceResolver(KeyspaceConfiguration keyspaceConfig) {
+
 			this.keyspaceConfig = keyspaceConfig;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.keyvalue.core.mapping.KeySpaceResolver#resolveKeySpace(java.lang.Class)
+		 */
 		@Override
 		public String resolveKeySpace(Class<?> type) {
 
+			Assert.notNull(type, "Type must not be null!");
 			if (keyspaceConfig.hasSettingsFor(type)) {
-				return keyspaceConfig.getKeyspaceSettings(type).getKeyspace();
+
+				String value = keyspaceConfig.getKeyspaceSettings(type).getKeyspace();
+				if (StringUtils.hasText(value)) {
+					return value;
+				}
 			}
 
 			return ClassNameKeySpaceResolver.INSTANCE.resolveKeySpace(type);
@@ -216,6 +226,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		@SuppressWarnings({ "rawtypes" })
 		public Long getTimeToLive(Object source) {
 
+			Assert.notNull(source, "Source must not be null!");
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source : source.getClass();
 
 			Long defaultTimeout = resolveDefaultTimeOut(type);
