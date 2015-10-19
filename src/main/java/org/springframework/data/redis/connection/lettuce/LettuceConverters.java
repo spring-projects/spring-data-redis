@@ -137,7 +137,7 @@ abstract public class LettuceConverters extends Converters {
 			public Map<byte[], byte[]> convert(final List<byte[]> source) {
 
 				if (CollectionUtils.isEmpty(source)) {
-					Collections.emptyMap();
+					return Collections.emptyMap();
 				}
 
 				Map<byte[], byte[]> target = new LinkedHashMap<byte[], byte[]>();
