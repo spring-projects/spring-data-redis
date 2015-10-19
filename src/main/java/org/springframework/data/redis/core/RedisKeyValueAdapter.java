@@ -38,8 +38,12 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.convert.IndexResolverImpl;
+import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
+import org.springframework.data.redis.core.convert.ReferenceResolver;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
@@ -61,21 +65,35 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	private RedisMessageListenerContainer messageListenerContainer;
 	private KeyExpirationEventMessageListener expirationListener;
 
+	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps) {
+		this(redisOps, new RedisMappingContext());
+	}
+
+	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisMappingContext mappingContext) {
+
+		super(new RedisQueryEngine());
+
+		Assert.notNull(redisOps, "RedisOperations must not be null!");
+
+		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(
+				mappingContext.getMappingConfiguration().getIndexConfiguration()), new ReferenceResolverImpl(this));
+		mappingConverter.afterPropertiesSet();
+
+		converter = mappingConverter;
+		this.redisOps = redisOps;
+
+		initKeyExpirationListener();
+	}
+
 	/**
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
-	// TODO: change context to RedisConverter
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisConverter redisConverter) {
 
 		super(new RedisQueryEngine());
 
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
-		// Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
-		//
-		// MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(
-		// mappingContext.getMappingConfiguration().getIndexConfiguration()), new ReferenceResolverImpl(this));
-		// mappingConverter.afterPropertiesSet();
 
 		converter = redisConverter;
 		this.redisOps = redisOps;
@@ -451,6 +469,35 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			}
 
 			return true;
+		}
+	}
+
+	static class ReferenceResolverImpl implements ReferenceResolver {
+
+		private RedisKeyValueAdapter adapter;
+
+		ReferenceResolverImpl() {
+
+		}
+
+		/**
+		 * @param adapter must not be {@literal null}.
+		 */
+		public ReferenceResolverImpl(RedisKeyValueAdapter adapter) {
+			this.adapter = adapter;
+		}
+
+		public void setAdapter(RedisKeyValueAdapter adapter) {
+			this.adapter = adapter;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.io.Serializable, java.io.Serializable, java.lang.Class)
+		 */
+		@Override
+		public <T> T resolveReference(Serializable id, Serializable keyspace, Class<T> type) {
+			return (T) adapter.get(id, keyspace);
 		}
 	}
 

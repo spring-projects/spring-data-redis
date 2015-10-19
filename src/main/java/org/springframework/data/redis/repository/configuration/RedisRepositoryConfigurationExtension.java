@@ -31,7 +31,6 @@ import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
-import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.util.StringUtils;
@@ -122,7 +121,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 	private RootBeanDefinition createRedisReferenceResolverDefinition() {
 
 		RootBeanDefinition beanDef = new RootBeanDefinition();
-		beanDef.setBeanClass(ReferenceResolverImpl.class);
+		beanDef.setBeanClassName("org.springframework.data.redis.core.RedisKeyValueAdapter.ReferenceResolverImpl");
 
 		MutablePropertyValues props = new MutablePropertyValues();
 		props.add("adapter", new RuntimeBeanReference(REDIS_ADAPTER_BEAN_NAME));

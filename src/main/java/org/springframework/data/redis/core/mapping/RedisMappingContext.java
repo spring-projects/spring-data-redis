@@ -66,8 +66,9 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		this.mappingConfiguration = mappingConfiguration != null ? mappingConfiguration : new MappingConfiguration(
 				new IndexConfiguration(), new KeyspaceConfiguration());
 
-		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(mappingConfiguration.getKeyspaceConfiguration()));
-		this.timeToLiveAccessor = new ConfigAwareTimeToLiveAccessor(mappingConfiguration.getKeyspaceConfiguration(), this);
+		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(this.mappingConfiguration.getKeyspaceConfiguration()));
+		this.timeToLiveAccessor = new ConfigAwareTimeToLiveAccessor(this.mappingConfiguration.getKeyspaceConfiguration(),
+				this);
 	}
 
 	/**
@@ -207,7 +208,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		 * @param keyspaceConfig must not be {@literal null}.
 		 * @param mappingContext must not be {@literal null}.
 		 */
-		public ConfigAwareTimeToLiveAccessor(KeyspaceConfiguration keyspaceConfig, RedisMappingContext mappingContext) {
+		ConfigAwareTimeToLiveAccessor(KeyspaceConfiguration keyspaceConfig, RedisMappingContext mappingContext) {
 
 			Assert.notNull(keyspaceConfig, "KeyspaceConfiguration must not be null!");
 			Assert.notNull(mappingContext, "MappingContext must not be null!");
