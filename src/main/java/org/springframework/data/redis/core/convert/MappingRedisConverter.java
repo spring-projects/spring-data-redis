@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.convert;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -115,14 +116,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	public MappingRedisConverter(RedisMappingContext mappingContext, IndexResolver indexResolver,
 			ReferenceResolver referenceResolver) {
 
-		// Assert.notNull(referenceResolver, "ReferenceResolver must not be null!");
-
 		this.mappingContext = mappingContext != null ? mappingContext : new RedisMappingContext();
 
 		entityInstantiators = new EntityInstantiators();
 
-		this.customConversions = new CustomConversions();
 		this.conversionService = new DefaultConversionService();
+		this.customConversions = new CustomConversions();
 
 		typeMapper = new DefaultTypeMapper<RedisData>(new RedisTypeAliasAccessor(this.conversionService));
 
@@ -164,13 +163,33 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		TypeInformation<?> readType = typeMapper.readType(source);
 		TypeInformation<?> typeToUse = readType != null ? readType : ClassTypeInformation.from(type);
+		final RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
+
+		if (customConversions.hasCustomReadTarget(Map.class, typeToUse.getType())) {
+
+			Map<String, byte[]> partial = new HashMap<String, byte[]>();
+
+			if (!path.isEmpty()) {
+
+				for (Entry<String, byte[]> entry : source.getBucket().extract(path + ".").entrySet()) {
+					partial.put(entry.getKey().substring(path.length() + 1), entry.getValue());
+				}
+
+			} else {
+				partial.putAll(source.getBucket().asMap());
+			}
+			R instance = (R) conversionService.convert(partial, typeToUse.getType());
+
+			if (entity.hasIdProperty()) {
+				entity.getPropertyAccessor(instance).setProperty(entity.getIdProperty(), source.getId());
+			}
+			return instance;
+		}
 
 		if (conversionService.canConvert(byte[].class, typeToUse.getType())) {
 			return (R) conversionService.convert(source.getBucket().get(StringUtils.hasText(path) ? path : "_raw"),
 					typeToUse.getType());
 		}
-
-		final RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
 
 		EntityInstantiator instantiator = entityInstantiators.getInstantiatorFor(entity);
 
@@ -239,6 +258,17 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 					accessor.setProperty(persistentProperty, readInternal(currentPath, targetType, source));
 				} else {
+
+					if (persistentProperty.isIdProperty() && StringUtils.isEmpty(path.isEmpty())) {
+
+						if (source.getBucket().get(currentPath) == null) {
+							accessor.setProperty(persistentProperty,
+									fromBytes(source.getBucket().get(currentPath), persistentProperty.getActualType()));
+						} else {
+							accessor.setProperty(persistentProperty, source.getId());
+						}
+					}
+
 					accessor.setProperty(persistentProperty,
 							fromBytes(source.getBucket().get(currentPath), persistentProperty.getActualType()));
 				}
@@ -314,7 +344,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		final RedisPersistentEntity entity = mappingContext.getPersistentEntity(source.getClass());
 
-		typeMapper.writeType(ClassUtils.getUserClass(source), sink);
+		if (!customConversions.hasCustomWriteTarget(source.getClass())) {
+			typeMapper.writeType(ClassUtils.getUserClass(source), sink);
+		}
 		sink.setKeyspace(entity.getKeySpace());
 
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
@@ -341,8 +373,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			return;
 		}
 
-		if (conversionService.canConvert(value.getClass(), byte[].class)) {
-			sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
+		if (customConversions.hasCustomWriteTarget(value.getClass())) {
+
+			if (customConversions.getCustomWriteTarget(value.getClass()).equals(byte[].class)) {
+				sink.getBucket().put(StringUtils.hasText(path) ? path : "_raw", conversionService.convert(value, byte[].class));
+			} else {
+				writeToBucket(path, value, sink);
+			}
 
 			final KeyValuePersistentEntity<?> entity = mappingContext.getPersistentEntity(value.getClass());
 			final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
@@ -361,9 +398,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 						sink.addIndexedData(index);
 					}
 				}
-
 			});
-
 			return;
 		}
 
@@ -483,13 +518,39 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			String currentPath = path + ".[" + i + "]";
 
-			if (conversionService.canConvert(value.getClass(), byte[].class)) {
-				sink.getBucket().put(currentPath, toBytes(value));
+			if (customConversions.hasCustomWriteTarget(value.getClass())) {
+				writeToBucket(currentPath, value, sink);
 			} else {
 				writeInternal(keyspace, currentPath, value, typeHint, sink);
 			}
 			i++;
 		}
+	}
+
+	private void writeToBucket(String path, Object value, RedisData sink) {
+
+		if (value == null) {
+			return;
+		}
+
+		if (customConversions.hasCustomWriteTarget(value.getClass())) {
+			Class<?> targetType = customConversions.getCustomWriteTarget(value.getClass());
+
+			if (ClassUtils.isAssignable(Map.class, targetType)) {
+
+				Map<?, ?> map = (Map<?, ?>) conversionService.convert(value, targetType);
+				for (Map.Entry<?, ?> entry : map.entrySet()) {
+					sink.getBucket().put(path + (StringUtils.hasText(path) ? "." : "") + entry.getKey(),
+							toBytes(entry.getValue()));
+				}
+			} else if (ClassUtils.isAssignable(byte[].class, targetType)) {
+				sink.getBucket().put(path, toBytes(value));
+			} else {
+				throw new IllegalArgumentException("converter must not fool me!!");
+			}
+
+		}
+
 	}
 
 	/**
@@ -562,8 +623,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			String currentPath = path + ".[" + entry.getKey() + "]";
 
-			if (conversionService.canConvert(entry.getValue().getClass(), byte[].class)) {
-				sink.getBucket().put(currentPath, toBytes(entry.getValue()));
+			if (customConversions.hasCustomWriteTarget(entry.getValue().getClass())) {
+				writeToBucket(currentPath, entry.getValue(), sink);
 			} else {
 				writeInternal(keyspace, currentPath, entry.getValue(), ClassTypeInformation.from(mapValueType), sink);
 			}
@@ -687,7 +748,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() {
-		initializeConverters();
+		this.initializeConverters();
 	}
 
 	private void initializeConverters() {

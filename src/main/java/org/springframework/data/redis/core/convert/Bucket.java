@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.convert;
 
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -78,6 +79,11 @@ public class Bucket {
 		return data.get(path);
 	}
 
+	/**
+	 * A set view of the mappings contained in this bucket.
+	 * 
+	 * @return never {@literal null}.
+	 */
 	public Set<Entry<String, byte[]>> entrySet() {
 		return data.entrySet();
 	}
@@ -89,12 +95,27 @@ public class Bucket {
 		return data.isEmpty();
 	}
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	public Collection<byte[]> values() {
 		return data.values();
 	}
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	public Set<String> keySet() {
 		return data.keySet();
+	}
+
+	/**
+	 * Key/value pairs contained in the {@link Bucket}.
+	 * 
+	 * @return never {@literal null}.
+	 */
+	public Map<String, byte[]> asMap() {
+		return Collections.unmodifiableMap(this.data);
 	}
 
 	public Bucket extract(String prefix) {

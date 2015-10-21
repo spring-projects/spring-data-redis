@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,14 +50,13 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 		super(criteriaAccessor, sortAccessor);
 	}
 
-	@Override
-	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, int offset, int rows,
-			final Serializable keyspace) {
+	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, int offset, int rows,
+			final Serializable keyspace, Class<T> type) {
 
-		RedisCallback<List<Map<byte[], byte[]>>> callback = new RedisCallback<List<Map<byte[], byte[]>>>() {
+		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = new RedisCallback<Map<byte[], Map<byte[], byte[]>>>() {
 
 			@Override
-			public List<Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
+			public Map<byte[], Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
 
 				String key = keyspace + ":";
 				byte[][] keys = new byte[criteria.getSismember().size()][];
@@ -70,14 +70,14 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 
 				byte[] keyspaceBin = getAdapter().getConverter().getConversionService().convert(keyspace + ":", byte[].class);
 
-				final List<Map<byte[], byte[]>> rawData = new ArrayList<Map<byte[], byte[]>>();
+				final Map<byte[], Map<byte[], byte[]>> rawData = new LinkedHashMap<byte[], Map<byte[], byte[]>>();
 
 				for (byte[] id : allKeys) {
 
 					byte[] singleKey = Arrays.copyOf(keyspaceBin, id.length + keyspaceBin.length);
 					System.arraycopy(id, 0, singleKey, keyspaceBin.length, id.length);
 
-					rawData.add(connection.hGetAll(singleKey));
+					rawData.put(id, connection.hGetAll(singleKey));
 				}
 
 				return rawData;
@@ -85,16 +85,28 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 			}
 		};
 
-		List<Map<byte[], byte[]>> raw = this.getAdapter().execute(callback);
+		Map<byte[], Map<byte[], byte[]>> raw = this.getAdapter().execute(callback);
 
-		List<Object> result = new ArrayList<Object>(raw.size());
-		for (Map<byte[], byte[]> rawData : raw) {
-			Object converted = this.getAdapter().getConverter().read(Object.class, new RedisData(rawData));
+		List<T> result = new ArrayList<T>(raw.size());
+		for (Map.Entry<byte[], Map<byte[], byte[]>> entry : raw.entrySet()) {
+
+			RedisData data = new RedisData(entry.getValue());
+			data.setId(getAdapter().getConverter().getConversionService().convert(entry.getKey(), String.class));
+			data.setKeyspace(keyspace.toString());
+
+			T converted = this.getAdapter().getConverter().read(type, data);
+
 			if (converted != null) {
 				result.add(converted);
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, int offset, int rows,
+			final Serializable keyspace) {
+		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
 	@Override
