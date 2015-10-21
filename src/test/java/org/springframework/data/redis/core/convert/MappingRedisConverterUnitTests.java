@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.test.util.IsBucketMatcher.*;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -52,6 +53,7 @@ import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -802,7 +804,7 @@ public class MappingRedisConverterUnitTests {
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
-		converter.afterPropertiesSet();
+		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
 		address.country = "Tel'aran'rhiod";
@@ -821,7 +823,7 @@ public class MappingRedisConverterUnitTests {
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
-		converter.afterPropertiesSet();
+		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
 		address.country = "Tel'aran'rhiod";
@@ -841,7 +843,7 @@ public class MappingRedisConverterUnitTests {
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
-		converter.afterPropertiesSet();
+		this.converter.afterPropertiesSet();
 
 		Address address = new Address();
 		address.country = "Tel'aran'rhiod";
@@ -860,7 +862,7 @@ public class MappingRedisConverterUnitTests {
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
-		converter.afterPropertiesSet();
+		this.converter.afterPropertiesSet();
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
@@ -880,7 +882,7 @@ public class MappingRedisConverterUnitTests {
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
-		converter.afterPropertiesSet();
+		this.converter.afterPropertiesSet();
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
@@ -917,6 +919,120 @@ public class MappingRedisConverterUnitTests {
 		assertThat(write(aviendha).getTimeToLive(), is(5L));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldConsiderMapConvertersForRootType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
+		this.converter.afterPropertiesSet();
+
+		Species myrddraal = new Species();
+		myrddraal.name = "myrddraal";
+		myrddraal.alsoKnownAs = Arrays.asList("halfmen", "fades", "neverborn");
+
+		assertThat(write(myrddraal).getBucket(), isBucket().containingUtf8String("species-name", "myrddraal")
+				.containingUtf8String("species-nicknames", "halfmen,fades,neverborn"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldConsiderMapConvertersForNestedType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
+		this.converter.afterPropertiesSet();
+
+		rand.species = new Species();
+		rand.species.name = "human";
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("species.species-name", "human"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readShouldConsiderMapConvertersForRootType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
+		this.converter.afterPropertiesSet();
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("species-name", "trolloc");
+
+		Species target = converter.read(Species.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target, notNullValue());
+		assertThat(target.name, is("trolloc"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readShouldConsiderMapConvertersForNestedType() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
+		this.converter.afterPropertiesSet();
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("species.species-name", "trolloc");
+
+		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target, notNullValue());
+		assertThat(target.species.name, is("trolloc"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldConsiderMapConvertersInsideLists() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
+		this.converter.afterPropertiesSet();
+
+		TheWheelOfTime twot = new TheWheelOfTime();
+		twot.species = new ArrayList<Species>();
+
+		Species myrddraal = new Species();
+		myrddraal.name = "myrddraal";
+		myrddraal.alsoKnownAs = Arrays.asList("halfmen", "fades", "neverborn");
+		twot.species.add(myrddraal);
+
+		assertThat(write(twot).getBucket(), isBucket().containingUtf8String("species.[0].species-name", "myrddraal")
+				.containingUtf8String("species.[0].species-nicknames", "halfmen,fades,neverborn"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readShouldConsiderMapConvertersForValuesInList() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
+		this.converter.afterPropertiesSet();
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("species.[0].species-name", "trolloc");
+
+		TheWheelOfTime target = converter.read(TheWheelOfTime.class, new RedisData(Bucket.newBucketFromStringMap(map)));
+
+		assertThat(target, notNullValue());
+		assertThat(target.species, notNullValue());
+		assertThat(target.species.get(0), notNullValue());
+		assertThat(target.species.get(0).name, is("trolloc"));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
@@ -944,6 +1060,8 @@ public class MappingRedisConverterUnitTests {
 
 		@Reference Location location;
 		@Reference List<Location> visited;
+
+		Species species;
 	}
 
 	static class Address {
@@ -984,6 +1102,19 @@ public class MappingRedisConverterUnitTests {
 		String name;
 	}
 
+	static class Species {
+
+		String name;
+		List<String> alsoKnownAs;
+	}
+
+	static class TheWheelOfTime {
+
+		List<Person> mainCharacters;
+		List<Species> species;
+		Map<String, Location> places;
+	}
+
 	static class ExipringPersonWithExplicitProperty extends ExpiringPerson {
 
 		@TimeToLive(unit = TimeUnit.MINUTES) Long ttl;
@@ -1009,6 +1140,49 @@ public class MappingRedisConverterUnitTests {
 		@Override
 		public byte[] convert(Address value) {
 			return serializer.serialize(value);
+		}
+	}
+
+	@WritingConverter
+	static class SpeciesToMapConverter implements Converter<Species, Map<String, byte[]>> {
+
+		@Override
+		public Map<String, byte[]> convert(Species source) {
+
+			if (source == null) {
+				return null;
+			}
+
+			Map<String, byte[]> map = new LinkedHashMap<String, byte[]>();
+			if (source.name != null) {
+				map.put("species-name", source.name.getBytes(Charset.forName("UTF-8")));
+			}
+			map.put("species-nicknames",
+					StringUtils.collectionToCommaDelimitedString(source.alsoKnownAs).getBytes(Charset.forName("UTF-8")));
+			return map;
+		}
+	}
+
+	@ReadingConverter
+	static class MapToSpeciesConverter implements Converter<Map<String, byte[]>, Species> {
+
+		@Override
+		public Species convert(Map<String, byte[]> source) {
+
+			if (source == null || source.isEmpty()) {
+				return null;
+			}
+
+			Species species = new Species();
+
+			if (source.containsKey("species-name")) {
+				species.name = new String(source.get("species-name"), Charset.forName("UTF-8"));
+			}
+			if (source.containsKey("species-nicknames")) {
+				species.alsoKnownAs = Arrays.asList(StringUtils.commaDelimitedListToStringArray(new String(source
+						.get("species-nicknames"), Charset.forName("UTF-8"))));
+			}
+			return species;
 		}
 	}
 
