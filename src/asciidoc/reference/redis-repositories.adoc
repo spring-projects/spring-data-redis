@@ -1,0 +1,442 @@
+[[redis.repositories]]
+= Redis Repositories
+
+Working with Redis Repositories allows to seamlessly convert and store domain objects in Redis Hashes. 
+
+WARNING: Redis Repositories requires at least Redis Server version 2.8.0.
+
+[[redis.repositories.usage]]
+== Usage
+
+To access domain entities stored in a Redis you can leverage repository support that eases implementing those quite significantly.
+
+.Sample Person entity
+====
+[source,java]
+----
+@RedisHash("persons");
+public class Person {
+
+  @Id String id;
+  String firstname;
+  String lastname;
+  Address address;
+}
+----
+====
+
+We have a pretty simple domain object here. Note that it has a property named `id` annotated with `org.springframework.data.annotation.Id` and a `@RedisHash` annotation on its type.
+Those two are responsible for creating the actual key used to persist the hash. 
+
+To now actually have a component responsible for storage and retrieval we need to define a repository interface.
+
+.Basic repository interface to persist Person entities
+====
+[source]
+----
+public interface PersonRepository extends CrudRepository<Person, String> {
+
+}
+----
+====
+
+As our repository extends `CrudRepository` it provides basic CRUD and finder operations. The thing we need in between to glue things together is the according Spring configuration.
+
+.JavaConfig for repositories
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories
+public class ApplicationConfig {
+
+  @Bean
+  public RedisConnectionFactory connectionFactory() {
+    return new JedisConnectionFactory();
+  }
+  
+  @Bean
+  public RedisTemplate<?, ?> redisTemplate() {
+
+    RedisTemplate<byte[], byte[]> template = new RedisTemplate<byte[], byte[]>();
+    template.setConnectionFactory(connectionFactory);
+    return template;
+  }
+}
+----
+====
+
+Given the setup above we can go on and inject `PersonRepository` into our components.
+
+.Access to Person entities
+====
+[source,java]
+----
+
+@Autowired PersonRepository repo;
+
+public void basicCrudOperations() { 
+
+  Person rand = new Person("rand", "al'thor");
+  rand.setAddress(new Address("emond's field", "andor"));
+  
+  repo.save(rand);                                         <1>
+  
+  repo.findOne(rand.getId());                              <2>
+  
+  repo.count();                                            <3>
+  
+  repo.delete(rand);                                       <4>
+}
+----
+<1> Generates a new id if current values is `null` or reuses an already set id value and stores properties of type `Person` inside the Redis Hash with key with pattern `keyspace:id` in this case eg. `persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
+<2> Uses the provided id to retrieve the object stored at `keyspace:id`.
+<3> Counts the total number of entities available within the keyspace _persons_ defined by `@RedisHash` on `Person`.
+<4> Removes the key for the given object from Redis.
+====
+
+
+[[redis.repositories.keyspaces]]
+== Keyspaces
+Keyspaces define prefixes used to create the actual _key_ for the Redis Hash used to persist the objects data.
+By default the prefix is set to `getClass().getName()`. This default can be altered via `@RedisHash` on aggregate root level or by setting up a programmatic configuration. However, the annotated keyspace supersedes any other configuration.
+
+.Keyspace Setup via @EnableRedisRepositories
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories(keyspaceConfiguration = MyKeyspaceConfiguration.class)
+public class ApplicationConfig {
+
+  //... RedisConnectionFactory and RedisTemplate Bean definitions omitted
+  
+  public static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
+
+    @Override
+    protected Iterable<KeyspaceSettings> initialConfiguration() {
+      return Collections.singleton(new KeyspaceSettings(Person.class, "persons"));
+    }
+  }
+}
+----
+====
+
+.Programmatic Keyspace setup
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories
+public class ApplicationConfig {
+
+  //... RedisConnectionFactory and RedisTemplate Bean definitions omitted
+  
+  @Bean
+  public RedisMappingContext keyValueMappingContext() {
+    return new RedisMappingContext(
+      new MappingConfiguration(
+        new MyKeyspaceConfiguration(), new IndexConfiguration())); 
+  }
+  
+  public static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
+
+    @Override
+    protected Iterable<KeyspaceSettings> initialConfiguration() {
+      return Collections.singleton(new KeyspaceSettings(Person.class, "persons"));
+    }
+  }
+}
+----
+====
+
+
+[[redis.repositories.indexes]]
+== Secondary Indexes
+http://redis.io/topics/indexes[Secondary indexes] are used to enable lookup operations based on native redis structures. Values are written to the according indexes on every save and are removed when objects are deleted or <<redis.repositories.expirations,expire>>.
+
+Given the sample `Person` entity we can create an index for _firstname_ by annotating the property with `@Indexed`. 
+
+.Annotation driven indexing
+====
+[source,java]
+----
+@RedisHash("persons");
+public class Person {
+
+  @Id String id;
+  @Indexed String firstname;
+  String lastname;
+  Address address;
+}
+----
+====
+
+Indexes are built up for actual property values. Saving two Persons eg. "rand" and "aviendha" results in setting up indexes like below.
+
+====
+[source,text]
+----
+SADD persons:firstname:rand e2c7dcee-b8cd-4424-883e-736ce564363e
+SADD persons:firstname:aviendha a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
+----
+====
+
+It is also possible to have indexes on nested elements. Assume `Address` has a _city_ property that is annotated with `@Indexed`. In that case, once `person.address` is not `null`, we'd have Sets for each city.
+
+====
+[source,text]
+----
+SADD persons:address.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e
+----
+====
+
+Same as with _keyspaces_ it is possible to configure indexes without the need of annotating the actual domain type.
+
+.Index Setup via @EnableRedisRepositories
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories(indexConfiguration = MyIndexConfiguration.class)
+public class ApplicationConfig {
+
+  //... RedisConnectionFactory and RedisTemplate Bean definitions omitted
+  
+  public static class MyIndexConfiguration extends IndexConfiguration {
+
+    @Override
+    protected Iterable<RedisIndexSetting> initialConfiguration() {
+      return Collections.singleton(new RedisIndexSetting("persons", "firstname"));
+    }
+  }
+}
+----
+====
+
+.Programmatic Index setup
+====
+[source,java]
+----
+@Configuration
+@EnableRedisRepositories
+public class ApplicationConfig {
+
+  //... RedisConnectionFactory and RedisTemplate Bean definitions omitted
+  
+  @Bean
+  public RedisMappingContext keyValueMappingContext() {
+    return new RedisMappingContext(
+      new MappingConfiguration(
+        new KeyspaceConfiguration(), new MyIndexConfiguration())); 
+  }
+  
+  public static class MyIndexConfiguration extends IndexConfiguration {
+
+    @Override
+    protected Iterable<RedisIndexSetting> initialConfiguration() {
+      return Collections.singleton(new RedisIndexSetting("persons", "firstname"));
+    }
+  }
+}
+----
+====
+
+
+[[redis.repositories.expirations]]
+== Time To Live
+Objects stored in Redis may only be valid for a certain amount of time. This is especially useful for persisting short lived objects in Redis without having to remove them manually when they reached their end of life.
+The expiration time in seconds can be set via `@RedisHash(timeToLive=...)` as well as via `KeyspaceSettings` (see <<redis.repositories.keyspaces>>).
+
+The repository implementation makes sure to to subscribe to http://redis.io/topics/notifications[Redis keyspace notifications] sent by the server.
+
+When the expiration is set to a positive value the according `EXPIRE` command is executed. 
+Additionally to persisting the original, a object _phantom_ copy of is persisted in Redis and set to expire 5 minutes after the original one. This done to enable the Repository support to publish `RedisKeyExpiredEvent` holding the expired value via Springs `ApplicationEventPublisher` whenever a key expires even though the original values have already been gone.
+
+The `RedisKeyExpiredEvent` will hold a copy of the actually expired domain object as well as the key. 
+
+NOTE: The keyspace notification message listener will alter `notify-keyspace-events` settings in Redis if those are not already set. Existing settings will not be overridden so it is left to the user to set those up correctly when not leaving them empty.
+
+
+[[redis.repositories.mapping]]
+== Object to hash mapping
+The Redis Repository support persists Objects in Hashes. This requires an Object to Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter`s for mapping property values to and from Redis native `byte[]`.
+
+Given the `Person` type from the previous sections the default mapping looks like the following:
+
+====
+[source,text]
+----
+_class = org.example.Person                 <1>
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand                            <2>
+lastname = al’thor
+address.city = emond's field                <3>
+address.country = andor
+----
+<1> The _class attribute is included on root level as well as on any nested interface or abstract types.
+<2> Simple property values are mapped by path.
+<3> Properties of complex types are mapped by their dot path.  
+====
+
+[cols="1,2,3", options="header"]
+.Default Mapping Rules
+|===
+| Type
+| Sample
+| Mapped Value
+
+| Simple Type (eg. String)
+| String firstname = "rand";
+| firstname = "rand"
+
+| Complex Type (eg. Address)
+| Address adress = new Address("emond's field");
+| address.city = "emond's field"
+
+| List of Simple Type
+| List<String> nicknames = asList("dragon reborn", "lews therin");
+| nicknames.[0] = "dragon reborn", nicknames.[1] = "lews therin"
+
+| Map of Simple Type
+| Map<String, String> atts = asMap({"eye-color", "grey"}, {"...
+| atts.[eye-color] = "grey", atts.[...
+
+| List of Complex Type
+| List<Address> addresses = asList(new Address("em...
+| addresses.[0].city = "emond's field", addresses.[1].city  = "...
+
+| Map of Complex Type
+| Map<String, Address> addresses = asMap({"home", new Address("em...
+| addresses.[home].city = "emond's field", addresses.[work].city  = "...
+|===
+
+Mapping behavior can be customized by registering the according `Converter`s in `CustomConversions`. Those Converters can take care of converting from/to a single `byte[]` as well as `Map<Sting,byte[]>` whereas the first one is suiteable for eg. converting one complex type to eg. a binary JSON representation that still uses the default mappings hash structure, whereas the second options offers full control over the resulting hash.
+
+.Sample byte[] Converters
+====
+[source,java]
+---- 
+@WritingConverter
+public class AddressToBytesConverter implements Converter<Address, byte[]> {
+
+  private final Jackson2JsonRedisSerializer<Address> serializer;
+
+  public AddressToBytesConverter() {
+
+    serializer = new Jackson2JsonRedisSerializer<Address>(Address.class);
+    serializer.setObjectMapper(new ObjectMapper());
+  }
+
+  @Override
+  public byte[] convert(Address value) {
+    return serializer.serialize(value);
+  }
+}
+
+@ReadingConverter
+public class BytesToAddressConverter implements Converter<byte[], Address> {
+  
+  private final Jackson2JsonRedisSerializer<Address> serializer;
+  
+  public BytesToAddressConverter() {
+    
+    serializer = new Jackson2JsonRedisSerializer<Address>(Address.class);
+    serializer.setObjectMapper(new ObjectMapper());
+  }
+  
+  @Override
+  public Address convert(byte[] value) {
+  	return serializer.deserialize(value);
+  }
+}
+----
+====
+
+Using the above byte[] `Converter` s produces eg.
+====
+[source,text]
+---- 
+_class = org.example.Person
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand      
+lastname = al’thor
+address = { city : "emond's field", country : "andor" }
+----
+====
+
+
+.Sample Map<String,byte[]> Converters
+====
+[source,java]
+---- 
+@WritingConverter
+public class AddressToMapConverter implements Converter<Address, Map<String,byte[]>> {
+
+  @Override
+  public Map<String,byte[]> convert(Address source) {
+    return singletonMap("ciudad", source.getCity().getBytes());
+  }
+}
+
+@ReadingConverter
+public class MapToAddressConverter implements Converter<Address, Map<Stirng, byte[]>> {
+  
+  @Override
+  public Address convert(Map<String,byte[]> source) {
+  	return new Address(new String(source.get("ciudad")))
+  }
+}
+----
+====
+
+
+Using the above Map `Converter` s produces eg.
+====
+[source,text]
+---- 
+_class = org.example.Person
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand      
+lastname = al’thor
+ciudad = "emond's field"
+----
+====
+
+[[redis.repositories.references]]
+== Persisting References
+Marking properties with `@Reference` allows to store a simple key reference instead of copying the all values into the hash itself.
+On loading from Redis references are resolved automatically mapped back into the object.
+
+.Sample property reference
+====
+[source,text]
+---- 
+_class = org.example.Person
+id = e2c7dcee-b8cd-4424-883e-736ce564363e
+firstname = rand      
+lastname = al’thor
+mother = persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
+----
+====
+
+
+WARNING: Referenced Objects are not subject of persisting changes when saving the referencing object. Please make sure to persist changes on referenced objects separately, since only the reference will be stored.
+
+[[redis.repositories.queries]]
+== Query Methods
+Query methods allow automatic derivation of simple finder queries from the method name. 
+
+.Sample Repository finder Method
+====
+[source]
+----
+public interface PersonRepository extends CrudRepository<Person, String> {
+  
+  List<Person> findByFirstname(String firstname);
+}
+----
+====
+
+NOTE: Please make sure properties used in finder methods are set up correctly for indexing.
+
