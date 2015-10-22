@@ -15,18 +15,28 @@
  */
 package org.springframework.data.redis.core.index;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Mark property to be included in a secondary index.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 public @interface Indexed {
 
+	/**
+	 * Type of index to use.
+	 * 
+	 * @return
+	 */
 	IndexType type() default IndexType.SIMPLE;
 
 }

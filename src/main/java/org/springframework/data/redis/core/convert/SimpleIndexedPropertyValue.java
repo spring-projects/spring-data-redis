@@ -16,7 +16,10 @@
 package org.springframework.data.redis.core.convert;
 
 /**
+ * {@link IndexedData} implementation indicating storage of data within a Redis Set.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class SimpleIndexedPropertyValue implements IndexedData {
 
@@ -24,6 +27,13 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	private final String path;
 	private final Object value;
 
+	/**
+	 * Creates new {@link SimpleIndexedPropertyValue}.
+	 * 
+	 * @param keyspace must not be {@literal null}.
+	 * @param path must not be {@literal null}.
+	 * @param value can be {@literal null}.
+	 */
 	public SimpleIndexedPropertyValue(String keyspace, String path, Object value) {
 
 		this.keyspace = keyspace;
@@ -31,15 +41,28 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 		this.value = value;
 	}
 
+	/**
+	 * Get the value to index.
+	 * 
+	 * @return can be {@literal null}.
+	 */
+	public Object getValue() {
+		return value;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.convert.IndexedData#getPath()
+	 */
 	@Override
 	public String getPath() {
 		return path;
 	}
 
-	public Object getValue() {
-		return value;
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.convert.IndexedData#getKeySpace()
+	 */
 	@Override
 	public String getKeySpace() {
 		return this.keyspace;

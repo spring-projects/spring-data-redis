@@ -20,7 +20,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
+ * Simple set of operations requried to run queries against Redis.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisOperationChain {
 

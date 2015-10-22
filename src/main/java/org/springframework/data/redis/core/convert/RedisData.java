@@ -20,12 +20,16 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.util.Assert;
 
 /**
- * Data object holding flat hash values, to be stored in Redis hash, representing the domain object. Index information
+ * Data object holding {@link Bucket} representing the domain object to be stored in a Redis hash. Index information
  * points to additional structures holding the objects is for searching.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisData {
 
@@ -37,28 +41,55 @@ public class RedisData {
 
 	private Long timeToLive;
 
+	/**
+	 * Creates new {@link RedisData} with empty {@link Bucket}.
+	 */
 	public RedisData() {
 		this(Collections.<byte[], byte[]> emptyMap());
 	}
 
+	/**
+	 * Creates new {@link RedisData} with {@link Bucket} holding provided values.
+	 * 
+	 * @param raw should not be {@literal null}.
+	 */
 	public RedisData(Map<byte[], byte[]> raw) {
 		this(Bucket.newBucketFromRawMap(raw));
 	}
 
+	/**
+	 * Creates new {@link RedisData} with {@link Bucket}
+	 * 
+	 * @param bucket must not be {@literal null}.
+	 */
 	public RedisData(Bucket bucket) {
 
+		Assert.notNull(bucket, "Bucket must not be null!");
 		this.bucket = bucket;
 		this.indexedData = new HashSet<IndexedData>();
 	}
 
+	/**
+	 * Set the id to be used as part of the key.
+	 * 
+	 * @param id
+	 */
 	public void setId(Serializable id) {
 		this.id = id;
 	}
 
+	/**
+	 * @return
+	 */
 	public Serializable getId() {
 		return this.id;
 	}
 
+	/**
+	 * Get the time before expiration in seconds.
+	 * 
+	 * @return {@literal null} if not set.
+	 */
 	public Long getTimeToLive() {
 		return timeToLive;
 	}
@@ -67,9 +98,14 @@ public class RedisData {
 	 * @param index
 	 */
 	public void addIndexedData(IndexedData index) {
+
+		Assert.notNull(index, "IndexedData to add must not be null!");
 		this.indexedData.add(index);
 	}
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	public Set<IndexedData> getIndexedData() {
 		return Collections.unmodifiableSet(this.indexedData);
 	}
@@ -88,14 +124,40 @@ public class RedisData {
 		this.keyspace = keyspace;
 	}
 
+	/**
+	 * @return
+	 */
 	public Bucket getBucket() {
 		return bucket;
 	}
 
+	/**
+	 * Set the time before expiration in {@link TimeUnit#SECONDS}.
+	 * 
+	 * @param timeToLive can be {@literal null}.
+	 */
 	public void setTimeToLive(Long timeToLive) {
 		this.timeToLive = timeToLive;
 	}
 
+	/**
+	 * Set the time before expiration converting the given arguments to {@link TimeUnit#SECONDS}.
+	 * 
+	 * @param timeToLive must not be {@literal null}
+	 * @param timeUnit must not be {@literal null}
+	 */
+	public void setTimeToLive(Long timeToLive, TimeUnit timeUnit) {
+
+		Assert.notNull(timeToLive, "TimeToLive must not be null when used with TimeUnit!");
+		Assert.notNull(timeToLive, "TimeUnit must not be null!");
+
+		setTimeToLive(TimeUnit.SECONDS.convert(timeToLive, timeUnit));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "RedisDataObject [key=" + keyspace + ":" + id + ", hash=" + bucket + "]";

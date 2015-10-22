@@ -17,6 +17,21 @@ package org.springframework.data.redis.core.convert;
 
 import java.io.Serializable;
 
+import org.springframework.data.annotation.Reference;
+
+/**
+ * {@link ReferenceResolver} retrieves Objects marked with {@link Reference} from Redis.
+ * 
+ * @author Christoph Strobl
+ * @since 1.7
+ */
 public interface ReferenceResolver {
+
+	/**
+	 * @param id must not be {@literal null}.
+	 * @param keyspace must not be {@literal null}.
+	 * @param type must not be {@literal null}.
+	 * @return {@literal null} if referenced object does not exist.
+	 */
 	<T> T resolveReference(Serializable id, Serializable keyspace, Class<T> type);
 }

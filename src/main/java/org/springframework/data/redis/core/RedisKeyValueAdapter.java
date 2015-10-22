@@ -36,10 +36,12 @@ import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.IndexResolverImpl;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
@@ -52,9 +54,37 @@ import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 
 /**
- * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis.
+ * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis. Objects
+ * are stored in a Redis Hash using the value of {@link RedisHash}, the {@link KeyspaceConfiguration} or just
+ * {@link Class#getName()} as a prefix. <br />
+ * <strong>Example</strong>
+ * 
+ * <pre>
+ * <code>
+ * &#64;RedisHash("persons")
+ * class Person {
+ *   &#64;Id String id;
+ *   String name;
+ * }
+ * 
+ * 
+ *         prefix              ID
+ *           |                 |
+ *           V                 V
+ * hgetall persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5
+ * 1) id
+ * 2) 5d67b7e1-8640-4475-beeb-c666fab4c0e5
+ * 3) name
+ * 4) Rand al'Thor
+ * </code>
+ * </pre>
+ * 
+ * <br />
+ * The {@link KeyValueAdapter} is <strong>not</strong> intended to store simple types such as {@link String} values.
+ * Please use {@link RedisTemplate} for this purpose.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements ApplicationContextAware,
 		ApplicationListener<RedisKeyspaceEvent> {
@@ -113,6 +143,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	}
 
 	/**
+	 * Creates new {@link RedisKeyValueAdapter} with specific {@link RedisConverter}.
+	 * 
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
@@ -461,13 +493,25 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	}
 
 	/**
+	 * {@link MessageListener} implementation used to capture Redis keypspace notifications. Tries to read a previously
+	 * created phantom key {@code keyspace:id:phantom} to provide the expired object as part of the published
+	 * {@link RedisKeyExpiredEvent}.
+	 * 
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	static class MappingExpirationListener extends KeyExpirationEventMessageListener {
 
 		private final RedisOperations<?, ?> ops;
 		private final RedisConverter converter;
 
+		/**
+		 * Creates new {@link MappingExpirationListener}.
+		 * 
+		 * @param listenerContainer
+		 * @param ops
+		 * @param converter
+		 */
 		public MappingExpirationListener(RedisMessageListenerContainer listenerContainer, RedisOperations<?, ?> ops,
 				RedisConverter converter) {
 
@@ -476,6 +520,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			this.converter = converter;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.redis.listener.KeyspaceEventMessageListener#onMessage(org.springframework.data.redis.connection.Message, byte[])
+		 */
 		@Override
 		public void onMessage(Message message, byte[] pattern) {
 
@@ -525,14 +573,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	 * {@link ReferenceResolver} using {@link RedisKeyValueAdapter} to read and convert referenced entities.
 	 * 
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	static class ReferenceResolverImpl implements ReferenceResolver {
 
 		private RedisKeyValueAdapter adapter;
 
-		ReferenceResolverImpl() {
-
-		}
+		ReferenceResolverImpl() {}
 
 		/**
 		 * @param adapter must not be {@literal null}.

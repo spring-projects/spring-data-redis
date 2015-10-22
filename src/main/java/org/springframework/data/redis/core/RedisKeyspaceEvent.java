@@ -18,14 +18,26 @@ package org.springframework.data.redis.core;
 import org.springframework.context.ApplicationEvent;
 
 /**
+ * Redis specific {@link ApplicationEvent} published when a key expires in Redis.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisKeyspaceEvent extends ApplicationEvent {
 
+	/**
+	 * Creates new {@link RedisKeyspaceEvent}.
+	 * 
+	 * @param key The key that expired. Must not be {@literal null}.
+	 */
 	public RedisKeyspaceEvent(byte[] key) {
 		super(key);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.util.EventObject#getSource()
+	 */
 	public byte[] getSource() {
 		return (byte[]) super.getSource();
 	}

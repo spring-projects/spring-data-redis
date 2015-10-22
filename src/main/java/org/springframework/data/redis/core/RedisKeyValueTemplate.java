@@ -24,6 +24,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
  * Redis specific implementation of {@link KeyValueTemplate}.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisKeyValueTemplate extends KeyValueTemplate {
 
@@ -51,9 +52,14 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * 
 	 * @author Christoph Strobl
 	 * @param <T>
+	 * @since 1.7
 	 */
 	public static abstract class RedisKeyValueCallback<T> implements KeyValueCallback<T> {
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.keyvalue.core.KeyValueCallback#doInKeyValue(org.springframework.data.keyvalue.core.KeyValueAdapter)
+		 */
 		@Override
 		public T doInKeyValue(KeyValueAdapter adapter) {
 			return doInRedis((RedisKeyValueAdapter) adapter);

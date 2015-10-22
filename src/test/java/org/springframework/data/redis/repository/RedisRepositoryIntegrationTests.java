@@ -40,7 +40,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
-import org.springframework.data.redis.core.index.RedisIndexDefinition;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -182,8 +181,8 @@ public class RedisRepositoryIntegrationTests {
 	static class MyIndexConfiguration extends IndexConfiguration {
 
 		@Override
-		protected Iterable<RedisIndexDefinition> initialConfiguration() {
-			return Collections.singleton(new RedisIndexDefinition("persons", "lastname"));
+		protected Iterable<RedisIndexSetting> initialConfiguration() {
+			return Collections.singleton(new RedisIndexSetting("persons", "lastname"));
 		}
 	}
 

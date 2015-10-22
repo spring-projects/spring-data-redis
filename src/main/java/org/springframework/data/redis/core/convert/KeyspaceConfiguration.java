@@ -19,11 +19,18 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
+ * {@link KeyspaceConfiguration} allows programmatic setup of keyspaces and time to live options for certain types. This
+ * is suitable for cases where there is no option to use the equivalent {@link RedisHash} or {@link TimeToLive}
+ * annotations.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class KeyspaceConfiguration {
 
@@ -37,7 +44,15 @@ public class KeyspaceConfiguration {
 		}
 	}
 
+	/**
+	 * Check if specific {@link KeyspaceSettings} are available for given type.
+	 * 
+	 * @param type must not be {@literal null}.
+	 * @return true if settings exist.
+	 */
 	public boolean hasSettingsFor(Class<?> type) {
+
+		Assert.notNull(type, "Type to lookup must not be null!");
 
 		if (settingsMap.containsKey(type)) {
 
@@ -61,7 +76,17 @@ public class KeyspaceConfiguration {
 		return false;
 	}
 
+	/**
+	 * Get the {@link KeyspaceSettings} for given type.
+	 * 
+	 * @param type must not be {@literal null}
+	 * @return {@literal null} if no settings configured.
+	 */
 	public KeyspaceSettings getKeyspaceSettings(Class<?> type) {
+
+		if (!hasSettingsFor(type)) {
+			return null;
+		}
 
 		KeyspaceSettings settings = settingsMap.get(type);
 		if (settings == null || settings instanceof DefaultKeyspaceSetting) {
@@ -80,6 +105,21 @@ public class KeyspaceConfiguration {
 		return Collections.emptySet();
 	}
 
+	/**
+	 * Add {@link KeyspaceSettings} for type.
+	 * 
+	 * @param keyspaceSettings must not be {@literal null}.
+	 */
+	public void addKeyspaceSettings(KeyspaceSettings keyspaceSettings) {
+
+		Assert.notNull(keyspaceSettings);
+		this.settingsMap.put(keyspaceSettings.getType(), keyspaceSettings);
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.7
+	 */
 	public static class KeyspaceSettings {
 
 		private final String keyspace;
@@ -129,7 +169,13 @@ public class KeyspaceConfiguration {
 
 	}
 
-	static class DefaultKeyspaceSetting extends KeyspaceSettings {
+	/**
+	 * Marker class indicating no settings defined.
+	 * 
+	 * @author Christoph Strobl
+	 * @since 1.7
+	 */
+	private static class DefaultKeyspaceSetting extends KeyspaceSettings {
 
 		public DefaultKeyspaceSetting(Class<?> type) {
 			super(type, "#default#", false);
@@ -137,9 +183,4 @@ public class KeyspaceConfiguration {
 
 	}
 
-	public void addKeyspaceSettings(KeyspaceSettings keyspaceSettings) {
-
-		Assert.notNull(keyspaceSettings);
-		this.settingsMap.put(keyspaceSettings.getType(), keyspaceSettings);
-	}
 }

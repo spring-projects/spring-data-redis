@@ -23,6 +23,7 @@ import java.util.List;
  * Some handy methods for dealing with byte arrays.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public final class ByteUtils {
 

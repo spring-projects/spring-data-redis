@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class CustomConversions {
 
@@ -131,11 +132,6 @@ public class CustomConversions {
 	 */
 	public boolean isSimpleType(Class<?> type) {
 		return simpleTypeHolder.isSimpleType(type);
-	}
-
-	public boolean hasHashCreatingConversion(Class<?> type) {
-
-		return hasCustomWriteTarget(type, Map.class);
 	}
 
 	/**

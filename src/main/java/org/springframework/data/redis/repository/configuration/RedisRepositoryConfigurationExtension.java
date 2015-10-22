@@ -32,11 +32,15 @@ import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.util.StringUtils;
 
 /**
+ * {@link RepositoryConfigurationExtension} for Redis.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryConfigurationExtension {
 

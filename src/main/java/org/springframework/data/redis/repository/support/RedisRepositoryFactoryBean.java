@@ -30,6 +30,7 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  * @param <T> The repository type.
  * @param <S> The repository domain type.
  * @param <ID> The repository id type.
+ * @since 1.7
  */
 public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable> extends
 		KeyValueRepositoryFactoryBean<T, S, ID> {

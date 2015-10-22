@@ -23,6 +23,7 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
  * Redis sepcific {@link EntityConverter}.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public interface RedisConverter extends
 		EntityConverter<KeyValuePersistentEntity<?>, KeyValuePersistentProperty, Object, RedisData> {

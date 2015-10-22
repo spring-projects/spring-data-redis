@@ -70,6 +70,7 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	private static class RedisQueryLookupStrategy implements QueryLookupStrategy {
 
