@@ -16,7 +16,10 @@
 package org.springframework.data.redis.core.convert;
 
 /**
+ * {@link IndexedData} represents a secondary index for a property path in a given keyspace.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public interface IndexedData {
 
@@ -28,6 +31,8 @@ public interface IndexedData {
 	String getPath();
 
 	/**
+	 * Get the associated keyspace the index resides in.
+	 * 
 	 * @return
 	 */
 	String getKeySpace();

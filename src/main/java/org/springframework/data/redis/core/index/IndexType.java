@@ -16,8 +16,15 @@
 package org.springframework.data.redis.core.index;
 
 /**
+ * {@link IndexType} indicates structure of index.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public enum IndexType {
+
+	/**
+	 * Simple indicates usage of Redis Set for persisting data.
+	 */
 	SIMPLE
 }

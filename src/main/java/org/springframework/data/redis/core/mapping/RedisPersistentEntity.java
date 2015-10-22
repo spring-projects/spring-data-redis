@@ -20,10 +20,11 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 
 /**
- * Redis specific {@link PersistentEntity} implementation.
+ * Redis specific {@link PersistentEntity}.
  * 
  * @author Christoph Strobl
  * @param <T>
+ * @since 1.7
  */
 public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T> {
 

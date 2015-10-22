@@ -27,9 +27,10 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.NumberUtils;
 
 /**
- * Set of to/from binary {@link Converter}s.
+ * Set of {@link ReadingConverter} and {@link WritingConverter} used to convert Objects into binary format.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 final class BinaryConverters {
 
@@ -42,6 +43,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	private static class StringBasedConverter {
 
@@ -61,6 +63,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@WritingConverter
 	static class StringToBytesConverter extends StringBasedConverter implements Converter<String, byte[]> {
@@ -73,6 +76,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@ReadingConverter
 	static class BytesToStringConverter extends StringBasedConverter implements Converter<byte[], String> {
@@ -86,6 +90,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@WritingConverter
 	static class NumberToBytesConverter extends StringBasedConverter implements Converter<Number, byte[]> {
@@ -103,6 +108,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@WritingConverter
 	static class EnumToBytesConverter extends StringBasedConverter implements Converter<Enum<?>, byte[]> {
@@ -121,6 +127,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@ReadingConverter
 	static final class BytesToEnumConverterFactory implements ConverterFactory<byte[], Enum<?>> {
@@ -141,6 +148,7 @@ final class BinaryConverters {
 
 		/**
 		 * @author Christoph Strobl
+		 * @since 1.7
 		 */
 		private class BytesToEnum<T extends Enum<T>> extends StringBasedConverter implements Converter<byte[], T> {
 
@@ -165,6 +173,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@ReadingConverter
 	static class BytesToNumberConverterFactory implements ConverterFactory<byte[], Number> {
@@ -197,6 +206,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@WritingConverter
 	static class BooleanToBytesConverter extends StringBasedConverter implements Converter<Boolean, byte[]> {
@@ -217,6 +227,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@ReadingConverter
 	static class BytesToBooleanConverter extends StringBasedConverter implements Converter<byte[], Boolean> {
@@ -235,6 +246,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@WritingConverter
 	static class DateToBytesConverter extends StringBasedConverter implements Converter<Date, byte[]> {
@@ -252,6 +264,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	@ReadingConverter
 	static class BytesToDateConverter extends StringBasedConverter implements Converter<byte[], Date> {

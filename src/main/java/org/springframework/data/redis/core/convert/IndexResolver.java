@@ -18,10 +18,23 @@ package org.springframework.data.redis.core.convert;
 import org.springframework.data.mapping.PersistentProperty;
 
 /**
+ * {@link IndexResolver} extracts secondary index structures to be applied on a given path, {@link PersistentProperty}
+ * and value.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public interface IndexResolver {
 
+	/**
+	 * Extracts a potential secondary index.
+	 * 
+	 * @param keyspace must not be {@literal null}.
+	 * @param path can be {@literal null}.
+	 * @param property must not be {@literal null}.
+	 * @param value can be {@literal null}.
+	 * @return {@literal null} if no index could be resolved for given arguments.
+	 */
 	IndexedData resolveIndex(String keyspace, String path, PersistentProperty<?> property, Object value);
 
 }

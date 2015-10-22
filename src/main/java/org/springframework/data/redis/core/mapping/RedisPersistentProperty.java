@@ -27,9 +27,18 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
  * Redis specific {@link PersistentProperty} implementation.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisPersistentProperty extends KeyValuePersistentProperty {
 
+	/**
+	 * Creates new {@link RedisPersistentProperty}.
+	 * 
+	 * @param field
+	 * @param propertyDescriptor
+	 * @param owner
+	 * @param simpleTypeHolder
+	 */
 	public RedisPersistentProperty(Field field, PropertyDescriptor propertyDescriptor,
 			PersistentEntity<?, KeyValuePersistentProperty> owner, SimpleTypeHolder simpleTypeHolder) {
 		super(field, propertyDescriptor, owner, simpleTypeHolder);

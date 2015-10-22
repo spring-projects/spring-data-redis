@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.redis.test.util;
 
 import java.util.Arrays;
@@ -12,11 +27,21 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.springframework.data.redis.core.convert.Bucket;
 
+/**
+ * {@link TypeSafeMatcher} implementation for checking contents of {@link Bucket}.
+ * 
+ * @author Christoph Strobl
+ * @since 1.7
+ */
 public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	Map<String, Object> expected = new LinkedHashMap<String, Object>();
 	Set<String> without = new LinkedHashSet<String>();
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.hamcrest.SelfDescribing#describeTo(org.hamcrest.Description)
+	 */
 	@Override
 	public void describeTo(Description description) {
 
@@ -29,6 +54,10 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.hamcrest.TypeSafeMatcher#matchesSafely(java.lang.Object)
+	 */
 	@Override
 	protected boolean matchesSafely(Bucket bucket) {
 
@@ -91,22 +120,48 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 		return true;
 	}
 
+	/**
+	 * Creates new {@link IsBucketMatcher}.
+	 * 
+	 * @return
+	 */
 	public static IsBucketMatcher isBucket() {
 		return new IsBucketMatcher();
 	}
 
+	/**
+	 * Checks for presence of type hint at given path.
+	 * 
+	 * @param path
+	 * @param type
+	 * @return
+	 */
 	public IsBucketMatcher containingTypeHint(String path, Class<?> type) {
 
 		this.expected.put(path, type);
 		return this;
 	}
 
+	/**
+	 * Checks for presence of equivalent String value at path.
+	 * 
+	 * @param path
+	 * @param value
+	 * @return
+	 */
 	public IsBucketMatcher containingUtf8String(String path, String value) {
 
 		this.expected.put(path, value);
 		return this;
 	}
 
+	/**
+	 * Checks for presence of given value at path.
+	 * 
+	 * @param path
+	 * @param value
+	 * @return
+	 */
 	public IsBucketMatcher containing(String path, byte[] value) {
 
 		this.expected.put(path, value);
@@ -119,12 +174,25 @@ public class IsBucketMatcher extends TypeSafeMatcher<Bucket> {
 		return this;
 	}
 
+	/**
+	 * Checks for presence of equivalent time in msec value at path.
+	 * 
+	 * @param path
+	 * @param date
+	 * @return
+	 */
 	public IsBucketMatcher containingDateAsMsec(String path, Date date) {
 
 		this.expected.put(path, date);
 		return this;
 	}
 
+	/**
+	 * Checks given path is not present.
+	 * 
+	 * @param path
+	 * @return
+	 */
 	public IsBucketMatcher without(String path) {
 		this.without.add(path);
 		return this;

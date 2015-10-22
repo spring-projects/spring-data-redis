@@ -26,7 +26,10 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 
 /**
+ * {@link RedisHash} marks Objects as aggregate roots to be stored in a Redis hash.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 @Persistent
 @Documented
@@ -36,13 +39,19 @@ import org.springframework.data.keyvalue.annotation.KeySpace;
 public @interface RedisHash {
 
 	/**
-	 * The key space aka prefix to distinguish between domain types.
+	 * The prefix to distinguish between domain types.
 	 * 
 	 * @return
+	 * @see KeySpace
 	 */
 	@KeySpace
 	String value() default "";
 
+	/**
+	 * Time before expire in seconds. Superseded by {@link TimeToLive}.
+	 * 
+	 * @return positive number when expiration should be applied.
+	 */
 	long timeToLive() default -1L;
 
 }

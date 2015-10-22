@@ -17,11 +17,15 @@ package org.springframework.data.redis.repository.configuration;
 
 import java.lang.annotation.Annotation;
 
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.data.repository.config.RepositoryBeanDefinitionRegistrarSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 
 /**
+ * Redis specific {@link ImportBeanDefinitionRegistrar}.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 

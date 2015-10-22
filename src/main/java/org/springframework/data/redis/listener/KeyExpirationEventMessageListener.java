@@ -22,7 +22,11 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisKeyExpiredEvent;
 
 /**
+ * {@link MessageListener} publishing {@link RedisKeyExpiredEvent}s via {@link ApplicationEventPublisher} by listening
+ * to Redis keyspace notifications for key expirations.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class KeyExpirationEventMessageListener extends KeyspaceEventMessageListener implements
 		ApplicationEventPublisherAware {

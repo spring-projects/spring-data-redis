@@ -27,6 +27,7 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingContext;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
@@ -41,7 +42,10 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * Redis specific {@link MappingContext}.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class RedisMappingContext extends KeyValueMappingContext {
 
@@ -139,6 +143,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	 * {@link KeySpaceResolver} implementation considering {@link KeySpace} and {@link KeyspaceConfiguration}.
 	 * 
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	static class ConfigAwareKeySpaceResolver implements KeySpaceResolver {
 
@@ -173,6 +178,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	 * {@link KeySpaceResolver} implementation considering {@link KeySpace}.
 	 * 
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	enum ClassNameKeySpaceResolver implements KeySpaceResolver {
 
@@ -194,6 +200,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	 * {@link TimeToLiveAccessor} implementation considering {@link KeyspaceConfiguration}.
 	 * 
 	 * @author Christoph Strobl
+	 * @since 1.7
 	 */
 	static class ConfigAwareTimeToLiveAccessor implements TimeToLiveAccessor {
 

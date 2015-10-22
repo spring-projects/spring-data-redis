@@ -17,23 +17,34 @@ package org.springframework.data.redis.core.convert;
 
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
 import org.springframework.data.redis.core.index.Indexed;
-import org.springframework.data.redis.core.index.RedisIndexDefinition;
 
 /**
+ * {@link IndexResolver} implementation considering properties annotated with {@link Indexed} or paths set up in
+ * {@link IndexConfiguration}.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class IndexResolverImpl implements IndexResolver {
 
 	private IndexConfiguration indexConfiguration;
 
+	/**
+	 * Creates new {@link IndexResolverImpl} with empty {@link IndexConfiguration}.
+	 */
 	public IndexResolverImpl() {
-
 		this(new IndexConfiguration());
 	}
 
+	/**
+	 * Creates new {@link IndexResolverImpl} with given {@link IndexConfiguration}.
+	 * 
+	 * @param indexConfiguration can be {@literal null} and will be defaulted to an empty {@link IndexConfiguration} if
+	 *          so.
+	 */
 	public IndexResolverImpl(IndexConfiguration indexConfiguration) {
-
 		this.indexConfiguration = indexConfiguration != null ? indexConfiguration : new IndexConfiguration();
 	}
 
@@ -52,7 +63,7 @@ public class IndexResolverImpl implements IndexResolver {
 
 			Indexed indexed = property.findAnnotation(Indexed.class);
 
-			indexConfiguration.addIndexDefinition(new RedisIndexDefinition(keyspace, path, indexed.type()));
+			indexConfiguration.addIndexDefinition(new RedisIndexSetting(keyspace, path, indexed.type()));
 
 			switch (indexed.type()) {
 				case SIMPLE:
@@ -62,7 +73,6 @@ public class IndexResolverImpl implements IndexResolver {
 							indexed.type(), path));
 			}
 		}
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

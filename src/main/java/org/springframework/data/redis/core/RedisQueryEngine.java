@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -33,23 +32,39 @@ import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
+import org.springframework.data.redis.util.ByteUtils;
 
 /**
  * Redis specific {@link QueryEngine} implementation.
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
-public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationChain, Comparator<?>> {
+class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationChain, Comparator<?>> {
 
+	/**
+	 * Creates new {@link RedisQueryEngine} with defaults.
+	 */
 	public RedisQueryEngine() {
 		this(new RedisCriteriaAccessor(), null);
 	}
 
+	/**
+	 * Creates new {@link RedisQueryEngine}.
+	 * 
+	 * @param criteriaAccessor
+	 * @param sortAccessor
+	 * @see QueryEngine#QueryEngine(CriteriaAccessor, SortAccessor)
+	 */
 	public RedisQueryEngine(CriteriaAccessor<RedisOperationChain> criteriaAccessor,
 			SortAccessor<Comparator<?>> sortAccessor) {
 		super(criteriaAccessor, sortAccessor);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable, java.lang.Class)
+	 */
 	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, int offset, int rows,
 			final Serializable keyspace, Class<T> type) {
 
@@ -74,9 +89,7 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 
 				for (byte[] id : allKeys) {
 
-					byte[] singleKey = Arrays.copyOf(keyspaceBin, id.length + keyspaceBin.length);
-					System.arraycopy(id, 0, singleKey, keyspaceBin.length, id.length);
-
+					byte[] singleKey = ByteUtils.concat(keyspaceBin, id);
 					rawData.put(id, connection.hGetAll(singleKey));
 				}
 
@@ -103,12 +116,20 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable)
+	 */
 	@Override
 	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, int offset, int rows,
 			final Serializable keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.QueryEngine#count(java.lang.Object, java.io.Serializable)
+	 */
 	@Override
 	public long count(final RedisOperationChain criteria, final Serializable keyspace) {
 
@@ -129,6 +150,10 @@ public class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOpe
 		});
 	}
 
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.7
+	 */
 	static class RedisCriteriaAccessor implements CriteriaAccessor<RedisOperationChain> {
 
 		@Override

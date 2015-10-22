@@ -30,7 +30,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * Bucket is the data bag for Redis hash structures to be used with {@link RedisData}.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class Bucket {
 
@@ -130,7 +133,17 @@ public class Bucket {
 		return partial;
 	}
 
+	/**
+	 * Get all the keys matching a given path.
+	 * 
+	 * @param path the path to look for. Can be {@literal null}.
+	 * @return all keys if path is {@null} or empty.
+	 */
 	public Set<String> extractAllKeysFor(String path) {
+
+		if (!StringUtils.hasText(path)) {
+			return keySet();
+		}
 
 		Pattern pattern = Pattern.compile("(" + Pattern.quote(path) + ")\\.\\[.*?\\]");
 
@@ -146,6 +159,11 @@ public class Bucket {
 		return keys;
 	}
 
+	/**
+	 * Get keys and values in binary format.
+	 * 
+	 * @return never {@literal null}.
+	 */
 	public Map<byte[], byte[]> rawMap() {
 
 		Map<byte[], byte[]> raw = new LinkedHashMap<byte[], byte[]>(data.size());
@@ -157,6 +175,12 @@ public class Bucket {
 		return raw;
 	}
 
+	/**
+	 * Creates a new Bucket from a given raw map.
+	 * 
+	 * @param source can be {@literal null}.
+	 * @return never {@literal null}.
+	 */
 	public static Bucket newBucketFromRawMap(Map<byte[], byte[]> source) {
 
 		Bucket bucket = new Bucket();
@@ -170,9 +194,19 @@ public class Bucket {
 		return bucket;
 	}
 
+	/**
+	 * Creates a new Bucket from a given {@link String} map.
+	 * 
+	 * @param source can be {@literal null}.
+	 * @return never {@literal null}.
+	 */
 	public static Bucket newBucketFromStringMap(Map<String, String> source) {
 
 		Bucket bucket = new Bucket();
+		if (source == null) {
+			return bucket;
+		}
+
 		for (Map.Entry<String, String> entry : source.entrySet()) {
 			bucket.put(entry.getKey(), StringUtils.hasText(entry.getValue()) ? entry.getValue().getBytes(CHARSET)
 					: new byte[] {});
@@ -180,6 +214,10 @@ public class Bucket {
 		return bucket;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "Bucket [data=" + safeToString() + "]";

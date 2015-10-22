@@ -26,7 +26,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * {@link IndexWriter} takes care of writing <a href="http://redis.io/topics/indexes">secondary index</a> structures to
+ * Redis. Depending on the type of {@link IndexedData} it uses eg. Sets with specific names to add actually referenced
+ * keys to. While doing so {@link IndexWriter} also keeps track of all indexes associated with the root types key, which
+ * allows to remove the root key from all indexes in case of deletion.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 class IndexWriter {
 

@@ -18,23 +18,39 @@ package org.springframework.data.redis.core.convert;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 
 /**
+ * {@link MappingConfiguration} is used for programmatic configuration of secondary indexes, key prefixes, expirations
+ * and the such.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class MappingConfiguration {
 
 	private final IndexConfiguration indexConfiguration;
 	private final KeyspaceConfiguration keyspaceConfiguration;
 
+	/**
+	 * Creates new {@link MappingConfiguration}.
+	 * 
+	 * @param indexConfiguration must not be {@literal null}.
+	 * @param keyspaceConfiguration must not be {@literal null}.
+	 */
 	public MappingConfiguration(IndexConfiguration indexConfiguration, KeyspaceConfiguration keyspaceConfiguration) {
 
 		this.indexConfiguration = indexConfiguration;
 		this.keyspaceConfiguration = keyspaceConfiguration;
 	}
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	public IndexConfiguration getIndexConfiguration() {
 		return indexConfiguration;
 	}
 
+	/**
+	 * @return never {@literal null}.
+	 */
 	public KeyspaceConfiguration getKeyspaceConfiguration() {
 		return keyspaceConfiguration;
 	}

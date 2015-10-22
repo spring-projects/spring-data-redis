@@ -26,7 +26,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * Base {@link MessageListener} implementation for listening to Redis keyspace notifications.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public abstract class KeyspaceEventMessageListener implements MessageListener, InitializingBean, DisposableBean {
 

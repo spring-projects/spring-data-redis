@@ -37,7 +37,11 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
 /**
+ * Annotation to activate Redis repositories. If no base package is configured through either {@link #value()},
+ * {@link #basePackages()} or {@link #basePackageClasses()} it will trigger scanning of the package of annotated class.
+ * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

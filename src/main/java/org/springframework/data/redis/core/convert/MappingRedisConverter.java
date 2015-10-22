@@ -57,7 +57,10 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link RedisConverter} implementation creating flat binary map structure out of a given domain type. Considers
- * {@link Indexed} annotation for enabling helper structures for finder operations.
+ * {@link Indexed} annotation for enabling helper structures for finder operations. <br />
+ * <br />
+ * <strong>NOTE</strong> {@link MappingRedisConverter} is an {@link InitializingBean} and requires
+ * {@link MappingRedisConverter#afterPropertiesSet()} to be called.
  * 
  * <pre>
  * <code>
@@ -93,6 +96,7 @@ import org.springframework.util.StringUtils;
  * </pre>
  * 
  * @author Christoph Strobl
+ * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
@@ -104,11 +108,18 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private IndexResolver indexResolver;
 	private CustomConversions customConversions;
 
+	/**
+	 * Creates new {@link MappingRedisConverter}.
+	 * 
+	 * @param context can be {@literal null}.
+	 */
 	MappingRedisConverter(RedisMappingContext context) {
 		this(context, null, null);
 	}
 
 	/**
+	 * Creates new {@link MappingRedisConverter} and defaults {@link RedisMappingContext} when {@literal null}.
+	 * 
 	 * @param mappingContext can be {@literal null}.
 	 * @param indexResolver can be {@literal null}.
 	 * @param referenceResolver must not be {@literal null}.
@@ -129,21 +140,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		this.indexResolver = indexResolver != null ? indexResolver : new IndexResolverImpl(this.mappingContext
 				.getMappingConfiguration().getIndexConfiguration());
-	}
-
-	/**
-	 * @param customConversions
-	 */
-	public void setCustomConversions(CustomConversions customConversions) {
-		this.customConversions = customConversions != null ? customConversions : new CustomConversions();
-	}
-
-	public void setReferenceResolver(ReferenceResolver referenceResolver) {
-		this.referenceResolver = referenceResolver;
-	}
-
-	public void setIndexResolver(IndexResolver indexResolver) {
-		this.indexResolver = indexResolver;
 	}
 
 	/*
@@ -728,6 +724,23 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 */
 	public <T> T fromBytes(byte[] source, Class<T> type) {
 		return conversionService.convert(source, type);
+	}
+
+	/**
+	 * Set {@link CustomConversions} to be applied.
+	 * 
+	 * @param customConversions
+	 */
+	public void setCustomConversions(CustomConversions customConversions) {
+		this.customConversions = customConversions != null ? customConversions : new CustomConversions();
+	}
+
+	public void setReferenceResolver(ReferenceResolver referenceResolver) {
+		this.referenceResolver = referenceResolver;
+	}
+
+	public void setIndexResolver(IndexResolver indexResolver) {
+		this.indexResolver = indexResolver;
 	}
 
 	/*
