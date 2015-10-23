@@ -138,8 +138,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		this.referenceResolver = referenceResolver;
 
-		this.indexResolver = indexResolver != null ? indexResolver : new IndexResolverImpl(this.mappingContext
-				.getMappingConfiguration().getIndexConfiguration());
+		this.indexResolver = indexResolver != null ? indexResolver : new IndexResolverImpl(this.mappingContext);
 	}
 
 	/*
@@ -353,6 +352,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			sink.setTimeToLive(ttl);
 		}
 
+		for (IndexedData indexeData : indexResolver.resolveIndexesFor(entity.getTypeInformation(), source)) {
+			sink.addIndexedData(indexeData);
+		}
+
 	}
 
 	/**
@@ -376,25 +379,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			} else {
 				writeToBucket(path, value, sink);
 			}
-
-			final KeyValuePersistentEntity<?> entity = mappingContext.getPersistentEntity(value.getClass());
-			final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
-			entity.doWithProperties(new PropertyHandler<KeyValuePersistentProperty>() {
-
-				@Override
-				public void doWithPersistentProperty(KeyValuePersistentProperty persistentProperty) {
-
-					String propertyStringPath = (!path.isEmpty() ? path + "." : "") + persistentProperty.getName();
-
-					Object propertyValue = accessor.getProperty(persistentProperty);
-
-					IndexedData index = indexResolver.resolveIndex(keyspace, propertyStringPath, persistentProperty,
-							propertyValue);
-					if (index != null) {
-						sink.addIndexedData(index);
-					}
-				}
-			});
 			return;
 		}
 
@@ -430,13 +414,6 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				} else {
 
 					Object propertyValue = accessor.getProperty(persistentProperty);
-
-					IndexedData index = indexResolver.resolveIndex(keyspace, propertyStringPath, persistentProperty,
-							propertyValue);
-					if (index != null) {
-						sink.addIndexedData(index);
-					}
-
 					sink.getBucket().put(propertyStringPath, toBytes(propertyValue));
 				}
 			}

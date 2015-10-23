@@ -132,7 +132,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(
-				mappingContext.getMappingConfiguration().getIndexConfiguration()), new ReferenceResolverImpl(this));
+				mappingContext), new ReferenceResolverImpl(this));
 		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
