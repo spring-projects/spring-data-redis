@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import org.springframework.util.ObjectUtils;
+
 /**
  * {@link IndexedData} implementation indicating storage of data within a Redis Set.
  * 
@@ -66,6 +68,56 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	@Override
 	public String getKeySpace() {
 		return this.keyspace;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+
+		int result = 1;
+		result += ObjectUtils.nullSafeHashCode(keyspace);
+		result += ObjectUtils.nullSafeHashCode(path);
+		result += ObjectUtils.nullSafeHashCode(value);
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof SimpleIndexedPropertyValue)) {
+			return false;
+		}
+
+		SimpleIndexedPropertyValue that = (SimpleIndexedPropertyValue) obj;
+
+		if (!ObjectUtils.nullSafeEquals(this.keyspace, that.keyspace)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(this.value, that.value);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "SimpleIndexedPropertyValue [keyspace=" + keyspace + ", path=" + path + ", value=" + value + "]";
 	}
 
 }

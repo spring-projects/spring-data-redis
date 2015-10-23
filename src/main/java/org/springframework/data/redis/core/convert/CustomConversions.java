@@ -479,7 +479,7 @@ public class CustomConversions {
 		 * @return
 		 */
 		private static boolean isRedisBasicType(Class<?> type) {
-			return byte[].class.equals(type);
+			return (byte[].class.equals(type) || Map.class.equals(type));
 		}
 	}
 }

@@ -15,7 +15,10 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.util.Set;
+
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.util.TypeInformation;
 
 /**
  * {@link IndexResolver} extracts secondary index structures to be applied on a given path, {@link PersistentProperty}
@@ -27,14 +30,12 @@ import org.springframework.data.mapping.PersistentProperty;
 public interface IndexResolver {
 
 	/**
-	 * Extracts a potential secondary index.
+	 * Resolves all indexes for given type information / value combination.
 	 * 
-	 * @param keyspace must not be {@literal null}.
-	 * @param path can be {@literal null}.
-	 * @param property must not be {@literal null}.
-	 * @param value can be {@literal null}.
-	 * @return {@literal null} if no index could be resolved for given arguments.
+	 * @param typeInformation must not be {@literal null}.
+	 * @param value the actual value. Can be {@literal null}.
+	 * @return never {@literal null}.
 	 */
-	IndexedData resolveIndex(String keyspace, String path, PersistentProperty<?> property, Object value);
+	Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value);
 
 }

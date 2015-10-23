@@ -89,7 +89,7 @@ public void basicCrudOperations() {
   repo.delete(rand);                                       <4>
 }
 ----
-<1> Generates a new id if current values is `null` or reuses an already set id value and stores properties of type `Person` inside the Redis Hash with key with pattern `keyspace:id` in this case eg. `persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
+<1> Generates a new id if current value is `null` or reuses an already set id value and stores properties of type `Person` inside the Redis Hash with key with pattern `keyspace:id` in this case eg. `persons:5d67b7e1-8640-4475-beeb-c666fab4c0e5`.
 <2> Uses the provided id to retrieve the object stored at `keyspace:id`.
 <3> Counts the total number of entities available within the keyspace _persons_ defined by `@RedisHash` on `Person`.
 <4> Removes the key for the given object from Redis.
@@ -191,6 +191,28 @@ SADD persons:address.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e
 ----
 ====
 
+Further more the programmatic setup allows to define indexes on map keys and list properties.
+
+====
+[source,java]
+----
+@RedisHash("persons");
+public class Person {
+
+  // ... other properties omitted
+  
+  Map<String,String> attributes;      <1>
+  Map<String Person> relatives;       <2>
+  List<Address> addresses;            <3>
+}
+----
+<1> `SADD persons:attributes.map-key:map-value e2c7dcee-b8cd-4424-883e-736ce564363e`
+<2> `SADD persons:relatives.map-key.firstname:tam e2c7dcee-b8cd-4424-883e-736ce564363e`
+<3> `SADD persons:addresses.city:tear e2c7dcee-b8cd-4424-883e-736ce564363e`
+====
+
+NOTE: Indexes will not be resolved on <<redis.repositories.references,References>>.
+
 Same as with _keyspaces_ it is possible to configure indexes without the need of annotating the actual domain type.
 
 .Index Setup via @EnableRedisRepositories
@@ -260,7 +282,7 @@ NOTE: The keyspace notification message listener will alter `notify-keyspace-eve
 
 [[redis.repositories.mapping]]
 == Object to hash mapping
-The Redis Repository support persists Objects in Hashes. This requires an Object to Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter`s for mapping property values to and from Redis native `byte[]`.
+The Redis Repository support persists Objects in Hashes. This requires an Object to Hash conversion which is done by a `RedisConverter`. The default implementation uses `Converter` for mapping property values to and from Redis native `byte[]`.
 
 Given the `Person` type from the previous sections the default mapping looks like the following:
 
@@ -286,29 +308,39 @@ address.country = andor
 | Sample
 | Mapped Value
 
-| Simple Type (eg. String)
+| Simple Type +
+(eg. String)
 | String firstname = "rand";
 | firstname = "rand"
 
-| Complex Type (eg. Address)
+| Complex Type +
+(eg. Address)
 | Address adress = new Address("emond's field");
 | address.city = "emond's field"
 
-| List of Simple Type
+| List +
+of Simple Type
 | List<String> nicknames = asList("dragon reborn", "lews therin");
-| nicknames.[0] = "dragon reborn", nicknames.[1] = "lews therin"
+| nicknames.[0] = "dragon reborn", +
+nicknames.[1] = "lews therin"
 
-| Map of Simple Type
+| Map +
+of Simple Type
 | Map<String, String> atts = asMap({"eye-color", "grey"}, {"...
-| atts.[eye-color] = "grey", atts.[...
+| atts.[eye-color] = "grey", +
+atts.[hair-color] = "...
 
-| List of Complex Type
+| List +
+of Complex Type
 | List<Address> addresses = asList(new Address("em...
-| addresses.[0].city = "emond's field", addresses.[1].city  = "...
+| addresses.[0].city = "emond's field", +
+addresses.[1].city  = "...
 
-| Map of Complex Type
+| Map +
+of Complex Type
 | Map<String, Address> addresses = asMap({"home", new Address("em...
-| addresses.[home].city = "emond's field", addresses.[work].city  = "...
+| addresses.[home].city = "emond's field", +
+addresses.[work].city  = "...
 |===
 
 Mapping behavior can be customized by registering the according `Converter`s in `CustomConversions`. Those Converters can take care of converting from/to a single `byte[]` as well as `Map<Sting,byte[]>` whereas the first one is suiteable for eg. converting one complex type to eg. a binary JSON representation that still uses the default mappings hash structure, whereas the second options offers full control over the resulting hash.
@@ -416,12 +448,14 @@ _class = org.example.Person
 id = e2c7dcee-b8cd-4424-883e-736ce564363e
 firstname = rand      
 lastname = al’thor
-mother = persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56
+mother = persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56      <1>
 ----
+<1> Reference stores the whole key (`keyspace:id`) of the referenced object.
 ====
 
 
-WARNING: Referenced Objects are not subject of persisting changes when saving the referencing object. Please make sure to persist changes on referenced objects separately, since only the reference will be stored.
+WARNING: Referenced Objects are not subject of persisting changes when saving the referencing object. Please make sure to persist changes on referenced objects separately, since only the reference will be stored. 
+Indexes set on properties of referenced types will not be resolved.
 
 [[redis.repositories.queries]]
 == Query Methods

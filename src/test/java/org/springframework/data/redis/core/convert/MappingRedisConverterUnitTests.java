@@ -22,6 +22,7 @@ import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import static org.springframework.data.redis.test.util.IsBucketMatcher.*;
 
 import java.io.Serializable;
@@ -33,10 +34,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,14 +43,21 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Reference;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithPostcode;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.ExipringPersonWithExplicitProperty;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.ExpiringPerson;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Gender;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Species;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
-import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.util.StringUtils;
 
@@ -71,7 +77,7 @@ public class MappingRedisConverterUnitTests {
 	@Before
 	public void setUp() {
 
-		converter = new MappingRedisConverter(null, null, resolverMock);
+		converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		converter.afterPropertiesSet();
 
 		rand = new Person();
@@ -818,7 +824,7 @@ public class MappingRedisConverterUnitTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
-	public void writeShouldHonorCustomConversionOnNestedype() {
+	public void writeShouldHonorCustomConversionOnNestedType() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
 		this.converter
@@ -838,9 +844,28 @@ public class MappingRedisConverterUnitTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
-	public void writeShouldHonorIndexAnnotationsOnWhenCustomConversionOnNestedype() {
+	public void writeShouldHonorIndexOnCustomConversionForNestedType() {
 
 		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		this.converter.afterPropertiesSet();
+
+		Address address = new Address();
+		address.country = "andor";
+		rand.address = address;
+
+		assertThat(write(rand).getIndexedData(), hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country",
+				"andor")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writeShouldHonorIndexAnnotationsOnWhenCustomConversionOnNestedype() {
+
+		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
 		this.converter.afterPropertiesSet();
@@ -879,7 +904,7 @@ public class MappingRedisConverterUnitTests {
 	@Test
 	public void readShouldHonorCustomConversionOnNestedType() {
 
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter
 				.setCustomConversions(new CustomConversions(Collections.singletonList(new BytesToAddressConverter())));
 		this.converter.afterPropertiesSet();
@@ -925,7 +950,7 @@ public class MappingRedisConverterUnitTests {
 	@Test
 	public void writeShouldConsiderMapConvertersForRootType() {
 
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
 		this.converter.afterPropertiesSet();
 
@@ -959,7 +984,7 @@ public class MappingRedisConverterUnitTests {
 	@Test
 	public void readShouldConsiderMapConvertersForRootType() {
 
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new MapToSpeciesConverter())));
 		this.converter.afterPropertiesSet();
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -996,7 +1021,7 @@ public class MappingRedisConverterUnitTests {
 	@Test
 	public void writeShouldConsiderMapConvertersInsideLists() {
 
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter = new MappingRedisConverter(new RedisMappingContext(), null, resolverMock);
 		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new SpeciesToMapConverter())));
 		this.converter.afterPropertiesSet();
 
@@ -1038,86 +1063,6 @@ public class MappingRedisConverterUnitTests {
 		RedisData rdo = new RedisData();
 		converter.write(source, rdo);
 		return rdo;
-	}
-
-	@RedisHash("persons")
-	static class Person {
-
-		@Id String id;
-		String firstname;
-		Gender gender;
-
-		List<String> nicknames;
-		List<Person> coworkers;
-		Integer age;
-		Boolean alive;
-		Date birthdate;
-
-		Address address;
-
-		Map<String, String> physicalAttributes;
-		Map<String, Person> relatives;
-
-		@Reference Location location;
-		@Reference List<Location> visited;
-
-		Species species;
-	}
-
-	static class Address {
-
-		String city;
-		@Indexed String country;
-	}
-
-	static class AddressWithId extends Address {
-
-		@Id String id;
-	}
-
-	static enum Gender {
-		MALE, FEMALE
-	}
-
-	static class AddressWithPostcode extends Address {
-
-		String postcode;
-	}
-
-	static class TaVeren extends Person {
-
-	}
-
-	@RedisHash("locations")
-	static class Location {
-
-		@Id String id;
-		String name;
-	}
-
-	@RedisHash(timeToLive = 5)
-	static class ExpiringPerson {
-
-		@Id String id;
-		String name;
-	}
-
-	static class Species {
-
-		String name;
-		List<String> alsoKnownAs;
-	}
-
-	static class TheWheelOfTime {
-
-		List<Person> mainCharacters;
-		List<Species> species;
-		Map<String, Location> places;
-	}
-
-	static class ExipringPersonWithExplicitProperty extends ExpiringPerson {
-
-		@TimeToLive(unit = TimeUnit.MINUTES) Long ttl;
 	}
 
 	@WritingConverter
