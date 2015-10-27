@@ -88,6 +88,10 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	}
 
 	public static boolean matches(String key, String value) {
+
+		if (INSTANCE == null) {
+			INSTANCE = new RedisTestProfileValueSource();
+		}
 		return INSTANCE.get(key) != null ? INSTANCE.get(key).equals(value) : value == null;
 	}
 }
