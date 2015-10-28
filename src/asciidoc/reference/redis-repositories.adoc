@@ -458,12 +458,12 @@ WARNING: Referenced Objects are not subject of persisting changes when saving th
 Indexes set on properties of referenced types will not be resolved.
 
 [[redis.repositories.queries]]
-== Query Methods
+== Queries and Query Methods
 Query methods allow automatic derivation of simple finder queries from the method name. 
 
 .Sample Repository finder Method
 ====
-[source]
+[source,java]
 ----
 public interface PersonRepository extends CrudRepository<Person, String> {
   
@@ -473,4 +473,24 @@ public interface PersonRepository extends CrudRepository<Person, String> {
 ====
 
 NOTE: Please make sure properties used in finder methods are set up correctly for indexing.
+
+Using derived finder methods might not always be sufficient to model the queries to execute. `RedisCallback` offers more control over the actual matching of index structures or even customly added ones. All it takes is providing a `RedisCallback` that returns a single or `Iterable` set of _id_ values. 
+
+.Sample finder using RedisCallback
+====
+[source,java]
+----
+String user = //...
+
+List<RedisSession> sessionsByUser = template.find(new RedisCallback<Set<byte[]>>() {
+
+  public Set<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+    return connection
+      .sMembers("sessions:securityContext.authentication.principal.username:" + user);
+  }}, RedisSession.class);
+----
+====
+
+
+
 
