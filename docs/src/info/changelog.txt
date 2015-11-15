@@ -6,6 +6,13 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.1.RELEASE (2015-11-15)
+---------------------------------------------
+* DATAREDIS-436 - Release 1.6.1 (Gosling).
+* DATAREDIS-435 - PubSubResubscribeTests and PubSubTests rely on other tests having already run previously.
+* DATAREDIS-417 - ScanCursor throw " java.util.NoSuchElementException".
+
+
 Changes in version 1.4.4.RELEASE (2015-10-14)
 ---------------------------------------------
 * DATAREDIS-434 - Release 1.4.4 (Evans).
