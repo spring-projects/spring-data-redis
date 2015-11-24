@@ -24,8 +24,8 @@
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
 		<pool>2.2</pool>
-		<lettuce>3.3.Final</lettuce>
-		<jedis>2.7.3</jedis>
+		<lettuce>3.3.1.Final</lettuce>
+		<jedis>2.8.0</jedis>
 		<srp>0.7</srp>
 		<jredis>06052013</jredis>
 	</properties>
