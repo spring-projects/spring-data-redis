@@ -19,33 +19,33 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexedData} implementation indicating storage of data within a Redis Set.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
 public class SimpleIndexedPropertyValue implements IndexedData {
 
 	private final String keyspace;
-	private final String path;
+	private final String indexName;
 	private final Object value;
 
 	/**
 	 * Creates new {@link SimpleIndexedPropertyValue}.
-	 * 
+	 *
 	 * @param keyspace must not be {@literal null}.
-	 * @param path must not be {@literal null}.
+	 * @param indexName must not be {@literal null}.
 	 * @param value can be {@literal null}.
 	 */
-	public SimpleIndexedPropertyValue(String keyspace, String path, Object value) {
+	public SimpleIndexedPropertyValue(String keyspace, String indexName, Object value) {
 
 		this.keyspace = keyspace;
-		this.path = path;
+		this.indexName = indexName;
 		this.value = value;
 	}
 
 	/**
 	 * Get the value to index.
-	 * 
+	 *
 	 * @return can be {@literal null}.
 	 */
 	public Object getValue() {
@@ -57,8 +57,8 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	 * @see org.springframework.data.redis.core.convert.IndexedData#getPath()
 	 */
 	@Override
-	public String getPath() {
-		return path;
+	public String getIndexName() {
+		return indexName;
 	}
 
 	/*
@@ -79,7 +79,7 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 
 		int result = 1;
 		result += ObjectUtils.nullSafeHashCode(keyspace);
-		result += ObjectUtils.nullSafeHashCode(path);
+		result += ObjectUtils.nullSafeHashCode(indexName);
 		result += ObjectUtils.nullSafeHashCode(value);
 		return result;
 	}
@@ -105,7 +105,7 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 		if (!ObjectUtils.nullSafeEquals(this.keyspace, that.keyspace)) {
 			return false;
 		}
-		if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
+		if (!ObjectUtils.nullSafeEquals(this.indexName, that.indexName)) {
 			return false;
 		}
 		return ObjectUtils.nullSafeEquals(this.value, that.value);
@@ -117,7 +117,7 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	 */
 	@Override
 	public String toString() {
-		return "SimpleIndexedPropertyValue [keyspace=" + keyspace + ", path=" + path + ", value=" + value + "]";
+		return "SimpleIndexedPropertyValue [keyspace=" + keyspace + ", indexName=" + indexName + ", value=" + value + "]";
 	}
 
 }

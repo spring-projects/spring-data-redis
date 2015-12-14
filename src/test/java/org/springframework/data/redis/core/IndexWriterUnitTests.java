@@ -145,7 +145,7 @@ public class IndexWriterUnitTests {
 	static class StubIndxedData implements IndexedData {
 
 		@Override
-		public String getPath() {
+		public String getIndexName() {
 			return "address.city";
 		}
 

@@ -28,7 +28,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * {@link IndexConfiguration} allows programmatic setup of indexes. This is suitable for cases where there is no option
  * to use the equivalent {@link Indexed} annotation.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -48,7 +48,7 @@ public class IndexConfiguration {
 
 	/**
 	 * Checks if an index is defined for a given keyspace and property path.
-	 * 
+	 *
 	 * @param keyspace
 	 * @param path
 	 * @return true if index is defined.
@@ -66,7 +66,7 @@ public class IndexConfiguration {
 
 	/**
 	 * Get the list of {@link RedisIndexSetting} for a given keyspace and property path.
-	 * 
+	 *
 	 * @param keyspace
 	 * @param path
 	 * @return never {@literal null}.
@@ -86,7 +86,7 @@ public class IndexConfiguration {
 
 	/**
 	 * Add given {@link RedisIndexSetting}.
-	 * 
+	 *
 	 * @param indexDefinition must not be {@literal null}.
 	 */
 	public void addIndexDefinition(RedisIndexSetting indexDefinition) {
@@ -108,7 +108,7 @@ public class IndexConfiguration {
 
 	/**
 	 * Customization hook.
-	 * 
+	 *
 	 * @return must not return {@literal null}.
 	 */
 	protected Iterable<RedisIndexSetting> initialConfiguration() {
@@ -117,12 +117,14 @@ public class IndexConfiguration {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Rob Winch
 	 * @since 1.7
 	 */
 	public static class RedisIndexSetting {
 
 		private final Serializable keyspace;
 		private final String path;
+		private final String indexName;
 		private final IndexType type;
 
 		public RedisIndexSetting(Serializable keyspace, String path) {
@@ -130,10 +132,18 @@ public class IndexConfiguration {
 		}
 
 		public RedisIndexSetting(Serializable keyspace, String path, IndexType type) {
+			this(keyspace,path, path, type);
+		}
 
+		public RedisIndexSetting(Serializable keyspace, String path, String indexName, IndexType type) {
 			this.keyspace = keyspace;
 			this.path = path;
+			this.indexName = indexName;
 			this.type = type == null ? IndexType.SIMPLE : type;
+		}
+
+		public String getIndexName() {
+			return indexName;
 		}
 
 		public Serializable getKeyspace() {
@@ -153,6 +163,7 @@ public class IndexConfiguration {
 
 			int result = ObjectUtils.nullSafeHashCode(keyspace);
 			result += ObjectUtils.nullSafeHashCode(path);
+			result += ObjectUtils.nullSafeHashCode(indexName);
 			result += ObjectUtils.nullSafeHashCode(type);
 			return result;
 		}
@@ -176,6 +187,9 @@ public class IndexConfiguration {
 				return false;
 			}
 			if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
+				return false;
+			}
+			if (!ObjectUtils.nullSafeEquals(this.indexName, that.indexName)) {
 				return false;
 			}
 			if (!ObjectUtils.nullSafeEquals(this.type, that.type)) {
