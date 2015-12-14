@@ -21,6 +21,7 @@ import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery;
 import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery.QueryInitialization;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -105,9 +106,11 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 		 * (non-Javadoc)
 		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.repository.core.NamedQueries)
 		 */
-		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
+		@Override
+		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+				NamedQueries namedQueries) {
 
-			QueryMethod queryMethod = new QueryMethod(method, metadata);
+			QueryMethod queryMethod = new QueryMethod(method, metadata, factory);
 			KeyValuePartTreeQuery partTreeQuery = new KeyValuePartTreeQuery(queryMethod, evaluationContextProvider,
 					this.keyValueOperations, this.queryCreator);
 			partTreeQuery.setQueryIntialization(QueryInitialization.NEW);
