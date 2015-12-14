@@ -296,7 +296,7 @@ public class IndexResolverImplUnitTests {
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
-		assertThat(index.getPath(), is("list.name"));
+		assertThat(index.getIndexName(), is("list.name"));
 	}
 
 	/**
@@ -311,7 +311,7 @@ public class IndexResolverImplUnitTests {
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
-		assertThat(index.getPath(), is("map.foo.name"));
+		assertThat(index.getIndexName(), is("map.foo.name"));
 	}
 
 	/**
@@ -326,7 +326,7 @@ public class IndexResolverImplUnitTests {
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
-		assertThat(index.getPath(), is("map.0.name"));
+		assertThat(index.getIndexName(), is("map.0.name"));
 	}
 
 	/**
@@ -403,6 +403,27 @@ public class IndexResolverImplUnitTests {
 
 		assertThat(indexes.size(), is(1));
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "items.type", "hat")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexAllowCustomIndexName() {
+		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "items.type", "itemsType", IndexType.SIMPLE));
+
+		Item hat = new Item();
+		hat.type = "hat";
+
+		TaVeren mat = new TaVeren();
+		mat.items = new ArrayList<Object>(2);
+		mat.items.add(hat);
+		mat.items.add("foxhead medallion");
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
+
+		assertThat(indexes.size(), is(1));
+		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat")));
 	}
 
 	private IndexedData resolve(String path, Object value) {

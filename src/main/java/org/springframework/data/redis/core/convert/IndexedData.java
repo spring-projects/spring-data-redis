@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,23 @@ package org.springframework.data.redis.core.convert;
 
 /**
  * {@link IndexedData} represents a secondary index for a property path in a given keyspace.
- * 
+ *
  * @author Christoph Strobl
+ * @author Rob Winch
  * @since 1.7
  */
 public interface IndexedData {
 
 	/**
-	 * Get the {@link String} representation of the dot path to the referenced property.
-	 * 
+	 * Get the {@link String} representation of the index name.
+	 *
 	 * @return never {@literal null}.
 	 */
-	String getPath();
+	String getIndexName();
 
 	/**
 	 * Get the associated keyspace the index resides in.
-	 * 
+	 *
 	 * @return
 	 */
 	String getKeySpace();
