@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 
 /**
  * @author Christoph Strobl
+ * @auhtor Rob Winch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class IndexWriterUnitTests {
@@ -145,7 +146,7 @@ public class IndexWriterUnitTests {
 	static class StubIndxedData implements IndexedData {
 
 		@Override
-		public String getPath() {
+		public String getIndexName() {
 			return "address.city";
 		}
 

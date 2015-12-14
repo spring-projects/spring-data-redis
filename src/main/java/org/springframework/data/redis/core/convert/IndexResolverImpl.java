@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 /**
  * {@link IndexResolver} implementation considering properties annotated with {@link Indexed} or paths set up in
  * {@link IndexConfiguration}.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -55,7 +55,7 @@ public class IndexResolverImpl implements IndexResolver {
 
 	/**
 	 * Creates new {@link IndexResolverImpl} with given {@link IndexConfiguration}.
-	 * 
+	 *
 	 * @param mapppingContext must not be {@literal null}.
 	 */
 	public IndexResolverImpl(RedisMappingContext mappingContext) {
@@ -166,7 +166,11 @@ public class IndexResolverImpl implements IndexResolver {
 		String path = normalizeIndexPath(propertyPath, property);
 
 		if (indexConfiguration.hasIndexFor(keyspace, path)) {
-			return new SimpleIndexedPropertyValue(keyspace, path, value);
+			// FIXME it seems there is a mis-match between IndexConfiguration
+			// resolving many RedisIndexSetting objects to resolving a single
+			// IndexData in this method.
+			RedisIndexSetting indexSetting = indexConfiguration.getIndexDefinitionsFor(keyspace, path).iterator().next();
+			return new SimpleIndexedPropertyValue(keyspace, indexSetting.getIndexName(), value);
 		}
 
 		else if (property != null && property.isAnnotationPresent(Indexed.class)) {
