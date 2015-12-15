@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,25 @@ public class IndexConfiguration {
 			RedisIndexSetting def = getIndexDefinition(keyspace, path, type);
 			if (def != null) {
 				indexDefinitions.add(def);
+			}
+		}
+
+		return indexDefinitions;
+	}
+
+	/**
+	 * Gets all of the {@link RedisIndexSetting} for a given keyspace.
+	 *
+	 * @param keyspace the keyspace to get
+	 * @return never {@literal null}
+	 */
+	public List<RedisIndexSetting> getIndexDefinitionsFor(Serializable keyspace) {
+
+		List<RedisIndexSetting> indexDefinitions = new ArrayList<RedisIndexSetting>();
+
+		for (RedisIndexSetting indexDef : definitions) {
+			if (indexDef.getKeyspace().equals(keyspace)) {
+				indexDefinitions.add(indexDef);
 			}
 		}
 
