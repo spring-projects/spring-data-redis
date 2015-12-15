@@ -85,6 +85,24 @@ public class IndexConfiguration {
 	}
 
 	/**
+	 * Gets all of the {@link RedisIndexSetting} for a given keyspace.
+	 *
+	 * @param keyspace the keyspace to get
+	 * @return never {@literal null}
+	 */
+	public List<RedisIndexSetting> getIndexDefinitionsFor(Serializable keyspace) {
+		List<RedisIndexSetting> indexDefinitions = new ArrayList<RedisIndexSetting>();
+		for (IndexType type : IndexType.values()) {
+			RedisIndexSetting def = getIndexDefinition(keyspace, type);
+			if (def != null) {
+				indexDefinitions.add(def);
+			}
+		}
+
+		return indexDefinitions;
+	}
+
+	/**
 	 * Add given {@link RedisIndexSetting}.
 	 *
 	 * @param indexDefinition must not be {@literal null}.
@@ -99,6 +117,17 @@ public class IndexConfiguration {
 
 		for (RedisIndexSetting indexDef : definitions) {
 			if (indexDef.getKeyspace().equals(keyspace) && indexDef.getPath().equals(path) && indexDef.getType().equals(type)) {
+				return indexDef;
+			}
+		}
+
+		return null;
+	}
+
+	private RedisIndexSetting getIndexDefinition(Serializable keyspace, IndexType type) {
+
+		for (RedisIndexSetting indexDef : definitions) {
+			if (indexDef.getKeyspace().equals(keyspace) && indexDef.getType().equals(type)) {
 				return indexDef;
 			}
 		}
