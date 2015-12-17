@@ -17,10 +17,13 @@ package org.springframework.data.redis.core.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
@@ -39,6 +42,9 @@ import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.MethodCallback;
+import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -206,6 +212,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 		private final Map<Class<?>, Long> defaultTimeouts;
 		private final Map<Class<?>, PersistentProperty<?>> timeoutProperties;
+		private final Map<Class<?>, Method> timeoutMethods;
 		private final KeyspaceConfiguration keyspaceConfig;
 		private final RedisMappingContext mappingContext;
 
@@ -222,6 +229,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 			this.defaultTimeouts = new HashMap<Class<?>, Long>();
 			this.timeoutProperties = new HashMap<Class<?>, PersistentProperty<?>>();
+			this.timeoutMethods = new HashMap<Class<?>, Method>();
 			this.keyspaceConfig = keyspaceConfig;
 			this.mappingContext = mappingContext;
 		}
@@ -232,7 +240,7 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		 */
 		@Override
 		@SuppressWarnings({ "rawtypes" })
-		public Long getTimeToLive(Object source) {
+		public Long getTimeToLive(final Object source) {
 
 			Assert.notNull(source, "Source must not be null!");
 			Class<?> type = source instanceof Class<?> ? (Class<?>) source : source.getClass();
@@ -252,6 +260,28 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				Long timeout = (Long) entity.getPropertyAccessor(source).getProperty(ttlProperty);
 				if (timeout != null) {
 					return TimeUnit.SECONDS.convert(timeout, unit);
+				}
+			} else {
+
+				Method timeoutMethod = resolveTimeMethod(type);
+				if (timeoutMethod != null) {
+
+					TimeToLive ttl = AnnotationUtils.findAnnotation(timeoutMethod, TimeToLive.class);
+					try {
+						Number timeout = (Number) timeoutMethod.invoke(source);
+						if (timeout != null) {
+							return TimeUnit.SECONDS.convert(timeout.longValue(), ttl.unit());
+						}
+					} catch (IllegalAccessException e) {
+						throw new IllegalStateException("Not allowed to access method '" + timeoutMethod.getName() + "': "
+								+ e.getMessage(), e);
+					} catch (IllegalArgumentException e) {
+						throw new IllegalStateException("Cannot invoke method '" + timeoutMethod.getName()
+								+ " without arguments': " + e.getMessage(), e);
+					} catch (InvocationTargetException e) {
+						throw new IllegalStateException(
+								"Cannot access method '" + timeoutMethod.getName() + "': " + e.getMessage(), e);
+					}
 				}
 			}
 
@@ -308,7 +338,31 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 			timeoutProperties.put(type, null);
 			return null;
+		}
 
+		private Method resolveTimeMethod(final Class<?> type) {
+
+			if (timeoutMethods.containsKey(type)) {
+				return timeoutMethods.get(type);
+			}
+
+			timeoutMethods.put(type, null);
+			ReflectionUtils.doWithMethods(type, new MethodCallback() {
+
+				@Override
+				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+					timeoutMethods.put(type, method);
+				}
+			}, new MethodFilter() {
+
+				@Override
+				public boolean matches(Method method) {
+					return ClassUtils.isAssignable(Number.class, method.getReturnType())
+							&& AnnotationUtils.findAnnotation(method, TimeToLive.class) != null;
+				}
+			});
+
+			return timeoutMethods.get(type);
 		}
 	}
 

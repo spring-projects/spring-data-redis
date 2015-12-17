@@ -142,6 +142,40 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty(25L)), is(25L));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnMethodLevelTimeToLiveIfPresent() {
+		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(10L)), is(10L));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnConfiguredValueWhenMethodLevelTimeToLiveIfPresentButHasNullValue() {
+
+		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
+		setting.setTimeToLive(10L);
+		config.addKeyspaceSettings(setting);
+
+		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(null)), is(10L));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnValueWhenMethodLevelTimeToLiveIfPresentAlthoughConfiguredValuePresent() {
+
+		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
+		setting.setTimeToLive(10L);
+		config.addKeyspaceSettings(setting);
+
+		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(100L)), is(100L));
+	}
+
 	static class SimpleType {}
 
 	static class SimpleTypeWithTTLProperty {
@@ -167,6 +201,20 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 
 		TypeWithRedisHashAnnotationAndTTLProperty(Long ttl) {
 			this.ttl = ttl;
+		}
+	}
+
+	static class TypeWithTtlOnMethod {
+
+		Long value;
+
+		public TypeWithTtlOnMethod(Long value) {
+			this.value = value;
+		}
+
+		@TimeToLive
+		Long getTimeToLive() {
+			return value;
 		}
 	}
 }

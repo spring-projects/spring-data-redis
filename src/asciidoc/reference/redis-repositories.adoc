@@ -423,6 +423,35 @@ public class ApplicationConfig {
 Objects stored in Redis may only be valid for a certain amount of time. This is especially useful for persisting short lived objects in Redis without having to remove them manually when they reached their end of life.
 The expiration time in seconds can be set via `@RedisHash(timeToLive=...)` as well as via `KeyspaceSettings` (see <<redis.repositories.keyspaces>>).
 
+More flexible expiration times can be set by using the `@TimeToLive` annotation on either a numeric property or method. However do not apply `@TimeToLive` on both a method and a property within the same class.
+
+.Expirations 
+====
+[source,java]
+----
+public class TimeToLiveOnProperty {
+
+  @Id
+  private String id;
+  
+  @TimeToLive
+  private Long expiration;
+}
+
+public class TimeToLiveOnMethod {
+
+  @Id 
+  private String id;
+  
+  @TimeToLive
+  public long getTimeToLive() {
+  	return new Random().nextLong();
+  }
+}
+----
+====
+
+
 The repository implementation ensures subscription to http://redis.io/topics/notifications[Redis keyspace notifications] via `RedisMessageListenerContainer`.
 
 When the expiration is set to a positive value the according `EXPIRE` command is executed. 
