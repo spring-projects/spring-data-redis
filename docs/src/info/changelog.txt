@@ -6,6 +6,12 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.2.RELEASE (2015-12-18)
+---------------------------------------------
+* DATAREDIS-442 - Upgrade to Spring 4.1.9.
+* DATAREDIS-441 - Release 1.6.2 (Gosling).
+
+
 Changes in version 1.6.1.RELEASE (2015-11-15)
 ---------------------------------------------
 * DATAREDIS-436 - Release 1.6.1 (Gosling).
