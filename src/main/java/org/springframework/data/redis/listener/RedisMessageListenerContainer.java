@@ -284,7 +284,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 		if (this.errorHandler != null) {
 			this.errorHandler.handleError(ex);
 		} else if (logger.isWarnEnabled()) {
-			logger.warn("Execution of JMS message listener failed, and no ErrorHandler has been set.", ex);
+			logger.warn("Execution of message listener failed, and no ErrorHandler has been set.", ex);
 		}
 	}
 
