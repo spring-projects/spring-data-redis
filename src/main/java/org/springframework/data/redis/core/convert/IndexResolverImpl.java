@@ -80,12 +80,7 @@ public class IndexResolverImpl implements IndexResolver {
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
 
 		if (entity == null) {
-
-			IndexedData index = resolveIndex(keyspace, path, null, value);
-			if (index != null) {
-				return Collections.singleton(index);
-			}
-			return Collections.emptySet();
+			return resolveIndex(keyspace, path, null, value);
 		}
 
 		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
@@ -105,11 +100,7 @@ public class IndexResolverImpl implements IndexResolver {
 					TypeInformation<?> typeHint = persistentProperty.isMap() ? persistentProperty.getTypeInformation()
 							.getMapValueType() : persistentProperty.getTypeInformation().getActualType();
 
-					IndexedData index = resolveIndex(keyspace, currentPath, persistentProperty, propertyValue);
-
-					if (index != null) {
-						indexes.add(index);
-					}
+					indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, propertyValue));
 
 					if (persistentProperty.isMap()) {
 
@@ -157,20 +148,22 @@ public class IndexResolverImpl implements IndexResolver {
 		return indexes;
 	}
 
-	protected IndexedData resolveIndex(String keyspace, String propertyPath, PersistentProperty<?> property, Object value) {
+	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath, PersistentProperty<?> property,
+			Object value) {
 
 		if (value == null) {
-			return null;
+			return Collections.emptySet();
 		}
 
 		String path = normalizeIndexPath(propertyPath, property);
 
+		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
+
 		if (indexConfiguration.hasIndexFor(keyspace, path)) {
-			// FIXME it seems there is a mis-match between IndexConfiguration
-			// resolving many RedisIndexSetting objects to resolving a single
-			// IndexData in this method.
-			RedisIndexSetting indexSetting = indexConfiguration.getIndexDefinitionsFor(keyspace, path).iterator().next();
-			return new SimpleIndexedPropertyValue(keyspace, indexSetting.getIndexName(), value);
+			for (RedisIndexSetting indexSetting : indexConfiguration.getIndexDefinitionsFor(keyspace, path)) {
+				data.add(new SimpleIndexedPropertyValue(keyspace, indexSetting.getIndexName(), value));
+			}
+
 		}
 
 		else if (property != null && property.isAnnotationPresent(Indexed.class)) {
@@ -181,13 +174,14 @@ public class IndexResolverImpl implements IndexResolver {
 
 			switch (indexed.type()) {
 				case SIMPLE:
-					return new SimpleIndexedPropertyValue(keyspace, path, value);
+					data.add(new SimpleIndexedPropertyValue(keyspace, path, value));
+					break;
 				default:
 					throw new IllegalArgumentException(String.format("Unsupported index type '%s' for path '%s'.",
 							indexed.type(), path));
 			}
 		}
-		return null;
+		return data;
 	}
 
 	private String normalizeIndexPath(String path, PersistentProperty<?> property) {

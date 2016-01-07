@@ -427,7 +427,15 @@ public class IndexResolverImplUnitTests {
 	}
 
 	private IndexedData resolve(String path, Object value) {
-		return indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
+
+		Set<IndexedData> data = indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
+
+		if (data.isEmpty()) {
+			return null;
+		}
+
+		assertThat(data.size(), is(1));
+		return data.iterator().next();
 	}
 
 	private Indexed createIndexedInstance(final IndexType type) {
