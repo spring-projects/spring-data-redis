@@ -65,6 +65,7 @@ import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -79,7 +80,7 @@ import redis.clients.jedis.ZParams;
  * {@link RedisClusterConnection} implementation on top of {@link JedisCluster}.<br/>
  * Uses the native {@link JedisCluster} api where possible and falls back to direct node communication using
  * {@link Jedis} where needed.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -126,7 +127,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	/**
 	 * Create new {@link JedisClusterConnection} utilizing native connections via {@link JedisCluster} running commands
 	 * across the cluster via given {@link ClusterCommandExecutor}.
-	 * 
+	 *
 	 * @param cluster must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
 	 */
@@ -894,7 +895,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destination, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destination, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1332,7 +1333,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1392,7 +1393,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1455,7 +1456,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -2083,7 +2084,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2104,7 +2105,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2123,7 +2124,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2140,7 +2141,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -3298,7 +3299,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destinationKey, sourceKeys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -3592,6 +3593,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetMasterSlaveMap()
 	 */
+	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
 
 		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor
@@ -3753,7 +3755,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	/**
 	 * {@link Jedis} specific {@link ClusterCommandCallback}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.7
@@ -3771,7 +3773,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	/**
 	 * Jedis specific implementation of {@link ClusterNodeResourceProvider}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -3781,7 +3783,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		/**
 		 * Creates new {@link JedisClusterNodeResourceProvider}.
-		 * 
+		 *
 		 * @param cluster must not be {@literal null}.
 		 */
 		public JedisClusterNodeResourceProvider(JedisCluster cluster) {
@@ -3829,20 +3831,20 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	/**
 	 * Jedis specific implementation of {@link ClusterTopologyProvider}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
 	static class JedisClusterTopologyProvider implements ClusterTopologyProvider {
 
-		private Object lock = new Object();
+		private final Object lock = new Object();
 		private final JedisCluster cluster;
 		private long time = 0;
 		private ClusterTopology cached;
 
 		/**
 		 * Create new {@link JedisClusterTopologyProvider}.s
-		 * 
+		 *
 		 * @param cluster
 		 */
 		public JedisClusterTopologyProvider(JedisCluster cluster) {

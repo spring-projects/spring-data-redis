@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.convert;
+package org.springframework.data.redis.core.index;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import org.springframework.data.annotation.Reference;
+import org.springframework.core.convert.converter.Converter;
 
 /**
- * {@link ReferenceResolver} retrieves Objects marked with {@link Reference} from Redis.
+ * {@link Converter} implementation that is used to transform values for usage in a particular secondary index.
  * 
  * @author Christoph Strobl
  * @since 1.7
  */
-public interface ReferenceResolver {
+public interface IndexValueTransformer extends Converter<Object, Object> {
 
-	/**
-	 * @param id must not be {@literal null}.
-	 * @param keyspace must not be {@literal null}.
-	 * @return {@literal null} if referenced object does not exist.
-	 */
-	Map<byte[], byte[]> resolveReference(Serializable id, String keyspace);
 }

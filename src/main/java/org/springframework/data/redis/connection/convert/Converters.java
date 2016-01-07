@@ -35,14 +35,13 @@ import org.springframework.data.redis.connection.RedisClusterNode.RedisClusterNo
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
 /**
  * Common type converters
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Mark Paluch
@@ -85,7 +84,7 @@ abstract public class Converters {
 				Set<Flag> flags = parseFlags(args);
 
 				String portPart = hostAndPort[1];
-				if(portPart.contains("@")){
+				if (portPart.contains("@")) {
 					portPart = portPart.substring(0, portPart.indexOf('@'));
 				}
 
@@ -195,7 +194,7 @@ abstract public class Converters {
 
 	/**
 	 * Converts the result of a single line of {@code CLUSTER NODES} into a {@link RedisClusterNode}.
-	 * 
+	 *
 	 * @param clusterNodesLine
 	 * @return
 	 * @since 1.7
@@ -206,7 +205,7 @@ abstract public class Converters {
 
 	/**
 	 * Converts lines from the result of {@code CLUSTER NODES} into {@link RedisClusterNode}s.
-	 * 
+	 *
 	 * @param clusterNodes
 	 * @return
 	 * @since 1.7
@@ -228,6 +227,7 @@ abstract public class Converters {
 
 	/**
 	 * Converts the result of {@code CLUSTER NODES} into {@link RedisClusterNode}s.
+	 *
 	 * @param clusterNodes
 	 * @return
 	 * @since 1.7
@@ -259,24 +259,8 @@ abstract public class Converters {
 	 * @return
 	 */
 	public static Long toTimeMillis(String seconds, String microseconds) {
-		return NumberUtils.parseNumber(seconds, Long.class) * 1000L + NumberUtils.parseNumber(microseconds, Long.class)
-				/ 1000L;
+		return NumberUtils.parseNumber(seconds, Long.class) * 1000L
+				+ NumberUtils.parseNumber(microseconds, Long.class) / 1000L;
 	}
 
-	/**
-	 * Merge multiple {@code byte} arrays into one array
-	 * @param firstArray must not be {@literal null}
-	 * @param additionalArrays must not be {@literal null}
-	 * @return
-	 */
-	public static byte[][] mergeArrays(byte[] firstArray, byte[]... additionalArrays){
-		Assert.notNull(firstArray, "first array must not be null");
-		Assert.notNull(additionalArrays, "additional arrays must not be null");
-
-		byte[][] result = new byte[additionalArrays.length + 1][];
-		result[0] = firstArray;
-		System.arraycopy(additionalArrays, 0, result, 1, additionalArrays.length);
-
-		return result;
-	}
 }

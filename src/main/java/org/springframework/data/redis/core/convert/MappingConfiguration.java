@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider;
 
 /**
  * {@link MappingConfiguration} is used for programmatic configuration of secondary indexes, key prefixes, expirations
@@ -26,7 +26,7 @@ import org.springframework.data.redis.core.index.IndexConfiguration;
  */
 public class MappingConfiguration {
 
-	private final IndexConfiguration indexConfiguration;
+	private final ConfigurableIndexDefinitionProvider indexConfiguration;
 	private final KeyspaceConfiguration keyspaceConfiguration;
 
 	/**
@@ -35,7 +35,8 @@ public class MappingConfiguration {
 	 * @param indexConfiguration must not be {@literal null}.
 	 * @param keyspaceConfiguration must not be {@literal null}.
 	 */
-	public MappingConfiguration(IndexConfiguration indexConfiguration, KeyspaceConfiguration keyspaceConfiguration) {
+	public MappingConfiguration(ConfigurableIndexDefinitionProvider indexConfiguration,
+			KeyspaceConfiguration keyspaceConfiguration) {
 
 		this.indexConfiguration = indexConfiguration;
 		this.keyspaceConfiguration = keyspaceConfiguration;
@@ -44,7 +45,7 @@ public class MappingConfiguration {
 	/**
 	 * @return never {@literal null}.
 	 */
-	public IndexConfiguration getIndexConfiguration() {
+	public ConfigurableIndexDefinitionProvider getIndexConfiguration() {
 		return indexConfiguration;
 	}
 

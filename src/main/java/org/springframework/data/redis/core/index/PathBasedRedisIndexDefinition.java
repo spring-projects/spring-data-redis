@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 package org.springframework.data.redis.core.index;
 
 /**
- * {@link IndexType} indicates structure of index.
+ * {@link IndexDefinition} that is based on a property paths.
  * 
  * @author Christoph Strobl
  * @since 1.7
  */
-public enum IndexType {
+public interface PathBasedRedisIndexDefinition extends IndexDefinition {
 
 	/**
-	 * Simple indicates usage of Redis Set for persisting data.
+	 * @return can be {@literal null}.
 	 */
-	SIMPLE
+	String getPath();
+
 }

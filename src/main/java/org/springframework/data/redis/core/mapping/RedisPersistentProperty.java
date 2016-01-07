@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package org.springframework.data.redis.core.mapping;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.mapping.PersistentEntity;
@@ -31,6 +33,12 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
  */
 public class RedisPersistentProperty extends KeyValuePersistentProperty {
 
+	private static final Set<String> SUPPORTED_ID_PROPERTY_NAMES = new HashSet<String>();
+
+	static {
+		SUPPORTED_ID_PROPERTY_NAMES.add("id");
+	}
+
 	/**
 	 * Creates new {@link RedisPersistentProperty}.
 	 * 
@@ -44,4 +52,17 @@ public class RedisPersistentProperty extends KeyValuePersistentProperty {
 		super(field, propertyDescriptor, owner, simpleTypeHolder);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.mapping.model.AnnotationBasedPersistentProperty#isIdProperty()
+	 */
+	@Override
+	public boolean isIdProperty() {
+
+		if (super.isIdProperty()) {
+			return true;
+		}
+
+		return SUPPORTED_ID_PROPERTY_NAMES.contains(getName());
+	}
 }

@@ -18,11 +18,11 @@ package org.springframework.data.redis.core;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.core.CriteriaAccessor;
@@ -32,6 +32,7 @@ import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
+import org.springframework.data.redis.repository.query.RedisOperationChain.PathAndValue;
 import org.springframework.data.redis.util.ByteUtils;
 
 /**
@@ -65,8 +66,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable, java.lang.Class)
 	 */
-	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, int offset, int rows,
-			final Serializable keyspace, Class<T> type) {
+	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final int offset,
+			final int rows, final Serializable keyspace, Class<T> type) {
 
 		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = new RedisCallback<Map<byte[], Map<byte[], byte[]>>>() {
 
@@ -81,12 +82,25 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 					i++;
 				}
 
-				Set<byte[]> allKeys = connection.sInter(keys);
+				List<byte[]> allKeys = new ArrayList<byte[]>();
+				if (!criteria.getSismember().isEmpty()) {
+					allKeys.addAll(connection.sInter(keys(keyspace + ":", criteria.getSismember())));
+				}
+				if (!criteria.getOrSismember().isEmpty()) {
+					allKeys.addAll(connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())));
+				}
 
 				byte[] keyspaceBin = getAdapter().getConverter().getConversionService().convert(keyspace + ":", byte[].class);
 
 				final Map<byte[], Map<byte[], byte[]>> rawData = new LinkedHashMap<byte[], Map<byte[], byte[]>>();
 
+				if (allKeys.size() == 0 || allKeys.size() < offset) {
+					return Collections.emptyMap();
+				}
+
+				if (offset >= 0 && rows > 0) {
+					allKeys = allKeys.subList(Math.max(0, offset), Math.min(offset + rows, allKeys.size()));
+				}
 				for (byte[] id : allKeys) {
 
 					byte[] singleKey = ByteUtils.concat(keyspaceBin, id);
@@ -148,6 +162,23 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 				return (long) connection.sInter(keys).size();
 			}
 		});
+	}
+
+	private byte[][] keys(String prefix, Collection<PathAndValue> source) {
+
+		byte[][] keys = new byte[source.size()][];
+		int i = 0;
+		for (PathAndValue pathAndValue : source) {
+
+			byte[] convertedValue = getAdapter().getConverter().getConversionService()
+					.convert(pathAndValue.getFirstValue(), byte[].class);
+			byte[] fullPath = getAdapter().getConverter().getConversionService()
+					.convert(prefix + pathAndValue.getPath() + ":", byte[].class);
+
+			keys[i] = ByteUtils.concat(fullPath, convertedValue);
+			i++;
+		}
+		return keys;
 	}
 
 	/**

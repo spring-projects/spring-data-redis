@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Set;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.RedisConverter;
@@ -122,7 +123,7 @@ class IndexWriter {
 	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
 		Assert.notNull(indexedData, "IndexedData must not be null!");
-		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.getKeySpace() + ":" + indexedData.getIndexName()
+		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName()
 				+ ":*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
@@ -158,12 +159,12 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeySpace() + ":" + indexedData.getIndexName() + ":");
+			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":");
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeySpace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
 		} else {
 			throw new IllegalArgumentException(String.format("Cannot write index data for unknown index type %s",
 					indexedData.getClass()));
@@ -180,6 +181,14 @@ class IndexWriter {
 			return (byte[]) source;
 		}
 
-		return converter.getConversionService().convert(source, byte[].class);
+		if (converter.getConversionService().canConvert(source.getClass(), byte[].class)) {
+			return converter.getConversionService().convert(source, byte[].class);
+		}
+
+		throw new InvalidDataAccessApiUsageException(
+				String
+						.format(
+								"Cannot convert %s to binary representation for index key generation. Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
+								source.getClass()));
 	}
 }

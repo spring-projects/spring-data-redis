@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.repository.support;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 
 import org.springframework.data.keyvalue.core.KeyValueOperations;
@@ -22,6 +23,9 @@ import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery;
 import org.springframework.data.keyvalue.repository.query.KeyValuePartTreeQuery.QueryInitialization;
 import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory;
 import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
+import org.springframework.data.redis.repository.core.MappingRedisEntityInformation;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -67,6 +71,21 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	@Override
 	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
 		return new RedisQueryLookupStrategy(key, evaluationContextProvider, getKeyValueOperations(), getQueryCreator());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactory#getEntityInformation(java.lang.Class)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+
+		RedisPersistentEntity<T> entity = (RedisPersistentEntity<T>) getMappingContext().getPersistentEntity(domainClass);
+		EntityInformation<T, ID> entityInformation = (EntityInformation<T, ID>) new MappingRedisEntityInformation<T, ID>(
+				entity);
+
+		return entityInformation;
 	}
 
 	/**

@@ -30,13 +30,17 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.convert.IndexResolverImpl;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
@@ -50,6 +54,7 @@ public class IndexWriterUnitTests {
 	private static final String KEY = "key-1";
 	private static final byte[] KEY_BIN = KEY.getBytes(CHARSET);
 	IndexWriter writer;
+	MappingRedisConverter converter;
 
 	@Mock RedisConnection connectionMock;
 	@Mock ReferenceResolver referenceResolverMock;
@@ -57,8 +62,7 @@ public class IndexWriterUnitTests {
 	@Before
 	public void setUp() {
 
-		MappingRedisConverter converter = new MappingRedisConverter(new RedisMappingContext(), new IndexResolverImpl(),
-				referenceResolverMock);
+		converter = new MappingRedisConverter(new RedisMappingContext(), new PathIndexResolver(), referenceResolverMock);
 		converter.afterPropertiesSet();
 
 		writer = new IndexWriter(connectionMock, converter);
@@ -143,6 +147,37 @@ public class IndexWriterUnitTests {
 		assertThat(captor.getAllValues(), hasItems(indexKey1, indexKey2));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test(expected = InvalidDataAccessApiUsageException.class)
+	public void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject()));
+
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void addToIndexShouldUseRegisteredConverterWhenAddingData() {
+
+		DummyObject value = new DummyObject();
+		final String identityHexString = ObjectUtils.getIdentityHexString(value);
+
+		((GenericConversionService) converter.getConversionService()).addConverter(new Converter<DummyObject, byte[]>() {
+
+			@Override
+			public byte[] convert(DummyObject source) {
+				return identityHexString.getBytes(CHARSET);
+			}
+		});
+
+		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", value));
+
+		verify(connectionMock).sAdd(eq(("persons:firstname:" + identityHexString).getBytes(CHARSET)), eq(KEY_BIN));
+	}
+
 	static class StubIndxedData implements IndexedData {
 
 		@Override
@@ -151,9 +186,12 @@ public class IndexWriterUnitTests {
 		}
 
 		@Override
-		public String getKeySpace() {
+		public String getKeyspace() {
 			return KEYSPACE;
 		}
+	}
+
+	static class DummyObject {
 
 	}
 }

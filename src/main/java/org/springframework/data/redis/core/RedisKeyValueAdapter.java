@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,12 +40,12 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.convert.CustomConversions;
-import org.springframework.data.redis.core.convert.IndexResolverImpl;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
-import org.springframework.data.redis.core.convert.ReferenceResolver;
+import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -86,8 +86,8 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 1.7
  */
-public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements ApplicationContextAware,
-		ApplicationListener<RedisKeyspaceEvent> {
+public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
+		implements ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RedisKeyValueAdapter.class);
 
@@ -131,8 +131,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
 		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
 
-		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(
-				mappingContext), new ReferenceResolverImpl(this));
+		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
+				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(redisOps));
 		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
@@ -173,7 +173,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 		if (rdo.getId() == null) {
 
-			rdo.setId(id);
+			rdo.setId(converter.getConversionService().convert(id, String.class));
 
 			if (!(item instanceof RedisData)) {
 				KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass())
@@ -249,7 +249,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	 */
 	public <T> T get(Serializable id, Serializable keyspace, Class<T> type) {
 
-		final byte[] binId = createKey(keyspace, id);
+		String stringId = asString(id);
+		String stringKeyspace = asString(keyspace);
+
+		final byte[] binId = createKey(stringKeyspace, stringId);
 
 		Map<byte[], byte[]> raw = redisOps.execute(new RedisCallback<Map<byte[], byte[]>>() {
 
@@ -260,8 +263,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		});
 
 		RedisData data = new RedisData(raw);
-		data.setId(id);
-		data.setKeyspace(keyspace.toString());
+		data.setId(stringId);
+		data.setKeyspace(stringKeyspace);
 
 		return converter.read(type, data);
 	}
@@ -287,15 +290,17 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 		if (o != null) {
 
+			final byte[] keyToDelete = createKey(asString(keyspace), asString(id));
+
 			redisOps.execute(new RedisCallback<Void>() {
 
 				@Override
 				public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
-					connection.del(createKey(keyspace, id));
+					connection.del(keyToDelete);
 					connection.sRem(binKeyspace, binId);
 
-					new IndexWriter(connection, converter).removeKeyFromIndexes(keyspace.toString(), binId);
+					new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
 					return null;
 				}
 			});
@@ -322,7 +327,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 				Set<byte[]> members = connection.sMembers(binKeyspace);
 
 				for (byte[] id : members) {
-					rawData.add(connection.hGetAll(createKey(binKeyspace, id)));
+					rawData.add(connection
+							.hGetAll(createKey(asString(keyspace), getConverter().getConversionService().convert(id, String.class))));
 				}
 
 				return rawData;
@@ -349,7 +355,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
 				connection.del(toBytes(keyspace));
-				new IndexWriter(connection, converter).removeAllIndexes(keyspace.toString());
+				new IndexWriter(connection, converter).removeAllIndexes(asString(keyspace));
 				return null;
 			}
 		});
@@ -404,7 +410,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		// nothing to do
 	}
 
-	public byte[] createKey(Serializable keyspace, Serializable id) {
+	private String asString(Serializable value) {
+		return value instanceof String ? (String) value
+				: getConverter().getConversionService().convert(value, String.class);
+	}
+
+	public byte[] createKey(String keyspace, String id) {
 		return toBytes(keyspace + ":" + id);
 	}
 
@@ -533,8 +544,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 			byte[] key = message.getBody();
 
-			final byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService()
-					.convert(":phantom", byte[].class));
+			final byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(":phantom", byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute(new RedisCallback<Map<byte[], byte[]>>() {
 
@@ -566,42 +577,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			}
 
 			return true;
-		}
-	}
-
-	/**
-	 * {@link ReferenceResolver} using {@link RedisKeyValueAdapter} to read and convert referenced entities.
-	 * 
-	 * @author Christoph Strobl
-	 * @since 1.7
-	 */
-	static class ReferenceResolverImpl implements ReferenceResolver {
-
-		private RedisKeyValueAdapter adapter;
-
-		ReferenceResolverImpl() {}
-
-		/**
-		 * @param adapter must not be {@literal null}.
-		 */
-		public ReferenceResolverImpl(RedisKeyValueAdapter adapter) {
-			this.adapter = adapter;
-		}
-
-		/**
-		 * @param adapter
-		 */
-		public void setAdapter(RedisKeyValueAdapter adapter) {
-			this.adapter = adapter;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.io.Serializable, java.io.Serializable, java.lang.Class)
-		 */
-		@Override
-		public <T> T resolveReference(Serializable id, Serializable keyspace, Class<T> type) {
-			return (T) adapter.get(id, keyspace, type);
 		}
 	}
 

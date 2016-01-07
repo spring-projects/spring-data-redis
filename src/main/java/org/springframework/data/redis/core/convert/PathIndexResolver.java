@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,13 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
+import org.springframework.data.redis.core.index.IndexDefinition;
+import org.springframework.data.redis.core.index.IndexDefinition.Condition;
+import org.springframework.data.redis.core.index.IndexDefinition.IndexingContext;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.ClassTypeInformation;
@@ -41,24 +45,24 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 1.7
  */
-public class IndexResolverImpl implements IndexResolver {
+public class PathIndexResolver implements IndexResolver {
 
-	private IndexConfiguration indexConfiguration;
+	private ConfigurableIndexDefinitionProvider indexConfiguration;
 	private RedisMappingContext mappingContext;
 
 	/**
-	 * Creates new {@link IndexResolverImpl} with empty {@link IndexConfiguration}.
+	 * Creates new {@link PathIndexResolver} with empty {@link IndexConfiguration}.
 	 */
-	public IndexResolverImpl() {
+	public PathIndexResolver() {
 		this(new RedisMappingContext());
 	}
 
 	/**
-	 * Creates new {@link IndexResolverImpl} with given {@link IndexConfiguration}.
+	 * Creates new {@link PathIndexResolver} with given {@link IndexConfiguration}.
 	 *
 	 * @param mapppingContext must not be {@literal null}.
 	 */
-	public IndexResolverImpl(RedisMappingContext mappingContext) {
+	public PathIndexResolver(RedisMappingContext mappingContext) {
 
 		Assert.notNull(mappingContext, "MappingContext must not be null!");
 		this.mappingContext = mappingContext;
@@ -71,21 +75,16 @@ public class IndexResolverImpl implements IndexResolver {
 	 */
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
 		return doResolveIndexesFor(mappingContext.getPersistentEntity(typeInformation).getKeySpace(), "", typeInformation,
-				value);
+				null, value);
 	}
 
 	private Set<IndexedData> doResolveIndexesFor(final String keyspace, final String path,
-			TypeInformation<?> typeInformation, Object value) {
+			TypeInformation<?> typeInformation, PersistentProperty<?> fallback, Object value) {
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
 
 		if (entity == null) {
-
-			IndexedData index = resolveIndex(keyspace, path, null, value);
-			if (index != null) {
-				return Collections.singleton(index);
-			}
-			return Collections.emptySet();
+			return resolveIndex(keyspace, path, fallback, value);
 		}
 
 		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
@@ -102,14 +101,9 @@ public class IndexResolverImpl implements IndexResolver {
 
 				if (propertyValue != null) {
 
-					TypeInformation<?> typeHint = persistentProperty.isMap() ? persistentProperty.getTypeInformation()
-							.getMapValueType() : persistentProperty.getTypeInformation().getActualType();
-
-					IndexedData index = resolveIndex(keyspace, currentPath, persistentProperty, propertyValue);
-
-					if (index != null) {
-						indexes.add(index);
-					}
+					TypeInformation<?> typeHint = persistentProperty.isMap()
+							? persistentProperty.getTypeInformation().getMapValueType()
+							: persistentProperty.getTypeInformation().getActualType();
 
 					if (persistentProperty.isMap()) {
 
@@ -117,7 +111,7 @@ public class IndexResolverImpl implements IndexResolver {
 
 							TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, entry.getValue());
 							indexes.addAll(doResolveIndexesFor(keyspace, currentPath + "." + entry.getKey(),
-									typeToUse.getActualType(), entry.getValue()));
+									typeToUse.getActualType(), persistentProperty, entry.getValue()));
 						}
 
 					} else if (persistentProperty.isCollectionLike()) {
@@ -125,7 +119,8 @@ public class IndexResolverImpl implements IndexResolver {
 						for (Object listValue : (Iterable<?>) propertyValue) {
 
 							TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, listValue);
-							indexes.addAll(doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), listValue));
+							indexes.addAll(
+									doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), persistentProperty, listValue));
 						}
 					}
 
@@ -133,7 +128,10 @@ public class IndexResolverImpl implements IndexResolver {
 							|| persistentProperty.getTypeInformation().getActualType().equals(ClassTypeInformation.OBJECT)) {
 
 						typeHint = updateTypeHintForActualValue(typeHint, propertyValue);
-						indexes.addAll(doResolveIndexesFor(keyspace, currentPath, typeHint.getActualType(), propertyValue));
+						indexes.addAll(doResolveIndexesFor(keyspace, currentPath, typeHint.getActualType(), persistentProperty,
+								propertyValue));
+					} else {
+						indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, propertyValue));
 					}
 				}
 
@@ -157,37 +155,55 @@ public class IndexResolverImpl implements IndexResolver {
 		return indexes;
 	}
 
-	protected IndexedData resolveIndex(String keyspace, String propertyPath, PersistentProperty<?> property, Object value) {
+	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath, PersistentProperty<?> property,
+			Object value) {
 
 		if (value == null) {
-			return null;
+			return Collections.emptySet();
 		}
 
 		String path = normalizeIndexPath(propertyPath, property);
 
+		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
+
 		if (indexConfiguration.hasIndexFor(keyspace, path)) {
-			// FIXME it seems there is a mis-match between IndexConfiguration
-			// resolving many RedisIndexSetting objects to resolving a single
-			// IndexData in this method.
-			RedisIndexSetting indexSetting = indexConfiguration.getIndexDefinitionsFor(keyspace, path).iterator().next();
-			return new SimpleIndexedPropertyValue(keyspace, indexSetting.getIndexName(), value);
+
+			IndexingContext context = new IndexingContext(keyspace, path,
+					property != null ? property.getTypeInformation() : ClassTypeInformation.OBJECT);
+
+			for (IndexDefinition indexDefinition : indexConfiguration.getIndexDefinitionsFor(keyspace, path)) {
+
+				if (!verifyConditions(indexDefinition.getConditions(), value, context)) {
+					continue;
+				}
+
+				data.add(new SimpleIndexedPropertyValue(keyspace, indexDefinition.getIndexName(),
+						indexDefinition.valueTransformer().convert(value)));
+			}
 		}
 
 		else if (property != null && property.isAnnotationPresent(Indexed.class)) {
 
-			Indexed indexed = property.findAnnotation(Indexed.class);
+			SimpleIndexDefinition indexDefinition = new SimpleIndexDefinition(keyspace, path);
+			indexConfiguration.addIndexDefinition(indexDefinition);
 
-			indexConfiguration.addIndexDefinition(new RedisIndexSetting(keyspace, path, indexed.type()));
+			data.add(new SimpleIndexedPropertyValue(keyspace, path, indexDefinition.valueTransformer().convert(value)));
+		}
+		return data;
+	}
 
-			switch (indexed.type()) {
-				case SIMPLE:
-					return new SimpleIndexedPropertyValue(keyspace, path, value);
-				default:
-					throw new IllegalArgumentException(String.format("Unsupported index type '%s' for path '%s'.",
-							indexed.type(), path));
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private boolean verifyConditions(Iterable<Condition<?>> conditions, Object value, IndexingContext context) {
+
+		for (Condition condition : conditions) {
+
+			// TODO: generics lookup
+			if (!condition.matches(value, context)) {
+				return false;
 			}
 		}
-		return null;
+
+		return true;
 	}
 
 	private String normalizeIndexPath(String path, PersistentProperty<?> property) {

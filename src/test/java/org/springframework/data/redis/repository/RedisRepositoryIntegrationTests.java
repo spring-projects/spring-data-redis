@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.repository;
 
+import static org.hamcrest.collection.IsCollectionWithSize.*;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
@@ -30,16 +32,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.core.index.IndexDefinition;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,7 +63,8 @@ public class RedisRepositoryIntegrationTests {
 
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
-			keyspaceConfiguration = MyKeyspaceConfiguration.class)
+			keyspaceConfiguration = MyKeyspaceConfiguration.class,
+			includeFilters = { @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*PersonRepository") })
 	static class Config {
 
 		@Bean
@@ -161,7 +171,50 @@ public class RedisRepositoryIntegrationTests {
 		// find and assert the location is gone
 		Person reLoaded = repo.findOne(moiraine.getId());
 		assertThat(reLoaded.city, IsNull.nullValue());
+	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void findReturnsPageCorrectly() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person sansa = new Person("sansa", "stark");
+		Person arya = new Person("arya", "stark");
+		Person bran = new Person("bran", "stark");
+		Person rickon = new Person("rickon", "stark");
+
+		repo.save(Arrays.asList(eddard, robb, sansa, arya, bran, rickon));
+
+		Page<Person> page1 = repo.findPersonByLastname("stark", new PageRequest(0, 5));
+
+		assertThat(page1.getNumberOfElements(), is(5));
+		assertThat(page1.getTotalElements(), is(6L));
+
+		Page<Person> page2 = repo.findPersonByLastname("stark", page1.nextPageable());
+
+		assertThat(page2.getNumberOfElements(), is(1));
+		assertThat(page2.getTotalElements(), is(6L));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void findUsingOrReturnsResultCorrectly() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+
+		repo.save(Arrays.asList(eddard, robb, jon));
+
+		List<Person> eddardAndJon = repo.findByFirstnameOrLastname("eddard", "snow");
+
+		assertThat(eddardAndJon, hasSize(2));
+		assertThat(eddardAndJon, containsInAnyOrder(eddard, jon));
 	}
 
 	public static interface PersonRepository extends CrudRepository<Person, String> {
@@ -170,7 +223,11 @@ public class RedisRepositoryIntegrationTests {
 
 		List<Person> findByLastname(String lastname);
 
+		Page<Person> findPersonByLastname(String lastname, Pageable page);
+
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
+
+		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
 	}
 
 	/**
@@ -181,8 +238,8 @@ public class RedisRepositoryIntegrationTests {
 	static class MyIndexConfiguration extends IndexConfiguration {
 
 		@Override
-		protected Iterable<RedisIndexSetting> initialConfiguration() {
-			return Collections.singleton(new RedisIndexSetting("persons", "lastname"));
+		protected Iterable<IndexDefinition> initialConfiguration() {
+			return Collections.<IndexDefinition> singleton(new SimpleIndexDefinition("persons", "lastname"));
 		}
 	}
 
@@ -207,6 +264,14 @@ public class RedisRepositoryIntegrationTests {
 		@Indexed String firstname;
 		String lastname;
 		@Reference City city;
+
+		public Person() {}
+
+		public Person(String firstname, String lastname) {
+
+			this.firstname = firstname;
+			this.lastname = lastname;
+		}
 
 		public City getCity() {
 			return city;

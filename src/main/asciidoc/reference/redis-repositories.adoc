@@ -28,6 +28,8 @@ public class Person {
 We have a pretty simple domain object here. Note that it has a property named `id` annotated with `org.springframework.data.annotation.Id` and a `@RedisHash` annotation on its type.
 Those two are responsible for creating the actual key used to persist the hash. 
 
+NOTE: Properties annotated with `@Id` as well as those named `id` are considered as the identifier properties. Those with the annotation are favored over others.
+
 To now actually have a component responsible for storage and retrieval we need to define a repository interface.
 
 .Basic Repository Interface To Persist Person Entities

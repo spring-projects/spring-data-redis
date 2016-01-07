@@ -16,13 +16,16 @@
 package org.springframework.data.redis.core.convert;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
-import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
+import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider;
+import org.springframework.data.redis.core.index.IndexDefinition;
+import org.springframework.data.redis.core.index.SpelIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.expression.BeanResolver;
@@ -35,15 +38,18 @@ import org.springframework.util.Assert;
  * An {@link IndexResolver} that resolves {@link IndexedData} using a {@link SpelExpressionParser}.
  *
  * @author Rob Winch
+ * @author Christoph Strobl
  * @since 1.7
  */
 public class SpelIndexResolver implements IndexResolver {
 
-	private final IndexConfiguration settings;
+	private final ConfigurableIndexDefinitionProvider settings;
 	private final SpelExpressionParser parser;
 	private final RedisMappingContext mappingContext;
 
 	private BeanResolver beanResolver;
+
+	private Map<SpelIndexDefinition, Expression> expressionCache;
 
 	/**
 	 * Creates a new instance using a default {@link SpelExpressionParser}.
@@ -66,6 +72,7 @@ public class SpelIndexResolver implements IndexResolver {
 		Assert.notNull(parser, "SpelExpressionParser must not be null!");
 		this.mappingContext = mappingContext;
 		this.settings = mappingContext.getMappingConfiguration().getIndexConfiguration();
+		this.expressionCache = new HashMap<SpelIndexDefinition, Expression>();
 		this.parser = parser;
 	}
 
@@ -88,24 +95,39 @@ public class SpelIndexResolver implements IndexResolver {
 
 		Set<IndexedData> indexes = new HashSet<IndexedData>();
 
-		for (RedisIndexSetting setting : settings.getIndexDefinitionsFor(keyspace)) {
+		for (IndexDefinition setting : settings.getIndexDefinitionsFor(keyspace)) {
 
-			Expression expression = parser.parseExpression(setting.getPath());
-			StandardEvaluationContext context = new StandardEvaluationContext();
-			context.setRootObject(value);
-			context.setVariable("this", value);
+			if (setting instanceof SpelIndexDefinition) {
 
-			if (beanResolver != null) {
-				context.setBeanResolver(beanResolver);
-			}
+				Expression expression = getAndCacheIfAbsent((SpelIndexDefinition) setting);
 
-			Object index = expression.getValue(context);
-			if (index != null) {
-				indexes.add(new SimpleIndexedPropertyValue(keyspace, setting.getIndexName(), index));
+				StandardEvaluationContext context = new StandardEvaluationContext();
+				context.setRootObject(value);
+				context.setVariable("this", value);
+
+				if (beanResolver != null) {
+					context.setBeanResolver(beanResolver);
+				}
+
+				Object index = expression.getValue(context);
+				if (index != null) {
+					indexes.add(new SimpleIndexedPropertyValue(keyspace, setting.getIndexName(), index));
+				}
 			}
 		}
 
 		return indexes;
+	}
+
+	private Expression getAndCacheIfAbsent(SpelIndexDefinition indexDefinition) {
+
+		if (expressionCache.containsKey(indexDefinition)) {
+			return expressionCache.get(indexDefinition);
+		}
+
+		Expression expression = parser.parseExpression(indexDefinition.getExpression());
+		expressionCache.put(indexDefinition, expression);
+		return expression;
 	}
 
 	/**

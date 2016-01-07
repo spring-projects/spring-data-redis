@@ -49,7 +49,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 		switch (part.getType()) {
 			case SIMPLE_PROPERTY:
-				sink.sismember(part.getProperty().toDotPath() + ":" + iterator.next());
+				sink.sismember(part.getProperty().toDotPath(), iterator.next());
 				break;
 			default:
 				throw new IllegalArgumentException(part.getType() + "is not supported for redis query derivation");
@@ -74,7 +74,7 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	 */
 	@Override
 	protected RedisOperationChain or(RedisOperationChain base, RedisOperationChain criteria) {
-		base.orSismember(criteria.sismember);
+		base.orSismember(criteria.getSismember());
 		return base;
 	}
 
@@ -86,6 +86,12 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 	protected KeyValueQuery<RedisOperationChain> complete(final RedisOperationChain criteria, Sort sort) {
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<RedisOperationChain>(criteria);
+
+		if (query.getCritieria().getSismember().size() == 1 && query.getCritieria().getOrSismember().size() == 1) {
+
+			query.getCritieria().getOrSismember().add(query.getCritieria().getSismember().iterator().next());
+			query.getCritieria().getSismember().clear();
+		}
 
 		if (sort != null) {
 			query.setSort(sort);

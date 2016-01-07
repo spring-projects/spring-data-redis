@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,7 +33,7 @@ import org.springframework.util.Assert;
 public class RedisData {
 
 	private String keyspace;
-	private Serializable id;
+	private String id;
 
 	private Bucket bucket;
 	private Set<IndexedData> indexedData;
@@ -74,14 +73,14 @@ public class RedisData {
 	 * 
 	 * @param id
 	 */
-	public void setId(Serializable id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
 	/**
 	 * @return
 	 */
-	public Serializable getId() {
+	public String getId() {
 		return this.id;
 	}
 

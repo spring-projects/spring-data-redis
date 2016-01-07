@@ -36,6 +36,6 @@ public interface IndexedData {
 	 *
 	 * @return
 	 */
-	String getKeySpace();
+	String getKeyspace();
 
 }

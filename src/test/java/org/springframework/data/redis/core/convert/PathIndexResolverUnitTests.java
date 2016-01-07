@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-216 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.hamcrest.core.IsNull.*;
@@ -26,6 +27,8 @@ import static org.springframework.data.redis.core.convert.ConversionTestEntities
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hamcrest.core.IsCollectionContaining;
@@ -41,12 +44,12 @@ import org.springframework.data.redis.core.convert.ConversionTestEntities.Item;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.PersonWithAddressReference;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Size;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
-import org.springframework.data.redis.core.index.IndexType;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.ClassTypeInformation;
 
@@ -54,10 +57,10 @@ import org.springframework.data.util.ClassTypeInformation;
  * @author Christoph Strobl
  */
 @RunWith(MockitoJUnitRunner.class)
-public class IndexResolverImplUnitTests {
+public class PathIndexResolverUnitTests {
 
 	IndexConfiguration indexConfig;
-	IndexResolverImpl indexResolver;
+	PathIndexResolver indexResolver;
 
 	@Mock PersistentProperty<?> propertyMock;
 
@@ -65,8 +68,8 @@ public class IndexResolverImplUnitTests {
 	public void setUp() {
 
 		indexConfig = new IndexConfiguration();
-		this.indexResolver = new IndexResolverImpl(new RedisMappingContext(new MappingConfiguration(indexConfig,
-				new KeyspaceConfiguration())));
+		this.indexResolver = new PathIndexResolver(
+				new RedisMappingContext(new MappingConfiguration(indexConfig, new KeyspaceConfiguration())));
 	}
 
 	/**
@@ -74,7 +77,7 @@ public class IndexResolverImplUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowExceptionOnNullMappingContext() {
-		new IndexResolverImpl(null);
+		new PathIndexResolver(null);
 	}
 
 	/**
@@ -145,9 +148,10 @@ public class IndexResolverImplUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
 
 		assertThat(indexes.size(), is(2));
-		assertThat(indexes, IsCollectionContaining.<IndexedData> hasItems(new SimpleIndexedPropertyValue(KEYSPACE_TWOT,
-				"mainCharacters.address.country", "andor"), new SimpleIndexedPropertyValue(KEYSPACE_TWOT,
-				"mainCharacters.address.country", "saldaea")));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "andor"),
+						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "saldaea")));
 	}
 
 	/**
@@ -170,8 +174,8 @@ public class IndexResolverImplUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
 
 		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country",
-				"illian")));
+		assertThat(indexes,
+				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country", "illian")));
 	}
 
 	/**
@@ -180,7 +184,7 @@ public class IndexResolverImplUnitTests {
 	@Test
 	public void shouldResolveConfiguredIndexesInMapOfSimpleTypes() {
 
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
 
 		Person rand = new Person();
 		rand.physicalAttributes = new LinkedHashMap<String, String>();
@@ -199,7 +203,7 @@ public class IndexResolverImplUnitTests {
 	@Test
 	public void shouldResolveConfiguredIndexesInMapOfComplexTypes() {
 
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "relatives.father.firstname"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "relatives.father.firstname"));
 
 		Person rand = new Person();
 		rand.relatives = new LinkedHashMap<String, Person>();
@@ -222,7 +226,7 @@ public class IndexResolverImplUnitTests {
 	@Test
 	public void shouldIgnoreConfiguredIndexesInMapWhenValueIsNull() {
 
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
 
 		Person rand = new Person();
 		rand.physicalAttributes = new LinkedHashMap<String, String>();
@@ -244,8 +248,8 @@ public class IndexResolverImplUnitTests {
 		rand.addressRef.id = "emond_s_field";
 		rand.addressRef.country = "andor";
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(
-				ClassTypeInformation.from(PersonWithAddressReference.class), rand);
+		Set<IndexedData> indexes = indexResolver
+				.resolveIndexesFor(ClassTypeInformation.from(PersonWithAddressReference.class), rand);
 
 		assertThat(indexes.size(), is(0));
 	}
@@ -267,7 +271,7 @@ public class IndexResolverImplUnitTests {
 	public void resolveIndexShouldReturnDataWhenIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "foo"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "foo"));
 
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
@@ -279,7 +283,7 @@ public class IndexResolverImplUnitTests {
 	public void resolveIndexShouldReturnDataWhenNoIndexConfiguredButPropertyAnnotated() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
@@ -292,7 +296,7 @@ public class IndexResolverImplUnitTests {
 
 		when(propertyMock.isCollectionLike()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
@@ -307,7 +311,7 @@ public class IndexResolverImplUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
@@ -322,7 +326,7 @@ public class IndexResolverImplUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
@@ -410,7 +414,8 @@ public class IndexResolverImplUnitTests {
 	 */
 	@Test
 	public void resolveIndexAllowCustomIndexName() {
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "items.type", "itemsType", IndexType.SIMPLE));
+
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "items.type", "itemsType"));
 
 		Item hat = new Item();
 		hat.type = "hat";
@@ -426,11 +431,78 @@ public class IndexResolverImplUnitTests {
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat")));
 	}
 
-	private IndexedData resolve(String path, Object value) {
-		return indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexForTypeThatHasNoIndexDefined() {
+
+		Size size = new Size();
+		size.height = 10;
+		size.length = 20;
+		size.width = 30;
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Size.class), size);
+		assertThat(indexes, is(empty()));
 	}
 
-	private Indexed createIndexedInstance(final IndexType type) {
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexOnMapField() {
+
+		IndexedOnMapField source = new IndexedOnMapField();
+		source.values = new LinkedHashMap<String, String>();
+
+		source.values.put("jon", "snow");
+		source.values.put("arya", "stark");
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnMapField.class),
+				source);
+
+		assertThat(indexes.size(), is(2));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.jon", "snow"),
+						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.arya", "stark")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexOnListField() {
+
+		IndexedOnListField source = new IndexedOnListField();
+		source.values = new ArrayList<String>();
+
+		source.values.add("jon");
+		source.values.add("arya");
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnListField.class),
+				source);
+
+		assertThat(indexes.size(), is(2));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "jon"),
+						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya")));
+	}
+
+	private IndexedData resolve(String path, Object value) {
+
+		Set<IndexedData> data = indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
+
+		if (data.isEmpty()) {
+			return null;
+		}
+
+		assertThat(data.size(), is(1));
+		return data.iterator().next();
+	}
+
+	private Indexed createIndexedInstance() {
 
 		return new Indexed() {
 
@@ -439,10 +511,17 @@ public class IndexResolverImplUnitTests {
 				return Indexed.class;
 			}
 
-			@Override
-			public IndexType type() {
-				return type == null ? IndexType.SIMPLE : type;
-			}
 		};
 	}
+
+	static class IndexedOnListField {
+
+		@Indexed List<String> values;
+	}
+
+	static class IndexedOnMapField {
+
+		@Indexed Map<String, String> values;
+	}
+
 }

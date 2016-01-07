@@ -22,7 +22,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Mark property to be included in a secondary index.
+ * Mark properties value to be included in a secondary index. <br />
+ * Uses Redos {@literal SET} for storage. <br />
+ * The value will be part of the key built for the index.
  * 
  * @author Christoph Strobl
  * @since 1.7
@@ -31,12 +33,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 public @interface Indexed {
-
-	/**
-	 * Type of index to use.
-	 * 
-	 * @return
-	 */
-	IndexType type() default IndexType.SIMPLE;
 
 }
