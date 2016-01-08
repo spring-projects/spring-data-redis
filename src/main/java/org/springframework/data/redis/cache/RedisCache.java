@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,22 @@ package org.springframework.data.redis.cache;
 import static org.springframework.util.Assert.*;
 import static org.springframework.util.ObjectUtils.*;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.ClassUtils;
 
 /**
  * Cache implementation on top of Redis.
@@ -89,6 +93,32 @@ public class RedisCache implements Cache {
 	public ValueWrapper get(Object key) {
 		return get(new RedisCacheKey(key).usePrefix(this.cacheMetadata.getKeyPrefix()).withKeySerializer(
 				redisOperations.getKeySerializer()));
+	}
+
+	/*
+	 * @see  org.springframework.cache.Cache#get(java.lang.Object, java.util.concurrent.Callable)
+	 * introduced in springframework 4.3.0.RC1
+	 */
+	public <T> T get(final Object key, final Callable<T> valueLoader) {
+
+		BinaryRedisCacheElement rce = new BinaryRedisCacheElement(new RedisCacheElement(new RedisCacheKey(key).usePrefix(
+				cacheMetadata.getKeyPrefix()).withKeySerializer(redisOperations.getKeySerializer()), valueLoader),
+				cacheValueAccessor);
+
+		ValueWrapper val = get(key);
+		if (val != null) {
+			return (T) val.get();
+		}
+
+		RedisWriteThroughCallback callback = new RedisWriteThroughCallback(rce, cacheMetadata);
+
+		try {
+			byte[] result = (byte[]) redisOperations.execute(callback);
+			return (T) (result == null ? null : cacheValueAccessor.deserializeIfNecessary(result));
+		} catch (RuntimeException e) {
+			throw CacheValueRetrievalExceptionFactory.INSTANCE.create(key, valueLoader, e);
+		}
+
 	}
 
 	/**
@@ -361,13 +391,18 @@ public class RedisCache implements Cache {
 		private byte[] keyBytes;
 		private byte[] valueBytes;
 		private RedisCacheElement element;
+		private boolean lazyLoad;
+		private CacheValueAccessor accessor;
 
 		public BinaryRedisCacheElement(RedisCacheElement element, CacheValueAccessor accessor) {
 
 			super(element.getKey(), element.get());
 			this.element = element;
 			this.keyBytes = element.getKeyBytes();
-			this.valueBytes = accessor.convertToBytesIfNecessary(element.get());
+			this.accessor = accessor;
+
+			lazyLoad = element.get() instanceof Callable;
+			this.valueBytes = lazyLoad ? null : accessor.convertToBytesIfNecessary(element.get());
 		}
 
 		@Override
@@ -393,9 +428,16 @@ public class RedisCache implements Cache {
 
 		@Override
 		public byte[] get() {
+
+			if (lazyLoad && valueBytes == null) {
+				try {
+					valueBytes = accessor.convertToBytesIfNecessary(((Callable<?>) element.get()).call());
+				} catch (Exception e) {
+					throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e.getMessage(), e);
+				}
+			}
 			return valueBytes;
 		}
-
 	}
 
 	/**
@@ -469,6 +511,15 @@ public class RedisCache implements Cache {
 			} while (retry);
 
 			return foundLock;
+		}
+
+		protected void lock(RedisConnection connection) {
+			waitForLock(connection);
+			connection.set(cacheMetadata.getCacheLockKey(), "locked".getBytes());
+		}
+
+		protected void unlock(RedisConnection connection) {
+			connection.del(cacheMetadata.getCacheLockKey());
 		}
 	}
 
@@ -663,6 +714,88 @@ public class RedisCache implements Cache {
 
 			boolean valueWasSet = connection.setNX(element.getKeyBytes(), element.get());
 			return valueWasSet ? null : connection.get(element.getKeyBytes());
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.7
+	 */
+	static class RedisWriteThroughCallback extends AbstractRedisCacheCallback<byte[]> {
+
+		public RedisWriteThroughCallback(BinaryRedisCacheElement element, RedisCacheMetadata metadata) {
+			super(element, metadata);
+		}
+
+		@Override
+		public byte[] doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
+
+			try {
+
+				lock(connection);
+
+				try {
+
+					byte[] value = connection.get(element.getKeyBytes());
+
+					if (value != null) {
+						return value;
+					}
+
+					connection.watch(element.getKeyBytes());
+					connection.multi();
+
+					value = element.get();
+					connection.set(element.getKeyBytes(), value);
+
+					processKeyExpiration(element, connection);
+					maintainKnownKeys(element, connection);
+
+					connection.exec();
+
+					return value;
+				} catch (RuntimeException e) {
+
+					connection.discard();
+					throw e;
+				}
+			} finally {
+				unlock(connection);
+			}
+		}
+	};
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.7 (TODO: remove when upgrading to spring 4.3)
+	 */
+	private static enum CacheValueRetrievalExceptionFactory {
+
+		INSTANCE;
+
+		private static boolean isSpring43;
+
+		static {
+			isSpring43 = ClassUtils.isPresent("org.springframework.cache.Cache$ValueRetrievalException",
+					ClassUtils.getDefaultClassLoader());
+		}
+
+		public RuntimeException create(Object key, Callable<?> valueLoader, Throwable cause) {
+
+			if (isSpring43) {
+				try {
+					Class<?> execption = ClassUtils.forName("org.springframework.cache.Cache$ValueRetrievalException", this
+							.getClass().getClassLoader());
+					Constructor<?> c = ClassUtils.getConstructorIfAvailable(execption, Object.class, Callable.class,
+							Throwable.class);
+					return (RuntimeException) c.newInstance(key, valueLoader, cause);
+				} catch (Exception ex) {
+					// ignore
+				}
+			}
+
+			return new RedisSystemException(String.format("Value for key '%s' could not be loaded using '%s'.", key,
+					valueLoader), cause);
 		}
 	}
 
