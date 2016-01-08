@@ -100,10 +100,10 @@ dependencies {
     testCompile "junit:junit:$junitVersion"
     testCompile "org.springframework:spring-test:$springVersion"
     testCompile "org.springframework:spring-jdbc:$springVersion"
-    testCompile 'org.testinfected.hamcrest-matchers:core-matchers:1.8'
+    testCompile 'org.testinfected.hamcrest-matchers:hamcrest-matchers:1.8'
     testCompile "org.mockito:mockito-core:$mockitoVersion"
     testCompile("javax.annotation:jsr250-api:1.0", optional)
-    testCompile("com.thoughtworks.xstream:xstream:1.4.4", optional)
+    testCompile("com.thoughtworks.xstream:xstream:1.4.8", optional)
     testCompile("javax.transaction:jta:1.1")
 
     sharedResources "org.springframework.data.build:spring-data-build-resources:$springDataBuildVersion@zip"

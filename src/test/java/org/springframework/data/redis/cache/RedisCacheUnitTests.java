@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,22 @@
  */
 package org.springframework.data.redis.cache;
 
+import static org.hamcrest.core.IsEqual.*;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.util.ClassUtils.*;
+
+import java.util.concurrent.Callable;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.ReturnType;
@@ -59,6 +67,8 @@ public class RedisCacheUnitTests {
 
 	RedisCache cache;
 
+	public @Rule ExpectedException exception = ExpectedException.none();
+
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() {
@@ -75,6 +85,7 @@ public class RedisCacheUnitTests {
 
 		when(keySerializerMock.serialize(any(byte[].class))).thenReturn(KEY_BYTES);
 		when(valueSerializerMock.serialize(any(byte[].class))).thenReturn(VALUE_BYTES);
+		when(valueSerializerMock.deserialize(eq(VALUE_BYTES))).thenReturn(VALUE);
 	}
 
 	/**
@@ -141,4 +152,69 @@ public class RedisCacheUnitTests {
 
 		verify(connectionMock, never()).expire(eq(KNOWN_KEYS_SET_NAME_BYTES), anyLong());
 	}
+
+	/**
+	 * @see DATAREDIS-443
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getWithCallable() throws ClassNotFoundException, LinkageError {
+
+		if (isPresent("org.springframework.cache.Cache$ValueRetrievalException", getDefaultClassLoader())) {
+			exception.expect((Class<? extends Throwable>) forName("org.springframework.cache.Cache$ValueRetrievalException",
+					getDefaultClassLoader()));
+		} else {
+			exception.expect(RedisSystemException.class);
+		}
+
+		exception.expectMessage("Value for key 'key' could not be loaded");
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+
+		cache.get(KEY, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				throw new UnsupportedOperationException("Expected exception");
+			}
+		});
+	}
+
+	/**
+	 * @see DATAREDIS-443
+	 */
+	@Test
+	public void getWithCallableShouldReadValueFromCallableAddToCache() {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+
+		cache.get(KEY, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return VALUE;
+			}
+		});
+
+		verify(connectionMock, times(2)).get(eq(KEY_BYTES));
+		verify(connectionMock, times(1)).multi();
+		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock, times(1)).exec();
+	}
+
+	/**
+	 * @see DATAREDIS-443
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getWithCallableShouldNotReadValueFromCallableWhenAlreadyPresent() {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+		Callable<Object> callableMock = mock(Callable.class);
+
+		when(connectionMock.exists(KEY_BYTES)).thenReturn(true);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(null).thenReturn(VALUE_BYTES);
+
+		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
+		verifyZeroInteractions(callableMock);
+	}
+
 }
