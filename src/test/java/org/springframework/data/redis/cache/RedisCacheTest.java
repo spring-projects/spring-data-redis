@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,15 @@ import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.hamcrest.core.IsEqual;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +44,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -273,5 +279,54 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		}
 
 		assertThat(wrapper.get(), equalTo(value));
+	}
+
+	/**
+	 * @see DATAREDIS-443
+	 */
+	@Test
+	public void testCacheGetSynchronized() throws InterruptedException {
+
+		assumeThat(cache, instanceOf(RedisCache.class));
+		assumeThat(valueFactory, instanceOf(LongObjectFactory.class));
+
+		int threadCount = 10;
+		final AtomicLong counter = new AtomicLong();
+		final List<Object> results = new CopyOnWriteArrayList<Object>();
+		final CountDownLatch latch = new CountDownLatch(threadCount);
+
+		final RedisCache redisCache = (RedisCache) cache;
+
+		final Object key = getKey();
+
+		Runnable run = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Long value = redisCache.get(key, new Callable<Long>() {
+						@Override
+						public Long call() throws Exception {
+
+							Thread.sleep(333); // make sure the thread will overlap
+							return counter.incrementAndGet();
+						}
+					});
+					results.add(value);
+				} finally {
+					latch.countDown();
+				}
+			}
+		};
+
+		for (int i = 0; i < threadCount; i++) {
+			new Thread(run).start();
+			Thread.sleep(100);
+		}
+		latch.await();
+
+		assertThat(results.size(), IsEqual.equalTo(threadCount));
+		for (Object result : results) {
+			assertThat((Long) result, equalTo(1L));
+		}
 	}
 }

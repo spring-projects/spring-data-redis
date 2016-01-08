@@ -22,7 +22,7 @@
 		<springdata.commons>1.12.0.BUILD-SNAPSHOT</springdata.commons>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
-		<xstream>1.4.4</xstream>
+		<xstream>1.4.8</xstream>
 		<pool>2.2</pool>
 		<lettuce>3.3.Final</lettuce>
 		<jedis>2.7.3</jedis>
