@@ -27,8 +27,7 @@ import org.junit.Test;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
-import org.springframework.data.redis.core.index.IndexType;
+import org.springframework.data.redis.core.index.SpelIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.expression.AccessException;
@@ -175,7 +174,7 @@ public class SpelIndexResolverUnitTests {
 
 	private SpelIndexResolver createWithExpression(String expression) {
 
-		RedisIndexSetting principalIndex = new RedisIndexSetting(keyspace, expression, indexName, IndexType.SIMPLE);
+		SpelIndexDefinition principalIndex = new SpelIndexDefinition(keyspace, expression, indexName);
 		IndexConfiguration configuration = new IndexConfiguration();
 		configuration.addIndexDefinition(principalIndex);
 

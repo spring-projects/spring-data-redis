@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,18 @@
  */
 package org.springframework.data.redis.core.index;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Mark properties value to be included in a secondary index. <br />
- * Uses Redos {@literal SET} for storage. <br />
- * The value will be part of the key built for the index.
+ * Registry that allows adding {@link IndexDefinition}.
  * 
  * @author Christoph Strobl
  * @since 1.7
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
-public @interface Indexed {
+public interface IndexDefinitionRegistry {
 
+	/**
+	 * Add given {@link RedisIndexSetting}.
+	 *
+	 * @param indexDefinition must not be {@literal null}.
+	 */
+	void addIndexDefinition(IndexDefinition indexDefinition);
 }

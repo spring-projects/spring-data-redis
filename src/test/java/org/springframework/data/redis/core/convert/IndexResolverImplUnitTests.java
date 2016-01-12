@@ -44,9 +44,8 @@ import org.springframework.data.redis.core.convert.ConversionTestEntities.Person
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
 import org.springframework.data.redis.core.index.IndexConfiguration;
-import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
-import org.springframework.data.redis.core.index.IndexType;
 import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.data.redis.core.index.SimpleIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.ClassTypeInformation;
 
@@ -57,7 +56,7 @@ import org.springframework.data.util.ClassTypeInformation;
 public class IndexResolverImplUnitTests {
 
 	IndexConfiguration indexConfig;
-	IndexResolverImpl indexResolver;
+	PathIndexResolver indexResolver;
 
 	@Mock PersistentProperty<?> propertyMock;
 
@@ -65,7 +64,7 @@ public class IndexResolverImplUnitTests {
 	public void setUp() {
 
 		indexConfig = new IndexConfiguration();
-		this.indexResolver = new IndexResolverImpl(new RedisMappingContext(new MappingConfiguration(indexConfig,
+		this.indexResolver = new PathIndexResolver(new RedisMappingContext(new MappingConfiguration(indexConfig,
 				new KeyspaceConfiguration())));
 	}
 
@@ -74,7 +73,7 @@ public class IndexResolverImplUnitTests {
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowExceptionOnNullMappingContext() {
-		new IndexResolverImpl(null);
+		new PathIndexResolver(null);
 	}
 
 	/**
@@ -180,7 +179,7 @@ public class IndexResolverImplUnitTests {
 	@Test
 	public void shouldResolveConfiguredIndexesInMapOfSimpleTypes() {
 
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
 
 		Person rand = new Person();
 		rand.physicalAttributes = new LinkedHashMap<String, String>();
@@ -199,7 +198,7 @@ public class IndexResolverImplUnitTests {
 	@Test
 	public void shouldResolveConfiguredIndexesInMapOfComplexTypes() {
 
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "relatives.father.firstname"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "relatives.father.firstname"));
 
 		Person rand = new Person();
 		rand.relatives = new LinkedHashMap<String, Person>();
@@ -222,7 +221,7 @@ public class IndexResolverImplUnitTests {
 	@Test
 	public void shouldIgnoreConfiguredIndexesInMapWhenValueIsNull() {
 
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
 
 		Person rand = new Person();
 		rand.physicalAttributes = new LinkedHashMap<String, String>();
@@ -267,7 +266,7 @@ public class IndexResolverImplUnitTests {
 	public void resolveIndexShouldReturnDataWhenIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "foo"));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "foo"));
 
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
@@ -279,7 +278,7 @@ public class IndexResolverImplUnitTests {
 	public void resolveIndexShouldReturnDataWhenNoIndexConfiguredButPropertyAnnotated() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
@@ -292,7 +291,7 @@ public class IndexResolverImplUnitTests {
 
 		when(propertyMock.isCollectionLike()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
@@ -307,7 +306,7 @@ public class IndexResolverImplUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
@@ -322,7 +321,7 @@ public class IndexResolverImplUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance(IndexType.SIMPLE));
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
@@ -410,7 +409,7 @@ public class IndexResolverImplUnitTests {
 	 */
 	@Test
 	public void resolveIndexAllowCustomIndexName() {
-		indexConfig.addIndexDefinition(new RedisIndexSetting(KEYSPACE_PERSON, "items.type", "itemsType", IndexType.SIMPLE));
+		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "items.type", "itemsType"));
 
 		Item hat = new Item();
 		hat.type = "hat";
@@ -438,7 +437,7 @@ public class IndexResolverImplUnitTests {
 		return data.iterator().next();
 	}
 
-	private Indexed createIndexedInstance(final IndexType type) {
+	private Indexed createIndexedInstance() {
 
 		return new Indexed() {
 
@@ -447,10 +446,6 @@ public class IndexResolverImplUnitTests {
 				return Indexed.class;
 			}
 
-			@Override
-			public IndexType type() {
-				return type == null ? IndexType.SIMPLE : type;
-			}
 		};
 	}
 }

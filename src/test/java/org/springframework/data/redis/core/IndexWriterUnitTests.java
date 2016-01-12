@@ -31,7 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.convert.IndexResolverImpl;
+import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
@@ -57,7 +57,7 @@ public class IndexWriterUnitTests {
 	@Before
 	public void setUp() {
 
-		MappingRedisConverter converter = new MappingRedisConverter(new RedisMappingContext(), new IndexResolverImpl(),
+		MappingRedisConverter converter = new MappingRedisConverter(new RedisMappingContext(), new PathIndexResolver(),
 				referenceResolverMock);
 		converter.afterPropertiesSet();
 

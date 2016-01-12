@@ -16,13 +16,13 @@
 package org.springframework.data.redis.core.index;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -33,70 +33,55 @@ import org.springframework.util.ObjectUtils;
  * @author Rob Winch
  * @since 1.7
  */
-public class IndexConfiguration {
+public class IndexConfiguration implements ConfigurableIndexDefinitionProvider {
 
-	private final Set<RedisIndexSetting> definitions;
+	private final Set<IndexDefinition> definitions;
 
 	/**
 	 * Creates new empty {@link IndexConfiguration}.
 	 */
 	public IndexConfiguration() {
 
-		this.definitions = new CopyOnWriteArraySet<RedisIndexSetting>();
-		for (RedisIndexSetting initial : initialConfiguration()) {
+		this.definitions = new CopyOnWriteArraySet<IndexDefinition>();
+		for (IndexDefinition initial : initialConfiguration()) {
 			addIndexDefinition(initial);
 		}
 	}
 
-	/**
-	 * Checks if an index is defined for a given keyspace and property path.
-	 *
-	 * @param keyspace
-	 * @param path
-	 * @return true if index is defined.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#hasIndexFor(java.io.Serializable)
+	 */
+	@Override
+	public boolean hasIndexFor(Serializable keyspace) {
+		return !getIndexDefinitionsFor(keyspace).isEmpty();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#hasIndexFor(java.io.Serializable, java.lang.String)
 	 */
 	public boolean hasIndexFor(Serializable keyspace, String path) {
-
-		for (IndexType type : IndexType.values()) {
-			RedisIndexSetting def = getIndexDefinition(keyspace, path, type);
-			if (def != null) {
-				return true;
-			}
-		}
-		return false;
+		return !getIndexDefinitionsFor(keyspace, path).isEmpty();
 	}
 
-	/**
-	 * Get the list of {@link RedisIndexSetting} for a given keyspace and property path.
-	 *
-	 * @param keyspace
-	 * @param path
-	 * @return never {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#getIndexDefinitionsFor(java.io.Serializable, java.lang.String)
 	 */
-	public List<RedisIndexSetting> getIndexDefinitionsFor(Serializable keyspace, String path) {
-
-		List<RedisIndexSetting> indexDefinitions = new ArrayList<RedisIndexSetting>();
-		for (IndexType type : IndexType.values()) {
-			RedisIndexSetting def = getIndexDefinition(keyspace, path, type);
-			if (def != null) {
-				indexDefinitions.add(def);
-			}
-		}
-
-		return indexDefinitions;
+	public Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace, String path) {
+		return getIndexDefinitions(keyspace, path, Object.class);
 	}
 
-	/**
-	 * Gets all of the {@link RedisIndexSetting} for a given keyspace.
-	 *
-	 * @param keyspace the keyspace to get
-	 * @return never {@literal null}
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.index.IndexDefinitionProvider#getIndexDefinitionsFor(java.io.Serializable)
 	 */
-	public List<RedisIndexSetting> getIndexDefinitionsFor(Serializable keyspace) {
+	public Set<IndexDefinition> getIndexDefinitionsFor(Serializable keyspace) {
 
-		List<RedisIndexSetting> indexDefinitions = new ArrayList<RedisIndexSetting>();
+		Set<IndexDefinition> indexDefinitions = new LinkedHashSet<IndexDefinition>();
 
-		for (RedisIndexSetting indexDef : definitions) {
+		for (IndexDefinition indexDef : definitions) {
 			if (indexDef.getKeyspace().equals(keyspace)) {
 				indexDefinitions.add(indexDef);
 			}
@@ -105,26 +90,33 @@ public class IndexConfiguration {
 		return indexDefinitions;
 	}
 
-	/**
-	 * Add given {@link RedisIndexSetting}.
-	 *
-	 * @param indexDefinition must not be {@literal null}.
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.index.IndexDefinitionRegistry#addIndexDefinition(org.springframework.data.redis.core.index.IndexDefinition)
 	 */
-	public void addIndexDefinition(RedisIndexSetting indexDefinition) {
+	public void addIndexDefinition(IndexDefinition indexDefinition) {
 
 		Assert.notNull(indexDefinition, "RedisIndexDefinition must not be null in order to be added.");
 		this.definitions.add(indexDefinition);
 	}
 
-	private RedisIndexSetting getIndexDefinition(Serializable keyspace, String path, IndexType type) {
+	private Set<IndexDefinition> getIndexDefinitions(Serializable keyspace, String path, Class<?> type) {
 
-		for (RedisIndexSetting indexDef : definitions) {
-			if (indexDef.getKeyspace().equals(keyspace) && indexDef.getPath().equals(path) && indexDef.getType().equals(type)) {
-				return indexDef;
+		Set<IndexDefinition> def = new LinkedHashSet<IndexDefinition>();
+		for (IndexDefinition indexDef : definitions) {
+			if (ClassUtils.isAssignable(type, indexDef.getClass()) && indexDef.getKeyspace().equals(keyspace)) {
+
+				if (indexDef instanceof PathBasedRedisIndexDefinition) {
+					if (ObjectUtils.nullSafeEquals(((PathBasedRedisIndexDefinition) indexDef).getPath(), path)) {
+						def.add(indexDef);
+					}
+				} else {
+					def.add(indexDef);
+				}
 			}
 		}
 
-		return null;
+		return def;
 	}
 
 	/**
@@ -132,93 +124,8 @@ public class IndexConfiguration {
 	 *
 	 * @return must not return {@literal null}.
 	 */
-	protected Iterable<RedisIndexSetting> initialConfiguration() {
+	protected Iterable<? extends IndexDefinition> initialConfiguration() {
 		return Collections.emptySet();
-	}
-
-	/**
-	 * @author Christoph Strobl
-	 * @author Rob Winch
-	 * @since 1.7
-	 */
-	public static class RedisIndexSetting {
-
-		private final Serializable keyspace;
-		private final String path;
-		private final String indexName;
-		private final IndexType type;
-
-		public RedisIndexSetting(Serializable keyspace, String path) {
-			this(keyspace, path, null);
-		}
-
-		public RedisIndexSetting(Serializable keyspace, String path, IndexType type) {
-			this(keyspace, path, path, type);
-		}
-
-		public RedisIndexSetting(Serializable keyspace, String path, String indexName, IndexType type) {
-			this.keyspace = keyspace;
-			this.path = path;
-			this.indexName = indexName;
-			this.type = type == null ? IndexType.SIMPLE : type;
-		}
-
-		public String getIndexName() {
-			return indexName;
-		}
-
-		public Serializable getKeyspace() {
-			return keyspace;
-		}
-
-		public String getPath() {
-			return path;
-		}
-
-		public IndexType getType() {
-			return type;
-		}
-
-		@Override
-		public int hashCode() {
-
-			int result = ObjectUtils.nullSafeHashCode(keyspace);
-			result += ObjectUtils.nullSafeHashCode(path);
-			result += ObjectUtils.nullSafeHashCode(indexName);
-			result += ObjectUtils.nullSafeHashCode(type);
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null) {
-				return false;
-			}
-			if (!(obj instanceof RedisIndexSetting)) {
-				return false;
-			}
-
-			RedisIndexSetting that = (RedisIndexSetting) obj;
-
-			if (!ObjectUtils.nullSafeEquals(this.keyspace, that.keyspace)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(this.path, that.path)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(this.indexName, that.indexName)) {
-				return false;
-			}
-			if (!ObjectUtils.nullSafeEquals(this.type, that.type)) {
-				return false;
-			}
-			return true;
-		}
-
 	}
 
 }

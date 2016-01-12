@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.convert.CustomConversions;
-import org.springframework.data.redis.core.convert.IndexResolverImpl;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
+import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolver;
@@ -131,8 +131,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
 		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
 
-		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new IndexResolverImpl(
-				mappingContext), new ReferenceResolverImpl(this));
+		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
+				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(this));
 		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 

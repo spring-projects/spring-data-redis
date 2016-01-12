@@ -19,10 +19,10 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.data.redis.core.index.IndexConfiguration.RedisIndexSetting;
 
 /**
  * @author Rob Winch
+ * @author Christoph Strobl
  */
 public class IndexConfigurationUnitTests {
 
@@ -33,7 +33,7 @@ public class IndexConfigurationUnitTests {
 	public void redisIndexSettingIndexNameDefaulted() {
 
 		String path = "path";
-		RedisIndexSetting setting = new RedisIndexSetting("keyspace", path);
+		SimpleIndexDefinition setting = new SimpleIndexDefinition("keyspace", path);
 		assertThat(setting.getIndexName(), equalTo(path));
 	}
 
@@ -44,7 +44,7 @@ public class IndexConfigurationUnitTests {
 	public void redisIndexSettingIndexNameExplicit() {
 
 		String indexName = "indexName";
-		RedisIndexSetting setting = new RedisIndexSetting("keyspace", "index", indexName, IndexType.SIMPLE);
+		SimpleIndexDefinition setting = new SimpleIndexDefinition("keyspace", "index", indexName);
 		assertThat(setting.getIndexName(), equalTo(indexName));
 	}
 
@@ -54,9 +54,9 @@ public class IndexConfigurationUnitTests {
 	@Test
 	public void redisIndexSettingIndexNameUsedInEquals() {
 
-		RedisIndexSetting setting1 = new RedisIndexSetting("keyspace", "path", "indexName1", IndexType.SIMPLE);
-		RedisIndexSetting setting2 = new RedisIndexSetting(setting1.getKeyspace(), setting1.getPath(),
-				setting1.getIndexName() + "other", setting1.getType());
+		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
+		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
+				+ "other");
 
 		assertThat(setting1, not(equalTo(setting2)));
 	}
@@ -67,9 +67,9 @@ public class IndexConfigurationUnitTests {
 	@Test
 	public void redisIndexSettingIndexNameUsedInHashCode() {
 
-		RedisIndexSetting setting1 = new RedisIndexSetting("keyspace", "path", "indexName1", IndexType.SIMPLE);
-		RedisIndexSetting setting2 = new RedisIndexSetting(setting1.getKeyspace(), setting1.getPath(),
-				setting1.getIndexName() + "other", setting1.getType());
+		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
+		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
+				+ "other");
 
 		assertThat(setting1.hashCode(), not(equalTo(setting2.hashCode())));
 	}
