@@ -2,4 +2,16 @@ language: java
 jdk:
   - oraclejdk7
   - oraclejdk8
-script: make test
+env:
+  matrix:
+    - PROFILE=ci
+    - PROFILE=spring41-next
+    - PROFILE=spring42
+    - PROFILE=spring42-next
+    - PROFILE=spring43-next
+cache:
+  directories:
+    - $HOME/.m2
+sudo: false
+install: true
+script: travis_wait make test SPRING_PROFILE=${PROFILE}

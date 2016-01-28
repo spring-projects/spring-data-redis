@@ -1,7 +1,7 @@
 [[appendix:schema]]
 [appendix]
 = Schema
-:resourcesDir: ../../main/resources
+:resourcesDir: ../../resources
 
 == Core schema
 
