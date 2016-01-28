@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,8 +105,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 		return execute(new RedisCallback<Long>() {
 
 			public Long doInRedis(RedisConnection connection) {
-				connection.sInterStore(rawDestKey, rawKeys);
-				return null;
+				return connection.sInterStore(rawDestKey, rawKeys);
 			}
 		}, true);
 	}
