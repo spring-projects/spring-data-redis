@@ -1,32 +1,36 @@
-Bundle-SymbolicName: org.springframework.data.redis
-Bundle-Name: Spring Data Redis Support
-Bundle-Vendor: Pivotal Software, Inc.
 Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.springframework.data.redis
+Bundle-Name: ${project.name}
+Bundle-Vendor: Pivotal Software, Inc.
+Bundle-Version: ${project.version}
+Bundle-RequiredExecutionEnvironment: J2SE-1.6
+Export-Template: 
+ org.springframework.data.redis.*;version="${project.version}"
 Import-Package: 
  sun.reflect;version="0";resolution:=optional
 Import-Template: 
- org.springframework.beans.*;version="[4.0.9, 4.1.0)",
- org.springframework.cache.*;version="[4.0.9, 4.1.0)",
- org.springframework.context.*;version="[4.0.9, 4.1.0)",
- org.springframework.core.*;version="[4.0.9, 4.1.0)",
- org.springframework.dao.*;version="[4.0.9, 4.1.0)",
- org.springframework.scheduling.*;resolution:="optional";version="[4.0.9, 4.1.0)",
- org.springframework.scripting.*;resolution:="optional";version="[4.0.9, 4.1.0)",
- org.springframework.util.*;version="[4.0.9, 4.1.0)",
- org.springframework.aop.*;version="[4.0.9, 4.1.0)",
- org.springframework.cglib.*;version="[4.0.9, 4.1.0)",
- org.springframework.oxm.*;resolution:="optional";version="[4.0.9, 4.1.0)",
- org.springframework.transaction.support.*;version="[4.0.9, 4.1.0)",
+ org.springframework.beans.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.cache.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.context.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.core.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.dao.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.scheduling.*;resolution:="optional";version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.scripting.*;resolution:="optional";version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.util.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.aop.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.cglib.*;version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.oxm.*;resolution:="optional";version="${spring:[=.=.=.=,+1.1.0)}",
+ org.springframework.transaction.support.*;version="${spring:[=.=.=.=,+1.1.0)}",
  org.aopalliance.*;version="[1.0.0, 2.0.0)";resolution:=optional,
  org.apache.commons.logging.*;version="[1.1.1, 2.0.0)",
  org.w3c.dom.*;version="0",
  javax.xml.transform.*;resolution:="optional";version="0",
  org.jredis.*;resolution:="optional";version="[1.0.0, 2.0.0)",
- redis.clients.*;resolution:="optional";version="[2.6.2, 3.0.0)",
- org.apache.commons.pool2.*;resolution:="optional";version="[1.0, 2.2)",
+ redis.clients.*;resolution:="optional";version="${jedis}",
+ org.apache.commons.pool2.*;resolution:="optional";version="${pool}",
  org.codehaus.jackson.*;resolution:="optional";version="[1.6, 2.0.0)",
- com.fasterxml.jackson.*;resolution:="optional";version="[2.0.0, 3.0.0)",
- org.apache.commons.beanutils.*;resolution:="optional";version=1.8.5,
+ com.fasterxml.jackson.*;resolution:="optional";version="${jackson}",
+ org.apache.commons.beanutils.*;resolution:="optional";version="${beanutils}",
  redis.*;resolution:="optional";version="[0.2, 1.0)",
  com.google.common.*;resolution:="optional";version="[11.0.0, 20.0.0)",
  com.lambdaworks.*;resolution:="optional";version="[2.2.0, 3.0.0)",
