@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 - 2014 the original author or authors.
+ * Copyright 2013 - 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,6 +221,26 @@ public class DefaultSetOperationsTests<K, V> {
 			count++;
 		}
 		assertThat(count, is(setOps.size(key)));
+	}
 
+	/**
+	 * @see DATAREDIS-448
+	 */
+	@Test
+	public void intersectAndStoreShouldReturnNumberOfElementsInDestination() {
+
+		K sourceKey1 = keyFactory.instance();
+		K sourceKey2 = keyFactory.instance();
+		K destinationKey = keyFactory.instance();
+
+		V v1 = valueFactory.instance();
+		V v2 = valueFactory.instance();
+		V v3 = valueFactory.instance();
+		V v4 = valueFactory.instance();
+
+		setOps.add(sourceKey1, v1, v2, v3);
+		setOps.add(sourceKey2, v2, v3, v4);
+
+		assertThat(setOps.intersectAndStore(sourceKey1, sourceKey2, destinationKey), is(2L));
 	}
 }
