@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=3.0.2
+REDIS_VERSION:=3.0.7
+SPRING_PROFILE?=ci
 
 #######
 # Redis
@@ -95,5 +96,5 @@ stop: redis-stop sentinel-stop
 test:
 	$(MAKE) start
 	sleep 2
-	-$(PWD)/gradlew clean build -DrunLongTests=true -S
+	mvn clean install -DrunLongTests=true -P$(SPRING_PROFILE)
 	$(MAKE) stop
