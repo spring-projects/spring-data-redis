@@ -1,6 +1,8 @@
 [[new-features]]
 = New Features
 
+New and noteworthy in the latest releases.
+
 [[new-in-1-6-0]]
 == New in Spring Data Redis 1.6 
 

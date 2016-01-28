@@ -89,21 +89,22 @@ List<Person> peopleOnSecondFloor = listOps.range("users:floor:2", 0, -1);
 
 # Building
 
-Spring Data Redis uses Gradle as its build system. To build the system simply run:
+Spring Data Redis uses Maven as its build system. 
+Running the tests requires you to have a RedisServer running at its default port. Using the `-D runLongTests=true` option executes additional Pub/Sub test.
 
-    gradlew
+```bash
+    mvn clean install
+```
 
-from the project root folder. This will compile the sources, run the tests and create the artifacts.  
+You can alternatively use the provided `Makefile` which runs the build plus downloads and spins up the following environment:
 
-To generate IDE-specific files, use
+* 1 Single Node
+* HA Redis (1 Master, 2 Slaves, 3 Sentinels).
+* Redis Cluster (3 Masters, 1 Slave) 
 
-    gradlew eclipse
- 
-or
-
-    gradlew idea 
-
-depending on your editor.
+```bash
+    make test
+```
 
 # Contributing
 
