@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis], http://github.com/alphazero/jredis[JRedis], http://github.com/spullara/redis-protocol[SRP] and http://github.com/wg/lettuce[Lettuce], four popular open source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
+Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis], http://github.com/alphazero/jredis[JRedis] (Deprecated since 1.7), http://github.com/spullara/redis-protocol[SRP] (Deprecated since 1.7) and http://github.com/wg/lettuce[Lettuce], four popular open source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
 
 [[redis:architecture]]
 == Redis Support High Level View
@@ -76,7 +76,7 @@ For production use however, one might want to tweak the settings such as the hos
 ----
 
 [[redis:connectors:jredis]]
-=== Configuring JRedis connector
+=== Configuring JRedis connector (Deprecated since 1.7)
 
 http://github.com/alphazero/jredis[JRedis] is another popular, open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.jredis` package.
 
@@ -117,7 +117,7 @@ The configuration is quite similar to Jedis, with one notable exception. By defa
 ----
 
 [[redis:connectors:srp]]
-=== Configuring SRP connector
+=== Configuring SRP connector (Deprecated since 1.7)
 
 https://github.com/spullara/redis-protocol[SRP] (an acronym for Sam's Redis Protocol) is the third open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.srp` package.
 

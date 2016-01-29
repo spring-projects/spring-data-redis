@@ -53,7 +53,9 @@ import com.google.common.base.Charsets;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @deprecated since 1.7. Will be removed in subsequent version.
  */
+@Deprecated
 @SuppressWarnings("rawtypes")
 abstract public class SrpConverters extends Converters {
 
