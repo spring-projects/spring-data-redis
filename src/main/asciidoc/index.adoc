@@ -1,5 +1,5 @@
 = Spring Data Redis
-Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont
+Costin Leau, Jennifer Hickey, Christoph Strobl, Thomas Darimont, Mark Paluch
 :revnumber: {version}
 :revdate: {localdate}
 :toc:

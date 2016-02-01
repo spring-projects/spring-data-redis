@@ -21,6 +21,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @since 1.4
  */
 public class RedisNode implements NamedNode {
@@ -83,6 +84,15 @@ public class RedisNode implements NamedNode {
 	 */
 	public String getId() {
 		return id;
+	}
+
+	/**
+	 *
+	 * @param id
+	 * @since 1.7
+	 */
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	/**

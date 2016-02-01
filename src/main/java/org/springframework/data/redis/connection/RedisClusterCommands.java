@@ -22,9 +22,12 @@ import java.util.Map;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 
 /**
- * Interface for the {@literal cluster} commands supported by Redis.
+ * Interface for the {@literal cluster} commands supported by Redis. A {@link RedisClusterNode} can be obtained from
+ * {@link #clusterGetNodes()} or it can be constructed using either {@link RedisClusterNode#getHost() host} and
+ * {@link RedisClusterNode#getPort()} or the {@link RedisClusterNode#getId() node Id}.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public interface RedisClusterCommands {
@@ -34,12 +37,12 @@ public interface RedisClusterCommands {
 	 * 
 	 * @return never {@literal null}.
 	 */
-	Iterable<RedisClusterNode> clusterGetClusterNodes();
+	Iterable<RedisClusterNode> clusterGetNodes();
 
 	/**
 	 * Retrieve information about connected slaves for given master node.
 	 * 
-	 * @param node must not be {@literal null}.
+	 * @param master must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
 	Collection<RedisClusterNode> clusterGetSlaves(RedisClusterNode master);
@@ -131,8 +134,9 @@ public interface RedisClusterCommands {
 
 	/**
 	 * Add given {@literal node} to cluster.
-	 * 
-	 * @param node must not be {@literal null}.
+	 *
+	 * @param node must contain {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} and must
+	 *          not be {@literal null}.
 	 */
 	void clusterMeet(RedisClusterNode node);
 

@@ -54,6 +54,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG);
 		lettuceConnectionFactory.setShareNativeConnection(false);
+		lettuceConnectionFactory.setShutdownTimeout(0);
 		lettuceConnectionFactory.afterPropertiesSet();
 
 		connectionFactory = lettuceConnectionFactory;

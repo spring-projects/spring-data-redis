@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.After;
 import org.junit.Ignore;
@@ -34,6 +36,7 @@ import com.lambdaworks.redis.RedisException;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultLettucePoolTests {
 
@@ -44,7 +47,7 @@ public class DefaultLettucePoolTests {
 		if (this.pool != null) {
 
 			if (this.pool.getClient() != null) {
-				this.pool.getClient().shutdown();
+				this.pool.getClient().shutdown(0, 0, TimeUnit.MILLISECONDS);
 			}
 
 			this.pool.destroy();

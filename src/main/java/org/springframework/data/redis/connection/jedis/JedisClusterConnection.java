@@ -32,7 +32,7 @@ import java.util.Set;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.redis.ClusterStateFailureExeption;
+import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
@@ -78,6 +78,7 @@ import redis.clients.jedis.ZParams;
  * {@link Jedis} where needed.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class JedisClusterConnection implements RedisClusterConnection {
@@ -849,9 +850,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destination;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destination, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1306,9 +1305,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1368,11 +1365,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
 
-		if (ClusterSlotHashUtil.isSameSlotForAllKeys(keys)) {
+		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
 				return cluster.sunionstore(destKey, keys);
 			} catch (Exception ex) {
@@ -1433,9 +1428,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1489,7 +1482,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public List<byte[]> sRandMember(byte[] key, long count) {
 
 		if (count > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Count have cannot exceed Integer.MAX_VALUE!");
+			throw new IllegalArgumentException("Count cannot exceed Integer.MAX_VALUE!");
 		}
 
 		try {
@@ -2063,9 +2056,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zUnionStore(byte[] destKey, byte[]... sets) {
 
-		byte[][] allKeys = new byte[sets.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(sets, 0, allKeys, 1, sets.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2086,9 +2077,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zUnionStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 
-		byte[][] allKeys = new byte[sets.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(sets, 0, allKeys, 1, sets.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2107,9 +2096,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zInterStore(byte[] destKey, byte[]... sets) {
 
-		byte[][] allKeys = new byte[sets.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(sets, 0, allKeys, 1, sets.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2126,9 +2113,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public Long zInterStore(byte[] destKey, Aggregate aggregate, int[] weights, byte[]... sets) {
 
-		byte[][] allKeys = new byte[sets.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(sets, 0, allKeys, 1, sets.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, sets);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 
@@ -2422,7 +2407,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void unwatch() {
 		throw new InvalidDataAccessApiUsageException("UNWATCH is currently not supported in cluster mode.");
-
 	}
 
 	/*
@@ -2983,7 +2967,6 @@ public class JedisClusterConnection implements RedisClusterConnection {
 				return client.configSet(param, value);
 			}
 		});
-
 	}
 
 	/*
@@ -3072,7 +3055,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid nr of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
 		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
 	}
@@ -3160,7 +3143,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void slaveOf(String host, int port) {
 		throw new InvalidDataAccessApiUsageException(
-				"Slaveof is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
 	/*
@@ -3170,7 +3153,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void slaveOfNoOne() {
 		throw new InvalidDataAccessApiUsageException(
-				"Slaveof is not supported in cluster environment. Please use CLUSTER REPLICATE.");
+				"SlaveOf is not supported in cluster environment. Please use CLUSTER REPLICATE.");
 	}
 
 	/*
@@ -3276,9 +3259,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 
-		byte[][] allKeys = new byte[sourceKeys.length + 1][];
-		allKeys[0] = destinationKey;
-		System.arraycopy(sourceKeys, 0, allKeys, 1, sourceKeys.length);
+		byte[][] allKeys = Converters.mergeArrays(destinationKey, sourceKeys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -3320,8 +3301,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		Assert.notNull(node, "Node must not be null.");
 		Assert.notNull(mode, "AddSlots mode must not be null.");
 
-		final String nodeId = StringUtils.hasText(node.getId()) ? node.getId() : topologyProvider.getTopology()
-				.lookup(node.getHost(), node.getPort()).getId();
+		final RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(node);
+		final String nodeId = nodeToUse.getId();
 
 		clusterCommandExecutor.executeCommandOnSingleNode(new JedisClusterCommandCallback<String>() {
 
@@ -3452,7 +3433,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	public void clusterForget(final RedisClusterNode node) {
 
 		Set<RedisClusterNode> nodes = new LinkedHashSet<RedisClusterNode>(topologyProvider.getTopology().getActiveMasterNodes());
-		nodes.remove(node);
+		final RedisClusterNode nodeToRemove = topologyProvider.getTopology().lookup(node);
+		nodes.remove(nodeToRemove);
 
 		clusterCommandExecutor.executeCommandAsyncOnNodes(new JedisClusterCommandCallback<String>() {
 
@@ -3470,7 +3452,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterMeet(final RedisClusterNode node) {
 
-		Assert.notNull(node, "Node to meet cluster must not be null!");
+		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command!");
+		Assert.hasText(node.getHost(), "Node to meet cluster must have a host!");
+		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0!");
 
 		clusterCommandExecutor.executeCommandOnAllNodes(new JedisClusterCommandCallback<String>() {
 
@@ -3489,12 +3473,14 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterReplicate(final RedisClusterNode master, RedisClusterNode slave) {
 
+		final RedisClusterNode masterNode = topologyProvider.getTopology().lookup(master);
+
 		clusterCommandExecutor.executeCommandOnSingleNode(new JedisClusterCommandCallback<String>() {
 
 			@Override
 			public String doInCluster(Jedis client) {
 
-				return client.clusterReplicate(master.getId());
+				return client.clusterReplicate(masterNode.getId());
 			}
 		}, slave);
 
@@ -3534,10 +3520,10 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetClusterNodes()
+	 * @see org.springframework.data.redis.connection.RedisClusterCommands#clusterGetNodes()
 	 */
 	@Override
-	public Set<RedisClusterNode> clusterGetClusterNodes() {
+	public Set<RedisClusterNode> clusterGetNodes() {
 		return topologyProvider.getTopology().getNodes();
 	}
 
@@ -3550,8 +3536,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		Assert.notNull(master, "Master cannot be null!");
 
-		final RedisClusterNode nodeToUse = StringUtils.hasText(master.getId()) ? master : topologyProvider.getTopology()
-				.lookup(master.getHost(), master.getPort());
+		final RedisClusterNode nodeToUse = topologyProvider.getTopology()
+				.lookup(master);
 
 		return JedisConverters.toSetOfRedisClusterNodes(clusterCommandExecutor.executeCommandOnSingleNode(
 				new JedisClusterCommandCallback<List<String>>() {
@@ -3837,7 +3823,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 					jedis = entry.getValue().getResource();
 
 					time = System.currentTimeMillis();
-					Set<RedisClusterNode> nodes = JedisConverters.toSetOfRedisClusterNodes(jedis.clusterNodes());
+					Set<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(jedis.clusterNodes());
 
 					synchronized (lock) {
 						cached = new ClusterTopology(nodes);
@@ -3856,7 +3842,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			for (Entry<String, Exception> entry : errors.entrySet()) {
 				sb.append(String.format("\r\n\t- %s failed: %s", entry.getKey(), entry.getValue().getMessage()));
 			}
-			throw new ClusterStateFailureExeption(
+			throw new ClusterStateFailureException(
 					"Could not retrieve cluster information. CLUSTER NODES returned with error." + sb.toString());
 		}
 	}

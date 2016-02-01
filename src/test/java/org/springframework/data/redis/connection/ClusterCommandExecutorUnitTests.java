@@ -51,6 +51,7 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ClusterCommandExecutorUnitTests {
@@ -74,6 +75,9 @@ public class ClusterCommandExecutorUnitTests {
 	static final RedisClusterNode CLUSTER_NODE_3 = RedisClusterNode.newRedisClusterNode()
 			.listeningAt(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT).serving(new SlotRange(10923, 16383))
 			.withId("3b9b8192a874fa8f1f09dbc0ee20afab5738eee7").promotedAs(NodeType.MASTER).linkState(LinkState.CONNECTED)
+			.build();
+	static final RedisClusterNode CLUSTER_NODE_2_LOOKUP = RedisClusterNode.newRedisClusterNode()
+			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84")
 			.build();
 
 	static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 7379, null);
@@ -142,6 +146,28 @@ public class ClusterCommandExecutorUnitTests {
 	/**
 	 * @see DATAREDIS-315
 	 */
+	@Test
+	public void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
+
+		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT));
+
+		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void executeCommandOnSingleNodeByNodeIdShouldBeExecutedCorrectly() {
+
+		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, new RedisClusterNode(CLUSTER_NODE_2.id));
+
+		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null);
@@ -184,7 +210,57 @@ public class ClusterCommandExecutorUnitTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnwonClusterNode() {
+	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByHostAndPort() {
+
+		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
+				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
+				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
+
+		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(new RedisClusterNode(CLUSTER_NODE_1_HOST, CLUSTER_NODE_1_PORT),
+				new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT)));
+
+		verify(con1, times(1)).theWheelWeavesAsTheWheelWills();
+		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
+		verify(con3, never()).theWheelWeavesAsTheWheelWills();
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByNodeId() {
+
+		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
+				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
+				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
+
+		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(new RedisClusterNode(CLUSTER_NODE_1.id),
+				CLUSTER_NODE_2_LOOKUP));
+
+		verify(con1, times(1)).theWheelWeavesAsTheWheelWills();
+		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
+		verify(con3, never()).theWheelWeavesAsTheWheelWills();
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void executeCommandAsyncOnNodesShouldFailOnGivenUnknownNodes() {
+
+		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
+				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
+				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
+
+		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(
+				new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	public void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnownClusterNode() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),

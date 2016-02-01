@@ -19,13 +19,15 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.springframework.data.redis.ClusterStateFailureExeption;
+import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link ClusterTopology} holds snapshot like information about {@link RedisClusterNode}s.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class ClusterTopology {
@@ -122,7 +124,7 @@ public class ClusterTopology {
 	 * 
 	 * @param key must not be {@literal null}.
 	 * @return
-	 * @throws ClusterStateFailureExeption
+	 * @throws ClusterStateFailureException
 	 */
 	public RedisClusterNode getKeyServingMasterNode(byte[] key) {
 
@@ -134,7 +136,7 @@ public class ClusterTopology {
 				return node;
 			}
 		}
-		throw new ClusterStateFailureExeption(String.format("Could not find master node serving slot %s for key '%s',",
+		throw new ClusterStateFailureException(String.format("Could not find master node serving slot %s for key '%s',",
 				slot, key));
 	}
 
@@ -144,7 +146,7 @@ public class ClusterTopology {
 	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @return
-	 * @throws ClusterStateFailureExeption
+	 * @throws ClusterStateFailureException
 	 */
 	public RedisClusterNode lookup(String host, int port) {
 
@@ -153,8 +155,56 @@ public class ClusterTopology {
 				return node;
 			}
 		}
-		throw new ClusterStateFailureExeption(String.format(
+		throw new ClusterStateFailureException(String.format(
 				"Could not find node at %s:%s. Is your cluster info up to date?", host, port));
+	}
+
+	/**
+	 * Get the {@link RedisClusterNode} matching given {@literal nodeId}.
+	 *
+	 * @param nodeId must not be {@literal null}.
+	 * @return
+	 * @throws ClusterStateFailureException
+	 */
+	public RedisClusterNode lookup(String nodeId) {
+
+		Assert.notNull(nodeId, "NodeId must not be null");
+
+		for (RedisClusterNode node : nodes) {
+			if (nodeId.equals(node.getId())) {
+				return node;
+			}
+		}
+		throw new ClusterStateFailureException(String.format(
+				"Could not find node at %s. Is your cluster info up to date?", nodeId));
+	}
+
+	/**
+	 * Get the {@link RedisClusterNode} matching matching either {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort() port}
+	 * or {@link RedisClusterNode#getId() nodeId}
+	 *
+	 * @param node must not be {@literal null}
+	 * @return
+ 	 * @throws ClusterStateFailureException
+	 */
+	public RedisClusterNode lookup(RedisClusterNode node) {
+
+		Assert.notNull(node, "RedisClusterNode must not be null");
+
+		if(nodes.contains(node) && StringUtils.hasText(node.getHost()) && StringUtils.hasText(node.getId())){
+			return node;
+		}
+
+		if (StringUtils.hasText(node.getHost())) {
+			return lookup(node.getHost(), node.getPort());
+		}
+
+		if (StringUtils.hasText(node.getId())) {
+			return lookup(node.getId());
+		}
+
+		throw new ClusterStateFailureException(
+				String.format("Could not find node at %s. Have you provided either host and port or the nodeId?", node));
 	}
 
 	/**

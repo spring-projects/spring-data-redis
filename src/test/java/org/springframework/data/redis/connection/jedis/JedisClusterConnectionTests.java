@@ -59,6 +59,7 @@ import redis.clients.jedis.exceptions.JedisDataException;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JedisClusterConnectionTests implements ClusterConnectionTests {
 

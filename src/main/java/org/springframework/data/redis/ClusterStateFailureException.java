@@ -23,28 +23,29 @@ import org.springframework.dao.DataAccessResourceFailureException;
  * and so on.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
-public class ClusterStateFailureExeption extends DataAccessResourceFailureException {
+public class ClusterStateFailureException extends DataAccessResourceFailureException {
 
 	private static final long serialVersionUID = 333399051713240852L;
 
 	/**
-	 * Creates new {@link ClusterStateFailureExeption}.
+	 * Creates new {@link ClusterStateFailureException}.
 	 * 
 	 * @param msg
 	 */
-	public ClusterStateFailureExeption(String msg) {
+	public ClusterStateFailureException(String msg) {
 		super(msg);
 	}
 
 	/**
-	 * Creates new {@link ClusterStateFailureExeption}.
+	 * Creates new {@link ClusterStateFailureException}.
 	 * 
 	 * @param msg
 	 * @param cause
 	 */
-	public ClusterStateFailureExeption(String msg, Throwable cause) {
+	public ClusterStateFailureException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 

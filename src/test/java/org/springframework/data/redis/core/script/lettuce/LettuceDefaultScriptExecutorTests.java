@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.script.DefaultScriptExecutor;
  * Integration test of {@link DefaultScriptExecutor} with Lettuce.
  * 
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class LettuceDefaultScriptExecutorTests extends AbstractDefaultScriptExecutorTests {
 
@@ -36,6 +37,7 @@ public class LettuceDefaultScriptExecutorTests extends AbstractDefaultScriptExec
 	public void setup() {
 
 		connectionFactory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.afterPropertiesSet();
 	}
 
