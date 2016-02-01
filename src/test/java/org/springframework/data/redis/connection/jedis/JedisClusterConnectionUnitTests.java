@@ -35,7 +35,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.redis.ClusterStateFailureExeption;
+import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
@@ -48,6 +48,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JedisClusterConnectionUnitTests {
@@ -55,20 +56,20 @@ public class JedisClusterConnectionUnitTests {
 	private static final String CLUSTER_NODES_RESPONSE = "" //
 			+ MASTER_NODE_1_ID + " " + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT
 			+ " myself,master - 0 0 1 connected 0-5460"
-			+ System.getProperty("line.separator") + MASTER_NODE_2_ID + " " + CLUSTER_HOST + ":"
+			+ "\n" + MASTER_NODE_2_ID + " " + CLUSTER_HOST + ":"
 			+ MASTER_NODE_2_PORT
-			+ " master - 0 1427718161587 2 connected 5461-10922" + System.getProperty("line.separator")
+			+ " master - 0 1427718161587 2 connected 5461-10922" + "\n"
 			+ MASTER_NODE_2_ID
 			+ " " + CLUSTER_HOST + ":" + MASTER_NODE_3_PORT + " master - 0 1427718161587 3 connected 10923-16383";
 
-	static final String CLUSTER_INFO_RESPONSE = "cluster_state:ok" + System.getProperty("line.separator")
-			+ "cluster_slots_assigned:16384" + System.getProperty("line.separator") + "cluster_slots_ok:16384"
-			+ System.getProperty("line.separator") + "cluster_slots_pfail:0" + System.getProperty("line.separator")
-			+ "cluster_slots_fail:0" + System.getProperty("line.separator") + "cluster_known_nodes:4"
-			+ System.getProperty("line.separator") + "cluster_size:3" + System.getProperty("line.separator")
-			+ "cluster_current_epoch:30" + System.getProperty("line.separator") + "cluster_my_epoch:2"
-			+ System.getProperty("line.separator") + "cluster_stats_messages_sent:2560260"
-			+ System.getProperty("line.separator") + "cluster_stats_messages_received:2560086";
+	static final String CLUSTER_INFO_RESPONSE = "cluster_state:ok" + "\n"
+			+ "cluster_slots_assigned:16384" + "\n" + "cluster_slots_ok:16384"
+			+ "\n" + "cluster_slots_pfail:0" + "\n"
+			+ "cluster_slots_fail:0" + "\n" + "cluster_known_nodes:4"
+			+ "\n" + "cluster_size:3" + "\n"
+			+ "cluster_current_epoch:30" + "\n" + "cluster_my_epoch:2"
+			+ "\n" + "cluster_stats_messages_sent:2560260"
+			+ "\n" + "cluster_stats_messages_received:2560086";
 
 	JedisClusterConnection connection;
 
@@ -159,6 +160,7 @@ public class JedisClusterConnectionUnitTests {
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).clusterReplicate(CLUSTER_NODE_1.getId());
+		verify(con1Mock, times(1)).clusterNodes();
 		verifyZeroInteractions(con1Mock);
 	}
 
@@ -312,6 +314,7 @@ public class JedisClusterConnectionUnitTests {
 		connection.time(CLUSTER_NODE_2);
 
 		verify(con2Mock, times(1)).time();
+		verify(con1Mock, times(1)).clusterNodes();
 		verifyZeroInteractions(con1Mock, con3Mock);
 	}
 
@@ -347,7 +350,7 @@ public class JedisClusterConnectionUnitTests {
 	@Test
 	public void clusterTopologyProviderShouldCollectErrorsWhenLoadingNodes() {
 
-		expectedException.expect(ClusterStateFailureExeption.class);
+		expectedException.expect(ClusterStateFailureException.class);
 		expectedException.expectMessage("127.0.0.1:7379 failed: o.O");
 		expectedException.expectMessage("127.0.0.1:7380 failed: o.1");
 		expectedException.expectMessage("127.0.0.1:7381 failed: o.2");

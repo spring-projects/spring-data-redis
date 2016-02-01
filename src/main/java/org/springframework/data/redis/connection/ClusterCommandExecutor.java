@@ -32,6 +32,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ClusterRedirectException;
+import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -42,6 +43,7 @@ import org.springframework.util.Assert;
  * {@link AsyncTaskExecutor} the execution behavior can be influenced.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class ClusterCommandExecutor implements DisposableBean {
@@ -130,7 +132,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 									redirectCount, maxRedirects));
 		}
 
-		S client = this.resourceProvider.getResourceForSpecificNode(node);
+		RedisClusterNode nodeToUse = lookupNode(node);
+
+		S client = this.resourceProvider.getResourceForSpecificNode(nodeToUse);
 		Assert.notNull(client, "Could not acquire resource for node. Is your cluster info up to date?");
 
 		try {
@@ -146,7 +150,21 @@ public class ClusterCommandExecutor implements DisposableBean {
 				throw translatedException != null ? translatedException : ex;
 			}
 		} finally {
-			this.resourceProvider.returnResourceForSpecificNode(node, client);
+			this.resourceProvider.returnResourceForSpecificNode(nodeToUse, client);
+		}
+	}
+
+	/**
+	 * Lookup node from the topology.
+	 * @param node
+	 * @return
+	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
+	 */
+	private RedisClusterNode lookupNode(RedisClusterNode node) {
+		try {
+			return topologyProvider.getTopology().lookup(node);
+		}catch (ClusterStateFailureException e){
+			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), e);
 		}
 	}
 
@@ -166,6 +184,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 * @param nodes
 	 * @return
 	 * @throws ClusterCommandExecutionFailureException
+	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
 	 */
 	public <S, T> java.util.Map<RedisClusterNode, T> executeCommandAsyncOnNodes(
 			final ClusterCommandCallback<S, T> callback, Iterable<RedisClusterNode> nodes) {
@@ -173,8 +192,20 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(callback, "Callback must not be null!");
 		Assert.notNull(nodes, "Nodes must not be null!");
 
-		Map<RedisClusterNode, Future<T>> futures = new LinkedHashMap<RedisClusterNode, Future<T>>();
+
+		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<RedisClusterNode>();
+		ClusterTopology topology = topologyProvider.getTopology();
+		
 		for (final RedisClusterNode node : nodes) {
+			try {
+				resolvedRedisClusterNodes.add(topology.lookup(node));
+			} catch (ClusterStateFailureException e) {
+				throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), e);
+			}
+		}
+
+		Map<RedisClusterNode, Future<T>> futures = new LinkedHashMap<RedisClusterNode, Future<T>>();
+		for (final RedisClusterNode node : resolvedRedisClusterNodes) {
 
 			futures.put(node, executor.submit(new Callable<T>() {
 

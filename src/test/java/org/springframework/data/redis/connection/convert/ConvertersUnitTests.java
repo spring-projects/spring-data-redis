@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,20 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.jedis.JedisConverters;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class ConvertersUnitTests {
 
 	private static final String CLUSTER_NODES_RESPONSE = "" //
-			+ "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected 0-5460"
-			+ System.getProperty("line.separator")
-			+ "0f2ee5df45d18c50aca07228cc18b1da96fd5e84 127.0.0.1:6380 master - 0 1427718161587 2 connected 5461-10922"
-			+ System.getProperty("line.separator")
+			+ "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected 0-5460 5602"
+			+ "\n"
+			+ "0f2ee5df45d18c50aca07228cc18b1da96fd5e84 127.0.0.1:6380 master - 0 1427718161587 2 connected 5461 5603-10922"
+			+ "\n"
 			+ "3b9b8192a874fa8f1f09dbc0ee20afab5738eee7 127.0.0.1:6381 master - 0 1427718161587 3 connected 10923-16383"
-			+ System.getProperty("line.separator")
+			+ "\n"
 			+ "8cad73f63eb996fedba89f041636f17d88cda075 127.0.0.1:7369 slave ef570f86c7b1a953846668debc177a3a16733420 0 1427718161587 1 connected";
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_SLOT_RESPONSE = "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected 3456";
@@ -55,7 +55,7 @@ public class ConvertersUnitTests {
 	@Test
 	public void toSetOfRedisClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
-		Iterator<RedisClusterNode> nodes = JedisConverters.toSetOfRedisClusterNodes(CLUSTER_NODES_RESPONSE).iterator();
+		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODES_RESPONSE).iterator();
 
 		RedisClusterNode node = nodes.next(); // 127.0.0.1:6379
 		assertThat(node.getId(), is("ef570f86c7b1a953846668debc177a3a16733420"));
@@ -64,6 +64,8 @@ public class ConvertersUnitTests {
 		assertThat(node.getType(), is(NodeType.MASTER));
 		assertThat(node.getSlotRange().contains(0), is(true));
 		assertThat(node.getSlotRange().contains(5460), is(true));
+		assertThat(node.getSlotRange().contains(5461), is(false));
+		assertThat(node.getSlotRange().contains(5602), is(true));
 		assertThat(node.getFlags(), hasItems(Flag.MASTER, Flag.MYSELF));
 		assertThat(node.getLinkState(), is(LinkState.CONNECTED));
 
@@ -72,7 +74,9 @@ public class ConvertersUnitTests {
 		assertThat(node.getHost(), is("127.0.0.1"));
 		assertThat(node.getPort(), is(6380));
 		assertThat(node.getType(), is(NodeType.MASTER));
+		assertThat(node.getSlotRange().contains(5460), is(false));
 		assertThat(node.getSlotRange().contains(5461), is(true));
+		assertThat(node.getSlotRange().contains(5462), is(false));
 		assertThat(node.getSlotRange().contains(10922), is(true));
 		assertThat(node.getFlags(), hasItems(Flag.MASTER));
 		assertThat(node.getLinkState(), is(LinkState.CONNECTED));
@@ -102,9 +106,9 @@ public class ConvertersUnitTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void toSetOfRedisClusterNodesShouldConvertNodesWihtSingleSlotCorrectly() {
+	public void toSetOfRedisClusterNodesShouldConvertNodesWithSingleSlotCorrectly() {
 
-		Iterator<RedisClusterNode> nodes = JedisConverters.toSetOfRedisClusterNodes(CLUSTER_NODE_WITH_SINGLE_SLOT_RESPONSE)
+		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_WITH_SINGLE_SLOT_RESPONSE)
 				.iterator();
 
 		RedisClusterNode node = nodes.next(); // 127.0.0.1:6379
@@ -121,7 +125,7 @@ public class ConvertersUnitTests {
 	@Test
 	public void toSetOfRedisClusterNodesShouldParseLinkStateAndDisconnectedCorrectly() {
 
-		Iterator<RedisClusterNode> nodes = JedisConverters.toSetOfRedisClusterNodes(
+		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(
 				CLUSTER_NODE_WITH_FAIL_FLAG_AND_DISCONNECTED_LINK_STATE).iterator();
 
 		RedisClusterNode node = nodes.next();
@@ -140,7 +144,7 @@ public class ConvertersUnitTests {
 	@Test
 	public void toSetOfRedisClusterNodesShouldIgnoreImportingSlot() {
 
-		Iterator<RedisClusterNode> nodes = JedisConverters.toSetOfRedisClusterNodes(CLUSTER_NODE_IMPORTING_SLOT).iterator();
+		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_IMPORTING_SLOT).iterator();
 
 		RedisClusterNode node = nodes.next();
 		assertThat(node.getId(), is("ef570f86c7b1a953846668debc177a3a16733420"));

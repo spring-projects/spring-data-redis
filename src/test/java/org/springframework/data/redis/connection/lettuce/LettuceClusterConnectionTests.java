@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.ClusterConnectionTests;
@@ -58,6 +57,7 @@ import com.lambdaworks.redis.cluster.RedisClusterClient;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
@@ -2129,7 +2129,6 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	@Ignore("Should work in 3.4 but does not work in 3.3.2")
 	public void countKeysShouldReturnNumberOfKeysInSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);

@@ -22,9 +22,13 @@ import java.util.Set;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
- * {@link RedisClusterConnection} allows sending commands to dedicated nodes within the cluster.
+ * {@link RedisClusterConnection} allows sending commands to dedicated nodes within the cluster. A
+ * {@link RedisClusterNode} can be obtained from {@link #clusterGetNodes()} or it can be constructed using either
+ * {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} or the {@link RedisClusterNode#getId()
+ * node Id}.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public interface RedisClusterConnection extends RedisConnection, RedisClusterCommands {

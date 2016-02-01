@@ -27,6 +27,7 @@ import org.springframework.util.CollectionUtils;
  * Representation of a Redis server within the cluster.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisClusterNode extends RedisNode {
@@ -50,6 +51,18 @@ public class RedisClusterNode extends RedisNode {
 	}
 
 	/**
+	 * Creates new {@link RedisClusterNode} with an id and empty {@link SlotRange}.
+	 *
+	 * @param id must not be {@literal null}.
+	 */
+	public RedisClusterNode(String id) {
+
+		this(new SlotRange(Collections.<Integer> emptySet()));
+		Assert.notNull(id, "Id must not be null");
+		this.id = id;
+	}
+
+	/**
 	 * Creates new {@link RedisClusterNode} with given {@link SlotRange}.
 	 * 
 	 * @param host must not be {@literal null}.
@@ -59,6 +72,17 @@ public class RedisClusterNode extends RedisNode {
 	public RedisClusterNode(String host, int port, SlotRange slotRange) {
 
 		super(host, port);
+		this.slotRange = slotRange != null ? slotRange : new SlotRange(Collections.<Integer> emptySet());
+	}
+
+	/**
+	 * Creates new {@link RedisClusterNode} with given {@link SlotRange}.
+	 *
+	 * @param slotRange can be {@literal null}.
+	 */
+	public RedisClusterNode(SlotRange slotRange) {
+
+		super();
 		this.slotRange = slotRange != null ? slotRange : new SlotRange(Collections.<Integer> emptySet());
 	}
 
@@ -328,7 +352,12 @@ public class RedisClusterNode extends RedisNode {
 
 			RedisNode base = super.build();
 
-			RedisClusterNode node = new RedisClusterNode(base.getHost(), base.getPort(), slotRange);
+			RedisClusterNode node;
+			if (base.host != null) {
+				node = new RedisClusterNode(base.getHost(), base.getPort(), slotRange);
+			} else {
+				node = new RedisClusterNode(slotRange);
+			}
 			node.id = base.id;
 			node.type = base.type;
 			node.masterId = base.masterId;

@@ -57,6 +57,7 @@ import redis.clients.util.SafeEncoder;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Jungtaek Lim
+ * @author Mark Paluch
  */
 abstract public class JedisConverters extends Converters {
 
@@ -223,21 +224,6 @@ abstract public class JedisConverters extends Converters {
 			sentinels.add(RedisServer.newServerFrom(Converters.toProperties(info)));
 		}
 		return sentinels;
-	}
-
-	/**
-	 * @param clusterNodes
-	 * @return
-	 * @since 1.7
-	 */
-	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
-
-		if (StringUtils.isEmpty(clusterNodes)) {
-			return Collections.emptySet();
-		}
-
-		String[] lines = clusterNodes.split(System.getProperty("line.separator"));
-		return toSetOfRedisClusterNodes(Arrays.asList(lines));
 	}
 
 	public static DataAccessException toDataAccessException(Exception ex) {

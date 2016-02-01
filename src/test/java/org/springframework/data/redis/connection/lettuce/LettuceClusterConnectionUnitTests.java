@@ -49,6 +49,7 @@ import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class LettuceClusterConnectionUnitTests {
@@ -116,7 +117,7 @@ public class LettuceClusterConnectionUnitTests {
 			}
 
 			@Override
-			public List<RedisClusterNode> clusterGetClusterNodes() {
+			public List<RedisClusterNode> clusterGetNodes() {
 				return Arrays.asList(CLUSTER_NODE_1, CLUSTER_NODE_2, CLUSTER_NODE_3);
 			}
 		};
@@ -306,12 +307,11 @@ public class LettuceClusterConnectionUnitTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	@Ignore("Stable not available for lettuce")
 	public void clusterSetSlotStableShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.STABLE);
 
-		// verify(clusterConnection1Mock, times(1)).clusterSetSlotStable(eq(100));
+		verify(clusterConnection1Mock, times(1)).clusterSetSlotStable(eq(100));
 	}
 
 	/**

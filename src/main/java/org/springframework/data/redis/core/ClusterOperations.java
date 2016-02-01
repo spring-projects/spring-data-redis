@@ -18,14 +18,19 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.redis.connection.RedisClusterCommands;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisConnection;
 
 /**
- * Redis operations for cluster specific operations.
+ * Redis operations for cluster specific operations. A {@link RedisClusterNode} can be obtained from
+ * {@link RedisClusterCommands#clusterGetNodes() a connection} or it can be
+ * constructed using either {@link RedisClusterNode#getHost() host} and {@link RedisClusterNode#getPort()} or the
+ * {@link RedisClusterNode#getId() node Id}.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public interface ClusterOperations<K, V> {
@@ -75,7 +80,7 @@ public interface ClusterOperations<K, V> {
 	void addSlots(RedisClusterNode node, SlotRange range);
 
 	/**
-	 * tart an {@literal Append Only File} rewrite process on given node.
+	 * Start an {@literal Append Only File} rewrite process on given node.
 	 * 
 	 * @param node must not be {@literal null}.
 	 * @see RedisConnection#bgReWriteAof()

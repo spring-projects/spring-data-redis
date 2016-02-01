@@ -45,7 +45,6 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.convert.Converters;
-import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -53,7 +52,6 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.KeyValue;
 import com.lambdaworks.redis.RedisAsyncConnection;
@@ -303,8 +301,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 		Assert.notNull(master, "Master must not be null!");
 
-		final RedisClusterNode nodeToUse = StringUtils.hasText(master.getId()) ? master : topologyProvider.getTopology()
-				.lookup(master.getHost(), master.getPort());
+		final RedisClusterNode nodeToUse = topologyProvider.getTopology()
+				.lookup(master);
 
 		return clusterCommandExecutor.executeCommandOnSingleNode(
 				new LettuceClusterCommandCallback<Set<RedisClusterNode>>() {
@@ -426,14 +424,15 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public void clusterForget(final RedisClusterNode node) {
 
-		List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(clusterGetClusterNodes());
-		nodes.remove(node);
+		List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(clusterGetNodes());
+		final RedisClusterNode nodeToRemove = topologyProvider.getTopology().lookup(node);
+		nodes.remove(nodeToRemove);
 
 		this.clusterCommandExecutor.executeCommandAsyncOnNodes(new LettuceClusterCommandCallback<String>() {
 
 			@Override
 			public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
-				return client.clusterForget(node.getId());
+				return client.clusterForget(nodeToRemove.getId());
 			}
 
 		}, nodes);
@@ -447,6 +446,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	public void clusterMeet(final RedisClusterNode node) {
 
 		Assert.notNull(node, "Cluster node must not be null for CLUSTER MEET command!");
+		Assert.hasText(node.getHost(), "Node to meet cluster must have a host!");
+		Assert.isTrue(node.getPort() > 0, "Node to meet cluster must have a port greater 0!");
 
 		this.clusterCommandExecutor.executeCommandOnAllNodes(new LettuceClusterCommandCallback<String>() {
 
@@ -467,8 +468,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 		Assert.notNull(node, "Node must not be null.");
 		Assert.notNull(mode, "AddSlots mode must not be null.");
 
-		final String nodeId = StringUtils.hasText(node.getId()) ? node.getId() : topologyProvider.getTopology()
-				.lookup(node.getHost(), node.getPort()).getId();
+		final RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(node);
+		final String nodeId = nodeToUse.getId();
 
 		clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<String>() {
 
@@ -482,9 +483,9 @@ public class LettuceClusterConnection extends LettuceConnection implements
 					case NODE:
 						return client.clusterSetSlotNode(slot, nodeId);
 					case STABLE:
-						throw new IllegalArgumentException("STABLE is not valid when using lettuce.");
+						return client.clusterSetSlotStable(slot);
 					default:
-						throw new InvalidDataAccessApiUsageException("Invlid import mode for cluster slot: " + slot);
+						throw new InvalidDataAccessApiUsageException("Invalid import mode for cluster slot: " + slot);
 				}
 			}
 		}, node);
@@ -525,11 +526,12 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public void clusterReplicate(final RedisClusterNode master, RedisClusterNode slave) {
 
+		final RedisClusterNode masterNode = topologyProvider.getTopology().lookup(master);
 		clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<String>() {
 
 			@Override
 			public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
-				return client.clusterReplicate(master.getId());
+				return client.clusterReplicate(masterNode.getId());
 			}
 		}, slave);
 	}
@@ -762,7 +764,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public byte[] randomKey() {
 
-		List<RedisClusterNode> nodes = clusterGetClusterNodes();
+		List<RedisClusterNode> nodes = clusterGetNodes();
 		Set<RedisClusterNode> inspectedNodes = new HashSet<RedisClusterNode>(nodes.size());
 
 		do {
@@ -1092,9 +1094,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			return super.sInterStore(destKey, keys);
 		}
@@ -1145,9 +1146,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			return super.sUnionStore(destKey, keys);
 		}
@@ -1201,9 +1201,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = new byte[keys.length + 1][];
-		allKeys[0] = destKey;
-		System.arraycopy(keys, 0, allKeys, 1, keys.length);
+		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			return super.sDiffStore(destKey, keys);
@@ -1233,7 +1231,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	 * @see org.springframework.data.redis.connection.RedisClusterCommands#getClusterNodes()
 	 */
 	@Override
-	public List<RedisClusterNode> clusterGetClusterNodes() {
+	public List<RedisClusterNode> clusterGetNodes() {
 		return LettuceConverters.partitionsToClusterNodes(clusterClient.getPartitions());
 	}
 
@@ -1263,9 +1261,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 
-		byte[][] allKeys = new byte[sourceKeys.length + 1][];
-		allKeys[0] = destinationKey;
-		System.arraycopy(sourceKeys, 0, allKeys, 1, sourceKeys.length);
+		byte[][] allKeys = Converters.mergeArrays(destinationKey, sourceKeys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1455,7 +1451,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
 		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid nr of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+				"Received invalid number of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
 
 		return Converters.toTimeMillis(LettuceConverters.toString(serverTimeInformation.get(0)),
 				LettuceConverters.toString(serverTimeInformation.get(1)));
@@ -1513,7 +1509,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 					@Override
 					public Set<RedisClusterNode> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
-						return JedisConverters.toSetOfRedisClusterNodes(client.clusterSlaves((String) client.clusterMyId()));
+						return Converters.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId()));
 					}
 				}, topologyProvider.getTopology().getActiveMasterNodes());
 	}
@@ -1600,7 +1596,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 		 */
 		public LettuceClusterTopologyProvider(RedisClusterClient client) {
 
-			Assert.notNull(client, "RedisClusteClient must not be null.");
+			Assert.notNull(client, "RedisClusterClient must not be null.");
 			this.client = client;
 		}
 

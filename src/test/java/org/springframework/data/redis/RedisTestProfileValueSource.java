@@ -31,6 +31,7 @@ import redis.clients.jedis.Jedis;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class RedisTestProfileValueSource implements ProfileValueSource {
 
@@ -56,7 +57,6 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 		try {
 
 			jedis = new Jedis(SettingsUtils.getHost(), SettingsUtils.getPort(), 100);
-			// jedis.connect();
 			String info = jedis.info();
 			String versionString = (String) JedisConverters.stringToProps().convert(info).get("redis_version");
 

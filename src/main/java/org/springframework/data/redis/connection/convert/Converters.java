@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.convert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -34,6 +35,7 @@ import org.springframework.data.redis.connection.RedisClusterNode.RedisClusterNo
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
@@ -43,11 +45,13 @@ import org.springframework.util.StringUtils;
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 abstract public class Converters {
 
 	private static final byte[] ONE = new byte[] { '1' };
 	private static final byte[] ZERO = new byte[] { '0' };
+	private static final String CLUSTER_NODES_LINE_SEPARATOR = "\n";
 	private static final Converter<String, Properties> STRING_TO_PROPS = new StringToPropertiesConverter();
 	private static final Converter<Long, Boolean> LONG_TO_BOOLEAN = new LongToBooleanConverter();
 	private static final Converter<String, DataType> STRING_TO_DATA_TYPE = new StringToDataTypeConverter();
@@ -120,20 +124,32 @@ abstract public class Converters {
 
 			private SlotRange parseSlotRange(String[] args) {
 
-				SlotRange range = new SlotRange(Collections.<Integer> emptySet());
-				if (args.length > SLOTS_INDEX && !args[SLOTS_INDEX].startsWith("[")) {
+				Set<Integer> slots = new LinkedHashSet<Integer>();
 
-					String raw = args[SLOTS_INDEX];
+				for (int i = SLOTS_INDEX; i < args.length; i++) {
+
+					String raw = args[i];
+
+					if (raw.startsWith("[")) {
+						continue;
+					}
+
 					if (raw.contains("-")) {
 						String[] slotRange = StringUtils.split(raw, "-");
 
 						if (slotRange != null) {
-							range = new RedisClusterNode.SlotRange(Integer.valueOf(slotRange[0]), Integer.valueOf(slotRange[1]));
+							int from = Integer.valueOf(slotRange[0]);
+							int to = Integer.valueOf(slotRange[1]);
+							for (int slot = from; slot <= to; slot++) {
+								slots.add(slot);
+							}
 						}
 					} else {
-						range = new SlotRange(Integer.valueOf(raw), Integer.valueOf(raw));
+						slots.add(Integer.valueOf(raw));
 					}
 				}
+
+				SlotRange range = new SlotRange(slots);
 				return range;
 			}
 
@@ -184,7 +200,7 @@ abstract public class Converters {
 	}
 
 	/**
-	 * Converts the result of {@code CLUSTER NODES} into {@link RedisClusterNode}s.
+	 * Converts lines from the result of {@code CLUSTER NODES} into {@link RedisClusterNode}s.
 	 * 
 	 * @param clusterNodes
 	 * @return
@@ -203,6 +219,22 @@ abstract public class Converters {
 		}
 
 		return nodes;
+	}
+
+	/**
+	 * Converts the result of {@code CLUSTER NODES} into {@link RedisClusterNode}s.
+	 * @param clusterNodes
+	 * @return
+	 * @since 1.7
+	 */
+	public static Set<RedisClusterNode> toSetOfRedisClusterNodes(String clusterNodes) {
+
+		if (StringUtils.isEmpty(clusterNodes)) {
+			return Collections.emptySet();
+		}
+
+		String[] lines = clusterNodes.split(CLUSTER_NODES_LINE_SEPARATOR);
+		return toSetOfRedisClusterNodes(Arrays.asList(lines));
 	}
 
 	public static List<Object> toObjects(Set<Tuple> tuples) {
@@ -224,5 +256,22 @@ abstract public class Converters {
 	public static Long toTimeMillis(String seconds, String microseconds) {
 		return NumberUtils.parseNumber(seconds, Long.class) * 1000L + NumberUtils.parseNumber(microseconds, Long.class)
 				/ 1000L;
+	}
+
+	/**
+	 * Merge multiple {@code byte} arrays into one array
+	 * @param firstArray must not be {@literal null}
+	 * @param additionalArrays must not be {@literal null}
+	 * @return
+	 */
+	public static byte[][] mergeArrays(byte[] firstArray, byte[]... additionalArrays){
+		Assert.notNull(firstArray, "first array must not be null");
+		Assert.notNull(additionalArrays, "additional arrays must not be null");
+
+		byte[][] result = new byte[additionalArrays.length + 1][];
+		result[0] = firstArray;
+		System.arraycopy(additionalArrays, 0, result, 1, additionalArrays.length);
+
+		return result;
 	}
 }
