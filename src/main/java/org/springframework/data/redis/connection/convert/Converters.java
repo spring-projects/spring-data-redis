@@ -84,8 +84,13 @@ abstract public class Converters {
 				SlotRange range = parseSlotRange(args);
 				Set<Flag> flags = parseFlags(args);
 
+				String portPart = hostAndPort[1];
+				if(portPart.contains("@")){
+					portPart = portPart.substring(0, portPart.indexOf('@'));
+				}
+
 				RedisClusterNodeBuilder nodeBuilder = RedisClusterNode.newRedisClusterNode()
-						.listeningAt(hostAndPort[0], Integer.valueOf(hostAndPort[1])) //
+						.listeningAt(hostAndPort[0], Integer.valueOf(portPart)) //
 						.withId(args[ID_INDEX]) //
 						.promotedAs(flags.contains(Flag.MASTER) ? NodeType.MASTER : NodeType.SLAVE) //
 						.serving(range) //
