@@ -131,8 +131,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
 		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
 
-		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
-				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(this));
+		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new PathIndexResolver(
+				mappingContext), new ReferenceResolverImpl(this));
 		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
@@ -173,7 +173,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 		if (rdo.getId() == null) {
 
-			rdo.setId(id);
+			rdo.setId(converter.getConversionService().convert(id, String.class));
 
 			if (!(item instanceof RedisData)) {
 				KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass())
@@ -249,7 +249,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	 */
 	public <T> T get(Serializable id, Serializable keyspace, Class<T> type) {
 
-		final byte[] binId = createKey(keyspace, id);
+		String stringId = asString(id);
+		String stringKeyspace = asString(keyspace);
+
+		final byte[] binId = createKey(stringKeyspace, stringId);
 
 		Map<byte[], byte[]> raw = redisOps.execute(new RedisCallback<Map<byte[], byte[]>>() {
 
@@ -260,8 +263,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		});
 
 		RedisData data = new RedisData(raw);
-		data.setId(id);
-		data.setKeyspace(keyspace.toString());
+		data.setId(stringId);
+		data.setKeyspace(stringKeyspace);
 
 		return converter.read(type, data);
 	}
@@ -287,15 +290,17 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 		if (o != null) {
 
+			final byte[] keyToDelete = createKey(asString(keyspace), asString(id));
+
 			redisOps.execute(new RedisCallback<Void>() {
 
 				@Override
 				public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
-					connection.del(createKey(keyspace, id));
+					connection.del(keyToDelete);
 					connection.sRem(binKeyspace, binId);
 
-					new IndexWriter(connection, converter).removeKeyFromIndexes(keyspace.toString(), binId);
+					new IndexWriter(connection, converter).removeKeyFromIndexes(asString(keyspace), binId);
 					return null;
 				}
 			});
@@ -322,7 +327,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 				Set<byte[]> members = connection.sMembers(binKeyspace);
 
 				for (byte[] id : members) {
-					rawData.add(connection.hGetAll(createKey(binKeyspace, id)));
+					rawData.add(connection.hGetAll(createKey(asString(keyspace),
+							getConverter().getConversionService().convert(id, String.class))));
 				}
 
 				return rawData;
@@ -349,7 +355,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
 				connection.del(toBytes(keyspace));
-				new IndexWriter(connection, converter).removeAllIndexes(keyspace.toString());
+				new IndexWriter(connection, converter).removeAllIndexes(asString(keyspace));
 				return null;
 			}
 		});
@@ -404,7 +410,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		// nothing to do
 	}
 
-	public byte[] createKey(Serializable keyspace, Serializable id) {
+	private String asString(Serializable value) {
+		return value instanceof String ? (String) value : getConverter().getConversionService()
+				.convert(value, String.class);
+	}
+
+	public byte[] createKey(String keyspace, String id) {
 		return toBytes(keyspace + ":" + id);
 	}
 
@@ -600,7 +611,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.io.Serializable, java.io.Serializable, java.lang.Class)
 		 */
 		@Override
-		public <T> T resolveReference(Serializable id, Serializable keyspace, Class<T> type) {
+		public <T> T resolveReference(Serializable id, String keyspace, Class<T> type) {
 			return (T) adapter.get(id, keyspace, type);
 		}
 	}

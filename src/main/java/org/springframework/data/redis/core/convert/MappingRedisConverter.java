@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -345,7 +344,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		sink.setKeyspace(entity.getKeySpace());
 
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
-		sink.setId((Serializable) entity.getIdentifierAccessor(source).getIdentifier());
+		sink.setId(getConversionService().convert(entity.getIdentifierAccessor(source).getIdentifier(), String.class));
 
 		Long ttl = entity.getTimeToLiveAccessor().getTimeToLive(source);
 		if (ttl != null && ttl > 0) {

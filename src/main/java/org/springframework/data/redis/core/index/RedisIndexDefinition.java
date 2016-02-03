@@ -25,12 +25,12 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link IndexDefinition} implementation.
+ * Base {@link IndexDefinition} implementation.
  * 
  * @author Christoph Strobl
  * @since 1.7
  */
-public class RedisIndexDefinition implements IndexDefinition {
+public abstract class RedisIndexDefinition implements IndexDefinition {
 
 	private final String keyspace;
 	private final String indexName;
@@ -45,7 +45,7 @@ public class RedisIndexDefinition implements IndexDefinition {
 	 * @param path
 	 * @param indexName
 	 */
-	public RedisIndexDefinition(String keyspace, String path, String indexName) {
+	protected RedisIndexDefinition(String keyspace, String path, String indexName) {
 
 		this.keyspace = keyspace;
 		this.indexName = indexName;

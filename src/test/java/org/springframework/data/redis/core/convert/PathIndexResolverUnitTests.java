@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.hamcrest.core.IsNull.*;
@@ -41,6 +42,7 @@ import org.springframework.data.redis.core.convert.ConversionTestEntities.Item;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.PersonWithAddressReference;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.Size;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
 import org.springframework.data.redis.core.index.IndexConfiguration;
@@ -53,7 +55,7 @@ import org.springframework.data.util.ClassTypeInformation;
  * @author Christoph Strobl
  */
 @RunWith(MockitoJUnitRunner.class)
-public class IndexResolverImplUnitTests {
+public class PathIndexResolverUnitTests {
 
 	IndexConfiguration indexConfig;
 	PathIndexResolver indexResolver;
@@ -409,6 +411,7 @@ public class IndexResolverImplUnitTests {
 	 */
 	@Test
 	public void resolveIndexAllowCustomIndexName() {
+
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "items.type", "itemsType"));
 
 		Item hat = new Item();
@@ -423,6 +426,21 @@ public class IndexResolverImplUnitTests {
 
 		assertThat(indexes.size(), is(1));
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexForTypeThatHasNoIndexDefined() {
+
+		Size size = new Size();
+		size.height = 10;
+		size.length = 20;
+		size.width = 30;
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Size.class), size);
+		assertThat(indexes, is(empty()));
 	}
 
 	private IndexedData resolve(String path, Object value) {

@@ -33,5 +33,5 @@ public interface ReferenceResolver {
 	 * @param type must not be {@literal null}.
 	 * @return {@literal null} if referenced object does not exist.
 	 */
-	<T> T resolveReference(Serializable id, Serializable keyspace, Class<T> type);
+	<T> T resolveReference(Serializable id, String keyspace, Class<T> type);
 }
