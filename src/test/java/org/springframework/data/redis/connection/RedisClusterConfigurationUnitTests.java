@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisClusterConfigurationUnitTests {
 
@@ -125,12 +126,14 @@ public class RedisClusterConfigurationUnitTests {
 		propertySource.setProperty("spring.redis.cluster.timeout", "10");
 		propertySource.setProperty("spring.redis.cluster.nodes", HOST_AND_PORT_1);
 		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
+		propertySource.setProperty("spring.redis.cluster.password", "foobar");
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
 
 		assertThat(config.getMaxRedirects(), is(5));
 		assertThat(config.getClusterTimeout(), is(10L));
 		assertThat(config.getClusterNodes(), hasItems(new RedisNode("127.0.0.1", 123)));
+		assertThat(config.getPassword(), is("foobar"));
 	}
 
 	/**

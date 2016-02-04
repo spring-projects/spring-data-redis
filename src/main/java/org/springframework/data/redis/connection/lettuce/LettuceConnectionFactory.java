@@ -49,6 +49,7 @@ import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
+import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -464,7 +465,16 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 			List<RedisURI> initialUris = new ArrayList<RedisURI>();
 			for (RedisNode node : this.clusterConfiguration.getClusterNodes()) {
-				initialUris.add(new RedisURI(node.getHost(), node.getPort(), this.timeout, TimeUnit.MILLISECONDS));
+				long timeout = this.clusterConfiguration.getClusterTimeout() != null ? this.clusterConfiguration.getClusterTimeout() : this.timeout;
+				RedisURI redisURI = new RedisURI(node.getHost(), node.getPort(), timeout, TimeUnit.MILLISECONDS);
+
+				if(StringUtils.hasText(this.clusterConfiguration.getPassword())){
+					redisURI.setPassword(this.clusterConfiguration.getPassword());
+				}else  if(StringUtils.hasText(password)){
+					redisURI.setPassword(password);
+				}
+
+				initialUris.add(redisURI);
 			}
 
 			RedisClusterClient clusterClient = new RedisClusterClient(initialUris);
