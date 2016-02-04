@@ -17,6 +17,7 @@ package org.springframework.data.redis.core;
 
 import java.util.Set;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.RedisConverter;
@@ -180,6 +181,14 @@ class IndexWriter {
 			return (byte[]) source;
 		}
 
-		return converter.getConversionService().convert(source, byte[].class);
+		if (converter.getConversionService().canConvert(source.getClass(), byte[].class)) {
+			return converter.getConversionService().convert(source, byte[].class);
+		}
+
+		throw new InvalidDataAccessApiUsageException(
+				String
+						.format(
+								"Cannot convert %s to binary representation for index key generation. Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
+								source.getClass()));
 	}
 }
