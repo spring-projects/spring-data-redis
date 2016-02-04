@@ -56,6 +56,17 @@ public class AppConfig {
 ----
 ====
 
+[TIP]
+====
+`RedisClusterConfiguration` can also be defined via `PropertySource`.
+
+.Configuration Properties
+- `spring.redis.cluster.nodes`: Comma delimited list of host:port pairs.
+- `spring.redis.cluster.timeout`: Timeout (in milliseconds) for cluster operations.
+- `spring.redis.cluster.max-redirects`: Number of allowed cluster redirections.
+- `spring.redis.cluster.password`: Password to access a password-protected Redis Cluster. Must equal across all nodes.
+====
+
 NOTE: The initial configuration points driver libraries to an initial set of cluster nodes. Changes resulting from live cluster reconfiguration will only be kept in the native driver and not be written back to the configuration. 
 
 == Working With Redis Cluster Connection

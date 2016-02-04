@@ -62,6 +62,7 @@ import redis.clients.util.Pool;
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -292,8 +293,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			hostAndPort.add(new HostAndPort(node.getHost(), node.getPort()));
 		}
 
-		int timeout = clusterConfig.getClusterTimeout() != null ? clusterConfig.getClusterTimeout().intValue() : 1;
+		int timeout = clusterConfig.getClusterTimeout() != null ? clusterConfig.getClusterTimeout().intValue() : this.timeout;
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects().intValue() : 5;
+		
+		if (StringUtils.hasText(clusterConfig.getPassword())) {
+			throw new UnsupportedOperationException("Jedis does not support password protected Redis Cluster configurations");
+		}
 
 		if (poolConfig != null) {
 			return new JedisCluster(hostAndPort, timeout, redirects, poolConfig);

@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
@@ -36,6 +37,7 @@ import org.springframework.util.StringUtils;
  * environment.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisClusterConfiguration {
@@ -43,10 +45,12 @@ public class RedisClusterConfiguration {
 	private static final String REDIS_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
 	private static final String REDIS_CLUSTER_TIMEOUT_CONFIG_PROPERTY = "spring.redis.cluster.timeout";
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
+	private static final String REDIS_CLUSTER_PASSWORD_PROPERTY = "spring.redis.cluster.password";
 
 	private Set<RedisNode> clusterNodes;
 	private Long clusterTimeout;
 	private Integer maxRedirects;
+	private String password;
 
 	/**
 	 * Creates new {@link RedisClusterConfiguration}.
@@ -69,7 +73,7 @@ public class RedisClusterConfiguration {
 	 * {@literal null}.
 	 */
 	public RedisClusterConfiguration(Collection<String> clusterNodes) {
-		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1, -1)));
+		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1, -1, null)));
 	}
 
 	/**
@@ -80,6 +84,7 @@ public class RedisClusterConfiguration {
 	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
 	 * spring.redis.cluster.timeout=5
 	 * spring.redis.cluster.max-redirects=3
+	 * spring.redis.cluster.password=foobar
 	 * </code>
 	 * </pre>
 	 * 
@@ -102,6 +107,9 @@ public class RedisClusterConfiguration {
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
 			this.maxRedirects = NumberUtils.parseNumber(
 					propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY).toString(), Integer.class);
+		}
+		if (propertySource.containsProperty(REDIS_CLUSTER_PASSWORD_PROPERTY)) {
+			this.password =	propertySource.getProperty(REDIS_CLUSTER_PASSWORD_PROPERTY).toString();
 		}
 	}
 
@@ -157,10 +165,42 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
+	 *
+	 * @param clusterTimeout
+	 */
+	public void setClusterTimeout(long clusterTimeout) {
+		this.clusterTimeout = clusterTimeout;
+	}
+
+	/**
 	 * @return
 	 */
 	public Integer getMaxRedirects() {
 		return maxRedirects != null && maxRedirects > Integer.MIN_VALUE ? maxRedirects : null;
+	}
+
+	/**
+	 *
+	 * @param maxRedirects
+	 */
+	public void setMaxRedirects(int maxRedirects) {
+		Assert.isTrue(maxRedirects >= 0, "MaxRedirects must be greater or equal to 0");
+		this.maxRedirects = maxRedirects;
+	}
+
+	/**
+	 * @return
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 *
+	 * @param password can be {@literal null} or empty.
+	 */
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	/**
@@ -189,11 +229,13 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 * @param master must not be {@literal null} or empty.
-	 * @param clusterHostAndPorts must not be {@literal null}.
+	 * @param clusterHostAndPorts must not be {@literal null} or empty.
+	 * @param timeout
+	 * @param redirects
+	 * @param password can be {@literal null} or empty.
 	 * @return
 	 */
-	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, long timeout, int redirects) {
+	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, long timeout, int redirects, String password) {
 
 		notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
 
@@ -204,6 +246,9 @@ public class RedisClusterConfiguration {
 		}
 		if (redirects >= 0) {
 			map.put(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY, Integer.valueOf(redirects));
+		}
+		if (StringUtils.hasText(password)) {
+			map.put(REDIS_CLUSTER_PASSWORD_PROPERTY, password);
 		}
 
 		return map;
