@@ -28,6 +28,7 @@
 		<jedis>2.8.0</jedis>
 		<srp>0.7</srp>
 		<jredis>06052013</jredis>
+		<multithreadedtc>1.01</multithreadedtc>
 	</properties>
 
 	<dependencyManagement>
@@ -179,6 +180,13 @@
 			<groupId>com.thoughtworks.xstream</groupId>
 			<artifactId>xstream</artifactId>
 			<version>${xstream}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>edu.umd.cs.mtc</groupId>
+			<artifactId>multithreadedtc</artifactId>
+			<version>${multithreadedtc}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
