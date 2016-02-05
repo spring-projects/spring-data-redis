@@ -18,6 +18,7 @@ package org.springframework.data.redis.support.collections;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
@@ -40,6 +41,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 /**
  * @author Costin Leau
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public abstract class CollectionTestParams {
 
@@ -58,6 +60,7 @@ public abstract class CollectionTestParams {
 
 		// create Jedis Factory
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
+		ObjectFactory<String> doubleAsStringObjectFactory = new DoubleAsStringObjectFactory();
 		ObjectFactory<Person> personFactory = new PersonObjectFactory();
 		ObjectFactory<byte[]> rawFactory = new RawObjectFactory();
 
@@ -214,6 +217,7 @@ public abstract class CollectionTestParams {
 
 		return Arrays.asList(new Object[][] {
 				{ stringFactory, stringTemplate },
+				{ doubleAsStringObjectFactory, stringTemplate },
 				{ personFactory, personTemplate },
 				{ stringFactory, xstreamStringTemplate },
 				{ personFactory, xstreamPersonTemplate },
@@ -237,6 +241,7 @@ public abstract class CollectionTestParams {
 				{ rawFactory, rawTemplateSRP },
 				// lettuce
 				{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
+				{ doubleAsStringObjectFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
 				{ stringFactory, xstreamStringTemplateLtc }, { personFactory, xstreamPersonTemplateLtc },
 				{ personFactory, jsonPersonTemplateLtc }, { personFactory, jackson2JsonPersonTemplateLtc },
 				{ rawFactory, rawTemplateLtc } });

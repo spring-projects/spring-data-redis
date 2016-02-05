@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.ConvertingCursor;
 import org.springframework.data.redis.core.Cursor;
@@ -35,6 +36,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements RedisZSet<E> {
 
@@ -112,6 +114,16 @@ public class DefaultRedisZSet<E> extends AbstractRedisCollection<E> implements R
 
 	public Set<E> reverseRange(long start, long end) {
 		return boundZSetOps.reverseRange(start, end);
+	}
+
+	@Override
+	public Set<E> rangeByLex(RedisZSetCommands.Range range) {
+		return boundZSetOps.rangeByLex(range);
+	}
+
+	@Override
+	public Set<E> rangeByLex(RedisZSetCommands.Range range, RedisZSetCommands.Limit limit) {
+		return boundZSetOps.rangeByLex(range, limit);
 	}
 
 	public Set<E> rangeByScore(double min, double max) {

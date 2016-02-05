@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -31,6 +32,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * Since using a {@link Comparator} does not apply, a ZSet implements the {@link SortedSet} methods where applicable.
  * 
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 
@@ -45,6 +47,10 @@ public interface RedisZSet<E> extends RedisCollection<E>, Set<E> {
 	Set<E> range(long start, long end);
 
 	Set<E> reverseRange(long start, long end);
+
+	Set<E> rangeByLex(RedisZSetCommands.Range range);
+
+	Set<E> rangeByLex(RedisZSetCommands.Range range, RedisZSetCommands.Limit limit);
 
 	Set<E> rangeByScore(double min, double max);
 

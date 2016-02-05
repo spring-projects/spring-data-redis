@@ -19,6 +19,7 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 
@@ -50,6 +52,10 @@ public interface BoundZSetOperations<K, V> extends BoundKeyOperations<K> {
 	Set<TypedTuple<V>> reverseRangeWithScores(long start, long end);
 
 	Set<TypedTuple<V>> reverseRangeByScoreWithScores(double min, double max);
+
+	Set<V> rangeByLex(RedisZSetCommands.Range range);
+
+	Set<V> rangeByLex(RedisZSetCommands.Range range, RedisZSetCommands.Limit limit);
 
 	void removeRange(long start, long end);
 
