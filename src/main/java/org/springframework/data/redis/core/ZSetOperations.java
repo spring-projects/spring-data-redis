@@ -19,11 +19,14 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.data.redis.connection.RedisZSetCommands;
+
 /**
  * Redis ZSet/sorted set specific operations.
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface ZSetOperations<K, V> {
 
@@ -51,6 +54,10 @@ public interface ZSetOperations<K, V> {
 	Set<TypedTuple<V>> rangeWithScores(K key, long start, long end);
 
 	Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end);
+
+	Set<V> rangeByLex(K key, RedisZSetCommands.Range range);
+
+	Set<V> rangeByLex(K key, RedisZSetCommands.Range range, RedisZSetCommands.Limit limit);
 
 	Set<V> rangeByScore(K key, double min, double max);
 

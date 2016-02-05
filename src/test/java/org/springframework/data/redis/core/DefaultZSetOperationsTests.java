@@ -17,7 +17,9 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.core.AnyOf.*;
 import static org.hamcrest.core.IsEqual.*;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeThat;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
@@ -34,8 +36,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.DoubleAsStringObjectFactory;
+import org.springframework.data.redis.DoubleObjectFactory;
+import org.springframework.data.redis.LongAsStringObjectFactory;
+import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
@@ -45,6 +52,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @param <K> Key type
  * @param <V> Value type
  */
@@ -163,6 +171,104 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertEquals(1, tuples.size());
 		TypedTuple<V> tuple = tuples.iterator().next();
 		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexUnbounded() {
+
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded());
+
+		assertEquals(3, tuples.size());
+		V tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(value1));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexBounded() {
+
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gt(value1).lt(value3));
+
+		assertEquals(1, tuples.size());
+		V tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(value2));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexUnboundedWithLimit() {
+
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded(),
+				RedisZSetCommands.Limit.limit().count(1).offset(1));
+
+		assertEquals(1, tuples.size());
+		V tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(value2));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexBoundedWithLimit() {
+
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+		V value3 = valueFactory.instance();
+
+		zSetOps.add(key, value1, 1.9);
+		zSetOps.add(key, value2, 3.7);
+		zSetOps.add(key, value3, 5.8);
+		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1),
+				RedisZSetCommands.Limit.limit().count(1).offset(1));
+
+		assertEquals(1, tuples.size());
+		V tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(value2));
 	}
 
 	@Test

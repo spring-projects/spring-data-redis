@@ -28,9 +28,14 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.data.redis.DoubleAsStringObjectFactory;
+import org.springframework.data.redis.DoubleObjectFactory;
+import org.springframework.data.redis.LongAsStringObjectFactory;
+import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -46,6 +51,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTests<T> {
 
@@ -318,6 +324,100 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		TypedTuple<T> tuple2 = iterator.next();
 		assertThat(tuple2.getValue(), isEqual(t1));
 		assertThat(tuple2.getScore(), isEqual(Double.valueOf(1)));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexUnbounded() {
+
+		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded());
+
+		assertEquals(3, tuples.size());
+		T tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(t1));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexBounded() {
+
+		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gt(t1).lt(t3));
+
+		assertEquals(1, tuples.size());
+		T tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(t2));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexUnboundedWithLimit() {
+
+		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded(),
+				RedisZSetCommands.Limit.limit().count(1).offset(1));
+
+		assertEquals(1, tuples.size());
+		T tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(t2));
+	}
+
+	/**
+	 * @see DATAREDIS-407
+	 */
+	@Test
+	public void testRangeByLexBoundedWithLimit() {
+
+		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+
+		T t1 = getT();
+		T t2 = getT();
+		T t3 = getT();
+
+		zSet.add(t1, 1);
+		zSet.add(t2, 2);
+		zSet.add(t3, 3);
+		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1),
+				RedisZSetCommands.Limit.limit().count(1).offset(1));
+
+		assertEquals(1, tuples.size());
+		T tuple = tuples.iterator().next();
+		assertThat(tuple, isEqual(t2));
 	}
 
 	@Test
