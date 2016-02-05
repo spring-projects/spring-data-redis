@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.LettuceFutures;
@@ -49,7 +50,6 @@ import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
-import org.springframework.util.StringUtils;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -465,12 +465,10 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 			List<RedisURI> initialUris = new ArrayList<RedisURI>();
 			for (RedisNode node : this.clusterConfiguration.getClusterNodes()) {
-				long timeout = this.clusterConfiguration.getClusterTimeout() != null ? this.clusterConfiguration.getClusterTimeout() : this.timeout;
+
 				RedisURI redisURI = new RedisURI(node.getHost(), node.getPort(), timeout, TimeUnit.MILLISECONDS);
 
-				if(StringUtils.hasText(this.clusterConfiguration.getPassword())){
-					redisURI.setPassword(this.clusterConfiguration.getPassword());
-				}else  if(StringUtils.hasText(password)){
+				if (StringUtils.hasText(password)) {
 					redisURI.setPassword(password);
 				}
 

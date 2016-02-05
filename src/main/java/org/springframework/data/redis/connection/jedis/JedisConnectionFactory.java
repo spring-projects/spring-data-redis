@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -293,11 +293,10 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			hostAndPort.add(new HostAndPort(node.getHost(), node.getPort()));
 		}
 
-		int timeout = clusterConfig.getClusterTimeout() != null ? clusterConfig.getClusterTimeout().intValue() : this.timeout;
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects().intValue() : 5;
-		
-		if (StringUtils.hasText(clusterConfig.getPassword())) {
-			throw new UnsupportedOperationException("Jedis does not support password protected Redis Cluster configurations");
+
+		if (StringUtils.hasText(getPassword())) {
+			throw new IllegalArgumentException("Jedis does not support password protected Redis Cluster configurations!");
 		}
 
 		if (poolConfig != null) {
