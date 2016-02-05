@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,10 @@ import org.springframework.util.StringUtils;
 public class RedisClusterConfiguration {
 
 	private static final String REDIS_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
-	private static final String REDIS_CLUSTER_TIMEOUT_CONFIG_PROPERTY = "spring.redis.cluster.timeout";
 	private static final String REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
-	private static final String REDIS_CLUSTER_PASSWORD_PROPERTY = "spring.redis.cluster.password";
 
 	private Set<RedisNode> clusterNodes;
-	private Long clusterTimeout;
 	private Integer maxRedirects;
-	private String password;
 
 	/**
 	 * Creates new {@link RedisClusterConfiguration}.
@@ -100,16 +96,9 @@ public class RedisClusterConfiguration {
 			appendClusterNodes(commaDelimitedListToSet(propertySource.getProperty(REDIS_CLUSTER_NODES_CONFIG_PROPERTY)
 					.toString()));
 		}
-		if (propertySource.containsProperty(REDIS_CLUSTER_TIMEOUT_CONFIG_PROPERTY)) {
-			this.clusterTimeout = NumberUtils.parseNumber(propertySource.getProperty(REDIS_CLUSTER_TIMEOUT_CONFIG_PROPERTY)
-					.toString(), Long.class);
-		}
 		if (propertySource.containsProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY)) {
 			this.maxRedirects = NumberUtils.parseNumber(
 					propertySource.getProperty(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY).toString(), Integer.class);
-		}
-		if (propertySource.containsProperty(REDIS_CLUSTER_PASSWORD_PROPERTY)) {
-			this.password =	propertySource.getProperty(REDIS_CLUSTER_PASSWORD_PROPERTY).toString();
 		}
 	}
 
@@ -153,23 +142,9 @@ public class RedisClusterConfiguration {
 	 * @return
 	 */
 	public RedisClusterConfiguration clusterNode(RedisNode node) {
+
 		this.clusterNodes.add(node);
 		return this;
-	}
-
-	/**
-	 * @return
-	 */
-	public Long getClusterTimeout() {
-		return clusterTimeout != null && clusterTimeout > Long.MIN_VALUE ? clusterTimeout : null;
-	}
-
-	/**
-	 *
-	 * @param clusterTimeout
-	 */
-	public void setClusterTimeout(long clusterTimeout) {
-		this.clusterTimeout = clusterTimeout;
 	}
 
 	/**
@@ -180,27 +155,12 @@ public class RedisClusterConfiguration {
 	}
 
 	/**
-	 *
 	 * @param maxRedirects
 	 */
 	public void setMaxRedirects(int maxRedirects) {
+
 		Assert.isTrue(maxRedirects >= 0, "MaxRedirects must be greater or equal to 0");
 		this.maxRedirects = maxRedirects;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getPassword() {
-		return password;
-	}
-
-	/**
-	 *
-	 * @param password can be {@literal null} or empty.
-	 */
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	/**
@@ -235,20 +195,16 @@ public class RedisClusterConfiguration {
 	 * @param password can be {@literal null} or empty.
 	 * @return
 	 */
-	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, long timeout, int redirects, String password) {
+	private static Map<String, Object> asMap(Collection<String> clusterHostAndPorts, long timeout, int redirects,
+			String password) {
 
 		notNull(clusterHostAndPorts, "ClusterHostAndPorts must not be null!");
 
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(REDIS_CLUSTER_NODES_CONFIG_PROPERTY, StringUtils.collectionToCommaDelimitedString(clusterHostAndPorts));
-		if (timeout >= 0) {
-			map.put(REDIS_CLUSTER_TIMEOUT_CONFIG_PROPERTY, Long.valueOf(timeout));
-		}
+
 		if (redirects >= 0) {
 			map.put(REDIS_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY, Integer.valueOf(redirects));
-		}
-		if (StringUtils.hasText(password)) {
-			map.put(REDIS_CLUSTER_PASSWORD_PROPERTY, password);
 		}
 
 		return map;

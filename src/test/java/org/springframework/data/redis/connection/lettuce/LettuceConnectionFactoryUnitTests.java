@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,20 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
 import static org.junit.Assert.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 
+import com.lambdaworks.redis.AbstractRedisClient;
+import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
 
 /**
@@ -29,8 +36,12 @@ import com.lambdaworks.redis.cluster.RedisClusterClient;
  */
 public class LettuceConnectionFactoryUnitTests {
 
-	private static final RedisClusterConfiguration CLUSTER_CONFIG = new RedisClusterConfiguration().clusterNode(
-			"127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
+	RedisClusterConfiguration clusterConfig;
+
+	@Before
+	public void setUp() {
+		clusterConfig = new RedisClusterConfiguration().clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
+	}
 
 	/**
 	 * @see DATAREDIS-315
@@ -38,9 +49,52 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test
 	public void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(CLUSTER_CONFIG);
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
 		connectionFactory.afterPropertiesSet();
 
 		assertThat(getField(connectionFactory, "client"), instanceOf(RedisClusterClient.class));
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void timeoutShouldBeSetCorrectlyOnClusterClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setTimeout(1000);
+		connectionFactory.afterPropertiesSet();
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClusterClient.class));
+
+		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
+
+		for (RedisURI uri : initialUris) {
+			assertThat(uri.getTimeout(), is(equalTo(connectionFactory.getTimeout())));
+			assertThat(uri.getUnit(), is(equalTo(TimeUnit.MILLISECONDS)));
+		}
+	}
+
+	/**
+	 * @see DATAREDIS-315
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void passwordShouldBeSetCorrectlyOnClusterClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClusterClient.class));
+
+		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
+
+		for (RedisURI uri : initialUris) {
+			assertThat(uri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
+		}
 	}
 }

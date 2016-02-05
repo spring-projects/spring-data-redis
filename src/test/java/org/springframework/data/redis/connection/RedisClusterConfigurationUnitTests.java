@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ public class RedisClusterConfigurationUnitTests {
 
 		assertThat(config.getClusterNodes().size(), is(1));
 		assertThat(config.getClusterNodes(), hasItems(new RedisNode("127.0.0.1", 123)));
-		assertThat(config.getClusterTimeout(), nullValue());
 		assertThat(config.getMaxRedirects(), nullValue());
 	}
 
@@ -112,7 +111,6 @@ public class RedisClusterConfigurationUnitTests {
 		RedisClusterConfiguration config = new RedisClusterConfiguration(new MockPropertySource());
 
 		assertThat(config.getMaxRedirects(), nullValue());
-		assertThat(config.getClusterTimeout(), nullValue());
 		assertThat(config.getClusterNodes().size(), is(0));
 	}
 
@@ -123,17 +121,13 @@ public class RedisClusterConfigurationUnitTests {
 	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.cluster.timeout", "10");
 		propertySource.setProperty("spring.redis.cluster.nodes", HOST_AND_PORT_1);
 		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
-		propertySource.setProperty("spring.redis.cluster.password", "foobar");
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
 
 		assertThat(config.getMaxRedirects(), is(5));
-		assertThat(config.getClusterTimeout(), is(10L));
 		assertThat(config.getClusterNodes(), hasItems(new RedisNode("127.0.0.1", 123)));
-		assertThat(config.getPassword(), is("foobar"));
 	}
 
 	/**
@@ -143,7 +137,6 @@ public class RedisClusterConfigurationUnitTests {
 	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.cluster.timeout", "10");
 		propertySource.setProperty("spring.redis.cluster.nodes",
 				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
@@ -151,7 +144,6 @@ public class RedisClusterConfigurationUnitTests {
 		RedisClusterConfiguration config = new RedisClusterConfiguration(propertySource);
 
 		assertThat(config.getMaxRedirects(), is(5));
-		assertThat(config.getClusterTimeout(), is(10L));
 		assertThat(config.getClusterNodes(),
 				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
 	}
