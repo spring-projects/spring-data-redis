@@ -29,14 +29,14 @@ import org.springframework.data.redis.core.index.Indexed;
 /**
  * @author Christoph Strobl
  */
-class ConversionTestEntities {
+public class ConversionTestEntities {
 
 	static final String KEYSPACE_PERSON = "persons";
 	static final String KEYSPACE_TWOT = "twot";
 	static final String KEYSPACE_LOCATION = "locations";
 
 	@RedisHash(KEYSPACE_PERSON)
-	static class Person {
+	public static class Person {
 
 		@Id String id;
 		String firstname;
@@ -59,32 +59,32 @@ class ConversionTestEntities {
 		Species species;
 	}
 
-	static class PersonWithAddressReference extends Person {
+	public static class PersonWithAddressReference extends Person {
 
 		@Reference AddressWithId addressRef;
 	}
 
-	static class Address {
+	public static class Address {
 
 		String city;
 		@Indexed String country;
 	}
 
-	static class AddressWithId extends Address {
+	public static class AddressWithId extends Address {
 
 		@Id String id;
 	}
 
-	static enum Gender {
+	public static enum Gender {
 		MALE, FEMALE
 	}
 
-	static class AddressWithPostcode extends Address {
+	public static class AddressWithPostcode extends Address {
 
 		String postcode;
 	}
 
-	static class TaVeren extends Person {
+	public static class TaVeren extends Person {
 
 		Object feature;
 		Map<String, Object> characteristics;
@@ -92,7 +92,7 @@ class ConversionTestEntities {
 	}
 
 	@RedisHash(KEYSPACE_LOCATION)
-	static class Location {
+	public static class Location {
 
 		@Id String id;
 		String name;
@@ -100,39 +100,39 @@ class ConversionTestEntities {
 	}
 
 	@RedisHash(timeToLive = 5)
-	static class ExpiringPerson {
+	public static class ExpiringPerson {
 
 		@Id String id;
 		String name;
 	}
 
-	static class ExipringPersonWithExplicitProperty extends ExpiringPerson {
+	public static class ExipringPersonWithExplicitProperty extends ExpiringPerson {
 
 		@TimeToLive(unit = TimeUnit.MINUTES) Long ttl;
 	}
 
-	static class Species {
+	public static class Species {
 
 		String name;
 		List<String> alsoKnownAs;
 	}
 
 	@RedisHash(KEYSPACE_TWOT)
-	static class TheWheelOfTime {
+	public static class TheWheelOfTime {
 
 		List<Person> mainCharacters;
 		List<Species> species;
 		Map<String, Location> places;
 	}
 
-	static class Item {
+	public static class Item {
 
 		@Indexed String type;
 		String description;
 		Size size;
 	}
 
-	static class Size {
+	public static class Size {
 
 		int width;
 		int height;
