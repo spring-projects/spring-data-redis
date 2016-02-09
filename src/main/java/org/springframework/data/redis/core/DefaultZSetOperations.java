@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import java.util.Set;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 
 /**
@@ -143,23 +144,21 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 		return deserializeTupleValues(rawValues);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
 	@Override
-	public Set<V> rangeByLex(K key, final RedisZSetCommands.Range range) {
-
-		final byte[] rawKey = rawKey(key);
-
-		Set<byte[]> rawValues = execute(new RedisCallback<Set<byte[]>>() {
-
-			public Set<byte[]> doInRedis(RedisConnection connection) {
-				return connection.zRangeByLex(rawKey, range);
-			}
-		}, true);
-
-		return deserializeValues(rawValues);
+	public Set<V> rangeByLex(K key, final Range range) {
+		return rangeByLex(key, range, null);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
 	@Override
-	public Set<V> rangeByLex(K key, final RedisZSetCommands.Range range, final RedisZSetCommands.Limit limit) {
+	public Set<V> rangeByLex(K key, final Range range, final Limit limit) {
 
 		final byte[] rawKey = rawKey(key);
 

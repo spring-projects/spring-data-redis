@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.core.AnyOf.*;
 import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.IsInstanceOf.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.Collection;
@@ -179,8 +179,10 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexUnbounded() {
 
-		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				valueFactory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -203,8 +205,10 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexBounded() {
 
-		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				valueFactory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -227,8 +231,10 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexUnboundedWithLimit() {
 
-		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				valueFactory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -252,8 +258,10 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexBoundedWithLimit() {
 
-		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				valueFactory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -263,8 +271,8 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1), RedisZSetCommands.Limit
+				.limit().count(1).offset(1));
 
 		assertEquals(1, tuples.size());
 		V tuple = tuples.iterator().next();

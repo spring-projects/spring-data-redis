@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ package org.springframework.data.redis.core;
 import java.util.Collection;
 import java.util.Set;
 
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 
 /**
  * Redis ZSet/sorted set specific operations.
@@ -55,9 +56,28 @@ public interface ZSetOperations<K, V> {
 
 	Set<TypedTuple<V>> reverseRangeWithScores(K key, long start, long end);
 
-	Set<V> rangeByLex(K key, RedisZSetCommands.Range range);
+	/**
+	 * Get all elements with lexicographical ordering from {@literal ZSET} at {@code key} with a value between
+	 * {@link Range#getMin()} and {@link Range#getMax()}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @since 1.7
+	 */
+	Set<V> rangeByLex(K key, Range range);
 
-	Set<V> rangeByLex(K key, RedisZSetCommands.Range range, RedisZSetCommands.Limit limit);
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with lexicographical ordering from {@literal ZSET} at {@code key} with a value between
+	 * {@link Range#getMin()} and {@link Range#getMax()}.
+	 * 
+	 * @param key must not be {@literal null}
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return
+	 * @since 1.7
+	 */
+	Set<V> rangeByLex(K key, Range range, Limit limit);
 
 	Set<V> rangeByScore(K key, double min, double max);
 

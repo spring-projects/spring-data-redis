@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 
 /**
@@ -97,13 +98,21 @@ class DefaultBoundZSetOperations<K, V> extends DefaultBoundKeyOperations<K> impl
 		return ops.reverseRangeWithScores(getKey(), start, end);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range)
+	 */
 	@Override
-	public Set<V> rangeByLex(RedisZSetCommands.Range range) {
-		return ops.rangeByLex(getKey(), range);
+	public Set<V> rangeByLex(Range range) {
+		return rangeByLex(range, null);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.BoundZSetOperations#rangeByLex(org.springframework.data.redis.connection.RedisZSetCommands.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
 	@Override
-	public Set<V> rangeByLex(RedisZSetCommands.Range range, RedisZSetCommands.Limit limit) {
+	public Set<V> rangeByLex(Range range, Limit limit) {
 		return ops.rangeByLex(getKey(), range, limit);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -332,8 +332,10 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@Test
 	public void testRangeByLexUnbounded() {
 
-		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				factory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		T t1 = getT();
 		T t2 = getT();
@@ -355,8 +357,10 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@Test
 	public void testRangeByLexBounded() {
 
-		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				factory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		T t1 = getT();
 		T t2 = getT();
@@ -378,8 +382,10 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@Test
 	public void testRangeByLexUnboundedWithLimit() {
 
-		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				factory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		T t1 = getT();
 		T t2 = getT();
@@ -388,8 +394,8 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded(),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.unbounded(), RedisZSetCommands.Limit.limit().count(1)
+				.offset(1));
 
 		assertEquals(1, tuples.size());
 		T tuple = tuples.iterator().next();
@@ -402,8 +408,10 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@Test
 	public void testRangeByLexBoundedWithLimit() {
 
-		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(
+				factory,
+				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		T t1 = getT();
 		T t2 = getT();
@@ -412,8 +420,8 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t1, 1);
 		zSet.add(t2, 2);
 		zSet.add(t3, 3);
-		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1),
-				RedisZSetCommands.Limit.limit().count(1).offset(1));
+		Set<T> tuples = zSet.rangeByLex(RedisZSetCommands.Range.range().gte(t1), RedisZSetCommands.Limit.limit().count(1)
+				.offset(1));
 
 		assertEquals(1, tuples.size());
 		T tuple = tuples.iterator().next();
