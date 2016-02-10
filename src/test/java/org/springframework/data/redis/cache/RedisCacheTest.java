@@ -16,7 +16,7 @@
 
 package org.springframework.data.redis.cache;
 
-import static org.hamcrest.core.Is.is;
+import static edu.umd.cs.mtc.TestFramework.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNot.*;
@@ -32,9 +32,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import edu.umd.cs.mtc.MultithreadedTestCase;
-import edu.umd.cs.mtc.TestFramework;
-import org.hamcrest.core.IsEqual;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +45,8 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import edu.umd.cs.mtc.MultithreadedTestCase;
 
 /**
  * @author Costin Leau
@@ -292,58 +291,55 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assumeThat(cache, instanceOf(RedisCache.class));
 		assumeThat(valueFactory, instanceOf(StringObjectFactory.class));
 
-		TestFramework.runOnce(new CacheGetWithValueLoaderIsThreadSafe((RedisCache) cache));
+		runOnce(new CacheGetWithValueLoaderIsThreadSafe((RedisCache) cache));
 	}
 
-	static class CacheGetWithValueLoaderIsThreadSafe extends MultithreadedTestCase {
+	@SuppressWarnings("unused")
+	private static class CacheGetWithValueLoaderIsThreadSafe extends MultithreadedTestCase {
 
 		RedisCache redisCache;
 		TestCacheLoader<String> cacheLoader;
 
 		public CacheGetWithValueLoaderIsThreadSafe(RedisCache redisCache) {
+
 			this.redisCache = redisCache;
 
-			cacheLoader = new TestCacheLoader<String>("test"){
+			cacheLoader = new TestCacheLoader<String>("test") {
 
 				@Override
 				public String call() throws Exception {
+
 					waitForTick(2);
 					return super.call();
 				}
 			};
 		}
 
-		public void thread1(){
+		public void thread1() {
+
 			assertTick(0);
- 			Thread.currentThread().setName(getClass().getSimpleName() + " Cache Loader Thread");
-
-			String result = redisCache.get("key", cacheLoader);
-
-			assertThat(result, is("test"));
+			assertThat(redisCache.get("key", cacheLoader), equalTo("test"));
 		}
 
-		public void thread2(){
+		public void thread2() {
+
 			waitForTick(1);
-			Thread.currentThread().setName(getClass().getSimpleName() + " Cache Reader Thread");
-
-			String result = redisCache.get("key", new TestCacheLoader<String>("illegal value"));
-
-			assertThat(result, is("test"));
+			assertThat(redisCache.get("key", new TestCacheLoader<String>("illegal value")), equalTo("test"));
 			assertTick(2);
 		}
 	}
 
-	protected static class TestCacheLoader<T> implements Callable<T> {
+	private static class TestCacheLoader<T> implements Callable<T> {
 
- 		private final T value;
+		private final T value;
 
- 		public TestCacheLoader(T value) {
- 			this.value = value;
- 		}
+		public TestCacheLoader(T value) {
+			this.value = value;
+		}
 
- 		@Override
- 		public T call() throws Exception {
- 			return value;
- 		}
- 	}
+		@Override
+		public T call() throws Exception {
+			return value;
+		}
+	}
 }
