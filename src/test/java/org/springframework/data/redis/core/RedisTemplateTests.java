@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -439,10 +439,12 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testExpireAndGetExpireMillis() {
+
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expire(key1, 10, TimeUnit.MILLISECONDS);
+		redisTemplate.expire(key1, 250, TimeUnit.MILLISECONDS);
+
 		assertTrue(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS) > 0l);
 		// Timeout is longer because expire will be 1 sec if pExpire not supported
 		waitFor(new TestCondition() {
