@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
@@ -44,11 +45,13 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.jedis.JedisConverters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.test.util.RedisClusterRule;
 
 import com.lambdaworks.redis.RedisURI.Builder;
@@ -2297,5 +2300,106 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItem(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT)));
 		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT)).isEmpty(), is(true));
 		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty(), is(true));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithExpirationInSecondsShouldWorkCorrectly() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.upsert());
+
+		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.ttl(KEY_1), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithExpirationInMillisecondsShouldWorkCorrectly() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.milliseconds(500), SetOption.upsert());
+
+		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.pttl(KEY_1).doubleValue(), is(closeTo(500d, 499d)));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithOptionIfPresentShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifPresent());
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithOptionIfAbsentShouldWorkCorrectly() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifAbsent());
+
+		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.ttl(KEY_1), is(-1L));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithExpirationAndIfAbsentShouldWorkCorrectly() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifAbsent());
+
+		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.ttl(KEY_1), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithExpirationAndIfAbsentShouldNotBeAppliedWhenKeyExists() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(1), SetOption.ifAbsent());
+
+		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.ttl(KEY_1), is(-1L));
+		assertThat(nativeConnection.get(KEY_1), is(equalTo(VALUE_1)));
+
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithExpirationAndIfPresentShouldWorkCorrectly() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(1), SetOption.ifPresent());
+
+		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.ttl(KEY_1), is(1L));
+		assertThat(nativeConnection.get(KEY_1), is(equalTo(VALUE_2)));
+
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void setWithExpirationAndIfPresentShouldNotBeAppliedWhenKeyDoesNotExists() {
+
+		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifPresent());
+
+		assertThat(nativeConnection.exists(KEY_1), is(false));
 	}
 }

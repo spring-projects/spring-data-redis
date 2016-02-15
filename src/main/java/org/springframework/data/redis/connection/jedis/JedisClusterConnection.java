@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.dao.DataAccessException;
@@ -61,10 +62,11 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
@@ -249,7 +251,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public byte[] randomKey() {
 
-		List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(topologyProvider.getTopology().getActiveMasterNodes());
+		List<RedisClusterNode> nodes = new ArrayList<RedisClusterNode>(topologyProvider.getTopology()
+				.getActiveMasterNodes());
 		Set<RedisNode> inspectedNodes = new HashSet<RedisNode>(nodes.size());
 
 		do {
@@ -591,6 +594,49 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			cluster.set(key, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOptions)
+	 */
+	@Override
+	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+
+		if (expiration == null || expiration.isPersitent()) {
+
+			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
+				set(key, value);
+			} else {
+
+				// BinaryCluster does not support set with nxxx and binary key/value pairs.
+				if (ObjectUtils.nullSafeEquals(SetOption.SET_IF_PRESENT, option)) {
+					throw new UnsupportedOperationException("Jedis does not support SET XX without PX or EX on BinaryCluster.");
+				}
+
+				setNX(key, value);
+			}
+		} else {
+
+			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
+
+				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, expiration.getTimeUnit())) {
+					pSetEx(key, expiration.getExpirationTime(), value);
+				} else {
+					setEx(key, expiration.getExpirationTime(), value);
+				}
+			} else {
+
+				byte[] nxxx = JedisConverters.toSetCommandNxXxArgument(option);
+				byte[] expx = JedisConverters.toSetCommandExPxArgument(expiration);
+
+				try {
+					cluster.set(key, value, nxxx, expx, expiration.getExpirationTime());
+				} catch (Exception ex) {
+					throw convertJedisAccessException(ex);
+				}
+			}
 		}
 	}
 
@@ -3432,7 +3478,8 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void clusterForget(final RedisClusterNode node) {
 
-		Set<RedisClusterNode> nodes = new LinkedHashSet<RedisClusterNode>(topologyProvider.getTopology().getActiveMasterNodes());
+		Set<RedisClusterNode> nodes = new LinkedHashSet<RedisClusterNode>(topologyProvider.getTopology()
+				.getActiveMasterNodes());
 		final RedisClusterNode nodeToRemove = topologyProvider.getTopology().lookup(node);
 		nodes.remove(nodeToRemove);
 
@@ -3536,8 +3583,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 		Assert.notNull(master, "Master cannot be null!");
 
-		final RedisClusterNode nodeToUse = topologyProvider.getTopology()
-				.lookup(master);
+		final RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(master);
 
 		return JedisConverters.toSetOfRedisClusterNodes(clusterCommandExecutor.executeCommandOnSingleNode(
 				new JedisClusterCommandCallback<List<String>>() {

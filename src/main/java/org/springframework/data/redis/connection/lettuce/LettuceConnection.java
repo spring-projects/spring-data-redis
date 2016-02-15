@@ -62,6 +62,7 @@ import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.ScanIteration;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -1213,6 +1214,30 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return;
 			}
 			getConnection().set(key, value);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOption)
+	 */
+	@Override
+	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceStatusResult(getAsyncConnection().set(key, value,
+						LettuceConverters.toSetArgs(expiration, option))));
+				return;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxStatusResult(getConnection().set(key, value,
+						LettuceConverters.toSetArgs(expiration, option))));
+				return;
+			}
+			getConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

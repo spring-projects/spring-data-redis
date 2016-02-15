@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.redis.core.types.Expiration;
 
 /**
  * String/Value-specific commands supported by Redis.
@@ -70,6 +72,18 @@ public interface RedisStringCommands {
 	 * @param value
 	 */
 	void set(byte[] key, byte[] value);
+
+	/**
+	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
+	 * depending on {@code options}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
+	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
+	 * @since 1.7
+	 */
+	void set(byte[] key, byte[] value, Expiration expiration, SetOption option);
 
 	/**
 	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
@@ -278,4 +292,61 @@ public interface RedisStringCommands {
 	 * @return
 	 */
 	Long strLen(byte[] key);
+
+	/**
+	 * {@code SET} command arguments for {@code NX}, {@code XX}.
+	 * 
+	 * @author Christoph Strobl
+	 * @since 1.7
+	 */
+	public static enum SetOption {
+
+		/**
+		 * Do not set any additional command argument.
+		 * 
+		 * @return
+		 */
+		UPSERT,
+
+		/**
+		 * {@code NX}
+		 * 
+		 * @return
+		 */
+		SET_IF_ABSENT,
+
+		/**
+		 * {@code XX}
+		 * 
+		 * @return
+		 */
+		SET_IF_PRESENT;
+
+		/**
+		 * Do not set any additional command argument.
+		 * 
+		 * @return
+		 */
+		public static SetOption upsert() {
+			return UPSERT;
+		}
+
+		/**
+		 * {@code XX}
+		 * 
+		 * @return
+		 */
+		public static SetOption ifPresent() {
+			return SET_IF_PRESENT;
+		}
+
+		/**
+		 * {@code NX}
+		 * 
+		 * @return
+		 */
+		public static SetOption ifAbsent() {
+			return SET_IF_ABSENT;
+		}
+	}
 }

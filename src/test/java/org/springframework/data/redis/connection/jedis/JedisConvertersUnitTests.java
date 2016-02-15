@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
@@ -255,6 +257,56 @@ public class JedisConvertersUnitTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
 		JedisConverters.boundaryToBytesForZRange(Range.range().gt(new Date()).getMin(), null);
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void toSetCommandExPxOptionShouldReturnEXforSeconds() {
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)), equalTo(JedisConverters.toBytes("EX")));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
+
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)),
+				equalTo(JedisConverters.toBytes("PX")));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void toSetCommandExPxOptionShouldReturnEmptyArrayForNull() {
+		assertThat(JedisConverters.toSetCommandExPxArgument(null), equalTo(new byte[] {}));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()), equalTo(JedisConverters.toBytes("NX")));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()), equalTo(JedisConverters.toBytes("XX")));
+	}
+
+	/**
+	 * @see DATAREDIS-316
+	 */
+	@Test
+	public void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()), equalTo(new byte[] {}));
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {
