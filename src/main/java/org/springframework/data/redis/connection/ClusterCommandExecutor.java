@@ -242,8 +242,11 @@ public class ClusterCommandExecutor implements DisposableBean {
 							exceptions.put(entry.getKey(), ex != null ? ex : e.getCause());
 						} catch (InterruptedException e) {
 
+							Thread.currentThread().interrupt();
+
 							RuntimeException ex = convertToDataAccessExeption((Exception) e.getCause());
 							exceptions.put(entry.getKey(), ex != null ? ex : e.getCause());
+							break;
 						}
 					}
 				}

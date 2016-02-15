@@ -67,6 +67,7 @@ import org.springframework.util.ErrorHandler;
  * @author Jennifer Hickey
  * @author Way Joke
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class RedisMessageListenerContainer implements InitializingBean, DisposableBean, BeanNameAware, SmartLifecycle {
 
@@ -204,6 +205,9 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 						monitor.wait(initWait);
 					} catch (InterruptedException e) {
 						// stop waiting
+						Thread.currentThread().interrupt();
+						running = false;
+						return;
 					}
 				}
 			}
@@ -658,6 +662,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 				Thread.sleep(this.recoveryInterval);
 			} catch (InterruptedException interEx) {
 				logger.debug("Thread interrupted while sleeping the recovery interval");
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
@@ -700,7 +705,8 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 								try {
 									Thread.sleep(WAIT);
 								} catch (InterruptedException ex) {
-									done = true;
+									Thread.currentThread().interrupt();
+									return;
 								}
 							}
 						}
@@ -730,7 +736,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 				boolean asyncConnection = ConnectionUtils.isAsync(connectionFactory);
 
-				// NB: async drivers' Xsubscribe calls block, so we notify the RDMLC before performing the actual subscription.
+				// NB: sync drivers' Xsubscribe calls block, so we notify the RDMLC before performing the actual subscription.
 				if (!asyncConnection) {
 					synchronized (monitor) {
 						monitor.notify();
@@ -849,6 +855,7 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 								localMonitor.wait(subscriptionWait);
 							} catch (InterruptedException e) {
 								// Stop waiting
+								Thread.currentThread().interrupt();
 							}
 						}
 						if (!subscriptionTaskRunning) {
@@ -1004,16 +1011,18 @@ public class RedisMessageListenerContainer implements InitializingBean, Disposab
 
 			long startTime = System.currentTimeMillis();
 
-			while (!timedOut(startTime, timeout)) {
-				if (condition.passes()) {
-					return true;
-				}
-				try {
+			try {
+				while (!timedOut(startTime, timeout)) {
+					if (condition.passes()) {
+						return true;
+					}
+
 					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
 				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
+
 			return false;
 		}
 
