@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
+import com.lambdaworks.redis.resource.ClientResources;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -50,6 +51,7 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private String password;
 	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
 	private RedisSentinelConfiguration sentinelConfiguration;
+	private ClientResources clientResources;
 
 	/**
 	 * Constructs a new <code>DefaultLettucePool</code> instance with default settings.
@@ -101,7 +103,14 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 
 	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
-		this.client = new RedisClient(getRedisURI());
+
+		if(clientResources != null) {
+			this.client = RedisClient.create(clientResources, getRedisURI());
+		}
+		else {
+			this.client = RedisClient.create(getRedisURI());
+		}
+
 		client.setDefaultTimeout(timeout, TimeUnit.MILLISECONDS);
 		this.internalPool = new GenericObjectPool<RedisAsyncConnection>(new LettuceFactory(client, dbIndex), poolConfig);
 	}
@@ -271,6 +280,24 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	 */
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
+	}
+
+	/**
+	 * Returns the client resources to reuse the client infrastructure.
+	 * @return client resources
+	 * @since 1.7
+     */
+	public ClientResources getClientResources() {
+		return clientResources;
+	}
+
+	/**
+	 * Sets the client resources to reuse the client infrastructure.
+	 * @param clientResources
+	 * @since 1.7
+     */
+	public void setClientResources(ClientResources clientResources) {
+		this.clientResources = clientResources;
 	}
 
 	@SuppressWarnings("rawtypes")

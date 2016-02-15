@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
@@ -40,6 +42,7 @@ import com.lambdaworks.redis.RedisException;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceConnectionFactoryTests {
 
@@ -51,6 +54,7 @@ public class LettuceConnectionFactoryTests {
 	public void setUp() {
 
 		factory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		factory.setClientResources(TestClientResources.get());
 		factory.afterPropertiesSet();
 		factory.setShutdownTimeout(0);
 		connection = new DefaultStringRedisConnection(factory.getConnection());
@@ -122,6 +126,7 @@ public class LettuceConnectionFactoryTests {
 	public void testSelectDb() {
 
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+		factory2.setClientResources(TestClientResources.get());
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
@@ -224,6 +229,7 @@ public class LettuceConnectionFactoryTests {
 	@Test
 	public void testCreateFactoryWithPool() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
+		pool.setClientResources(TestClientResources.get());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
@@ -279,6 +285,7 @@ public class LettuceConnectionFactoryTests {
 	public void dbIndexShouldBePropagatedCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
+		factory.setClientResources(TestClientResources.get());
 		factory.setDatabase(2);
 		factory.afterPropertiesSet();
 
@@ -295,6 +302,27 @@ public class LettuceConnectionFactoryTests {
 			assertThat(connectionToDbIndex2.get(key), notNullValue());
 		} finally {
 			connectionToDbIndex2.close();
+		}
+	}
+
+	/**
+	 * @see DATAREDIS-462
+	 */
+	@Test
+	public void factoryWorksWithoutClientResources() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory();
+		factory.setShutdownTimeout(0);
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+			assertThat(connection.ping(), is(equalTo("PONG")));
+		} finally {
+			connection.close();
 		}
 	}
 }

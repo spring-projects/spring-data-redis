@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.TestClientResources;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
@@ -42,6 +43,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
@@ -185,6 +187,7 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration(
 				CLUSTER_NODES));
+		lettuceConnectionFactory.setClientResources(TestClientResources.get());
 
 		lettuceConnectionFactory.afterPropertiesSet();
 
