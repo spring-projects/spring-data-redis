@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.TestClientResources;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -33,6 +34,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * @author Costin Leau
  * @author Jennifer Hickey
+ * @author Mark Paluch
  */
 public class PubSubTestParams {
 
@@ -61,6 +63,7 @@ public class PubSubTestParams {
 
 		// add Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
+		lettuceConnFactory.setClientResources(TestClientResources.get());
 		lettuceConnFactory.setPort(SettingsUtils.getPort());
 		lettuceConnFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnFactory.afterPropertiesSet();

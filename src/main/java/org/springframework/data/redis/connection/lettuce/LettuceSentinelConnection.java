@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.List;
 
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisSentinelAsyncConnection;
+import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.resource.ClientResources;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.NamedNode;
@@ -51,12 +53,26 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a client for the supplied {@code host} and {@code port}.
-	 * @param host hostname
+	 * @param host hostname must not be {@literal null}
 	 * @param port sentinel port
 	 */
 	public LettuceSentinelConnection(String host, int port) {
-		Assert.notNull(host, "Cannot created LettuceSentinelConnection using 'null' as host.");
-		redisClient = new RedisClient(host, port);
+		Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
+		redisClient = RedisClient.create(new RedisURI.Builder().redis(host, port).build());
+		init();
+	}
+
+	/**
+	 * Creates a {@link LettuceSentinelConnection} with a client for the supplied {@code host} and {@code port} and reuse
+	 * existing  {@code clientResources}.
+	 * @param clientResources must not be {@literal null}
+	 * @param host hostname must not be {@literal null}
+	 * @param port sentinel port
+	 */
+	public LettuceSentinelConnection(ClientResources clientResources, String host, int port) {
+		Assert.notNull(clientResources, "Cannot create LettuceSentinelConnection using 'null' as ClientResources.");
+		Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
+		redisClient = RedisClient.create(clientResources, new RedisURI.Builder().redis(host, port).build());
 		init();
 	}
 

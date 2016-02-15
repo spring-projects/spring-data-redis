@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 
 import java.util.Collection;
@@ -25,10 +27,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
+import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
@@ -53,6 +58,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public void setUp() {
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG);
+		lettuceConnectionFactory.setClientResources(TestClientResources.get());
 		lettuceConnectionFactory.setShareNativeConnection(false);
 		lettuceConnectionFactory.setShutdownTimeout(0);
 		lettuceConnectionFactory.afterPropertiesSet();
@@ -92,6 +98,27 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
 		assertThat(slaves.size(), is(2));
 		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+	}
+
+	/**
+	 * @see DATAREDIS-462
+	 */
+	@Test
+	public void factoryWorksWithoutClientResources() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG);
+		factory.setShutdownTimeout(0);
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
+
+		try {
+			assertThat(connection.ping(), is(equalTo("PONG")));
+		} finally {
+			connection.close();
+		}
 	}
 
 }

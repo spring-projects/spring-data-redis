@@ -85,8 +85,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Before
 	public void setUp() {
 
-		client = new RedisClusterClient(Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT)
-				.withTimeout(500, TimeUnit.MILLISECONDS).build());
+		client = RedisClusterClient.create(TestClientResources.get(),
+				Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT).withTimeout(100, TimeUnit.MILLISECONDS).build());
 		nativeConnection = client.connectCluster();
 		clusterConnection = new LettuceClusterConnection(client);
 	}
@@ -2079,29 +2079,23 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(values,
 				hasItems(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("b"), LettuceConverters.toBytes("c")));
-		assertThat(
-				values,
-				not(hasItems(LettuceConverters.toBytes("d"), LettuceConverters.toBytes("e"), LettuceConverters.toBytes("f"),
-						LettuceConverters.toBytes("g"))));
+		assertThat(values, not(hasItems(LettuceConverters.toBytes("d"), LettuceConverters.toBytes("e"),
+				LettuceConverters.toBytes("f"), LettuceConverters.toBytes("g"))));
 
 		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
 		assertThat(values, hasItems(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("b")));
 		assertThat(values, not(hasItem(LettuceConverters.toBytes("c"))));
 
 		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
-		assertThat(
-				values,
-				hasItems(LettuceConverters.toBytes("b"), LettuceConverters.toBytes("c"), LettuceConverters.toBytes("d"),
-						LettuceConverters.toBytes("e"), LettuceConverters.toBytes("f")));
+		assertThat(values, hasItems(LettuceConverters.toBytes("b"), LettuceConverters.toBytes("c"),
+				LettuceConverters.toBytes("d"), LettuceConverters.toBytes("e"), LettuceConverters.toBytes("f")));
 		assertThat(values, not(hasItems(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("g"))));
 
 		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("e"));
 		assertThat(values,
 				hasItems(LettuceConverters.toBytes("e"), LettuceConverters.toBytes("f"), LettuceConverters.toBytes("g")));
-		assertThat(
-				values,
-				not(hasItems(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("b"), LettuceConverters.toBytes("c"),
-						LettuceConverters.toBytes("d"))));
+		assertThat(values, not(hasItems(LettuceConverters.toBytes("a"), LettuceConverters.toBytes("b"),
+				LettuceConverters.toBytes("c"), LettuceConverters.toBytes("d"))));
 	}
 
 	/**
@@ -2279,8 +2273,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void clusterGetSlavesShouldReturnSlaveCorrectly() {
 
-		Set<RedisClusterNode> slaves = clusterConnection.clusterGetSlaves(new RedisClusterNode(CLUSTER_HOST,
-				MASTER_NODE_1_PORT));
+		Set<RedisClusterNode> slaves = clusterConnection
+				.clusterGetSlaves(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
 
 		assertThat(slaves.size(), is(1));
 		assertThat(slaves, hasItem(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT)));
