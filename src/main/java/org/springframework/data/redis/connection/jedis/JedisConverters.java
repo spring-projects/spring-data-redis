@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package org.springframework.data.redis.connection.jedis;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -29,7 +29,9 @@ import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters;
@@ -40,9 +42,11 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
@@ -71,11 +75,17 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
 	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
+	private static final Converter<Expiration, byte[]> EXPIRATION_TO_COMMAND_OPTION_CONVERTER;
+	private static final Converter<SetOption, byte[]> SET_OPTION_TO_COMMAND_OPTION_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
 	public static final byte[] POSITIVE_INFINITY_BYTES;
 	public static final byte[] NEGATIVE_INFINITY_BYTES;
+	private static final byte[] EX;
+	private static final byte[] PX;
+	private static final byte[] NX;
+	private static final byte[] XX;
 
 	static {
 
@@ -112,6 +122,46 @@ abstract public class JedisConverters extends Converters {
 				return new RedisClusterNode(JedisConverters.toString((byte[]) nodeInfo.get(0)),
 						((Number) nodeInfo.get(1)).intValue(), range);
 			}
+		};
+
+		EX = toBytes("EX");
+		PX = toBytes("PX");
+		EXPIRATION_TO_COMMAND_OPTION_CONVERTER = new Converter<Expiration, byte[]>() {
+
+			@Override
+			public byte[] convert(Expiration source) {
+
+				if (source == null || source.isPersitent()) {
+					return new byte[0];
+				}
+
+				if (ObjectUtils.nullSafeEquals(TimeUnit.MILLISECONDS, source.getTimeUnit())) {
+					return PX;
+				}
+
+				return EX;
+			}
+		};
+
+		NX = toBytes("NX");
+		XX = toBytes("XX");
+		SET_OPTION_TO_COMMAND_OPTION_CONVERTER = new Converter<RedisStringCommands.SetOption, byte[]>() {
+
+			@Override
+			public byte[] convert(SetOption source) {
+
+				switch (source) {
+					case UPSERT:
+						return new byte[0];
+					case SET_IF_ABSENT:
+						return NX;
+					case SET_IF_PRESENT:
+						return XX;
+				}
+
+				throw new IllegalArgumentException(String.format("Invalid argument %s for SetOption.", source));
+			}
+
 		};
 	}
 
@@ -320,6 +370,42 @@ abstract public class JedisConverters extends Converters {
 		}
 
 		return boundaryToBytes(boundary, toBytes("["), toBytes("("));
+	}
+
+	/**
+	 * Converts a given {@link Expiration} to the according {@code SET} command argument.<br />
+	 * <dl>
+	 * <dt>{@link TimeUnit#SECONDS}</dt>
+	 * <dd>{@code EX}</dd>
+	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
+	 * <dd>{@code PX}</dd>
+	 * </dl>
+	 * 
+	 * @param expiration
+	 * @return
+	 * @since 1.7
+	 */
+	public static byte[] toSetCommandExPxArgument(Expiration expiration) {
+		return EXPIRATION_TO_COMMAND_OPTION_CONVERTER.convert(expiration);
+	}
+
+	/**
+	 * Converts a given {@link SetOption} to the according {@code SET} command argument.<br />
+	 * <dl>
+	 * <dt>{@link SetOption#UPSERT}</dt>
+	 * <dd>{@code byte[0]}</dd>
+	 * <dt>{@link SetOption#SET_IF_ABSENT}</dt>
+	 * <dd>{@code NX}</dd>
+	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
+	 * <dd>{@code XX}</dd>
+	 * </dl>
+	 * 
+	 * @param option
+	 * @return
+	 * @since 1.7
+	 */
+	public static byte[] toSetCommandNxXxArgument(SetOption option) {
+		return SET_OPTION_TO_COMMAND_OPTION_CONVERTER.convert(option);
 	}
 
 	private static byte[] boundaryToBytes(Boundary boundary, byte[] inclPrefix, byte[] exclPrefix) {

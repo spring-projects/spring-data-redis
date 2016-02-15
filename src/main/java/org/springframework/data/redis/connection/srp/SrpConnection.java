@@ -46,6 +46,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 
@@ -873,6 +874,16 @@ public class SrpConnection extends AbstractRedisConnection {
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#set(byte[], byte[], org.springframework.data.redis.core.types.Expiration, org.springframework.data.redis.connection.RedisStringCommands.SetOption)
+	 */
+	@Override
+	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
+		throw new UnsupportedOperationException(
+				"SET with options is not supported for Srp. Please use SETNX, SETEX, PSETEX.");
 	}
 
 	public byte[] getSet(byte[] key, byte[] value) {
