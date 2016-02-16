@@ -18,11 +18,13 @@ package org.springframework.data.redis.core.types;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Expiration holds a value with its associated {@link TimeUnit}.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class Expiration {
@@ -112,6 +114,31 @@ public class Expiration {
 	}
 
 	/**
+	 * Creates new {@link Expiration} with the provided {@link TimeUnit}. Greater units than {@link TimeUnit#SECONDS} are
+	 * converted to {@link TimeUnit#SECONDS}. Units smaller than {@link TimeUnit#MILLISECONDS} are converted to
+	 * {@link TimeUnit#MILLISECONDS} and can lose precision since {@link TimeUnit#MILLISECONDS} is the smallest granularity
+	 * supported by Redis.
+	 *
+	 * @param expirationTime
+	 * @param timeUnit can be {@literal null}. Defaulted to {@link TimeUnit#SECONDS}
+	 * @return
+	 */
+	public static Expiration from(long expirationTime, TimeUnit timeUnit) {
+
+		if (ObjectUtils.nullSafeEquals(timeUnit, TimeUnit.MICROSECONDS)
+				|| ObjectUtils.nullSafeEquals(timeUnit, TimeUnit.NANOSECONDS)
+				|| ObjectUtils.nullSafeEquals(timeUnit, TimeUnit.MILLISECONDS)) {
+			return new Expiration(timeUnit.toMillis(expirationTime), TimeUnit.MILLISECONDS);
+		}
+
+		if (timeUnit != null) {
+			return new Expiration(timeUnit.toSeconds(expirationTime), TimeUnit.SECONDS);
+		}
+
+		return new Expiration(expirationTime, TimeUnit.SECONDS);
+	}
+
+	/**
 	 * Creates new persistent {@link Expiration}.
 	 * 
 	 * @return
@@ -123,7 +150,7 @@ public class Expiration {
 	/**
 	 * @return {@literal true} if {@link Expiration} is set to persistent.
 	 */
-	public boolean isPersitent() {
+	public boolean isPersistent() {
 		return expirationTime == -1;
 	}
 }

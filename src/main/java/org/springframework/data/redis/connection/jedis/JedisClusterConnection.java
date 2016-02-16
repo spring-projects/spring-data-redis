@@ -604,7 +604,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	@Override
 	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
-		if (expiration == null || expiration.isPersitent()) {
+		if (expiration == null || expiration.isPersistent()) {
 
 			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 				set(key, value);

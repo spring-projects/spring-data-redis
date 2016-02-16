@@ -131,7 +131,7 @@ abstract public class JedisConverters extends Converters {
 			@Override
 			public byte[] convert(Expiration source) {
 
-				if (source == null || source.isPersitent()) {
+				if (source == null || source.isPersistent()) {
 					return new byte[0];
 				}
 

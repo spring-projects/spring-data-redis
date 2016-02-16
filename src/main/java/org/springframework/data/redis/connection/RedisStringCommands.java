@@ -75,8 +75,10 @@ public interface RedisStringCommands {
 
 	/**
 	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
-	 * depending on {@code options}.
-	 * 
+	 * depending on {@code option}.
+	 * <p>
+	 * See http://redis.io/commands/set
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
