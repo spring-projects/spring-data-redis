@@ -628,7 +628,7 @@ abstract public class LettuceConverters extends Converters {
 	public static SetArgs toSetArgs(Expiration expiration, SetOption option) {
 
 		SetArgs args = new SetArgs();
-		if (expiration != null && !expiration.isPersitent()) {
+		if (expiration != null && !expiration.isPersistent()) {
 
 			switch (expiration.getTimeUnit()) {
 				case SECONDS:

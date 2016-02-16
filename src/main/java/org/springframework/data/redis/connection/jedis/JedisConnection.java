@@ -1147,7 +1147,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public void set(byte[] key, byte[] value, Expiration expiration, SetOption option) {
 
-		if (expiration == null || expiration.isPersitent()) {
+		if (expiration == null || expiration.isPersistent()) {
 
 			if (option == null || ObjectUtils.nullSafeEquals(SetOption.UPSERT, option)) {
 				set(key, value);
@@ -1194,7 +1194,7 @@ public class JedisConnection extends AbstractRedisConnection {
 						if (expiration.getExpirationTime() > Integer.MAX_VALUE) {
 
 							throw new IllegalArgumentException(
-									"Expiration.exprirationTime must be less than equals Integer.MAX_VALUE for pipeline in Jedis.");
+									"Expiration.expirationTime must be less than Integer.MAX_VALUE for pipeline in Jedis.");
 						}
 
 						pipeline(new JedisStatusResult(pipeline.set(key, value, nxxx, expx, (int) expiration.getExpirationTime())));
@@ -1204,7 +1204,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 						if (expiration.getExpirationTime() > Integer.MAX_VALUE) {
 							throw new IllegalArgumentException(
-									"Expiration.exprirationTime must be less than equals Integer.MAX_VALUE for transactions in Jedis.");
+									"Expiration.expirationTime must be less than Integer.MAX_VALUE for transactions in Jedis.");
 						}
 
 						transaction(new JedisStatusResult(transaction.set(key, value, nxxx, expx,
