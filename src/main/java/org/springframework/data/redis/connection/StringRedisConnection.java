@@ -24,6 +24,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
@@ -94,6 +95,20 @@ public interface StringRedisConnection extends RedisConnection {
 	List<String> mGet(String... keys);
 
 	void set(String key, String value);
+
+	/**
+	 * Set {@code value} for {@code key} applying timeouts from {@code expiration} if set and inserting/updating values
+	 * depending on {@code option}.
+	 * <p>
+	 * See http://redis.io/commands/set
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param expiration can be {@literal null}. Defaulted to {@link Expiration#persistent()}.
+	 * @param option can be {@literal null}. Defaulted to {@link SetOption#UPSERT}.
+	 * @since 1.7
+	 */
+	void set(String key, String value, Expiration expiration, SetOption option);
 
 	Boolean setNX(String key, String value);
 

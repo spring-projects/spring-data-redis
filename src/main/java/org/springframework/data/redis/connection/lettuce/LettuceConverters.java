@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -39,6 +40,7 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisServer;
+import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
@@ -47,6 +49,7 @@ import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -60,6 +63,7 @@ import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.cluster.models.partitions.Partitions;
 import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
+import com.lambdaworks.redis.protocol.SetArgs;
 
 /**
  * Lettuce type converters
@@ -612,6 +616,45 @@ abstract public class LettuceConverters extends Converters {
 	public static RedisClusterNode toRedisClusterNode(
 			com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode source) {
 		return CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER.convert(source);
+	}
+
+	/**
+	 * Converts a given {@link Expiration} and {@link SetOption} to the according {@link SetArgs}.<br />
+	 * 
+	 * @param expiration can be {@literal null}.
+	 * @param option can be {@literal null}.
+	 * @since 1.7
+	 */
+	public static SetArgs toSetArgs(Expiration expiration, SetOption option) {
+
+		SetArgs args = new SetArgs();
+		if (expiration != null && !expiration.isPersistent()) {
+
+			switch (expiration.getTimeUnit()) {
+				case SECONDS:
+					args.ex(expiration.getExpirationTime());
+					break;
+				default:
+					args.px(expiration.getConverted(TimeUnit.MILLISECONDS));
+					break;
+			}
+		}
+
+		if (option != null) {
+
+			switch (option) {
+				case SET_IF_ABSENT:
+					args.nx();
+					break;
+				case SET_IF_PRESENT:
+					args.xx();
+					break;
+				default:
+					break;
+			}
+		}
+
+		return args;
 	}
 
 }

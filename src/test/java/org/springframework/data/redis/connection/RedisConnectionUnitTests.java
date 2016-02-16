@@ -30,6 +30,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.ObjectUtils;
 
@@ -890,6 +891,11 @@ public class RedisConnectionUnitTests {
 		@Override
 		public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
 			delegate.migrate(key, target, dbIndex, option, timeout);
+		}
+
+		@Override
+		public void set(byte[] key, byte[] value, Expiration expiration, SetOption options) {
+			delegate.set(key, value, expiration, options);
 		}
 	}
 }
