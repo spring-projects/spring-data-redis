@@ -443,7 +443,7 @@ public class RedisTemplateTests<K, V> {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expire(key1, 250, TimeUnit.MILLISECONDS);
+		redisTemplate.expire(key1, 500, TimeUnit.MILLISECONDS);
 
 		assertTrue(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS) > 0l);
 		// Timeout is longer because expire will be 1 sec if pExpire not supported

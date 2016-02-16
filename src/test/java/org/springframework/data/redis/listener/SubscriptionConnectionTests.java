@@ -135,9 +135,11 @@ public class SubscriptionConnectionTests {
 			container.afterPropertiesSet();
 			container.start();
 
-			// Need to sleep shortly as jedis cannot deal propery with multiple repsonses within one connection
-			// @see https://github.com/xetorthio/jedis/issues/186
-			Thread.sleep(1000);
+			if(connectionFactory instanceof JedisConnectionFactory) {
+				// Need to sleep shortly as jedis cannot deal propery with multiple repsonses within one connection
+				// @see https://github.com/xetorthio/jedis/issues/186
+				Thread.sleep(100);
+			}
 
 			container.stop();
 			containers.add(container);

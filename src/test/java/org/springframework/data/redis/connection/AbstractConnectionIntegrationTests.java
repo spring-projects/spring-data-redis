@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -340,10 +341,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assumeTrue(RedisVersionUtils.atLeast("2.6", byteConnection));
 		initConnection();
 		final AtomicBoolean scriptDead = new AtomicBoolean(false);
+		final CountDownLatch sync = new CountDownLatch(1);
 		Thread th = new Thread(new Runnable() {
 			public void run() {
 				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(connectionFactory.getConnection());
 				try {
+					sync.countDown();
 					conn2.eval("local time=1 while time < 10000000000 do time=time+1 end", ReturnType.BOOLEAN, 0);
 				} catch (DataAccessException e) {
 					scriptDead.set(true);
@@ -352,7 +355,8 @@ public abstract class AbstractConnectionIntegrationTests {
 			}
 		});
 		th.start();
-		Thread.sleep(1000);
+		sync.await(2, TimeUnit.SECONDS);
+		Thread.sleep(200);
 		connection.scriptKill();
 		getResults();
 		assertTrue(waitFor(new TestCondition() {
@@ -377,11 +381,10 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPersist() throws Exception {
 		connection.set("exp3", "true");
-		actual.add(connection.expire("exp3", 1));
+		actual.add(connection.expire("exp3", 30));
 		actual.add(connection.persist("exp3"));
-		Thread.sleep(1500);
-		actual.add(connection.exists("exp3"));
-		verifyResults(Arrays.asList(new Object[] { true, true, true }));
+		actual.add(connection.ttl("exp3"));
+		verifyResults(Arrays.asList(new Object[] { true, true, -1L }));
 	}
 
 	@Test
@@ -411,7 +414,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBRPopTimeout() throws Exception {
 		actual.add(connection.bRPop(1, "alist"));
-		Thread.sleep(1500l);
 		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
@@ -419,7 +421,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBLPopTimeout() throws Exception {
 		actual.add(connection.bLPop(1, "alist"));
-		Thread.sleep(1500l);
 		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
@@ -427,7 +428,6 @@ public abstract class AbstractConnectionIntegrationTests {
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testBRPopLPushTimeout() throws Exception {
 		actual.add(connection.bRPopLPush(1, "alist", "foo"));
-		Thread.sleep(1500l);
 		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
@@ -630,11 +630,16 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Thread th = new Thread(new Runnable() {
 			public void run() {
-				// sleep 1/2 second to let the registration happen
-				try {
+				// sync to let the registration happen
+				waitFor(new TestCondition() {
+					@Override
+					public boolean passes() {
+						return connection.isSubscribed();
+					}
+				}, 2000);
+				try  {
 					Thread.sleep(500);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
+				} catch (InterruptedException o_O) {
 				}
 
 				// open a new connection
@@ -678,11 +683,17 @@ public abstract class AbstractConnectionIntegrationTests {
 
 		Thread th = new Thread(new Runnable() {
 			public void run() {
-				// sleep 1/2 second to let the registration happen
-				try {
+				// sync to let the registration happen
+				waitFor(new TestCondition() {
+					@Override
+					public boolean passes() {
+						return connection.isSubscribed();
+					}
+				}, 2000);
+
+				try  {
 					Thread.sleep(500);
-				} catch (InterruptedException ex) {
-					throw new RuntimeException(ex);
+				} catch (InterruptedException o_O) {
 				}
 
 				// open a new connection
@@ -1004,7 +1015,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.get("testing"));
 		connection.restore("testing".getBytes(), 100l, (byte[]) results.get(0));
 		verifyResults(Arrays.asList(new Object[] { 1l, null }));
-		assertTrue(waitFor(new KeyExpired("testing"), 300l));
+		assertTrue(waitFor(new KeyExpired("testing"), 400l));
 	}
 
 	@Test
