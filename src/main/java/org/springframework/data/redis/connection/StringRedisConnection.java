@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author David Liu
+ * @author Mark Paluch
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -88,12 +89,45 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Long sort(String key, SortParameters params, String storeKey);
 
+	/**
+	 * Get the value of {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/get
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 */
 	String get(String key);
 
+	/**
+	 * Set value of {@code key} and return its old value.
+	 * <p>
+	 * See http://redis.io/commands/getset
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @return
+	 */
 	String getSet(String key, String value);
 
+	/**
+	 * Get the values of all given {@code keys}.
+	 * <p>
+	 * See http://redis.io/commands/mget
+	 *
+	 * @param keys
+	 * @return
+	 */
 	List<String> mGet(String... keys);
 
+	/**
+	 * Set {@code value} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/set
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 */
 	void set(String key, String value);
 
 	/**
@@ -110,8 +144,26 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	void set(String key, String value, Expiration expiration, SetOption option);
 
+	/**
+	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
+	 * <p>
+	 * See http://redis.io/commands/setnx
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @return
+	 */
 	Boolean setNX(String key, String value);
 
+	/**
+	 * Set the {@code value} and expiration in {@code seconds} for {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/setex
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param seconds
+	 * @param value must not be {@literal null}.
+	 */
 	void setEx(String key, long seconds, String value);
 
 	/**
@@ -119,51 +171,185 @@ public interface StringRedisConnection extends RedisConnection {
 	 * <p>
 	 * See http://redis.io/commands/psetex
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param milliseconds
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @since 1.3
 	 */
 	void pSetEx(String key, long milliseconds, String value);
 
+	/**
+	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
+	 * <p>
+	 * See http://redis.io/commands/mset
+	 *
+	 * @param tuple
+	 */
 	void mSetString(Map<String, String> tuple);
 
+	/**
+	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
+	 * not exist.
+	 * <p>
+	 * See http://redis.io/commands/msetnx
+	 *
+	 * @param tuple
+	 */
 	Boolean mSetNXString(Map<String, String> tuple);
 
+	/**
+	 * Increment value of {@code key} by 1.
+	 * <p>
+	 * See http://redis.io/commands/incr
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 */
 	Long incr(String key);
 
+	/**
+	 * Increment value of {@code key} by {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/incrby
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @return
+	 */
 	Long incrBy(String key, long value);
 
+	/**
+	 * Increment value of {@code key} by {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/incrbyfloat
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @return
+	 */
 	Double incrBy(String key, double value);
 
+	/**
+	 * Decrement value of {@code key} by 1.
+	 * <p>
+	 * See http://redis.io/commands/decr
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 */
 	Long decr(String key);
 
+	/**
+	 * Increment value of {@code key} by {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/decrby
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @return
+	 */
 	Long decrBy(String key, long value);
 
+	/**
+	 * Append a {@code value} to {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/append
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @return
+	 */
 	Long append(String key, String value);
 
+	/**
+	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * <p>
+	 * See http://redis.io/commands/getrange
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	String getRange(String key, long start, long end);
 
+	/**
+	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
+	 * <p>
+	 * See http://redis.io/commands/setrange
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param offset
+	 */
 	void setRange(String key, String value, long offset);
 
+	/**
+	 * Get the bit value at {@code offset} of value at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/getbit
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param offset
+	 * @return
+	 */
 	Boolean getBit(String key, long offset);
 
 	/**
 	 * Sets the bit at {@code offset} in value stored at {@code key}.
-	 * 
-	 * @param key
+	 * <p>
+	 * See http://redis.io/commands/setbit
+	 *
+	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @param value
 	 * @return the original bit value stored at {@code offset}.
 	 */
 	Boolean setBit(String key, long offset, boolean value);
 
+	/**
+	 * Count the number of set bits (population counting) in value stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/bitcount
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 */
 	Long bitCount(String key);
 
+	/**
+	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code begin} and
+	 * {@code end}.
+	 * <p>
+	 * See http://redis.io/commands/bitcount
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param begin
+	 * @param end
+	 * @return
+	 */
 	Long bitCount(String key, long begin, long end);
 
+	/**
+	 * Perform bitwise operations between strings.
+	 * <p>
+	 * See http://redis.io/commands/bitop
+	 *
+	 * @param op
+	 * @param destination
+	 * @param keys
+	 * @return
+	 */
 	Long bitOp(BitOperation op, String destination, String... keys);
 
+	/**
+	 * Get the length of the value stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/strlen
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 */
 	Long strLen(String key);
 
 	Long rPush(String key, String... values);
@@ -340,7 +526,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * @since 1.4
 	 * @see RedisHashCommands#hScan(byte[], ScanOptions)
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param options
 	 * @return
 	 */
@@ -349,7 +535,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * @since 1.4
 	 * @see RedisSetCommands#sScan(byte[], ScanOptions)
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param options
 	 * @return
 	 */
@@ -358,7 +544,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * @since 1.4
 	 * @see RedisZSetCommands#zScan(byte[], ScanOptions)
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param options
 	 * @return
 	 */
@@ -366,7 +552,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * @since 1.5
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
 	 * @return
@@ -375,7 +561,7 @@ public interface StringRedisConnection extends RedisConnection {
 
 	/**
 	 * @since 1.5
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param min
 	 * @param max
 	 * @param offset
@@ -387,7 +573,7 @@ public interface StringRedisConnection extends RedisConnection {
 	/**
 	 * Adds given {@literal values} to the HyperLogLog stored at given {@literal key}.
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param values
 	 * @return
 	 * @since 1.5

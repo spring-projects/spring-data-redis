@@ -25,6 +25,7 @@ import org.springframework.data.redis.core.types.Expiration;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisStringCommands {
 
@@ -37,7 +38,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/get
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	byte[] get(byte[] key);
@@ -47,7 +48,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/getset
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
 	 */
@@ -68,8 +69,8 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/set
 	 * 
-	 * @param key
-	 * @param value
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
 	 */
 	void set(byte[] key, byte[] value);
 
@@ -92,8 +93,8 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/setnx
 	 * 
-	 * @param key
-	 * @param value
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
 	 * @return
 	 */
 	Boolean setNX(byte[] key, byte[] value);
@@ -103,9 +104,9 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/setex
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param seconds
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 */
 	void setEx(byte[] key, long seconds, byte[] value);
 
@@ -114,9 +115,9 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/psetex
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param milliseconds
-	 * @param value
+	 * @param value must not be {@literal null}.
 	 * @since 1.3
 	 */
 	void pSetEx(byte[] key, long milliseconds, byte[] value);
@@ -145,7 +146,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/incr
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	Long incr(byte[] key);
@@ -155,7 +156,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/incrby
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
 	 */
@@ -166,7 +167,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/incrbyfloat
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
 	 */
@@ -177,7 +178,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/decr
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	Long decr(byte[] key);
@@ -187,7 +188,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/decrby
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
 	 */
@@ -198,7 +199,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/append
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @return
 	 */
@@ -209,7 +210,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/getrange
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param begin
 	 * @param end
 	 * @return
@@ -221,7 +222,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/setrange
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param offset
 	 */
@@ -232,7 +233,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/getbit
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @return
 	 */
@@ -243,7 +244,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/setbit
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @param value
 	 * @return the original bit value stored at {@code offset}.
@@ -255,7 +256,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/bitcount
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	Long bitCount(byte[] key);
@@ -266,7 +267,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/bitcount
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @param begin
 	 * @param end
 	 * @return
@@ -290,7 +291,7 @@ public interface RedisStringCommands {
 	 * <p>
 	 * See http://redis.io/commands/strlen
 	 * 
-	 * @param key
+	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	Long strLen(byte[] key);
