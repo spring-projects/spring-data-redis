@@ -186,8 +186,8 @@ public class RedisTemplateTests<K, V> {
 		});
 		List<V> list = Collections.singletonList(listValue);
 		Set<V> set = new HashSet<V>(Collections.singletonList(setValue));
-		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(Collections.singletonList(new DefaultTypedTuple<V>(
-				zsetValue, 1d)));
+		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(
+				Collections.singletonList(new DefaultTypedTuple<V>(zsetValue, 1d)));
 		assertThat(results, isEqual(Arrays.asList(new Object[] { value1, 1l, list, 1l, set, true, tupleSet })));
 	}
 
@@ -433,7 +433,8 @@ public class RedisTemplateTests<K, V> {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		redisTemplate.boundValueOps(key1).set(value1);
-		redisTemplate.expire(key1, 10, TimeUnit.MILLISECONDS);
+		redisTemplate.expire(key1, 500, TimeUnit.MILLISECONDS);
+
 		assertTrue(redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS) > 0l);
 		// Timeout is longer because expire will be 1 sec if pExpire not supported
 		waitFor(new TestCondition() {
@@ -695,10 +696,8 @@ public class RedisTemplateTests<K, V> {
 		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptText("return 'Hey'");
 		script.setResultType(String.class);
-		assertEquals(
-				"Hey",
-				redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
-						Collections.singletonList(key1)));
+		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
+				Collections.singletonList(key1)));
 	}
 
 	@Test
