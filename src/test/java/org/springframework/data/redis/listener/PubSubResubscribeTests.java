@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.data.redis.listener;
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
+import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -58,6 +60,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class PubSubResubscribeTests {
@@ -149,7 +152,12 @@ public class PubSubResubscribeTests {
 		container.afterPropertiesSet();
 		container.start();
 
-		Thread.sleep(1000);
+		waitFor(new TestCondition() {
+			@Override
+			public boolean passes() {
+				return container.getConnectionFactory().getConnection().isSubscribed();
+			}
+		}, 1000);
 	}
 
 	@After
@@ -175,14 +183,17 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(anotherListener, new PatternTopic(PATTERN));
 		container.removeMessageListener(adapter);
 
+		// Wait for async subscription tasks to setup
+		Thread.sleep(400);
+
 		// test no messages are sent just to patterns
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
 		// anotherListener receives both messages
 		List<String> msgs = new ArrayList<String>();
-		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
-		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
+		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
+		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 
 		assertEquals(2, msgs.size());
 		assertTrue(msgs.contains(payload1));
@@ -190,21 +201,29 @@ public class PubSubResubscribeTests {
 		msgs.clear();
 
 		// unsubscribed adapter did not receive message
-		assertNull(bag.poll(1, TimeUnit.SECONDS));
+		assertNull(bag.poll(500, TimeUnit.MILLISECONDS));
 
 		// bind original listener on another channel
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
+
+		// Wait for async subscription tasks to setup
+		Thread.sleep(400);
 
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(ANOTHER_CHANNEL, payload2);
 
 		// original listener received only one message on another channel
-		assertEquals(payload2, bag.poll(1, TimeUnit.SECONDS));
-		assertNull(bag.poll(1, TimeUnit.SECONDS));
+		msgs.clear();
+		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
+		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
+
+		assertTrue(msgs.contains(payload2));
+		assertTrue(msgs.contains(null));
 
 		// another listener receives messages on both channels
-		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
-		msgs.add(bag2.poll(1, TimeUnit.SECONDS));
+		msgs.clear();
+		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
+		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 		assertEquals(2, msgs.size());
 		assertTrue(msgs.contains(payload1));
 		assertTrue(msgs.contains(payload2));
@@ -225,6 +244,10 @@ public class PubSubResubscribeTests {
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
 		container.removeMessageListener(null, new ChannelTopic(CHANNEL));
 
+		// timing: There's currently no other way to synchronize
+		// than to hope the subscribe/unsubscribe are executed within the time.
+		Thread.sleep(400);
+
 		// Listener removed from channel
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
@@ -234,8 +257,8 @@ public class PubSubResubscribeTests {
 		template.convertAndSend(ANOTHER_CHANNEL, anotherPayload2);
 
 		Set<String> set = new LinkedHashSet<String>();
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
+		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
 		assertFalse(set.contains(payload1));
 		assertFalse(set.contains(payload2));
@@ -259,15 +282,16 @@ public class PubSubResubscribeTests {
 				Arrays.asList(new Topic[] { new ChannelTopic(CHANNEL), new PatternTopic("s*") }));
 		container.start();
 
-		// Wait for async subscription tasks to setup
+		// timing: There's currently no other way to synchronize
+		// than to hope the subscribe/unsubscribe are executed within the time.
 		Thread.sleep(1000);
 
 		template.convertAndSend("somechannel", "HELLO");
 		template.convertAndSend(CHANNEL, "WORLD");
 
 		Set<String> set = new LinkedHashSet<String>();
-		set.add(bag.poll(1, TimeUnit.SECONDS));
-		set.add(bag.poll(1, TimeUnit.SECONDS));
+		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
+		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
 		assertEquals(new HashSet<String>(Arrays.asList(new String[] { "HELLO", "WORLD" })), set);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class SubscriptionConnectionTests {
@@ -135,9 +136,11 @@ public class SubscriptionConnectionTests {
 			container.afterPropertiesSet();
 			container.start();
 
-			// Need to sleep shortly as jedis cannot deal propery with multiple repsonses within one connection
-			// @see https://github.com/xetorthio/jedis/issues/186
-			Thread.sleep(1000);
+			if (connectionFactory instanceof JedisConnectionFactory) {
+				// Need to sleep shortly as jedis cannot deal propery with multiple repsonses within one connection
+				// @see https://github.com/xetorthio/jedis/issues/186
+				Thread.sleep(100);
+			}
 
 			container.stop();
 			containers.add(container);
