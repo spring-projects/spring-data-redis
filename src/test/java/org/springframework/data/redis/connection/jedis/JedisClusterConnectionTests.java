@@ -58,7 +58,6 @@ import org.springframework.data.redis.test.util.RedisClusterRule;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.exceptions.JedisDataException;
 
 /**
  * @author Christoph Strobl
@@ -102,7 +101,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		for (JedisPool pool : nativeConnection.getClusterNodes().values()) {
 			try {
 				pool.getResource().flushDB();
-			} catch (JedisDataException e) {
+			} catch (Exception e) {
 				// ignore this one since we cannot remove data from slaves
 			}
 		}
