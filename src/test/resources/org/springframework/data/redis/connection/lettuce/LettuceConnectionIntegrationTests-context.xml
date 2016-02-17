@@ -13,8 +13,8 @@
 		</property>
 		<property name="shutdownTimeout" value="0" />
 		<property name="clientResources">
-			<bean class="org.springframework.data.redis.connection.lettuce.TestClientResources"
-				factory-method="get" />
+			<bean class="org.springframework.data.redis.connection.lettuce.LettuceTestClientResources"
+				factory-method="getSharedClientResources" />
 		</property>
 	</bean>
 

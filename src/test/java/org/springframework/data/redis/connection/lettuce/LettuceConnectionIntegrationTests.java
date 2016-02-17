@@ -139,7 +139,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	public void testClosePooledConnectionWithShared() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(TestClientResources.get());
+		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
@@ -161,7 +161,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	public void testClosePooledConnectionNotShared() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(TestClientResources.get());
+		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShareNativeConnection(false);
@@ -181,7 +181,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	public void testCloseNonPooledConnectionNotShared() {
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
-		factory2.setClientResources(TestClientResources.get());
+		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory2.setShutdownTimeout(0);
 		factory2.setShareNativeConnection(false);
 		factory2.afterPropertiesSet();
@@ -201,7 +201,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	public void testCloseReturnBrokenResourceToPool() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(TestClientResources.get());
+		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
@@ -223,7 +223,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@Test
 	public void testSelectNotShared() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(TestClientResources.get());
+		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
@@ -252,7 +252,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				// Use a different factory to get a non-shared native conn for blocking script
 				final LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(),
 						SettingsUtils.getPort());
-				factory2.setClientResources(TestClientResources.get());
+				factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
 				factory2.setShutdownTimeout(0);
 				factory2.afterPropertiesSet();
 				DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
@@ -282,7 +282,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		verifyResults(Arrays.asList(new Object[] { true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
-		factory2.setClientResources(TestClientResources.get());
+		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();

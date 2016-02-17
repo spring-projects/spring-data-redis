@@ -32,7 +32,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.TestClientResources;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
@@ -63,7 +63,7 @@ public class MultithreadedRedisTemplateTests {
 		jedis.afterPropertiesSet();
 
 		LettuceConnectionFactory lettuce = new LettuceConnectionFactory();
-		lettuce.setClientResources(TestClientResources.get());
+		lettuce.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuce.setPort(6379);
 		lettuce.afterPropertiesSet();
 

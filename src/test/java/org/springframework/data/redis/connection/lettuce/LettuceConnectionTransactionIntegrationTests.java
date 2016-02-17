@@ -46,7 +46,7 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 		verifyResults(Arrays.asList(new Object[] { true }));
 		// Lettuce does not support select when using shared conn, use a new conn factory
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory();
-		factory2.setClientResources(TestClientResources.get());
+		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();

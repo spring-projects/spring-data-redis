@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
@@ -54,7 +54,7 @@ public class LettuceConnectionFactoryTests {
 	public void setUp() {
 
 		factory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
-		factory.setClientResources(TestClientResources.get());
+		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.afterPropertiesSet();
 		factory.setShutdownTimeout(0);
 		connection = new DefaultStringRedisConnection(factory.getConnection());
@@ -126,7 +126,7 @@ public class LettuceConnectionFactoryTests {
 	public void testSelectDb() {
 
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
-		factory2.setClientResources(TestClientResources.get());
+		factory2.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory2.setShutdownTimeout(0);
 		factory2.setDatabase(1);
 		factory2.afterPropertiesSet();
@@ -229,7 +229,7 @@ public class LettuceConnectionFactoryTests {
 	@Test
 	public void testCreateFactoryWithPool() {
 		DefaultLettucePool pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		pool.setClientResources(TestClientResources.get());
+		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(pool);
 		factory2.setShutdownTimeout(0);
@@ -285,7 +285,7 @@ public class LettuceConnectionFactoryTests {
 	public void dbIndexShouldBePropagatedCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
-		factory.setClientResources(TestClientResources.get());
+		factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		factory.setDatabase(2);
 		factory.afterPropertiesSet();
 

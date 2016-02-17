@@ -23,44 +23,43 @@ import com.lambdaworks.redis.resource.DefaultClientResources;
 
 /**
  * Client-Resources suitable for testing. Uses {@link TestEventLoopGroupProvider} to preserve the event loop groups
- * between tests. Every time a new {@link TestClientResources} instance is created, a
+ * between tests. Every time a new {@link LettuceTestClientResources} instance is created, a
  * {@link Runtime#addShutdownHook(Thread) shutdown hook} is added to close the client resources.
  * 
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
-public class TestClientResources {
+public class LettuceTestClientResources {
 
-	private ClientResources resources = create();
-	private final static TestClientResources instance = new TestClientResources();
+	private static final ClientResources SHARED_CLIENT_RESOURCES;
 
-	/**
-	 * Prevent instances by others.
-	 */
-	private TestClientResources() {}
+	static {
 
-	private ClientResources create() {
-
-        final DefaultClientResources resources = new DefaultClientResources.Builder()
+		SHARED_CLIENT_RESOURCES = new DefaultClientResources.Builder()
 				.eventLoopGroupProvider(new TestEventLoopGroupProvider()).build();
+		appendShutdownHook();
+	}
+
+	private LettuceTestClientResources() {}
+
+	private static void appendShutdownHook() {
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				try {
-					resources.shutdown(0, 0, TimeUnit.MILLISECONDS).get(1, TimeUnit.SECONDS);
+					SHARED_CLIENT_RESOURCES.shutdown(0, 0, TimeUnit.MILLISECONDS).get(1, TimeUnit.SECONDS);
 				} catch (Exception o_O) {
-                    // ignore
+					// ignore
 				}
 			}
 		});
-
-		return resources;
 	}
 
 	/**
 	 * @return the client resources.
 	 */
-	public static ClientResources get() {
-		return instance.resources;
+	public static ClientResources getSharedClientResources() {
+		return SHARED_CLIENT_RESOURCES;
 	}
 }

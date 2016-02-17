@@ -85,7 +85,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Before
 	public void setUp() {
 
-		client = RedisClusterClient.create(TestClientResources.get(),
+		client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
 				Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT).withTimeout(100, TimeUnit.MILLISECONDS).build());
 		nativeConnection = client.connectCluster();
 		clusterConnection = new LettuceClusterConnection(client);

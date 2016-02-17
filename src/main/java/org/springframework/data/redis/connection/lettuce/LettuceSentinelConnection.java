@@ -18,10 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import java.io.IOException;
 import java.util.List;
 
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisSentinelAsyncConnection;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.resource.ClientResources;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.NamedNode;
@@ -29,6 +25,11 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.util.Assert;
+
+import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisSentinelAsyncConnection;
+import com.lambdaworks.redis.RedisURI.Builder;
+import com.lambdaworks.redis.resource.ClientResources;
 
 /**
  * @author Christoph Strobl
@@ -45,6 +46,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a dedicated client for a supplied {@link RedisNode}.
+	 * 
 	 * @param sentinel The sentinel to connect to.
 	 */
 	public LettuceSentinelConnection(RedisNode sentinel) {
@@ -53,31 +55,38 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a client for the supplied {@code host} and {@code port}.
-	 * @param host hostname must not be {@literal null}
-	 * @param port sentinel port
+	 * 
+	 * @param host must not be {@literal null}.
+	 * @param port sentinel port.
 	 */
 	public LettuceSentinelConnection(String host, int port) {
+
 		Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
-		redisClient = RedisClient.create(new RedisURI.Builder().redis(host, port).build());
+
+		redisClient = RedisClient.create(Builder.redis(host, port).build());
 		init();
 	}
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a client for the supplied {@code host} and {@code port} and reuse
-	 * existing  {@code clientResources}.
-	 * @param clientResources must not be {@literal null}
-	 * @param host hostname must not be {@literal null}
-	 * @param port sentinel port
+	 * existing {@link ClientResources}.
+	 * 
+	 * @param host must not be {@literal null}.
+	 * @param port sentinel port.
+	 * @param clientResources must not be {@literal null}.
 	 */
-	public LettuceSentinelConnection(ClientResources clientResources, String host, int port) {
+	public LettuceSentinelConnection(String host, int port, ClientResources clientResources) {
+
 		Assert.notNull(clientResources, "Cannot create LettuceSentinelConnection using 'null' as ClientResources.");
 		Assert.notNull(host, "Cannot create LettuceSentinelConnection using 'null' as host.");
-		redisClient = RedisClient.create(clientResources, new RedisURI.Builder().redis(host, port).build());
+
+		redisClient = RedisClient.create(clientResources, Builder.redis(host, port).build());
 		init();
 	}
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} using a supplied {@link RedisClient}.
+	 * 
 	 * @param redisClient
 	 */
 	public LettuceSentinelConnection(RedisClient redisClient) {
@@ -89,6 +98,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} using a supplied redis connection.
+	 * 
 	 * @param connection native Lettuce connection, must not be {@literal null}
 	 */
 	protected LettuceSentinelConnection(RedisSentinelAsyncConnection<String, String> connection) {
@@ -181,8 +191,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor.");
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor.");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor.");
-		connection.monitor(server.getName(), server.getHost(), server.getPort().intValue(), server.getQuorum()
-				.intValue());
+		connection.monitor(server.getName(), server.getHost(), server.getPort().intValue(), server.getQuorum().intValue());
 	}
 
 	/*
@@ -194,7 +203,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		connection.close();
 		connection = null;
 
-		if(redisClient != null) {
+		if (redisClient != null) {
 			redisClient.shutdown();
 		}
 	}
@@ -208,7 +217,6 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	private RedisSentinelAsyncConnection<String, String> connectSentinel() {
 		return redisClient.connectSentinelAsync();
 	}
-
 
 	@Override
 	public boolean isOpen() {

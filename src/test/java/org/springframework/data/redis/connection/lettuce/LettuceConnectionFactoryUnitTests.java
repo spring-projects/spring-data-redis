@@ -58,7 +58,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(TestClientResources.get());
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -73,7 +73,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void timeoutShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(TestClientResources.get());
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setTimeout(1000);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -97,7 +97,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void passwordShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(TestClientResources.get());
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);

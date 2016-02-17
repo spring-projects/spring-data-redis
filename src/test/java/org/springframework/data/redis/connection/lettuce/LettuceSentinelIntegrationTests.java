@@ -58,7 +58,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public void setUp() {
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(SENTINEL_CONFIG);
-		lettuceConnectionFactory.setClientResources(TestClientResources.get());
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuceConnectionFactory.setShareNativeConnection(false);
 		lettuceConnectionFactory.setShutdownTimeout(0);
 		lettuceConnectionFactory.afterPropertiesSet();

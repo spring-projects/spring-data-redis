@@ -31,16 +31,17 @@ import io.netty.util.concurrent.Promise;
  * {@link Runtime#addShutdownHook(Thread) shutdown hook} is added to close the resources.
  * 
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class TestEventLoopGroupProvider extends DefaultEventLoopGroupProvider {
 
-    public static final int NUMBER_OF_THREADS = 10;
+	private static final int NUMBER_OF_THREADS = 10;
 
-    public TestEventLoopGroupProvider() {
+	public TestEventLoopGroupProvider() {
 
-        super(NUMBER_OF_THREADS);
+		super(NUMBER_OF_THREADS);
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				try {
@@ -55,7 +56,7 @@ class TestEventLoopGroupProvider extends DefaultEventLoopGroupProvider {
 	@Override
 	public Promise<Boolean> release(EventExecutorGroup eventLoopGroup, long quietPeriod, long timeout, TimeUnit unit) {
 
-        DefaultPromise<Boolean> result = new DefaultPromise<Boolean>(ImmediateEventExecutor.INSTANCE);
+		DefaultPromise<Boolean> result = new DefaultPromise<Boolean>(ImmediateEventExecutor.INSTANCE);
 		result.setSuccess(true);
 
 		return result;

@@ -33,7 +33,7 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.TestClientResources;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
@@ -187,7 +187,7 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 
 		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration(
 				CLUSTER_NODES));
-		lettuceConnectionFactory.setClientResources(TestClientResources.get());
+		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 
 		lettuceConnectionFactory.afterPropertiesSet();
 

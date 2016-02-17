@@ -36,7 +36,7 @@ public class TransactionalLettuceItegrationTests extends AbstractTransactionalTe
 		public LettuceConnectionFactory redisConnectionFactory() {
 
 			LettuceConnectionFactory factory = new LettuceConnectionFactory();
-			factory.setClientResources(TestClientResources.get());
+			factory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 			factory.setHostName("localhost");
 			factory.setPort(6379);
 			return factory;

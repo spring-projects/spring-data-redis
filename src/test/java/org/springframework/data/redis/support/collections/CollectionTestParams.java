@@ -29,7 +29,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisPool;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.TestClientResources;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -181,7 +181,7 @@ public abstract class CollectionTestParams {
 
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
-		lettuceConnFactory.setClientResources(TestClientResources.get());
+		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		lettuceConnFactory.setPort(SettingsUtils.getPort());
 		lettuceConnFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnFactory.afterPropertiesSet();

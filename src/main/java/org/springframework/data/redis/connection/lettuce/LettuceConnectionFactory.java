@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.resource.ClientResources;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -52,6 +51,7 @@ import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
+import com.lambdaworks.redis.resource.ClientResources;
 
 /**
  * Connection factory creating <a href="http://github.com/mp911de/lettuce">Lettuce</a>-based connections.
@@ -391,24 +391,6 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	/**
-	 * Returns the client resources to reuse the client infrastructure.
-	 * @return client resources
-	 * @since 1.7
-     */
-	public ClientResources getClientResources() {
-		return clientResources;
-	}
-
-	/**
-	 * Sets the client resources to reuse the client infrastructure.
-	 * @param clientResources
-	 * @since 1.7
-     */
-	public void setClientResources(ClientResources clientResources) {
-		this.clientResources = clientResources;
-	}
-
-	/**
 	 * Returns the shutdown timeout for shutting down the RedisClient (in milliseconds).
 	 * 
 	 * @return shutdown timeout
@@ -426,6 +408,27 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public void setShutdownTimeout(long shutdownTimeout) {
 		this.shutdownTimeout = shutdownTimeout;
+	}
+
+	/**
+	 * Get the {@link ClientResources} to reuse infrastructure.
+	 * 
+	 * @return {@literal null} if not set.
+	 * @since 1.7
+	 */
+	public ClientResources getClientResources() {
+		return clientResources;
+	}
+
+	/**
+	 * Sets the {@link ClientResources} to reuse the client infrastructure. <br />
+	 * Set to {@literal null} to not share resources.
+	 * 
+	 * @param clientResources can be {@literal null}.
+	 * @since 1.7
+	 */
+	public void setClientResources(ClientResources clientResources) {
+		this.clientResources = clientResources;
 	}
 
 	/**
@@ -488,8 +491,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private AbstractRedisClient createRedisClient() {
 
 		if (isRedisSentinelAware()) {
+
 			RedisURI redisURI = getSentinelRedisURI();
-			if(clientResources == null) {
+			if (clientResources == null) {
 				return RedisClient.create(redisURI);
 			}
 
@@ -511,10 +515,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			}
 
 			RedisClusterClient clusterClient;
-			if(clientResources == null) {
+			if (clientResources == null) {
 				clusterClient = RedisClusterClient.create(initialUris);
-			}
-			else {
+			} else {
 				clusterClient = RedisClusterClient.create(clientResources, initialUris);
 			}
 
@@ -534,7 +537,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			builder.withPassword(password);
 		}
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
-		if(clientResources != null) {
+		if (clientResources != null) {
 			return RedisClient.create(clientResources, builder.build());
 		}
 

@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.TestClientResources;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.core.script.AbstractDefaultScriptExecutorTests;
 import org.springframework.data.redis.core.script.DefaultScriptExecutor;
 
@@ -38,7 +38,7 @@ public class LettuceDefaultScriptExecutorTests extends AbstractDefaultScriptExec
 	public void setup() {
 
 		connectionFactory = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
-		connectionFactory.setClientResources(TestClientResources.get());
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		connectionFactory.setShutdownTimeout(0);
 		connectionFactory.afterPropertiesSet();
 	}

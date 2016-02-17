@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.lettuce;
 
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.resource.ClientResources;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -31,6 +30,7 @@ import org.springframework.util.Assert;
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.resource.ClientResources;
 
 /**
  * Default implementation of {@link LettucePool}.
@@ -41,7 +41,7 @@ import com.lambdaworks.redis.RedisURI;
  */
 public class DefaultLettucePool implements LettucePool, InitializingBean {
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private GenericObjectPool<RedisAsyncConnection> internalPool;
 	private RedisClient client;
 	private int dbIndex = 0;
@@ -104,10 +104,9 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
 
-		if(clientResources != null) {
+		if (clientResources != null) {
 			this.client = RedisClient.create(clientResources, getRedisURI());
-		}
-		else {
+		} else {
 			this.client = RedisClient.create(getRedisURI());
 		}
 
@@ -283,19 +282,22 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	}
 
 	/**
-	 * Returns the client resources to reuse the client infrastructure.
-	 * @return client resources
+	 * Get the {@link ClientResources} to reuse infrastructure.
+	 * 
+	 * @return {@literal null} if not set.
 	 * @since 1.7
-     */
+	 */
 	public ClientResources getClientResources() {
 		return clientResources;
 	}
 
 	/**
-	 * Sets the client resources to reuse the client infrastructure.
-	 * @param clientResources
+	 * Sets the {@link ClientResources} to reuse the client infrastructure. <br />
+	 * Set to {@literal null} to not share resources.
+	 * 
+	 * @param clientResources can be {@literal null}.
 	 * @since 1.7
-     */
+	 */
 	public void setClientResources(ClientResources clientResources) {
 		this.clientResources = clientResources;
 	}
