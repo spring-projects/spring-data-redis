@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 import com.lambdaworks.redis.LettuceFutures;
 import com.lambdaworks.redis.RedisAsyncConnection;
@@ -114,8 +115,18 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public void destroy() {
+
 		resetConnection();
-		client.shutdown(shutdownTimeout, shutdownTimeout, TimeUnit.MILLISECONDS);
+
+		try {
+			client.shutdown(shutdownTimeout, shutdownTimeout, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+
+			if (log.isWarnEnabled()) {
+				log.warn((client != null ? ClassUtils.getShortName(client.getClass()) : "LettuceClient")
+						+ " did not shut down gracefully.", e);
+			}
+		}
 	}
 
 	/*
