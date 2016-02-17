@@ -16,20 +16,17 @@
 
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.hamcrest.core.Is.*;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.concurrent.Executor;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.SettingsUtils;
@@ -38,25 +35,27 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
-public class RedisMessageListenerContainerTest {
-
-	private JedisConnectionFactory connectionFactory;
-	private RedisMessageListenerContainer container;
+public class RedisMessageListenerContainerTests {
 
 	private final Object handler = new Object() {
+
 		@SuppressWarnings("unused")
-		public void handleMessage(Object message) {
-		}
+		public void handleMessage(Object message) {}
 	};
 
 	private final MessageListenerAdapter adapter = new MessageListenerAdapter(handler);
 
-	@Mock private Executor executor;
+	private JedisConnectionFactory connectionFactory;
+	private RedisMessageListenerContainer container;
+
+	private Executor executorMock;
 
 	@Before
-	public void before() throws Exception {
+	public void setUp() throws Exception {
+
+		executorMock = mock(Executor.class);
 
 		connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(SettingsUtils.getPort());
@@ -69,8 +68,15 @@ public class RedisMessageListenerContainerTest {
 		container.setConnectionFactory(connectionFactory);
 		container.setBeanName("container");
 		container.setTaskExecutor(new SyncTaskExecutor());
-		container.setSubscriptionExecutor(executor);
+		container.setSubscriptionExecutor(executorMock);
 		container.afterPropertiesSet();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+
+		container.destroy();
+		connectionFactory.destroy();
 	}
 
 	/*
@@ -82,13 +88,15 @@ public class RedisMessageListenerContainerTest {
 		final Thread main = Thread.currentThread();
 
 		// interrupt thread once Executor.execute is called
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
+
 			@Override
 			public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
+
 				main.interrupt();
 				return null;
 			}
-		}).when(executor).execute(any(Runnable.class));
+		}).when(executorMock).execute(any(Runnable.class));
 
 		container.addMessageListener(adapter, new ChannelTopic("a"));
 		container.start();
@@ -99,10 +107,4 @@ public class RedisMessageListenerContainerTest {
 		assertThat(container.isRunning(), is(false));
 	}
 
-	@After
-	public void tearDown() throws Exception {
-
-		container.destroy();
-		connectionFactory.destroy();
-	}
 }

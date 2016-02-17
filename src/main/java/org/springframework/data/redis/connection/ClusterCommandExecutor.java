@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,6 +156,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 
 	/**
 	 * Lookup node from the topology.
+	 * 
 	 * @param node
 	 * @return
 	 * @throws IllegalArgumentException in case the node could not be resolved to a topology-known node
@@ -163,7 +164,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 	private RedisClusterNode lookupNode(RedisClusterNode node) {
 		try {
 			return topologyProvider.getTopology().lookup(node);
-		}catch (ClusterStateFailureException e){
+		} catch (ClusterStateFailureException e) {
 			throw new IllegalArgumentException(String.format("Node %s is unknown to cluster", node), e);
 		}
 	}
@@ -192,10 +193,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(callback, "Callback must not be null!");
 		Assert.notNull(nodes, "Nodes must not be null!");
 
-
 		List<RedisClusterNode> resolvedRedisClusterNodes = new ArrayList<RedisClusterNode>();
 		ClusterTopology topology = topologyProvider.getTopology();
-		
+
 		for (final RedisClusterNode node : nodes) {
 			try {
 				resolvedRedisClusterNodes.add(topology.lookup(node));
