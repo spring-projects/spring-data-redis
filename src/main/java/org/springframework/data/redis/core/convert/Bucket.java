@@ -99,6 +99,13 @@ public class Bucket {
 	}
 
 	/**
+	 * @return the number of key-value mappings of the {@link Bucket}.
+	 */
+	public int size() {
+		return data.size();
+	}
+
+	/**
 	 * @return never {@literal null}.
 	 */
 	public Collection<byte[]> values() {
@@ -121,6 +128,12 @@ public class Bucket {
 		return Collections.unmodifiableMap(this.data);
 	}
 
+	/**
+	 * Extracts a bucket containing key/value pairs with the {@code prefix}.
+	 * 
+	 * @param prefix
+	 * @return
+	 */
 	public Bucket extract(String prefix) {
 
 		Bucket partial = new Bucket();

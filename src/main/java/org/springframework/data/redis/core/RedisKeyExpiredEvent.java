@@ -29,6 +29,11 @@ import org.springframework.data.redis.util.ByteUtils;
  */
 public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 
+	/**
+	 * Use {@literal UTF-8} as default charset.
+	 */
+	public static final Charset CHARSET = Charset.forName("UTF-8");
+
 	private final byte[][] args;
 	private final Object value;
 
@@ -62,7 +67,7 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 	public String getKeyspace() {
 
 		if (args.length >= 2) {
-			return new String(args[0], Charset.forName("UTF-8"));
+			return new String(args[0], CHARSET);
 		}
 
 		return null;

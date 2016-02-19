@@ -144,6 +144,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityReader#read(java.lang.Class, java.lang.Object)
 	 */
+	@Override
 	public <R> R read(Class<R> type, final RedisData source) {
 		return readInternal("", type, source);
 	}
@@ -288,10 +289,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 				if (association.getInverse().isCollectionLike()) {
 
-					Collection<Object> target = CollectionFactory.createCollection(association.getInverse().getType(),
-							association.getInverse().getComponentType(), 10);
-
 					Bucket bucket = source.getBucket().extract(currentPath + ".[");
+
+					Collection<Object> target = CollectionFactory.createCollection(association.getInverse().getType(),
+							association.getInverse().getComponentType(), bucket.size());
 
 					for (Entry<String, byte[]> entry : bucket.entrySet()) {
 
@@ -333,6 +334,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityWriter#write(java.lang.Object, java.lang.Object)
 	 */
+	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void write(Object source, final RedisData sink) {
 
@@ -408,8 +410,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					writeCollection(keyspace, propertyStringPath, (Collection<?>) accessor.getProperty(persistentProperty),
 							persistentProperty.getTypeInformation().getComponentType(), sink);
 				} else if (persistentProperty.isEntity()) {
-					writeInternal(keyspace, propertyStringPath, accessor.getProperty(persistentProperty), persistentProperty
-							.getTypeInformation().getActualType(), sink);
+					writeInternal(keyspace, propertyStringPath, accessor.getProperty(persistentProperty),
+							persistentProperty.getTypeInformation().getActualType(), sink);
 				} else {
 
 					Object propertyValue = accessor.getProperty(persistentProperty);
@@ -442,8 +444,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 				if (association.getInverse().isCollectionLike()) {
 
-					KeyValuePersistentEntity<?> ref = mappingContext.getPersistentEntity(association.getInverse()
-							.getTypeInformation().getComponentType().getActualType());
+					KeyValuePersistentEntity<?> ref = mappingContext
+							.getPersistentEntity(association.getInverse().getTypeInformation().getComponentType().getActualType());
 
 					String keyspace = ref.getKeySpace();
 					String propertyStringPath = (!path.isEmpty() ? path + "." : "") + association.getInverse().getName();
@@ -458,8 +460,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 				} else {
 
-					KeyValuePersistentEntity<?> ref = mappingContext.getPersistentEntity(association.getInverse()
-							.getTypeInformation());
+					KeyValuePersistentEntity<?> ref = mappingContext
+							.getPersistentEntity(association.getInverse().getTypeInformation());
 					String keyspace = ref.getKeySpace();
 
 					Object refId = ref.getPropertyAccessor(refObject).getProperty(ref.getIdProperty());
@@ -535,9 +537,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Collection<?> readCollectionOfSimpleTypes(String path, Class<?> collectionType, Class<?> valueType,
 			RedisData source) {
 
-		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, 10);
-
 		Bucket partial = source.getBucket().extract(path + ".[");
+
+		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, partial.size());
 
 		for (byte[] value : partial.values()) {
 			target.add(fromBytes(value, valueType));
@@ -555,9 +557,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Collection<?> readCollectionOfComplexTypes(String path, Class<?> collectionType, Class<?> valueType,
 			Bucket source) {
 
-		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, 10);
-
 		Set<String> keys = source.extractAllKeysFor(path);
+
+		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, keys.size());
 
 		for (String key : keys) {
 
@@ -583,6 +585,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param sink
 	 */
 	private void writeMap(String keyspace, String path, Class<?> mapValueType, Map<?, ?> source, RedisData sink) {
+
 		if (CollectionUtils.isEmpty(source)) {
 			return;
 		}
@@ -614,9 +617,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Map<?, ?> readMapOfSimpleTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
 			RedisData source) {
 
-		Map<Object, Object> target = CollectionFactory.createMap(mapType, 10);
-
 		Bucket partial = source.getBucket().extract(path + ".[");
+
+		Map<Object, Object> target = CollectionFactory.createMap(mapType, partial.size());
 
 		for (Entry<String, byte[]> entry : partial.entrySet()) {
 
@@ -645,9 +648,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Map<?, ?> readMapOfComplexTypes(String path, Class<?> mapType, Class<?> keyType, Class<?> valueType,
 			RedisData source) {
 
-		Map<Object, Object> target = CollectionFactory.createMap(mapType, 10);
-
 		Set<String> keys = source.getBucket().extractAllKeysFor(path);
+
+		Map<Object, Object> target = CollectionFactory.createMap(mapType, keys.size());
 
 		for (String key : keys) {
 
@@ -723,6 +726,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityConverter#getMappingContext()
 	 */
+	@Override
 	public RedisMappingContext getMappingContext() {
 		return this.mappingContext;
 	}
@@ -731,6 +735,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * (non-Javadoc)
 	 * @see org.springframework.data.convert.EntityConverter#getConversionService()
 	 */
+	@Override
 	public ConversionService getConversionService() {
 		return this.conversionService;
 	}

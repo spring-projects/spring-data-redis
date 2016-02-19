@@ -20,7 +20,7 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 
 /**
- * Redis sepcific {@link EntityConverter}.
+ * Redis specific {@link EntityConverter}.
  * 
  * @author Christoph Strobl
  * @since 1.7

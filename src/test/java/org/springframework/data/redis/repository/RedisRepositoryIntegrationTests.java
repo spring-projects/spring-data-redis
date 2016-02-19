@@ -93,7 +93,7 @@ public class RedisRepositoryIntegrationTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
-	public void simpleFindSouldReturnEntitiesCorrectly() {
+	public void simpleFindShouldReturnEntitiesCorrectly() {
 
 		Person rand = new Person();
 		rand.firstname = "rand";
