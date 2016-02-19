@@ -45,7 +45,7 @@ final class BinaryConverters {
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
-	private static class StringBasedConverter {
+	static class StringBasedConverter {
 
 		byte[] fromString(String source) {
 
@@ -166,7 +166,7 @@ final class BinaryConverters {
 				if (value == null || value.length() == 0) {
 					return null;
 				}
-				return (T) Enum.valueOf(this.enumType, value.trim());
+				return Enum.valueOf(this.enumType, value.trim());
 			}
 		}
 	}
@@ -183,8 +183,8 @@ final class BinaryConverters {
 			return new BytesToNumberConverter<T>(targetType);
 		}
 
-		private static final class BytesToNumberConverter<T extends Number> extends StringBasedConverter implements
-				Converter<byte[], T> {
+		private static final class BytesToNumberConverter<T extends Number> extends StringBasedConverter
+				implements Converter<byte[], T> {
 
 			private final Class<T> targetType;
 

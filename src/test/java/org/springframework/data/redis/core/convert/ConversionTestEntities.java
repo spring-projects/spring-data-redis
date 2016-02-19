@@ -15,6 +15,14 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +57,15 @@ public class ConversionTestEntities {
 		Integer age;
 		Boolean alive;
 		Date birthdate;
+
+		LocalDate localDate;
+		LocalDateTime localDateTime;
+		LocalTime localTime;
+		Instant instant;
+		ZonedDateTime zonedDateTime;
+		ZoneId zoneId;
+		Duration duration;
+		Period period;
 
 		Address address;
 

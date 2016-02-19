@@ -66,6 +66,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable, java.lang.Class)
 	 */
+	@Override
 	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final int offset,
 			final int rows, final Serializable keyspace, Class<T> type) {
 

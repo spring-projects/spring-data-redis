@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.redis.core.convert;
 
-import org.springframework.data.convert.EntityConverter;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+package org.springframework.data.redis.repository.cdi;
 
 /**
- * Redis specific {@link EntityConverter}.
- * 
- * @author Christoph Strobl
- * @since 1.7
+ * @author Mark Paluch
  */
-public interface RedisConverter extends
-		EntityConverter<KeyValuePersistentEntity<?>, KeyValuePersistentProperty, Object, RedisData> {
+interface PersonRepositoryCustom {
 
+	int returnOne();
 }

@@ -27,6 +27,14 @@ import static org.springframework.data.redis.test.util.IsBucketMatcher.*;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -182,8 +190,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingUtf8String("address.city", "two rivers").containingUtf8String("address.country", "andora"));
+		assertThat(target.getBucket(), isBucket().containingUtf8String("address.city", "two rivers")
+				.containingUtf8String("address.country", "andora"));
 	}
 
 	/**
@@ -207,10 +215,11 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("coworkers.[0].firstname", "mat") //
-				.containingUtf8String("coworkers.[0].nicknames.[0]", "prince of the ravens") //
-				.containingUtf8String("coworkers.[1].firstname", "perrin") //
-				.containingUtf8String("coworkers.[1].address.city", "two rivers"));
+		assertThat(target.getBucket(),
+				isBucket().containingUtf8String("coworkers.[0].firstname", "mat") //
+						.containingUtf8String("coworkers.[0].nicknames.[0]", "prince of the ravens") //
+						.containingUtf8String("coworkers.[1].firstname", "perrin") //
+						.containingUtf8String("coworkers.[1].address.city", "two rivers"));
 	}
 
 	/**
@@ -513,6 +522,191 @@ public class MappingRedisConverterUnitTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
+	public void writesLocalDateTimeValuesCorrectly() {
+
+		rand.localDateTime = LocalDateTime.parse("2016-02-19T10:18:01");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("localDateTime", "2016-02-19T10:18:01"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsLocalDateTimeValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("localDateTime", "2016-02-19T10:18:01"))));
+
+		assertThat(target.localDateTime, is(LocalDateTime.parse("2016-02-19T10:18:01")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesLocalDateValuesCorrectly() {
+
+		rand.localDate = LocalDate.parse("2016-02-19");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("localDate", "2016-02-19"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsLocalDateValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("localDate", "2016-02-19"))));
+
+		assertThat(target.localDate, is(LocalDate.parse("2016-02-19")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesLocalTimeValuesCorrectly() {
+
+		rand.localTime = LocalTime.parse("11:12:13");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("localTime", "11:12:13"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsLocalTimeValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("localTime", "11:12"))));
+
+		assertThat(target.localTime, is(LocalTime.parse("11:12:00")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesZonedDateTimeValuesCorrectly() {
+
+		rand.zonedDateTime = ZonedDateTime.parse("2007-12-03T10:15:30+01:00[Europe/Paris]");
+
+		assertThat(write(rand).getBucket(),
+				isBucket().containingUtf8String("zonedDateTime", "2007-12-03T10:15:30+01:00[Europe/Paris]"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsZonedDateTimeValuesCorrectly() {
+
+		Person target = converter.read(Person.class, new RedisData(Bucket
+				.newBucketFromStringMap(Collections.singletonMap("zonedDateTime", "2007-12-03T10:15:30+01:00[Europe/Paris]"))));
+
+		assertThat(target.zonedDateTime, is(ZonedDateTime.parse("2007-12-03T10:15:30+01:00[Europe/Paris]")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesInstantValuesCorrectly() {
+
+		rand.instant = Instant.parse("2007-12-03T10:15:30.01Z");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("instant", "2007-12-03T10:15:30.010Z"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsInstantValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("instant", "2007-12-03T10:15:30.01Z"))));
+
+		assertThat(target.instant, is(Instant.parse("2007-12-03T10:15:30.01Z")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesZoneIdValuesCorrectly() {
+
+		rand.zoneId = ZoneId.of("Europe/Paris");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("zoneId", "Europe/Paris"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsZoneIdValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("zoneId", "Europe/Paris"))));
+
+		assertThat(target.zoneId, is(ZoneId.of("Europe/Paris")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesDurationValuesCorrectly() {
+
+		rand.duration = Duration.parse("P2DT3H4M");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("duration", "PT51H4M"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsDurationValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("duration", "PT51H4M"))));
+
+		assertThat(target.duration, is(Duration.parse("P2DT3H4M")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void writesPeriodValuesCorrectly() {
+
+		rand.period = Period.parse("P1Y2M25D");
+
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("period", "P1Y2M25D"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readsPeriodValuesCorrectly() {
+
+		Person target = converter.read(Person.class,
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("period", "P1Y2M25D"))));
+
+		assertThat(target.period, is(Period.parse("P1Y2M25D")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
 	public void writesEnumValuesCorrectly() {
 
 		rand.gender = Gender.MALE;
@@ -592,10 +786,8 @@ public class MappingRedisConverterUnitTests {
 
 		Date date = cal.getTime();
 
-		Person target = converter.read(
-				Person.class,
-				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("birthdate", Long.valueOf(date.getTime())
-						.toString()))));
+		Person target = converter.read(Person.class, new RedisData(
+				Bucket.newBucketFromStringMap(Collections.singletonMap("birthdate", Long.valueOf(date.getTime()).toString()))));
 
 		assertThat(target.birthdate, is(date));
 	}
@@ -614,9 +806,10 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("location", "locations:1") //
-				.without("location.id") //
-				.without("location.name"));
+		assertThat(target.getBucket(),
+				isBucket().containingUtf8String("location", "locations:1") //
+						.without("location.id") //
+						.without("location.name"));
 	}
 
 	/**
@@ -661,9 +854,10 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("coworkers.[0].location", "locations:1") //
-				.without("coworkers.[0].location.id") //
-				.without("coworkers.[0].location.name"));
+		assertThat(target.getBucket(),
+				isBucket().containingUtf8String("coworkers.[0].location", "locations:1") //
+						.without("coworkers.[0].location.id") //
+						.without("coworkers.[0].location.name"));
 	}
 
 	/**
@@ -713,9 +907,10 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("visited.[0]", "locations:1") //
-				.containingUtf8String("visited.[1]", "locations:2") //
-				.containingUtf8String("visited.[2]", "locations:3"));
+		assertThat(target.getBucket(),
+				isBucket().containingUtf8String("visited.[0]", "locations:1") //
+						.containingUtf8String("visited.[1]", "locations:2") //
+						.containingUtf8String("visited.[2]", "locations:3"));
 	}
 
 	/**
@@ -882,8 +1077,8 @@ public class MappingRedisConverterUnitTests {
 		address.country = "andor";
 		rand.address = address;
 
-		assertThat(write(rand).getIndexedData(), hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country",
-				"andor")));
+		assertThat(write(rand).getIndexedData(),
+				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor")));
 	}
 
 	/**
@@ -1151,8 +1346,8 @@ public class MappingRedisConverterUnitTests {
 				species.name = new String(source.get("species-name"), Charset.forName("UTF-8"));
 			}
 			if (source.containsKey("species-nicknames")) {
-				species.alsoKnownAs = Arrays.asList(StringUtils.commaDelimitedListToStringArray(new String(source
-						.get("species-nicknames"), Charset.forName("UTF-8"))));
+				species.alsoKnownAs = Arrays.asList(StringUtils
+						.commaDelimitedListToStringArray(new String(source.get("species-nicknames"), Charset.forName("UTF-8"))));
 			}
 			return species;
 		}

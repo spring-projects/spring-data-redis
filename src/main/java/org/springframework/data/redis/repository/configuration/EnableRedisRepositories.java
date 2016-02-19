@@ -53,7 +53,7 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
-	 * {@code @EnableJpaRepositories("org.my.pkg")} instead of {@code @EnableJpaRepositories(basePackages="org.my.pkg")}.
+	 * {@code @EnableRedisRepositories("org.my.pkg")} instead of {@code @EnableRedisRepositories(basePackages="org.my.pkg")}.
 	 */
 	String[] value() default {};
 
