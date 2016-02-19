@@ -103,6 +103,8 @@ public class CustomConversions {
 		toRegister.add(new BinaryConverters.DateToBytesConverter());
 		toRegister.add(new BinaryConverters.BytesToDateConverter());
 
+		toRegister.addAll(Jsr310Converters.getConvertersToRegister());
+
 		for (Object c : toRegister) {
 			registerConversion(c);
 		}
@@ -161,7 +163,8 @@ public class CustomConversions {
 			}
 
 			if (!added) {
-				throw new IllegalArgumentException("Given set contains element that is neither Converter nor ConverterFactory!");
+				throw new IllegalArgumentException(
+						"Given set contains element that is neither Converter nor ConverterFactory!");
 			}
 		}
 	}
