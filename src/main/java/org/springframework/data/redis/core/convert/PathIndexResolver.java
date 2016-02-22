@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,16 +75,16 @@ public class PathIndexResolver implements IndexResolver {
 	 */
 	public Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value) {
 		return doResolveIndexesFor(mappingContext.getPersistentEntity(typeInformation).getKeySpace(), "", typeInformation,
-				value);
+				null, value);
 	}
 
 	private Set<IndexedData> doResolveIndexesFor(final String keyspace, final String path,
-			TypeInformation<?> typeInformation, Object value) {
+			TypeInformation<?> typeInformation, PersistentProperty<?> fallback, Object value) {
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
 
 		if (entity == null) {
-			return resolveIndex(keyspace, path, null, value);
+			return resolveIndex(keyspace, path, fallback, value);
 		}
 
 		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
@@ -101,10 +101,9 @@ public class PathIndexResolver implements IndexResolver {
 
 				if (propertyValue != null) {
 
-					TypeInformation<?> typeHint = persistentProperty.isMap() ? persistentProperty.getTypeInformation()
-							.getMapValueType() : persistentProperty.getTypeInformation().getActualType();
-
-					indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, propertyValue));
+					TypeInformation<?> typeHint = persistentProperty.isMap()
+							? persistentProperty.getTypeInformation().getMapValueType()
+							: persistentProperty.getTypeInformation().getActualType();
 
 					if (persistentProperty.isMap()) {
 
@@ -112,7 +111,7 @@ public class PathIndexResolver implements IndexResolver {
 
 							TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, entry.getValue());
 							indexes.addAll(doResolveIndexesFor(keyspace, currentPath + "." + entry.getKey(),
-									typeToUse.getActualType(), entry.getValue()));
+									typeToUse.getActualType(), persistentProperty, entry.getValue()));
 						}
 
 					} else if (persistentProperty.isCollectionLike()) {
@@ -120,7 +119,8 @@ public class PathIndexResolver implements IndexResolver {
 						for (Object listValue : (Iterable<?>) propertyValue) {
 
 							TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, listValue);
-							indexes.addAll(doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), listValue));
+							indexes.addAll(
+									doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), persistentProperty, listValue));
 						}
 					}
 
@@ -128,7 +128,10 @@ public class PathIndexResolver implements IndexResolver {
 							|| persistentProperty.getTypeInformation().getActualType().equals(ClassTypeInformation.OBJECT)) {
 
 						typeHint = updateTypeHintForActualValue(typeHint, propertyValue);
-						indexes.addAll(doResolveIndexesFor(keyspace, currentPath, typeHint.getActualType(), propertyValue));
+						indexes.addAll(doResolveIndexesFor(keyspace, currentPath, typeHint.getActualType(), persistentProperty,
+								propertyValue));
+					} else {
+						indexes.addAll(resolveIndex(keyspace, currentPath, persistentProperty, propertyValue));
 					}
 				}
 
@@ -165,8 +168,8 @@ public class PathIndexResolver implements IndexResolver {
 
 		if (indexConfiguration.hasIndexFor(keyspace, path)) {
 
-			IndexingContext context = new IndexingContext(keyspace, path, property != null ? property.getTypeInformation()
-					: ClassTypeInformation.OBJECT);
+			IndexingContext context = new IndexingContext(keyspace, path,
+					property != null ? property.getTypeInformation() : ClassTypeInformation.OBJECT);
 
 			for (IndexDefinition indexDefinition : indexConfiguration.getIndexDefinitionsFor(keyspace, path)) {
 
@@ -174,8 +177,8 @@ public class PathIndexResolver implements IndexResolver {
 					continue;
 				}
 
-				data.add(new SimpleIndexedPropertyValue(keyspace, indexDefinition.getIndexName(), indexDefinition
-						.valueTransformer().convert(value)));
+				data.add(new SimpleIndexedPropertyValue(keyspace, indexDefinition.getIndexName(),
+						indexDefinition.valueTransformer().convert(value)));
 			}
 		}
 

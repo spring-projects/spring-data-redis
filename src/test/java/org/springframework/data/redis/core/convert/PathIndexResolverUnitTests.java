@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-216 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import static org.springframework.data.redis.core.convert.ConversionTestEntities
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hamcrest.core.IsCollectionContaining;
@@ -66,8 +68,8 @@ public class PathIndexResolverUnitTests {
 	public void setUp() {
 
 		indexConfig = new IndexConfiguration();
-		this.indexResolver = new PathIndexResolver(new RedisMappingContext(new MappingConfiguration(indexConfig,
-				new KeyspaceConfiguration())));
+		this.indexResolver = new PathIndexResolver(
+				new RedisMappingContext(new MappingConfiguration(indexConfig, new KeyspaceConfiguration())));
 	}
 
 	/**
@@ -146,9 +148,10 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
 
 		assertThat(indexes.size(), is(2));
-		assertThat(indexes, IsCollectionContaining.<IndexedData> hasItems(new SimpleIndexedPropertyValue(KEYSPACE_TWOT,
-				"mainCharacters.address.country", "andor"), new SimpleIndexedPropertyValue(KEYSPACE_TWOT,
-				"mainCharacters.address.country", "saldaea")));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "andor"),
+						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "saldaea")));
 	}
 
 	/**
@@ -171,8 +174,8 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
 
 		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country",
-				"illian")));
+		assertThat(indexes,
+				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country", "illian")));
 	}
 
 	/**
@@ -245,8 +248,8 @@ public class PathIndexResolverUnitTests {
 		rand.addressRef.id = "emond_s_field";
 		rand.addressRef.country = "andor";
 
-		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(
-				ClassTypeInformation.from(PersonWithAddressReference.class), rand);
+		Set<IndexedData> indexes = indexResolver
+				.resolveIndexesFor(ClassTypeInformation.from(PersonWithAddressReference.class), rand);
 
 		assertThat(indexes.size(), is(0));
 	}
@@ -443,6 +446,50 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, is(empty()));
 	}
 
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexOnMapField() {
+
+		IndexedOnMapField source = new IndexedOnMapField();
+		source.values = new LinkedHashMap<String, String>();
+
+		source.values.put("jon", "snow");
+		source.values.put("arya", "stark");
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnMapField.class),
+				source);
+
+		assertThat(indexes.size(), is(2));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.jon", "snow"),
+						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.arya", "stark")));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void resolveIndexOnListField() {
+
+		IndexedOnListField source = new IndexedOnListField();
+		source.values = new ArrayList<String>();
+
+		source.values.add("jon");
+		source.values.add("arya");
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnListField.class),
+				source);
+
+		assertThat(indexes.size(), is(2));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "jon"),
+						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya")));
+	}
+
 	private IndexedData resolve(String path, Object value) {
 
 		Set<IndexedData> data = indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
@@ -466,4 +513,15 @@ public class PathIndexResolverUnitTests {
 
 		};
 	}
+
+	static class IndexedOnListField {
+
+		@Indexed List<String> values;
+	}
+
+	static class IndexedOnMapField {
+
+		@Indexed Map<String, String> values;
+	}
+
 }
