@@ -6,6 +6,40 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.4.RELEASE (2016-02-23)
+---------------------------------------------
+* DATAREDIS-465 - Guard lettuce shutdown during ConnectionFactory.destroy().
+* DATAREDIS-463 - Improve test synchronization.
+* DATAREDIS-460 - Remove eclipse specific files from github repository.
+* DATAREDIS-459 - Release 1.6.4 (Gosling SR2).
+* DATAREDIS-443 - Support of synchronized mode introduced in Spring 4.3.
+* DATAREDIS-419 - Switch to Maven build.
+
+
+Changes in version 1.7.0.M1 (2016-02-12)
+----------------------------------------
+* DATAREDIS-461 - Deprecate support for org.codehaus.jackson based Serializers and Mappers.
+* DATAREDIS-460 - Remove eclipse specific files from github repository.
+* DATAREDIS-458 - Upgrade to lettuce 3.4.1.Final.
+* DATAREDIS-457 - Fix typo in reference documentation.
+* DATAREDIS-456 - Fix misleading log message created by RedisMessageListenerContainer.
+* DATAREDIS-455 - Increase timeout for expiration in cluster tests.
+* DATAREDIS-452 - Improve thread synchronization in RedisCacheTest.testCacheGetSynchronized.
+* DATAREDIS-449 - Add code of conduct.
+* DATAREDIS-448 - DefaultSetOperations.intersectAndStore don't return operation result.
+* DATAREDIS-447 - Release 1.7 M1 (Hopper).
+* DATAREDIS-443 - Support of synchronized mode introduced in Spring 4.3.
+* DATAREDIS-437 - Upgrade to Jedis 2.8.0.
+* DATAREDIS-435 - PubSubResubscribeTests and PubSubTests rely on other tests having already run previously.
+* DATAREDIS-431 - SELECT not called with @Caching annotations and Lettuce library.
+* DATAREDIS-419 - Switch to Maven build.
+* DATAREDIS-417 - ScanCursor throw " java.util.NoSuchElementException".
+* DATAREDIS-407 - Add zRangeByLex to ZSetOperations.
+* DATAREDIS-405 - Deprecate support for jredis and srp.
+* DATAREDIS-315 - Add Support for Redis Cluster.
+* DATAREDIS-276 - Add support form MIGRATE.
+
+
 Changes in version 1.6.2.RELEASE (2015-12-18)
 ---------------------------------------------
 * DATAREDIS-442 - Upgrade to Spring 4.1.9.
