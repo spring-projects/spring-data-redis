@@ -45,7 +45,7 @@ import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RedisData;
-import org.springframework.data.redis.core.convert.ReferenceResolver;
+import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -86,8 +86,8 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @since 1.7
  */
-public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements ApplicationContextAware,
-		ApplicationListener<RedisKeyspaceEvent> {
+public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
+		implements ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RedisKeyValueAdapter.class);
 
@@ -131,8 +131,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
 		Assert.notNull(mappingContext, "RedisMappingContext must not be null!");
 
-		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext, new PathIndexResolver(
-				mappingContext), new ReferenceResolverImpl(this));
+		MappingRedisConverter mappingConverter = new MappingRedisConverter(mappingContext,
+				new PathIndexResolver(mappingContext), new ReferenceResolverImpl(redisOps));
 		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
@@ -327,8 +327,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 				Set<byte[]> members = connection.sMembers(binKeyspace);
 
 				for (byte[] id : members) {
-					rawData.add(connection.hGetAll(createKey(asString(keyspace),
-							getConverter().getConversionService().convert(id, String.class))));
+					rawData.add(connection
+							.hGetAll(createKey(asString(keyspace), getConverter().getConversionService().convert(id, String.class))));
 				}
 
 				return rawData;
@@ -411,8 +411,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 	}
 
 	private String asString(Serializable value) {
-		return value instanceof String ? (String) value : getConverter().getConversionService()
-				.convert(value, String.class);
+		return value instanceof String ? (String) value
+				: getConverter().getConversionService().convert(value, String.class);
 	}
 
 	public byte[] createKey(String keyspace, String id) {
@@ -544,8 +544,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 
 			byte[] key = message.getBody();
 
-			final byte[] phantomKey = ByteUtils.concat(key, converter.getConversionService()
-					.convert(":phantom", byte[].class));
+			final byte[] phantomKey = ByteUtils.concat(key,
+					converter.getConversionService().convert(":phantom", byte[].class));
 
 			Map<byte[], byte[]> hash = ops.execute(new RedisCallback<Map<byte[], byte[]>>() {
 
@@ -577,42 +577,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter implements App
 			}
 
 			return true;
-		}
-	}
-
-	/**
-	 * {@link ReferenceResolver} using {@link RedisKeyValueAdapter} to read and convert referenced entities.
-	 * 
-	 * @author Christoph Strobl
-	 * @since 1.7
-	 */
-	static class ReferenceResolverImpl implements ReferenceResolver {
-
-		private RedisKeyValueAdapter adapter;
-
-		ReferenceResolverImpl() {}
-
-		/**
-		 * @param adapter must not be {@literal null}.
-		 */
-		public ReferenceResolverImpl(RedisKeyValueAdapter adapter) {
-			this.adapter = adapter;
-		}
-
-		/**
-		 * @param adapter
-		 */
-		public void setAdapter(RedisKeyValueAdapter adapter) {
-			this.adapter = adapter;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.redis.core.convert.ReferenceResolver#resolveReference(java.io.Serializable, java.io.Serializable, java.lang.Class)
-		 */
-		@Override
-		public <T> T resolveReference(Serializable id, String keyspace, Class<T> type) {
-			return (T) adapter.get(id, keyspace, type);
 		}
 	}
 

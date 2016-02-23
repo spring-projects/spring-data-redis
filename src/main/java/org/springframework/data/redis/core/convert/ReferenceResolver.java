@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.convert;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.springframework.data.annotation.Reference;
 
@@ -30,8 +31,7 @@ public interface ReferenceResolver {
 	/**
 	 * @param id must not be {@literal null}.
 	 * @param keyspace must not be {@literal null}.
-	 * @param type must not be {@literal null}.
 	 * @return {@literal null} if referenced object does not exist.
 	 */
-	<T> T resolveReference(Serializable id, String keyspace, Class<T> type);
+	Map<byte[], byte[]> resolveReference(Serializable id, String keyspace);
 }

@@ -210,35 +210,29 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				if (persistentProperty.isMap()) {
 
 					if (conversionService.canConvert(byte[].class, persistentProperty.getMapValueType())) {
-						accessor.setProperty(
-								persistentProperty,
-								readMapOfSimpleTypes(currentPath, persistentProperty.getType(), persistentProperty.getComponentType(),
-										persistentProperty.getMapValueType(), source));
+						accessor.setProperty(persistentProperty, readMapOfSimpleTypes(currentPath, persistentProperty.getType(),
+								persistentProperty.getComponentType(), persistentProperty.getMapValueType(), source));
 					} else {
-						accessor.setProperty(
-								persistentProperty,
-								readMapOfComplexTypes(currentPath, persistentProperty.getType(), persistentProperty.getComponentType(),
-										persistentProperty.getMapValueType(), source));
+						accessor.setProperty(persistentProperty, readMapOfComplexTypes(currentPath, persistentProperty.getType(),
+								persistentProperty.getComponentType(), persistentProperty.getMapValueType(), source));
 					}
 				}
 
 				else if (persistentProperty.isCollectionLike()) {
 
 					if (conversionService.canConvert(byte[].class, persistentProperty.getComponentType())) {
-						accessor.setProperty(
-								persistentProperty,
-								readCollectionOfSimpleTypes(currentPath, persistentProperty.getType(), persistentProperty
-										.getTypeInformation().getComponentType().getActualType().getType(), source));
+						accessor.setProperty(persistentProperty,
+								readCollectionOfSimpleTypes(currentPath, persistentProperty.getType(),
+										persistentProperty.getTypeInformation().getComponentType().getActualType().getType(), source));
 					} else {
-						accessor.setProperty(
-								persistentProperty,
-								readCollectionOfComplexTypes(currentPath, persistentProperty.getType(), persistentProperty
-										.getTypeInformation().getComponentType().getActualType().getType(), source.getBucket()));
+						accessor.setProperty(persistentProperty,
+								readCollectionOfComplexTypes(currentPath, persistentProperty.getType(),
+										persistentProperty.getTypeInformation().getComponentType().getActualType().getType(),
+										source.getBucket()));
 					}
 
-				} else if (persistentProperty.isEntity()
-						&& !conversionService.canConvert(byte[].class, persistentProperty.getTypeInformation().getActualType()
-								.getType())) {
+				} else if (persistentProperty.isEntity() && !conversionService.canConvert(byte[].class,
+						persistentProperty.getTypeInformation().getActualType().getType())) {
 
 					Class<?> targetType = persistentProperty.getTypeInformation().getActualType().getType();
 
@@ -284,8 +278,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			@Override
 			public void doWithAssociation(Association<KeyValuePersistentProperty> association) {
 
-				String currentPath = !path.isEmpty() ? path + "." + association.getInverse().getName() : association
-						.getInverse().getName();
+				String currentPath = !path.isEmpty() ? path + "." + association.getInverse().getName()
+						: association.getInverse().getName();
 
 				if (association.getInverse().isCollectionLike()) {
 
@@ -299,11 +293,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 						String referenceKey = fromBytes(entry.getValue(), String.class);
 						String[] args = referenceKey.split(":");
 
-						Object loadedObject = referenceResolver.resolveReference(args[1], args[0], association.getInverse()
-								.getActualType());
+						Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(args[1], args[0]);
 
-						if (loadedObject != null) {
-							target.add(loadedObject);
+						if (!CollectionUtils.isEmpty(rawHash)) {
+							target.add(read(association.getInverse().getActualType(), new RedisData(rawHash)));
 						}
 					}
 
@@ -319,11 +312,12 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					String key = fromBytes(binKey, String.class);
 
 					String[] args = key.split(":");
-					Object loadedObject = referenceResolver.resolveReference(args[1], args[0], association.getInverse()
-							.getActualType());
 
-					if (loadedObject != null) {
-						accessor.setProperty(association.getInverse(), loadedObject);
+					Map<byte[], byte[]> rawHash = referenceResolver.resolveReference(args[1], args[0]);
+
+					if (!CollectionUtils.isEmpty(rawHash)) {
+						accessor.setProperty(association.getInverse(),
+								read(association.getInverse().getActualType(), new RedisData(rawHash)));
 					}
 				}
 			}
@@ -752,8 +746,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	/**
 	 * @author Christoph Strobl
 	 */
-	private static class ConverterAwareParameterValueProvider implements
-			PropertyValueProvider<KeyValuePersistentProperty> {
+	private static class ConverterAwareParameterValueProvider
+			implements PropertyValueProvider<KeyValuePersistentProperty> {
 
 		private final RedisData source;
 		private final ConversionService conversionService;

@@ -34,6 +34,8 @@ import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * @author Christoph Strobl
  */
@@ -108,12 +110,14 @@ public class ConversionTestEntities {
 		List<Object> items;
 	}
 
+	@EqualsAndHashCode
 	@RedisHash(KEYSPACE_LOCATION)
 	public static class Location {
 
 		@Id String id;
 		String name;
 		Address address;
+
 	}
 
 	@RedisHash(timeToLive = 5)

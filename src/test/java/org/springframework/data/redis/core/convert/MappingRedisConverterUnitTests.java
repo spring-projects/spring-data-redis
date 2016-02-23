@@ -822,7 +822,12 @@ public class MappingRedisConverterUnitTests {
 		location.id = "1";
 		location.name = "tar valon";
 
-		when(resolverMock.<Location> resolveReference(eq("1"), eq("locations"), eq(Location.class))).thenReturn(location);
+		Map<String, String> locationMap = new LinkedHashMap<String, String>();
+		locationMap.put("id", location.id);
+		locationMap.put("name", location.name);
+
+		when(resolverMock.resolveReference(eq("1"), eq("locations")))
+				.thenReturn(Bucket.newBucketFromStringMap(locationMap).rawMap());
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("location", "locations:1");
@@ -865,7 +870,12 @@ public class MappingRedisConverterUnitTests {
 		location.id = "1";
 		location.name = "tar valon";
 
-		when(resolverMock.<Location> resolveReference(eq("1"), eq("locations"), eq(Location.class))).thenReturn(location);
+		Map<String, String> locationMap = new LinkedHashMap<String, String>();
+		locationMap.put("id", location.id);
+		locationMap.put("name", location.name);
+
+		when(resolverMock.resolveReference(eq("1"), eq("locations")))
+				.thenReturn(Bucket.newBucketFromStringMap(locationMap).rawMap());
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("coworkers.[0].location", "locations:1");
@@ -921,9 +931,26 @@ public class MappingRedisConverterUnitTests {
 		tear.id = "3";
 		tear.name = "city of tear";
 
-		when(resolverMock.<Location> resolveReference(eq("1"), eq("locations"), eq(Location.class))).thenReturn(tarValon);
-		when(resolverMock.<Location> resolveReference(eq("2"), eq("locations"), eq(Location.class))).thenReturn(falme);
-		when(resolverMock.<Location> resolveReference(eq("3"), eq("locations"), eq(Location.class))).thenReturn(tear);
+		Map<String, String> tarValonMap = new LinkedHashMap<String, String>();
+		tarValonMap.put("id", tarValon.id);
+		tarValonMap.put("name", tarValon.name);
+
+		Map<String, String> falmeMap = new LinkedHashMap<String, String>();
+		falmeMap.put("id", falme.id);
+		falmeMap.put("name", falme.name);
+
+		Map<String, String> tearMap = new LinkedHashMap<String, String>();
+		tearMap.put("id", tear.id);
+		tearMap.put("name", tear.name);
+
+		Bucket.newBucketFromStringMap(tearMap).rawMap();
+
+		when(resolverMock.resolveReference(eq("1"), eq("locations")))
+				.thenReturn(Bucket.newBucketFromStringMap(tarValonMap).rawMap());
+		when(resolverMock.resolveReference(eq("2"), eq("locations")))
+				.thenReturn(Bucket.newBucketFromStringMap(falmeMap).rawMap());
+		when(resolverMock.resolveReference(eq("3"), eq("locations")))
+				.thenReturn(Bucket.newBucketFromStringMap(tearMap).rawMap());
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("visited.[0]", "locations:1");
