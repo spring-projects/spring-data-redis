@@ -32,7 +32,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
 import org.springframework.data.domain.Page;
@@ -61,7 +63,8 @@ public class RedisRepositoryIntegrationTests {
 
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
-			keyspaceConfiguration = MyKeyspaceConfiguration.class)
+			keyspaceConfiguration = MyKeyspaceConfiguration.class,
+			includeFilters = { @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*PersonRepository") })
 	static class Config {
 
 		@Bean

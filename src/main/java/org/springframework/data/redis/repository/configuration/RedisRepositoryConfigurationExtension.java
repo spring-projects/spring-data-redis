@@ -15,6 +15,10 @@
  */
 package org.springframework.data.redis.repository.configuration;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -26,6 +30,7 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
+import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.data.redis.core.convert.CustomConversions;
@@ -203,6 +208,15 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 		beanDef.setPropertyValues(props);
 
 		return beanDef;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getIdentifyingAnnotations()
+	 */
+	@Override
+	protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
+		return Collections.<Class<? extends Annotation>> singleton(RedisHash.class);
 	}
 
 }

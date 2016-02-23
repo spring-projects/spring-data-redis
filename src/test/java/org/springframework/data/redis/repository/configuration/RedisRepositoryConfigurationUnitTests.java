@@ -28,7 +28,8 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.annotation.Id;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisHash;
@@ -67,7 +68,8 @@ public class RedisRepositoryConfigurationUnitTests {
 	@ContextConfiguration(classes = { ContextWithCustomReferenceResolver.Config.class })
 	public static class ContextWithCustomReferenceResolver {
 
-		@EnableRedisRepositories(considerNestedRepositories = true)
+		@EnableRedisRepositories(considerNestedRepositories = true,
+				includeFilters = { @ComponentScan.Filter(type = FilterType.REGEX, pattern = { ".*ContextSampleRepository" }) })
 		static class Config {
 
 			@Bean
@@ -104,7 +106,8 @@ public class RedisRepositoryConfigurationUnitTests {
 	@ContextConfiguration(classes = { ContextWithoutCustomization.Config.class })
 	public static class ContextWithoutCustomization {
 
-		@EnableRedisRepositories(considerNestedRepositories = true)
+		@EnableRedisRepositories(considerNestedRepositories = true,
+				includeFilters = { @ComponentScan.Filter(type = FilterType.REGEX, pattern = { ".*ContextSampleRepository" }) })
 		static class Config {
 
 			@Bean
@@ -120,7 +123,7 @@ public class RedisRepositoryConfigurationUnitTests {
 		 */
 		@Test
 		public void shouldInitWithDefaults() {
-			assertThat(ctx.getBean(SampleRepository.class), is(notNullValue()));
+			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));
 		}
 
 		/**
@@ -129,7 +132,7 @@ public class RedisRepositoryConfigurationUnitTests {
 		@Test
 		public void shouldRegisterDefaultBeans() {
 
-			assertThat(ctx.getBean(SampleRepository.class), is(notNullValue()));
+			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));
 			assertThat(ctx.getBean("redisKeyValueAdapter"), is(notNullValue()));
 			assertThat(ctx.getBean("redisCustomConversions"), is(notNullValue()));
 			assertThat(ctx.getBean("redisReferenceResolver"), is(notNullValue()));
@@ -138,8 +141,8 @@ public class RedisRepositoryConfigurationUnitTests {
 
 	@RedisHash
 	static class Sample {
-		@Id String id;
+		String id;
 	}
 
-	interface SampleRepository extends Repository<Sample, Long> {}
+	interface ContextSampleRepository extends Repository<Sample, Long> {}
 }
