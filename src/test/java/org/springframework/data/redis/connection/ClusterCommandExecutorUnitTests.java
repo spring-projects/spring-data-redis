@@ -25,7 +25,6 @@ import static org.springframework.data.redis.test.util.MockitoUtils.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Map;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -43,6 +42,7 @@ import org.springframework.data.redis.ClusterRedirectException;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
+import org.springframework.data.redis.connection.ClusterCommandExecutor.MulitNodeResult;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
@@ -77,8 +77,7 @@ public class ClusterCommandExecutorUnitTests {
 			.withId("3b9b8192a874fa8f1f09dbc0ee20afab5738eee7").promotedAs(NodeType.MASTER).linkState(LinkState.CONNECTED)
 			.build();
 	static final RedisClusterNode CLUSTER_NODE_2_LOOKUP = RedisClusterNode.newRedisClusterNode()
-			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84")
-			.build();
+			.withId("0f2ee5df45d18c50aca07228cc18b1da96fd5e84").build();
 
 	static final RedisClusterNode UNKNOWN_CLUSTER_NODE = new RedisClusterNode("8.8.8.8", 7379, null);
 
@@ -149,7 +148,8 @@ public class ClusterCommandExecutorUnitTests {
 	@Test
 	public void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
 
-		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT));
+		executor.executeCommandOnSingleNode(COMMAND_CALLBACK,
+				new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT));
 
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
@@ -216,8 +216,9 @@ public class ClusterCommandExecutorUnitTests {
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
 				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
 
-		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(new RedisClusterNode(CLUSTER_NODE_1_HOST, CLUSTER_NODE_1_PORT),
-				new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT)));
+		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
+				Arrays.asList(new RedisClusterNode(CLUSTER_NODE_1_HOST, CLUSTER_NODE_1_PORT),
+						new RedisClusterNode(CLUSTER_NODE_2_HOST, CLUSTER_NODE_2_PORT)));
 
 		verify(con1, times(1)).theWheelWeavesAsTheWheelWills();
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
@@ -234,8 +235,8 @@ public class ClusterCommandExecutorUnitTests {
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
 				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
 
-		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(new RedisClusterNode(CLUSTER_NODE_1.id),
-				CLUSTER_NODE_2_LOOKUP));
+		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
+				Arrays.asList(new RedisClusterNode(CLUSTER_NODE_1.id), CLUSTER_NODE_2_LOOKUP));
 
 		verify(con1, times(1)).theWheelWeavesAsTheWheelWills();
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
@@ -252,8 +253,8 @@ public class ClusterCommandExecutorUnitTests {
 				new MockClusterResourceProvider(), new PassThroughExceptionTranslationStrategy(exceptionConverter),
 				new ConcurrentTaskExecutor(new SyncTaskExecutor()));
 
-		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(
-				new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP));
+		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
+				Arrays.asList(new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP));
 	}
 
 	/**
@@ -306,32 +307,29 @@ public class ClusterCommandExecutorUnitTests {
 		when(con2.theWheelWeavesAsTheWheelWills()).thenReturn("mat");
 		when(con3.theWheelWeavesAsTheWheelWills()).thenReturn("perrin");
 
-		Map<RedisClusterNode, String> result = executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
+		MulitNodeResult<String> result = executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
 
-		assertThat(result.keySet(), hasItems(CLUSTER_NODE_1, CLUSTER_NODE_2, CLUSTER_NODE_3));
-		assertThat(result.values(), hasItems("rand", "mat", "perrin"));
+		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin"));
 	}
 
 	/**
 	 * @see DATAREDIS-315
+	 * @see DATAREDIS-467
 	 */
 	@Test
 	public void executeMultikeyCommandShouldRunCommandAcrossCluster() {
 
 		// key-1 and key-9 map both to node1
 		ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-		when(con1.bloodAndAshes(captor.capture())).thenReturn("rand");
+		when(con1.bloodAndAshes(captor.capture())).thenReturn("rand").thenReturn("egwene");
 
 		when(con2.bloodAndAshes(any(byte[].class))).thenReturn("mat");
 		when(con3.bloodAndAshes(any(byte[].class))).thenReturn("perrin");
 
-		Map<RedisClusterNode, String> result = executor.executeMuliKeyCommand(
-				MULTIKEY_CALLBACK,
-				new HashSet<byte[]>(Arrays.asList("key-1".getBytes(), "key-2".getBytes(), "key-3".getBytes(),
-						"key-9".getBytes())));
+		MulitNodeResult<String> result = executor.executeMuliKeyCommand(MULTIKEY_CALLBACK, new HashSet<byte[]>(
+				Arrays.asList("key-1".getBytes(), "key-2".getBytes(), "key-3".getBytes(), "key-9".getBytes())));
 
-		assertThat(result.keySet(), hasItems(CLUSTER_NODE_1, CLUSTER_NODE_2, CLUSTER_NODE_3));
-		assertThat(result.values(), hasItems("rand", "mat", "perrin"));
+		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin", "egwene"));
 
 		// check that 2 keys have been routed to node1
 		assertThat(captor.getAllValues().size(), is(2));
@@ -389,8 +387,8 @@ public class ClusterCommandExecutorUnitTests {
 
 		@Override
 		public ClusterTopology getTopology() {
-			return new ClusterTopology(new LinkedHashSet<RedisClusterNode>(Arrays.asList(CLUSTER_NODE_1, CLUSTER_NODE_2,
-					CLUSTER_NODE_3)));
+			return new ClusterTopology(
+					new LinkedHashSet<RedisClusterNode>(Arrays.asList(CLUSTER_NODE_1, CLUSTER_NODE_2, CLUSTER_NODE_3)));
 		}
 
 	}

@@ -2118,7 +2118,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	 */
 	@Test
 	public void infoShouldCollectionInfoFromAllClusterNodes() {
-		assertThat(clusterConnection.info().size(), is(3));
+		assertThat(Double.valueOf(clusterConnection.info().size()), closeTo(245d, 35d));
 	}
 
 	/**

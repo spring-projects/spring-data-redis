@@ -722,7 +722,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			}
 		}, true);
 
-		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : rawKeys;
+		return keySerializer != null ? SerializationUtils.deserialize(rawKeys, keySerializer) : (Set<K>) rawKeys;
 	}
 
 	public Boolean persist(K key) {
