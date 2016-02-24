@@ -28,6 +28,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
@@ -670,14 +671,18 @@ public class RedisCache implements Cache {
 		@Override
 		public Void doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
 
-			connection.multi();
+			if (!isClusterConnection(connection)) {
+				connection.multi();
+			}
 
 			connection.set(element.getKeyBytes(), element.get());
 
 			processKeyExpiration(element, connection);
 			maintainKnownKeys(element, connection);
 
-			connection.exec();
+			if (!isClusterConnection(connection)) {
+				connection.exec();
+			}
 			return null;
 		}
 	}
@@ -742,8 +747,11 @@ public class RedisCache implements Cache {
 						return value;
 					}
 
-					connection.watch(element.getKeyBytes());
-					connection.multi();
+					if (!isClusterConnection(connection)) {
+
+						connection.watch(element.getKeyBytes());
+						connection.multi();
+					}
 
 					value = element.get();
 					connection.set(element.getKeyBytes(), value);
@@ -751,7 +759,9 @@ public class RedisCache implements Cache {
 					processKeyExpiration(element, connection);
 					maintainKnownKeys(element, connection);
 
-					connection.exec();
+					if (!isClusterConnection(connection)) {
+						connection.exec();
+					}
 
 					return value;
 				} catch (RuntimeException e) {
@@ -797,6 +807,10 @@ public class RedisCache implements Cache {
 			return new RedisSystemException(String.format("Value for key '%s' could not be loaded using '%s'.", key,
 					valueLoader), cause);
 		}
+	}
+
+	private static boolean isClusterConnection(RedisConnection connection) {
+		return connection instanceof RedisClusterConnection;
 	}
 
 }
