@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.ReturnType;
@@ -215,6 +216,54 @@ public class RedisCacheUnitTests {
 
 		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
 		verifyZeroInteractions(callableMock);
+	}
+
+	/**
+	 * @see DATAREDIS-468
+	 */
+	@Test
+	public void noMultiExecForCluster() {
+
+		RedisClusterConnection clusterConnectionMock = mock(RedisClusterConnection.class);
+		when(connectionFactoryMock.getConnection()).thenReturn(clusterConnectionMock);
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+
+		when(connectionMock.exists(KEY_BYTES)).thenReturn(true);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(null).thenReturn(VALUE_BYTES);
+
+		cache.put(KEY, VALUE);
+
+		verify(clusterConnectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(clusterConnectionMock, never()).multi();
+		verify(clusterConnectionMock, never()).exec();
+		verifyZeroInteractions(connectionMock);
+	}
+
+	/**
+	 * @see DATAREDIS-468
+	 */
+	@Test
+	public void getWithCallableForCluster() {
+
+		RedisClusterConnection clusterConnectionMock = mock(RedisClusterConnection.class);
+		when(connectionFactoryMock.getConnection()).thenReturn(clusterConnectionMock);
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+
+		cache.get(KEY, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return VALUE;
+			}
+		});
+
+		verify(clusterConnectionMock, times(2)).get(eq(KEY_BYTES));
+		verify(clusterConnectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+
+		verify(clusterConnectionMock, never()).multi();
+		verify(clusterConnectionMock, never()).exec();
+		verifyZeroInteractions(connectionMock);
 	}
 
 }
