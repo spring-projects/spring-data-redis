@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.ClusterCommandCallback;
 import org.springframework.data.redis.connection.ClusterCommandExecutor.MultiKeyClusterCommandCallback;
+import org.springframework.data.redis.connection.ClusterCommandExecutor.NodeResult;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
@@ -69,8 +71,8 @@ import com.lambdaworks.redis.codec.RedisCodec;
  * @author Mark Paluch
  * @since 1.7
  */
-public class LettuceClusterConnection extends LettuceConnection implements
-		org.springframework.data.redis.connection.RedisClusterConnection {
+public class LettuceClusterConnection extends LettuceConnection
+		implements org.springframework.data.redis.connection.RedisClusterConnection {
 
 	static final ExceptionTranslationStrategy exceptionConverter = new PassThroughExceptionTranslationStrategy(
 			new LettuceExceptionConverter());
@@ -93,8 +95,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 		this.clusterClient = clusterClient;
 		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
-		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider, new LettuceClusterNodeResourceProvider(
-				clusterClient), exceptionConverter);
+		clusterCommandExecutor = new ClusterCommandExecutor(topologyProvider,
+				new LettuceClusterNodeResourceProvider(clusterClient), exceptionConverter);
 	}
 
 	/**
@@ -133,14 +135,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 		Assert.notNull(pattern, "Pattern must not be null!");
 
-		Collection<List<byte[]>> keysPerNode = clusterCommandExecutor.executeCommandOnAllNodes(
-				new LettuceClusterCommandCallback<List<byte[]>>() {
+		Collection<List<byte[]>> keysPerNode = clusterCommandExecutor
+				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<List<byte[]>>() {
 
 					@Override
 					public List<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> connection) {
 						return connection.keys(pattern);
 					}
-				}).values();
+				}).resultsAsList();
 
 		Set<byte[]> keys = new HashSet<byte[]>();
 
@@ -188,7 +190,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Long dbSize() {
 
-		Map<RedisClusterNode, Long> dbSizes = clusterCommandExecutor
+		Collection<Long> dbSizes = clusterCommandExecutor
 				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<Long>() {
 
 					@Override
@@ -196,14 +198,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 						return client.dbsize();
 					}
 
-				});
+				}).resultsAsList();
 
 		if (CollectionUtils.isEmpty(dbSizes)) {
 			return 0L;
 		}
 
 		Long size = 0L;
-		for (Long value : dbSizes.values()) {
+		for (Long value : dbSizes) {
 			size += value;
 		}
 		return size;
@@ -218,13 +220,20 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 		Properties infos = new Properties();
 
-		infos.putAll(clusterCommandExecutor.executeCommandOnAllNodes(new LettuceClusterCommandCallback<Properties>() {
+		List<NodeResult<Properties>> nodeResults = clusterCommandExecutor
+				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<Properties>() {
 
-			@Override
-			public Properties doInCluster(RedisClusterConnection<byte[], byte[]> client) {
-				return LettuceConverters.toProperties(client.info());
+					@Override
+					public Properties doInCluster(RedisClusterConnection<byte[], byte[]> client) {
+						return LettuceConverters.toProperties(client.info());
+					}
+				}).getResults();
+
+		for (NodeResult<Properties> nodePorperties : nodeResults) {
+			for (Entry<Object, Object> entry : nodePorperties.getValue().entrySet()) {
+				infos.put(nodePorperties.getNode().asString() + "." + entry.getKey(), entry.getValue());
 			}
-		}));
+		}
 
 		return infos;
 	}
@@ -233,14 +242,20 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	public Properties info(final String section) {
 
 		Properties infos = new Properties();
+		List<NodeResult<Properties>> nodeResults = clusterCommandExecutor
+				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<Properties>() {
 
-		infos.putAll(clusterCommandExecutor.executeCommandOnAllNodes(new LettuceClusterCommandCallback<Properties>() {
+					@Override
+					public Properties doInCluster(RedisClusterConnection<byte[], byte[]> client) {
+						return LettuceConverters.toProperties(client.info(section));
+					}
+				}).getResults();
 
-			@Override
-			public Properties doInCluster(RedisClusterConnection<byte[], byte[]> client) {
-				return LettuceConverters.toProperties(client.info(section));
+		for (NodeResult<Properties> nodePorperties : nodeResults) {
+			for (Entry<Object, Object> entry : nodePorperties.getValue().entrySet()) {
+				infos.put(nodePorperties.getNode().asString() + "." + entry.getKey(), entry.getValue());
 			}
-		}));
+		}
 
 		return infos;
 	}
@@ -252,14 +267,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Properties info(RedisClusterNode node, final String section) {
 
-		return LettuceConverters.toProperties(clusterCommandExecutor.executeCommandOnSingleNode(
-				new LettuceClusterCommandCallback<String>() {
+		return LettuceConverters
+				.toProperties(clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<String>() {
 
 					@Override
 					public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.info(section);
 					}
-				}, node));
+				}, node).getValue());
 	}
 
 	/*
@@ -301,17 +316,16 @@ public class LettuceClusterConnection extends LettuceConnection implements
 
 		Assert.notNull(master, "Master must not be null!");
 
-		final RedisClusterNode nodeToUse = topologyProvider.getTopology()
-				.lookup(master);
+		final RedisClusterNode nodeToUse = topologyProvider.getTopology().lookup(master);
 
-		return clusterCommandExecutor.executeCommandOnSingleNode(
-				new LettuceClusterCommandCallback<Set<RedisClusterNode>>() {
+		return clusterCommandExecutor
+				.executeCommandOnSingleNode(new LettuceClusterCommandCallback<Set<RedisClusterNode>>() {
 
 					@Override
 					public Set<RedisClusterNode> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return LettuceConverters.toSetOfRedisClusterNodes(client.clusterSlaves(nodeToUse.getId()));
 					}
-				}, master);
+				}, master).getValue();
 	}
 
 	/*
@@ -331,8 +345,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(clusterClient);
-		return LettuceConverters.toRedisClusterNode(((Partitions) accessor.getPropertyValue("partitions"))
-				.getPartitionBySlot(slot));
+		return LettuceConverters
+				.toRedisClusterNode(((Partitions) accessor.getPropertyValue("partitions")).getPartitionBySlot(slot));
 	}
 
 	/*
@@ -357,7 +371,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			public ClusterInfo doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 				return new ClusterInfo(LettuceConverters.toProperties(client.clusterInfo()));
 			}
-		});
+		}).getValue();
 	}
 
 	/*
@@ -542,14 +556,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	 */
 	@Override
 	public String ping() {
-		Collection<String> ping = clusterCommandExecutor.executeCommandOnAllNodes(
-				new LettuceClusterCommandCallback<String>() {
+		Collection<String> ping = clusterCommandExecutor
+				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<String>() {
 
 					@Override
 					public String doInCluster(RedisClusterConnection<byte[], byte[]> connection) {
 						return doPing(connection);
 					}
-				}).values();
+				}).resultsAsList();
 
 		for (String result : ping) {
 			if (!ObjectUtils.nullSafeEquals("PONG", result)) {
@@ -573,7 +587,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 				return doPing(client);
 			}
-		}, node);
+		}, node).getValue();
 	}
 
 	protected String doPing(RedisClusterConnection<byte[], byte[]> client) {
@@ -638,7 +652,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			public Long doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 				return client.lastsave().getTime();
 			}
-		}, node);
+		}, node).getValue();
 	}
 
 	/*
@@ -671,7 +685,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			public Long doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 				return client.dbsize();
 			}
-		}, node);
+		}, node).getValue();
 	}
 
 	/*
@@ -714,14 +728,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Properties info(RedisClusterNode node) {
 
-		return LettuceConverters.toProperties(clusterCommandExecutor.executeCommandOnSingleNode(
-				new LettuceClusterCommandCallback<String>() {
+		return LettuceConverters
+				.toProperties(clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<String>() {
 
 					@Override
 					public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.info();
 					}
-				}, node));
+				}, node).getValue());
 	}
 
 	/*
@@ -731,14 +745,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Set<byte[]> keys(RedisClusterNode node, final byte[] pattern) {
 
-		return LettuceConverters.toBytesSet(clusterCommandExecutor.executeCommandOnSingleNode(
-				new LettuceClusterCommandCallback<List<byte[]>>() {
+		return LettuceConverters.toBytesSet(
+				clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<List<byte[]>>() {
 
 					@Override
 					public List<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.keys(pattern);
 					}
-				}, node));
+				}, node).getValue());
 	}
 
 	/*
@@ -754,7 +768,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			public byte[] doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 				return client.randomkey();
 			}
-		}, node);
+		}, node).getValue();
 	}
 
 	/*
@@ -886,16 +900,13 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			return super.mGet(keys);
 		}
 
-		Map<RedisClusterNode, byte[]> nodeResult = this.clusterCommandExecutor.executeMuliKeyCommand(
-				new LettuceMultiKeyClusterCommandCallback<byte[]>() {
+		return this.clusterCommandExecutor.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<byte[]>() {
 
-					@Override
-					public byte[] doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
-						return client.get(key);
-					}
-				}, Arrays.asList(keys));
-
-		return new ArrayList<byte[]>(nodeResult.values());
+			@Override
+			public byte[] doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
+				return client.get(key);
+			}
+		}, Arrays.asList(keys)).resultsAsListSortBy(keys);
 	}
 
 	/*
@@ -948,17 +959,19 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			return super.bLPop(timeout, keys);
 		}
 
-		Map<RedisClusterNode, KeyValue<byte[], byte[]>> nodeResult = this.clusterCommandExecutor.executeMuliKeyCommand(
-				new LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>() {
+		List<KeyValue<byte[], byte[]>> resultList = this.clusterCommandExecutor
+				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>() {
 
 					@Override
 					public KeyValue<byte[], byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
 						return client.blpop(timeout, key);
 					}
-				}, Arrays.asList(keys));
+				}, Arrays.asList(keys)).resultsAsList();
 
-		for (KeyValue<byte[], byte[]> partial : nodeResult.values()) {
-			return LettuceConverters.toBytesList(partial);
+		for (KeyValue<byte[], byte[]> kv : resultList) {
+			if (kv != null) {
+				return LettuceConverters.toBytesList(kv);
+			}
 		}
 
 		return Collections.emptyList();
@@ -975,17 +988,19 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			return super.bRPop(timeout, keys);
 		}
 
-		Map<RedisClusterNode, KeyValue<byte[], byte[]>> nodeResult = this.clusterCommandExecutor.executeMuliKeyCommand(
-				new LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>() {
+		List<KeyValue<byte[], byte[]>> resultList = this.clusterCommandExecutor
+				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<KeyValue<byte[], byte[]>>() {
 
 					@Override
 					public KeyValue<byte[], byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
 						return client.brpop(timeout, key);
 					}
-				}, Arrays.asList(keys));
+				}, Arrays.asList(keys)).resultsAsList();
 
-		for (KeyValue<byte[], byte[]> partial : nodeResult.values()) {
-			return LettuceConverters.toBytesList(partial);
+		for (KeyValue<byte[], byte[]> kv : resultList) {
+			if (kv != null) {
+				return LettuceConverters.toBytesList(kv);
+			}
 		}
 
 		return Collections.emptyList();
@@ -1057,19 +1072,19 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			return super.sInter(keys);
 		}
 
-		Map<RedisClusterNode, Set<byte[]>> nodeResult = this.clusterCommandExecutor.executeMuliKeyCommand(
-				new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
+		Collection<Set<byte[]>> nodeResult = this.clusterCommandExecutor
+				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
 
 					@Override
 					public Set<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
 						return client.smembers(key);
 					}
-				}, Arrays.asList(keys));
+				}, Arrays.asList(keys)).resultsAsList();
 
 		ByteArraySet result = null;
-		for (Entry<RedisClusterNode, Set<byte[]>> entry : nodeResult.entrySet()) {
+		for (Set<byte[]> entry : nodeResult) {
 
-			ByteArraySet tmp = new ByteArraySet(entry.getValue());
+			ByteArraySet tmp = new ByteArraySet(entry);
 			if (result == null) {
 				result = tmp;
 			} else {
@@ -1118,18 +1133,18 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			return super.sUnion(keys);
 		}
 
-		Map<RedisClusterNode, Set<byte[]>> nodeResult = this.clusterCommandExecutor.executeMuliKeyCommand(
-				new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
+		Collection<Set<byte[]>> nodeResult = this.clusterCommandExecutor
+				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
 
 					@Override
 					public Set<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
 						return client.smembers(key);
 					}
-				}, Arrays.asList(keys));
+				}, Arrays.asList(keys)).resultsAsList();
 
 		ByteArraySet result = new ByteArraySet();
-		for (Entry<RedisClusterNode, Set<byte[]>> entry : nodeResult.entrySet()) {
-			result.addAll(entry.getValue());
+		for (Set<byte[]> entry : nodeResult) {
+			result.addAll(entry);
 		}
 
 		if (result.isEmpty()) {
@@ -1174,20 +1189,20 @@ public class LettuceClusterConnection extends LettuceConnection implements
 		byte[][] others = Arrays.copyOfRange(keys, 1, keys.length - 1);
 
 		ByteArraySet values = new ByteArraySet(sMembers(source));
-		Map<RedisClusterNode, Set<byte[]>> nodeResult = clusterCommandExecutor.executeMuliKeyCommand(
-				new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
+		Collection<Set<byte[]>> nodeResult = clusterCommandExecutor
+				.executeMuliKeyCommand(new LettuceMultiKeyClusterCommandCallback<Set<byte[]>>() {
 
 					@Override
 					public Set<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
 						return client.smembers(key);
 					}
-				}, Arrays.asList(others));
+				}, Arrays.asList(others)).resultsAsList();
 
 		if (values.isEmpty()) {
 			return Collections.emptySet();
 		}
 
-		for (Set<byte[]> toSubstract : nodeResult.values()) {
+		for (Set<byte[]> toSubstract : nodeResult) {
 			values.removeAll(toSubstract);
 		}
 
@@ -1310,19 +1325,19 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public List<String> getConfig(final String pattern) {
 
-		Map<RedisClusterNode, List<String>> mapResult = clusterCommandExecutor
+		List<NodeResult<List<String>>> mapResult = clusterCommandExecutor
 				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<List<String>>() {
 
 					@Override
 					public List<String> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.configGet(pattern);
 					}
-				});
+				}).getResults();
 
 		List<String> result = new ArrayList<String>();
-		for (Entry<RedisClusterNode, List<String>> entry : mapResult.entrySet()) {
+		for (NodeResult<List<String>> entry : mapResult) {
 
-			String prefix = entry.getKey().asString();
+			String prefix = entry.getNode().asString();
 			int i = 0;
 			for (String value : entry.getValue()) {
 				result.add((i++ % 2 == 0 ? (prefix + ".") : "") + value);
@@ -1345,7 +1360,7 @@ public class LettuceClusterConnection extends LettuceConnection implements
 			public List<String> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 				return client.configGet(pattern);
 			}
-		}, node);
+		}, node).getValue();
 	}
 
 	/*
@@ -1420,14 +1435,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Long time() {
 
-		return convertListOfStringToTime(clusterCommandExecutor
-				.executeCommandOnArbitraryNode(new LettuceClusterCommandCallback<List<byte[]>>() {
+		return convertListOfStringToTime(
+				clusterCommandExecutor.executeCommandOnArbitraryNode(new LettuceClusterCommandCallback<List<byte[]>>() {
 
 					@Override
 					public List<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.time();
 					}
-				}));
+				}).getValue());
 	}
 
 	/*
@@ -1437,14 +1452,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Long time(RedisClusterNode node) {
 
-		return convertListOfStringToTime(clusterCommandExecutor.executeCommandOnSingleNode(
-				new LettuceClusterCommandCallback<List<byte[]>>() {
+		return convertListOfStringToTime(
+				clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<List<byte[]>>() {
 
 					@Override
 					public List<byte[]> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.time();
 					}
-				}, node));
+				}, node).getValue());
 	}
 
 	private Long convertListOfStringToTime(List<byte[]> serverTimeInformation) {
@@ -1464,17 +1479,16 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public List<RedisClientInfo> getClientList() {
 
-		Map<RedisClusterNode, String> map = clusterCommandExecutor
-				.executeCommandOnAllNodes(new LettuceClusterCommandCallback<String>() {
+		List<String> map = clusterCommandExecutor.executeCommandOnAllNodes(new LettuceClusterCommandCallback<String>() {
 
-					@Override
-					public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
-						return client.clientList();
-					}
-				});
+			@Override
+			public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
+				return client.clientList();
+			}
+		}).resultsAsList();
 
 		ArrayList<RedisClientInfo> result = new ArrayList<RedisClientInfo>();
-		for (String infos : map.values()) {
+		for (String infos : map) {
 			result.addAll(LettuceConverters.toListOfRedisClientInformation(infos));
 		}
 		return result;
@@ -1487,14 +1501,14 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public List<RedisClientInfo> getClientList(RedisClusterNode node) {
 
-		return LettuceConverters.toListOfRedisClientInformation(clusterCommandExecutor.executeCommandOnSingleNode(
-				new LettuceClusterCommandCallback<String>() {
+		return LettuceConverters.toListOfRedisClientInformation(
+				clusterCommandExecutor.executeCommandOnSingleNode(new LettuceClusterCommandCallback<String>() {
 
 					@Override
 					public String doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return client.clientList();
 					}
-				}, node));
+				}, node).getValue());
 	}
 
 	/*
@@ -1504,14 +1518,22 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	@Override
 	public Map<RedisClusterNode, Collection<RedisClusterNode>> clusterGetMasterSlaveMap() {
 
-		return clusterCommandExecutor.executeCommandAsyncOnNodes(
-				new LettuceClusterCommandCallback<Collection<RedisClusterNode>>() {
+		List<NodeResult<Collection<RedisClusterNode>>> nodeResults = clusterCommandExecutor
+				.executeCommandAsyncOnNodes(new LettuceClusterCommandCallback<Collection<RedisClusterNode>>() {
 
 					@Override
 					public Set<RedisClusterNode> doInCluster(RedisClusterConnection<byte[], byte[]> client) {
 						return Converters.toSetOfRedisClusterNodes(client.clusterSlaves(client.clusterMyId()));
 					}
-				}, topologyProvider.getTopology().getActiveMasterNodes());
+				}, topologyProvider.getTopology().getActiveMasterNodes()).getResults();
+
+		Map<RedisClusterNode, Collection<RedisClusterNode>> result = new LinkedHashMap<RedisClusterNode, Collection<RedisClusterNode>>();
+
+		for (NodeResult<Collection<RedisClusterNode>> nodeResult : nodeResults) {
+			result.put(nodeResult.getNode(), nodeResult.getValue());
+		}
+
+		return result;
 	}
 
 	/**
@@ -1521,8 +1543,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	 * @param <T>
 	 * @since 1.7
 	 */
-	protected interface LettuceClusterCommandCallback<T> extends
-			ClusterCommandCallback<RedisClusterConnection<byte[], byte[]>, T> {}
+	protected interface LettuceClusterCommandCallback<T>
+			extends ClusterCommandCallback<RedisClusterConnection<byte[], byte[]>, T> {}
 
 	/**
 	 * Lettuce specific implementation of {@link MultiKeyClusterCommandCallback}.
@@ -1531,8 +1553,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 	 * @param <T>
 	 * @since 1.7
 	 */
-	protected interface LettuceMultiKeyClusterCommandCallback<T> extends
-			MultiKeyClusterCommandCallback<RedisClusterConnection<byte[], byte[]>, T> {
+	protected interface LettuceMultiKeyClusterCommandCallback<T>
+			extends MultiKeyClusterCommandCallback<RedisClusterConnection<byte[], byte[]>, T> {
 
 	}
 
@@ -1606,8 +1628,8 @@ public class LettuceClusterConnection extends LettuceConnection implements
 		 */
 		@Override
 		public ClusterTopology getTopology() {
-			return new ClusterTopology(new LinkedHashSet<RedisClusterNode>(LettuceConverters.partitionsToClusterNodes(client
-					.getPartitions())));
+			return new ClusterTopology(
+					new LinkedHashSet<RedisClusterNode>(LettuceConverters.partitionsToClusterNodes(client.getPartitions())));
 		}
 	}
 
