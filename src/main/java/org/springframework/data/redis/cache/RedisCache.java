@@ -28,6 +28,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.DecoratedRedisConnection;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.ReturnType;
@@ -39,10 +40,11 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Cache implementation on top of Redis.
- * 
+ *
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 @SuppressWarnings("unchecked")
 public class RedisCache implements Cache {
@@ -54,7 +56,7 @@ public class RedisCache implements Cache {
 
 	/**
 	 * Constructs a new <code>RedisCache</code> instance.
-	 * 
+	 *
 	 * @param name cache name
 	 * @param prefix
 	 * @param redisOperations
@@ -624,7 +626,16 @@ public class RedisCache implements Cache {
 			byte[] prefixToUse = Arrays.copyOf(metadata.getKeyPrefix(), metadata.getKeyPrefix().length + WILD_CARD.length);
 			System.arraycopy(WILD_CARD, 0, prefixToUse, metadata.getKeyPrefix().length, WILD_CARD.length);
 
-			connection.eval(REMOVE_KEYS_BY_PATTERN_LUA, ReturnType.INTEGER, 0, prefixToUse);
+			if(isClusterConnection(connection)) {
+
+				// load keys to the client because currently Redis Cluster connections do not allow eval of lua scripts.
+				Set<byte[]> keys = connection.keys(prefixToUse);
+				if (!keys.isEmpty()) {
+					connection.del(keys.toArray(new byte[keys.size()][]));
+				}
+			} else {
+				connection.eval(REMOVE_KEYS_BY_PATTERN_LUA, ReturnType.INTEGER, 0, prefixToUse);
+			}
 
 			return null;
 		}
@@ -765,8 +776,9 @@ public class RedisCache implements Cache {
 
 					return value;
 				} catch (RuntimeException e) {
-
-					connection.discard();
+					if (!isClusterConnection(connection)) {
+						connection.discard();
+					}
 					throw e;
 				}
 			} finally {
@@ -810,6 +822,11 @@ public class RedisCache implements Cache {
 	}
 
 	private static boolean isClusterConnection(RedisConnection connection) {
+
+		while (connection instanceof DecoratedRedisConnection) {
+			connection = ((DecoratedRedisConnection) connection).getDelegate();
+		}
+
 		return connection instanceof RedisClusterConnection;
 	}
 
