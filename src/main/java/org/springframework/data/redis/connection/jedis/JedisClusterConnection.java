@@ -578,7 +578,7 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			public byte[] doInCluster(Jedis client, byte[] key) {
 				return client.get(key);
 			}
-		}, Arrays.asList(keys)).resultsAsList();
+		}, Arrays.asList(keys)).resultsAsListSortBy(keys);
 	}
 
 	/*

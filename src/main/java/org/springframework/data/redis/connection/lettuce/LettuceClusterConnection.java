@@ -906,7 +906,7 @@ public class LettuceClusterConnection extends LettuceConnection
 			public byte[] doInCluster(RedisClusterConnection<byte[], byte[]> client, byte[] key) {
 				return client.get(key);
 			}
-		}, Arrays.asList(keys)).resultsAsList();
+		}, Arrays.asList(keys)).resultsAsListSortBy(keys);
 	}
 
 	/*

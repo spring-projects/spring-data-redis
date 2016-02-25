@@ -16,8 +16,10 @@
 package org.springframework.data.redis.connection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -38,6 +40,8 @@ import org.springframework.data.redis.ClusterRedirectException;
 import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.TooManyClusterRedirectionsException;
+import org.springframework.data.redis.connection.util.ByteArraySet;
+import org.springframework.data.redis.connection.util.ByteArrayWrapper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -331,7 +335,7 @@ public class ClusterCommandExecutor implements DisposableBean {
 		Assert.notNull(client, "Could not acquire resource for node. Is your cluster info up to date?");
 
 		try {
-			return new NodeResult<T>(node, cmd.doInCluster(client, key));
+			return new NodeResult<T>(node, cmd.doInCluster(client, key), key);
 		} catch (RuntimeException ex) {
 
 			RuntimeException translatedException = convertToDataAccessExeption(ex);
@@ -470,8 +474,9 @@ public class ClusterCommandExecutor implements DisposableBean {
 	 */
 	public static class NodeResult<T> {
 
-		RedisClusterNode node;
-		T value;
+		private RedisClusterNode node;
+		private T value;
+		private ByteArrayWrapper key;
 
 		/**
 		 * Create new {@link NodeResult}.
@@ -480,9 +485,22 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @param value
 		 */
 		public NodeResult(RedisClusterNode node, T value) {
+			this(node, value, new byte[] {});
+		}
+
+		/**
+		 * Create new {@link NodeResult}.
+		 *
+		 * @param node
+		 * @param value
+		 * @parm key
+		 */
+		public NodeResult(RedisClusterNode node, T value, byte[] key) {
 
 			this.node = node;
 			this.value = value;
+
+			this.key = new ByteArrayWrapper(key);
 		}
 
 		/**
@@ -501,6 +519,13 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 */
 		public RedisClusterNode getNode() {
 			return node;
+		}
+
+		/**
+		 * @return
+		 */
+		public byte[] getKey() {
+			return key.getArray();
 		}
 	}
 
@@ -533,14 +558,27 @@ public class ClusterCommandExecutor implements DisposableBean {
 		 * @return never {@literal null}.
 		 */
 		public List<T> resultsAsList() {
-
-			ArrayList<T> result = new ArrayList<T>();
-			for (NodeResult<T> nodeResult : nodeResults) {
-				result.add(nodeResult.getValue());
-			}
-			return result;
+			return toList(nodeResults);
 		}
 
+		/**
+		 * Get {@link List} of all individual {@link NodeResult#value}. <br />
+		 * The resulting {@link List} may contain {@literal null} values.
+		 *
+		 * @return never {@literal null}.
+		 */
+		public List<T> resultsAsListSortBy(byte[]... keys) {
+
+			ArrayList<NodeResult<T>> clone = new ArrayList<NodeResult<T>>(nodeResults);
+			Collections.sort(clone, new ResultByReferenceKeyPositionComperator(keys));
+
+			return toList(clone);
+		}
+
+		/**
+		 * @param returnValue
+		 * @return
+		 */
 		public T getFirstNonNullNotEmptyOrDefault(T returnValue) {
 
 			for (NodeResult<T> nodeResult : nodeResults) {
@@ -558,6 +596,34 @@ public class ClusterCommandExecutor implements DisposableBean {
 			}
 
 			return returnValue;
+		}
+
+		private List<T> toList(Collection<NodeResult<T>> source) {
+
+			ArrayList<T> result = new ArrayList<T>();
+			for (NodeResult<T> nodeResult : source) {
+				result.add(nodeResult.getValue());
+			}
+			return result;
+		}
+
+		/**
+		 * {@link Comparator} for sorting {@link NodeResult} by reference keys.
+		 *
+		 * @author Christoph Strobl
+		 */
+		private static class ResultByReferenceKeyPositionComperator implements Comparator<NodeResult<?>> {
+
+			List<ByteArrayWrapper> reference;
+
+			public ResultByReferenceKeyPositionComperator(byte[]... keys) {
+				reference = new ArrayList<ByteArrayWrapper>(new ByteArraySet(Arrays.asList(keys)));
+			}
+
+			@Override
+			public int compare(NodeResult<?> o1, NodeResult<?> o2) {
+				return Integer.compare(reference.indexOf(o1.key), reference.indexOf(o2.key));
+			}
 		}
 	}
 }

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
@@ -529,7 +530,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(SAME_SLOT_KEY_2, VALUE_2);
 
 		assertThat(clusterConnection.mGet(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES),
-				hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+				contains(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
 	/**
@@ -541,7 +542,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 		nativeConnection.set(KEY_2, VALUE_2);
 
-		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES), contains(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
 	/**

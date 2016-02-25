@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
@@ -536,7 +537,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES);
 
 		assertThat(clusterConnection.mGet(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES),
-				hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+				contains(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
 	/**
@@ -548,7 +549,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		nativeConnection.set(KEY_2_BYTES, VALUE_2_BYTES);
 
-		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
+		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES), contains(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
 	/**
@@ -2088,29 +2089,23 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(values,
 				hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"), JedisConverters.toBytes("c")));
-		assertThat(
-				values,
-				not(hasItems(JedisConverters.toBytes("d"), JedisConverters.toBytes("e"), JedisConverters.toBytes("f"),
-						JedisConverters.toBytes("g"))));
+		assertThat(values, not(hasItems(JedisConverters.toBytes("d"), JedisConverters.toBytes("e"),
+				JedisConverters.toBytes("f"), JedisConverters.toBytes("g"))));
 
 		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().lt("c"));
 		assertThat(values, hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b")));
 		assertThat(values, not(hasItem(JedisConverters.toBytes("c"))));
 
 		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("aaa").lt("g"));
-		assertThat(
-				values,
-				hasItems(JedisConverters.toBytes("b"), JedisConverters.toBytes("c"), JedisConverters.toBytes("d"),
-						JedisConverters.toBytes("e"), JedisConverters.toBytes("f")));
+		assertThat(values, hasItems(JedisConverters.toBytes("b"), JedisConverters.toBytes("c"),
+				JedisConverters.toBytes("d"), JedisConverters.toBytes("e"), JedisConverters.toBytes("f")));
 		assertThat(values, not(hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("g"))));
 
 		values = clusterConnection.zRangeByLex(KEY_1_BYTES, Range.range().gte("e"));
 		assertThat(values,
 				hasItems(JedisConverters.toBytes("e"), JedisConverters.toBytes("f"), JedisConverters.toBytes("g")));
-		assertThat(
-				values,
-				not(hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"), JedisConverters.toBytes("c"),
-						JedisConverters.toBytes("d"))));
+		assertThat(values, not(hasItems(JedisConverters.toBytes("a"), JedisConverters.toBytes("b"),
+				JedisConverters.toBytes("c"), JedisConverters.toBytes("d"))));
 	}
 
 	/**
@@ -2288,8 +2283,8 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void clusterGetSlavesShouldReturnSlaveCorrectly() {
 
-		Set<RedisClusterNode> slaves = clusterConnection.clusterGetSlaves(new RedisClusterNode(CLUSTER_HOST,
-				MASTER_NODE_1_PORT));
+		Set<RedisClusterNode> slaves = clusterConnection
+				.clusterGetSlaves(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
 
 		assertThat(slaves.size(), is(1));
 		assertThat(slaves, hasItem(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT)));
