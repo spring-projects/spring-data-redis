@@ -49,8 +49,9 @@ import org.springframework.util.Assert;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
-public class DefaultStringRedisConnection implements StringRedisConnection {
+public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
 	private static final byte[][] EMPTY_2D_BYTE_ARRAY = new byte[0][];
 
@@ -2722,6 +2723,15 @@ public class DefaultStringRedisConnection implements StringRedisConnection {
 	@Override
 	public void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout) {
 		delegate.migrate(key, target, dbIndex, option, timeout);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.DecoratedRedisConnection#getDelegate()
+	 */
+	@Override
+	public RedisConnection getDelegate() {
+		return delegate;
 	}
 
 }
