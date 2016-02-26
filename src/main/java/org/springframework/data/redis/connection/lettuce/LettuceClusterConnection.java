@@ -51,6 +51,7 @@ import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -102,7 +103,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	/**
 	 * Creates new {@link LettuceClusterConnection} using {@link RedisClusterClient} running commands across the cluster
 	 * via given {@link ClusterCommandExecutor}.
-	 * 
+	 *
 	 * @param clusterClient must not be {@literal null}.
 	 * @param executor must not be {@literal null}.
 	 */
@@ -131,6 +132,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#keys(byte[])
 	 */
+	@Override
 	public Set<byte[]> keys(final byte[] pattern) {
 
 		Assert.notNull(pattern, "Pattern must not be null!");
@@ -156,6 +158,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#flushAll()
 	 */
+	@Override
 	public void flushAll() {
 
 		clusterCommandExecutor.executeCommandOnAllNodes(new LettuceClusterCommandCallback<String>() {
@@ -1109,7 +1112,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public Long sInterStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			return super.sInterStore(destKey, keys);
@@ -1161,7 +1164,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public Long sUnionStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			return super.sUnionStore(destKey, keys);
@@ -1216,7 +1219,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public Long sDiffStore(byte[] destKey, byte[]... keys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destKey, keys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destKey, keys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			return super.sDiffStore(destKey, keys);
@@ -1276,7 +1279,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	@Override
 	public void pfMerge(byte[] destinationKey, byte[]... sourceKeys) {
 
-		byte[][] allKeys = Converters.mergeArrays(destinationKey, sourceKeys);
+		byte[][] allKeys = ByteUtils.mergeArrays(destinationKey, sourceKeys);
 
 		if (ClusterSlotHashUtil.isSameSlotForAllKeys(allKeys)) {
 			try {
@@ -1318,7 +1321,7 @@ public class LettuceClusterConnection extends LettuceConnection
 	}
 
 	/*
-	 * 
+	 *
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#getConfig(java.lang.String)
 	 */
@@ -1538,7 +1541,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 	/**
 	 * Lettuce specific implementation of {@link ClusterCommandCallback}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.7
@@ -1548,7 +1551,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 	/**
 	 * Lettuce specific implementation of {@link MultiKeyClusterCommandCallback}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @param <T>
 	 * @since 1.7
@@ -1560,7 +1563,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 	/**
 	 * Lettuce specific implementation of {@link ClusterNodeResourceProvider}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -1605,7 +1608,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 	/**
 	 * Lettuce specific implementation of {@link ClusterTopologyProvider}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.util.Assert;
+
 /**
  * Some handy methods for dealing with byte arrays.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public final class ByteUtils {
@@ -75,5 +78,24 @@ public final class ByteUtils {
 			}
 		}
 		return bytes.toArray(new byte[bytes.size()][]);
+	}
+
+	/**
+	 * Merge multiple {@code byte} arrays into one array
+	 *
+	 * @param firstArray must not be {@literal null}
+	 * @param additionalArrays must not be {@literal null}
+	 * @return
+	 */
+	public static byte[][] mergeArrays(byte[] firstArray, byte[]... additionalArrays) {
+
+		Assert.notNull(firstArray, "first array must not be null");
+		Assert.notNull(additionalArrays, "additional arrays must not be null");
+
+		byte[][] result = new byte[additionalArrays.length + 1][];
+		result[0] = firstArray;
+		System.arraycopy(additionalArrays, 0, result, 1, additionalArrays.length);
+
+		return result;
 	}
 }
