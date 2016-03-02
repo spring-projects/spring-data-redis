@@ -160,6 +160,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		initKeyExpirationListener();
 	}
 
+	/**
+	 * Default constructor.
+	 */
+	protected RedisKeyValueAdapter() {
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.io.Serializable, java.lang.Object, java.io.Serializable)
