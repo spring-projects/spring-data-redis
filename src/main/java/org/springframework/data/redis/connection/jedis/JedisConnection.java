@@ -971,28 +971,16 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Boolean pExpire(byte[] key, long millis) {
-
-		/*
-		 *  @see DATAREDIS-286 to avoid overflow in Jedis
-		 *  
-		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
-		 *  fix for: https://github.com/xetorthio/jedis/pull/575
-		 */
-		if (millis > Integer.MAX_VALUE) {
-
-			return pExpireAt(key, time() + millis);
-		}
-
 		try {
 			if (isPipelined()) {
-				pipeline(new JedisResult(pipeline.pexpire(key, (int) millis), JedisConverters.longToBoolean()));
+				pipeline(new JedisResult(pipeline.pexpire(key, millis), JedisConverters.longToBoolean()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new JedisResult(transaction.pexpire(key, (int) millis), JedisConverters.longToBoolean()));
+				transaction(new JedisResult(transaction.pexpire(key,millis), JedisConverters.longToBoolean()));
 				return null;
 			}
-			return JedisConverters.toBoolean(jedis.pexpire(key, (int) millis));
+			return JedisConverters.toBoolean(jedis.pexpire(key, millis));
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
@@ -1327,14 +1315,14 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		try {
 			if (isPipelined()) {
-				doPipelined(pipeline.psetex(key, (int) milliseconds, value));
+				doPipelined(pipeline.psetex(key, milliseconds, value));
 				return;
 			}
 			if (isQueueing()) {
-				doQueued(transaction.psetex(key, (int) milliseconds, value));
+				doQueued(transaction.psetex(key, milliseconds, value));
 				return;
 			}
-			jedis.psetex(key, (int) milliseconds, value);
+			jedis.psetex(key, milliseconds, value);
 		} catch (Exception ex) {
 			throw convertJedisAccessException(ex);
 		}
