@@ -41,7 +41,7 @@ public class Example {
  return false 
 ----
 
-The XML above configures a `DefaultRedisScript` pointing to a file called `checkandset.lua`, which is expected to return a boolean value. The script `resultType` should be one of Long, Boolean, List, or deserialized value type. It can also be null if the script returns a throw-away status (i.e "OK"). It is ideal to configure a single instance of `DefaultRedisScript` in your application context to avoid re-calculation of the script's SHA1 on every script execution.
+The XML above configures a `DefaultRedisScript` pointing to a file called `checkandset.lua`, which is expected to return a boolean value. The script `resultType` should be one of `Long`, `Boolean`, `List`, or deserialized value type. It can also be null if the script returns a throw-away status (i.e "OK"). It is ideal to configure a single instance of `DefaultRedisScript` in your application context to avoid re-calculation of the script's SHA1 on every script execution.
 
 The checkAndSet method above then executes th
 Scripts can be executed within a `SessionCallback` as part of a transaction or pipeline. See <<tx>> and <<pipeline>> for more information.

@@ -39,7 +39,7 @@ NOTE: Depending on the underlying configuration, the factory can return a new co
 
 The easiest way to work with a `RedisConnectionFactory` is to configure the appropriate connector through the IoC container and inject it into the using class.
 
-IMPORTANT: Unfortunately, currently, not all connectors support all Redis features.  When invoking a method on the Connection` API that is unsupported by the underlying library, an `UnsupportedOperationException is thrown.
+IMPORTANT: Unfortunately, currently, not all connectors support all Redis features.  When invoking a method on the Connection API that is unsupported by the underlying library, an `UnsupportedOperationException` is thrown.
   This situation is likely to be fixed in the future, as the various connectors mature.
 
 [[redis:connectors:jedis]]
@@ -95,7 +95,7 @@ A typical JRedis configuration can looks like this:
 </beans>
 ----
 
-The configuration is quite similar to Jedis, with one notable exception. By default, the `JredisConnectionFactory` pools connections. In order to use a connection pool with JRedis, configure the `JredisConnectionFactory` with an instance of `JredisPool`. For example:
+The configuration is quite similar to Jedis, with one notable exception. By default, the `JedisConnectionFactory` pools connections. In order to use a connection pool with JRedis, configure the `JredisConnectionFactory` with an instance of `JredisPool`. For example:
 
 [source,xml]
 ----
@@ -158,7 +158,7 @@ Its configuration is probably easy to guess:
 </beans>
 ----
 
-There are also a few Lettuce-specific connection parameters that can be tweaked. By default, all `LettuceConnections` created by the `LettuceConnectionFactory` share the same thread-safe native connection for all non-blocking and non-transactional operations. Set `shareNativeConnection` to false to use a dedicated connection each time. `LettuceConnectionFactory` can also be configured with a `LettucePool` to use for pooling blocking and transactional connections, or all connections if `shareNativeConnection` is set to false.
+There are also a few Lettuce-specific connection parameters that can be tweaked. By default, all `LettuceConnection` s created by the `LettuceConnectionFactory` share the same thread-safe native connection for all non-blocking and non-transactional operations. Set `shareNativeConnection` to false to use a dedicated connection each time. `LettuceConnectionFactory` can also be configured with a `LettucePool` to use for pooling blocking and transactional connections, or all connections if `shareNativeConnection` is set to false.
 
 [[redis:sentinel]]
 == Redis Sentinel Support
@@ -255,7 +255,7 @@ Moreover, the template provides operations views (following the grouping from Re
 
 Once configured, the template is thread-safe and can be reused across multiple instances.
 
-Out of the box, `RedisTemplate` uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be serializer/deserialized through Java. The serialization mechanism can be easily changed on the template, and the Redis module offers several implementations available in the `org.springframework.data.redis.serializer` package - see <<redis:serializer>> for more information. You can also set any of the serializers to null and use RedisTemplate with raw `byte` arrays by setting the `enableDefaultSerializer` property to false. Note that the template requires all keys to be non-null - values can be null as long as the underlying serializer accepts them; read the javadoc of each serializer for more information.
+Out of the box, `RedisTemplate` uses a Java-based serializer for most of its operations. This means that any object written or read by the template will be serialized/deserialized through Java. The serialization mechanism can be easily changed on the template, and the Redis module offers several implementations available in the `org.springframework.data.redis.serializer` package - see <<redis:serializer>> for more information. You can also set any of the serializers to null and use RedisTemplate with raw `byte` arrays by setting the `enableDefaultSerializer` property to false. Note that the template requires all keys to be non-null - values can be null as long as the underlying serializer accepts them; read the javadoc of each serializer for more information.
 
 For cases where a certain template *view* is needed, declare the view as a dependency and inject the template: the container will automatically perform the conversion eliminating the `opsFor[X]` calls:
 
@@ -281,8 +281,9 @@ public class Example {
   
   // inject the actual template 
   @Autowired 
-  private RedisTemplate<String, String> template; // inject the template as ListOperations
-  
+  private RedisTemplate<String, String> template; 
+
+  // inject the template as ListOperations
   @Resource(name="redisTemplate") 
   private ListOperations<String, String> listOps;
 
