@@ -8,7 +8,7 @@ New and noteworthy in the latest releases.
 
 * The `Lettuce` Redis driver switched from https://github.com/wg/lettuce[wg/lettuce] to https://github.com/mp911de/lettuce[mp911de/lettuce].
 * Support for `ZRANGEBYLEX`.
-* Enhanced range operations for `ZSET`s including `+inf` / `-inf`.
+* Enhanced range operations for `ZSET` s including `+inf` / `-inf`.
 * Performance improvements in `RedisCache` now releasing connections earlier.
 * Generic Jackson2 `RedisSerializer` making use of Jackson's polymorphic deserialization.
 
