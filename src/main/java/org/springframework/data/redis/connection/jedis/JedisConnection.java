@@ -1037,6 +1037,10 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public void restore(byte[] key, long ttlInMillis, byte[] serializedValue) {
+
+		if (ttlInMillis > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("TtlInMillis must be less than Integer.MAX_VALUE for restore in Jedis.");
+		}
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisStatusResult(pipeline.restore(key, (int) ttlInMillis, serializedValue)));
@@ -1293,6 +1297,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public void setEx(byte[] key, long time, byte[] value) {
+
+		if (time > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Time must be less than Integer.MAX_VALUE for setEx in Jedis.");
+		}
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisStatusResult(pipeline.setex(key, (int) time, value)));
@@ -1347,6 +1356,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public byte[] getRange(byte[] key, long start, long end) {
+
+		if (start > Integer.MAX_VALUE || end > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Start and end must be less than Integer.MAX_VALUE for getRange in Jedis.");
+		}
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.substr(key, (int) start, (int) end), JedisConverters.stringToBytes()));
@@ -2022,6 +2036,11 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public List<byte[]> sRandMember(byte[] key, long count) {
+
+		if (count > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Count must be less than Integer.MAX_VALUE for sRandMember in Jedis.");
+		}
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.srandmember(key, (int) count)));
@@ -3520,6 +3539,12 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	@Override
 	public Set<byte[]> zRangeByScore(byte[] key, String min, String max, long offset, long count) {
+
+		if (offset > Integer.MAX_VALUE || count > Integer.MAX_VALUE) {
+
+			throw new IllegalArgumentException(
+					"Offset and count must be less than Integer.MAX_VALUE for zRangeByScore in Jedis.");
+		}
 
 		try {
 			String keyStr = new String(key, "UTF-8");

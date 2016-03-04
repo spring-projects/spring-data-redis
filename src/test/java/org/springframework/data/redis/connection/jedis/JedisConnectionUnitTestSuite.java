@@ -20,9 +20,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +31,6 @@ import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionPipelineUnitTests;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionUnitTests;
-import org.springframework.data.redis.core.TimeoutUtils;
 
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
@@ -98,24 +94,6 @@ public class JedisConnectionUnitTestSuite {
 		}
 
 		/**
-		 * @see DATAREDIS-286
-		 */
-		@Test
-		public void pExpireHavingIntOverflowShouldUseRedisServerTimeAsReferenceForPExpireAt() {
-
-			long msec = Long.valueOf((long) Integer.MAX_VALUE + 1);
-			long expected = msec + TimeoutUtils.toMillis(1, TimeUnit.SECONDS);
-
-			/* redis time as list containing [0] = seconds, [1] = microseconds
-			 * @see http://redis.io/commands/time
-			 */
-			when(jedisSpy.time()).thenReturn(Arrays.asList("1", "0"));
-
-			connection.pExpire("foo".getBytes(), msec);
-			verifyNativeConnectionInvocation().pexpireAt(any(byte[].class), eq(expected));
-		}
-
-		/**
 		 * @see DATAREDIS-267
 		 */
 		@Test
@@ -169,6 +147,62 @@ public class JedisConnectionUnitTestSuite {
 		@Test(expected = InvalidDataAccessResourceUsageException.class)
 		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
 			connection.getSentinelConnection();
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
+			connection.restore("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L, "bar".getBytes());
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
+			connection.setEx("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L, "bar".getBytes());
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void getRangeShouldThrowExceptionWhenStartExceedsIntegerRange() {
+			connection.getRange("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L, Integer.MAX_VALUE);
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void getRangeShouldThrowExceptionWhenEndExceedsIntegerRange() {
+			connection.getRange("foo".getBytes(), Integer.MAX_VALUE, new Long(Integer.MAX_VALUE) + 1L);
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
+			connection.sRandMember("foo".getBytes(), new Long(Integer.MAX_VALUE) + 1L);
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
+			connection.zRangeByScore("foo".getBytes(), "foo", "bar", new Long(Integer.MAX_VALUE) + 1L, Integer.MAX_VALUE);
+		}
+
+		/**
+		 * @see DATAREDIS-472
+		 */
+		@Test(expected = IllegalArgumentException.class)
+		public void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
+			connection.zRangeByScore("foo".getBytes(), "foo", "bar", Integer.MAX_VALUE, new Long(Integer.MAX_VALUE) + 1L);
 		}
 
 	}
