@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,16 +42,20 @@ import org.springframework.util.Assert;
  * {@link org.springframework.data.keyvalue.repository.KeyValueRepository}.
  * 
  * @author Christoph Strobl
+ * @author Oliver Gierke
  * @since 1.7
  */
 public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
+
+	private final KeyValueOperations operations;
+	private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
 	/**
 	 * @param keyValueOperations
 	 * @see KeyValueRepositoryFactory#KeyValueRepositoryFactory(KeyValueOperations)
 	 */
 	public RedisRepositoryFactory(KeyValueOperations keyValueOperations) {
-		super(keyValueOperations);
+		this(keyValueOperations, DEFAULT_QUERY_CREATOR);
 	}
 
 	/**
@@ -62,6 +66,9 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	public RedisRepositoryFactory(KeyValueOperations keyValueOperations,
 			Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
 		super(keyValueOperations, queryCreator);
+
+		this.operations = keyValueOperations;
+		this.queryCreator = queryCreator;
 	}
 
 	/*
@@ -70,7 +77,7 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	 */
 	@Override
 	protected QueryLookupStrategy getQueryLookupStrategy(Key key, EvaluationContextProvider evaluationContextProvider) {
-		return new RedisQueryLookupStrategy(key, evaluationContextProvider, getKeyValueOperations(), getQueryCreator());
+		return new RedisQueryLookupStrategy(key, evaluationContextProvider, operations, queryCreator);
 	}
 
 	/*
@@ -81,7 +88,8 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	@SuppressWarnings("unchecked")
 	public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
-		RedisPersistentEntity<T> entity = (RedisPersistentEntity<T>) getMappingContext().getPersistentEntity(domainClass);
+		RedisPersistentEntity<T> entity = (RedisPersistentEntity<T>) operations.getMappingContext()
+				.getPersistentEntity(domainClass);
 		EntityInformation<T, ID> entityInformation = (EntityInformation<T, ID>) new MappingRedisEntityInformation<T, ID>(
 				entity);
 
