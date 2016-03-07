@@ -115,6 +115,9 @@ public class RedisRepositoryIntegrationTests {
 		assertThat(repo.findByFirstname("rand").size(), is(1));
 		assertThat(repo.findByFirstname("rand"), hasItem(rand));
 
+		assertThat(repo.findByFirstname("egwene").size(), is(1));
+		assertThat(repo.findByFirstname("egwene"), hasItem(egwene));
+
 		assertThat(repo.findByLastname("al'thor"), hasItem(rand));
 	}
 
