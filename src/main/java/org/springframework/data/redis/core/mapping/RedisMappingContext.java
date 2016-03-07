@@ -51,13 +51,15 @@ import org.springframework.util.StringUtils;
  * Redis specific {@link MappingContext}.
  * 
  * @author Christoph Strobl
+ * @author Oliver Gierke
  * @since 1.7
  */
 public class RedisMappingContext extends KeyValueMappingContext {
 
-	private MappingConfiguration mappingConfiguration;
+	private final MappingConfiguration mappingConfiguration;
+	private final TimeToLiveAccessor timeToLiveAccessor;
+
 	private KeySpaceResolver fallbackKeySpaceResolver;
-	private TimeToLiveAccessor timeToLiveAccessor;
 
 	/**
 	 * Creates new {@link RedisMappingContext} with empty {@link MappingConfiguration}.
