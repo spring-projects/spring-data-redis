@@ -186,7 +186,7 @@ public class IndexWriterUnitTests {
 		}
 
 		@Override
-		public String getKeySpace() {
+		public String getKeyspace() {
 			return KEYSPACE;
 		}
 	}

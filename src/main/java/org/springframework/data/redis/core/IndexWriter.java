@@ -123,7 +123,7 @@ class IndexWriter {
 	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
 		Assert.notNull(indexedData, "IndexedData must not be null!");
-		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.getKeySpace() + ":" + indexedData.getIndexName()
+		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName()
 				+ ":*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
@@ -159,12 +159,12 @@ class IndexWriter {
 				return;
 			}
 
-			byte[] indexKey = toBytes(indexedData.getKeySpace() + ":" + indexedData.getIndexName() + ":");
+			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":");
 			indexKey = ByteUtils.concat(indexKey, toBytes(value));
 			connection.sAdd(indexKey, key);
 
 			// keep track of indexes used for the object
-			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeySpace() + ":"), key, toBytes(":idx")), indexKey);
+			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
 		} else {
 			throw new IllegalArgumentException(String.format("Cannot write index data for unknown index type %s",
 					indexedData.getClass()));

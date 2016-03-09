@@ -67,7 +67,7 @@ public class SimpleIndexedPropertyValue implements IndexedData {
 	 * @see org.springframework.data.redis.core.convert.IndexedData#getKeySpace()
 	 */
 	@Override
-	public String getKeySpace() {
+	public String getKeyspace() {
 		return this.keyspace;
 	}
 
