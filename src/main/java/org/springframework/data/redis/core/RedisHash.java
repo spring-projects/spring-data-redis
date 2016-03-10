@@ -22,6 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 
@@ -36,6 +37,7 @@ import org.springframework.data.keyvalue.annotation.KeySpace;
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = { ElementType.TYPE })
+@KeySpace
 public @interface RedisHash {
 
 	/**
@@ -44,7 +46,7 @@ public @interface RedisHash {
 	 * @return
 	 * @see KeySpace
 	 */
-	@KeySpace
+	@AliasFor(annotation = KeySpace.class, attribute = "value")
 	String value() default "";
 
 	/**

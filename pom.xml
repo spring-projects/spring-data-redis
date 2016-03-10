@@ -17,7 +17,7 @@
 
 	<properties>
 		<dist.key>DATAREDIS</dist.key>
-		<springdata.keyvalue>1.1.0.DATAKV-112-SNAPSHOT</springdata.keyvalue>
+		<springdata.keyvalue>1.1.0.BUILD-SNAPSHOT</springdata.keyvalue>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
