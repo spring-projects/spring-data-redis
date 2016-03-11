@@ -30,6 +30,7 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 
 import com.lambdaworks.redis.AbstractRedisClient;
+import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
 
@@ -127,4 +128,26 @@ public class LettuceConnectionFactoryUnitTests {
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
 		assertThat(client, instanceOf(RedisClusterClient.class));
 	}
+
+	/**
+	 * @see DATAREDIS-476
+	 */
+	@Test
+	public void sslShouldBeSetCorrectlyOnClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setUseSsl(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isSsl(), is(true));
+		assertThat(connectionFactory.isUseSsl(), is(true));
+	}
+
 }

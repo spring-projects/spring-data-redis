@@ -69,6 +69,7 @@ import com.lambdaworks.redis.resource.ClientResources;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Balázs Németh
  */
 public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -143,7 +144,6 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public void afterPropertiesSet() {
 		this.client = createRedisClient();
-
 	}
 
 	/*
@@ -311,9 +311,20 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets to use SSL connection
+	 *
+	 * @param useSsl {@literal true} to use SSL.
 	 */
-	public void setUseSsl(boolean useSsl){
+	public void setUseSsl(boolean useSsl) {
 		this.useSsl = useSsl;
+	}
+
+	/**
+	 * Returns whether to use SSL.
+	 *
+	 * @return
+	 */
+	public boolean isUseSsl() {
+		return useSsl;
 	}
 
 	/**
