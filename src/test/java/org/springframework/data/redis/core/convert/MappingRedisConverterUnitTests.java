@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.hamcrest.core.IsInstanceOf.*;
@@ -308,7 +309,22 @@ public class MappingRedisConverterUnitTests {
 		map.put("nicknames.[1]", "lews therin");
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
 
-		assertThat(converter.read(Person.class, rdo).nicknames, hasItems("dragon reborn", "lews therin"));
+		assertThat(converter.read(Person.class, rdo).nicknames, contains("dragon reborn", "lews therin"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readConvertsUnorderedListOfSimplePropertiesCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("nicknames.[9]", "car'a'carn");
+		map.put("nicknames.[10]", "lews therin");
+		map.put("nicknames.[1]", "dragon reborn");
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
+
+		assertThat(converter.read(Person.class, rdo).nicknames, contains("dragon reborn", "car'a'carn", "lews therin"));
 	}
 
 	/**
@@ -338,6 +354,7 @@ public class MappingRedisConverterUnitTests {
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("coworkers.[0].firstname", "mat");
 		map.put("coworkers.[0].nicknames.[0]", "prince of the ravens");
+		map.put("coworkers.[0].nicknames.[1]", "gambler");
 		map.put("coworkers.[1].firstname", "perrin");
 		map.put("coworkers.[1].address.city", "two rivers");
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
@@ -348,6 +365,34 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.coworkers.get(0).firstname, is("mat"));
 		assertThat(target.coworkers.get(0).nicknames, notNullValue());
 		assertThat(target.coworkers.get(0).nicknames.get(0), is("prince of the ravens"));
+		assertThat(target.coworkers.get(0).nicknames.get(1), is("gambler"));
+
+		assertThat(target.coworkers.get(1).firstname, is("perrin"));
+		assertThat(target.coworkers.get(1).address.city, is("two rivers"));
+	}
+
+	/**
+	 * @see DATAREDIS-425
+	 */
+	@Test
+	public void readUnorderedListOfComplexPropertyCorrectly() {
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("coworkers.[10].firstname", "perrin");
+		map.put("coworkers.[10].address.city", "two rivers");
+		map.put("coworkers.[1].firstname", "mat");
+		map.put("coworkers.[1].nicknames.[1]", "gambler");
+		map.put("coworkers.[1].nicknames.[0]", "prince of the ravens");
+
+		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
+
+		Person target = converter.read(Person.class, rdo);
+
+		assertThat(target.coworkers, notNullValue());
+		assertThat(target.coworkers.get(0).firstname, is("mat"));
+		assertThat(target.coworkers.get(0).nicknames, notNullValue());
+		assertThat(target.coworkers.get(0).nicknames.get(0), is("prince of the ravens"));
+		assertThat(target.coworkers.get(0).nicknames.get(1), is("gambler"));
 
 		assertThat(target.coworkers.get(1).firstname, is("perrin"));
 		assertThat(target.coworkers.get(1).address.city, is("two rivers"));

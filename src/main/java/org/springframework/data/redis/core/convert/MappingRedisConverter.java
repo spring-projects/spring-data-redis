@@ -15,8 +15,11 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -53,6 +56,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.comparator.NullSafeComparator;
 
 /**
  * {@link RedisConverter} implementation creating flat binary map structure out of a given domain type. Considers
@@ -103,6 +107,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private final GenericConversionService conversionService;
 	private final EntityInstantiators entityInstantiators;
 	private final TypeMapper<RedisData> typeMapper;
+	private final Comparator<String> listKeyComparator = new NullSafeComparator<String>(
+			NaturalOrderingKeyComparator.INSTANCE, true);
+
 	private ReferenceResolver referenceResolver;
 	private IndexResolver indexResolver;
 	private CustomConversions customConversions;
@@ -533,11 +540,15 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		Bucket partial = source.getBucket().extract(path + ".[");
 
+		List<String> keys = new ArrayList<String>(partial.keySet());
+		keys.sort(listKeyComparator);
+
 		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, partial.size());
 
-		for (byte[] value : partial.values()) {
-			target.add(fromBytes(value, valueType));
+		for (String key : keys) {
+			target.add(fromBytes(partial.get(key), valueType));
 		}
+
 		return target;
 	}
 
@@ -551,7 +562,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private Collection<?> readCollectionOfComplexTypes(String path, Class<?> collectionType, Class<?> valueType,
 			Bucket source) {
 
-		Set<String> keys = source.extractAllKeysFor(path);
+		List<String> keys = new ArrayList<String>(source.extractAllKeysFor(path));
+		keys.sort(listKeyComparator);
 
 		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, keys.size());
 
@@ -807,6 +819,92 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Assert.notNull(type, "Type must not be null!");
 			return ClassUtils.getUserClass(type).getName();
+		}
+	}
+
+	private enum NaturalOrderingKeyComparator implements Comparator<String> {
+
+		INSTANCE;
+
+		/*
+		 * (non-Javadoc)
+		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		 */
+		public int compare(String s1, String s2) {
+
+			int s1offset = 0;
+			int s2offset = 0;
+
+			while (s1offset < s1.length() && s2offset < s2.length()) {
+
+				Part thisPart = extractPart(s1, s1offset);
+				Part thatPart = extractPart(s2, s2offset);
+
+				int result = thisPart.compareTo(thatPart);
+
+				if (result != 0) {
+					return result;
+				}
+
+				s1offset += thisPart.length();
+				s2offset += thatPart.length();
+			}
+
+			return 0;
+		}
+
+		private Part extractPart(String source, int offset) {
+
+			StringBuilder builder = new StringBuilder();
+
+			char c = source.charAt(offset);
+			builder.append(c);
+
+			boolean isDigit = Character.isDigit(c);
+			for (int i = offset + 1; i < source.length(); i++) {
+
+				c = source.charAt(i);
+				if ((isDigit && !Character.isDigit(c)) || (!isDigit && Character.isDigit(c))) {
+					break;
+				}
+				builder.append(c);
+			}
+
+			return new Part(builder.toString(), isDigit);
+		}
+
+		private static class Part implements Comparable<Part> {
+
+			private final String rawValue;
+			private final Long longValue;
+
+			Part(String value, boolean isDigit) {
+
+				this.rawValue = value;
+				this.longValue = isDigit ? Long.valueOf(value) : null;
+			}
+
+			boolean isNumeric() {
+				return longValue != null;
+			}
+
+			int length() {
+				return rawValue.length();
+			}
+
+			/*
+			 * (non-Javadoc)
+			 * @see java.lang.Comparable#compareTo(java.lang.Object)
+			 */
+			@Override
+			public int compareTo(Part that) {
+
+				if (this.isNumeric() && that.isNumeric()) {
+					return this.longValue.compareTo(that.longValue);
+				}
+
+				return this.rawValue.compareTo(that.rawValue);
+			}
 		}
 	}
 
