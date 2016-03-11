@@ -64,7 +64,7 @@ import com.lambdaworks.redis.resource.ClientResources;
  * a {@link Pool} to pool dedicated connections. If shareNativeConnection is true, the pool will be used to select a
  * connection for blocking and tx operations only, which should not share a connection. If native connection sharing is
  * disabled, the selected connection will be used for all operations.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -97,6 +97,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private RedisClusterConfiguration clusterConfiguration;
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClientResources clientResources;
+	private boolean useSsl;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
@@ -124,7 +125,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration}
 	 * applied to create a {@link RedisClusterClient}.
-	 * 
+	 *
 	 * @param clusterConfig
 	 * @since 1.7
 	 */
@@ -256,7 +257,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the current host.
-	 * 
+	 *
 	 * @return the host
 	 */
 	public String getHostName() {
@@ -265,7 +266,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the host.
-	 * 
+	 *
 	 * @param host the host to set
 	 */
 	public void setHostName(String host) {
@@ -274,7 +275,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the current port.
-	 * 
+	 *
 	 * @return the port
 	 */
 	public int getPort() {
@@ -283,7 +284,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the port.
-	 * 
+	 *
 	 * @param port the port to set
 	 */
 	public void setPort(int port) {
@@ -292,7 +293,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the connection timeout (in milliseconds).
-	 * 
+	 *
 	 * @return connection timeout
 	 */
 	public long getTimeout() {
@@ -301,7 +302,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the connection timeout (in milliseconds).
-	 * 
+	 *
 	 * @param timeout connection timeout
 	 */
 	public void setTimeout(long timeout) {
@@ -309,8 +310,15 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	/**
+	 * Sets to use SSL connection
+	 */
+	public void setUseSsl(boolean useSsl){
+		this.useSsl = useSsl;
+	}
+
+	/**
 	 * Indicates if validation of the native Lettuce connection is enabled
-	 * 
+	 *
 	 * @return connection validation enabled
 	 */
 	public boolean getValidateConnection() {
@@ -327,7 +335,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * Setting this to true will result in a round-trip call to the server on each new connection, so this setting should
 	 * only be used if connection sharing is enabled and there is code that is actively closing the native Lettuce
 	 * connection.
-	 * 
+	 *
 	 * @param validateConnection enable connection validation
 	 */
 	public void setValidateConnection(boolean validateConnection) {
@@ -336,7 +344,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Indicates if multiple {@link LettuceConnection}s should share a single native connection.
-	 * 
+	 *
 	 * @return native connection shared
 	 */
 	public boolean getShareNativeConnection() {
@@ -346,7 +354,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Enables multiple {@link LettuceConnection}s to share a single native connection. If set to false, every operation
 	 * on {@link LettuceConnection} will open and close a socket.
-	 * 
+	 *
 	 * @param shareNativeConnection enable connection sharing
 	 */
 	public void setShareNativeConnection(boolean shareNativeConnection) {
@@ -355,7 +363,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the index of the database.
-	 * 
+	 *
 	 * @return Returns the database index
 	 */
 	public int getDatabase() {
@@ -364,7 +372,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the index of the database used by this connection factory. Default is 0.
-	 * 
+	 *
 	 * @param index database index
 	 */
 	public void setDatabase(int index) {
@@ -374,7 +382,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the password used for authenticating with the Redis server.
-	 * 
+	 *
 	 * @return password for authentication
 	 */
 	public String getPassword() {
@@ -383,7 +391,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the password used for authenticating with the Redis server.
-	 * 
+	 *
 	 * @param password the password to set
 	 */
 	public void setPassword(String password) {
@@ -392,7 +400,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Returns the shutdown timeout for shutting down the RedisClient (in milliseconds).
-	 * 
+	 *
 	 * @return shutdown timeout
 	 * @since 1.6
 	 */
@@ -402,7 +410,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Sets the shutdown timeout for shutting down the RedisClient (in milliseconds).
-	 * 
+	 *
 	 * @param shutdownTimeout the shutdown timeout
 	 * @since 1.6
 	 */
@@ -412,7 +420,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/**
 	 * Get the {@link ClientResources} to reuse infrastructure.
-	 * 
+	 *
 	 * @return {@literal null} if not set.
 	 * @since 1.7
 	 */
@@ -423,7 +431,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Sets the {@link ClientResources} to reuse the client infrastructure. <br />
 	 * Set to {@literal null} to not share resources.
-	 * 
+	 *
 	 * @param clientResources can be {@literal null}.
 	 * @since 1.7
 	 */
@@ -435,7 +443,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()} will be of the type returned by the
 	 * Lettuce driver
-	 * 
+	 *
 	 * @return Whether or not to convert pipeline and tx results
 	 */
 	public boolean getConvertPipelineAndTxResults() {
@@ -446,7 +454,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()} will be of the type returned by the
 	 * Lettuce driver
-	 * 
+	 *
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
@@ -536,6 +544,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		if (password != null) {
 			builder.withPassword(password);
 		}
+		builder.withSsl(useSsl);
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
 		if (clientResources != null) {
 			return RedisClient.create(clientResources, builder.build());
