@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,22 @@
  */
 package org.springframework.data.redis.repository;
 
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -31,7 +39,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationTestBase {
+public class RedisRepositoryClusterIntegrationTests extends RedisRepositoryIntegrationTestBase {
+
+	static final List<String> CLUSTER_NODES = Arrays.asList(CLUSTER_NODE_1.asString(), CLUSTER_NODE_2.asString(),
+			CLUSTER_NODE_3.asString());
+
+	/**
+	 * ONLY RUN WHEN CLUSTER AVAILABLE
+	 */
+	public static @ClassRule RedisClusterRule clusterRule = new RedisClusterRule();
 
 	@Configuration
 	@EnableRedisRepositories(considerNestedRepositories = true, indexConfiguration = MyIndexConfiguration.class,
@@ -42,7 +58,9 @@ public class RedisRepositoryIntegrationTests extends RedisRepositoryIntegrationT
 		@Bean
 		RedisTemplate<?, ?> redisTemplate() {
 
-			JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+			RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration(CLUSTER_NODES);
+			JedisConnectionFactory connectionFactory = new JedisConnectionFactory(clusterConfig);
+
 			connectionFactory.afterPropertiesSet();
 
 			RedisTemplate<byte[], byte[]> template = new RedisTemplate<byte[], byte[]>();

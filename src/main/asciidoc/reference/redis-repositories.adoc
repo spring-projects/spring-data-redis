@@ -383,8 +383,8 @@ public class ApplicationConfig {
   public static class MyIndexConfiguration extends IndexConfiguration {
 
     @Override
-    protected Iterable<RedisIndexSetting> initialConfiguration() {
-      return Collections.singleton(new RedisIndexSetting("persons", "firstname"));
+    protected Iterable<IndexDefinition> initialConfiguration() {
+      return Collections.singleton(new SimpleIndexDefinition("persons", "firstname"));
     }
   }
 }
@@ -411,8 +411,8 @@ public class ApplicationConfig {
   public static class MyIndexConfiguration extends IndexConfiguration {
 
     @Override
-    protected Iterable<RedisIndexSetting> initialConfiguration() {
-      return Collections.singleton(new RedisIndexSetting("persons", "firstname"));
+    protected Iterable<IndexDefinition> initialConfiguration() {
+      return Collections.singleton(new SimpleIndexDefinition("persons", "firstname"));
     }
   }
 }
@@ -537,7 +537,38 @@ Here's an overview of the keywords supported for Redis and what a method contain
 |===============
 ====
 
-[[redis.misc.cdi-integration]]
+[[redis.repositories.cluster]]
+== Redis Repositories running on Cluster
+
+Using the Redis repository support in a clustered Redis environment is fine. Please see the <<cluster, Redis Cluster>> section for `ConnectionFactory` configuration details.
+Still some considerations have to be done as the default key distribution will spread entities and secondary indexes through out the whole cluster and its slots.
+
+[options = "header, autowidth"]
+|===============
+|key|type|slot|node
+|persons:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|15171|127.0.0.1:7381
+|persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|7373|127.0.0.1:7380
+|persons:firstname:rand|index|1700|127.0.0.1:7379
+|
+|===============
+====
+ 
+Some commands like `SINTER` and `SUNION` can only be processed on the Server side when all involved keys map to the same slot. Otherwise computation has to be done on client side.
+Therefore it be useful to pin keyspaces to a single slot which allows to make use of Redis serverside computation right away.
+
+[options = "header, autowidth"]
+|===============
+|key|type|slot|node
+|{persons}:e2c7dcee-b8cd-4424-883e-736ce564363e|id for hash|2399|127.0.0.1:7379
+|{persons}:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56|id for hash|2399|127.0.0.1:7379
+|{persons}:firstname:rand|index|2399|127.0.0.1:7379
+|
+|===============
+====
+
+TIP: Define and pin keyspaces via `@RedisHash("{yourkeyspace}") to specific slots when using Redis cluster.
+
+[[redis.repositories.cdi-integration]]
 == CDI integration
 
 Instances of the repository interfaces are usually created by a container, which Spring is the most natural choice when working with Spring Data. There's sophisticated support to easily set up Spring to create bean instances. Spring Data Redis ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR so all you need to do to activate it is dropping the Spring Data Redis JAR into your classpath.
