@@ -60,7 +60,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
@@ -92,6 +91,7 @@ import redis.clients.util.Pool;
  * @author Konstantin Shchepanovskyi
  * @author David Liu
  * @author Milan Agatonovic
+ * @author Mark Paluch
  */
 public class JedisConnection extends AbstractRedisConnection {
 
@@ -3315,7 +3315,7 @@ public class JedisConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'SCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				ScanParams params = prepareScanParams(options);
+				ScanParams params = JedisConverters.toScanParams(options);
 				redis.clients.jedis.ScanResult<String> result = jedis.scan(Long.toString(cursorId), params);
 				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), JedisConverters.stringListToByteList()
 						.convert(result.getResult()));
@@ -3352,7 +3352,7 @@ public class JedisConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'ZSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				ScanParams params = prepareScanParams(options);
+				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<redis.clients.jedis.Tuple> result = jedis.zscan(key, JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<RedisZSetCommands.Tuple>(Long.valueOf(result.getStringCursor()), JedisConverters
@@ -3389,7 +3389,7 @@ public class JedisConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'SSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				ScanParams params = prepareScanParams(options);
+				ScanParams params = JedisConverters.toScanParams(options);
 
 				redis.clients.jedis.ScanResult<byte[]> result = jedis.sscan(key, JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), result.getResult());
@@ -3424,25 +3424,12 @@ public class JedisConnection extends AbstractRedisConnection {
 					throw new UnsupportedOperationException("'HSCAN' cannot be called in pipeline / transaction mode.");
 				}
 
-				ScanParams params = prepareScanParams(options);
+				ScanParams params = JedisConverters.toScanParams(options);
 
 				ScanResult<Entry<byte[], byte[]>> result = jedis.hscan(key, JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<Map.Entry<byte[], byte[]>>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
 		}.open();
-	}
-
-	private ScanParams prepareScanParams(ScanOptions options) {
-		ScanParams sp = new ScanParams();
-		if (!options.equals(ScanOptions.NONE)) {
-			if (options.getCount() != null) {
-				sp.count(options.getCount().intValue());
-			}
-			if (StringUtils.hasText(options.getPattern())) {
-				sp.match(options.getPattern());
-			}
-		}
-		return sp;
 	}
 
 	/**
