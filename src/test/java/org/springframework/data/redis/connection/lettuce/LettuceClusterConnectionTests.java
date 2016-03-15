@@ -20,6 +20,7 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -1762,6 +1763,26 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
 	}
 
+	@Test
+	public void zScanShouldReadEntireValueRange() {
+
+		int nrOfValues = 321;
+		for (int i = 0; i < nrOfValues; i++) {
+			nativeConnection.zadd(KEY_1, i, "value-" + i);
+		}
+
+		Cursor<Tuple> tuples = clusterConnection.zScan(KEY_1_BYTES, ScanOptions.NONE);
+
+		int count = 0;
+		while (tuples.hasNext()) {
+
+			tuples.next();
+			count++;
+		}
+
+		assertThat(count, equalTo(nrOfValues));
+	}
+
 	/**
 	 * @see DATAREDIS-315
 	 */
@@ -1942,6 +1963,27 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		Map<byte[], byte[]> hGetAll = clusterConnection.hGetAll(KEY_1_BYTES);
 
 		assertThat(hGetAll.keySet(), hasItems(KEY_2_BYTES, KEY_3_BYTES));
+	}
+
+	@Test
+	public void hScanShouldReadEntireValueRange() {
+
+		int nrOfValues = 321;
+		for (int i = 0; i < nrOfValues; i++) {
+			nativeConnection.hset(KEY_1, "key" + i, "value-" + i);
+		}
+
+		Cursor<Map.Entry<byte[], byte[]>> cursor = clusterConnection.hScan(KEY_1_BYTES,
+				scanOptions().match("key*").build());
+
+		int i = 0;
+		while (cursor.hasNext()) {
+
+			cursor.next();
+			i++;
+		}
+
+		assertThat(i, is(nrOfValues));
 	}
 
 	/**

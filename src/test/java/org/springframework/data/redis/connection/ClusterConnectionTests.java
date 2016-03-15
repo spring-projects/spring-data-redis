@@ -676,6 +676,11 @@ public interface ClusterConnectionTests {
 	void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots();
 
 	/**
+	 * @see DATAREDIS-479
+	 */
+	void zScanShouldReadEntireValueRange();
+
+	/**
 	 * @see DATAREDIS-315
 	 */
 	void hSetShouldSetValueCorrectly();
@@ -744,6 +749,11 @@ public interface ClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	void hGetAllShouldRetrieveEntriesCorrectly();
+
+	/**
+	 * @see DATAREDIS-479
+	 */
+	public void hScanShouldReadEntireValueRange();
 
 	/**
 	 * @see DATAREDIS-315

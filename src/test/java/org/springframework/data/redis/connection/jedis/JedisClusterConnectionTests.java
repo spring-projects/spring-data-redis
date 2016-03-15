@@ -20,7 +20,7 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
-import static org.springframework.data.redis.core.ScanOptions.scanOptions;
+import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -1770,32 +1770,28 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	public void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
 	}
-	
-	
+
 	/**
 	 * @see DATAREDIS-479
 	 */
 	@Test
 	public void zScanShouldReadEntireValueRange() {
 
-		nativeConnection.zadd(KEY_1_BYTES, 2, VALUE_1_BYTES);
-		nativeConnection.zadd(KEY_1_BYTES, 1, VALUE_2_BYTES);
-		nativeConnection.zadd(KEY_1_BYTES, 4, VALUE_3_BYTES);
+		int nrOfValues = 321;
+		for (int i = 0; i < nrOfValues; i++) {
+			nativeConnection.zadd(KEY_1_BYTES, i, JedisConverters.toBytes("value-" + i));
+		}
 
 		Cursor<Tuple> tuples = clusterConnection.zScan(KEY_1_BYTES, ScanOptions.NONE);
 
 		int count = 0;
 		while (tuples.hasNext()) {
 
-			Tuple tuple = tuples.next();
-
-			assertThat(tuple.getValue(), anyOf(equalTo(VALUE_1_BYTES), equalTo(VALUE_2_BYTES), equalTo(VALUE_3_BYTES)));
-			assertThat(tuple.getScore(), anyOf(equalTo(1D), equalTo(2D), equalTo(4D)));
-
+			tuples.next();
 			count++;
 		}
 
-		assertThat(count, equalTo(3));
+		assertThat(count, equalTo(nrOfValues));
 	}
 
 	/**
@@ -1980,31 +1976,29 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(hGetAll.containsKey(KEY_2_BYTES), is(true));
 		assertThat(hGetAll.containsKey(KEY_3_BYTES), is(true));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-479
 	 */
 	@Test
 	public void hScanShouldReadEntireValueRange() {
 
-		clusterConnection.hSet(KEY_1_BYTES, KEY_1_BYTES, VALUE_1_BYTES);
-		clusterConnection.hSet(KEY_1_BYTES, KEY_2_BYTES, VALUE_2_BYTES);
-		clusterConnection.hSet(KEY_1_BYTES, KEY_3_BYTES, VALUE_3_BYTES);
+		int nrOfValues = 321;
+		for (int i = 0; i < nrOfValues; i++) {
+			nativeConnection.hset(KEY_1_BYTES, JedisConverters.toBytes("key" + i), JedisConverters.toBytes("value-" + i));
+		}
 
-		Cursor<Map.Entry<byte[], byte[]>> cursor = clusterConnection
-				.hScan(KEY_1_BYTES, scanOptions().match("key*").build());
+		Cursor<Map.Entry<byte[], byte[]>> cursor = clusterConnection.hScan(KEY_1_BYTES,
+				scanOptions().match("key*").build());
 
 		int i = 0;
 		while (cursor.hasNext()) {
 
-			byte[] key = cursor.next().getKey();
-
-			assertThat(key, anyOf(equalTo(KEY_1_BYTES), equalTo(KEY_2_BYTES), equalTo(KEY_3_BYTES)));
-
+			cursor.next();
 			i++;
 		}
 
-		assertThat(i, is(3));
+		assertThat(i, is(nrOfValues));
 	}
 
 	/**
