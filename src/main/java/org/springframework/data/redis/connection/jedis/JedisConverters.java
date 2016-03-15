@@ -42,6 +42,7 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -51,6 +52,7 @@ import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BitOP;
+import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
 import redis.clients.util.SafeEncoder;
 
@@ -432,4 +434,26 @@ abstract public class JedisConverters extends Converters {
 		return buffer.array();
 
 	}
+
+	/**
+	 * Convert {@link ScanOptions} to Jedis {@link ScanParams}.
+	 *
+	 * @param options
+	 * @return
+	 */
+	public static ScanParams toScanParams(ScanOptions options) {
+		
+		ScanParams sp = new ScanParams();
+		
+		if (!options.equals(ScanOptions.NONE)) {
+			if (options.getCount() != null) {
+				sp.count(options.getCount().intValue());
+			}
+			if (StringUtils.hasText(options.getPattern())) {
+				sp.match(options.getPattern());
+			}
+		}
+		return sp;
+	}
+
 }

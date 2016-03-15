@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ZParams;
 
 /**
@@ -1532,10 +1533,9 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			@Override
 			protected ScanIteration<byte[]> doScan(long cursorId, ScanOptions options) {
 
-				redis.clients.jedis.ScanResult<String> result = cluster.sscan(JedisConverters.toString(key),
-						Long.toString(cursorId));
-				return new ScanIteration<byte[]>(Long.valueOf(result.getCursor()),
-						JedisConverters.stringListToByteList().convert(result.getResult()));
+				ScanParams params = JedisConverters.toScanParams(options);
+				redis.clients.jedis.ScanResult<byte[]> result = cluster.sscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
 		}.open();
 	}
@@ -2158,8 +2158,19 @@ public class JedisClusterConnection implements RedisClusterConnection {
 	}
 
 	@Override
-	public Cursor<Tuple> zScan(byte[] key, ScanOptions options) {
-		throw new UnsupportedOperationException("Jedis does currently not support binary zscan command.");
+	public Cursor<Tuple> zScan(final byte[] key, final ScanOptions options) {
+		return new ScanCursor<Tuple>(options) {
+
+			@Override
+			protected ScanIteration<Tuple> doScan(long cursorId, ScanOptions options) {
+
+				ScanParams params = JedisConverters.toScanParams(options);
+				
+				redis.clients.jedis.ScanResult<redis.clients.jedis.Tuple> result = cluster.zscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<Tuple>(Long.valueOf(result.getStringCursor()), JedisConverters
+						.tuplesToTuples().convert(result.getResult()));
+			}
+		}.open();
 	}
 
 	/*
@@ -2387,7 +2398,11 @@ public class JedisClusterConnection implements RedisClusterConnection {
 
 			@Override
 			protected ScanIteration<Entry<byte[], byte[]>> doScan(long cursorId, ScanOptions options) {
-				throw new UnsupportedOperationException("Jedis does currently not support binary hscan");
+				
+				ScanParams params = JedisConverters.toScanParams(options);
+				
+				redis.clients.jedis.ScanResult<Map.Entry<byte[], byte[]>> result = cluster.hscan(key, JedisConverters.toBytes(cursorId), params);
+				return new ScanIteration<Map.Entry<byte[], byte[]>>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
 		}.open();
 	}
