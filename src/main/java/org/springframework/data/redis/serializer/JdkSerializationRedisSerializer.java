@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,53 @@ package org.springframework.data.redis.serializer;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.util.Assert;
 
 /**
- * Java Serialization Redis serializer. Delegates to the default (Java based) serializer in Spring 3.
+ * Java Serialization Redis serializer. Delegates to the default (Java based) {@link DefaultSerializer serializer} and
+ * {@link DefaultDeserializer}. This {@link RedisSerializer serializer} can be constructed with either custom
+ * {@link ClassLoader} or own {@link Converter converters}.
  * 
  * @author Mark Pollack
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public class JdkSerializationRedisSerializer implements RedisSerializer<Object> {
 
-	private Converter<Object, byte[]> serializer = new SerializingConverter();
-	private Converter<byte[], Object> deserializer = new DeserializingConverter();
+	private final Converter<Object, byte[]> serializer;
+	private final Converter<byte[], Object> deserializer;
+
+	/**
+	 * Creates a new {@link JdkSerializationRedisSerializer} using the default class loader.
+	 */
+	public JdkSerializationRedisSerializer() {
+		this(new SerializingConverter(), new DeserializingConverter());
+	}
+
+	/**
+	 * Creates a new {@link JdkSerializationRedisSerializer} using a {@link ClassLoader}.
+	 *
+	 * @param classLoader
+	 */
+	public JdkSerializationRedisSerializer(ClassLoader classLoader) {
+		this(new SerializingConverter(), new DeserializingConverter(classLoader));
+	}
+
+	/**
+	 * Creates a new {@link JdkSerializationRedisSerializer} using a {@link Converter converters} to serialize and
+	 * deserialize objects.
+	 * 
+	 * @param serializer must not be {@literal null}
+	 * @param deserializer must not be {@literal null}
+	 */
+	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer, Converter<byte[], Object> deserializer) {
+
+		Assert.notNull("Serializer must not be null!");
+		Assert.notNull("Deserializer must not be null!");
+
+		this.serializer = serializer;
+		this.deserializer = deserializer;
+	}
 
 	public Object deserialize(byte[] bytes) {
 		if (SerializationUtils.isEmpty(bytes)) {

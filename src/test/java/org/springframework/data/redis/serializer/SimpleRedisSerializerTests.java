@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,13 @@
  */
 package org.springframework.data.redis.serializer;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.UUID;
 
 import org.junit.After;
@@ -26,9 +30,11 @@ import org.junit.Test;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
 import org.springframework.oxm.xstream.XStreamMarshaller;
+import org.springframework.util.StreamUtils;
 
 /**
  * @author Jennifer Hickey
+ * @author Mark Paluch
  */
 public class SimpleRedisSerializerTests {
 
@@ -120,6 +126,22 @@ public class SimpleRedisSerializerTests {
 	}
 
 	@Test
+	public void jdkSerializerShouldUseCustomClassLoader() throws ClassNotFoundException {
+
+		ClassLoader customClassLoader = new CustomClassLoader();
+
+		JdkSerializationRedisSerializer serializer = new JdkSerializationRedisSerializer(customClassLoader);
+		SerializableDomainClass domainClass = new SerializableDomainClass();
+
+		byte[] serialized = serializer.serialize(domainClass);
+		Object deserialized = serializer.deserialize(serialized);
+
+		assertThat(deserialized.getClass().getName(), is(equalTo(SerializableDomainClass.class.getName())));
+		assertThat(deserialized, is(not(instanceOf(SerializableDomainClass.class))));
+		assertThat(deserialized.getClass().getClassLoader(), is(equalTo(customClassLoader)));
+	}
+
+	@Test
 	public void testStringEncodedSerialization() {
 		String value = UUID.randomUUID().toString();
 		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
@@ -157,4 +179,43 @@ public class SimpleRedisSerializerTests {
 		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
 	}
 
+	/**
+	 * Custom class loader that loads class files from the test's class path. This {@link ClassLoader} does not delegate
+	 * to a parent class loader to truly load classes that are defined by this class loader and not interfere with any
+	 * parent class loader. The class loader uses simple class definition which is fine for the test but do not use this
+	 * as sample for production class loaders.
+	 */
+	private static class CustomClassLoader extends ClassLoader {
+
+		public CustomClassLoader() {
+			super(null);
+		}
+
+		@Override
+		protected Class<?> findClass(String name) throws ClassNotFoundException {
+
+			URL resource = SimpleRedisSerializerTests.class.getResource("/" + name.replace('.', '/') + ".class");
+
+			InputStream is = null;
+			try {
+
+				is = resource.openStream();
+				byte[] bytes = StreamUtils.copyToByteArray(is);
+				return defineClass(name, bytes, 0, bytes.length);
+			} catch (IOException o_O) {
+				throw new ClassNotFoundException("Cannot read class file", o_O);
+			} finally {
+
+				if (is != null) {
+					try {
+						is.close();
+					} catch (IOException e) {
+						// ignore
+					}
+				}
+			}
+
+		}
+
+	}
 }
