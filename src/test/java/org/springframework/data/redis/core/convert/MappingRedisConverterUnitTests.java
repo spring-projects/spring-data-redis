@@ -49,13 +49,17 @@ import java.util.UUID;
 
 import org.hamcrest.core.IsEqual;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.redis.core.PartialUpdate;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithPostcode;
@@ -84,6 +88,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RunWith(MockitoJUnitRunner.class)
 public class MappingRedisConverterUnitTests {
 
+	public @Rule ExpectedException exception = ExpectedException.none();
 	@Mock ReferenceResolver resolverMock;
 	MappingRedisConverter converter;
 	Person rand;
@@ -95,7 +100,6 @@ public class MappingRedisConverterUnitTests {
 		converter.afterPropertiesSet();
 
 		rand = new Person();
-
 	}
 
 	/**
@@ -1582,6 +1586,8 @@ public class MappingRedisConverterUnitTests {
 	}
 
 	/**
+	 * <<<<<<< HEAD
+	 * 
 	 * @see DATAREDIS-509
 	 */
 	@Test
@@ -1609,6 +1615,405 @@ public class MappingRedisConverterUnitTests {
 		source.arrayOfPrimitives = new int[] { 1, 2, 3 };
 		assertThat(write(source).getBucket(), isBucket().containingUtf8String("arrayOfPrimitives.[0]", "1")
 				.containingUtf8String("arrayOfPrimitives.[1]", "2").containingUtf8String("arrayOfPrimitives.[2]", "3"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldNotAppendClassTypeHint() {
+
+		Person value = new Person();
+		value.firstname = "rand";
+		value.age = 24;
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", value);
+
+		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdateSimpleValueCorrectly() {
+
+		Person value = new Person();
+		value.firstname = "rand";
+		value.age = 24;
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", value);
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("firstname", "rand").containingUtf8String("age", "24"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleValueCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("firstname", "rand").set("age",
+				24);
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("firstname", "rand").containingUtf8String("age", "24"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdateNestedPathWithSimpleValueCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("address.city", "two rivers");
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("address.city", "two rivers"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithComplexValueCorrectly() {
+
+		Address address = new Address();
+		address.city = "two rivers";
+		address.country = "andor";
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("address", address);
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("address.city", "two rivers").containingUtf8String("address.country", "andor"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleListValueCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("nicknames",
+				Arrays.asList("dragon", "lews"));
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("nicknames.[0]", "dragon").containingUtf8String("nicknames.[1]", "lews"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithComplexListValueCorrectly() {
+
+		Person mat = new Person();
+		mat.firstname = "mat";
+		mat.age = 24;
+
+		Person perrin = new Person();
+		perrin.firstname = "perrin";
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("coworkers",
+				Arrays.asList(mat, perrin));
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("coworkers.[0].firstname", "mat")
+				.containingUtf8String("coworkers.[0].age", "24").containingUtf8String("coworkers.[1].firstname", "perrin"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleListValueWhenNotPassedInAsCollectionCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("nicknames", "dragon");
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("nicknames.[0]", "dragon"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithComplexListValueWhenNotPassedInAsCollectionCorrectly() {
+
+		Person mat = new Person();
+		mat.firstname = "mat";
+		mat.age = 24;
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("coworkers", mat);
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("coworkers.[0].firstname", "mat")
+				.containingUtf8String("coworkers.[0].age", "24"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleListValueWhenNotPassedInAsCollectionWithPositionalParameterCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("nicknames.[5]", "dragon");
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("nicknames.[5]", "dragon"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithComplexListValueWhenNotPassedInAsCollectionWithPositionalParameterCorrectly() {
+
+		Person mat = new Person();
+		mat.firstname = "mat";
+		mat.age = 24;
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("coworkers.[5]", mat);
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("coworkers.[5].firstname", "mat")
+				.containingUtf8String("coworkers.[5].age", "24"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleMapValueCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("physicalAttributes",
+				Collections.singletonMap("eye-color", "grey"));
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("physicalAttributes.[eye-color]", "grey"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithComplexMapValueCorrectly() {
+
+		Person tam = new Person();
+		tam.firstname = "tam";
+		tam.alive = false;
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("relatives",
+				Collections.singletonMap("father", tam));
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("relatives.[father].firstname", "tam")
+				.containingUtf8String("relatives.[father].alive", "0"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleMapValueWhenNotPassedInAsCollectionCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("physicalAttributes",
+				Collections.singletonMap("eye-color", "grey").entrySet().iterator().next());
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("physicalAttributes.[eye-color]", "grey"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithComplexMapValueWhenNotPassedInAsCollectionCorrectly() {
+
+		Person tam = new Person();
+		tam.firstname = "tam";
+		tam.alive = false;
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("relatives",
+				Collections.singletonMap("father", tam).entrySet().iterator().next());
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("relatives.[father].firstname", "tam")
+				.containingUtf8String("relatives.[father].alive", "0"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleMapValueWhenNotPassedInAsCollectionWithPositionalParameterCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("physicalAttributes.[eye-color]",
+				"grey");
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("physicalAttributes.[eye-color]", "grey"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithSimpleMapValueOnNestedElementCorrectly() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("relatives.[father].firstname",
+				"tam");
+
+		assertThat(write(update).getBucket(), isBucket().containingUtf8String("relatives.[father].firstname", "tam"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test(expected = MappingException.class)
+	public void writeShouldThrowExceptionOnPartialUpdatePathWithSimpleMapValueWhenItsASingleValueWithoutPath() {
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("physicalAttributes", "grey");
+
+		write(update);
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithRegisteredCustomConversionCorrectly() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+				.setCustomConversions(new CustomConversions(Collections.singletonList(new AddressToBytesConverter())));
+		this.converter.afterPropertiesSet();
+
+		Address address = new Address();
+		address.country = "Tel'aran'rhiod";
+		address.city = "unknown";
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("address", address);
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithReferenceCorrectly() {
+
+		Location tar = new Location();
+		tar.id = "1";
+		tar.name = "tar valon";
+
+		Location tear = new Location();
+		tear.id = "2";
+		tear.name = "city of tear";
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class).set("visited",
+				Arrays.asList(tar, tear));
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("visited.[0]", "locations:1").containingUtf8String("visited.[1]", "locations:2") //
+						.without("visited.id") //
+						.without("visited.name"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldWritePartialUpdatePathWithListOfReferencesCorrectly() {
+
+		Location location = new Location();
+		location.id = "1";
+		location.name = "tar valon";
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class) //
+				.set("location", location);
+
+		assertThat(write(update).getBucket(),
+				isBucket().containingUtf8String("location", "locations:1") //
+						.without("location.id") //
+						.without("location.name"));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldThrowExceptionForUpdateValueNotAssignableToDomainTypeProperty() {
+
+		exception.expect(MappingException.class);
+		exception.expectMessage("java.lang.String cannot be assigned");
+		exception.expectMessage("java.lang.Integer");
+		exception.expectMessage("age");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class) //
+				.set("age", "twenty-four");
+
+		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldThrowExceptionForUpdateCollectionValueNotAssignableToDomainTypeProperty() {
+
+		exception.expect(MappingException.class);
+		exception.expectMessage("java.lang.String cannot be assigned");
+		exception.expectMessage(Person.class.getName());
+		exception.expectMessage("coworkers.[0]");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class) //
+				.set("coworkers.[0]", "buh buh the bear");
+
+		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldThrowExceptionForUpdateValueInCollectionNotAssignableToDomainTypeProperty() {
+
+		exception.expect(MappingException.class);
+		exception.expectMessage("java.lang.String cannot be assigned");
+		exception.expectMessage(Person.class.getName());
+		exception.expectMessage("coworkers");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class) //
+				.set("coworkers", Collections.singletonList("foo"));
+
+		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldThrowExceptionForUpdateMapValueNotAssignableToDomainTypeProperty() {
+
+		exception.expect(MappingException.class);
+		exception.expectMessage("java.lang.String cannot be assigned");
+		exception.expectMessage(Person.class.getName());
+		exception.expectMessage("relatives.[father]");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class) //
+				.set("relatives.[father]", "buh buh the bear");
+
+		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void writeShouldThrowExceptionForUpdateValueInMapNotAssignableToDomainTypeProperty() {
+
+		exception.expect(MappingException.class);
+		exception.expectMessage("java.lang.String cannot be assigned");
+		exception.expectMessage(Person.class.getName());
+		exception.expectMessage("relatives.[father]");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("123", Person.class) //
+				.set("relatives", Collections.singletonMap("father", "buh buh the bear"));
+
+		assertThat(write(update).getBucket().get("_class"), is(nullValue()));
 	}
 
 	private RedisData write(Object source) {

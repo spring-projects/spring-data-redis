@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +36,7 @@ import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -80,6 +80,12 @@ public class PathIndexResolver implements IndexResolver {
 				null, value);
 	}
 
+	@Override
+	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
+			Object value) {
+		return doResolveIndexesFor(keyspace, path, typeInformation, null, value);
+	}
+
 	private Set<IndexedData> doResolveIndexesFor(final String keyspace, final String path,
 			TypeInformation<?> typeInformation, PersistentProperty<?> fallback, Object value) {
 
@@ -87,6 +93,13 @@ public class PathIndexResolver implements IndexResolver {
 
 		if (entity == null) {
 			return resolveIndex(keyspace, path, fallback, value);
+		}
+
+		// this might happen on update where we address a property within an entity directly
+		if (!ClassUtils.isAssignable(entity.getType(), value.getClass())) {
+
+			String propertyName = path.lastIndexOf('.') > 0 ? path.substring(path.lastIndexOf('.') + 1, path.length()) : path;
+			return resolveIndex(keyspace, path, entity.getPersistentProperty(propertyName), value);
 		}
 
 		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(value);
@@ -173,10 +186,6 @@ public class PathIndexResolver implements IndexResolver {
 	protected Set<IndexedData> resolveIndex(String keyspace, String propertyPath, PersistentProperty<?> property,
 			Object value) {
 
-		if (value == null) {
-			return Collections.emptySet();
-		}
-
 		String path = normalizeIndexPath(propertyPath, property);
 
 		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
@@ -192,8 +201,14 @@ public class PathIndexResolver implements IndexResolver {
 					continue;
 				}
 
-				data.add(new SimpleIndexedPropertyValue(keyspace, indexDefinition.getIndexName(),
-						indexDefinition.valueTransformer().convert(value)));
+				Object transformedValue = indexDefinition.valueTransformer().convert(value);
+
+				IndexedData indexedData = new SimpleIndexedPropertyValue(keyspace, indexDefinition.getIndexName(),
+						transformedValue);
+				if (transformedValue == null) {
+					indexedData = new RemoveIndexedData(indexedData);
+				}
+				data.add(indexedData);
 			}
 		}
 
@@ -204,6 +219,7 @@ public class PathIndexResolver implements IndexResolver {
 
 			data.add(new SimpleIndexedPropertyValue(keyspace, path, indexDefinition.valueTransformer().convert(value)));
 		}
+
 		return data;
 	}
 

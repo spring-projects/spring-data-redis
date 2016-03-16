@@ -72,4 +72,15 @@ public class CompositeIndexResolver implements IndexResolver {
 		return data;
 	}
 
+	@Override
+	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
+			Object value) {
+
+		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
+		for (IndexResolver resolver : resolvers) {
+			data.addAll(resolver.resolveIndexesFor(keyspace, path, typeInformation, value));
+		}
+		return data;
+	}
+
 }

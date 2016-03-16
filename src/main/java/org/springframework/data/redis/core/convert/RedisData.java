@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -94,12 +95,21 @@ public class RedisData {
 	}
 
 	/**
-	 * @param index
+	 * @param index must not be {@literal null}.
 	 */
 	public void addIndexedData(IndexedData index) {
 
 		Assert.notNull(index, "IndexedData to add must not be null!");
 		this.indexedData.add(index);
+	}
+
+	/**
+	 * @param indexes must not be {@literal null}.
+	 */
+	public void addIndexedData(Collection<IndexedData> indexes) {
+
+		Assert.notNull(indexes, "IndexedData to add must not be null!");
+		this.indexedData.addAll(indexes);
 	}
 
 	/**

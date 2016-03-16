@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueCallback;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -70,6 +72,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 	 * </code>
 	 * 
 	 * <pre>
+	 *
 	 * @param callback provides the to retrieve entity ids. Must not be {@literal null}.
 	 * @param type must not be {@literal null}.
 	 * @return empty list if not elements found.
@@ -89,15 +92,14 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 					return Collections.emptyList();
 				}
 
-				Iterable<?> ids = ClassUtils.isAssignable(Iterable.class, callbackResult.getClass()) ? (Iterable<?>) callbackResult
-						: Collections.singleton(callbackResult);
+				Iterable<?> ids = ClassUtils.isAssignable(Iterable.class, callbackResult.getClass())
+						? (Iterable<?>) callbackResult : Collections.singleton(callbackResult);
 
 				List<T> result = new ArrayList<T>();
 				for (Object id : ids) {
 
-					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class) ? adapter
-							.getConverter().getConversionService().convert(id, String.class)
-							: id.toString();
+					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class)
+							? adapter.getConverter().getConversionService().convert(id, String.class) : id.toString();
 
 					T candidate = findById(idToUse, type);
 					if (candidate != null) {
@@ -106,6 +108,70 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 				}
 
 				return result;
+			}
+		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#insert(java.io.Serializable, java.lang.Object)
+	 */
+	@Override
+	public void insert(final Serializable id, final Object objectToInsert) {
+
+		if (objectToInsert instanceof PartialUpdate) {
+			doPartialUpdate((PartialUpdate<?>) objectToInsert);
+		}
+
+		super.insert(id, objectToInsert);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#update(java.lang.Object)
+	 */
+	@Override
+	public void update(Object objectToUpdate) {
+
+		if (objectToUpdate instanceof PartialUpdate) {
+			doPartialUpdate((PartialUpdate<?>) objectToUpdate);
+		}
+
+		super.update(objectToUpdate);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#destroy()
+	 */
+	@Override
+	public void destroy() throws Exception {
+
+		execute(new RedisKeyValueCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisKeyValueAdapter adapter) {
+
+				try {
+					adapter.destroy();
+				} catch (Exception e) {
+					throw new RedisSystemException(e.getMessage(), e);
+				}
+				return null;
+			}
+		});
+
+	}
+
+	protected void doPartialUpdate(final PartialUpdate<?> update) {
+
+		execute(new RedisKeyValueCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisKeyValueAdapter adapter) {
+
+				adapter.update(update);
+				return null;
 			}
 		});
 	}
