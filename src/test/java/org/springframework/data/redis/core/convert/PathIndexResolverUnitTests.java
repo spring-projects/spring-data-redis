@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hamcrest.core.IsCollectionContaining;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -223,6 +224,7 @@ public class PathIndexResolverUnitTests {
 
 	/**
 	 * @see DATAREDIS-425
+	 * @see DATAREDIS-471
 	 */
 	@Test
 	public void shouldIgnoreConfiguredIndexesInMapWhenValueIsNull() {
@@ -235,7 +237,8 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
 
-		assertThat(indexes.size(), is(0));
+		assertThat(indexes.size(), is(1));
+		assertThat(indexes.iterator().next(), IsInstanceOf.instanceOf(RemoveIndexedData.class));
 	}
 
 	/**

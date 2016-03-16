@@ -38,4 +38,6 @@ public interface IndexResolver {
 	 */
 	Set<IndexedData> resolveIndexesFor(TypeInformation<?> typeInformation, Object value);
 
+	Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation, Object value);
+
 }

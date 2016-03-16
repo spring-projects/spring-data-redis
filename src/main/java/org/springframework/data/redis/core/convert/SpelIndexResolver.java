@@ -119,6 +119,12 @@ public class SpelIndexResolver implements IndexResolver {
 		return indexes;
 	}
 
+	@Override
+	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
+			Object value) {
+		return Collections.emptySet();
+	}
+
 	private Expression getAndCacheIfAbsent(SpelIndexDefinition indexDefinition) {
 
 		if (expressionCache.containsKey(indexDefinition)) {
