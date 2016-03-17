@@ -18,10 +18,7 @@ package org.springframework.data.redis.serializer;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.UUID;
 
 import org.junit.After;
@@ -29,8 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.Address;
 import org.springframework.data.redis.Person;
+import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.oxm.xstream.XStreamMarshaller;
-import org.springframework.util.StreamUtils;
 
 /**
  * @author Jennifer Hickey
@@ -125,10 +122,13 @@ public class SimpleRedisSerializerTests {
 		}
 	}
 
+	/**
+	 * @see DATAREDIS-427
+	 */
 	@Test
 	public void jdkSerializerShouldUseCustomClassLoader() throws ClassNotFoundException {
 
-		ClassLoader customClassLoader = new CustomClassLoader();
+		ClassLoader customClassLoader = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());
 
 		JdkSerializationRedisSerializer serializer = new JdkSerializationRedisSerializer(customClassLoader);
 		SerializableDomainClass domainClass = new SerializableDomainClass();
@@ -177,45 +177,5 @@ public class SimpleRedisSerializerTests {
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
 		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
 		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
-	}
-
-	/**
-	 * Custom class loader that loads class files from the test's class path. This {@link ClassLoader} does not delegate
-	 * to a parent class loader to truly load classes that are defined by this class loader and not interfere with any
-	 * parent class loader. The class loader uses simple class definition which is fine for the test but do not use this
-	 * as sample for production class loaders.
-	 */
-	private static class CustomClassLoader extends ClassLoader {
-
-		public CustomClassLoader() {
-			super(null);
-		}
-
-		@Override
-		protected Class<?> findClass(String name) throws ClassNotFoundException {
-
-			URL resource = SimpleRedisSerializerTests.class.getResource("/" + name.replace('.', '/') + ".class");
-
-			InputStream is = null;
-			try {
-
-				is = resource.openStream();
-				byte[] bytes = StreamUtils.copyToByteArray(is);
-				return defineClass(name, bytes, 0, bytes.length);
-			} catch (IOException o_O) {
-				throw new ClassNotFoundException("Cannot read class file", o_O);
-			} finally {
-
-				if (is != null) {
-					try {
-						is.close();
-					} catch (IOException e) {
-						// ignore
-					}
-				}
-			}
-
-		}
-
 	}
 }

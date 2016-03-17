@@ -16,6 +16,8 @@
 package org.springframework.data.redis.serializer;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.util.Assert;
@@ -45,6 +47,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 * Creates a new {@link JdkSerializationRedisSerializer} using a {@link ClassLoader}.
 	 *
 	 * @param classLoader
+	 * @since 1.7
 	 */
 	public JdkSerializationRedisSerializer(ClassLoader classLoader) {
 		this(new SerializingConverter(), new DeserializingConverter(classLoader));
@@ -56,6 +59,7 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 * 
 	 * @param serializer must not be {@literal null}
 	 * @param deserializer must not be {@literal null}
+	 * @since 1.7
 	 */
 	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer, Converter<byte[], Object> deserializer) {
 
