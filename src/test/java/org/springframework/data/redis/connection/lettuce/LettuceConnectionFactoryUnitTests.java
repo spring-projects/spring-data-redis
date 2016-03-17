@@ -150,4 +150,46 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isUseSsl(), is(true));
 	}
 
+	/**
+	 * @see DATAREDIS-480
+	 */
+	@Test
+	public void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setVerifyPeer(false);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isVerifyPeer(), is(false));
+		assertThat(connectionFactory.isVerifyPeer(), is(false));
+	}
+
+	/**
+	 * @see DATAREDIS-480
+	 */
+	@Test
+	public void startTLSOptionShouldBeSetCorrectlyOnClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setStartTls(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isStartTls(), is(true));
+		assertThat(connectionFactory.isStartTls(), is(true));
+	}
+
 }
