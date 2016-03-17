@@ -99,6 +99,8 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClientResources clientResources;
 	private boolean useSsl;
+	private boolean verifyPeer = true;
+	private boolean startTls;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
@@ -325,6 +327,43 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 */
 	public boolean isUseSsl() {
 		return useSsl;
+	}
+
+	/**
+	 * Sets to use verify certificate validity/hostname check when SSL is used
+	 *
+	 * @param verifyPeer {@literal false} not to verify hostname.
+	 */
+	public void setVerifyPeer(boolean verifyPeer) {
+		this.verifyPeer = verifyPeer;
+	}
+
+	/**
+	 * Returns whether to verify certificate validity/hostname check when SSL is used
+	 *
+	 * @return
+	 */
+	public boolean isVerifyPeer() {
+		return verifyPeer;
+	}
+
+	/**
+	 * Returns whether to issue a StartTLS
+	 *
+	 * @return
+     */
+	public boolean isStartTls() {
+		return startTls;
+	}
+
+
+	/**
+	 * Sets to issue StartTLS
+	 *
+	 * @param startTls {@literal true} to issue StartTLS
+     */
+	public void setStartTls(boolean startTls) {
+		this.startTls = startTls;
 	}
 
 	/**
@@ -556,6 +595,8 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			builder.withPassword(password);
 		}
 		builder.withSsl(useSsl);
+		builder.withVerifyPeer(verifyPeer);
+		builder.withStartTls(startTls);
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
 		if (clientResources != null) {
 			return RedisClient.create(clientResources, builder.build());
