@@ -1,4 +1,4 @@
-Spring Data Redis 1.7 M1
+Spring Data Redis 1.7 RC1
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
