@@ -6,6 +6,27 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.0.RC1 (2016-03-18)
+-----------------------------------------
+* DATAREDIS-479 - Upgrade to jedis to 2.8.1.
+* DATAREDIS-478 - Upgrade to lettuce 3.4.2.Final.
+* DATAREDIS-476 - Make LettuceConnectionFactory's client able to connect through SSL.
+* DATAREDIS-475 - Release 1.7 RC1 (Hopper).
+* DATAREDIS-474 - Fix spelling / format in reference documentation.
+* DATAREDIS-472 - Update/Add guards in JedisConnetion that (no longer) require casts from long to int when exceeding Integer.MAX_VALUE.
+* DATAREDIS-468 - RedisCache does not work in cluster.
+* DATAREDIS-467 - Cluster mget not working.
+* DATAREDIS-465 - Guard lettuce shutdown during ConnectionFactory.destroy().
+* DATAREDIS-464 - Enhance JavaDoc on RedisStringCommands and StringRedisConnection.
+* DATAREDIS-463 - Improve test synchronization.
+* DATAREDIS-462 - Support lettuce ClientResources.
+* DATAREDIS-440 - @TimeToLive does not work on Method.
+* DATAREDIS-427 - Allow injecting deserializer for JdkSerializationRedisSerializer.
+* DATAREDIS-425 - Add Support for basic CRUD and finder Operations backed by Hashes and Sets.
+* DATAREDIS-415 - Listener Container Does Not Set Interrupted Bit.
+* DATAREDIS-316 - Add EX, PX, NX, XX options to SET command.
+
+
 Changes in version 1.6.4.RELEASE (2016-02-23)
 ---------------------------------------------
 * DATAREDIS-465 - Guard lettuce shutdown during ConnectionFactory.destroy().
