@@ -98,9 +98,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private RedisClusterConfiguration clusterConfiguration;
 	private ClusterCommandExecutor clusterCommandExecutor;
 	private ClientResources clientResources;
-	private boolean useSsl;
+	private boolean useSsl = false;
 	private boolean verifyPeer = true;
-	private boolean startTls;
+	private boolean startTls = false;
 
 	/**
 	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
@@ -323,14 +323,14 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns whether to use SSL.
 	 *
-	 * @return
+	 * @return use of SSL
 	 */
 	public boolean isUseSsl() {
 		return useSsl;
 	}
 
 	/**
-	 * Sets to use verify certificate validity/hostname check when SSL is used
+	 * Sets to use verify certificate validity/hostname check when SSL is used.
 	 *
 	 * @param verifyPeer {@literal false} not to verify hostname.
 	 */
@@ -339,35 +339,34 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	/**
-	 * Returns whether to verify certificate validity/hostname check when SSL is used
+	 * Returns whether to verify certificate validity/hostname check when SSL is used.
 	 *
-	 * @return
+	 * @return verify peers when using SSL
 	 */
 	public boolean isVerifyPeer() {
 		return verifyPeer;
 	}
 
 	/**
-	 * Returns whether to issue a StartTLS
+	 * Returns whether to issue a StartTLS.
 	 *
-	 * @return
-     */
+	 * @return use of StartTLS
+	 */
 	public boolean isStartTls() {
 		return startTls;
 	}
 
-
 	/**
-	 * Sets to issue StartTLS
+	 * Sets to issue StartTLS.
 	 *
-	 * @param startTls {@literal true} to issue StartTLS
-     */
+	 * @param startTls {@literal true} to issue StartTLS.
+	 */
 	public void setStartTls(boolean startTls) {
 		this.startTls = startTls;
 	}
 
 	/**
-	 * Indicates if validation of the native Lettuce connection is enabled
+	 * Indicates if validation of the native Lettuce connection is enabled.
 	 *
 	 * @return connection validation enabled
 	 */
@@ -594,10 +593,12 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		if (password != null) {
 			builder.withPassword(password);
 		}
+
 		builder.withSsl(useSsl);
 		builder.withVerifyPeer(verifyPeer);
 		builder.withStartTls(startTls);
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+
 		if (clientResources != null) {
 			return RedisClient.create(clientResources, builder.build());
 		}

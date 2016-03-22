@@ -37,6 +37,7 @@ import com.lambdaworks.redis.cluster.RedisClusterClient;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Balázs Németh
  */
 public class LettuceConnectionFactoryUnitTests {
 
@@ -130,6 +131,30 @@ public class LettuceConnectionFactoryUnitTests {
 	}
 
 	/**
+	 * @see DATAREDIS-480
+	 */
+	@Test
+	public void sslOptionsShouldBeDisabledByDefaultOnClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisUri.isSsl(), is(false));
+		assertThat(connectionFactory.isUseSsl(), is(false));
+		assertThat(redisUri.isStartTls(), is(false));
+		assertThat(connectionFactory.isStartTls(), is(false));
+		assertThat(redisUri.isVerifyPeer(), is(true));
+		assertThat(connectionFactory.isVerifyPeer(), is(true));
+	}
+
+	/**
 	 * @see DATAREDIS-476
 	 */
 	@Test
@@ -148,6 +173,8 @@ public class LettuceConnectionFactoryUnitTests {
 
 		assertThat(redisUri.isSsl(), is(true));
 		assertThat(connectionFactory.isUseSsl(), is(true));
+		assertThat(redisUri.isVerifyPeer(), is(true));
+		assertThat(connectionFactory.isVerifyPeer(), is(true));
 	}
 
 	/**
