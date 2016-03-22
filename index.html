@@ -48,16 +48,19 @@ high-level abstractions for interacting with the store, freeing the user from in
 
 ## Features
 
-* Connection package as low-level abstraction across multiple Redis drivers/connectors ([Jedis](http://github.com/xetorthio/jedis),  [JRedis](https://github.com/alphazero/jredis), [Lettuce](http://github.com/wg/lettuce), and [SRP](http://github.com/spullara/redis-protocol))
+* Connection package as low-level abstraction across multiple Redis drivers/connectors ([Jedis](https://github.com/xetorthio/jedis) and [Lettuce](https://github.com/mp911de/lettuce). Support for [JRedis](https://github.com/alphazero/jredis),[SRP](https://github.com/spullara/redis-protocol) is deprecated.)
 * [Exception translation](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:connectors) to Spring's portable Data Access exception hierarchy for Redis driver exceptions
 * [RedisTemplate](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:template) that provides a high level abstraction for performing various Redis operations, exception translation and serialization support
 * [Pubsub](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#pubsub) support (such as a MessageListenerContainer for message-driven POJOs)
+* [Redis Sentinel](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:sentinel) and [Redis Cluster](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#cluster) support
 * JDK, String, JSON and Spring Object/XML mapping [serializers](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:serializer)
 * JDK [Collection](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:support) implementations on top of Redis
 * Atomic [counter](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:support) support classes
 * Sorting and Pipelining functionality
 * Dedicated support for SORT, SORT/GET pattern and returned bulk values
 * Redis [implementation](http://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:support:cache-abstraction) for Spring 3.1 cache abstraction
+* Automatic implementation of `Repository` interfaces including support for custom finder methods using `@EnableRedisRepositories`
+* CDI support for repositories
 
 <span id="quick-start"></span>
 ## Quick Start
