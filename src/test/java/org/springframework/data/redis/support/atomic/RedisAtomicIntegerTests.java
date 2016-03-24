@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -44,6 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
@@ -179,5 +181,29 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		ral.set(32);
 
 		assertThat(ral.get(), is(32));
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void getThrowsExceptionWhenKeyHasBeenRemoved() {
+
+		expectedException.expect(DataRetrievalFailureException.class);
+		expectedException.expectMessage("'test' seems to no longer exist");
+
+		// setup long
+		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
+		assertThat(test.get(), equalTo(1)); // this passes
+
+		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
+		template.setConnectionFactory(factory);
+		template.setKeySerializer(new StringRedisSerializer());
+		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		template.afterPropertiesSet();
+
+		template.delete("test");
+
+		test.get();
 	}
 }
