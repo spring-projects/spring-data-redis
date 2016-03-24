@@ -509,6 +509,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		}
 
 		if (customConversions.hasCustomWriteTarget(value.getClass())) {
+
 			Class<?> targetType = customConversions.getCustomWriteTarget(value.getClass());
 
 			if (ClassUtils.isAssignable(Map.class, targetType)) {
@@ -521,9 +522,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			} else if (ClassUtils.isAssignable(byte[].class, targetType)) {
 				sink.getBucket().put(path, toBytes(value));
 			} else {
-				throw new IllegalArgumentException("converter must not fool me!!");
+				throw new IllegalArgumentException(
+						String.format("Cannot convert value '%s' of type %s to bytes.", value, value.getClass()));
 			}
-
 		}
 
 	}
@@ -634,7 +635,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Matcher matcher = pattern.matcher(entry.getKey());
 			if (!matcher.find()) {
-				throw new RuntimeException("baähhh");
+				throw new IllegalArgumentException(
+						String.format("Cannot extract map value for key '%s' in path '%s'.", entry.getKey(), path));
 			}
 			String key = matcher.group(2);
 			target.put(key, fromBytes(entry.getValue(), valueType));
@@ -665,7 +667,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 			Matcher matcher = pattern.matcher(key);
 			if (!matcher.find()) {
-				throw new RuntimeException("baähhh");
+				throw new IllegalArgumentException(
+						String.format("Cannot extract map value for key '%s' in path '%s'.", key, path));
 			}
 			String mapKey = matcher.group(2);
 
