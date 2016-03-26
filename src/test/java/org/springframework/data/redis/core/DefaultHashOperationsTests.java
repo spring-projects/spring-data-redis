@@ -134,8 +134,9 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		HV val2 = hashValueFactory.instance();
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
-		hashOps.delete(key, key1, key2);
+		Long numDeleted = hashOps.delete(key, key1, key2);
 		assertTrue(hashOps.keys(key).isEmpty());
+        assertEquals(2L, numDeleted.longValue());
 	}
 
 	/**

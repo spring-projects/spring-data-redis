@@ -201,15 +201,14 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 		return deserializeHashValues(rawValues);
 	}
 
-	public void delete(K key, Object... hashKeys) {
+	public Long delete(K key, Object... hashKeys) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawHashKeys = rawHashKeys(hashKeys);
 
-		execute(new RedisCallback<Object>() {
+		return execute(new RedisCallback<Long>() {
 
-			public Object doInRedis(RedisConnection connection) {
-				connection.hDel(rawKey, rawHashKeys);
-				return null;
+			public Long doInRedis(RedisConnection connection) {
+				return connection.hDel(rawKey, rawHashKeys);
 			}
 		}, true);
 	}
