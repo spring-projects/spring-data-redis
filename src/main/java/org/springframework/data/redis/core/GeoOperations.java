@@ -16,7 +16,7 @@
 package org.springframework.data.redis.core;
 
 /**
- * Redis operations for simple (or in Redis terminology 'string') values.
+ * Redis operations for geo commands.
  *
  * @author Ninad Divadkar
  */
