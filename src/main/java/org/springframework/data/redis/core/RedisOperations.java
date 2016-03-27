@@ -291,10 +291,10 @@ public interface RedisOperations<K, V> {
     GeoOperations<K, V> opsForGeo();
 
     /**
-     * Returns the operations performed on hash values bound to the given key.
+     * Returns the operations performed on values bound to the given key.
      *
      * @param key Redis key
-     * @return hash operations bound to the given key.
+     * @return geo operations bound to the given key.
      */
     BoundGeoOperations<K, V> boundGeoOps(K key);
 

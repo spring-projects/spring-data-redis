@@ -36,26 +36,23 @@ import static org.springframework.data.redis.SpinBarrier.waitFor;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
 
 /**
- * Integration test of {@link org.springframework.data.redis.core.DefaultValueOperations}
+ * Integration test of {@link org.springframework.data.redis.core.DefaultGeoOperations}
  *
- * @author Jennifer Hickey
- * @author Christoph Strobl
- * @author David Liu
- * @author Thomas Darimont
+ * @author Ninad Divadkar
  */
 @RunWith(Parameterized.class)
-public class DefaultGeoOperationsTests<K, V> {
+public class DefaultGeoOperationsTests<K, M> {
 
-	private RedisTemplate<K, V> redisTemplate;
+	private RedisTemplate<K, M> redisTemplate;
 
 	private ObjectFactory<K> keyFactory;
 
-	private ObjectFactory<V> valueFactory;
+	private ObjectFactory<M> valueFactory;
 
-	private GeoOperations<K, V> geoOperations;
+	private GeoOperations<K, M> geoOperations;
 
-	public DefaultGeoOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
-                                     ObjectFactory<V> valueFactory) {
+	public DefaultGeoOperationsTests(RedisTemplate<K, M> redisTemplate, ObjectFactory<K> keyFactory,
+                                     ObjectFactory<M> valueFactory) {
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
@@ -84,7 +81,7 @@ public class DefaultGeoOperationsTests<K, V> {
 	@Test
 	public void testGeoAdd() throws Exception {
 		K key = keyFactory.instance();
-		V v1 = valueFactory.instance();
+        M v1 = valueFactory.instance();
 		Long numAdded = geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
 		assertEquals(numAdded.longValue(), 1L);
 
