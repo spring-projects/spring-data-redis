@@ -15,16 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,9 +25,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
-import org.springframework.data.redis.core.ConvertingCursor;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -280,7 +270,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.flushDb();
 	}
 
-	public byte[] get(byte[] key) {
+    public byte[] get(byte[] key) {
 		byte[] result = delegate.get(key);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
@@ -2278,6 +2268,196 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 			addResultConverter(identityConverter);
 		}
 		return result;
+	}
+
+    @Override
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
+        Long result = delegate.geoAdd(key, longitude, latitude, member);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Long geoAdd(String key, double longitude, double latitude, String member){
+        Long result = delegate.geoAdd(serialize(key), longitude, latitude, serialize(member));
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
+        Long result = delegate.geoAdd(key, memberCoordinateMap);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Long geoAdd(String key, Map<String, GeoCoordinate> memberCoordinateMap) {
+        Map<byte[], GeoCoordinate> byteMap = new HashMap<byte[], GeoCoordinate>();
+        for (String k : memberCoordinateMap.keySet()){
+            byteMap.put(serialize(k), memberCoordinateMap.get(k));
+        }
+        Long result = delegate.geoAdd(serialize(key), byteMap);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
+        Double result = delegate.geoDist(key, member1, member2);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(String key, String member1, String member2) {
+        return geoDist(key, member1, member2, GeoUnit.Meters);
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+        Double result = delegate.geoDist(key, member1, member2, unit);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(String key, String member1, String member2, GeoUnit geoUnit) {
+        Double result = delegate.geoDist(serialize(key), serialize(member1), serialize(member2), geoUnit);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
+        List<byte[]> result = delegate.geoHash(key, members);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> geoHash(String key, String... members) {
+        List<byte[]> result = delegate.geoHash(serialize(key), serializeMulti(members));
+        if (isFutureConversion()){
+            addResultConverter(byteListToStringList);
+        }
+        return byteListToStringList.convert(result);
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
+        List<GeoCoordinate> result = delegate.geoPos(key, members);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(String key, String... members) {
+        List<GeoCoordinate> result = delegate.geoPos(serialize(key), serializeMulti(members));
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+	@Override
+	public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadius(serialize(key), longitude, latitude, radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadius(serialize(key), longitude, latitude, radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(serialize(key), serialize(member), radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(serialize(key), serialize(member), radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadius(key, longitude, latitude, radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadius(key, longitude, latitude, radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(key, member, radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(key, member, radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public Long geoRemove(byte[] key, byte[]... values) {
+		return zRem(key, values);
+	}
+
+	@Override
+	public Long geoRemove(String key, String... members) {
+		return zRem(key, members);
 	}
 
 	public List<Object> closePipeline() {

@@ -28,8 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.ObjectUtils;
@@ -258,6 +257,60 @@ public class RedisConnectionUnitTests {
 
 		public void subscribe(MessageListener listener, byte[]... channels) {
 			delegate.subscribe(listener, channels);
+		}
+
+        public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
+            return delegate.geoAdd(key, longitude, latitude, member);
+        }
+
+        @Override
+        public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
+            return delegate.geoAdd(key, memberCoordinateMap);
+        }
+
+        @Override
+        public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
+            return delegate.geoDist(key, member1, member2);
+        }
+
+        @Override
+        public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+            return delegate.geoDist(key, member1, member2, unit);
+        }
+
+        @Override
+        public List<byte[]> geoHash(byte[] key, byte[]... members) {
+            return delegate.geoHash(key, members);
+        }
+
+        @Override
+        public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
+            return delegate.geoPos(key, members);
+        }
+
+		@Override
+		public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+			return delegate.georadius(key, longitude, latitude, radius, unit);
+		}
+
+		@Override
+		public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+			return delegate.georadius(key, longitude, latitude, radius, unit, param);
+		}
+
+		@Override
+		public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+			return delegate.georadiusByMember(key, member, radius, unit);
+		}
+
+		@Override
+		public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+			return delegate.georadiusByMember(key, member, radius, unit, param);
+		}
+
+		@Override
+		public Long geoRemove(byte[] key, byte[]... values) {
+			return zRem(key, values);
 		}
 
 		public Set<byte[]> keys(byte[] pattern) {
