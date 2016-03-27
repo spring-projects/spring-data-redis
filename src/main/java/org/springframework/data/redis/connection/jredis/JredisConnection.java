@@ -1187,13 +1187,23 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
-	//
+    public void subscribe(MessageListener listener, byte[]... channels) {
+        throw new UnsupportedOperationException();
+    }
+
+    //
+    // Geo commands
+    //
+
+    @Override
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    //
 	// Scripting commands
 	//
-
-	public void subscribe(MessageListener listener, byte[]... channels) {
-		throw new UnsupportedOperationException();
-	}
 
 	public void scriptFlush() {
 		throw new UnsupportedOperationException();

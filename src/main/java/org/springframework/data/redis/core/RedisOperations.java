@@ -283,6 +283,21 @@ public interface RedisOperations<K, V> {
 	 */
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
 
+    /**
+     * Returns the operations performed on geo values.
+     *
+     * @return geo operations
+     */
+    GeoOperations<K, V> opsForGeo();
+
+    /**
+     * Returns the operations performed on hash values bound to the given key.
+     *
+     * @param key Redis key
+     * @return hash operations bound to the given key.
+     */
+    BoundGeoOperations<K, V> boundGeoOps(K key);
+
 	/**
 	 * Returns the cluster specific operations interface.
 	 * 
