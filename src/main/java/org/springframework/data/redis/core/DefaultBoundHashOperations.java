@@ -38,15 +38,15 @@ class DefaultBoundHashOperations<H, HK, HV> extends DefaultBoundKeyOperations<H>
 	 * Constructs a new <code>DefaultBoundHashOperations</code> instance.
 	 * 
 	 * @param key
-	 * @param template
+	 * @param operations
 	 */
 	public DefaultBoundHashOperations(H key, RedisOperations<H, ?> operations) {
 		super(key, operations);
 		this.ops = operations.opsForHash();
 	}
 
-	public void delete(Object... keys) {
-		ops.delete(getKey(), keys);
+	public Long delete(Object... keys) {
+		return ops.delete(getKey(), keys);
 	}
 
 	public HV get(Object key) {
