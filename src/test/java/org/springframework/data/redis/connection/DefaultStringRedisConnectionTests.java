@@ -40,6 +40,10 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoRadiusParam;
+import org.springframework.data.redis.core.GeoRadiusResponse;
+import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -62,9 +66,13 @@ public class DefaultStringRedisConnectionTests {
 
 	protected String bar = "bar";
 
+    protected String bar2 = "bar2";
+
 	protected byte[] fooBytes = serializer.serialize(foo);
 
 	protected byte[] barBytes = serializer.serialize(bar);
+
+    protected byte[] bar2Bytes = serializer.serialize(bar2);
 
 	protected List<byte[]> bytesList = Collections.singletonList(barBytes);
 
@@ -83,12 +91,20 @@ public class DefaultStringRedisConnectionTests {
 	protected Set<StringTuple> stringTupleSet = new HashSet<StringTuple>(
 			Collections.singletonList(new DefaultStringTuple(new DefaultTuple(barBytes, 3d), bar)));
 
+	protected GeoCoordinate geoCoordinate = new GeoCoordinate(213.00, 324.343);
+	protected  List<GeoCoordinate> geoCoordinates = new ArrayList<GeoCoordinate>();
+
+	protected GeoRadiusResponse geoRadiusResponse = new GeoRadiusResponse(barBytes);
+	protected List<GeoRadiusResponse> geoRadiusResponses = new ArrayList<GeoRadiusResponse>();
+
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 		this.connection = new DefaultStringRedisConnection(nativeConnection);
 		bytesMap.put(fooBytes, barBytes);
 		stringMap.put(foo, bar);
+		geoCoordinates.add(geoCoordinate);
+		geoRadiusResponses.add(geoRadiusResponse);
 	}
 
 	@Test
@@ -1570,6 +1586,188 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	@Test
+	public void testGeoAddBytes(){
+		doReturn(1l).when(nativeConnection).geoAdd(fooBytes, 1.23232, 34.2342434, barBytes);
+		actual.add(connection.geoAdd(fooBytes, 1.23232, 34.2342434, barBytes));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
+	}
+
+    @Test
+    public void testGeoAdd(){
+        doReturn(1l).when(nativeConnection).geoAdd(fooBytes, 1.23232, 34.2342434, barBytes);
+        actual.add(connection.geoAdd(foo, 1.23232, 34.2342434, bar));
+        verifyResults(Arrays.asList(new Object[] { 1l }));
+    }
+
+	@Test
+	public void testGeoAddCoordinateMapBytes(){
+		Map<byte[], GeoCoordinate> memberGeoCoordinateMap = new HashMap<byte[], GeoCoordinate>();
+		memberGeoCoordinateMap.put(barBytes, new GeoCoordinate(1.23232, 34.2342434));
+		doReturn(1l).when(nativeConnection).geoAdd(fooBytes, memberGeoCoordinateMap);
+
+		actual.add(connection.geoAdd(fooBytes, memberGeoCoordinateMap));
+		verifyResults(Arrays.asList(new Object[] { 1l }));
+	}
+
+    @Test
+    public void testGeoAddCoordinateMap(){
+		GeoCoordinate geoCoordinate = new GeoCoordinate(1.23232, 34.2342434);
+        doReturn(1l).when(nativeConnection).geoAdd(any(byte[].class), anyMapOf(byte[].class, GeoCoordinate.class));
+
+        Map<String, GeoCoordinate> stringGeoCoordinateMap = new HashMap<String, GeoCoordinate>();
+        stringGeoCoordinateMap.put(bar, geoCoordinate);
+        actual.add(connection.geoAdd(foo, stringGeoCoordinateMap));
+        verifyResults(Arrays.asList(new Object[] { 1l }));
+    }
+
+	@Test
+	public void testGeoDistBytes(){
+		doReturn(102121.12d).when(nativeConnection).geoDist(fooBytes, barBytes, bar2Bytes, GeoUnit.Meters);
+		actual.add(connection.geoDist(fooBytes, barBytes, bar2Bytes, GeoUnit.Meters));
+		verifyResults(Arrays.asList(new Object[] { 102121.12d }));
+	}
+
+    @Test
+    public void testGeoDist(){
+        doReturn(102121.12d).when(nativeConnection).geoDist(fooBytes, barBytes, bar2Bytes, GeoUnit.Meters);
+        actual.add(connection.geoDist(foo, bar, bar2, GeoUnit.Meters));
+        verifyResults(Arrays.asList(new Object[] { 102121.12d }));
+    }
+
+	@Test
+	public void testGeoHashBytes(){
+		doReturn(bytesList).when(nativeConnection).geoHash(fooBytes, barBytes);
+		actual.add(connection.geoHash(fooBytes, barBytes));
+		List<byte[]> expected = new ArrayList<byte[]>();
+		expected.add(barBytes);
+		verifyResults(Arrays.asList(new Object[]{expected}));
+	}
+
+    @Test
+    public void testGeoHash(){
+        doReturn(bytesList).when(nativeConnection).geoHash(fooBytes, barBytes);
+        actual.add(connection.geoHash(foo, bar));
+        List<String> expected = new ArrayList<String>();
+        expected.add(bar);
+        verifyResults(Arrays.asList(new Object[]{expected}));
+    }
+
+	@Test
+	public void testGeoPosBytes(){
+		doReturn(geoCoordinates).when(nativeConnection).geoPos(fooBytes, barBytes);
+		actual.add(connection.geoPos(fooBytes, barBytes));
+		verifyResults(Arrays.asList(new Object[] { geoCoordinates }));
+	}
+
+    @Test
+    public void testGeoPos(){
+        doReturn(geoCoordinates).when(nativeConnection).geoPos(fooBytes, barBytes);
+        actual.add(connection.geoPos(foo, bar));
+        verifyResults(Arrays.asList(new Object[] { geoCoordinates }));
+    }
+
+	@Test
+	public void testGeoRadiusWithoutParamBytes(){
+
+		doReturn(geoRadiusResponses).when(nativeConnection).georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet);
+		actual.add(connection.georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusWithoutParam(){
+		doReturn(geoRadiusResponses).when(nativeConnection).georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet);
+		actual.add(connection.georadius(foo, 13.361389, 38.115556, 10, GeoUnit.Feet));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusWithDistBytes(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withDist();
+		doReturn(geoRadiusResponses).when(nativeConnection).georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusWithDist(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withDist();
+		doReturn(geoRadiusResponses).when(nativeConnection).georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadius(foo, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusWithCoordAndDescBytes(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withCoord().sortDescending();
+		doReturn(geoRadiusResponses).when(nativeConnection).georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusWithCoordAndDesc(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withCoord().sortDescending();
+		doReturn(geoRadiusResponses).when(nativeConnection).georadius(fooBytes, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadius(foo, 13.361389, 38.115556, 10, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusByMemberWithoutParamBytes(){
+		doReturn(geoRadiusResponses).when(nativeConnection).georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet);
+		actual.add(connection.georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusByMemberWithoutParam(){
+		doReturn(geoRadiusResponses).when(nativeConnection).georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet);
+		actual.add(connection.georadiusByMember(foo, bar, 38.115556, GeoUnit.Feet));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusByMemberWithDistAndAscBytes(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withDist().sortAscending();
+		doReturn(geoRadiusResponses).when(nativeConnection).georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusByMemberWithDistAndAsc(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withDist().sortAscending();
+		doReturn(geoRadiusResponses).when(nativeConnection).georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadiusByMember(foo, bar, 38.115556, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusByMemberWithCoordAndCountBytes(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withDist().count(23);
+		doReturn(geoRadiusResponses).when(nativeConnection).georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+	@Test
+	public void testGeoRadiusByMemberWithCoordAndCount(){
+		GeoRadiusParam geoRadiusParam = GeoRadiusParam.geoRadiusParam();
+		geoRadiusParam.withDist().count(23);
+		doReturn(geoRadiusResponses).when(nativeConnection).georadiusByMember(fooBytes, barBytes, 38.115556, GeoUnit.Feet, geoRadiusParam);
+		actual.add(connection.georadiusByMember(foo, bar, 38.115556, GeoUnit.Feet, geoRadiusParam));
+		verifyResults(Arrays.asList(new Object[] { geoRadiusResponses }));
+	}
+
+    @Test
 	public void testPExpireBytes() {
 		doReturn(true).when(nativeConnection).pExpire(fooBytes, 34l);
 		actual.add(connection.pExpire(fooBytes, 34l));
