@@ -3079,6 +3079,26 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+    //
+    // Geo functionality
+    //
+    @Override
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().geoadd(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().geoadd(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().geoadd(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()

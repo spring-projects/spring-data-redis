@@ -78,6 +78,7 @@ public enum RedisCommand {
 	GETBIT("r", 2, 2), //
 	GETRANGE("r", 3, 3), //
 	GETSET("rw", 2, 2), //
+    GEOADD("w", 3, 2),
 	// -- H
 	HDEL("rw", 2), //
 	HEXISTS("r", 2, 2), //

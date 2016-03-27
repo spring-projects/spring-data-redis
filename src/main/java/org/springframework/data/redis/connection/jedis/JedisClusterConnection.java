@@ -2511,6 +2511,15 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 	}
 
+    @Override
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
+        try {
+            return cluster.geoadd(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)

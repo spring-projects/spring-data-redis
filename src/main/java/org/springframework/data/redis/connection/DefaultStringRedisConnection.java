@@ -280,6 +280,14 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.flushDb();
 	}
 
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
+        Long result = delegate.geoAdd(key, longitude, latitude, member);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
 	public byte[] get(byte[] key) {
 		byte[] result = delegate.get(key);
 		if (isFutureConversion()) {
@@ -1506,6 +1514,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 		return result;
 	}
+
+    public Long geoAdd(String key, double longitude, double latitude, String member){
+        return delegate.geoAdd(serialize(key), longitude, latitude, serialize(member));
+    }
 
 	public String get(String key) {
 		byte[] result = delegate.get(serialize(key));
