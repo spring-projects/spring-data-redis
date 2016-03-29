@@ -260,7 +260,11 @@ public class RedisConnectionUnitTests {
 			delegate.subscribe(listener, channels);
 		}
 
-		public Set<byte[]> keys(byte[] pattern) {
+        public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
+            return delegate.geoAdd(key, longitude, latitude, member);
+        }
+
+        public Set<byte[]> keys(byte[] pattern) {
 			return delegate.keys(pattern);
 		}
 

@@ -96,6 +96,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private ListOperations<K, V> listOps;
 	private SetOperations<K, V> setOps;
 	private ZSetOperations<K, V> zSetOps;
+    private GeoOperations<K, V> geoOps;
 	private HyperLogLogOperations<K, V> hllOps;
 
 	/**
@@ -995,10 +996,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return zSetOps;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
-	 */
+    @Override
+    public GeoOperations<K, V> opsForGeo() {
+        if (geoOps == null) {
+            geoOps = new DefaultGeoOperations<K, V>(this);
+        }
+        return geoOps;
+    }
+
+    @Override
+    public BoundGeoOperations<K, V> boundGeoOps(K key) {
+        return new DefaultBoundGeoOperations<K, V>(key, this);
+    }
+
+    /*
+         * (non-Javadoc)
+         * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
+         */
 	@Override
 	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
 

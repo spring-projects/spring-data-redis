@@ -3078,6 +3078,28 @@ public class JedisConnection extends AbstractRedisConnection {
 		}
 	}
 
+    //
+    // Geo commands
+    //
+
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
+        try {
+            if (isPipelined()) {
+                pipeline(new JedisResult(pipeline.geoadd(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new JedisResult(transaction.geoadd(key, longitude, latitude, member)));
+                return null;
+            }
+
+            return jedis.geoadd(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
+
 	//
 	// Scripting commands
 	//
