@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Ninad Divadkar
  * @param <K> Key type
  * @param <HK> Hash key type
  * @param <HV> Hash value type
@@ -136,7 +137,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 		Long numDeleted = hashOps.delete(key, key1, key2);
 		assertTrue(hashOps.keys(key).isEmpty());
-        assertEquals(2L, numDeleted.longValue());
+		assertEquals(2L, numDeleted.longValue());
 	}
 
 	/**
