@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundKeyOperations;
@@ -39,6 +40,7 @@ import org.springframework.util.Assert;
  * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
 
@@ -149,7 +151,13 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * @return the current value
 	 */
 	public long get() {
-		return operations.get(key);
+
+		Long value = operations.get(key);
+		if (value != null) {
+			return value.longValue();
+		}
+
+		throw new DataRetrievalFailureException(String.format("The key '%s' seems to no longer exist.", key));
 	}
 
 	/**
