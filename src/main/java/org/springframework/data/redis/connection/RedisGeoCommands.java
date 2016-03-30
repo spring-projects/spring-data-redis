@@ -15,6 +15,13 @@
  */
 package org.springframework.data.redis.connection;
 
+
+import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoUnit;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * Geo-specific Redis commands.
  *
@@ -35,4 +42,26 @@ public interface RedisGeoCommands {
      * @return
      */
     Long geoAdd(byte[] key, double longitude, double latitude, byte[] member);
+
+    Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap);
+
+    Double geodist(byte[] key, byte[] member1, byte[] member2);
+
+    Double geodist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit);
+
+    List<byte[]> geohash(byte[] key, byte[]... members);
+
+    List<GeoCoordinate> geopos(byte[] key, byte[]... members);
+
+//    List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+//                                      double radius, GeoUnit unit);
+//
+//    List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+//                                      double radius, GeoUnit unit, GeoRadiusParam param);
+//
+//    List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+//                                              GeoUnit unit);
+//
+//    List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+//                                              GeoUnit unit, GeoRadiusParam param);
 }

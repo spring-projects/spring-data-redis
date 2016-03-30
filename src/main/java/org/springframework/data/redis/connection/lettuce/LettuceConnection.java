@@ -56,12 +56,7 @@ import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.KeyBoundCursor;
-import org.springframework.data.redis.core.RedisCommand;
-import org.springframework.data.redis.core.ScanCursor;
-import org.springframework.data.redis.core.ScanIteration;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -3094,6 +3089,153 @@ public class LettuceConnection extends AbstractRedisConnection {
                 return null;
             }
             return getConnection().geoadd(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().geoadd(key, memberCoordinateMap)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().geoadd(key, memberCoordinateMap)));
+                return null;
+            }
+            return getConnection().geoadd(key, memberCoordinateMap);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+
+    @Override
+    public Double geodist(byte[] key, byte[] member1, byte[] member2) {
+        throw new UnsupportedOperationException("Lettuce does not support this method without unit parameter passed");
+    }
+
+    @Override
+    public Double geodist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().geodist(key, member1, member2, unit)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().geodist(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().geodist(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<byte[]> geohash(byte[] key, byte[]... members) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().geohash(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().geohash(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().geohash(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoCoordinate> geopos(byte[] key, byte[]... members) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().geopos(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().geopos(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().geopos(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+                                             double radius, GeoUnit unit) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().georadius(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+                                             double radius, GeoUnit unit, GeoRadiusParam param) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().georadius(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+                                                     GeoUnit unit) {
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().georadiusByMember(key, longitude, latitude, member);
+        } catch (Exception ex) {
+            throw convertLettuceAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+                                                     GeoUnit unit, GeoRadiusParam param) {
+
+        try {
+            if (isPipelined()) {
+                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
+                return null;
+            }
+            return getConnection().georadiusByMember(key, longitude, latitude, member);
         } catch (Exception ex) {
             throw convertLettuceAccessException(ex);
         }

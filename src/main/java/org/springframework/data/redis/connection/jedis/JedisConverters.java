@@ -42,6 +42,8 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
+import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -79,6 +81,8 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
 	private static final Converter<Expiration, byte[]> EXPIRATION_TO_COMMAND_OPTION_CONVERTER;
 	private static final Converter<SetOption, byte[]> SET_OPTION_TO_COMMAND_OPTION_CONVERTER;
+    private static final Converter<redis.clients.jedis.GeoCoordinate, GeoCoordinate> GEO_COORDINATE_CONVERTER;
+    private static final ListConverter<redis.clients.jedis.GeoCoordinate, GeoCoordinate> GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -165,6 +169,14 @@ abstract public class JedisConverters extends Converters {
 			}
 
 		};
+
+        GEO_COORDINATE_CONVERTER = new Converter<redis.clients.jedis.GeoCoordinate, GeoCoordinate>() {
+            @Override
+            public GeoCoordinate convert(redis.clients.jedis.GeoCoordinate geoCoordinate) {
+                return geoCoordinate != null ? new GeoCoordinate(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
+            }
+        };
+        GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST = new ListConverter<redis.clients.jedis.GeoCoordinate, GeoCoordinate>(GEO_COORDINATE_CONVERTER);
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -200,6 +212,8 @@ abstract public class JedisConverters extends Converters {
 	public static Converter<Exception, DataAccessException> exceptionConverter() {
 		return EXCEPTION_CONVERTER;
 	}
+
+    public static ListConverter<redis.clients.jedis.GeoCoordinate, GeoCoordinate> geoCoordinateListToGeoCoordinateList() { return GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST; }
 
 	public static String[] toStrings(byte[][] source) {
 		String[] result = new String[source.length];
@@ -456,4 +470,22 @@ abstract public class JedisConverters extends Converters {
 		return sp;
 	}
 
+    public static redis.clients.jedis.GeoUnit toGeoUnit(GeoUnit geoUnit){
+        switch (geoUnit){
+            case Meters: return redis.clients.jedis.GeoUnit.M;
+            case KiloMeters: return redis.clients.jedis.GeoUnit.KM;
+            case Miles: return redis.clients.jedis.GeoUnit.M;
+            case Feet: return redis.clients.jedis.GeoUnit.FT;
+            default: throw new IllegalArgumentException("geoUnit not supported");
+        }
+    }
+
+    public static redis.clients.jedis.GeoCoordinate toGeoCoordinate(GeoCoordinate geoCoordinate){
+        return new redis.clients.jedis.GeoCoordinate(geoCoordinate.getLongitude(), geoCoordinate.getLatitude());
+    }
+
+//    public static redis.clients.jedis.params.geo.GeoRadiusParam toGeoRadiusParam(GeoRadiusParam geoRadiusParam){
+//        redis.clients.jedis.params.geo.GeoRadiusParam param = new redis.clients.jedis.params.geo.GeoRadiusParam();
+//
+//    }
 }
