@@ -15,16 +15,8 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,9 +25,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
-import org.springframework.data.redis.core.ConvertingCursor;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -288,7 +278,52 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
         return result;
     }
 
-	public byte[] get(byte[] key) {
+    @Override
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
+        Long result = delegate.geoAdd(key, memberCoordinateMap);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
+        Double result = delegate.geoDist(key, member1, member2);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+        Double result = delegate.geoDist(key, member1, member2, unit);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
+        List<byte[]> result = delegate.geoHash(key, members);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
+        List<GeoCoordinate> result = delegate.geoPos(key, members);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    public byte[] get(byte[] key) {
 		byte[] result = delegate.get(key);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);

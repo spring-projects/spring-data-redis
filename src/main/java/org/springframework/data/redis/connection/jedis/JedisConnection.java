@@ -3078,7 +3078,7 @@ public class JedisConnection extends AbstractRedisConnection {
     }
 
     @Override
-    public Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
         try {
             Map<byte[], redis.clients.jedis.GeoCoordinate> redisGeoCoordinateMap = new HashMap<byte[], redis.clients.jedis.GeoCoordinate>();
             for(byte[] mapKey : memberCoordinateMap.keySet()){
@@ -3102,7 +3102,7 @@ public class JedisConnection extends AbstractRedisConnection {
 
 
     @Override
-    public Double geodist(byte[] key, byte[] member1, byte[] member2) {
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
         try {
             if (isPipelined()) {
                 pipeline(new JedisResult(pipeline.geodist(key, member1, member2)));
@@ -3120,25 +3120,26 @@ public class JedisConnection extends AbstractRedisConnection {
     }
 
     @Override
-    public Double geodist(byte[] key, byte[] member1, byte[] member2, org.springframework.data.redis.core.GeoUnit unit) {
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, org.springframework.data.redis.core.GeoUnit unit) {
+        GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
         try {
             if (isPipelined()) {
-                pipeline(new JedisResult(pipeline.geodist(key, member1, member2)));
+                pipeline(new JedisResult(pipeline.geodist(key, member1, member2, geoUnit)));
                 return null;
             }
             if (isQueueing()) {
-                transaction(new JedisResult(transaction.geodist(key, member1, member2)));
+                transaction(new JedisResult(transaction.geodist(key, member1, member2, geoUnit)));
                 return null;
             }
 
-            return jedis.geodist(key, member1, member2);
+            return jedis.geodist(key, member1, member2, geoUnit);
         } catch (Exception ex) {
             throw convertJedisAccessException(ex);
         }
     }
 
     @Override
-    public List<byte[]> geohash(byte[] key, byte[]... members) {
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
         try {
             if (isPipelined()) {
                 pipeline(new JedisResult(pipeline.geohash(key, members)));
@@ -3156,14 +3157,14 @@ public class JedisConnection extends AbstractRedisConnection {
     }
 
     @Override
-    public List<GeoCoordinate> geopos(byte[] key, byte[]... members) {
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
         try {
             if (isPipelined()) {
-                pipeline(new JedisResult(pipeline.geopos(key, members)));
+                pipeline(new JedisResult(pipeline.geopos(key, members), JedisConverters.geoCoordinateListToGeoCoordinateList()));
                 return null;
             }
             if (isQueueing()) {
-                transaction(new JedisResult(transaction.geopos(key, members)));
+                transaction(new JedisResult(transaction.geopos(key, members), JedisConverters.geoCoordinateListToGeoCoordinateList()));
                 return null;
             }
 

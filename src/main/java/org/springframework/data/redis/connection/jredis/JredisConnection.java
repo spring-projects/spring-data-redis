@@ -1202,28 +1202,28 @@ public class JredisConnection extends AbstractRedisConnection {
     }
 
     @Override
-    public Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
         throw new UnsupportedOperationException();
     }
 
 
     @Override
-    public Double geodist(byte[] key, byte[] member1, byte[] member2) {
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Double geodist(byte[] key, byte[] member1, byte[] member2, org.springframework.data.redis.core.GeoUnit unit) {
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, org.springframework.data.redis.core.GeoUnit unit) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<byte[]> geohash(byte[] key, byte[]... members) {
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<GeoCoordinate> geopos(byte[] key, byte[]... members) {
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
         throw new UnsupportedOperationException();
     }
 

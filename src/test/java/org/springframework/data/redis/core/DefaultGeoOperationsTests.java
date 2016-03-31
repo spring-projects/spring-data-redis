@@ -88,4 +88,17 @@ public class DefaultGeoOperationsTests<K, M> {
 //        numAdded = geoOperations.geoAdd("Sicily", 15.087269, 37.502669, "Catania");
 //		assertEquals(numAdded.longValue(), 2L);
 	}
+
+    @Test
+    public void testGeoAdd2() throws Exception {
+        K key = keyFactory.instance();
+        Map<M, GeoCoordinate> memberCoordinateMap = new HashMap<M, GeoCoordinate>();
+        memberCoordinateMap.put(valueFactory.instance(), new GeoCoordinate(2.2323, 43.324));
+        memberCoordinateMap.put(valueFactory.instance(), new GeoCoordinate(12.993, 31.3994));
+        Long numAdded = geoOperations.geoAdd(key, memberCoordinateMap);
+        assertEquals(numAdded.longValue(), 2L);
+
+//        numAdded = geoOperations.geoAdd("Sicily", 15.087269, 37.502669, "Catania");
+//		assertEquals(numAdded.longValue(), 2L);
+    }
 }

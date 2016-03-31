@@ -43,15 +43,15 @@ public interface RedisGeoCommands {
      */
     Long geoAdd(byte[] key, double longitude, double latitude, byte[] member);
 
-    Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap);
+    Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap);
 
-    Double geodist(byte[] key, byte[] member1, byte[] member2);
+    Double geoDist(byte[] key, byte[] member1, byte[] member2);
 
-    Double geodist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit);
+    Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit);
 
-    List<byte[]> geohash(byte[] key, byte[]... members);
+    List<byte[]> geoHash(byte[] key, byte[]... members);
 
-    List<GeoCoordinate> geopos(byte[] key, byte[]... members);
+    List<GeoCoordinate> geoPos(byte[] key, byte[]... members);
 
 //    List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
 //                                      double radius, GeoUnit unit);

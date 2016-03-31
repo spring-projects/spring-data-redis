@@ -17,6 +17,10 @@ package org.springframework.data.redis.core;
 
 import org.springframework.data.redis.connection.RedisConnection;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Default implementation of {@link GeoOperations}.
  *
@@ -36,6 +40,77 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
 
             public Long doInRedis(RedisConnection connection) {
                 return connection.geoAdd(rawKey, longitude, latitude, rawMember);
+            }
+        }, true);
+    }
+
+    @Override
+    public Long geoAdd(K key, Map<M, GeoCoordinate> memberCoordinateMap) {
+        final byte[] rawKey = rawKey(key);
+        final Map<byte[], GeoCoordinate> rawMemberCoordinateMap = new HashMap<byte[], GeoCoordinate>();
+        for(M member : memberCoordinateMap.keySet()){
+            final byte[] rawMember = rawValue(member);
+            rawMemberCoordinateMap.put(rawMember, memberCoordinateMap.get(member));
+        }
+
+        return execute(new RedisCallback<Long>() {
+
+            public Long doInRedis(RedisConnection connection) {
+                return connection.geoAdd(rawKey, rawMemberCoordinateMap);
+            }
+        }, true);
+    }
+
+    @Override
+    public Double geoDist(K key, final M member1, final M member2) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawMember1 = rawValue(member1);
+        final byte[] rawMember2 = rawValue(member2);
+
+        return execute(new RedisCallback<Double>() {
+
+            public Double doInRedis(RedisConnection connection) {
+                return connection.geoDist(rawKey, rawMember1, rawMember2);
+            }
+        }, true);
+    }
+
+    @Override
+    public Double geoDist(K key, M member1, M member2, final GeoUnit unit) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawMember1 = rawValue(member1);
+        final byte[] rawMember2 = rawValue(member2);
+
+        return execute(new RedisCallback<Double>() {
+
+            public Double doInRedis(RedisConnection connection) {
+                return connection.geoDist(rawKey, rawMember1, rawMember2, unit);
+            }
+        }, true);
+    }
+
+    @Override
+    public List<byte[]> geoHash(K key, final M... members) {
+        final byte[] rawKey = rawKey(key);
+        final byte[][] rawMembers = rawValues(members);
+
+        return execute(new RedisCallback<List<byte[]>>() {
+
+            public List<byte[]> doInRedis(RedisConnection connection) {
+                return connection.geoHash(rawKey, rawMembers);
+            }
+        }, true);
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(K key, M... members) {
+        final byte[] rawKey = rawKey(key);
+        final byte[][] rawMembers = rawValues(members);
+
+        return execute(new RedisCallback<List<GeoCoordinate>>() {
+
+            public List<GeoCoordinate> doInRedis(RedisConnection connection) {
+                return connection.geoPos(rawKey, rawMembers);
             }
         }, true);
     }

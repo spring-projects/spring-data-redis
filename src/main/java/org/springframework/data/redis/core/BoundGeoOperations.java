@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.core;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Hash operations bound to a certain key.
  *
@@ -22,4 +25,14 @@ package org.springframework.data.redis.core;
  */
 public interface BoundGeoOperations<K,M> extends BoundKeyOperations<K> {
     Long geoAdd(K key, double longitude, double latitude, M member);
+
+    Long geoAdd(K key, Map<M, GeoCoordinate> memberCoordinateMap);
+
+    Double geoDist(K key, M member1, M member2);
+
+    Double geoDist(K key, M member1, M member2, GeoUnit unit);
+
+    List<byte[]> geoHash(K key, M... members);
+
+    List<GeoCoordinate> geoPos(K key, M... members);
 }

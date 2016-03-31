@@ -17,6 +17,8 @@ package org.springframework.data.redis.core;
 
 import org.springframework.data.redis.connection.DataType;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,6 +42,31 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
     @Override
     public Long geoAdd(K key, double longitude, double latitude, M member) {
         return ops.geoAdd(key, longitude, latitude, member);
+    }
+
+    @Override
+    public Long geoAdd(K key, Map<M, GeoCoordinate> memberCoordinateMap) {
+        return ops.geoAdd(key, memberCoordinateMap);
+    }
+
+    @Override
+    public Double geoDist(K key, M member1, M member2) {
+        return ops.geoDist(key, member1, member2);
+    }
+
+    @Override
+    public Double geoDist(K key, M member1, M member2, GeoUnit unit) {
+        return ops.geoDist(key, member1, member2, unit);
+    }
+
+    @Override
+    public List<byte[]> geoHash(K key, M... members) {
+        return ops.geoHash(key, members);
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(K key, M... members) {
+        return ops.geoPos(key, members);
     }
 
     @Override

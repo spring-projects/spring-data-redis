@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.lambdaworks.redis.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -57,6 +58,7 @@ import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.ScanCursor;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -64,25 +66,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
-import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.KeyScanCursor;
-import com.lambdaworks.redis.LettuceFutures;
-import com.lambdaworks.redis.MapScanCursor;
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisAsyncConnectionImpl;
-import com.lambdaworks.redis.RedisChannelHandler;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisClusterConnection;
-import com.lambdaworks.redis.RedisConnection;
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.RedisSentinelAsyncConnection;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.ScanArgs;
-import com.lambdaworks.redis.ScoredValue;
-import com.lambdaworks.redis.ScoredValueScanCursor;
-import com.lambdaworks.redis.SortArgs;
-import com.lambdaworks.redis.ValueScanCursor;
-import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.output.BooleanOutput;
 import com.lambdaworks.redis.output.ByteArrayOutput;
@@ -3095,7 +3078,7 @@ public class LettuceConnection extends AbstractRedisConnection {
     }
 
     @Override
-    public Long geoadd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
         try {
             if (isPipelined()) {
                 pipeline(new LettuceResult(getAsyncConnection().geoadd(key, memberCoordinateMap)));
@@ -3113,133 +3096,122 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 
     @Override
-    public Double geodist(byte[] key, byte[] member1, byte[] member2) {
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
         throw new UnsupportedOperationException("Lettuce does not support this method without unit parameter passed");
     }
 
     @Override
-    public Double geodist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+        GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
         try {
             if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geodist(key, member1, member2, unit)));
+                pipeline(new LettuceResult(getAsyncConnection().geodist(key, member1, member2, geoUnit)));
                 return null;
             }
             if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geodist(key, longitude, latitude, member)));
+                transaction(new LettuceTxResult(getConnection().geodist(key, member1, member2, geoUnit)));
                 return null;
             }
-            return getConnection().geodist(key, longitude, latitude, member);
+            return getConnection().geodist(key, member1, member2, geoUnit);
         } catch (Exception ex) {
             throw convertLettuceAccessException(ex);
         }
     }
 
     @Override
-    public List<byte[]> geohash(byte[] key, byte[]... members) {
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geohash(key, longitude, latitude, member)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geohash(key, longitude, latitude, member)));
-                return null;
-            }
-            return getConnection().geohash(key, longitude, latitude, member);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<GeoCoordinate> geopos(byte[] key, byte[]... members) {
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
         try {
             if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geopos(key, longitude, latitude, member)));
+                pipeline(new LettuceResult(getAsyncConnection().geopos(key, members), LettuceConverters.geoCoordinateListToGeoCoordinateList()));
                 return null;
             }
             if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geopos(key, longitude, latitude, member)));
+                transaction(new LettuceTxResult(getConnection().geopos(key, members), LettuceConverters.geoCoordinateListToGeoCoordinateList()));
                 return null;
             }
-            return getConnection().geopos(key, longitude, latitude, member);
+            return LettuceConverters.geoCoordinateListToGeoCoordinateList().convert(getConnection().geopos(key, members));
         } catch (Exception ex) {
             throw convertLettuceAccessException(ex);
         }
     }
 
-    @Override
-    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-                                             double radius, GeoUnit unit) {
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
-                return null;
-            }
-            return getConnection().georadius(key, longitude, latitude, member);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
-
-    @Override
-    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-                                             double radius, GeoUnit unit, GeoRadiusParam param) {
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
-                return null;
-            }
-            return getConnection().georadius(key, longitude, latitude, member);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
-
-    @Override
-    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-                                                     GeoUnit unit) {
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
-                return null;
-            }
-            return getConnection().georadiusByMember(key, longitude, latitude, member);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
-
-    @Override
-    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-                                                     GeoUnit unit, GeoRadiusParam param) {
-
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
-                return null;
-            }
-            return getConnection().georadiusByMember(key, longitude, latitude, member);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
+//    @Override
+//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+//                                             double radius, GeoUnit unit) {
+//        try {
+//            if (isPipelined()) {
+//                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            if (isQueueing()) {
+//                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            return getConnection().georadius(key, longitude, latitude, member);
+//        } catch (Exception ex) {
+//            throw convertLettuceAccessException(ex);
+//        }
+//    }
+//
+//    @Override
+//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+//                                             double radius, GeoUnit unit, GeoRadiusParam param) {
+//        try {
+//            if (isPipelined()) {
+//                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            if (isQueueing()) {
+//                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            return getConnection().georadius(key, longitude, latitude, member);
+//        } catch (Exception ex) {
+//            throw convertLettuceAccessException(ex);
+//        }
+//    }
+//
+//    @Override
+//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+//                                                     GeoUnit unit) {
+//        try {
+//            if (isPipelined()) {
+//                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            if (isQueueing()) {
+//                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            return getConnection().georadiusByMember(key, longitude, latitude, member);
+//        } catch (Exception ex) {
+//            throw convertLettuceAccessException(ex);
+//        }
+//    }
+//
+//    @Override
+//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+//                                                     GeoUnit unit, GeoRadiusParam param) {
+//
+//        try {
+//            if (isPipelined()) {
+//                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            if (isQueueing()) {
+//                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
+//                return null;
+//            }
+//            return getConnection().georadiusByMember(key, longitude, latitude, member);
+//        } catch (Exception ex) {
+//            throw convertLettuceAccessException(ex);
+//        }
+//    }
 
 	/*
 	 * (non-Javadoc)

@@ -45,6 +45,8 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -2243,6 +2245,31 @@ public class SrpConnection extends AbstractRedisConnection {
 
     @Override
     public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
         throw new UnsupportedOperationException();
     }
 
