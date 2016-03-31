@@ -345,7 +345,45 @@ public void useCallback() {
 [[redis:serializer]]
 == Serializers
 
-From the framework perspective, the data stored in Redis is just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored rather than what it represents. It is up to the user to decide whether the information gets translated into Strings or any other objects. The conversion between the user (custom) types and raw data (and vice-versa) is handled in Spring Data Redis through the `RedisSerializer` interface (package `org.springframework.data.redis.serializer`) which as the name implies, takes care of the serialization process. Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation: the `StringRedisSerializer` and the `JdkSerializationRedisSerializer`. However one can use `OxmSerializer` for Object/XML mapping through Spring 3 http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[OXM] support or either `JacksonJsonRedisSerializer`, `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format. Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions.
+From the framework perspective, the data stored in Redis is just bytes. While Redis itself supports various types, for the most part these refer to the way the data is stored rather than what it represents. It is up to the user to decide whether the information gets translated into Strings or any other objects. The conversion between the user (custom) types and raw data (and vice-versa) is handled in Spring Data Redis through the `RedisSerializer` interface (package `org.springframework.data.redis.serializer`) which as the name implies, takes care of the serialization process. Multiple implementations are available out of the box, two of which have been already mentioned before in this documentation: the `StringRedisSerializer` and the `JdkSerializationRedisSerializer`. However one can use `OxmSerializer` for Object/XML mapping through Spring 3 http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[OXM] support or either `JacksonJsonRedisSerializer`, `Jackson2JsonRedisSerializer` or `GenericJackson2JsonRedisSerializer` for storing data in http://en.wikipedia.org/wiki/JSON[JSON] format. Do note that the storage format is not limited only to values - it can be used for keys, values or hashes without any restrictions. To use the provided serializers make sure to add the required dependencies to your project.
+
+A typical dependencies section for a Maven project could look like:
+
+[source,xml]
+----
+<dependencies>
+
+  <!-- other dependency elements omitted -->
+
+  <!-- for Jackson 1 serializer -->
+  <dependency>
+    <groupId>org.codehaus.jackson</groupId>
+    <artifactId>jackson-mapper-asl</artifactId>
+    <version>${jackson1.version}</version>
+  </dependency>
+
+  <!-- for Jackson 2 serializers -->
+  <dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-core</artifactId>
+    <version>${jackson2.version}</version>
+  </dependency>
+
+  <dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>${jackson2.version}</version>
+  </dependency>
+
+  <!-- for OXM serializer -->
+  <dependency>
+    <groupId>com.thoughtworks.xstream</groupId>
+    <artifactId>xstream</artifactId>
+    <version>${xstream.version}</version>
+  </dependency>
+
+</dependencies>
+----
 
 :leveloffset: 2
 include::{referenceDir}/redis-messaging.adoc[]
