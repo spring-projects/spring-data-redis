@@ -474,7 +474,7 @@ abstract public class JedisConverters extends Converters {
         switch (geoUnit){
             case Meters: return redis.clients.jedis.GeoUnit.M;
             case KiloMeters: return redis.clients.jedis.GeoUnit.KM;
-            case Miles: return redis.clients.jedis.GeoUnit.M;
+            case Miles: return redis.clients.jedis.GeoUnit.MI;
             case Feet: return redis.clients.jedis.GeoUnit.FT;
             default: throw new IllegalArgumentException("geoUnit not supported");
         }

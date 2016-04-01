@@ -20,10 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -625,4 +622,15 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	Set<String> zRangeByLex(String key, Range range, Limit limit);
 
+    Long geoAdd(String key, double longitude, double latitude, String member);
+
+    Long geoAdd(String key, Map<String, GeoCoordinate> memberCoordinateMap);
+
+    Double geoDist(String key, String member1, String member2);
+
+    Double geoDist(String key, String member1, String member2, GeoUnit unit);
+
+    List<String> geoHash(String key, String... values);
+
+    List<GeoCoordinate> geoPos(String key, String... members);
 }

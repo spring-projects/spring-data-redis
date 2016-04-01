@@ -270,59 +270,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.flushDb();
 	}
 
-    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
-        Long result = delegate.geoAdd(key, longitude, latitude, member);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
-        Long result = delegate.geoAdd(key, memberCoordinateMap);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
-        Double result = delegate.geoDist(key, member1, member2);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
-        Double result = delegate.geoDist(key, member1, member2, unit);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public List<byte[]> geoHash(byte[] key, byte[]... members) {
-        List<byte[]> result = delegate.geoHash(key, members);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
-        List<GeoCoordinate> result = delegate.geoPos(key, members);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
     public byte[] get(byte[] key) {
 		byte[] result = delegate.get(key);
 		if (isFutureConversion()) {
@@ -1550,10 +1497,6 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-    public Long geoAdd(String key, double longitude, double latitude, String member){
-        return delegate.geoAdd(serialize(key), longitude, latitude, serialize(member));
-    }
-
 	public String get(String key) {
 		byte[] result = delegate.get(serialize(key));
 		if (isFutureConversion()) {
@@ -2326,6 +2269,114 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		}
 		return result;
 	}
+
+    @Override
+    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
+        Long result = delegate.geoAdd(key, longitude, latitude, member);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Long geoAdd(String key, double longitude, double latitude, String member){
+        Long result = delegate.geoAdd(serialize(key), longitude, latitude, serialize(member));
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
+        Long result = delegate.geoAdd(key, memberCoordinateMap);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Long geoAdd(String key, Map<String, GeoCoordinate> memberCoordinateMap) {
+        Map<byte[], GeoCoordinate> byteMap = new HashMap<byte[], GeoCoordinate>();
+        for (String k : memberCoordinateMap.keySet()){
+            byteMap.put(serialize(k), memberCoordinateMap.get(k));
+        }
+        Long result = delegate.geoAdd(serialize(key), byteMap);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
+        Double result = delegate.geoDist(key, member1, member2);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(String key, String member1, String member2) {
+        return geoDist(key, member1, member2, GeoUnit.Meters);
+    }
+
+    @Override
+    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
+        Double result = delegate.geoDist(key, member1, member2, unit);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public Double geoDist(String key, String member1, String member2, GeoUnit geoUnit) {
+        Double result = delegate.geoDist(serialize(key), serialize(member1), serialize(member2), geoUnit);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<byte[]> geoHash(byte[] key, byte[]... members) {
+        List<byte[]> result = delegate.geoHash(key, members);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> geoHash(String key, String... members) {
+        List<byte[]> result = delegate.geoHash(serialize(key), serializeMulti(members));
+        if (isFutureConversion()){
+            addResultConverter(byteListToStringList);
+        }
+        return byteListToStringList.convert(result);
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
+        List<GeoCoordinate> result = delegate.geoPos(key, members);
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
+
+    @Override
+    public List<GeoCoordinate> geoPos(String key, String... members) {
+        List<GeoCoordinate> result = delegate.geoPos(serialize(key), serializeMulti(members));
+        if (isFutureConversion()){
+            addResultConverter(identityConverter);
+        }
+        return result;
+    }
 
 	public List<Object> closePipeline() {
 		try {

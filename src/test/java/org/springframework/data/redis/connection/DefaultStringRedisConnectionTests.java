@@ -40,6 +40,8 @@ import org.springframework.data.redis.connection.RedisStringCommands.BitOperatio
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -62,9 +64,13 @@ public class DefaultStringRedisConnectionTests {
 
 	protected String bar = "bar";
 
+    protected String bar2 = "bar2";
+
 	protected byte[] fooBytes = serializer.serialize(foo);
 
 	protected byte[] barBytes = serializer.serialize(bar);
+
+    protected byte[] bar2Bytes = serializer.serialize(bar2);
 
 	protected List<byte[]> bytesList = Collections.singletonList(barBytes);
 
@@ -1569,7 +1575,51 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Arrays.asList(new Object[] { 5l }));
 	}
 
-	@Test
+    @Test
+    public void testGeoAdd(){
+        doReturn(1l).when(nativeConnection).geoAdd(fooBytes, 1.23232, 34.2342434, barBytes);
+        actual.add(connection.geoAdd(foo, 1.23232, 34.2342434, bar));
+        verifyResults(Arrays.asList(new Object[] { 1l }));
+    }
+
+    @Test
+    public void testGeoAdd2(){
+        Map<byte[], GeoCoordinate> memberGeoCoordinateMap = new HashMap<byte[], GeoCoordinate>();
+        memberGeoCoordinateMap.put(barBytes, new GeoCoordinate(1.23232, 34.2342434));
+        doReturn(1l).when(nativeConnection).geoAdd(fooBytes, memberGeoCoordinateMap);
+
+        Map<String, GeoCoordinate> stringGeoCoordinateMap = new HashMap<String, GeoCoordinate>();
+        stringGeoCoordinateMap.put(bar, new GeoCoordinate(1.23232, 34.2342434));
+        actual.add(connection.geoAdd(foo, stringGeoCoordinateMap));
+        verifyResults(Arrays.asList(new Object[] { 1l }));
+    }
+
+    @Test
+    public void testGeoDist(){
+        doReturn(102121.12d).when(nativeConnection).geoDist(fooBytes, barBytes, bar2Bytes, GeoUnit.Meters);
+        actual.add(connection.geoDist(foo, bar, bar2, GeoUnit.Meters));
+        verifyResults(Arrays.asList(new Object[] { 102121.12d }));
+    }
+
+    @Test
+    public void testGeoHash(){
+        doReturn(bytesList).when(nativeConnection).geoHash(fooBytes, barBytes);
+        actual.add(connection.geoHash(foo, bar));
+        List<String> expected = new ArrayList<String>();
+        expected.add(bar);
+        verifyResults(Arrays.asList(new Object[]{expected}));
+    }
+
+    @Test
+    public void testGeoPos(){
+        List<GeoCoordinate> geoCoordinates = new ArrayList<GeoCoordinate>();
+        geoCoordinates.add(new GeoCoordinate(213.00, 324.343));
+        doReturn(geoCoordinates).when(nativeConnection).geoPos(fooBytes, barBytes);
+        actual.add(connection.geoPos(foo, bar));
+        verifyResults(Arrays.asList(new Object[] { geoCoordinates }));
+    }
+
+    @Test
 	public void testPExpireBytes() {
 		doReturn(true).when(nativeConnection).pExpire(fooBytes, 34l);
 		actual.add(connection.pExpire(fooBytes, 34l));
