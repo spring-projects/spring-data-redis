@@ -2378,6 +2378,78 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
         return result;
     }
 
+	@Override
+	public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadius(serialize(key), longitude, latitude, radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadius(serialize(key), longitude, latitude, radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(serialize(key), serialize(member), radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(serialize(key), serialize(member), radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadius(key, longitude, latitude, radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadius(key, longitude, latitude, radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(key, member, radius, unit);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+		List<GeoRadiusResponse> result = delegate.georadiusByMember(key, member, radius, unit, param);
+		if (isFutureConversion()){
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
 	public List<Object> closePipeline() {
 		try {
 			return convertResults(delegate.closePipeline(), pipelineConverters);

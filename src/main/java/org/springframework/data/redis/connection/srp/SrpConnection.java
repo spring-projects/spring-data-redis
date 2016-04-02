@@ -44,10 +44,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.GeoCoordinate;
-import org.springframework.data.redis.core.GeoUnit;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -2273,7 +2270,27 @@ public class SrpConnection extends AbstractRedisConnection {
         throw new UnsupportedOperationException();
     }
 
-    /**
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver
 	 * 

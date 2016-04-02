@@ -3164,19 +3164,20 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@Override
 	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
 		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+		GeoArgs geoArgs = LettuceConverters.toGeoArgs(param);
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, radius, geoUnit),
-						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, radius, geoUnit, geoArgs),
+						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, radius, geoUnit),
-						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, radius, geoUnit, geoArgs),
+						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
 				return null;
 			}
-			return LettuceConverters.bytesSetToGeoRadiusResponseListConverter().
-					convert(getConnection().georadius(key, longitude, latitude, radius, geoUnit));
+			return LettuceConverters.getGeowithinListToGeoRadiusResponseList().
+					convert(getConnection().georadius(key, longitude, latitude, radius, geoUnit, geoArgs));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -3184,86 +3185,46 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	@Override
 	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
-		return null;
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().georadiusbymember(key, member, radius, geoUnit),
+						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().georadiusbymember(key, member, radius, geoUnit),
+						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				return null;
+			}
+			return LettuceConverters.bytesSetToGeoRadiusResponseListConverter().
+					convert(getConnection().georadiusbymember(key, member, radius, geoUnit));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	@Override
 	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
-		return null;
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+		GeoArgs geoArgs = LettuceConverters.toGeoArgs(param);
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().georadiusbymember(key, member, radius, geoUnit, geoArgs),
+						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().georadiusbymember(key, member, radius, geoUnit, geoArgs),
+						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
+				return null;
+			}
+			return LettuceConverters.getGeowithinListToGeoRadiusResponseList().
+					convert(getConnection().georadiusbymember(key, member, radius, geoUnit, geoArgs));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
-
-	//    @Override
-//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-//                                             double radius, GeoUnit unit) {
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            return getConnection().georadius(key, longitude, latitude, member);
-//        } catch (Exception ex) {
-//            throw convertLettuceAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-//                                             double radius, GeoUnit unit, GeoRadiusParam param) {
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            return getConnection().georadius(key, longitude, latitude, member);
-//        } catch (Exception ex) {
-//            throw convertLettuceAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-//                                                     GeoUnit unit) {
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            return getConnection().georadiusByMember(key, longitude, latitude, member);
-//        } catch (Exception ex) {
-//            throw convertLettuceAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-//                                                     GeoUnit unit, GeoRadiusParam param) {
-//
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new LettuceResult(getAsyncConnection().georadiusByMember(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new LettuceTxResult(getConnection().georadiusByMember(key, longitude, latitude, member)));
-//                return null;
-//            }
-//            return getConnection().georadiusByMember(key, longitude, latitude, member);
-//        } catch (Exception ex) {
-//            throw convertLettuceAccessException(ex);
-//        }
-//    }
 
 	/*
 	 * (non-Javadoc)

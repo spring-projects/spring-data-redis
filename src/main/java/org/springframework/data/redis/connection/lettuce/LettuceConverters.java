@@ -52,6 +52,7 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoRadiusParam;
 import org.springframework.data.redis.core.GeoRadiusResponse;
 import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.core.types.Expiration;
@@ -94,6 +95,7 @@ abstract public class LettuceConverters extends Converters {
     private static final Converter<com.lambdaworks.redis.GeoCoordinates, GeoCoordinate> GEO_COORDINATE_CONVERTER;
     private static final ListConverter<com.lambdaworks.redis.GeoCoordinates, GeoCoordinate> GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST;
 	private static final Converter<Set<byte[]>, List<GeoRadiusResponse>> BYTES_SET_TO_GEO_RADIUS_RESPONSE_LIST;
+	private static final Converter<List<GeoWithin<byte[]>>, List<GeoRadiusResponse>> GEOWITHIN_LIST_TO_GEO_RADIUS_RESPONSE_LIST;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -314,6 +316,28 @@ abstract public class LettuceConverters extends Converters {
 			}
 		};
 
+		GEOWITHIN_LIST_TO_GEO_RADIUS_RESPONSE_LIST = new Converter<List<GeoWithin<byte[]>>, List<GeoRadiusResponse>>() {
+
+			@Override
+			public List<GeoRadiusResponse> convert(List<GeoWithin<byte[]>> source) {
+
+				if (CollectionUtils.isEmpty(source)) {
+					return Collections.emptyList();
+				}
+
+				List<GeoRadiusResponse> geoRadiusResponses = new ArrayList<GeoRadiusResponse>();
+				Iterator<GeoWithin<byte[]>> it = source.iterator();
+				while (it.hasNext()) {
+					GeoWithin<byte[]> geoWithin = it.next();
+					GeoRadiusResponse geoRadiusResponse = new GeoRadiusResponse(geoWithin.member);
+					geoRadiusResponse.setCoordinate(new GeoCoordinate(geoWithin.coordinates.x.doubleValue(),
+							geoWithin.coordinates.y.doubleValue()));
+					geoRadiusResponse.setDistance(geoWithin.distance);
+				}
+				return geoRadiusResponses;
+			}
+		};
+
 	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
@@ -326,6 +350,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<Set<byte[]>, List<GeoRadiusResponse>> bytesSetToGeoRadiusResponseListConverter() {
 		return BYTES_SET_TO_GEO_RADIUS_RESPONSE_LIST;
+	}
+
+	public static Converter<List<GeoWithin<byte[]>>, List<GeoRadiusResponse>> getGeowithinListToGeoRadiusResponseList() {
+		return GEOWITHIN_LIST_TO_GEO_RADIUS_RESPONSE_LIST;
 	}
 
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
@@ -703,7 +731,22 @@ abstract public class LettuceConverters extends Converters {
         }
     }
 
-    public static redis.clients.jedis.GeoCoordinate toGeoCoordinate(GeoCoordinate geoCoordinate){
-        return new redis.clients.jedis.GeoCoordinate(geoCoordinate.getLongitude(), geoCoordinate.getLatitude());
+    public static com.lambdaworks.redis.GeoArgs toGeoArgs(GeoRadiusParam geoRadiusParam){
+		com.lambdaworks.redis.GeoArgs geoArgs = new GeoArgs();
+		for (String k : geoRadiusParam.getParams().keySet()){
+			if (k.equals(GeoRadiusParam.getASC()))
+				geoArgs.asc();
+			else if (k.equals(GeoRadiusParam.getDESC()))
+				geoArgs.desc();
+			else if (k.equals(GeoRadiusParam.getCOUNT()))
+				geoArgs.withCount((Integer)geoRadiusParam.getParams().get(k));
+			else if (k.equals(GeoRadiusParam.getWITHCOORD()))
+				geoArgs.withCoordinates();
+			else if (k.equals(GeoRadiusParam.getWITHDIST()))
+				geoArgs.withDistance();
+			else
+				throw new IllegalArgumentException("unknown key value");
+		}
+		return geoArgs;
     }
 }

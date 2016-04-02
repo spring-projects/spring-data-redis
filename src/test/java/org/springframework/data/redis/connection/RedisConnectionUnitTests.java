@@ -28,10 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.GeoCoordinate;
-import org.springframework.data.redis.core.GeoUnit;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.ObjectUtils;
@@ -291,7 +288,27 @@ public class RedisConnectionUnitTests {
             return delegate.geoPos(key, members);
         }
 
-        public Set<byte[]> keys(byte[] pattern) {
+		@Override
+		public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+			return delegate.georadius(key, longitude, latitude, radius, unit);
+		}
+
+		@Override
+		public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+			return delegate.georadius(key, longitude, latitude, radius, unit, param);
+		}
+
+		@Override
+		public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+			return delegate.georadiusByMember(key, member, radius, unit);
+		}
+
+		@Override
+		public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+			return delegate.georadiusByMember(key, member, radius, unit, param);
+		}
+
+		public Set<byte[]> keys(byte[] pattern) {
 			return delegate.keys(pattern);
 		}
 

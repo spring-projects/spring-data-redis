@@ -633,4 +633,16 @@ public interface StringRedisConnection extends RedisConnection {
     List<String> geoHash(String key, String... values);
 
     List<GeoCoordinate> geoPos(String key, String... members);
+
+	List<GeoRadiusResponse> georadius(String key, double longitude, double latitude,
+									  double radius, GeoUnit unit);
+
+	List<GeoRadiusResponse> georadius(String key, double longitude, double latitude,
+									  double radius, GeoUnit unit, GeoRadiusParam param);
+
+	List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius,
+											  GeoUnit unit);
+
+	List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius,
+											  GeoUnit unit, GeoRadiusParam param);
 }
