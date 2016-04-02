@@ -42,6 +42,7 @@ import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoRadiusResponse;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -53,7 +54,6 @@ import redis.clients.jedis.*;
 import redis.clients.jedis.GeoUnit;
 import redis.clients.jedis.Protocol.Command;
 import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.jedis.params.geo.GeoRadiusParam;
 import redis.clients.util.Pool;
 
 /**
@@ -3174,81 +3174,94 @@ public class JedisConnection extends AbstractRedisConnection {
         }
     }
 
-//    @Override
-//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-//                                             double radius, GeoUnit unit) {
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new JedisResult(pipeline.georadius(key, longitude, latitude, radius, unit)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new JedisResult(transaction.georadius(key, longitude, latitude, radius, unit)));
-//                return null;
-//            }
-//
-//            return jedis.georadius(key, longitude, latitude, radius, unit);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-//                                             double radius, GeoUnit unit, GeoRadiusParam param) {
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new JedisResult(pipeline.georadius(key, longitude, latitude, radius, unit, param)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new JedisResult(transaction.georadius(key, longitude, latitude, radius, unit, param)));
-//                return null;
-//            }
-//
-//            return jedis.georadius(key, longitude, latitude, radius, unit, param);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-//                                                     GeoUnit unit) {
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new JedisResult(pipeline.georadiusByMember(key, member, radius, unit)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new JedisResult(transaction.georadiusByMember(key, member, radius, unit)));
-//                return null;
-//            }
-//
-//            return jedis.georadiusByMember(key, member, radius, unit);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-//                                                     GeoUnit unit, GeoRadiusParam param) {
-//
-//        try {
-//            if (isPipelined()) {
-//                pipeline(new JedisResult(pipeline.georadiusByMember(key, member, radius, unit, param)));
-//                return null;
-//            }
-//            if (isQueueing()) {
-//                transaction(new JedisResult(transaction.georadiusByMember(key, member, radius, unit, param)));
-//                return null;
-//            }
-//            return jedis.georadiusByMember(key, member, radius, unit, param);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
+    @Override
+    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+        double radius, org.springframework.data.redis.core.GeoUnit unit) {
+        GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+        try {
+            if (isPipelined()) {
+                pipeline(new JedisResult(pipeline.georadius(key, longitude, latitude, radius, geoUnit), JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new JedisResult(transaction.georadius(key, longitude, latitude, radius, geoUnit), JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+
+            return JedisConverters.geoRadiusResponseGeoRadiusResponseList().convert(jedis.georadius(key, longitude, latitude, radius, geoUnit));
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+        double radius, org.springframework.data.redis.core.GeoUnit unit, GeoRadiusParam param) {
+        GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+        redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(param);
+        try {
+            if (isPipelined()) {
+                pipeline(new JedisResult(pipeline.georadius(key, longitude, latitude, radius, geoUnit, geoRadiusParam),
+                    JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new JedisResult(transaction.georadius(key, longitude, latitude, radius, geoUnit, geoRadiusParam),
+                    JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+
+            return JedisConverters.geoRadiusResponseGeoRadiusResponseList().
+                convert(jedis.georadius(key, longitude, latitude, radius, geoUnit, geoRadiusParam));
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+        org.springframework.data.redis.core.GeoUnit unit) {
+        GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+        try {
+            if (isPipelined()) {
+                pipeline(new JedisResult(pipeline.georadiusByMember(key, member, radius, geoUnit),
+                    JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new JedisResult(transaction.georadiusByMember(key, member, radius, geoUnit),
+                    JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+
+            return JedisConverters.geoRadiusResponseGeoRadiusResponseList().convert(jedis.georadiusByMember(key, member, radius, geoUnit));
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+        org.springframework.data.redis.core.GeoUnit unit, GeoRadiusParam param) {
+        GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+        redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(param);
+        try {
+            if (isPipelined()) {
+                pipeline(new JedisResult(pipeline.georadiusByMember(key, member, radius, geoUnit, geoRadiusParam),
+                    JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+            if (isQueueing()) {
+                transaction(new JedisResult(transaction.georadiusByMember(key, member, radius, geoUnit, geoRadiusParam),
+                    JedisConverters.geoRadiusResponseGeoRadiusResponseList()));
+                return null;
+            }
+            return JedisConverters.geoRadiusResponseGeoRadiusResponseList().
+                convert(jedis.georadiusByMember(key, member, radius, geoUnit, geoRadiusParam));
+        } catch (Exception ex) {
+            throw convertJedisAccessException(ex);
+        }
+    }
 
 
 	//

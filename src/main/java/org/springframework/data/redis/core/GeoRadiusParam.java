@@ -61,4 +61,28 @@ public class GeoRadiusParam {
         }
         params.put(name, null);
     }
+
+    public Map<String, Object> getParams() {
+        return params;
+    }
+
+    public static String getWITHCOORD() {
+        return WITHCOORD;
+    }
+
+    public static String getWITHDIST() {
+        return WITHDIST;
+    }
+
+    public static String getASC() {
+        return ASC;
+    }
+
+    public static String getDESC() {
+        return DESC;
+    }
+
+    public static String getCOUNT() {
+        return COUNT;
+    }
 }

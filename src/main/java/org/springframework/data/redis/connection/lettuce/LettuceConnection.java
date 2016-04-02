@@ -3140,7 +3140,59 @@ public class LettuceConnection extends AbstractRedisConnection {
         }
     }
 
-//    @Override
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, radius, geoUnit),
+						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, radius, geoUnit),
+						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				return null;
+			}
+			return LettuceConverters.bytesSetToGeoRadiusResponseListConverter().
+					convert(getConnection().georadius(key, longitude, latitude, radius, geoUnit));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, radius, geoUnit),
+						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, radius, geoUnit),
+						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				return null;
+			}
+			return LettuceConverters.bytesSetToGeoRadiusResponseListConverter().
+					convert(getConnection().georadius(key, longitude, latitude, radius, geoUnit));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+		return null;
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+		return null;
+	}
+
+	//    @Override
 //    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
 //                                             double radius, GeoUnit unit) {
 //        try {

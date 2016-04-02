@@ -49,6 +49,7 @@ import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.util.ByteArraySet;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.GeoRadiusResponse;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.util.ByteUtils;
@@ -2554,46 +2555,56 @@ public class JedisClusterConnection implements RedisClusterConnection {
         }
     }
 
-//    @Override
-//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-//                                             double radius, GeoUnit unit) {
-//        try {
-//            return cluster.georadius(key, longitude, latitude, radius, unit);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
-//                                             double radius, GeoUnit unit, GeoRadiusParam param) {
-//        try {
-//            return cluster.georadius(key, longitude, latitude, radius, unit, param);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-//                                                     GeoUnit unit) {
-//        try {
-//            return cluster.georadiusByMember(key, member, radius, unit);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
-//
-//    @Override
-//    public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
-//                                                     GeoUnit unit, GeoRadiusParam param) {
-//
-//        try {
-//            return cluster.georadiusByMember(key, member, radius, unit, param);
-//        } catch (Exception ex) {
-//            throw convertJedisAccessException(ex);
-//        }
-//    }
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+			double radius, org.springframework.data.redis.core.GeoUnit unit) {
+		GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+		try {
+			return JedisConverters.geoRadiusResponseGeoRadiusResponseList().
+					convert(cluster.georadius(key, longitude, latitude, radius, geoUnit));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude,
+			double radius, org.springframework.data.redis.core.GeoUnit unit, GeoRadiusParam param) {
+		GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+		redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(param);
+		try {
+			return JedisConverters.geoRadiusResponseGeoRadiusResponseList().
+					convert(cluster.georadius(key, longitude, latitude, radius, geoUnit, geoRadiusParam));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+			org.springframework.data.redis.core.GeoUnit unit) {
+		GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+		try {
+			return JedisConverters.geoRadiusResponseGeoRadiusResponseList().
+					convert(cluster.georadiusByMember(key, member, radius, geoUnit));
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+	@Override
+	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius,
+			org.springframework.data.redis.core.GeoUnit unit, GeoRadiusParam param) {
+		GeoUnit geoUnit = JedisConverters.toGeoUnit(unit);
+		redis.clients.jedis.params.geo.GeoRadiusParam geoRadiusParam = JedisConverters.toGeoRadiusParam(param);
+		try {
+			return JedisConverters.geoRadiusResponseGeoRadiusResponseList().
+					convert(cluster.georadiusByMember(key, member, radius, geoUnit, geoRadiusParam));
+
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
 
     /*

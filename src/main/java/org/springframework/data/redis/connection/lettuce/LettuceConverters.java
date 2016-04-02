@@ -52,6 +52,7 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.GeoCoordinate;
+import org.springframework.data.redis.core.GeoRadiusResponse;
 import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -92,6 +93,7 @@ abstract public class LettuceConverters extends Converters {
 	private static Converter<com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode, RedisClusterNode> CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER;
     private static final Converter<com.lambdaworks.redis.GeoCoordinates, GeoCoordinate> GEO_COORDINATE_CONVERTER;
     private static final ListConverter<com.lambdaworks.redis.GeoCoordinates, GeoCoordinate> GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST;
+	private static final Converter<Set<byte[]>, List<GeoRadiusResponse>> BYTES_SET_TO_GEO_RADIUS_RESPONSE_LIST;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -294,7 +296,25 @@ abstract public class LettuceConverters extends Converters {
         };
         GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST = new ListConverter<com.lambdaworks.redis.GeoCoordinates, GeoCoordinate>(GEO_COORDINATE_CONVERTER);
 
-    }
+		BYTES_SET_TO_GEO_RADIUS_RESPONSE_LIST = new Converter<Set<byte[]>, List<GeoRadiusResponse>>() {
+
+			@Override
+			public List<GeoRadiusResponse> convert(Set<byte[]> source) {
+
+				if (CollectionUtils.isEmpty(source)) {
+					return Collections.emptyList();
+				}
+
+				List<GeoRadiusResponse> geoRadiusResponses = new ArrayList<GeoRadiusResponse>();
+				Iterator<byte[]> it = source.iterator();
+				while (it.hasNext()) {
+					geoRadiusResponses.add(new GeoRadiusResponse(it.next()));
+				}
+				return geoRadiusResponses;
+			}
+		};
+
+	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
 		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER.convert(list);
@@ -302,6 +322,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<List<byte[]>, List<Tuple>> bytesListToTupleListConverter() {
 		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
+	}
+
+	public static Converter<Set<byte[]>, List<GeoRadiusResponse>> bytesSetToGeoRadiusResponseListConverter() {
+		return BYTES_SET_TO_GEO_RADIUS_RESPONSE_LIST;
 	}
 
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
