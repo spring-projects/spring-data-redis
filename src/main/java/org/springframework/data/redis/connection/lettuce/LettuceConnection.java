@@ -3226,10 +3226,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	@Override
+	public Long geoRemove(byte[] key, byte[]... values) {
+		return zRem(key, values);
+	}
+
 	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
-	 */
+         * (non-Javadoc)
+         * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+         */
 	@Override
 	public Long time() {
 		try {

@@ -1245,6 +1245,11 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public Long geoRemove(byte[] key, byte[]... values) {
+		throw new UnsupportedOperationException();
+	}
+
 	//
 	// Scripting commands
 	//

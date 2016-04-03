@@ -2606,11 +2606,15 @@ public class JedisClusterConnection implements RedisClusterConnection {
 		}
 	}
 
+	@Override
+	public Long geoRemove(byte[] key, byte[]... values) {
+		return zRem(key, values);
+	}
 
-    /*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
-	 */
+	/*
+         * (non-Javadoc)
+         * @see org.springframework.data.redis.connection.RedisConnectionCommands#select(int)
+         */
 	@Override
 	public void select(final int dbIndex) {
 

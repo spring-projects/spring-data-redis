@@ -35,4 +35,18 @@ public interface BoundGeoOperations<K,M> extends BoundKeyOperations<K> {
     List<byte[]> geoHash(K key, M... members);
 
     List<GeoCoordinate> geoPos(K key, M... members);
+
+    List<GeoRadiusResponse> georadius(K key, double longitude, double latitude,
+                                      double radius, GeoUnit unit);
+
+    List<GeoRadiusResponse> georadius(K key, double longitude, double latitude,
+                                      double radius, GeoUnit unit, GeoRadiusParam param);
+
+    List<GeoRadiusResponse> georadiusByMember(K key, M member, double radius,
+                                              GeoUnit unit);
+
+    List<GeoRadiusResponse> georadiusByMember(K key, M member, double radius,
+                                              GeoUnit unit, GeoRadiusParam param);
+
+    Long geoRemove(K key, M... members);
 }

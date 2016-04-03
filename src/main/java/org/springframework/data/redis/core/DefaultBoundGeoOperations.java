@@ -70,6 +70,31 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
     }
 
     @Override
+    public List<GeoRadiusResponse> georadius(K key, double longitude, double latitude, double radius, GeoUnit unit) {
+        return ops.georadius(key, longitude, latitude, radius, unit);
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadius(K key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+        return ops.georadius(key, longitude, latitude, radius, unit, param);
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(K key, M member, double radius, GeoUnit unit) {
+        return ops.georadiusByMember(key, member, radius, unit);
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(K key, M member, double radius, GeoUnit unit, GeoRadiusParam param) {
+        return ops.georadiusByMember(key, member, radius, unit, param);
+    }
+
+    @Override
+    public Long geoRemove(K key, M... members) {
+        return ops.geoRemove(key, members);
+    }
+
+    @Override
     public DataType getType() {
         return DataType.STRING;
     }

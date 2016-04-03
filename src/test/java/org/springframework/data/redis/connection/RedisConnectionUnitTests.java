@@ -308,6 +308,11 @@ public class RedisConnectionUnitTests {
 			return delegate.georadiusByMember(key, member, radius, unit, param);
 		}
 
+		@Override
+		public Long geoRemove(byte[] key, byte[]... values) {
+			return zRem(key, values);
+		}
+
 		public Set<byte[]> keys(byte[] pattern) {
 			return delegate.keys(pattern);
 		}

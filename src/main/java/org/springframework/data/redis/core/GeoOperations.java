@@ -47,4 +47,6 @@ public interface GeoOperations<K, M> {
 
     List<GeoRadiusResponse> georadiusByMember(K key, M member, double radius,
                                               GeoUnit unit, GeoRadiusParam param);
+
+    Long geoRemove(K key, M... members);
 }

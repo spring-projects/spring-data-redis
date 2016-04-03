@@ -2450,6 +2450,16 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
+	@Override
+	public Long geoRemove(byte[] key, byte[]... values) {
+		return zRem(key, values);
+	}
+
+	@Override
+	public Long geoRemove(String key, String... members) {
+		return zRem(key, members);
+	}
+
 	public List<Object> closePipeline() {
 		try {
 			return convertResults(delegate.closePipeline(), pipelineConverters);

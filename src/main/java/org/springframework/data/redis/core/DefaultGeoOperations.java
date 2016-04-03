@@ -164,4 +164,17 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
             }
         }, true);
     }
+
+    @Override
+    public Long geoRemove(K key, M... members) {
+        final byte[] rawKey = rawKey(key);
+        final byte[][] rawMembers = rawValues(members);
+
+        return execute(new RedisCallback<Long>() {
+
+            public Long doInRedis(RedisConnection connection) {
+                return connection.zRem(rawKey, rawMembers);
+            }
+        }, true);
+    }
 }

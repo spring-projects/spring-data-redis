@@ -2290,6 +2290,11 @@ public class SrpConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public Long geoRemove(byte[] key, byte[]... values) {
+		throw new UnsupportedOperationException();
+	}
+
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver
