@@ -114,4 +114,54 @@ public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> impleme
             }
         }, true);
     }
+
+    @Override
+    public List<GeoRadiusResponse> georadius(K key, final double longitude, final double latitude, final double radius, final GeoUnit unit) {
+        final byte[] rawKey = rawKey(key);
+
+        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+
+            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
+                return connection.georadius(rawKey, longitude, latitude, radius, unit);
+            }
+        }, true);
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadius(K key, final double longitude, final double latitude, final double radius, final GeoUnit unit, final GeoRadiusParam param) {
+        final byte[] rawKey = rawKey(key);
+
+        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+
+            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
+                return connection.georadius(rawKey, longitude, latitude, radius, unit, param);
+            }
+        }, true);
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(K key, M member, final double radius, final GeoUnit unit) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawMember = rawValue(member);
+
+        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+
+            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
+                return connection.georadiusByMember(rawKey, rawMember, radius, unit);
+            }
+        }, true);
+    }
+
+    @Override
+    public List<GeoRadiusResponse> georadiusByMember(K key, M member, final double radius, final GeoUnit unit, final GeoRadiusParam param) {
+        final byte[] rawKey = rawKey(key);
+        final byte[] rawMember = rawValue(member);
+
+        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+
+            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
+                return connection.georadiusByMember(rawKey, rawMember, radius, unit, param);
+            }
+        }, true);
+    }
 }

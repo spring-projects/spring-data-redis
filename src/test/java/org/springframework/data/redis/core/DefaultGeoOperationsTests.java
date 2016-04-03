@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,9 +88,6 @@ public class DefaultGeoOperationsTests<K, M> {
         M v1 = valueFactory.instance();
 		Long numAdded = geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
 		assertEquals(numAdded.longValue(), 1L);
-
-//        numAdded = geoOperations.geoAdd("Sicily", 15.087269, 37.502669, "Catania");
-//		assertEquals(numAdded.longValue(), 2L);
 	}
 
     @Test
@@ -100,9 +98,6 @@ public class DefaultGeoOperationsTests<K, M> {
         memberCoordinateMap.put(valueFactory.instance(), new GeoCoordinate(12.993, 31.3994));
         Long numAdded = geoOperations.geoAdd(key, memberCoordinateMap);
         assertEquals(numAdded.longValue(), 2L);
-
-//        numAdded = geoOperations.geoAdd("Sicily", 15.087269, 37.502669, "Catania");
-//		assertEquals(numAdded.longValue(), 2L);
     }
 
     @Test
@@ -165,5 +160,43 @@ public class DefaultGeoOperationsTests<K, M> {
         assertEquals(result.get(1).getLatitude(), 37.50266842333162, 0.000001);
 
         assertNull(result.get(2));
+    }
+
+    @Test
+    public void testGeoRadius() throws Exception{
+        K key = keyFactory.instance();
+        M v1 = valueFactory.instance();
+        M v2 = valueFactory.instance();
+
+        geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
+        geoOperations.geoAdd(key, 15.087269, 37.502669, v2);
+
+        List<GeoRadiusResponse> result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters);
+        Assert.assertEquals(2, result.size());
+
+        // with dist, descending
+        result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withDist().sortDescending());
+        Assert.assertEquals(2, result.size());
+        Assert.assertEquals(result.get(0).getDistance(), 190.4424d, 0.0001);
+        Assert.assertEquals(result.get(1).getDistance(), 56.4413d, 0.0001);
+
+        // with coord, ascending
+        result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withCoord().sortAscending());
+        Assert.assertEquals(2, result.size());
+        Assert.assertEquals(result.get(1).getCoordinate().getLongitude(), 13.361389338970184d, 0.0001);
+        Assert.assertEquals(result.get(1).getCoordinate().getLatitude(), 38.115556395496299d, 0.0001);
+        Assert.assertEquals(result.get(0).getCoordinate().getLongitude(), 15.087267458438873d, 0.0001);
+        Assert.assertEquals(result.get(0).getCoordinate().getLatitude(), 37.50266842333162d, 0.0001);
+
+        // with coord and dist, ascending
+        result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withCoord().withDist().sortAscending());
+        Assert.assertEquals(2, result.size());
+
+        Assert.assertEquals(result.get(0).getDistance(), 56.4413d, 0.0001);
+        Assert.assertEquals(result.get(0).getCoordinate().getLongitude(), 15.087267458438873d, 0.0001);
+        Assert.assertEquals(result.get(0).getCoordinate().getLatitude(), 37.50266842333162d, 0.0001);
+        Assert.assertEquals(result.get(1).getDistance(), 190.4424d, 0.0001);
+        Assert.assertEquals(result.get(1).getCoordinate().getLongitude(), 13.361389338970184d, 0.0001);
+        Assert.assertEquals(result.get(1).getCoordinate().getLatitude(), 38.115556395496299d, 0.0001);
     }
 }
