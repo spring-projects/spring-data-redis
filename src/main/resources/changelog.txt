@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.0.RELEASE (2016-04-06)
+---------------------------------------------
+* DATAREDIS-485 - Add pull request template.
+* DATAREDIS-484 - Release 1.7 GA (Hopper).
+* DATAREDIS-482 - Provide meaningful exception messages in MappingRedisConverter.
+* DATAREDIS-480 - Make LettuceConnectionFactory able to set all options of an SSL connection.
+* DATAREDIS-444 - DefaultHashOperation does not return value.
+
+
 Changes in version 1.7.0.RC1 (2016-03-18)
 -----------------------------------------
 * DATAREDIS-479 - Upgrade to jedis to 2.8.1.
