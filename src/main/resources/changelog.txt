@@ -6,6 +6,11 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.1.RELEASE (2016-04-06)
+---------------------------------------------
+* DATAREDIS-486 - Release 1.7.1 (Hopper SR1).
+
+
 Changes in version 1.7.0.RELEASE (2016-04-06)
 ---------------------------------------------
 * DATAREDIS-485 - Add pull request template.
