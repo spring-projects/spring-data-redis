@@ -5,19 +5,19 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>1.7.0.BUILD-SNAPSHOT</version>
+	<version>1.8.0.BUILD-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>1.8.0.BUILD-SNAPSHOT</version>
+		<version>1.9.0.BUILD-SNAPSHOT</version>
 	</parent>
 
 	<properties>
 		<dist.key>DATAREDIS</dist.key>
-		<springdata.keyvalue>1.1.0.BUILD-SNAPSHOT</springdata.keyvalue>
+		<springdata.keyvalue>1.2.0.BUILD-SNAPSHOT</springdata.keyvalue>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
