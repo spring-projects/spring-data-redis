@@ -67,6 +67,7 @@ import org.springframework.data.redis.core.convert.ConversionTestEntities.Person
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Species;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.TypeWithObjectValueTypes;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.WithArrays;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
@@ -1425,6 +1426,159 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.arrayOfCompexTypes[1], notNullValue());
 		assertThat(target.arrayOfCompexTypes[1].name, is("myrddraal"));
 		assertThat(target.arrayOfCompexTypes[1].alsoKnownAs, contains("halfmen", "fades", "neverborn"));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void writeHandlesArraysOfObjectTypeProperly() {
+
+		Species trolloc = new Species();
+		trolloc.name = "trolloc";
+
+		WithArrays source = new WithArrays();
+		source.arrayOfObject = new Object[] { "rand", trolloc, 100L };
+
+		assertThat(write(source).getBucket(),
+				isBucket().containingUtf8String("arrayOfObject.[0]", "rand") //
+						.containingUtf8String("arrayOfObject.[0]._class", "java.lang.String")
+						.containingUtf8String("arrayOfObject.[1]._class", Species.class.getName()) //
+						.containingUtf8String("arrayOfObject.[1].name", "trolloc") //
+						.containingUtf8String("arrayOfObject.[2]._class", "java.lang.Long") //
+						.containingUtf8String("arrayOfObject.[2]", "100"));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void readHandlesArraysOfObjectTypeProperly() {
+
+		Map<String, String> source = new LinkedHashMap<String, String>();
+		source.put("arrayOfObject.[0]", "rand");
+		source.put("arrayOfObject.[0]._class", "java.lang.String");
+		source.put("arrayOfObject.[1]._class", Species.class.getName());
+		source.put("arrayOfObject.[1].name", "trolloc");
+		source.put("arrayOfObject.[2]._class", "java.lang.Long");
+		source.put("arrayOfObject.[2]", "100");
+
+		WithArrays target = read(WithArrays.class, source);
+
+		assertThat(target.arrayOfObject[0], notNullValue());
+		assertThat(target.arrayOfObject[0], instanceOf(String.class));
+		assertThat(target.arrayOfObject[1], notNullValue());
+		assertThat(target.arrayOfObject[1], instanceOf(Species.class));
+		assertThat(target.arrayOfObject[2], notNullValue());
+		assertThat(target.arrayOfObject[2], instanceOf(Long.class));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void writeShouldAppendTyeHintToObjectPropertyValueTypesCorrectly() {
+
+		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
+		sample.object = "bar";
+
+		Bucket bucket = write(sample).getBucket();
+
+		assertThat(bucket,
+				isBucket().containingUtf8String("object", "bar").containingUtf8String("object._class", "java.lang.String"));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void shouldWriteReadObjectPropertyValueTypeCorrectly() {
+
+		TypeWithObjectValueTypes di = new TypeWithObjectValueTypes();
+		di.object = "foo";
+
+		RedisData rd = write(di);
+
+		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
+		assertThat(result.object, instanceOf(String.class));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void writeShouldAppendTyeHintToObjectMapValueTypesCorrectly() {
+
+		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
+		sample.map.put("string", "bar");
+		sample.map.put("long", new Long(1L));
+		sample.map.put("date", new Date());
+
+		Bucket bucket = write(sample).getBucket();
+
+		assertThat(bucket, isBucket().containingUtf8String("map.[string]", "bar")
+				.containingUtf8String("map.[string]._class", "java.lang.String"));
+		assertThat(bucket,
+				isBucket().containingUtf8String("map.[long]", "1").containingUtf8String("map.[long]._class", "java.lang.Long"));
+		assertThat(bucket, isBucket().containingUtf8String("map.[date]._class", "java.util.Date"));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void shouldWriteReadObjectMapValueTypeCorrectly() {
+
+		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
+		sample.map.put("string", "bar");
+		sample.map.put("long", new Long(1L));
+		sample.map.put("date", new Date());
+
+		RedisData rd = write(sample);
+
+		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
+		assertThat(result.map.get("string"), instanceOf(String.class));
+		assertThat(result.map.get("long"), instanceOf(Long.class));
+		assertThat(result.map.get("date"), instanceOf(Date.class));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void writeShouldAppendTyeHintToObjectListValueTypesCorrectly() {
+
+		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
+		sample.list.add("string");
+		sample.list.add(new Long(1L));
+		sample.list.add(new Date());
+
+		Bucket bucket = write(sample).getBucket();
+
+		assertThat(bucket, isBucket().containingUtf8String("list.[0]", "string").containingUtf8String("list.[0]._class",
+				"java.lang.String"));
+		assertThat(bucket,
+				isBucket().containingUtf8String("list.[1]", "1").containingUtf8String("list.[1]._class", "java.lang.Long"));
+		assertThat(bucket, isBucket().containingUtf8String("list.[2]._class", "java.util.Date"));
+	}
+
+	/**
+	 * @see DATAREDIS-489
+	 */
+	@Test
+	public void shouldWriteReadObjectListValueTypeCorrectly() {
+
+		TypeWithObjectValueTypes sample = new TypeWithObjectValueTypes();
+		sample.list.add("string");
+		sample.list.add(new Long(1L));
+		sample.list.add(new Date());
+
+		RedisData rd = write(sample);
+
+		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
+		assertThat(result.list.get(0), instanceOf(String.class));
+		assertThat(result.list.get(1), instanceOf(Long.class));
+		assertThat(result.list.get(2), instanceOf(Date.class));
 	}
 
 	private RedisData write(Object source) {
