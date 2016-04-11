@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -75,6 +76,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Christoph Strobl
+ * @author Greg Turnquist
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MappingRedisConverterUnitTests {
@@ -146,7 +148,7 @@ public class MappingRedisConverterUnitTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
-	public void writeDoesNotAppendPropertiesWithEmtpyCollections() {
+	public void writeDoesNotAppendPropertiesWithEmptyCollections() {
 
 		rand.firstname = "rand";
 
@@ -433,6 +435,27 @@ public class MappingRedisConverterUnitTests {
 
 		assertThat(target.getBucket(), isBucket().containingUtf8String("physicalAttributes.[hair-color]", "red") //
 				.containingUtf8String("physicalAttributes.[eye-color]", "grey"));
+	}
+
+	/**
+	 * @see DATAREDIS-492
+	 */
+	@Test
+	public void writeHandlesArraysProperly() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter
+			.setCustomConversions(new CustomConversions(Collections.singletonList(new ListToByteConverter())));
+		this.converter.afterPropertiesSet();
+
+		Map<String, Object> innerMap = new LinkedHashMap<String, Object>();
+		innerMap.put("address", "tyrionl@netflix.com");
+		innerMap.put("when", new String[]{"pipeline.failed"});
+
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		map.put("email", Collections.singletonList(innerMap));
+
+		RedisData target = write(map);
 	}
 
 	/**
@@ -1374,6 +1397,35 @@ public class MappingRedisConverterUnitTests {
 			return map;
 		}
 	}
+
+	@WritingConverter
+	static class ListToByteConverter implements Converter<List, byte[]> {
+
+		private final ObjectMapper mapper;
+		private final Jackson2JsonRedisSerializer<List> serializer;
+
+		ListToByteConverter() {
+
+			mapper = new ObjectMapper();
+			mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+				.withFieldVisibility(Visibility.ANY).withGetterVisibility(Visibility.NONE)
+				.withSetterVisibility(Visibility.NONE).withCreatorVisibility(Visibility.NONE));
+
+			serializer = new Jackson2JsonRedisSerializer<List>(List.class);
+			serializer.setObjectMapper(mapper);
+		}
+
+		@Override
+		public byte[] convert(List source) {
+
+			if (source == null || source.isEmpty()) {
+				return null;
+			}
+
+			return serializer.serialize(source);
+		}
+	}
+
 
 	@ReadingConverter
 	static class MapToSpeciesConverter implements Converter<Map<String, byte[]>, Species> {
