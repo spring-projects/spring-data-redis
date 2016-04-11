@@ -15,8 +15,10 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -43,6 +45,7 @@ import org.springframework.util.Assert;
  * {@link IndexConfiguration}.
  *
  * @author Christoph Strobl
+ * @author Greg Turnquist
  * @since 1.7
  */
 public class PathIndexResolver implements IndexResolver {
@@ -116,11 +119,23 @@ public class PathIndexResolver implements IndexResolver {
 
 					} else if (persistentProperty.isCollectionLike()) {
 
-						for (Object listValue : (Iterable<?>) propertyValue) {
+						final Iterable<?> iterable;
 
-							TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, listValue);
-							indexes.addAll(
+						if (Iterable.class.isAssignableFrom(propertyValue.getClass())) {
+							iterable = (Iterable) propertyValue;
+						} else if (propertyValue.getClass().isArray()) {
+							iterable = Arrays.asList((Object[]) propertyValue);
+						} else {
+							throw new RuntimeException("Don't know how to handle " + propertyValue.getClass() + " type of collection");
+						}
+
+						for (Object listValue : iterable) {
+
+							if (listValue != null) {
+								TypeInformation<?> typeToUse = updateTypeHintForActualValue(typeHint, listValue);
+								indexes.addAll(
 									doResolveIndexesFor(keyspace, currentPath, typeToUse.getActualType(), persistentProperty, listValue));
+							}
 						}
 					}
 

@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core.convert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -100,6 +101,7 @@ import org.springframework.util.comparator.NullSafeComparator;
  * </pre>
  * 
  * @author Christoph Strobl
+ * @author Greg Turnquist
  * @since 1.7
  */
 public class MappingRedisConverter implements RedisConverter, InitializingBean {
@@ -355,8 +357,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			sink.setTimeToLive(ttl);
 		}
 
-		for (IndexedData indexeData : indexResolver.resolveIndexesFor(entity.getTypeInformation(), source)) {
-			sink.addIndexedData(indexeData);
+		for (IndexedData indexedData : indexResolver.resolveIndexesFor(entity.getTypeInformation(), source)) {
+			sink.addIndexedData(indexedData);
 		}
 
 	}
@@ -409,8 +411,22 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					writeMap(keyspace, propertyStringPath, persistentProperty.getMapValueType(),
 							(Map<?, ?>) accessor.getProperty(persistentProperty), sink);
 				} else if (persistentProperty.isCollectionLike()) {
-					writeCollection(keyspace, propertyStringPath, (Collection<?>) accessor.getProperty(persistentProperty),
+
+					final Object property = accessor.getProperty(persistentProperty);
+
+					if (property == null || Iterable.class.isAssignableFrom(property.getClass())) {
+
+						writeCollection(keyspace, propertyStringPath, (Iterable<?>) property,
 							persistentProperty.getTypeInformation().getComponentType(), sink);
+					} else if (property.getClass().isArray()) {
+
+						writeCollection(keyspace, propertyStringPath, Arrays.asList((Object[]) property),
+							persistentProperty.getTypeInformation().getComponentType(), sink);
+					} else {
+
+						throw new RuntimeException("Don't know how to handle " + property.getClass() + " type collection");
+					}
+
 				} else if (persistentProperty.isEntity()) {
 					writeInternal(keyspace, propertyStringPath, accessor.getProperty(persistentProperty),
 							persistentProperty.getTypeInformation().getActualType(), sink);
@@ -482,7 +498,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 * @param typeHint
 	 * @param sink
 	 */
-	private void writeCollection(String keyspace, String path, Collection<?> values, TypeInformation<?> typeHint,
+	private void writeCollection(String keyspace, String path, Iterable<?> values, TypeInformation<?> typeHint,
 			RedisData sink) {
 
 		if (values == null) {
@@ -491,6 +507,10 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		int i = 0;
 		for (Object value : values) {
+
+			if (value == null) {
+				break;
+			}
 
 			String currentPath = path + ".[" + i + "]";
 
