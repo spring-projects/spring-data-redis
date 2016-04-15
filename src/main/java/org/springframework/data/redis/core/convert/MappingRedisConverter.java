@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.convert;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -542,7 +543,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		Bucket partial = source.getBucket().extract(path + ".[");
 
 		List<String> keys = new ArrayList<String>(partial.keySet());
-		keys.sort(listKeyComparator);
+		Collections.sort(keys, listKeyComparator);
 
 		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, partial.size());
 
@@ -564,7 +565,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			Bucket source) {
 
 		List<String> keys = new ArrayList<String>(source.extractAllKeysFor(path));
-		keys.sort(listKeyComparator);
+		Collections.sort(keys, listKeyComparator);
 
 		Collection<Object> target = CollectionFactory.createCollection(collectionType, valueType, keys.size());
 
