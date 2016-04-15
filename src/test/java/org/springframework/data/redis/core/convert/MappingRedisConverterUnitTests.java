@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hamcrest.core.IsEqual;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,6 +67,7 @@ import org.springframework.data.redis.core.convert.ConversionTestEntities.Person
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Species;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.WithArrays;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -435,27 +437,6 @@ public class MappingRedisConverterUnitTests {
 
 		assertThat(target.getBucket(), isBucket().containingUtf8String("physicalAttributes.[hair-color]", "red") //
 				.containingUtf8String("physicalAttributes.[eye-color]", "grey"));
-	}
-
-	/**
-	 * @see DATAREDIS-492
-	 */
-	@Test
-	public void writeHandlesArraysProperly() {
-
-		this.converter = new MappingRedisConverter(null, null, resolverMock);
-		this.converter
-			.setCustomConversions(new CustomConversions(Collections.singletonList(new ListToByteConverter())));
-		this.converter.afterPropertiesSet();
-
-		Map<String, Object> innerMap = new LinkedHashMap<String, Object>();
-		innerMap.put("address", "tyrionl@netflix.com");
-		innerMap.put("when", new String[]{"pipeline.failed"});
-
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
-		map.put("email", Collections.singletonList(innerMap));
-
-		RedisData target = write(map);
 	}
 
 	/**
@@ -1348,11 +1329,113 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.species.get(0).name, is("trolloc"));
 	}
 
+	/**
+	 * @see DATAREDIS-492
+	 */
+	@Test
+	public void writeHandlesArraysProperly() {
+
+		this.converter = new MappingRedisConverter(null, null, resolverMock);
+		this.converter.setCustomConversions(new CustomConversions(Collections.singletonList(new ListToByteConverter())));
+		this.converter.afterPropertiesSet();
+
+		Map<String, Object> innerMap = new LinkedHashMap<String, Object>();
+		innerMap.put("address", "tyrionl@netflix.com");
+		innerMap.put("when", new String[] { "pipeline.failed" });
+
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		map.put("email", Collections.singletonList(innerMap));
+
+		RedisData target = write(map);
+	}
+
+	/**
+	 * @see DATAREDIS-492
+	 */
+	@Test
+	public void writeHandlesArraysOfSimpleTypeProperly() {
+
+		WithArrays source = new WithArrays();
+		source.arrayOfSimpleTypes = new String[] { "rand", "mat", "perrin" };
+
+		assertThat(write(source).getBucket(),
+				isBucket().containingUtf8String("arrayOfSimpleTypes.[0]", "rand")
+						.containingUtf8String("arrayOfSimpleTypes.[1]", "mat")
+						.containingUtf8String("arrayOfSimpleTypes.[2]", "perrin"));
+	}
+
+	/**
+	 * @see DATAREDIS-492
+	 */
+	@Test
+	public void readHandlesArraysOfSimpleTypeProperly() {
+
+		Map<String, String> source = new LinkedHashMap<String, String>();
+		source.put("arrayOfSimpleTypes.[0]", "rand");
+		source.put("arrayOfSimpleTypes.[1]", "mat");
+		source.put("arrayOfSimpleTypes.[2]", "perrin");
+
+		WithArrays target = read(WithArrays.class, source);
+
+		assertThat(target.arrayOfSimpleTypes, IsEqual.equalTo(new String[] { "rand", "mat", "perrin" }));
+	}
+
+	/**
+	 * @see DATAREDIS-492
+	 */
+	@Test
+	public void writeHandlesArraysOfComplexTypeProperly() {
+
+		WithArrays source = new WithArrays();
+
+		Species trolloc = new Species();
+		trolloc.name = "trolloc";
+
+		Species myrddraal = new Species();
+		myrddraal.name = "myrddraal";
+		myrddraal.alsoKnownAs = Arrays.asList("halfmen", "fades", "neverborn");
+
+		source.arrayOfCompexTypes = new Species[] { trolloc, myrddraal };
+
+		assertThat(write(source).getBucket(),
+				isBucket().containingUtf8String("arrayOfCompexTypes.[0].name", "trolloc") //
+						.containingUtf8String("arrayOfCompexTypes.[1].name", "myrddraal") //
+						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[0]", "halfmen") //
+						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[1]", "fades") //
+						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[2]", "neverborn"));
+	}
+
+	/**
+	 * @see DATAREDIS-492
+	 */
+	@Test
+	public void readHandlesArraysOfComplexTypeProperly() {
+
+		Map<String, String> source = new LinkedHashMap<String, String>();
+		source.put("arrayOfCompexTypes.[0].name", "trolloc");
+		source.put("arrayOfCompexTypes.[1].name", "myrddraal");
+		source.put("arrayOfCompexTypes.[1].alsoKnownAs.[0]", "halfmen");
+		source.put("arrayOfCompexTypes.[1].alsoKnownAs.[1]", "fades");
+		source.put("arrayOfCompexTypes.[1].alsoKnownAs.[2]", "neverborn");
+
+		WithArrays target = read(WithArrays.class, source);
+
+		assertThat(target.arrayOfCompexTypes[0], notNullValue());
+		assertThat(target.arrayOfCompexTypes[0].name, is("trolloc"));
+		assertThat(target.arrayOfCompexTypes[1], notNullValue());
+		assertThat(target.arrayOfCompexTypes[1].name, is("myrddraal"));
+		assertThat(target.arrayOfCompexTypes[1].alsoKnownAs, contains("halfmen", "fades", "neverborn"));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
 		converter.write(source, rdo);
 		return rdo;
+	}
+
+	private <T> T read(Class<T> type, Map<String, String> source) {
+		return converter.read(type, new RedisData(Bucket.newBucketFromStringMap(source)));
 	}
 
 	@WritingConverter
@@ -1408,8 +1491,8 @@ public class MappingRedisConverterUnitTests {
 
 			mapper = new ObjectMapper();
 			mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
-				.withFieldVisibility(Visibility.ANY).withGetterVisibility(Visibility.NONE)
-				.withSetterVisibility(Visibility.NONE).withCreatorVisibility(Visibility.NONE));
+					.withFieldVisibility(Visibility.ANY).withGetterVisibility(Visibility.NONE)
+					.withSetterVisibility(Visibility.NONE).withCreatorVisibility(Visibility.NONE));
 
 			serializer = new Jackson2JsonRedisSerializer<List>(List.class);
 			serializer.setObjectMapper(mapper);
@@ -1425,7 +1508,6 @@ public class MappingRedisConverterUnitTests {
 			return serializer.serialize(source);
 		}
 	}
-
 
 	@ReadingConverter
 	static class MapToSpeciesConverter implements Converter<Map<String, byte[]>, Species> {

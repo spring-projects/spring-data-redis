@@ -160,4 +160,11 @@ public class ConversionTestEntities {
 		int length;
 	}
 
+	public static class WithArrays {
+
+		Object[] arrayOfObject;
+		String[] arrayOfSimpleTypes;
+		Species[] arrayOfCompexTypes;
+	}
+
 }

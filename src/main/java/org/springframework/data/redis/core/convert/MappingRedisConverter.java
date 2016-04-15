@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -231,14 +232,39 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				else if (persistentProperty.isCollectionLike()) {
 
 					if (conversionService.canConvert(byte[].class, persistentProperty.getComponentType())) {
-						accessor.setProperty(persistentProperty,
-								readCollectionOfSimpleTypes(currentPath, persistentProperty.getType(),
-										persistentProperty.getTypeInformation().getComponentType().getActualType().getType(), source));
+
+						Object targetValue = null;
+						if (persistentProperty.getType().isArray()) {
+
+							List<Object> list = (List<Object>) readCollectionOfSimpleTypes(currentPath, ArrayList.class,
+									persistentProperty.getTypeInformation().getComponentType().getActualType().getType(), source);
+
+							targetValue = list.toArray((Object[]) Array.newInstance(
+									persistentProperty.getTypeInformation().getComponentType().getActualType().getType(), list.size()));
+						} else {
+							targetValue = readCollectionOfSimpleTypes(currentPath, persistentProperty.getType(),
+									persistentProperty.getTypeInformation().getComponentType().getActualType().getType(), source);
+						}
+
+						accessor.setProperty(persistentProperty, targetValue);
 					} else {
-						accessor.setProperty(persistentProperty,
-								readCollectionOfComplexTypes(currentPath, persistentProperty.getType(),
-										persistentProperty.getTypeInformation().getComponentType().getActualType().getType(),
-										source.getBucket()));
+
+						Object targetValue = null;
+						if (persistentProperty.getType().isArray()) {
+
+							List<Object> list = (List<Object>) readCollectionOfComplexTypes(currentPath, ArrayList.class,
+									persistentProperty.getTypeInformation().getComponentType().getActualType().getType(),
+									source.getBucket());
+
+							targetValue = list.toArray((Object[]) Array.newInstance(
+									persistentProperty.getTypeInformation().getComponentType().getActualType().getType(), list.size()));
+						} else {
+
+							targetValue = readCollectionOfComplexTypes(currentPath, persistentProperty.getType(),
+									persistentProperty.getTypeInformation().getComponentType().getActualType().getType(),
+									source.getBucket());
+						}
+						accessor.setProperty(persistentProperty, targetValue);
 					}
 
 				} else if (persistentProperty.isEntity() && !conversionService.canConvert(byte[].class,
@@ -417,11 +443,11 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					if (property == null || Iterable.class.isAssignableFrom(property.getClass())) {
 
 						writeCollection(keyspace, propertyStringPath, (Iterable<?>) property,
-							persistentProperty.getTypeInformation().getComponentType(), sink);
+								persistentProperty.getTypeInformation().getComponentType(), sink);
 					} else if (property.getClass().isArray()) {
 
 						writeCollection(keyspace, propertyStringPath, Arrays.asList((Object[]) property),
-							persistentProperty.getTypeInformation().getComponentType(), sink);
+								persistentProperty.getTypeInformation().getComponentType(), sink);
 					} else {
 
 						throw new RuntimeException("Don't know how to handle " + property.getClass() + " type collection");
