@@ -51,6 +51,7 @@ import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
@@ -312,6 +313,22 @@ public class RedisTemplateTests<K, V> {
 			}
 		}, new GenericToStringSerializer<Long>(Long.class));
 		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
+	}
+
+	@Test
+	public void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
+		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		redisTemplate.opsForHash().put((K) "foo", "key", 1L);
+		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
+			public Object doInRedis(RedisConnection connection) throws DataAccessException {
+				connection.hGetAll(((StringRedisSerializer) redisTemplate.getKeySerializer()).serialize("foo"));
+				return null;
+			}
+		});
+		assertEquals(((Map) results.get(0)).get("key"), 1L);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
