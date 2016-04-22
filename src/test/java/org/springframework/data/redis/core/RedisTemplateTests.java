@@ -317,7 +317,7 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
-		assumeFalse(redisTemplate.getConnectionFactory() instanceof JedisClusterConnection);
+		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashValueSerializer(new GenericToStringSerializer<Long>(Long.class));
