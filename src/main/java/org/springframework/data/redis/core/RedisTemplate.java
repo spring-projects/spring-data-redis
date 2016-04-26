@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.RedisSystemException;
@@ -75,13 +76,14 @@ import org.springframework.util.CollectionUtils;
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
  */
-public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V> {
+public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperations<K, V>, BeanClassLoaderAware {
 
 	private boolean enableTransactionSupport = false;
 	private boolean exposeConnection = false;
 	private boolean initialized = false;
 	private boolean enableDefaultSerializer = true;
-	private RedisSerializer<?> defaultSerializer = new JdkSerializationRedisSerializer();
+	private RedisSerializer<?> defaultSerializer;
+	private ClassLoader classLoader;
 
 	private RedisSerializer keySerializer = null;
 	private RedisSerializer valueSerializer = null;
@@ -104,10 +106,19 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public RedisTemplate() {}
 
 	public void afterPropertiesSet() {
+
 		super.afterPropertiesSet();
+
 		boolean defaultUsed = false;
 
+		if (defaultSerializer == null) {
+
+			defaultSerializer = new JdkSerializationRedisSerializer(
+					classLoader != null ? classLoader : this.getClass().getClassLoader());
+		}
+
 		if (enableDefaultSerializer) {
+
 			if (keySerializer == null) {
 				keySerializer = defaultSerializer;
 				defaultUsed = true;
@@ -1096,4 +1107,16 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		this.enableTransactionSupport = enableTransactionSupport;
 	}
 
+	/**
+	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
+	 * {@link RedisSerializer} is explicitly set as the default one.
+	 *
+	 * @param resourceLoader can be {@literal null}.
+	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader
+	 * @since 1.8
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
 }
