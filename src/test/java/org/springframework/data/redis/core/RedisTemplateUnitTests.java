@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,13 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsNull.*;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+
+import java.io.Serializable;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +30,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.instrument.classloading.ShadowingClassLoader;
 
 /**
  * @author Christoph Strobl
@@ -32,14 +39,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 @RunWith(MockitoJUnitRunner.class)
 public class RedisTemplateUnitTests {
 
-	private RedisTemplate<String, String> template;
+	private RedisTemplate<Object, Object> template;
 	private @Mock RedisConnectionFactory connectionFactoryMock;
 	private @Mock RedisConnection redisConnectionMock;
 
 	@Before
 	public void setUp() {
 
-		template = new RedisTemplate<String, String>();
+		template = new RedisTemplate<Object, Object>();
 		template.setConnectionFactory(connectionFactoryMock);
 		when(connectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
 
@@ -64,6 +71,31 @@ public class RedisTemplateUnitTests {
 
 		template.slaveOfNoOne();
 		verify(redisConnectionMock, times(1)).slaveOfNoOne();
+	}
+
+	/**
+	 * @see DATAREDIS-501
+	 */
+	@Test
+	public void templateShouldPassOnAndUseResoureLoaderClassLoaderToDefaultJdkSerializerWhenNotAlreadySet() {
+
+		ShadowingClassLoader scl = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());
+
+		template = new RedisTemplate<Object, Object>();
+		template.setConnectionFactory(connectionFactoryMock);
+		template.setBeanClassLoader(scl);
+		template.afterPropertiesSet();
+
+		when(redisConnectionMock.get(any(byte[].class)))
+				.thenReturn(new JdkSerializationRedisSerializer().serialize(new SomeArbitrarySeriaizableObject()));
+
+		Object deserialized = template.opsForValue().get("spring");
+		assertThat(deserialized, notNullValue());
+		assertThat(deserialized.getClass().getClassLoader(), is((ClassLoader) scl));
+	}
+
+	static class SomeArbitrarySeriaizableObject implements Serializable {
+		private static final long serialVersionUID = -5973659324040506423L;
 	}
 
 }
