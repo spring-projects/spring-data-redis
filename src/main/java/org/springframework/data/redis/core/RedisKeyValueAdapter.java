@@ -21,12 +21,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
@@ -50,13 +54,14 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis. Objects
  * are stored in a Redis Hash using the value of {@link RedisHash}, the {@link KeyspaceConfiguration} or just
  * {@link Class#getName()} as a prefix. <br />
  * <strong>Example</strong>
- * 
+ *
  * <pre>
  * <code>
  * &#64;RedisHash("persons")
@@ -64,8 +69,8 @@ import org.springframework.util.Assert;
  *   &#64;Id String id;
  *   String name;
  * }
- * 
- * 
+ *
+ *
  *         prefix              ID
  *           |                 |
  *           V                 V
@@ -76,29 +81,33 @@ import org.springframework.util.Assert;
  * 4) Rand al'Thor
  * </code>
  * </pre>
- * 
+ *
  * <br />
  * The {@link KeyValueAdapter} is <strong>not</strong> intended to store simple types such as {@link String} values.
  * Please use {@link RedisTemplate} for this purpose.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
-		implements ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
+		implements InitializingBean, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RedisKeyValueAdapter.class);
 
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private RedisMessageListenerContainer messageListenerContainer;
-	private KeyExpirationEventMessageListener expirationListener;
+	private AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<KeyExpirationEventMessageListener>(
+			null);
+	private ApplicationEventPublisher eventPublisher;
+
+	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP;
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
 	 * {@link CustomConversions}.
-	 * 
+	 *
 	 * @param redisOps must not be {@literal null}.
 	 */
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps) {
@@ -107,7 +116,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link CustomConversions}.
-	 * 
+	 *
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
@@ -117,7 +126,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter}.
-	 * 
+	 *
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 * @param customConversions can be {@literal null}.
@@ -138,12 +147,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		converter = mappingConverter;
 		this.redisOps = redisOps;
 
-		initKeyExpirationListener();
+		intiMessageListenerContainer();
 	}
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with specific {@link RedisConverter}.
-	 * 
+	 *
 	 * @param redisOps must not be {@literal null}.
 	 * @param mappingContext must not be {@literal null}.
 	 */
@@ -156,7 +165,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		converter = redisConverter;
 		this.redisOps = redisOps;
 
-		initKeyExpirationListener();
+		intiMessageListenerContainer();
 	}
 
 	/**
@@ -173,6 +182,14 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		final RedisData rdo = item instanceof RedisData ? (RedisData) item : new RedisData();
 		if (!(item instanceof RedisData)) {
 			converter.write(item, rdo);
+		}
+
+		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_DEMAND, enableKeyspaceEvents)
+				&& this.expirationListener.get() == null) {
+
+			if (rdo.getTimeToLive() != null && rdo.getTimeToLive().longValue() > 0) {
+				initKeyExpirationListener();
+			}
 		}
 
 		if (rdo.getId() == null) {
@@ -397,7 +414,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Execute {@link RedisCallback} via underlying {@link RedisOperations}.
-	 * 
+	 *
 	 * @param callback must not be {@literal null}.
 	 * @see RedisOperations#execute(RedisCallback)
 	 * @return
@@ -408,7 +425,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Get the {@link RedisConverter} in use.
-	 * 
+	 *
 	 * @return never {@literal null}.
 	 */
 	public RedisConverter getConverter() {
@@ -430,7 +447,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	/**
 	 * Convert given source to binary representation using the underlying {@link ConversionService}.
-	 * 
+	 *
 	 * @param source
 	 * @return
 	 * @throws ConverterNotFoundException
@@ -444,13 +461,38 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return converter.getConversionService().convert(source, byte[].class);
 	}
 
+	/**
+	 * Configure usage of {@link KeyExpirationEventMessageListener}.
+	 *
+	 * @param enableKeyspaceEvents
+	 * @since 1.8
+	 */
+	public void setEnableKeyspaceEvents(EnableKeyspaceEvents enableKeyspaceEvents) {
+		this.enableKeyspaceEvents = enableKeyspaceEvents;
+	}
+
+	/**
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 * @since 1.8
+	 */
+	@Override
+	public void afterPropertiesSet() {
+
+		if (ObjectUtils.nullSafeEquals(EnableKeyspaceEvents.ON_STARTUP, this.enableKeyspaceEvents)) {
+			initKeyExpirationListener();
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.DisposableBean#destroy()
 	 */
 	public void destroy() throws Exception {
 
-		this.expirationListener.destroy();
+		if (this.expirationListener.get() != null) {
+			this.expirationListener.get().destroy();
+		}
+
 		this.messageListenerContainer.destroy();
 	}
 
@@ -490,26 +532,39 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.expirationListener.setApplicationEventPublisher(applicationContext);
+		this.eventPublisher = applicationContext;
 	}
 
-	private void initKeyExpirationListener() {
+	private void intiMessageListenerContainer() {
 
 		this.messageListenerContainer = new RedisMessageListenerContainer();
 		messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getConnectionFactory());
 		messageListenerContainer.afterPropertiesSet();
 		messageListenerContainer.start();
+	}
 
-		this.expirationListener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
-				this.converter);
-		this.expirationListener.init();
+	private void initKeyExpirationListener() {
+
+		if (this.expirationListener.get() == null) {
+
+			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
+					this.converter);
+
+			if (this.eventPublisher != null) {
+				listener.setApplicationEventPublisher(this.eventPublisher);
+			}
+
+			if (this.expirationListener.compareAndSet(null, listener)) {
+				listener.init();
+			}
+		}
 	}
 
 	/**
 	 * {@link MessageListener} implementation used to capture Redis keypspace notifications. Tries to read a previously
 	 * created phantom key {@code keyspace:id:phantom} to provide the expired object as part of the published
 	 * {@link RedisKeyExpiredEvent}.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */
@@ -520,7 +575,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		/**
 		 * Creates new {@link MappingExpirationListener}.
-		 * 
+		 *
 		 * @param listenerContainer
 		 * @param ops
 		 * @param converter
@@ -580,6 +635,28 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			return true;
 		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.8
+	 */
+	public static enum EnableKeyspaceEvents {
+
+		/**
+		 * Initializes the {@link KeyExpirationEventMessageListener} on startup.
+		 */
+		ON_STARTUP,
+
+		/**
+		 * Initializes the {@link KeyExpirationEventMessageListener} on first insert having expiration time set.
+		 */
+		ON_DEMAND,
+
+		/**
+		 * Turn {@link KeyExpirationEventMessageListener} usage off. No expiration events will be received.
+		 */
+		OFF
 	}
 
 }

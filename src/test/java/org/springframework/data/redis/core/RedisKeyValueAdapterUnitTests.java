@@ -16,51 +16,73 @@
 
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.convert.Bucket;
+import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
+import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
+import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 
 /**
  * Unit tests for {@link RedisKeyValueAdapter}.
  *
- * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RedisKeyValueAdapterUnitTests {
 
-	RedisTemplate<?, ?> redisTemplate;
-	RedisKeyValueAdapter redisKeyValueAdapter;
-
+	RedisKeyValueAdapter adapter;
+	RedisTemplate<?, ?> template;
+	RedisMappingContext context;
 	@Mock JedisConnectionFactory jedisConnectionFactoryMock;
 	@Mock RedisConnection redisConnectionMock;
 
 	@Before
 	public void setUp() throws Exception {
 
-		redisTemplate = new RedisTemplate<Object, Object>();
-		redisTemplate.setConnectionFactory(jedisConnectionFactoryMock);
-		redisTemplate.afterPropertiesSet();
+		template = new RedisTemplate<Object, Object>();
+		template.setConnectionFactory(jedisConnectionFactoryMock);
+		template.afterPropertiesSet();
 
 		when(jedisConnectionFactoryMock.getConnection()).thenReturn(redisConnectionMock);
 		when(redisConnectionMock.getConfig("notify-keyspace-events"))
 				.thenReturn(Arrays.asList("notify-keyspace-events", "KEA"));
 
-		redisKeyValueAdapter = new RedisKeyValueAdapter(redisTemplate);
+		context = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
+		context.afterPropertiesSet();
+
+		adapter = new RedisKeyValueAdapter(template, context);
+		adapter.afterPropertiesSet();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		adapter.destroy();
 	}
 
 	/**
@@ -69,7 +91,7 @@ public class RedisKeyValueAdapterUnitTests {
 	@Test
 	public void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
-		redisKeyValueAdapter.destroy();
+		adapter.destroy();
 
 		verify(jedisConnectionFactoryMock, never()).destroy();
 	}
@@ -87,7 +109,7 @@ public class RedisKeyValueAdapterUnitTests {
 				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
 		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(1L);
 
-		redisKeyValueAdapter.put("1", rd, "persons");
+		adapter.put("1", rd, "persons");
 
 		verify(redisConnectionMock, times(1)).sRem(any(byte[].class), any(byte[].class));
 	}
@@ -105,8 +127,88 @@ public class RedisKeyValueAdapterUnitTests {
 				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
 		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(0L);
 
-		redisKeyValueAdapter.put("1", rd, "persons");
+		adapter.put("1", rd, "persons");
 
 		verify(redisConnectionMock, never()).sRem(any(byte[].class), (byte[][]) anyVararg());
+	}
+
+	/**
+	 * @see DATAREDIS-491
+	 */
+	@Test
+	public void shouldInitKeyExpirationListenerOnStartup() throws Exception{
+
+		adapter.destroy();
+
+		adapter = new RedisKeyValueAdapter(template, context);
+		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
+		adapter.afterPropertiesSet();
+
+		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
+				"expirationListener")).get();
+		assertThat(listener, notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-491
+	 */
+	@Test
+	public void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
+
+		adapter.destroy();
+
+		adapter = new RedisKeyValueAdapter(template, context);
+		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_DEMAND);
+		adapter.afterPropertiesSet();
+
+		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
+				"expirationListener")).get();
+		assertThat(listener, nullValue());
+
+		adapter.put("should-NOT-start-listener", new WithoutTimeToLive(), "keyspace");
+
+		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
+		assertThat(listener, nullValue());
+
+		adapter.put("should-start-listener", new WithTimeToLive(), "keyspace");
+
+		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
+		assertThat(listener, notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-491
+	 */
+	@Test
+	public void shouldNeverInitKeyExpirationListener() throws Exception {
+
+		adapter.destroy();
+
+		adapter = new RedisKeyValueAdapter(template, context);
+		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.OFF);
+		adapter.afterPropertiesSet();
+
+		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
+				"expirationListener")).get();
+		assertThat(listener, nullValue());
+
+		adapter.put("should-NOT-start-listener", new WithoutTimeToLive(), "keyspace");
+
+		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
+		assertThat(listener, nullValue());
+
+		adapter.put("should-start-listener", new WithTimeToLive(), "keyspace");
+
+		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
+		assertThat(listener, nullValue());
+	}
+
+	static class WithoutTimeToLive {
+		@Id String id;
+	}
+
+	@RedisHash(timeToLive = 10)
+	static class WithTimeToLive {
+		@Id String id;
 	}
 }

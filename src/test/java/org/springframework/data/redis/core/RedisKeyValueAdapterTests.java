@@ -69,6 +69,7 @@ public class RedisKeyValueAdapterTests {
 		mappingContext.afterPropertiesSet();
 
 		adapter = new RedisKeyValueAdapter(template, mappingContext);
+		adapter.afterPropertiesSet();
 
 		template.execute(new RedisCallback<Void>() {
 
