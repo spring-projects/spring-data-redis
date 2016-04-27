@@ -19,8 +19,11 @@ import static org.junit.Assert.*;
 
 import java.util.Collection;
 
+import static org.hamcrest.core.IsEqual.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.ResourceLoader;
@@ -29,6 +32,7 @@ import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfiguration;
@@ -78,6 +82,25 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 				extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
+	/**
+	 * @see DATAREDIS-491
+	 */
+	@Test
+	public void picksUpEnableKeyspaceEventsCorrectly() {
+
+		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsDisabled.class, true);
+		configurationSource = new AnnotationRepositoryConfigurationSource(metadata, EnableRedisRepositories.class, loader,
+				environment);
+
+		RedisRepositoryConfigurationExtension extension = new RedisRepositoryConfigurationExtension();
+
+		BeanDefinitionRegistry beanDefintionRegistry = new SimpleBeanDefinitionRegistry();
+		extension.registerBeansForRoot(beanDefintionRegistry, configurationSource);
+
+		assertThat(beanDefintionRegistry.getBeanDefinition("redisKeyValueAdapter").getAttribute("enableKeyspaceEvents"),
+				equalTo((Object) EnableKeyspaceEvents.OFF));
+	}
+
 	private static void assertDoesNotHaveRepo(Class<?> repositoryInterface,
 			Collection<RepositoryConfiguration<RepositoryConfigurationSource>> configs) {
 
@@ -105,6 +128,11 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 
 	@EnableRedisRepositories(considerNestedRepositories = true)
 	static class Config {
+
+	}
+
+	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.OFF)
+	static class ConfigWithKeyspaceEventsDisabled {
 
 	}
 

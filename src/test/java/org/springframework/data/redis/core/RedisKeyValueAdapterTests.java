@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,11 +62,12 @@ public class RedisKeyValueAdapterTests {
 		template = new StringRedisTemplate(connectionFactory);
 		template.afterPropertiesSet();
 
-		RedisMappingContext mappingContext = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(),
-				new KeyspaceConfiguration()));
+		RedisMappingContext mappingContext = new RedisMappingContext(
+				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
 		mappingContext.afterPropertiesSet();
 
 		adapter = new RedisKeyValueAdapter(template, mappingContext);
+		adapter.afterPropertiesSet();
 
 		template.execute(new RedisCallback<Void>() {
 
