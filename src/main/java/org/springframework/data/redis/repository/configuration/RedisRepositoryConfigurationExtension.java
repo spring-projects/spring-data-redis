@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,11 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 				new RuntimeBeanReference(REDIS_CONVERTER_BEAN_NAME));
 
 		redisKeyValueAdapterDefinition.setConstructorArgumentValues(constructorArgumentValuesForRedisKeyValueAdapter);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(configurationSource);
+		AnnotationAttributes aa = (AnnotationAttributes) dfa.getPropertyValue("attributes");
+		redisKeyValueAdapterDefinition.setAttribute("enableKeyspaceEvents", aa.getEnum("enableKeyspaceEvents"));
+
 		registerIfNotAlreadyRegistered(redisKeyValueAdapterDefinition, registry, REDIS_ADAPTER_BEAN_NAME,
 				configurationSource);
 
