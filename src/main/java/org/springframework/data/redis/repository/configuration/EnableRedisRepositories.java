@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,11 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.index.IndexConfiguration;
+import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.repository.query.RedisQueryCreator;
 import org.springframework.data.redis.repository.support.RedisRepositoryFactoryBean;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
@@ -53,7 +55,8 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
-	 * {@code @EnableRedisRepositories("org.my.pkg")} instead of {@code @EnableRedisRepositories(basePackages="org.my.pkg")}.
+	 * {@code @EnableRedisRepositories("org.my.pkg")} instead of
+	 * {@code @EnableRedisRepositories(basePackages="org.my.pkg")}.
 	 */
 	String[] value() default {};
 
@@ -153,5 +156,13 @@ public @interface EnableRedisRepositories {
 	 * @return
 	 */
 	Class<? extends KeyspaceConfiguration> keyspaceConfiguration() default KeyspaceConfiguration.class;
+
+	/**
+	 * Configure usage of {@link KeyExpirationEventMessageListener}.
+	 *
+	 * @return
+	 * @since 1.8
+	 */
+	EnableKeyspaceEvents enableKeyspaceEvents() default EnableKeyspaceEvents.ON_DEMAND;
 
 }
