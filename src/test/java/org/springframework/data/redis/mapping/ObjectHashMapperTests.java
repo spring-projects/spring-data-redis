@@ -16,15 +16,15 @@
 package org.springframework.data.redis.mapping;
 
 import org.junit.Test;
-import org.springframework.data.redis.hash.ConvertingHashMapper;
+import org.springframework.data.redis.hash.ObjectHashMapper;
 
 /**
  * @author Christoph Strobl
  */
-public class ConvertingHashMapperTests extends AbstractHashMapperTest {
+public class ObjectHashMapperTests extends AbstractHashMapperTest {
 
-	protected ConvertingHashMapper mapperFor(Class t) {
-		return new ConvertingHashMapper();
+	protected ObjectHashMapper mapperFor(Class t) {
+		return new ObjectHashMapper();
 	}
 
 	/**
