@@ -30,7 +30,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.util.TypeInformation;
 
 /**
- * {@link HashMapper} based on {@link MappingRedisConverter}. Does supports nested properties and simple types like
+ * {@link HashMapper} based on {@link MappingRedisConverter}. Supports nested properties and simple types like
  * {@link String}.
  *
  * <pre>
@@ -38,6 +38,7 @@ import org.springframework.data.util.TypeInformation;
  * class Person {
  *
  *   String firstname;
+ *   String lastname;
  *
  *   List&lt;String&gt; nicknames;
  *   List&lt;Person&gt; coworkers;
@@ -62,25 +63,26 @@ import org.springframework.data.util.TypeInformation;
  * </pre>
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.8
  */
-public class ConvertingHashMapper implements HashMapper<Object, byte[], byte[]> {
+public class ObjectHashMapper implements HashMapper<Object, byte[], byte[]> {
 
 	private final MappingRedisConverter converter;
 
 	/**
-	 * Creates new {@link ConvertingHashMapper}.
+	 * Creates new {@link ObjectHashMapper}.
 	 */
-	public ConvertingHashMapper() {
+	public ObjectHashMapper() {
 		this(new CustomConversions());
 	}
 
 	/**
-	 * Creates new {@link ConvertingHashMapper}.
+	 * Creates new {@link ObjectHashMapper}.
 	 *
 	 * @param customConversions can be {@literal null}.
 	 */
-	public ConvertingHashMapper(CustomConversions customConversions) {
+	public ObjectHashMapper(CustomConversions customConversions) {
 
 		MappingRedisConverter mappingConverter = new MappingRedisConverter(new RedisMappingContext(),
 				new NoOpIndexResolver(), new NoOpReferenceResolver());
@@ -118,6 +120,18 @@ public class ConvertingHashMapper implements HashMapper<Object, byte[], byte[]> 
 		}
 
 		return converter.read(Object.class, new RedisData(hash));
+	}
+
+	/**
+	 * Convert a {@code hash} (map) to an object and return the casted result.
+	 *
+	 * @param hash
+	 * @param type
+	 * @param <T>
+	 * @return
+	 */
+	public <T> T fromHash(Map<byte[], byte[]> hash, Class<T> type) {
+		return (T) fromHash(hash);
 	}
 
 	/**
