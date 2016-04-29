@@ -185,7 +185,6 @@ public class RedisKeyValueAdapterUnitTests {
 		adapter.destroy();
 
 		adapter = new RedisKeyValueAdapter(template, context);
-		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.OFF);
 		adapter.afterPropertiesSet();
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,

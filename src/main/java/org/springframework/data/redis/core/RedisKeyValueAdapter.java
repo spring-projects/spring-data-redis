@@ -98,11 +98,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private RedisMessageListenerContainer messageListenerContainer;
-	private AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<KeyExpirationEventMessageListener>(
+	private final AtomicReference<KeyExpirationEventMessageListener> expirationListener = new AtomicReference<KeyExpirationEventMessageListener>(
 			null);
 	private ApplicationEventPublisher eventPublisher;
 
-	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP;
+	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
@@ -144,10 +144,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		mappingConverter.setCustomConversions(customConversions == null ? new CustomConversions() : customConversions);
 		mappingConverter.afterPropertiesSet();
 
-		converter = mappingConverter;
+		this.converter = mappingConverter;
 		this.redisOps = redisOps;
-
-		intiMessageListenerContainer();
+		initMessageListenerContainer();
 	}
 
 	/**
@@ -162,10 +161,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		Assert.notNull(redisOps, "RedisOperations must not be null!");
 
-		converter = redisConverter;
+		this.converter = redisConverter;
 		this.redisOps = redisOps;
-
-		intiMessageListenerContainer();
+		initMessageListenerContainer();
 	}
 
 	/**
@@ -493,7 +491,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			this.expirationListener.get().destroy();
 		}
 
-		this.messageListenerContainer.destroy();
+		if(this.messageListenerContainer != null){
+			this.messageListenerContainer.destroy();
+		}
 	}
 
 	/*
@@ -535,12 +535,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		this.eventPublisher = applicationContext;
 	}
 
-	private void intiMessageListenerContainer() {
+	private void initMessageListenerContainer() {
 
 		this.messageListenerContainer = new RedisMessageListenerContainer();
-		messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getConnectionFactory());
-		messageListenerContainer.afterPropertiesSet();
-		messageListenerContainer.start();
+		this.messageListenerContainer.setConnectionFactory(((RedisTemplate<?, ?>) redisOps).getConnectionFactory());
+		this.messageListenerContainer.afterPropertiesSet();
+		this.messageListenerContainer.start();
 	}
 
 	private void initKeyExpirationListener() {
