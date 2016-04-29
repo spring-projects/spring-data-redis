@@ -344,6 +344,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		if (!customConversions.hasCustomWriteTarget(source.getClass())) {
 			typeMapper.writeType(ClassUtils.getUserClass(source), sink);
 		}
+
+		if (entity == null) {
+
+			typeMapper.writeType(ClassUtils.getUserClass(source), sink);
+			sink.getBucket().put("_raw", conversionService.convert(source, byte[].class));
+			return;
+		}
+
 		sink.setKeyspace(entity.getKeySpace());
 
 		writeInternal(entity.getKeySpace(), "", source, entity.getTypeInformation(), sink);
