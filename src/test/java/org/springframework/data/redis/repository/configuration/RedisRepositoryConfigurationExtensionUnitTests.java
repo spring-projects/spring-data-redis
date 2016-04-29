@@ -15,11 +15,11 @@
  */
 package org.springframework.data.redis.repository.configuration;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Collection;
 
-import static org.hamcrest.core.IsEqual.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -39,6 +39,8 @@ import org.springframework.data.repository.config.RepositoryConfiguration;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 
 /**
+ * Unit tests for {@link RedisRepositoryConfigurationExtension}.
+ *
  * @author Christoph Strobl
  */
 public class RedisRepositoryConfigurationExtensionUnitTests {
@@ -86,18 +88,25 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 	 * @see DATAREDIS-491
 	 */
 	@Test
-	public void picksUpEnableKeyspaceEventsCorrectly() {
+	public void picksUpEnableKeyspaceEventsOnStartupCorrectly() {
+
+		metadata = new StandardAnnotationMetadata(Config.class, true);
+		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry),
+				equalTo((Object) EnableKeyspaceEvents.ON_STARTUP));
+	}
+
+	/**
+	 * @see DATAREDIS-491
+	 */
+	@Test
+	public void picksUpEnableKeyspaceEventsDefaultCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsDisabled.class, true);
-		configurationSource = new AnnotationRepositoryConfigurationSource(metadata, EnableRedisRepositories.class, loader,
-				environment);
+		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		RedisRepositoryConfigurationExtension extension = new RedisRepositoryConfigurationExtension();
-
-		BeanDefinitionRegistry beanDefintionRegistry = new SimpleBeanDefinitionRegistry();
-		extension.registerBeansForRoot(beanDefintionRegistry, configurationSource);
-
-		assertThat(beanDefintionRegistry.getBeanDefinition("redisKeyValueAdapter").getAttribute("enableKeyspaceEvents"),
+		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry),
 				equalTo((Object) EnableKeyspaceEvents.OFF));
 	}
 
@@ -126,12 +135,30 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 				.concat(configs.toString()));
 	}
 
-	@EnableRedisRepositories(considerNestedRepositories = true)
+	private BeanDefinitionRegistry getBeanDefinitionRegistry() {
+
+		RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(metadata,
+				EnableRedisRepositories.class, loader, environment);
+
+		RedisRepositoryConfigurationExtension extension = new RedisRepositoryConfigurationExtension();
+
+		BeanDefinitionRegistry beanDefintionRegistry = new SimpleBeanDefinitionRegistry();
+		extension.registerBeansForRoot(beanDefintionRegistry, configurationSource);
+
+		return beanDefintionRegistry;
+	}
+
+	private Object getEnableKeyspaceEvents(BeanDefinitionRegistry beanDefintionRegistry) {
+		return beanDefintionRegistry.getBeanDefinition("redisKeyValueAdapter").getPropertyValues()
+				.getPropertyValue("enableKeyspaceEvents").getValue();
+	}
+
+	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP)
 	static class Config {
 
 	}
 
-	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.OFF)
+	@EnableRedisRepositories(considerNestedRepositories = true)
 	static class ConfigWithKeyspaceEventsDisabled {
 
 	}

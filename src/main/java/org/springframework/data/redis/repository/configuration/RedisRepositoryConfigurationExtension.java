@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * {@link RepositoryConfigurationExtension} for Redis.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -72,7 +72,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 		return "redis";
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getDefaultKeyValueTemplateRef()
 	 */
@@ -123,9 +123,12 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 		redisKeyValueAdapterDefinition.setConstructorArgumentValues(constructorArgumentValuesForRedisKeyValueAdapter);
 
-		DirectFieldAccessor dfa = new DirectFieldAccessor(configurationSource);
-		AnnotationAttributes aa = (AnnotationAttributes) dfa.getPropertyValue("attributes");
-		redisKeyValueAdapterDefinition.setAttribute("enableKeyspaceEvents", aa.getEnum("enableKeyspaceEvents"));
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(configurationSource);
+		AnnotationAttributes attributes = (AnnotationAttributes) fieldAccessor.getPropertyValue("attributes");
+
+		MutablePropertyValues redisKeyValueAdapterProps = new MutablePropertyValues();
+		redisKeyValueAdapterProps.add("enableKeyspaceEvents", attributes.getEnum("enableKeyspaceEvents"));
+		redisKeyValueAdapterDefinition.setPropertyValues(redisKeyValueAdapterProps);
 
 		registerIfNotAlreadyRegistered(redisKeyValueAdapterDefinition, registry, REDIS_ADAPTER_BEAN_NAME,
 				configurationSource);
