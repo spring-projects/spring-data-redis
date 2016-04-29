@@ -15,13 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +39,10 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 
 /**
+ * Unit tests for {@link RedisKeyValueAdapterUnit}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RedisKeyValueAdapterUnitTests {
@@ -59,9 +63,11 @@ public class RedisKeyValueAdapterUnitTests {
 
 		context = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
 		context.afterPropertiesSet();
+	}
 
-		adapter = new RedisKeyValueAdapter(template, context);
-		adapter.afterPropertiesSet();
+	@After
+	public void tearDown() throws Exception {
+		adapter.destroy();
 	}
 
 	/**
@@ -69,6 +75,10 @@ public class RedisKeyValueAdapterUnitTests {
 	 */
 	@Test
 	public void shouldInitKeyExpirationListenerOnStartup() {
+
+		adapter = new RedisKeyValueAdapter(template, context);
+		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
+		adapter.afterPropertiesSet();
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
@@ -80,8 +90,6 @@ public class RedisKeyValueAdapterUnitTests {
 	 */
 	@Test
 	public void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
-
-		adapter.destroy();
 
 		adapter = new RedisKeyValueAdapter(template, context);
 		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_DEMAND);
@@ -108,10 +116,7 @@ public class RedisKeyValueAdapterUnitTests {
 	@Test
 	public void shouldNeverInitKeyExpirationListener() throws Exception {
 
-		adapter.destroy();
-
 		adapter = new RedisKeyValueAdapter(template, context);
-		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.OFF);
 		adapter.afterPropertiesSet();
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,

@@ -41,8 +41,9 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 /**
  * Annotation to activate Redis repositories. If no base package is configured through either {@link #value()},
  * {@link #basePackages()} or {@link #basePackageClasses()} it will trigger scanning of the package of annotated class.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 @Target(ElementType.TYPE)
@@ -88,14 +89,14 @@ public @interface EnableRedisRepositories {
 	 * Returns the postfix to be used when looking up custom repository implementations. Defaults to {@literal Impl}. So
 	 * for a repository named {@code PersonRepository} the corresponding implementation class will be looked up scanning
 	 * for {@code PersonRepositoryImpl}.
-	 * 
+	 *
 	 * @return
 	 */
 	String repositoryImplementationPostfix() default "Impl";
 
 	/**
 	 * Configures the location of where to find the Spring Data named queries properties file.
-	 * 
+	 *
 	 * @return
 	 */
 	String namedQueriesLocation() default "";
@@ -103,7 +104,7 @@ public @interface EnableRedisRepositories {
 	/**
 	 * Returns the key of the {@link QueryLookupStrategy} to be used for lookup queries for query methods. Defaults to
 	 * {@link Key#CREATE_IF_NOT_FOUND}.
-	 * 
+	 *
 	 * @return
 	 */
 	Key queryLookupStrategy() default Key.CREATE_IF_NOT_FOUND;
@@ -111,21 +112,21 @@ public @interface EnableRedisRepositories {
 	/**
 	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
 	 * {@link RedisRepositoryFactoryBean}.
-	 * 
+	 *
 	 * @return
 	 */
 	Class<?> repositoryFactoryBeanClass() default RedisRepositoryFactoryBean.class;
 
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
-	 * 
+	 *
 	 * @return
 	 */
 	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
 	 * Configures the name of the {@link KeyValueOperations} bean to be used with the repositories detected.
-	 * 
+	 *
 	 * @return
 	 */
 	String keyValueTemplateRef() default "redisKeyValueTemplate";
@@ -138,21 +139,21 @@ public @interface EnableRedisRepositories {
 
 	/**
 	 * Configures the bean name of the {@link RedisOperations} to be used. Defaulted to {@literal redisTemplate}.
-	 * 
+	 *
 	 * @return
 	 */
 	String redisTemplateRef() default "redisTemplate";
 
 	/**
 	 * Set up index patterns using simple configuration class.
-	 * 
+	 *
 	 * @return
 	 */
 	Class<? extends IndexConfiguration> indexConfiguration() default IndexConfiguration.class;
 
 	/**
 	 * Set up keyspaces for specific types.
-	 * 
+	 *
 	 * @return
 	 */
 	Class<? extends KeyspaceConfiguration> keyspaceConfiguration() default KeyspaceConfiguration.class;
@@ -163,6 +164,6 @@ public @interface EnableRedisRepositories {
 	 * @return
 	 * @since 1.8
 	 */
-	EnableKeyspaceEvents enableKeyspaceEvents() default EnableKeyspaceEvents.ON_DEMAND;
+	EnableKeyspaceEvents enableKeyspaceEvents() default EnableKeyspaceEvents.OFF;
 
 }
