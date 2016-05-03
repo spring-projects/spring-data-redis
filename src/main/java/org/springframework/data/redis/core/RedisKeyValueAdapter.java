@@ -84,6 +84,7 @@ import org.springframework.util.Assert;
  * Please use {@link RedisTemplate} for this purpose.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
@@ -446,13 +447,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @see org.springframework.beans.factory.DisposableBean#destroy()
 	 */
 	public void destroy() throws Exception {
-
-		if (redisOps instanceof RedisTemplate) {
-			RedisConnectionFactory connectionFactory = ((RedisTemplate<?, ?>) redisOps).getConnectionFactory();
-			if (connectionFactory instanceof DisposableBean) {
-				((DisposableBean) connectionFactory).destroy();
-			}
-		}
 
 		this.expirationListener.destroy();
 		this.messageListenerContainer.destroy();
