@@ -365,6 +365,7 @@ Multiple implementations are available out of the box:
 
 1. `BeanUtilsHashMapper` using Spring's http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/BeanUtils.html[BeanUtils]
 2. `ObjectHashMapper` using <<redis.repositories.mapping>>
+3. `Jackson2HashMapper` using https://github.com/FasterXML/jackson[FasterXML Jackson].
 
 [source,java]
 ----
