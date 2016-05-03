@@ -29,6 +29,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
@@ -83,6 +84,14 @@ public class RedisKeyValueAdapterTests {
 
 		try {
 			adapter.destroy();
+		} catch (Exception e) {
+			// ignore
+		}
+
+		try {
+			if (connectionFactory instanceof DisposableBean) {
+				((DisposableBean) connectionFactory).destroy();
+			}
 		} catch (Exception e) {
 			// ignore
 		}
