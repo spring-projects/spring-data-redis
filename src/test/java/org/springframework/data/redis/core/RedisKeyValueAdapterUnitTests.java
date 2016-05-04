@@ -56,6 +56,9 @@ public class RedisKeyValueAdapterUnitTests {
 		redisKeyValueAdapter = new RedisKeyValueAdapter(redisTemplate);
 	}
 
+	/**
+	 * @see DATAREDIS-507
+	 */
 	@Test
 	public void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
