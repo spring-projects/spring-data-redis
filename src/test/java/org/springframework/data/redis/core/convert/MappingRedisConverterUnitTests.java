@@ -1581,6 +1581,36 @@ public class MappingRedisConverterUnitTests {
 		assertThat(result.list.get(2), instanceOf(Date.class));
 	}
 
+	/**
+	 * @see DATAREDIS-509
+	 */
+	@Test
+	public void writeHandlesArraysOfPrimitivesProperly() {
+
+		Map<String, String> source = new LinkedHashMap<String, String>();
+		source.put("arrayOfPrimitives.[0]", "1");
+		source.put("arrayOfPrimitives.[1]", "2");
+		source.put("arrayOfPrimitives.[2]", "3");
+
+		WithArrays target = read(WithArrays.class, source);
+
+		assertThat(target.arrayOfPrimitives[0], is(1));
+		assertThat(target.arrayOfPrimitives[1], is(2));
+		assertThat(target.arrayOfPrimitives[2], is(3));
+	}
+
+	/**
+	 * @see DATAREDIS-509
+	 */
+	@Test
+	public void readHandlesArraysOfPrimitivesProperly() {
+
+		WithArrays source = new WithArrays();
+		source.arrayOfPrimitives = new int[] { 1, 2, 3 };
+		assertThat(write(source).getBucket(), isBucket().containingUtf8String("arrayOfPrimitives.[0]", "1")
+				.containingUtf8String("arrayOfPrimitives.[1]", "2").containingUtf8String("arrayOfPrimitives.[2]", "3"));
+	}
+
 	private RedisData write(Object source) {
 
 		RedisData rdo = new RedisData();
