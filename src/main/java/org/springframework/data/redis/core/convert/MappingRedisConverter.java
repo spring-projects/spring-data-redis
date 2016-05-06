@@ -17,11 +17,11 @@ package org.springframework.data.redis.core.convert;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -426,7 +426,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 								persistentProperty.getTypeInformation().getComponentType(), sink);
 					} else if (property.getClass().isArray()) {
 
-						writeCollection(keyspace, propertyStringPath, Arrays.asList((Object[]) property),
+						writeCollection(keyspace, propertyStringPath, CollectionUtils.arrayToList(property),
 								persistentProperty.getTypeInformation().getComponentType(), sink);
 					} else {
 
@@ -592,7 +592,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 			}
 		}
 
-		return isArray ? target.toArray((Object[]) Array.newInstance(valueType, target.size())) : target;
+		return isArray ? toArray(target, collectionType, valueType) : target;
 	}
 
 	/**
@@ -747,6 +747,30 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	 */
 	public <T> T fromBytes(byte[] source, Class<T> type) {
 		return conversionService.convert(source, type);
+	}
+
+	/**
+	 * Converts a given {@link Collection} into an array considering primitive types.
+	 *
+	 * @param source {@link Collection} of values to be added to the array.
+	 * @param arrayType {@link Class} of array.
+	 * @param valueType to be used for conversion before setting the actual value.
+	 * @return
+	 */
+	private Object toArray(Collection<Object> source, Class<?> arrayType, Class<?> valueType) {
+
+		if (!ClassUtils.isPrimitiveArray(arrayType)) {
+			return source.toArray((Object[]) Array.newInstance(valueType, source.size()));
+		}
+
+		Object targetArray = Array.newInstance(valueType, source.size());
+		Iterator<Object> iterator = source.iterator();
+		int i = 0;
+		while (iterator.hasNext()) {
+			Array.set(targetArray, i, conversionService.convert(iterator.next(), valueType));
+			i++;
+		}
+		return targetArray;
 	}
 
 	/**
