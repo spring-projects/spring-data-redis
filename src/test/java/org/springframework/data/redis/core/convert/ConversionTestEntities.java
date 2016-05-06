@@ -167,6 +167,7 @@ public class ConversionTestEntities {
 		Object[] arrayOfObject;
 		String[] arrayOfSimpleTypes;
 		Species[] arrayOfCompexTypes;
+		int[] arrayOfPrimitives;
 	}
 
 	static class TypeWithObjectValueTypes {
