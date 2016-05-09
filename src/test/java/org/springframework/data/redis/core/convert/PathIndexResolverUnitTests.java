@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-216 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.data.util.ClassTypeInformation;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PathIndexResolverUnitTests {
@@ -490,6 +491,26 @@ public class PathIndexResolverUnitTests {
 						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya")));
 	}
 
+	/**
+	 * @see DATAREDIS-509
+	 */
+	@Test
+	public void resolveIndexOnPrimitiveArrayField() {
+
+		IndexedOnPrimitiveArrayField source = new IndexedOnPrimitiveArrayField();
+		source.values = new int[] { 1, 2, 3 };
+
+		Set<IndexedData> indexes = indexResolver
+				.resolveIndexesFor(ClassTypeInformation.from(IndexedOnPrimitiveArrayField.class), source);
+
+		assertThat(indexes.size(), is(3));
+		assertThat(indexes,
+				IsCollectionContaining.<IndexedData> hasItems(
+						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 1),
+						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 2),
+						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 3)));
+	}
+
 	private IndexedData resolve(String path, Object value) {
 
 		Set<IndexedData> data = indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
@@ -517,6 +538,11 @@ public class PathIndexResolverUnitTests {
 	static class IndexedOnListField {
 
 		@Indexed List<String> values;
+	}
+
+	static class IndexedOnPrimitiveArrayField {
+
+		@Indexed int[] values;
 	}
 
 	static class IndexedOnMapField {
