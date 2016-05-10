@@ -25,6 +25,8 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -34,6 +36,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
@@ -52,7 +55,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
 			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
 
-	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
+	public static @ClassRule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
+	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
 
 	@Before
 	public void setUp() {
@@ -121,4 +125,23 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		}
 	}
 
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@Override
+	@Ignore("see mp911de/lettuce#241")
+	public void geoHash() {
+		super.geoHash();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@Override
+	@Ignore("see mp911de/lettuce#241")
+	public void geoHashNonExisting() {
+		super.geoHashNonExisting();
+	}
 }

@@ -36,6 +36,11 @@ import org.jredis.connector.NotConnectedException;
 import org.jredis.protocol.Command;
 import org.jredis.ri.alphazero.JRedisSupport;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.AbstractRedisConnection;
 import org.springframework.data.redis.connection.DataType;
@@ -45,7 +50,8 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -60,6 +66,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author David Liu
+ * @author Ninad Divadkar
  * @deprecated since 1.7. Will be removed in subsequent version.
  */
 @Deprecated
@@ -1186,67 +1193,138 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
-    public void subscribe(MessageListener listener, byte[]... channels) {
-        throw new UnsupportedOperationException();
-    }
-
-    //
-    // Geo commands
-    //
-
-    @Override
-    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2, org.springframework.data.redis.core.GeoUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<byte[]> geoHash(byte[] key, byte[]... members) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
-        throw new UnsupportedOperationException();
-    }
-
-	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+	public void subscribe(MessageListener listener, byte[]... channels) {
 		throw new UnsupportedOperationException();
 	}
 
+	//
+	// Geo commands
+	//
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.geo.Point, byte[])
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+	public Long geoAdd(byte[] key, Point point, byte[] member) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.util.Map)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.lang.Iterable)
+	 */
 	@Override
-	public Long geoRemove(byte[] key, byte[]... values) {
+	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[])
+	 */
+	@Override
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[], org.springframework.data.geo.Metric)
+	 */
+	@Override
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoHash(byte[], byte[][])
+	 */
+	@Override
+	public List<String> geoHash(byte[] key, byte[]... members) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoPos(byte[], byte[][])
+	 */
+	@Override
+	public List<Point> geoPos(byte[] key, byte[]... members) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
+			GeoRadiusCommandArgs args) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRemove(byte[], byte[][])
+	 */
+	@Override
+	public Long geoRemove(byte[] key, byte[]... members) {
 		throw new UnsupportedOperationException();
 	}
 

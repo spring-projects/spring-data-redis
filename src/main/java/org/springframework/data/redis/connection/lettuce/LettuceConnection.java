@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -35,12 +36,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.lambdaworks.redis.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -56,9 +61,14 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.KeyBoundCursor;
+import org.springframework.data.redis.core.RedisCommand;
 import org.springframework.data.redis.core.ScanCursor;
+import org.springframework.data.redis.core.ScanIteration;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
@@ -66,6 +76,28 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
+import com.lambdaworks.redis.AbstractRedisClient;
+import com.lambdaworks.redis.GeoArgs;
+import com.lambdaworks.redis.GeoCoordinates;
+import com.lambdaworks.redis.GeoWithin;
+import com.lambdaworks.redis.KeyScanCursor;
+import com.lambdaworks.redis.LettuceFutures;
+import com.lambdaworks.redis.MapScanCursor;
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisAsyncConnectionImpl;
+import com.lambdaworks.redis.RedisChannelHandler;
+import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisClusterConnection;
+import com.lambdaworks.redis.RedisConnection;
+import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.RedisSentinelAsyncConnection;
+import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.ScanArgs;
+import com.lambdaworks.redis.ScoredValue;
+import com.lambdaworks.redis.ScoredValueScanCursor;
+import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.ValueScanCursor;
+import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.output.BooleanOutput;
 import com.lambdaworks.redis.output.ByteArrayOutput;
@@ -96,6 +128,7 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  * @author Thomas Darimont
  * @author David Liu
  * @author Mark Paluch
+ * @author Ninad Divadkar
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
@@ -349,8 +382,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 			RedisAsyncConnectionImpl<byte[], byte[]> connectionImpl = (RedisAsyncConnectionImpl<byte[], byte[]>) getAsyncConnection();
 
-			CommandOutput expectedOutput = commandOutputTypeHint != null ? commandOutputTypeHint : typeHints
-					.getTypeHint(commandType);
+			CommandOutput expectedOutput = commandOutputTypeHint != null ? commandOutputTypeHint
+					: typeHints.getTypeHint(commandType);
 			Command cmd = new Command(commandType, expectedOutput, cmdArg);
 			if (isPipelined()) {
 
@@ -827,8 +860,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			List<Object> results = getDedicatedConnection().exec();
-			return convertPipelineAndTxResults ? new LettuceTransactionResultConverter(txResults,
-					LettuceConverters.exceptionConverter()).convert(results) : results;
+			return convertPipelineAndTxResults
+					? new LettuceTransactionResultConverter(txResults, LettuceConverters.exceptionConverter()).convert(results)
+					: results;
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		} finally {
@@ -1206,13 +1240,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncConnection().set(key, value,
-						LettuceConverters.toSetArgs(expiration, option))));
+				pipeline(new LettuceStatusResult(
+						getAsyncConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option))));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().set(key, value,
-						LettuceConverters.toSetArgs(expiration, option))));
+				transaction(new LettuceTxStatusResult(
+						getConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option))));
 				return;
 			}
 			getConnection().set(key, value, LettuceConverters.toSetArgs(expiration, option));
@@ -1479,8 +1513,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 						LettuceConverters.longToBooleanConverter()));
 				return null;
 			}
-			return LettuceConverters.longToBooleanConverter().convert(
-					getConnection().setbit(key, offset, LettuceConverters.toInt(value)));
+			return LettuceConverters.longToBooleanConverter()
+					.convert(getConnection().setbit(key, offset, LettuceConverters.toInt(value)));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1659,11 +1693,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public Long lInsert(byte[] key, Position where, byte[] pivot, byte[] value) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().linsert(key, LettuceConverters.toBoolean(where), pivot, value)));
+				pipeline(
+						new LettuceResult(getAsyncConnection().linsert(key, LettuceConverters.toBoolean(where), pivot, value)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().linsert(key, LettuceConverters.toBoolean(where), pivot, value)));
+				transaction(
+						new LettuceTxResult(getConnection().linsert(key, LettuceConverters.toBoolean(where), pivot, value)));
 				return null;
 			}
 			return getConnection().linsert(key, LettuceConverters.toBoolean(where), pivot, value);
@@ -2031,13 +2067,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public List<byte[]> sRandMember(byte[] key, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().srandmember(key, count),
-						LettuceConverters.bytesSetToBytesList()));
+				pipeline(
+						new LettuceResult(getAsyncConnection().srandmember(key, count), LettuceConverters.bytesSetToBytesList()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().srandmember(key, count),
-						LettuceConverters.bytesSetToBytesList()));
+				transaction(
+						new LettuceTxResult(getConnection().srandmember(key, count), LettuceConverters.bytesSetToBytesList()));
 				return null;
 			}
 			return LettuceConverters.toBytesList(getConnection().srandmember(key, count));
@@ -2227,13 +2263,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public Set<byte[]> zRange(byte[] key, long start, long end) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().zrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
+				pipeline(
+						new LettuceResult(getAsyncConnection().zrange(key, start, end), LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().zrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
+				transaction(
+						new LettuceTxResult(getConnection().zrange(key, start, end), LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
 			return LettuceConverters.toBytesSet(getConnection().zrange(key, start, end));
@@ -2281,8 +2317,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			if (isPipelined()) {
 				if (limit != null) {
-					pipeline(new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max, limit.getOffset(),
-							limit.getCount()), LettuceConverters.bytesListToBytesSet()));
+					pipeline(
+							new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max, limit.getOffset(), limit.getCount()),
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
 					pipeline(new LettuceResult(getAsyncConnection().zrangebyscore(key, min, max),
 							LettuceConverters.bytesListToBytesSet()));
@@ -2291,8 +2328,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 			if (isQueueing()) {
 				if (limit != null) {
-					transaction(new LettuceTxResult(getConnection().zrangebyscore(key, min, max, limit.getOffset(),
-							limit.getCount()), LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							new LettuceTxResult(getConnection().zrangebyscore(key, min, max, limit.getOffset(), limit.getCount()),
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
 					transaction(new LettuceTxResult(getConnection().zrangebyscore(key, min, max),
 							LettuceConverters.bytesListToBytesSet()));
@@ -2300,8 +2338,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			if (limit != null) {
-				return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max, limit.getOffset(),
-						limit.getCount()));
+				return LettuceConverters
+						.toBytesSet(getConnection().zrangebyscore(key, min, max, limit.getOffset(), limit.getCount()));
 			}
 			return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max));
 		} catch (Exception ex) {
@@ -2330,8 +2368,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			if (isPipelined()) {
 				if (limit != null) {
-					pipeline(new LettuceResult(getAsyncConnection().zrangebyscoreWithScores(key, min, max, limit.getOffset(),
-							limit.getCount()), LettuceConverters.scoredValuesToTupleSet()));
+					pipeline(new LettuceResult(
+							getAsyncConnection().zrangebyscoreWithScores(key, min, max, limit.getOffset(), limit.getCount()),
+							LettuceConverters.scoredValuesToTupleSet()));
 				} else {
 					pipeline(new LettuceResult(getAsyncConnection().zrangebyscoreWithScores(key, min, max),
 							LettuceConverters.scoredValuesToTupleSet()));
@@ -2340,8 +2379,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 			if (isQueueing()) {
 				if (limit != null) {
-					transaction(new LettuceTxResult(getConnection().zrangebyscoreWithScores(key, min, max, limit.getOffset(),
-							limit.getCount()), LettuceConverters.scoredValuesToTupleSet()));
+					transaction(new LettuceTxResult(
+							getConnection().zrangebyscoreWithScores(key, min, max, limit.getOffset(), limit.getCount()),
+							LettuceConverters.scoredValuesToTupleSet()));
 				} else {
 					transaction(new LettuceTxResult(getConnection().zrangebyscoreWithScores(key, min, max),
 							LettuceConverters.scoredValuesToTupleSet()));
@@ -2349,8 +2389,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			if (limit != null) {
-				return LettuceConverters.toTupleSet(getConnection().zrangebyscoreWithScores(key, min, max, limit.getOffset(),
-						limit.getCount()));
+				return LettuceConverters
+						.toTupleSet(getConnection().zrangebyscoreWithScores(key, min, max, limit.getOffset(), limit.getCount()));
 			}
 			return LettuceConverters.toTupleSet(getConnection().zrangebyscoreWithScores(key, min, max));
 		} catch (Exception ex) {
@@ -2393,8 +2433,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	@Override
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
 
-		return zRevRangeByScore(key, new Range().gte(min).lte(max), new Limit().offset(Long.valueOf(offset).intValue())
-				.count(Long.valueOf(count).intValue()));
+		return zRevRangeByScore(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
 	}
 
 	@Override
@@ -2413,8 +2453,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			if (isPipelined()) {
 				if (limit != null) {
-					pipeline(new LettuceResult(getAsyncConnection().zrevrangebyscore(key, max, min, limit.getOffset(),
-							limit.getCount()), LettuceConverters.bytesListToBytesSet()));
+					pipeline(new LettuceResult(
+							getAsyncConnection().zrevrangebyscore(key, max, min, limit.getOffset(), limit.getCount()),
+							LettuceConverters.bytesListToBytesSet()));
 				} else {
 					pipeline(new LettuceResult(getAsyncConnection().zrevrangebyscore(key, max, min),
 							LettuceConverters.bytesListToBytesSet()));
@@ -2423,8 +2464,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 			if (isQueueing()) {
 				if (limit != null) {
-					transaction(new LettuceTxResult(getConnection().zrevrangebyscore(key, max, min, limit.getOffset(),
-							limit.getCount()), LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							new LettuceTxResult(getConnection().zrevrangebyscore(key, max, min, limit.getOffset(), limit.getCount()),
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
 					transaction(new LettuceTxResult(getConnection().zrevrangebyscore(key, max, min),
 							LettuceConverters.bytesListToBytesSet()));
@@ -2432,8 +2474,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			if (limit != null) {
-				return LettuceConverters.toBytesSet(getConnection().zrevrangebyscore(key, max, min, limit.getOffset(),
-						limit.getCount()));
+				return LettuceConverters
+						.toBytesSet(getConnection().zrevrangebyscore(key, max, min, limit.getOffset(), limit.getCount()));
 			}
 			return LettuceConverters.toBytesSet(getConnection().zrevrangebyscore(key, max, min));
 		} catch (Exception ex) {
@@ -2469,8 +2511,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			if (isPipelined()) {
 				if (limit != null) {
-					pipeline(new LettuceResult(getAsyncConnection().zrevrangebyscoreWithScores(key, max, min, limit.getOffset(),
-							limit.getCount()), LettuceConverters.scoredValuesToTupleSet()));
+					pipeline(new LettuceResult(
+							getAsyncConnection().zrevrangebyscoreWithScores(key, max, min, limit.getOffset(), limit.getCount()),
+							LettuceConverters.scoredValuesToTupleSet()));
 				} else {
 					pipeline(new LettuceResult(getAsyncConnection().zrevrangebyscoreWithScores(key, max, min),
 							LettuceConverters.scoredValuesToTupleSet()));
@@ -2479,8 +2522,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 			if (isQueueing()) {
 				if (limit != null) {
-					transaction(new LettuceTxResult(getConnection().zrevrangebyscoreWithScores(key, max, min, limit.getOffset(),
-							limit.getCount()), LettuceConverters.scoredValuesToTupleSet()));
+					transaction(new LettuceTxResult(
+							getConnection().zrevrangebyscoreWithScores(key, max, min, limit.getOffset(), limit.getCount()),
+							LettuceConverters.scoredValuesToTupleSet()));
 				} else {
 					transaction(new LettuceTxResult(getConnection().zrevrangebyscoreWithScores(key, max, min),
 							LettuceConverters.scoredValuesToTupleSet()));
@@ -2488,8 +2532,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			if (limit != null) {
-				return LettuceConverters.toTupleSet(getConnection().zrevrangebyscoreWithScores(key, max, min,
-						limit.getOffset(), limit.getCount()));
+				return LettuceConverters
+						.toTupleSet(getConnection().zrevrangebyscoreWithScores(key, max, min, limit.getOffset(), limit.getCount()));
 			}
 			return LettuceConverters.toTupleSet(getConnection().zrevrangebyscoreWithScores(key, max, min));
 		} catch (Exception ex) {
@@ -2586,8 +2630,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().zrevrange(key, start, end),
-						LettuceConverters.bytesListToBytesSet()));
+				transaction(
+						new LettuceTxResult(getConnection().zrevrange(key, start, end), LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
 			return LettuceConverters.toBytesSet(getConnection().zrevrange(key, start, end));
@@ -2951,19 +2995,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
 			String convertedScript = LettuceConverters.toString(script);
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().eval(convertedScript,
-						LettuceConverters.toScriptOutputType(returnType), keys, args), new LettuceEvalResultsConverter<T>(
-						returnType)));
+				pipeline(new LettuceResult(
+						getAsyncConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
+						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().eval(convertedScript,
-						LettuceConverters.toScriptOutputType(returnType), keys, args), new LettuceEvalResultsConverter<T>(
-						returnType)));
+				transaction(new LettuceTxResult(
+						getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args),
+						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
-			return new LettuceEvalResultsConverter<T>(returnType).convert(getConnection().eval(convertedScript,
-					LettuceConverters.toScriptOutputType(returnType), keys, args));
+			return new LettuceEvalResultsConverter<T>(returnType)
+					.convert(getConnection().eval(convertedScript, LettuceConverters.toScriptOutputType(returnType), keys, args));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -2975,19 +3019,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 			byte[][] args = extractScriptArgs(numKeys, keysAndArgs);
 
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().evalsha(scriptSha1,
-						LettuceConverters.toScriptOutputType(returnType), keys, args), new LettuceEvalResultsConverter<T>(
-						returnType)));
+				pipeline(new LettuceResult(
+						getAsyncConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
+						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().evalsha(scriptSha1,
-						LettuceConverters.toScriptOutputType(returnType), keys, args), new LettuceEvalResultsConverter<T>(
-						returnType)));
+				transaction(new LettuceTxResult(
+						getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args),
+						new LettuceEvalResultsConverter<T>(returnType)));
 				return null;
 			}
-			return new LettuceEvalResultsConverter<T>(returnType).convert(getConnection().evalsha(scriptSha1,
-					LettuceConverters.toScriptOutputType(returnType), keys, args));
+			return new LettuceEvalResultsConverter<T>(returnType)
+					.convert(getConnection().evalsha(scriptSha1, LettuceConverters.toScriptOutputType(returnType), keys, args));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -3057,184 +3101,367 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-    //
-    // Geo functionality
-    //
-    @Override
-    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geoadd(key, longitude, latitude, member)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geoadd(key, longitude, latitude, member)));
-                return null;
-            }
-            return getConnection().geoadd(key, longitude, latitude, member);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
+	//
+	// Geo functionality
+	//
 
-    @Override
-    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap){
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geoadd(key, memberCoordinateMap)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geoadd(key, memberCoordinateMap)));
-                return null;
-            }
-            return getConnection().geoadd(key, memberCoordinateMap);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
-
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
-        throw new UnsupportedOperationException("Lettuce does not support this method without unit parameter passed");
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
-        GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geodist(key, member1, member2, geoUnit)));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geodist(key, member1, member2, geoUnit)));
-                return null;
-            }
-            return getConnection().geodist(key, member1, member2, geoUnit);
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
-
-    @Override
-    public List<byte[]> geoHash(byte[] key, byte[]... members) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
-        try {
-            if (isPipelined()) {
-                pipeline(new LettuceResult(getAsyncConnection().geopos(key, members), LettuceConverters.geoCoordinateListToGeoCoordinateList()));
-                return null;
-            }
-            if (isQueueing()) {
-                transaction(new LettuceTxResult(getConnection().geopos(key, members), LettuceConverters.geoCoordinateListToGeoCoordinateList()));
-                return null;
-            }
-            return LettuceConverters.geoCoordinateListToGeoCoordinateList().convert(getConnection().geopos(key, members));
-        } catch (Exception ex) {
-            throw convertLettuceAccessException(ex);
-        }
-    }
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.geo.Point, byte[])
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
-		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+	public Long geoAdd(byte[] key, Point point, byte[] member) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(point, "Point must not be null!");
+		Assert.notNull(member, "Member must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, radius, geoUnit),
-						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				pipeline(new LettuceResult(getAsyncConnection().geoadd(key, point.getX(), point.getY(), member)));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, radius, geoUnit),
-						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				transaction(new LettuceTxResult(getConnection().geoadd(key, point.getX(), point.getY(), member)));
 				return null;
 			}
-			return LettuceConverters.bytesSetToGeoRadiusResponseListConverter().
-					convert(getConnection().georadius(key, longitude, latitude, radius, geoUnit));
+			return getConnection().geoadd(key, point.getX(), point.getY(), member);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
-		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
-		GeoArgs geoArgs = LettuceConverters.toGeoArgs(param);
+	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(location, "Location must not be null!");
+
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().georadius(key, longitude, latitude, radius, geoUnit, geoArgs),
-						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
+				pipeline(new LettuceResult(getAsyncConnection().geoadd(key, location.getPoint().getX(),
+						location.getPoint().getY(), location.getName())));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().georadius(key, longitude, latitude, radius, geoUnit, geoArgs),
-						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
+				transaction(new LettuceTxResult(
+						getConnection().geoadd(key, location.getPoint().getX(), location.getPoint().getY(), location.getName())));
 				return null;
 			}
-			return LettuceConverters.getGeowithinListToGeoRadiusResponseList().
-					convert(getConnection().georadius(key, longitude, latitude, radius, geoUnit, geoArgs));
+			return getConnection().geoadd(key, location.getPoint().getX(), location.getPoint().getY(), location.getName());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.util.Map)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
-		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
+	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
+
+		List<Object> values = new ArrayList<Object>();
+		for (Entry<byte[], Point> entry : memberCoordinateMap.entrySet()) {
+
+			values.add(entry.getValue().getX());
+			values.add(entry.getValue().getY());
+			values.add(entry.getKey());
+		}
+
+		return geoAdd(key, values);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.lang.Iterable)
+	 */
+	@Override
+	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(locations, "Locations must not be null!");
+
+		List<Object> values = new ArrayList<Object>();
+		for (GeoLocation<byte[]> location : locations) {
+
+			values.add(location.getPoint().getX());
+			values.add(location.getPoint().getY());
+			values.add(location.getName());
+		}
+
+		return geoAdd(key, values);
+	}
+
+	private Long geoAdd(byte[] key, Collection<Object> values) {
+
 		try {
+
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().georadiusbymember(key, member, radius, geoUnit),
-						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				pipeline(new LettuceResult(getAsyncConnection().geoadd(key, values.toArray())));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().georadiusbymember(key, member, radius, geoUnit),
-						LettuceConverters.bytesSetToGeoRadiusResponseListConverter()));
+				transaction(new LettuceTxResult(getConnection().geoadd(key, values.toArray())));
 				return null;
 			}
-			return LettuceConverters.bytesSetToGeoRadiusResponseListConverter().
-					convert(getConnection().georadiusbymember(key, member, radius, geoUnit));
+			return getConnection().geoadd(key, values.toArray());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[])
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
-		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(unit);
-		GeoArgs geoArgs = LettuceConverters.toGeoArgs(param);
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+		return geoDist(key, member1, member2, DistanceUnit.METERS);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[], org.springframework.data.geo.Metric)
+	 */
+	@Override
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(member1, "Member1 must not be null!");
+		Assert.notNull(member2, "Member2 must not be null!");
+		Assert.notNull(metric, "Metric must not be null!");
+
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(metric);
+		Converter<Double, Distance> distanceConverter = LettuceConverters.distanceConverterForMetric(metric);
+
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().georadiusbymember(key, member, radius, geoUnit, geoArgs),
-						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
+				pipeline(new LettuceResult(getAsyncConnection().geodist(key, member1, member2, geoUnit), distanceConverter));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().georadiusbymember(key, member, radius, geoUnit, geoArgs),
-						LettuceConverters.getGeowithinListToGeoRadiusResponseList()));
+				transaction(new LettuceTxResult(getConnection().geodist(key, member1, member2, geoUnit), distanceConverter));
 				return null;
 			}
-			return LettuceConverters.getGeowithinListToGeoRadiusResponseList().
-					convert(getConnection().georadiusbymember(key, member, radius, geoUnit, geoArgs));
+			return distanceConverter.convert(getConnection().geodist(key, member1, member2, geoUnit));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoHash(byte[], byte[][])
+	 */
+	@Override
+	public List<String> geoHash(byte[] key, byte[]... members) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(members, "Members must not be null!");
+		Assert.noNullElements(members, "Members must not contain null!");
+
+		throw new UnsupportedOperationException("Lettuce does currently not supprt GEOHASH.");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoPos(byte[], byte[][])
+	 */
+	@Override
+	public List<Point> geoPos(byte[] key, byte[]... members) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(members, "Members must not be null!");
+		Assert.noNullElements(members, "Members must not contain null!");
+
+		ListConverter<GeoCoordinates, Point> converter = LettuceConverters.geoCoordinatesToPointConverter();
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().geopos(key, members), converter));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().geopos(key, members), converter));
+				return null;
+			}
+			return converter.convert(getConnection().geopos(key, members));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(within, "Within must not be null!");
+
+		Converter<Set<byte[]>, GeoResults<GeoLocation<byte[]>>> geoResultsConverter = LettuceConverters
+				.bytesSetToGeoResultsConverter();
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(
+						getAsyncConnection().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+								within.getRadius().getValue(), LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric())),
+						geoResultsConverter));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(
+						getConnection().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+								within.getRadius().getValue(), LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric())),
+						geoResultsConverter));
+				return null;
+			}
+			return geoResultsConverter
+					.convert(getConnection().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+							within.getRadius().getValue(), LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric())));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(within, "Within must not be null!");
+		Assert.notNull(args, "Args must not be null!");
+
+		GeoArgs geoArgs = LettuceConverters.toGeoArgs(args);
+		Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> geoResultsConverter = LettuceConverters
+				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().georadius(key, within.getCenter().getX(),
+						within.getCenter().getY(), within.getRadius().getValue(),
+						LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric()), geoArgs), geoResultsConverter));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().georadius(key, within.getCenter().getX(),
+						within.getCenter().getY(), within.getRadius().getValue(),
+						LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric()), geoArgs), geoResultsConverter));
+				return null;
+			}
+			return geoResultsConverter
+					.convert(getConnection().georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+							within.getRadius().getValue(), LettuceConverters.toGeoArgsUnit(within.getRadius().getMetric()), geoArgs));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double, org.springframework.data.geo.Metric)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(radius, "Radius must not be null!");
+
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(radius.getMetric());
+		Converter<Set<byte[]>, GeoResults<GeoLocation<byte[]>>> converter = LettuceConverters
+				.bytesSetToGeoResultsConverter();
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().georadiusbymember(key, member, radius.getValue(), geoUnit),
+						converter));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(
+						new LettuceTxResult(getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit), converter));
+				return null;
+			}
+			return converter.convert(getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
+			GeoRadiusCommandArgs args) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(radius, "Radius must not be null!");
+		Assert.notNull(args, "Args must not be null!");
+
+		GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(radius.getMetric());
+		GeoArgs geoArgs = LettuceConverters.toGeoArgs(args);
+		Converter<List<GeoWithin<byte[]>>, GeoResults<GeoLocation<byte[]>>> geoResultsConverter = LettuceConverters
+				.geoRadiusResponseToGeoResultsConverter(radius.getMetric());
+
+		try {
+			if (isPipelined()) {
+				pipeline(
+						new LettuceResult(getAsyncConnection().georadiusbymember(key, member, radius.getValue(), geoUnit, geoArgs),
+								geoResultsConverter));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(
+						getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit, geoArgs), geoResultsConverter));
+				return null;
+			}
+			return geoResultsConverter
+					.convert(getConnection().georadiusbymember(key, member, radius.getValue(), geoUnit, geoArgs));
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRemove(byte[], byte[][])
+	 */
 	@Override
 	public Long geoRemove(byte[] key, byte[]... values) {
 		return zRem(key, values);
 	}
 
 	/*
-         * (non-Javadoc)
-         * @see org.springframework.data.redis.connection.RedisServerCommands#time()
-         */
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisServerCommands#time()
+	 */
 	@Override
 	public Long time() {
 		try {
@@ -3242,8 +3469,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			List<byte[]> result = getConnection().time();
 
 			Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
-			Assert.isTrue(result.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
-					+ result.size());
+			Assert.isTrue(result.size() == 2,
+					"Received invalid nr of arguments from redis server. Expected 2 received " + result.size());
 
 			return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
 
@@ -3338,8 +3565,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			throw new UnsupportedOperationException("Cannot be called in pipeline mode.");
 		}
 		if (isQueueing()) {
-			transaction(new LettuceTxResult(getAsyncConnection().clientList(),
-					LettuceConverters.stringToRedisClientListConverter()));
+			transaction(
+					new LettuceTxResult(getAsyncConnection().clientList(), LettuceConverters.stringToRedisClientListConverter()));
 			return null;
 		}
 
@@ -3800,10 +4027,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	static class TypeHints {
 
-		@SuppressWarnings("rawtypes")//
+		@SuppressWarnings("rawtypes") //
 		private static final Map<CommandType, Class<? extends CommandOutput>> COMMAND_OUTPUT_TYPE_MAPPING = new HashMap<CommandType, Class<? extends CommandOutput>>();
 
-		@SuppressWarnings("rawtypes")//
+		@SuppressWarnings("rawtypes") //
 		private static final Map<Class<?>, Constructor<CommandOutput>> CONSTRUCTORS = new ConcurrentHashMap<Class<?>, Constructor<CommandOutput>>();
 
 		{
@@ -4004,8 +4231,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().zrangebyscore(key, min, max),
-						LettuceConverters.bytesListToBytesSet()));
+				transaction(
+						new LettuceTxResult(getConnection().zrangebyscore(key, min, max), LettuceConverters.bytesListToBytesSet()));
 				return null;
 			}
 			return LettuceConverters.toBytesSet(getConnection().zrangebyscore(key, min, max));
@@ -4049,7 +4276,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				if (values.length == 1) {
 					pipeline(new LettuceResult(getAsyncConnection().pfadd(key, values[0])));
 				} else {
-					pipeline(new LettuceResult(getAsyncConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
+					pipeline(
+							new LettuceResult(getAsyncConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
 				}
 				return null;
 			}
@@ -4057,7 +4285,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 				if (values.length == 1) {
 					transaction(new LettuceTxResult(getConnection().pfadd(key, values[0])));
 				} else {
-					transaction(new LettuceTxResult(getConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
+					transaction(
+							new LettuceTxResult(getConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
 				}
 
 				return null;
@@ -4126,16 +4355,16 @@ public class LettuceConnection extends AbstractRedisConnection {
 				if (sourceKeys.length == 1) {
 					pipeline(new LettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys[0])));
 				} else {
-					pipeline(new LettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys[0],
-							LettuceConverters.subarray(sourceKeys, 1))));
+					pipeline(new LettuceResult(
+							getAsyncConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1))));
 				}
 			}
 			if (isQueueing()) {
 				if (sourceKeys.length == 1) {
 					transaction(new LettuceTxResult(getConnection().pfmerge(destinationKey, sourceKeys[0])));
 				} else {
-					transaction(new LettuceTxResult(getConnection().pfmerge(destinationKey, sourceKeys[0],
-							LettuceConverters.subarray(sourceKeys, 1))));
+					transaction(new LettuceTxResult(
+							getConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1))));
 				}
 			}
 
@@ -4182,8 +4411,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 		try {
 			if (isPipelined()) {
 				if (limit != null) {
-					pipeline(new LettuceResult(getAsyncConnection().zrangebylex(key, min, max, limit.getOffset(),
-							limit.getCount()), LettuceConverters.bytesListToBytesSet()));
+					pipeline(
+							new LettuceResult(getAsyncConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()),
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
 					pipeline(new LettuceResult(getAsyncConnection().zrangebylex(key, min, max),
 							LettuceConverters.bytesListToBytesSet()));
@@ -4192,18 +4422,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 			}
 			if (isQueueing()) {
 				if (limit != null) {
-					transaction(new LettuceTxResult(getConnection().zrangebylex(key, min, max, limit.getOffset(),
-							limit.getCount()), LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							new LettuceTxResult(getConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()),
+									LettuceConverters.bytesListToBytesSet()));
 				} else {
-					transaction(new LettuceTxResult(getConnection().zrangebylex(key, min, max),
-							LettuceConverters.bytesListToBytesSet()));
+					transaction(
+							new LettuceTxResult(getConnection().zrangebylex(key, min, max), LettuceConverters.bytesListToBytesSet()));
 				}
 				return null;
 			}
 
 			if (limit != null) {
-				return LettuceConverters.bytesListToBytesSet().convert(
-						getConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()));
+				return LettuceConverters.bytesListToBytesSet()
+						.convert(getConnection().zrangebylex(key, min, max, limit.getOffset(), limit.getCount()));
 			}
 
 			return LettuceConverters.bytesListToBytesSet().convert(getConnection().zrangebylex(key, min, max));
@@ -4230,13 +4461,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex,
-						timeout)));
+				pipeline(
+						new LettuceResult(getAsyncConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex,
-						timeout)));
+				transaction(
+						new LettuceTxResult(getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout)));
 				return;
 			}
 			getConnection().migrate(target.getHost(), target.getPort(), key, dbIndex, timeout);

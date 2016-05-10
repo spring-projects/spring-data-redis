@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,166 +15,289 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.connection.RedisConnection;
-
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
 
 /**
  * Default implementation of {@link GeoOperations}.
  *
  * @author Ninad Divadkar
+ * @author Christoph Strobl
+ * @since 1.8
  */
 public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements GeoOperations<K, M> {
-    DefaultGeoOperations(RedisTemplate<K, M> template) {
-        super(template);
-    }
 
-    @Override
-    public Long geoAdd(K key, final double longitude, final double latitude, M member) {
-        final byte[] rawKey = rawKey(key);
-        final byte[] rawMember = rawValue(member);
+	/**
+	 * Creates new {@link DefaultGeoOperations}.
+	 * 
+	 * @param template must not be {@literal null}.
+	 */
+	DefaultGeoOperations(RedisTemplate<K, M> template) {
+		super(template);
+	}
 
-        return execute(new RedisCallback<Long>() {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoAdd(java.lang.Object, org.springframework.data.geo.Point, java.lang.Object)
+	 */
+	@Override
+	public Long geoAdd(K key, final Point point, M member) {
 
-            public Long doInRedis(RedisConnection connection) {
-                return connection.geoAdd(rawKey, longitude, latitude, rawMember);
-            }
-        }, true);
-    }
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawMember = rawValue(member);
 
-    @Override
-    public Long geoAdd(K key, Map<M, GeoCoordinate> memberCoordinateMap) {
-        final byte[] rawKey = rawKey(key);
-        final Map<byte[], GeoCoordinate> rawMemberCoordinateMap = new HashMap<byte[], GeoCoordinate>();
-        for(M member : memberCoordinateMap.keySet()){
-            final byte[] rawMember = rawValue(member);
-            rawMemberCoordinateMap.put(rawMember, memberCoordinateMap.get(member));
-        }
+		return execute(new RedisCallback<Long>() {
 
-        return execute(new RedisCallback<Long>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.geoAdd(rawKey, point, rawMember);
+			}
+		}, true);
+	}
 
-            public Long doInRedis(RedisConnection connection) {
-                return connection.geoAdd(rawKey, rawMemberCoordinateMap);
-            }
-        }, true);
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoAdd(java.lang.Object, org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 */
+	@Override
+	public Long geoAdd(K key, GeoLocation<M> location) {
+		return geoAdd(key, location.getPoint(), location.getName());
+	}
 
-    @Override
-    public Double geoDist(K key, final M member1, final M member2) {
-        final byte[] rawKey = rawKey(key);
-        final byte[] rawMember1 = rawValue(member1);
-        final byte[] rawMember2 = rawValue(member2);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoAdd(java.lang.Object, java.util.Map)
+	 */
+	@Override
+	public Long geoAdd(K key, Map<M, Point> memberCoordinateMap) {
 
-        return execute(new RedisCallback<Double>() {
+		final byte[] rawKey = rawKey(key);
+		final Map<byte[], Point> rawMemberCoordinateMap = new HashMap<byte[], Point>();
 
-            public Double doInRedis(RedisConnection connection) {
-                return connection.geoDist(rawKey, rawMember1, rawMember2);
-            }
-        }, true);
-    }
+		for (M member : memberCoordinateMap.keySet()) {
+			final byte[] rawMember = rawValue(member);
+			rawMemberCoordinateMap.put(rawMember, memberCoordinateMap.get(member));
+		}
 
-    @Override
-    public Double geoDist(K key, M member1, M member2, final GeoUnit unit) {
-        final byte[] rawKey = rawKey(key);
-        final byte[] rawMember1 = rawValue(member1);
-        final byte[] rawMember2 = rawValue(member2);
+		return execute(new RedisCallback<Long>() {
 
-        return execute(new RedisCallback<Double>() {
+			public Long doInRedis(RedisConnection connection) {
+				return connection.geoAdd(rawKey, rawMemberCoordinateMap);
+			}
+		}, true);
+	}
 
-            public Double doInRedis(RedisConnection connection) {
-                return connection.geoDist(rawKey, rawMember1, rawMember2, unit);
-            }
-        }, true);
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoAdd(java.lang.Object, java.lang.Iterable)
+	 */
+	@Override
+	public Long geoAdd(K key, Iterable<GeoLocation<M>> locations) {
 
-    @Override
-    public List<byte[]> geoHash(K key, final M... members) {
-        final byte[] rawKey = rawKey(key);
-        final byte[][] rawMembers = rawValues(members);
+		Map<M, Point> memberCoordinateMap = new LinkedHashMap<M, Point>();
+		for (GeoLocation<M> location : locations) {
+			memberCoordinateMap.put(location.getName(), location.getPoint());
+		}
 
-        return execute(new RedisCallback<List<byte[]>>() {
+		return geoAdd(key, memberCoordinateMap);
+	}
 
-            public List<byte[]> doInRedis(RedisConnection connection) {
-                return connection.geoHash(rawKey, rawMembers);
-            }
-        }, true);
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoDist(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Distance geoDist(K key, final M member1, final M member2) {
 
-    @Override
-    public List<GeoCoordinate> geoPos(K key, M... members) {
-        final byte[] rawKey = rawKey(key);
-        final byte[][] rawMembers = rawValues(members);
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawMember1 = rawValue(member1);
+		final byte[] rawMember2 = rawValue(member2);
 
-        return execute(new RedisCallback<List<GeoCoordinate>>() {
+		return execute(new RedisCallback<Distance>() {
 
-            public List<GeoCoordinate> doInRedis(RedisConnection connection) {
-                return connection.geoPos(rawKey, rawMembers);
-            }
-        }, true);
-    }
+			public Distance doInRedis(RedisConnection connection) {
+				return connection.geoDist(rawKey, rawMember1, rawMember2);
+			}
+		}, true);
+	}
 
-    @Override
-    public List<GeoRadiusResponse> georadius(K key, final double longitude, final double latitude, final double radius, final GeoUnit unit) {
-        final byte[] rawKey = rawKey(key);
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoDist(java.lang.Object, java.lang.Object, java.lang.Object, org.springframework.data.geo.Metric)
+	 */
+	@Override
+	public Distance geoDist(K key, M member1, M member2, final Metric metric) {
 
-        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawMember1 = rawValue(member1);
+		final byte[] rawMember2 = rawValue(member2);
 
-            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
-                return connection.georadius(rawKey, longitude, latitude, radius, unit);
-            }
-        }, true);
-    }
+		return execute(new RedisCallback<Distance>() {
 
-    @Override
-    public List<GeoRadiusResponse> georadius(K key, final double longitude, final double latitude, final double radius, final GeoUnit unit, final GeoRadiusParam param) {
-        final byte[] rawKey = rawKey(key);
+			public Distance doInRedis(RedisConnection connection) {
+				return connection.geoDist(rawKey, rawMember1, rawMember2, metric);
+			}
+		}, true);
+	}
 
-        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoHash(java.lang.Object, java.lang.Object[])
+	 */
+	@Override
+	public List<String> geoHash(K key, final M... members) {
 
-            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
-                return connection.georadius(rawKey, longitude, latitude, radius, unit, param);
-            }
-        }, true);
-    }
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawMembers = rawValues(members);
 
-    @Override
-    public List<GeoRadiusResponse> georadiusByMember(K key, M member, final double radius, final GeoUnit unit) {
-        final byte[] rawKey = rawKey(key);
-        final byte[] rawMember = rawValue(member);
+		return execute(new RedisCallback<List<String>>() {
 
-        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+			public List<String> doInRedis(RedisConnection connection) {
+				return connection.geoHash(rawKey, rawMembers);
+			}
+		}, true);
+	}
 
-            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
-                return connection.georadiusByMember(rawKey, rawMember, radius, unit);
-            }
-        }, true);
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoPos(java.lang.Object, java.lang.Object[])
+	 */
+	@Override
+	public List<Point> geoPos(K key, M... members) {
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawMembers = rawValues(members);
 
-    @Override
-    public List<GeoRadiusResponse> georadiusByMember(K key, M member, final double radius, final GeoUnit unit, final GeoRadiusParam param) {
-        final byte[] rawKey = rawKey(key);
-        final byte[] rawMember = rawValue(member);
+		return execute(new RedisCallback<List<Point>>() {
 
-        return execute(new RedisCallback<List<GeoRadiusResponse>>() {
+			public List<Point> doInRedis(RedisConnection connection) {
+				return connection.geoPos(rawKey, rawMembers);
+			}
+		}, true);
+	}
 
-            public List<GeoRadiusResponse> doInRedis(RedisConnection connection) {
-                return connection.georadiusByMember(rawKey, rawMember, radius, unit, param);
-            }
-        }, true);
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#georadius(java.lang.Object, org.springframework.data.geo.Circle)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> georadius(K key, final Circle within) {
 
-    @Override
-    public Long geoRemove(K key, M... members) {
-        final byte[] rawKey = rawKey(key);
-        final byte[][] rawMembers = rawValues(members);
+		final byte[] rawKey = rawKey(key);
 
-        return execute(new RedisCallback<Long>() {
+		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
 
-            public Long doInRedis(RedisConnection connection) {
-                return connection.zRem(rawKey, rawMembers);
-            }
-        }, true);
-    }
+			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
+				return connection.geoRadius(rawKey, within);
+			}
+		}, true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#georadius(java.lang.Object, org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> georadius(K key, final Circle within, final GeoRadiusCommandArgs args) {
+
+		final byte[] rawKey = rawKey(key);
+
+		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
+
+			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
+				return connection.geoRadius(rawKey, within, args);
+			}
+		}, true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#georadiusByMember(java.lang.Object, java.lang.Object, double)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> georadiusByMember(K key, M member, final double radius) {
+
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawMember = rawValue(member);
+		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
+
+			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
+				return connection.geoRadiusByMember(rawKey, rawMember, radius);
+			}
+		}, true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#georadiusByMember(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> georadiusByMember(K key, M member, final Distance distance) {
+
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawMember = rawValue(member);
+
+		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
+
+			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
+				return connection.geoRadiusByMember(rawKey, rawMember, distance);
+			}
+		}, true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#georadiusByMember(java.lang.Object, java.lang.Object, double, org.springframework.data.geo.Metric, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<M>> georadiusByMember(K key, M member, final Distance distance,
+			final GeoRadiusCommandArgs param) {
+
+		final byte[] rawKey = rawKey(key);
+		final byte[] rawMember = rawValue(member);
+
+		GeoResults<GeoLocation<byte[]>> raw = execute(new RedisCallback<GeoResults<GeoLocation<byte[]>>>() {
+
+			public GeoResults<GeoLocation<byte[]>> doInRedis(RedisConnection connection) {
+				return connection.geoRadiusByMember(rawKey, rawMember, distance, param);
+			}
+		}, true);
+
+		return deserializeGeoResults(raw);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.GeoOperations#geoRemove(java.lang.Object, java.lang.Object[])
+	 */
+	@Override
+	public Long geoRemove(K key, M... members) {
+
+		final byte[] rawKey = rawKey(key);
+		final byte[][] rawMembers = rawValues(members);
+
+		return execute(new RedisCallback<Long>() {
+
+			public Long doInRedis(RedisConnection connection) {
+				return connection.zRem(rawKey, rawMembers);
+			}
+		}, true);
+	}
 }

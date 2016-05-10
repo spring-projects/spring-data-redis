@@ -16,13 +16,18 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static org.hamcrest.collection.IsIterableContainingInOrder.*;
+import static org.hamcrest.core.Is.is;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,14 +43,20 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ClusterConnectionTests;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -55,7 +66,9 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClusterRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
@@ -82,6 +95,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	static final byte[] VALUE_2_BYTES = JedisConverters.toBytes(VALUE_2);
 	static final byte[] VALUE_3_BYTES = JedisConverters.toBytes(VALUE_3);
 
+	static final GeoLocation<byte[]> ARIGENTO = new GeoLocation<byte[]>("arigento".getBytes(Charset.forName("UTF-8")),
+			POINT_ARIGENTO);
+	static final GeoLocation<byte[]> CATANIA = new GeoLocation<byte[]>("catania".getBytes(Charset.forName("UTF-8")),
+			POINT_CATANIA);
+	static final GeoLocation<byte[]> PALERMO = new GeoLocation<byte[]>("palermo".getBytes(Charset.forName("UTF-8")),
+			POINT_PALERMO);
+
 	JedisCluster nativeConnection;
 	JedisClusterConnection clusterConnection;
 
@@ -89,6 +109,11 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	 * ONLY RUN WHEN CLUSTER AVAILABLE
 	 */
 	public static @ClassRule RedisClusterRule clusterRule = new RedisClusterRule();
+
+	/**
+	 * Check for specific Redis Versions
+	 */
+	public @Rule MinimumRedisVersionRule version = new MinimumRedisVersionRule();
 
 	@Before
 	public void setUp() throws IOException {
@@ -2453,5 +2478,246 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifPresent());
 
 		assertThat(nativeConnection.exists(KEY_1_BYTES), is(false));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoAddSingleGeoLocation() {
+		assertThat(clusterConnection.geoAdd(KEY_1_BYTES, PALERMO), is(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoAddMultipleGeoLocations() {
+		assertThat(clusterConnection.geoAdd(KEY_1_BYTES, Arrays.asList(PALERMO, ARIGENTO, CATANIA, PALERMO)), is(3L));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoDist() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		Distance distance = clusterConnection.geoDist(KEY_1_BYTES, PALERMO.getName(), CATANIA.getName());
+		assertThat(distance.getValue(), is(closeTo(166274.15156960033D, 0.005)));
+		assertThat(distance.getUnit(), is("m"));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoDistWithMetric() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		Distance distance = clusterConnection.geoDist(KEY_1_BYTES, PALERMO.getName(), CATANIA.getName(), KILOMETERS);
+		assertThat(distance.getValue(), is(closeTo(166.27415156960033D, 0.005)));
+		assertThat(distance.getUnit(), is("km"));
+
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoHash() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		List<String> result = clusterConnection.geoHash(KEY_1_BYTES, PALERMO.getName(), CATANIA.getName());
+		assertThat(result, contains("sqc8b49rny0", "sqdtr74hyu0"));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoHashNonExisting() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		List<String> result = clusterConnection.geoHash(KEY_1_BYTES, PALERMO.getName(), ARIGENTO.getName(),
+				CATANIA.getName());
+		assertThat(result, contains("sqc8b49rny0", (String) null, "sqdtr74hyu0"));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoPosition() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		List<Point> positions = clusterConnection.geoPos(KEY_1_BYTES, PALERMO.getName(), CATANIA.getName());
+
+		assertThat(positions.get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(positions.get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+
+		assertThat(positions.get(1).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
+		assertThat(positions.get(1).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoPositionNonExisting() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		List<Point> positions = clusterConnection.geoPos(KEY_1_BYTES, PALERMO.getName(), ARIGENTO.getName(),
+				CATANIA.getName());
+
+		assertThat(positions.get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(positions.get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+
+		assertThat(positions.get(1), is(nullValue()));
+
+		assertThat(positions.get(2).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
+		assertThat(positions.get(2).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRadiusShouldReturnMembersCorrectly() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		GeoResults<GeoLocation<byte[]>> result = clusterConnection.geoRadius(KEY_1_BYTES,
+				new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS)));
+		assertThat(result.getContent(), hasSize(2));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRadiusShouldReturnDistanceCorrectly() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		GeoResults<GeoLocation<byte[]>> result = clusterConnection.geoRadius(KEY_1_BYTES,
+				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().includeDistance());
+
+		assertThat(result.getContent(), hasSize(3));
+		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(130.423D, 0.005)));
+		assertThat(result.getContent().get(0).getDistance().getUnit(), is("km"));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRadiusShouldApplyLimit() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		GeoResults<GeoLocation<byte[]>> result = clusterConnection.geoRadius(KEY_1_BYTES,
+				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().limit(2));
+
+		assertThat(result.getContent(), hasSize(2));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		GeoResults<GeoLocation<byte[]>> result = clusterConnection.geoRadiusByMember(KEY_1_BYTES, PALERMO.getName(),
+				new Distance(100, KILOMETERS), newGeoRadiusArgs().sortAscending());
+
+		assertThat(result.getContent().get(0).getContent().getName(), is(PALERMO.getName()));
+		assertThat(result.getContent().get(1).getContent().getName(), is(ARIGENTO.getName()));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRadiusByMemberShouldReturnDistanceCorrectly() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		GeoResults<GeoLocation<byte[]>> result = clusterConnection.geoRadiusByMember(KEY_1_BYTES, PALERMO.getName(),
+				new Distance(100, KILOMETERS), newGeoRadiusArgs().includeDistance());
+
+		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(90.978D, 0.005)));
+		assertThat(result.getContent().get(0).getDistance().getUnit(), is("km"));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRadiusByMemberShouldApplyLimit() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		GeoResults<GeoLocation<byte[]>> result = clusterConnection.geoRadiusByMember(KEY_1_BYTES, PALERMO.getName(),
+				new Distance(200, KILOMETERS), newGeoRadiusArgs().limit(2));
+
+		assertThat(result.getContent(), hasSize(2));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	public void geoRemoveDeletesMembers() {
+
+		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO.getName());
+		nativeConnection.geoadd(KEY_1_BYTES, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA.getName());
+
+		assertThat(clusterConnection.geoRemove(KEY_1_BYTES, ARIGENTO.getName()), is(1L));
 	}
 }

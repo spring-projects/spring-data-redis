@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -34,11 +30,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.TestCondition;
@@ -65,14 +63,22 @@ public class DefaultValueOperationsTests<K, V> {
 
 	public DefaultValueOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
+
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
+
+		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before
@@ -280,19 +286,19 @@ public class DefaultValueOperationsTests<K, V> {
 		assumeTrue(key1 instanceof byte[]);
 		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-197
 	 */
 	@Test
 	public void testSetAndGetBit() {
-		
+
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
-		
+
 		K key1 = keyFactory.instance();
 		int bitOffset = 65;
 		valueOps.setBit(key1, bitOffset, true);
-		
+
 		assertEquals(true, valueOps.getBit(key1, bitOffset));
 	}
 

@@ -25,8 +25,18 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.Flag;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -42,10 +52,6 @@ import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
-import org.springframework.data.redis.core.GeoCoordinate;
-import org.springframework.data.redis.core.GeoRadiusParam;
-import org.springframework.data.redis.core.GeoRadiusResponse;
-import org.springframework.data.redis.core.GeoUnit;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -56,8 +62,12 @@ import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.BitOP;
+import redis.clients.jedis.GeoCoordinate;
+import redis.clients.jedis.GeoRadiusResponse;
+import redis.clients.jedis.GeoUnit;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.SortingParams;
+import redis.clients.jedis.params.geo.GeoRadiusParam;
 import redis.clients.util.SafeEncoder;
 
 /**
@@ -68,6 +78,7 @@ import redis.clients.util.SafeEncoder;
  * @author Thomas Darimont
  * @author Jungtaek Lim
  * @author Mark Paluch
+ * @author Ninad Divadkar
  */
 abstract public class JedisConverters extends Converters {
 
@@ -83,10 +94,10 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
 	private static final Converter<Expiration, byte[]> EXPIRATION_TO_COMMAND_OPTION_CONVERTER;
 	private static final Converter<SetOption, byte[]> SET_OPTION_TO_COMMAND_OPTION_CONVERTER;
-  private static final Converter<redis.clients.jedis.GeoCoordinate, GeoCoordinate> GEO_COORDINATE_CONVERTER;
-  private static final ListConverter<redis.clients.jedis.GeoCoordinate, GeoCoordinate> GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST;
-	private static final Converter<redis.clients.jedis.GeoRadiusResponse, GeoRadiusResponse> GEO_RADIUS_RESPONSE_CONVERTER;
-	private static final ListConverter<redis.clients.jedis.GeoRadiusResponse, GeoRadiusResponse> GEO_RADIUS_RESPONSE_LIST_TO_GEO_RADIUS_RESPONSE_LIST;
+	private static final Converter<redis.clients.jedis.GeoCoordinate, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
+	private static final ListConverter<redis.clients.jedis.GeoCoordinate, Point> LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
+	private static final Converter<byte[], String> BYTES_TO_STRING_CONVERTER;
+	private static final ListConverter<byte[], String> BYTES_LIST_TO_STRING_LIST_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -98,6 +109,15 @@ abstract public class JedisConverters extends Converters {
 	private static final byte[] XX;
 
 	static {
+
+		BYTES_TO_STRING_CONVERTER = new Converter<byte[], String>() {
+
+			@Override
+			public String convert(byte[] source) {
+				return source == null ? null : SafeEncoder.encode(source);
+			}
+		};
+		BYTES_LIST_TO_STRING_LIST_CONVERTER = new ListConverter<byte[], String>(BYTES_TO_STRING_CONVERTER);
 
 		STRING_TO_BYTES = new Converter<String, byte[]>() {
 			public byte[] convert(String source) {
@@ -174,26 +194,14 @@ abstract public class JedisConverters extends Converters {
 
 		};
 
-		GEO_COORDINATE_CONVERTER = new Converter<redis.clients.jedis.GeoCoordinate, GeoCoordinate>() {
-				@Override
-				public GeoCoordinate convert(redis.clients.jedis.GeoCoordinate geoCoordinate) {
-						return geoCoordinate != null ? new GeoCoordinate(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
-				}
-		};
-		GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST = new ListConverter<redis.clients.jedis.GeoCoordinate, GeoCoordinate>(GEO_COORDINATE_CONVERTER);
-
-		GEO_RADIUS_RESPONSE_CONVERTER = new Converter<redis.clients.jedis.GeoRadiusResponse, GeoRadiusResponse>() {
+		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<redis.clients.jedis.GeoCoordinate, Point>() {
 			@Override
-			public GeoRadiusResponse convert(redis.clients.jedis.GeoRadiusResponse geoRadiusResponse) {
-				if (geoRadiusResponse == null)
-					return null;
-				GeoRadiusResponse response = new GeoRadiusResponse(geoRadiusResponse.getMember());
-				response.setDistance(geoRadiusResponse.getDistance());
-				response.setCoordinate(GEO_COORDINATE_CONVERTER.convert(geoRadiusResponse.getCoordinate()));
-				return response;
+			public Point convert(redis.clients.jedis.GeoCoordinate geoCoordinate) {
+				return geoCoordinate != null ? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
 			}
 		};
-		GEO_RADIUS_RESPONSE_LIST_TO_GEO_RADIUS_RESPONSE_LIST = new ListConverter<redis.clients.jedis.GeoRadiusResponse, GeoRadiusResponse>(GEO_RADIUS_RESPONSE_CONVERTER);
+		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<redis.clients.jedis.GeoCoordinate, Point>(
+				GEO_COORDINATE_TO_POINT_CONVERTER);
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -229,10 +237,6 @@ abstract public class JedisConverters extends Converters {
 	public static Converter<Exception, DataAccessException> exceptionConverter() {
 		return EXCEPTION_CONVERTER;
 	}
-
-	public static ListConverter<redis.clients.jedis.GeoCoordinate, GeoCoordinate> geoCoordinateListToGeoCoordinateList() { return GEO_COORDINATE_LIST_TO_GEO_COORDINATE_LIST; }
-
-	public static ListConverter<redis.clients.jedis.GeoRadiusResponse, GeoRadiusResponse> geoRadiusResponseGeoRadiusResponseList() { return GEO_RADIUS_RESPONSE_LIST_TO_GEO_RADIUS_RESPONSE_LIST; }
 
 	public static String[] toStrings(byte[][] source) {
 		String[] result = new String[source.length];
@@ -475,9 +479,9 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 */
 	public static ScanParams toScanParams(ScanOptions options) {
-		
+
 		ScanParams sp = new ScanParams();
-		
+
 		if (!options.equals(ScanOptions.NONE)) {
 			if (options.getCount() != null) {
 				sp.count(options.getCount().intValue());
@@ -489,41 +493,179 @@ abstract public class JedisConverters extends Converters {
 		return sp;
 	}
 
-    public static redis.clients.jedis.GeoUnit toGeoUnit(GeoUnit geoUnit){
-        switch (geoUnit){
-            case Meters: return redis.clients.jedis.GeoUnit.M;
-            case KiloMeters: return redis.clients.jedis.GeoUnit.KM;
-            case Miles: return redis.clients.jedis.GeoUnit.MI;
-            case Feet: return redis.clients.jedis.GeoUnit.FT;
-            default: throw new IllegalArgumentException("geoUnit not supported");
-        }
-    }
+	/**
+	 * @param source
+	 * @return
+	 * @since 1.8
+	 */
+	public static List<String> toStrings(List<byte[]> source) {
+		return BYTES_LIST_TO_STRING_LIST_CONVERTER.convert(source);
+	}
 
-    public static redis.clients.jedis.GeoCoordinate toGeoCoordinate(GeoCoordinate geoCoordinate){
-        return new redis.clients.jedis.GeoCoordinate(geoCoordinate.getLongitude(), geoCoordinate.getLatitude());
-    }
+	/**
+	 * @return
+	 */
+	public static ListConverter<byte[], String> bytesListToStringListConverter() {
+		return BYTES_LIST_TO_STRING_LIST_CONVERTER;
+	}
 
-    public static redis.clients.jedis.params.geo.GeoRadiusParam toGeoRadiusParam(GeoRadiusParam geoRadiusParam){
-			redis.clients.jedis.params.geo.GeoRadiusParam param = redis.clients.jedis.params.geo.GeoRadiusParam.geoRadiusParam();
-			for (String k : geoRadiusParam.getParams().keySet()){
-				if (k.equals(GeoRadiusParam.getASC()))
-					param.sortAscending();
-				if (k.equals(GeoRadiusParam.getDESC()))
-					param.sortDescending();
-				if (k.equals(GeoRadiusParam.getCOUNT()))
-					param.count((Integer)geoRadiusParam.getParams().get(k));
-				if (k.equals(GeoRadiusParam.getWITHCOORD()))
-					param.withCoord();
-				if (k.equals(GeoRadiusParam.getWITHDIST()))
-					param.withDist();
-			}
+	/**
+	 * @return
+	 * @since 1.8
+	 */
+	public static ListConverter<redis.clients.jedis.GeoCoordinate, Point> geoCoordinateToPointConverter() {
+		return LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
+	}
+
+	/**
+	 * Get a {@link Converter} capable of converting {@link GeoRadiusResponse} into {@link GeoResults}.
+	 * 
+	 * @param metric
+	 * @return
+	 * @since 1.8
+	 */
+	public static Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> geoRadiusResponseToGeoResultsConverter(
+			Metric metric) {
+		return GeoResultsConverterFactory.INSTANCE.forMetric(metric);
+	}
+
+	/**
+	 * Convert {@link Metric} into {@link GeoUnit}.
+	 * 
+	 * @param metric
+	 * @return
+	 * @since 1.8
+	 */
+	public static GeoUnit toGeoUnit(Metric metric) {
+
+		Metric metricToUse = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
+				: metric;
+		return ObjectUtils.caseInsensitiveValueOf(GeoUnit.values(), metricToUse.getAbbreviation());
+	}
+
+	/**
+	 * Convert {@link Point} into {@link GeoCoordinate}.
+	 * 
+	 * @param source
+	 * @return
+	 * @since 1.8
+	 */
+	public static GeoCoordinate toGeoCoordinate(Point source) {
+		return source == null ? null : new redis.clients.jedis.GeoCoordinate(source.getX(), source.getY());
+	}
+
+	/**
+	 * Convert {@link GeoRadiusCommandArgs} into {@link GeoRadiusParam}.
+	 * 
+	 * @param source
+	 * @return
+	 * @since 1.8
+	 */
+	public static GeoRadiusParam toGeoRadiusParam(GeoRadiusCommandArgs source) {
+
+		GeoRadiusParam param = GeoRadiusParam.geoRadiusParam();
+		if (source == null) {
 			return param;
-    }
-
-		public static redis.clients.jedis.GeoRadiusResponse toGeoRadiusResponse(GeoRadiusResponse geoRadiusResponse){
-			redis.clients.jedis.GeoRadiusResponse response = new redis.clients.jedis.GeoRadiusResponse(geoRadiusResponse.getMember());
-			response.setCoordinate(toGeoCoordinate(geoRadiusResponse.getCoordinate()));
-			response.setDistance(geoRadiusResponse.getDistance());
-			return response;
 		}
+
+		if (source.hasFlags()) {
+			for (Flag flag : source.getFlags()) {
+				switch (flag) {
+					case WITHCOORD:
+						param.withCoord();
+						break;
+					case WITHDIST:
+						param.withDist();
+						break;
+				}
+			}
+		}
+
+		if (source.hasSortDirection()) {
+			switch (source.getSortDirection()) {
+				case ASC:
+					param.sortAscending();
+					break;
+				case DESC:
+					param.sortDescending();
+					break;
+			}
+		}
+
+		if (source.hasLimit()) {
+			param.count(source.getLimit().intValue());
+		}
+
+		return param;
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.8
+	 */
+	static enum GeoResultsConverterFactory {
+
+		INSTANCE;
+
+		Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> forMetric(Metric metric) {
+			return new GeoResultsConverter(
+					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+		}
+
+		private static class GeoResultsConverter
+				implements Converter<List<redis.clients.jedis.GeoRadiusResponse>, GeoResults<GeoLocation<byte[]>>> {
+
+			private Metric metric;
+
+			public GeoResultsConverter(Metric metric) {
+				this.metric = metric;
+			}
+
+			@Override
+			public GeoResults<GeoLocation<byte[]>> convert(List<GeoRadiusResponse> source) {
+
+				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<GeoResult<GeoLocation<byte[]>>>(source.size());
+
+				Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> converter = GeoResultConverterFactory.INSTANCE
+						.forMetric(metric);
+				for (GeoRadiusResponse result : source) {
+					results.add(converter.convert(result));
+				}
+
+				return new GeoResults<GeoLocation<byte[]>>(results, metric);
+			}
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.8
+	 */
+	static enum GeoResultConverterFactory {
+
+		INSTANCE;
+
+		Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> forMetric(Metric metric) {
+			return new GeoResultConverter(metric);
+		}
+
+		private static class GeoResultConverter
+				implements Converter<redis.clients.jedis.GeoRadiusResponse, GeoResult<GeoLocation<byte[]>>> {
+
+			private Metric metric;
+
+			public GeoResultConverter(Metric metric) {
+				this.metric = metric;
+			}
+
+			@Override
+			public GeoResult<GeoLocation<byte[]>> convert(redis.clients.jedis.GeoRadiusResponse source) {
+
+				Point point = GEO_COORDINATE_TO_POINT_CONVERTER.convert(source.getCoordinate());
+
+				return new GeoResult<GeoLocation<byte[]>>(new GeoLocation<byte[]>(source.getMember(), point),
+						new Distance(source.getDistance(), metric));
+			}
+		}
+	}
 }

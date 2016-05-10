@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 	private static final String REDIS_26 = "2.6";
 	private static final String REDIS_28 = "2.8";
 	private static final String REDIS_30 = "3.0";
+	private static final String REDIS_32 = "3.2";
 	private static final String REDIS_VERSION_KEY = "redisVersion";
 
 	private static RedisTestProfileValueSource INSTANCE;
@@ -93,6 +94,10 @@ public class RedisTestProfileValueSource implements ProfileValueSource {
 
 		if (!REDIS_VERSION_KEY.equals(key)) {
 			return System.getProperty(key);
+		}
+
+		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_32)) >= 0) {
+			return REDIS_32;
 		}
 
 		if (redisVersion.compareTo(RedisVersionUtils.parseVersion(REDIS_30)) >= 0) {

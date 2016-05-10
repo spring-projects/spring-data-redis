@@ -15,17 +15,34 @@
  */
 package org.springframework.data.redis.connection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.MapConverter;
 import org.springframework.data.redis.connection.convert.SetConverter;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.ConvertingCursor;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -40,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Ninad Divadkar
  */
 public class DefaultStringRedisConnection implements StringRedisConnection, DecoratedRedisConnection {
 
@@ -56,6 +74,8 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	private ListConverter<byte[], String> byteListToStringList = new ListConverter<byte[], String>(bytesToString);
 	private MapConverter<byte[], String> byteMapToStringMap = new MapConverter<byte[], String>(bytesToString);
 	private SetConverter<byte[], String> byteSetToStringSet = new SetConverter<byte[], String>(bytesToString);
+	private Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<String>>> byteGeoResultsToStringGeoResults;
+
 	@SuppressWarnings("rawtypes") private Queue<Converter> pipelineConverters = new LinkedList<Converter>();
 	@SuppressWarnings("rawtypes") private Queue<Converter> txConverters = new LinkedList<Converter>();
 	private boolean deserializePipelineAndTxResults = false;
@@ -105,9 +125,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @param connection Redis connection
 	 */
 	public DefaultStringRedisConnection(RedisConnection connection) {
-		Assert.notNull(connection, "connection is required");
-		this.delegate = connection;
-		this.serializer = new StringRedisSerializer();
+		this(connection, new StringRedisSerializer());
 	}
 
 	/**
@@ -117,10 +135,13 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	 * @param serializer String serializer
 	 */
 	public DefaultStringRedisConnection(RedisConnection connection, RedisSerializer<String> serializer) {
+
 		Assert.notNull(connection, "connection is required");
-		Assert.notNull(connection, "serializer is required");
+		Assert.notNull(serializer, "serializer is required");
+
 		this.delegate = connection;
 		this.serializer = serializer;
+		this.byteGeoResultsToStringGeoResults = Converters.deserializingGeoResultsConverter(serializer);
 	}
 
 	public Long append(byte[] key, byte[] value) {
@@ -270,7 +291,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		delegate.flushDb();
 	}
 
-    public byte[] get(byte[] key) {
+	public byte[] get(byte[] key) {
 		byte[] result = delegate.get(key);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
@@ -2270,194 +2291,362 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
-    @Override
-    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member){
-        Long result = delegate.geoAdd(key, longitude, latitude, member);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Long geoAdd(String key, double longitude, double latitude, String member){
-        Long result = delegate.geoAdd(serialize(key), longitude, latitude, serialize(member));
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
-        Long result = delegate.geoAdd(key, memberCoordinateMap);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Long geoAdd(String key, Map<String, GeoCoordinate> memberCoordinateMap) {
-        Map<byte[], GeoCoordinate> byteMap = new HashMap<byte[], GeoCoordinate>();
-        for (String k : memberCoordinateMap.keySet()){
-            byteMap.put(serialize(k), memberCoordinateMap.get(k));
-        }
-        Long result = delegate.geoAdd(serialize(key), byteMap);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
-        Double result = delegate.geoDist(key, member1, member2);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Double geoDist(String key, String member1, String member2) {
-        return geoDist(key, member1, member2, GeoUnit.Meters);
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
-        Double result = delegate.geoDist(key, member1, member2, unit);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public Double geoDist(String key, String member1, String member2, GeoUnit geoUnit) {
-        Double result = delegate.geoDist(serialize(key), serialize(member1), serialize(member2), geoUnit);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public List<byte[]> geoHash(byte[] key, byte[]... members) {
-        List<byte[]> result = delegate.geoHash(key, members);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public List<String> geoHash(String key, String... members) {
-        List<byte[]> result = delegate.geoHash(serialize(key), serializeMulti(members));
-        if (isFutureConversion()){
-            addResultConverter(byteListToStringList);
-        }
-        return byteListToStringList.convert(result);
-    }
-
-    @Override
-    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
-        List<GeoCoordinate> result = delegate.geoPos(key, members);
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
-    @Override
-    public List<GeoCoordinate> geoPos(String key, String... members) {
-        List<GeoCoordinate> result = delegate.geoPos(serialize(key), serializeMulti(members));
-        if (isFutureConversion()){
-            addResultConverter(identityConverter);
-        }
-        return result;
-    }
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.geo.Point, byte[])
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit) {
-		List<GeoRadiusResponse> result = delegate.georadius(serialize(key), longitude, latitude, radius, unit);
-		if (isFutureConversion()){
+	public Long geoAdd(byte[] key, Point point, byte[] member) {
+
+		Long result = delegate.geoAdd(key, point, member);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
-	@Override
-	public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
-		List<GeoRadiusResponse> result = delegate.georadius(serialize(key), longitude, latitude, radius, unit, param);
-		if (isFutureConversion()){
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 */
+	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
+
+		Long result = delegate.geoAdd(key, location);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoAdd(java.lang.String, org.springframework.data.geo.Point, java.lang.String)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit) {
-		List<GeoRadiusResponse> result = delegate.georadiusByMember(serialize(key), serialize(member), radius, unit);
-		if (isFutureConversion()){
+	public Long geoAdd(String key, Point point, String member) {
+		return geoAdd(serialize(key), point, serialize(member));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoAdd(java.lang.String, org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 */
+	@Override
+	public Long geoAdd(String key, GeoLocation<String> location) {
+
+		Assert.notNull(location, "Location must not be null!");
+		return geoAdd(key, location.getPoint(), location.getName());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.util.Map)
+	 */
+	@Override
+	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
+
+		Long result = delegate.geoAdd(key, memberCoordinateMap);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.lang.Iterable)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
-		List<GeoRadiusResponse> result = delegate.georadiusByMember(serialize(key), serialize(member), radius, unit, param);
-		if (isFutureConversion()){
+	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
+
+		Long result = delegate.geoAdd(key, locations);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoAdd(java.lang.String, java.util.Map)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
-		List<GeoRadiusResponse> result = delegate.georadius(key, longitude, latitude, radius, unit);
-		if (isFutureConversion()){
+	public Long geoAdd(String key, Map<String, Point> memberCoordinateMap) {
+
+		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
+
+		Map<byte[], Point> byteMap = new HashMap<byte[], Point>();
+		for (Entry<String, Point> entry : memberCoordinateMap.entrySet()) {
+			byteMap.put(serialize(entry.getKey()), memberCoordinateMap.get(entry.getValue()));
+		}
+
+		return geoAdd(serialize(key), byteMap);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoAdd(java.lang.String, java.lang.Iterable)
+	 */
+	@Override
+	public Long geoAdd(String key, Iterable<GeoLocation<String>> locations) {
+
+		Assert.notNull(locations, "Locations must not be null!");
+
+		Map<byte[], Point> byteMap = new HashMap<byte[], Point>();
+		for (GeoLocation<String> location : locations) {
+			byteMap.put(serialize(location.getName()), location.getPoint());
+		}
+
+		return geoAdd(serialize(key), byteMap);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[])
+	 */
+	@Override
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+
+		Distance result = delegate.geoDist(key, member1, member2);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoDist(java.lang.String, java.lang.String, java.lang.String)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
-		List<GeoRadiusResponse> result = delegate.georadius(key, longitude, latitude, radius, unit, param);
-		if (isFutureConversion()){
+	public Distance geoDist(String key, String member1, String member2) {
+		return geoDist(serialize(key), serialize(member1), serialize(member2));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[], org.springframework.data.geo.Metric)
+	 */
+	@Override
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
+
+		Distance result = delegate.geoDist(key, member1, member2, metric);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoDist(java.lang.String, java.lang.String, java.lang.String, org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
-		List<GeoRadiusResponse> result = delegate.georadiusByMember(key, member, radius, unit);
-		if (isFutureConversion()){
+	public Distance geoDist(String key, String member1, String member2, Metric metric) {
+		return geoDist(serialize(key), serialize(member1), serialize(member2), metric);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoHash(byte[], byte[][])
+	 */
+	@Override
+	public List<String> geoHash(byte[] key, byte[]... members) {
+
+		List<String> result = delegate.geoHash(key, members);
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoHash(java.lang.String, java.lang.String[])
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
-		List<GeoRadiusResponse> result = delegate.georadiusByMember(key, member, radius, unit, param);
-		if (isFutureConversion()){
+	public List<String> geoHash(String key, String... members) {
+
+		List<String> result = delegate.geoHash(serialize(key), serializeMulti(members));
+		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoPos(byte[], byte[][])
+	 */
 	@Override
-	public Long geoRemove(byte[] key, byte[]... values) {
-		return zRem(key, values);
+	public List<Point> geoPos(byte[] key, byte[]... members) {
+
+		List<Point> result = delegate.geoPos(key, members);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoPos(java.lang.String, java.lang.String[])
+	 */
+	@Override
+	public List<Point> geoPos(String key, String... members) {
+		return geoPos(serialize(key), serializeMulti(members));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadius(java.lang.String, org.springframework.data.geo.Circle)
+	 */
+	@Override
+	public GeoResults<GeoLocation<String>> georadius(String key, Circle within) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(serialize(key), within);
+		if (isFutureConversion()) {
+			addResultConverter(byteGeoResultsToStringGeoResults);
+		}
+
+		return byteGeoResultsToStringGeoResults.convert(result);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadius(java.lang.String, org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<String>> georadius(String key, Circle within, GeoRadiusCommandArgs args) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(serialize(key), within, args);
+		if (isFutureConversion()) {
+			addResultConverter(byteGeoResultsToStringGeoResults);
+		}
+		return byteGeoResultsToStringGeoResults.convert(result);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadiusByMember(java.lang.String, java.lang.String, double)
+	 */
+	@Override
+	public GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, double radius) {
+		return georadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadiusByMember(java.lang.String, java.lang.String, org.springframework.data.geo.Distance)
+	 */
+	@Override
+	public GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(serialize(key), serialize(member), radius);
+		if (isFutureConversion()) {
+			addResultConverter(byteGeoResultsToStringGeoResults);
+		}
+		return byteGeoResultsToStringGeoResults.convert(result);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadiusByMember(java.lang.String, java.lang.String, org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius,
+			GeoRadiusCommandArgs args) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(serialize(key), serialize(member), radius,
+				args);
+		if (isFutureConversion()) {
+			addResultConverter(byteGeoResultsToStringGeoResults);
+		}
+		return byteGeoResultsToStringGeoResults.convert(result);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(key, within);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(key, within, args);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(key, member, radius);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
+			GeoRadiusCommandArgs args) {
+
+		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(key, member, radius, args);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRemove(byte[], byte[][])
+	 */
+	@Override
+	public Long geoRemove(byte[] key, byte[]... members) {
+		return zRem(key, members);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoRemove(java.lang.String, java.lang.String[])
+	 */
 	@Override
 	public Long geoRemove(String key, String... members) {
-		return zRem(key, members);
+		return geoRemove(serialize(key), serializeMulti(members));
 	}
 
 	public List<Object> closePipeline() {
@@ -2684,30 +2873,31 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 	@Override
 	public Cursor<Entry<String, String>> hScan(String key, ScanOptions options) {
 
-		return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>(this.delegate.hScan(
-				this.serialize(key), options), new Converter<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>() {
-
-			@Override
-			public Entry<String, String> convert(final Entry<byte[], byte[]> source) {
-				return new Map.Entry<String, String>() {
+		return new ConvertingCursor<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>(
+				this.delegate.hScan(this.serialize(key), options),
+				new Converter<Map.Entry<byte[], byte[]>, Map.Entry<String, String>>() {
 
 					@Override
-					public String getKey() {
-						return bytesToString.convert(source.getKey());
-					}
+					public Entry<String, String> convert(final Entry<byte[], byte[]> source) {
+						return new Map.Entry<String, String>() {
 
-					@Override
-					public String getValue() {
-						return bytesToString.convert(source.getValue());
-					}
+							@Override
+							public String getKey() {
+								return bytesToString.convert(source.getKey());
+							}
 
-					@Override
-					public String setValue(String value) {
-						throw new UnsupportedOperationException("Cannot set value for entry in cursor");
+							@Override
+							public String getValue() {
+								return bytesToString.convert(source.getValue());
+							}
+
+							@Override
+							public String setValue(String value) {
+								throw new UnsupportedOperationException("Cannot set value for entry in cursor");
+							}
+						};
 					}
-				};
-			}
-		});
+				});
 	}
 
 	/*

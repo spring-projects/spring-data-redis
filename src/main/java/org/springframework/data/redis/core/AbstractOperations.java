@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
@@ -333,5 +336,21 @@ abstract class AbstractOperations<K, V> {
 			return (HV) value;
 		}
 		return (HV) hashValueSerializer().deserialize(value);
+	}
+
+	/**
+	 * Deserialize {@link GeoLocation} of {@link GeoResults}.
+	 * 
+	 * @param source can be {@literal null}.
+	 * @return converted or {@literal null}.
+	 * @since 1.8
+	 */
+	GeoResults<GeoLocation<V>> deserializeGeoResults(GeoResults<GeoLocation<byte[]>> source) {
+
+		if (valueSerializer() == null) {
+			return (GeoResults<GeoLocation<V>>) (Object) source;
+		}
+
+		return Converters.deserializingGeoResultsConverter((RedisSerializer<V>) valueSerializer()).convert(source);
 	}
 }

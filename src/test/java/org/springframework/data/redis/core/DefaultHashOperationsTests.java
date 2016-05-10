@@ -24,12 +24,14 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
@@ -44,7 +46,6 @@ import org.springframework.test.annotation.IfProfileValue;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
- * @author Ninad Divadkar
  * @param <K> Key type
  * @param <HK> Hash key type
  * @param <HV> Hash value type
@@ -66,10 +67,13 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 
 	public DefaultHashOperationsTests(RedisTemplate<K, ?> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<HK> hashKeyFactory, ObjectFactory<HV> hashValueFactory) {
+
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.hashKeyFactory = hashKeyFactory;
 		this.hashValueFactory = hashValueFactory;
+
+		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
@@ -93,6 +97,11 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 
 		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory },
 				{ rawTemplate, rawFactory, rawFactory, rawFactory } });
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before

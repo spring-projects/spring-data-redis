@@ -31,6 +31,11 @@ import java.util.concurrent.Future;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.FallbackExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -44,10 +49,16 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
+
+import com.google.common.base.Charsets;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import redis.Command;
 import redis.client.RedisClient;
@@ -55,11 +66,6 @@ import redis.client.RedisClient.Pipeline;
 import redis.client.RedisException;
 import redis.reply.MultiBulkReply;
 import redis.reply.Reply;
-
-import com.google.common.base.Charsets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/spullara/redis-protocol">spullara Redis
@@ -70,6 +76,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author David Liu
+ * @author Ninad Divadkar
  * @deprecated since 1.7. Will be removed in subsequent version.
  */
 @Deprecated
@@ -134,8 +141,8 @@ public class SrpConnection extends AbstractRedisConnection {
 				// ignore
 			}
 			if (futureResults.size() != results.size() + txResults) {
-				throw new RedisPipelineException("Received a different number of results than expected. Expected: "
-						+ futureResults.size(), results);
+				throw new RedisPipelineException(
+						"Received a different number of results than expected. Expected: " + futureResults.size(), results);
 			}
 			List<Object> convertedResults = new ArrayList<Object>();
 
@@ -1747,8 +1754,8 @@ public class SrpConnection extends AbstractRedisConnection {
 	}
 
 	public Set<byte[]> zRevRangeByScore(byte[] key, double min, double max, long offset, long count) {
-		return zRevRangeByScore(key, new Range().gte(min).lte(max), new Limit().offset(Long.valueOf(offset).intValue())
-				.count(Long.valueOf(count).intValue()));
+		return zRevRangeByScore(key, new Range().gte(min).lte(max),
+				new Limit().offset(Long.valueOf(offset).intValue()).count(Long.valueOf(count).intValue()));
 
 	}
 
@@ -1785,8 +1792,8 @@ public class SrpConnection extends AbstractRedisConnection {
 
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrevrangebyscore(key, max, min, null, params),
-						SrpConverters.repliesToBytesSet()));
+				pipeline(
+						new SrpResult(pipeline.zrevrangebyscore(key, max, min, null, params), SrpConverters.repliesToBytesSet()));
 				return null;
 			}
 			return SrpConverters.toBytesSet(client.zrevrangebyscore(key, max, min, null, params).data());
@@ -2137,8 +2144,8 @@ public class SrpConnection extends AbstractRedisConnection {
 	public List<Boolean> scriptExists(String... scriptSha1) {
 		try {
 			if (isPipelined()) {
-				pipeline(new SrpGenericResult(pipeline.script_exists((Object[]) scriptSha1),
-						SrpConverters.repliesToBooleanList()));
+				pipeline(
+						new SrpGenericResult(pipeline.script_exists((Object[]) scriptSha1), SrpConverters.repliesToBooleanList()));
 				return null;
 			}
 			return SrpConverters.toBooleanList(((MultiBulkReply) client.script_exists_((Object[]) scriptSha1)).data());
@@ -2155,8 +2162,8 @@ public class SrpConnection extends AbstractRedisConnection {
 						new SrpScriptReturnConverter(returnType)));
 				return null;
 			}
-			return (T) new SrpScriptReturnConverter(returnType).convert(client.eval(script, numKeys, (Object[]) keysAndArgs)
-					.data());
+			return (T) new SrpScriptReturnConverter(returnType)
+					.convert(client.eval(script, numKeys, (Object[]) keysAndArgs).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -2170,8 +2177,8 @@ public class SrpConnection extends AbstractRedisConnection {
 						new SrpScriptReturnConverter(returnType)));
 				return null;
 			}
-			return (T) new SrpScriptReturnConverter(returnType).convert(client.evalsha(scriptSha1, numKeys,
-					(Object[]) keysAndArgs).data());
+			return (T) new SrpScriptReturnConverter(returnType)
+					.convert(client.evalsha(scriptSha1, numKeys, (Object[]) keysAndArgs).data());
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
@@ -2240,58 +2247,130 @@ public class SrpConnection extends AbstractRedisConnection {
 		}
 	}
 
-    @Override
-    public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<byte[]> geoHash(byte[] key, byte[]... members) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
-        throw new UnsupportedOperationException();
-    }
-
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.geo.Point, byte[])
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
+	public Long geoAdd(byte[] key, Point point, byte[] member) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+	public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.util.Map)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
+	public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoAdd(byte[], java.lang.Iterable)
+	 */
 	@Override
-	public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
+	public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
 		throw new UnsupportedOperationException();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[])
+	 */
 	@Override
-	public Long geoRemove(byte[] key, byte[]... values) {
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoDist(byte[], byte[], byte[], org.springframework.data.geo.Metric)
+	 */
+	@Override
+	public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoHash(byte[], byte[][])
+	 */
+	@Override
+	public List<String> geoHash(byte[] key, byte[]... members) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoPos(byte[], byte[][])
+	 */
+	@Override
+	public List<Point> geoPos(byte[] key, byte[]... members) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 */
+	@Override
+	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
+			GeoRadiusCommandArgs param) {
+		throw new UnsupportedOperationException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRemove(byte[], byte[][])
+	 */
+	@Override
+	public Long geoRemove(byte[] key, byte[]... members) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -2626,7 +2705,8 @@ public class SrpConnection extends AbstractRedisConnection {
 			String keyStr = new String(key, "UTF-8");
 			Object[] limit = limitParams(offset, count);
 			if (isPipelined()) {
-				pipeline(new SrpResult(pipeline.zrangebyscore(keyStr, min, max, null, limit), SrpConverters.repliesToBytesSet()));
+				pipeline(
+						new SrpResult(pipeline.zrangebyscore(keyStr, min, max, null, limit), SrpConverters.repliesToBytesSet()));
 				return null;
 			}
 			return SrpConverters.toBytesSet(client.zrangebyscore(keyStr, min, max, null, limit).data());
