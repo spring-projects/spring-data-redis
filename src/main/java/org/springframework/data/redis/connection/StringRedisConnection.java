@@ -20,7 +20,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.data.redis.core.*;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -34,6 +42,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Thomas Darimont
  * @author David Liu
  * @author Mark Paluch
+ * @author Ninad Divadkar
  * @see RedisCallback
  * @see RedisSerializer
  * @see StringRedisTemplate
@@ -623,151 +632,168 @@ public interface StringRedisConnection extends RedisConnection {
 	Set<String> zRangeByLex(String key, Range range, Limit limit);
 
 	/**
-	 * Add latitude and longitude for a {@member} with a given {@key}.
-	 * Returns the number of elements added to the sorted set, not including elements already existing for which the
-	 * score was updated.
-	 * <p>
-	 * @link http://redis.io/commands/geoadd
-	 *
-	 * @param key
-	 * @param member
-	 * @param longitude
-	 * @param latitude
-	 * @return
+	 * Add {@link Point} with given member {@literal name} to {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param point must not be {@literal null}.
+	 * @param member must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @since 1.8
 	 */
-    Long geoAdd(String key, double longitude, double latitude, String member);
+	Long geoAdd(String key, Point point, String member);
 
 	/**
-	 * Add memberCoordinateMap with a given {@key}.
-	 * Returns the number of elements added to the sorted set, not including elements already existing for which the
-	 * score was updated.
-	 * <p>
-	 * @link http://redis.io/commands/geoadd
-	 *
-	 * @param key
-	 * @param memberCoordinateMap
-	 * @return
+	 * Add {@link GeoLocation} to {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param location must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @since 1.8
 	 */
-    Long geoAdd(String key, Map<String, GeoCoordinate> memberCoordinateMap);
+	Long geoAdd(String key, GeoLocation<String> location);
 
 	/**
-	 * Return the distance between {@member1} and {@member2} in the geospatial index represented by the sorted set.
-	 * The unit in which the distance is returned is meters.
-	 * <p>
-	 * @link http://redis.io/commands/geodist
-	 *
-	 * @param key
-	 * @param member1
-	 * @param member2
-	 * @return
+	 * Add {@link Map} of member / {@link Point} pairs to {@literal key}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param memberCoordinateMap must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @since 1.8
 	 */
-    Double geoDist(String key, String member1, String member2);
+	Long geoAdd(String key, Map<String, Point> memberCoordinateMap);
 
 	/**
-	 * Return the distance in {@unit} between {@member1} and {@member2} in the geospatial index represented by the sorted set.
-	 * <p>
-	 * @link http://redis.io/commands/geodist
-	 *
-	 * @param key
-	 * @param member1
-	 * @param member2
-	 * @return
+	 * Add {@link GeoLocation}s to {@literal key}
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param locations must not be {@literal null}.
+	 * @return Number of elements added.
+	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @since 1.8
 	 */
-    Double geoDist(String key, String member1, String member2, GeoUnit unit);
+	Long geoAdd(String key, Iterable<GeoLocation<String>> locations);
 
 	/**
-	 * Return valid Geohash strings representing the position of one or more {@values}
-	 * representing a geospatial index (where elements were added using GEOADD).
-	 * <p>
-	 * @link http://redis.io/commands/geohash
+	 * Get the {@link Distance} between {@literal member1} and {@literal member2}.
 	 *
-	 * @param key
-	 * @param values
-	 * @return
+	 * @param key must not be {@literal null}.
+	 * @param member1 must not be {@literal null}.
+	 * @param member2 must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @since 1.8
 	 */
-    List<String> geoHash(String key, String... values);
+	Distance geoDist(String key, String member1, String member2);
 
 	/**
-	 * Return the positions (longitude,latitude) in GeoCoordinate of all the specified {@members} of the geospatial index represented by
-	 * the sorted set at key.
-	 * <p>
-	 * @link http://redis.io/commands/geopos
+	 * Get the {@link Distance} between {@literal member1} and {@literal member2} in the given {@link Metric}.
 	 *
-	 * @param key
-	 * @param members
-	 * @return
+	 * @param key must not be {@literal null}.
+	 * @param member1 must not be {@literal null}.
+	 * @param member2 must not be {@literal null}.
+	 * @param metric must not be {@literal null}.
+	 * @return can be {@literal null}.
+	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @since 1.8
 	 */
-    List<GeoCoordinate> geoPos(String key, String... members);
+	Distance geoDist(String key, String member1, String member2, Metric metric);
 
 	/**
-	 * Return the members of a sorted set populated with geospatial information using GEOADD, which are within
-	 * the borders of the area specified with the center location given by {@longitude} and {@latitude} and
-	 * the maximum distance from the {@radius}.
-	 * <p>
-	 * @link http://redis.io/commands/georadius
+	 * Get geohash representation of the position for one or more {@literal member}s.
 	 *
-	 * @param key
-	 * @param longitude
-	 * @param latitude
+	 * @param key must not be {@literal null}.
+	 * @param members must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/geohash">http://redis.io/commands/geohash</a>
+	 * @since 1.8
+	 */
+	List<String> geoHash(String key, String... members);
+
+	/**
+	 * Get the {@link Point} representation of positions for one or more {@literal member}s.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param members must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/geopos">http://redis.io/commands/geopos</a>
+	 * @since 1.8
+	 */
+	List<Point> geoPos(String key, String... members);
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param within must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @since 1.8
+	 */
+	GeoResults<GeoLocation<String>> georadius(String key, Circle within);
+
+	/**
+	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param within must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @since 1.8
+	 */
+	GeoResults<GeoLocation<String>> georadius(String key, Circle within, GeoRadiusCommandArgs args);
+
+	/**
+	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
+	 * {@literal radius}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param member must not be {@literal null}.
 	 * @param radius
-	 * @param unit
-	 * @return
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @since 1.8
 	 */
-	List<GeoRadiusResponse> georadius(String key, double longitude, double latitude,
-									  double radius, GeoUnit unit);
+	GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, double radius);
 
 	/**
-	 * Return the members of a sorted set populated with geospatial information using GEOADD, which are within
-	 * the borders of the area specified with the center location given by {@longitude} and {@latitude} and
-	 * the maximum distance from the {@radius}. {@param} can be passed to get coordinates, distance and sort the values
-	 * <p>
-	 * @link http://redis.io/commands/georadius
+	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
+	 * {@link Distance}.
 	 *
-	 * @param key
-	 * @param longitude
-	 * @param latitude
-	 * @param radius
-	 * @param unit
-	 * @param param
-	 * @return
+	 * @param key must not be {@literal null}.
+	 * @param member must not be {@literal null}.
+	 * @param radius must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @since 1.8
 	 */
-	List<GeoRadiusResponse> georadius(String key, double longitude, double latitude,
-									  double radius, GeoUnit unit, GeoRadiusParam param);
+	GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius);
 
 	/**
-	 * This command is exactly like GEORADIUS with the sole difference that instead of taking, as the center of
-	 * the area to query, a longitude and latitude value, it takes the name of a member already existing inside
-	 * the geospatial index represented by the sorted set.
-	 * <p>
-	 * @link http://redis.io/commands/georadiusbymember
+	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
+	 * {@link Distance} and {@link GeoRadiusCommandArgs}.
 	 *
-	 * @param key
-	 * @param member
-	 * @param radius
-	 * @param unit
-	 *
-	 * @return
+	 * @param key must not be {@literal null}.
+	 * @param member must not be {@literal null}.
+	 * @param radius must not be {@literal null}.
+	 * @param args must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @since 1.8
 	 */
-	List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius,
-											  GeoUnit unit);
+	GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius,
+			GeoRadiusCommandArgs args);
 
 	/**
-	 * This command is exactly like GEORADIUS with the sole difference that instead of taking, as the center of
-	 * the area to query, a longitude and latitude value, it takes the name of a member already existing inside
-	 * the geospatial index represented by the sorted set.
-	 * <p>
-	 * @link http://redis.io/commands/georadiusbymember
+	 * Remove the {@literal member}s.
 	 *
-	 * @param key
-	 * @param member
-	 * @param radius
-	 * @param unit
-	 * @param param
-	 *
-	 * @return
+	 * @param key must not be {@literal null}.
+	 * @param members must not be {@literal null}.
+	 * @return Number of members elements removed.
+	 * @since 1.8
 	 */
-	List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius,
-											  GeoUnit unit, GeoRadiusParam param);
-
 	Long geoRemove(String key, String... members);
 }

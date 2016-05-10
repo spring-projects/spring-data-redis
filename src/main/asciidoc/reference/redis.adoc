@@ -235,6 +235,9 @@ Moreover, the template provides operations views (following the grouping from Re
 |HyperLogLogOperations
 |Redis HyperLogLog operations like (pfadd, pfcount,...)
 
+|GeoOperations
+|Redis geospatial operations like `GEOADD`, `GEORADIUS`,...)
+
 2+^|_Key Bound Operations_
 
 |BoundValueOperations
@@ -251,6 +254,9 @@ Moreover, the template provides operations views (following the grouping from Re
 
 |BoundHashOperations
 |Redis hash key bound operations
+
+|BoundGeoOperations
+|Redis key bound geospatial operations.
 |====
 
 Once configured, the template is thread-safe and can be reused across multiple instances.

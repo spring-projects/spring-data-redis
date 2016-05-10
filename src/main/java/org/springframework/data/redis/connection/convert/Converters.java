@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,28 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Metrics;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisClusterNode.RedisClusterNodeBuilder;
 import org.springframework.data.redis.connection.RedisClusterNode.SlotRange;
+import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Common type converters
@@ -45,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 abstract public class Converters {
 
@@ -261,6 +273,88 @@ abstract public class Converters {
 	public static Long toTimeMillis(String seconds, String microseconds) {
 		return NumberUtils.parseNumber(seconds, Long.class) * 1000L
 				+ NumberUtils.parseNumber(microseconds, Long.class) / 1000L;
+	}
+
+	/**
+	 * {@link Converter} capable of deserializing {@link GeoResults}.
+	 *
+	 * @param serializer
+	 * @return
+	 * @since 1.8
+	 */
+	public static <V> Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> deserializingGeoResultsConverter(
+			RedisSerializer<V> serializer) {
+		return new DeserializingGeoResultsConverter<V>(serializer);
+	}
+
+	/**
+	 * {@link Converter} capable of converting Double into {@link Distance} using given {@link Metric}.
+	 *
+	 * @param metric
+	 * @return
+	 * @since 1.8
+	 */
+	public static Converter<Double, Distance> distanceConverterForMetric(Metric metric) {
+		return DistanceConverterFactory.INSTANCE.forMetric(metric);
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.8
+	 */
+	static enum DistanceConverterFactory {
+
+		INSTANCE;
+
+		DistanceConverter forMetric(Metric metric) {
+			return new DistanceConverter(
+					metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS : metric);
+		}
+
+		static class DistanceConverter implements Converter<Double, Distance> {
+
+			private Metric metric;
+
+			public DistanceConverter(Metric metric) {
+				this.metric = metric == null || ObjectUtils.nullSafeEquals(Metrics.NEUTRAL, metric) ? DistanceUnit.METERS
+						: metric;
+			}
+
+			@Override
+			public Distance convert(Double source) {
+				return source == null ? null : new Distance(source, metric);
+			}
+		}
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @param <V>
+	 * @since 1.8
+	 */
+	@RequiredArgsConstructor
+	static class DeserializingGeoResultsConverter<V>
+			implements Converter<GeoResults<GeoLocation<byte[]>>, GeoResults<GeoLocation<V>>> {
+
+		final RedisSerializer<V> serializer;
+
+		@Override
+		public GeoResults<GeoLocation<V>> convert(GeoResults<GeoLocation<byte[]>> source) {
+
+			if (source == null) {
+				return new GeoResults<GeoLocation<V>>(Collections.<GeoResult<GeoLocation<V>>> emptyList());
+			}
+
+			List<GeoResult<GeoLocation<V>>> values = new ArrayList<GeoResult<GeoLocation<V>>>(source.getContent().size());
+			for (GeoResult<GeoLocation<byte[]>> value : source.getContent()) {
+
+				values.add(new GeoResult<GeoLocation<V>>(
+						new GeoLocation<V>(serializer.deserialize(value.getContent().getName()), value.getContent().getPoint()),
+						value.getDistance()));
+			}
+
+			return new GeoResults<GeoLocation<V>>(values, source.getAverageDistance().getMetric());
+		}
 	}
 
 }

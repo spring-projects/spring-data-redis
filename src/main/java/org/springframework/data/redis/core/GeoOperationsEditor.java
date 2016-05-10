@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,16 @@ package org.springframework.data.redis.core;
 import java.beans.PropertyEditorSupport;
 
 /**
- * PropertyEditor allowing for easy injection of {@link org.springframework.data.redis.core.GeoOperations} from {@link org.springframework.data.redis.core.RedisOperations}.
+ * PropertyEditor allowing for easy injection of {@link org.springframework.data.redis.core.GeoOperations} from
+ * {@link org.springframework.data.redis.core.RedisOperations}.
  *
  * @author Ninad Divadkar
+ * @author Christoph Strobl
  */
 class GeoOperationsEditor extends PropertyEditorSupport {
 
 	public void setValue(Object value) {
+
 		if (value instanceof RedisOperations) {
 			super.setValue(((RedisOperations) value).opsForGeo());
 		} else {

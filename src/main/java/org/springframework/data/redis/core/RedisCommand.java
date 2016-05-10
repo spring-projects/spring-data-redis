@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Ninad Divadkar
  * @since 1.3
  * @see Redis command list:
  *      https://github.com/antirez/redis/blob/93e7a130fc9594e41ccfc996b5eca7626ae5356a/src/redis.c#L119
@@ -78,7 +79,12 @@ public enum RedisCommand {
 	GETBIT("r", 2, 2), //
 	GETRANGE("r", 3, 3), //
 	GETSET("rw", 2, 2), //
-    GEOADD("w", 3, 2),
+	GEOADD("w", 3), //
+	GEODIST("r", 2), //
+	GEOHASH("r", 2), //
+	GEOPOS("r", 2), //
+	GEORADIUS("r", 4), //
+	GEORADIUSBYMEMBER("r", 3),
 	// -- H
 	HDEL("rw", 2), //
 	HEXISTS("r", 2, 2), //
@@ -332,13 +338,13 @@ public enum RedisCommand {
 		if (requiresArguments()) {
 			if (requiresExactNumberOfArguments()) {
 				if (nrArguments != maxArgs) {
-					throw new IllegalArgumentException(String.format("%s command requires %s arguments.", this.name(),
-							this.maxArgs));
+					throw new IllegalArgumentException(
+							String.format("%s command requires %s arguments.", this.name(), this.maxArgs));
 				}
 			}
 			if (nrArguments < minArgs) {
-				throw new IllegalArgumentException(String.format("%s command requires at least %s arguments.", this.name(),
-						this.minArgs));
+				throw new IllegalArgumentException(
+						String.format("%s command requires at least %s arguments.", this.name(), this.minArgs));
 			}
 		}
 	}

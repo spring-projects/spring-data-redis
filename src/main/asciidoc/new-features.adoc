@@ -3,6 +3,17 @@
 
 New and noteworthy in the latest releases.
 
+[[new-in-1.8.0]]
+== New in Spring Data Redis 1.8
+
+* Support for Redis http://redis.io/commands#geo[GEO] commands.
+
+[[new-in-1.7.0]]
+== New in Spring Data Redis 1.7
+
+* Support for http://redis.io/topics/cluster-tutorial[RedisCluster].
+* Support for Spring Data Repository abstractions (see <<redis.repositories>>).
+
 [[new-in-1-6-0]]
 == New in Spring Data Redis 1.6 
 

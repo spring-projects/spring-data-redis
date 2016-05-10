@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,14 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metric;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.ObjectUtils;
@@ -37,6 +43,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author David Liu
+ * @author Ninad Divadkar
  */
 public class RedisConnectionUnitTests {
 
@@ -259,53 +266,69 @@ public class RedisConnectionUnitTests {
 			delegate.subscribe(listener, channels);
 		}
 
-        public Long geoAdd(byte[] key, double longitude, double latitude, byte[] member) {
-            return delegate.geoAdd(key, longitude, latitude, member);
-        }
-
-        @Override
-        public Long geoAdd(byte[] key, Map<byte[], GeoCoordinate> memberCoordinateMap) {
-            return delegate.geoAdd(key, memberCoordinateMap);
-        }
-
-        @Override
-        public Double geoDist(byte[] key, byte[] member1, byte[] member2) {
-            return delegate.geoDist(key, member1, member2);
-        }
-
-        @Override
-        public Double geoDist(byte[] key, byte[] member1, byte[] member2, GeoUnit unit) {
-            return delegate.geoDist(key, member1, member2, unit);
-        }
-
-        @Override
-        public List<byte[]> geoHash(byte[] key, byte[]... members) {
-            return delegate.geoHash(key, members);
-        }
-
-        @Override
-        public List<GeoCoordinate> geoPos(byte[] key, byte[]... members) {
-            return delegate.geoPos(key, members);
-        }
-
-		@Override
-		public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit) {
-			return delegate.georadius(key, longitude, latitude, radius, unit);
+		public Long geoAdd(byte[] key, Point point, byte[] member) {
+			return delegate.geoAdd(key, point, member);
 		}
 
 		@Override
-		public List<GeoRadiusResponse> georadius(byte[] key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
-			return delegate.georadius(key, longitude, latitude, radius, unit, param);
+		public Long geoAdd(byte[] key, GeoLocation<byte[]> location) {
+			return delegate.geoAdd(key, location);
 		}
 
 		@Override
-		public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit) {
-			return delegate.georadiusByMember(key, member, radius, unit);
+		public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
+			return delegate.geoAdd(key, memberCoordinateMap);
 		}
 
 		@Override
-		public List<GeoRadiusResponse> georadiusByMember(byte[] key, byte[] member, double radius, GeoUnit unit, GeoRadiusParam param) {
-			return delegate.georadiusByMember(key, member, radius, unit, param);
+		public Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations) {
+			return delegate.geoAdd(key, locations);
+		}
+
+		@Override
+		public Distance geoDist(byte[] key, byte[] member1, byte[] member2) {
+			return delegate.geoDist(key, member1, member2);
+		}
+
+		@Override
+		public Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric unit) {
+			return delegate.geoDist(key, member1, member2, unit);
+		}
+
+		@Override
+		public List<String> geoHash(byte[] key, byte[]... members) {
+			return delegate.geoHash(key, members);
+		}
+
+		@Override
+		public List<Point> geoPos(byte[] key, byte[]... members) {
+			return delegate.geoPos(key, members);
+		}
+
+		@Override
+		public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
+			return delegate.geoRadius(key, null);
+		}
+
+		@Override
+		public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs param) {
+			return delegate.geoRadius(key, null, param);
+		}
+
+		@Override
+		public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
+			return delegate.geoRadiusByMember(key, member, radius);
+		}
+
+		@Override
+		public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+			return delegate.geoRadiusByMember(key, member, radius);
+		}
+
+		@Override
+		public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
+				GeoRadiusCommandArgs param) {
+			return delegate.geoRadiusByMember(key, member, radius, param);
 		}
 
 		@Override

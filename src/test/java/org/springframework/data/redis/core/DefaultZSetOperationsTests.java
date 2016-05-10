@@ -30,12 +30,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
@@ -71,14 +73,22 @@ public class DefaultZSetOperationsTests<K, V> {
 
 	public DefaultZSetOperationsTests(RedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
 			ObjectFactory<V> valueFactory) {
+
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
+
+		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before
@@ -179,10 +189,8 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexUnbounded() {
 
-		assumeThat(
-				valueFactory,
-				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -205,10 +213,8 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexBounded() {
 
-		assumeThat(
-				valueFactory,
-				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -231,10 +237,8 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexUnboundedWithLimit() {
 
-		assumeThat(
-				valueFactory,
-				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -258,10 +262,8 @@ public class DefaultZSetOperationsTests<K, V> {
 	@Test
 	public void testRangeByLexBoundedWithLimit() {
 
-		assumeThat(
-				valueFactory,
-				anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
-						instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
+		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
+				instanceOf(LongAsStringObjectFactory.class), instanceOf(LongObjectFactory.class)));
 
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -271,8 +273,8 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1), RedisZSetCommands.Limit
-				.limit().count(1).offset(1));
+		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1),
+				RedisZSetCommands.Limit.limit().count(1).offset(1));
 
 		assertEquals(1, tuples.size());
 		V tuple = tuples.iterator().next();
