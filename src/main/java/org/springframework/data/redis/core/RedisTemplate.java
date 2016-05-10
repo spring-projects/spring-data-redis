@@ -72,6 +72,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Ninad Divadkar
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -98,7 +99,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	private ListOperations<K, V> listOps;
 	private SetOperations<K, V> setOps;
 	private ZSetOperations<K, V> zSetOps;
-    private GeoOperations<K, V> geoOps;
+	private GeoOperations<K, V> geoOps;
 	private HyperLogLogOperations<K, V> hllOps;
 
 	/**
@@ -1007,23 +1008,32 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return zSetOps;
 	}
 
-    @Override
-    public GeoOperations<K, V> opsForGeo() {
-        if (geoOps == null) {
-            geoOps = new DefaultGeoOperations<K, V>(this);
-        }
-        return geoOps;
-    }
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForGeo()
+	 */
+	@Override
+	public GeoOperations<K, V> opsForGeo() {
 
-    @Override
-    public BoundGeoOperations<K, V> boundGeoOps(K key) {
-        return new DefaultBoundGeoOperations<K, V>(key, this);
-    }
+		if (geoOps == null) {
+			geoOps = new DefaultGeoOperations<K, V>(this);
+		}
+		return geoOps;
+	}
 
-    /*
-         * (non-Javadoc)
-         * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
-         */
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#boundGeoOps(java.lang.Object)
+	 */
+	@Override
+	public BoundGeoOperations<K, V> boundGeoOps(K key) {
+		return new DefaultBoundGeoOperations<K, V>(key, this);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#opsForHyperLogLog()
+	 */
 	@Override
 	public HyperLogLogOperations<K, V> opsForHyperLogLog() {
 

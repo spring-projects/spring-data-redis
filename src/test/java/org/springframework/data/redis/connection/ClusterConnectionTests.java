@@ -15,10 +15,16 @@
  */
 package org.springframework.data.redis.connection;
 
+import org.springframework.data.geo.Point;
+
 /**
  * @author Christoph Strobl
  */
 public interface ClusterConnectionTests {
+
+	static final Point POINT_ARIGENTO = new Point(13.583333, 37.316667);
+	static final Point POINT_CATANIA = new Point(15.087269, 37.502669);
+	static final Point POINT_PALERMO = new Point(13.361389, 38.115556);
 
 	/**
 	 * @see DATAREDIS-315
@@ -946,4 +952,78 @@ public interface ClusterConnectionTests {
 	 */
 	void setWithExpirationAndIfPresentShouldNotBeAppliedWhenKeyDoesNotExists();
 
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoAddSingleGeoLocation();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoAddMultipleGeoLocations();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoDist();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoDistWithMetric();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoHash();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoHashNonExisting();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoPosition();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoPositionNonExisting();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRadiusShouldReturnMembersCorrectly();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRadiusShouldReturnDistanceCorrectly();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRadiusShouldApplyLimit();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRadiusByMemberShouldReturnMembersCorrectly();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRadiusByMemberShouldReturnDistanceCorrectly();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRadiusByMemberShouldApplyLimit();
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	void geoRemoveDeletesMembers();
 }

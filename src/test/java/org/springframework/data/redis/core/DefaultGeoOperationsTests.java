@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,56 +15,86 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.collection.IsCollectionWithSize.*;
+import static org.hamcrest.core.Is.*;
+import static org.hamcrest.core.IsEqual.*;
+import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.number.IsCloseTo.*;
+import static org.junit.Assert.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
+import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.After;
-import org.junit.Assert;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Point;
+import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.RedisTestProfileValueSource;
-import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
+import org.springframework.test.annotation.IfProfileValue;
 
 /**
  * Integration test of {@link org.springframework.data.redis.core.DefaultGeoOperations}
  *
  * @author Ninad Divadkar
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
+@IfProfileValue(name = "redisVersion", value = "3.2.0+")
 public class DefaultGeoOperationsTests<K, M> {
 
+	public static @ClassRule MinimumRedisVersionRule versionRule = new MinimumRedisVersionRule();
+
+	private static final Point POINT_ARIGENTO = new Point(13.583333, 37.316667);
+	private static final Point POINT_CATANIA = new Point(15.087269, 37.502669);
+	private static final Point POINT_PALERMO = new Point(13.361389, 38.115556);
+
+	private static final double DISTANCE_PALERMO_CATANIA_METERS = 166274.15156960033;
+	private static final double DISTANCE_PALERMO_CATANIA_KILOMETERS = 166.27415156960033;
+	private static final double DISTANCE_PALERMO_CATANIA_MILES = 103.31822459492733;
+	private static final double DISTANCE_PALERMO_CATANIA_FEET = 545518.8699790037;
+
 	private RedisTemplate<K, M> redisTemplate;
-
 	private ObjectFactory<K> keyFactory;
-
 	private ObjectFactory<M> valueFactory;
-
 	private GeoOperations<K, M> geoOperations;
 
 	public DefaultGeoOperationsTests(RedisTemplate<K, M> redisTemplate, ObjectFactory<K> keyFactory,
-                                     ObjectFactory<M> valueFactory) {
+			ObjectFactory<M> valueFactory) {
+
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
+
+		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
 
 	@Parameters
 	public static Collection<Object[]> testParams() {
 		return AbstractOperationsTestParams.testParams();
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		ConnectionFactoryTracker.cleanUp();
 	}
 
 	@Before
@@ -74,6 +104,7 @@ public class DefaultGeoOperationsTests<K, M> {
 
 	@After
 	public void tearDown() {
+
 		redisTemplate.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) {
 				connection.flushDb();
@@ -82,174 +113,370 @@ public class DefaultGeoOperationsTests<K, M> {
 		});
 	}
 
+	/**
+	 * @see DATAREDIS-438
+	 */
 	@Test
-	public void testGeoAdd() throws Exception {
-		K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-		Long numAdded = geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
-		assertEquals(numAdded.longValue(), 1L);
+	public void testGeoAdd() {
+
+		Long numAdded = geoOperations.geoAdd(keyFactory.instance(), POINT_PALERMO, valueFactory.instance());
+
+		assertThat(numAdded, is(1L));
 	}
 
-    @Test
-    public void testGeoAdd2() throws Exception {
-        K key = keyFactory.instance();
-        Map<M, GeoCoordinate> memberCoordinateMap = new HashMap<M, GeoCoordinate>();
-        memberCoordinateMap.put(valueFactory.instance(), new GeoCoordinate(2.2323, 43.324));
-        memberCoordinateMap.put(valueFactory.instance(), new GeoCoordinate(12.993, 31.3994));
-        Long numAdded = geoOperations.geoAdd(key, memberCoordinateMap);
-        assertEquals(numAdded.longValue(), 2L);
-    }
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoAddWithLocationMap() {
 
-    @Test
-    public void testGeoDist() throws Exception {
-        K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-        M v2 = valueFactory.instance();
+		Map<M, Point> memberCoordinateMap = new HashMap<M, Point>();
+		memberCoordinateMap.put(valueFactory.instance(), POINT_PALERMO);
+		memberCoordinateMap.put(valueFactory.instance(), POINT_CATANIA);
 
-        geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
-        geoOperations.geoAdd(key, 15.087269, 37.502669, v2);
+		Long numAdded = geoOperations.geoAdd(keyFactory.instance(), memberCoordinateMap);
 
-        Double dist = geoOperations.geoDist(key, v1, v2);
-        assertEquals(dist.doubleValue(), 166274.15156960033, 0.00001); // gives in meters
+		assertThat(numAdded, is(2L));
+	}
 
-        dist = geoOperations.geoDist(key, v1, v2, GeoUnit.KiloMeters);
-        assertEquals(dist.doubleValue(), 166.27415156960033, 0.00001);
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoDistShouldReturnDistanceInMetersByDefault() {
 
-        dist = geoOperations.geoDist(key, v1, v2, GeoUnit.Miles);
-        assertEquals(dist.doubleValue(), 103.31822459492733, 0.00001);
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
 
-        dist = geoOperations.geoDist(key, v1, v2, GeoUnit.Feet);
-        assertEquals(dist.doubleValue(), 545518.8699790037, 0.00001);
-    }
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-    @Test
-    public void testGeoHash() throws Exception {
-        K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-        M v2 = valueFactory.instance();
+		Distance dist = geoOperations.geoDist(key, member1, member2);
+		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_METERS, 0.005));
+		assertThat(dist.getUnit(), is(equalTo("m")));
+	}
 
-        geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
-        geoOperations.geoAdd(key, 15.087269, 37.502669, v2);
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoDistShouldReturnDistanceInKilometersCorrectly() {
 
-        List<byte[]> result = geoOperations.geoHash(key, v1, v2);
-        assertEquals(result.size(), 2);
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
 
-        final RedisSerializer<String> serializer = new StringRedisSerializer();
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-        assertEquals(serializer.deserialize(result.get(0)), "sqc8b49rny0");
-        assertEquals(serializer.deserialize(result.get(1)), "sqdtr74hyu0");
-    }
+		Distance dist = geoOperations.geoDist(key, member1, member2, KILOMETERS);
+		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_KILOMETERS, 0.005));
+		assertThat(dist.getUnit(), is(equalTo("km")));
+	}
 
-    @Test
-    public void testGeoPos() throws Exception {
-        K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-        M v2 = valueFactory.instance();
-        M v3 = valueFactory.instance();
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoDistShouldReturnDistanceInMilesCorrectly() {
 
-        geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
-        geoOperations.geoAdd(key, 15.087269, 37.502669, v2);
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
 
-        List<GeoCoordinate> result = geoOperations.geoPos(key, v1, v2, v3);// v3 is nonexisting
-        assertEquals(result.size(), 3);
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-        assertEquals(result.get(0).getLongitude(), 13.361389338970184, 0.000001);
-        assertEquals(result.get(0).getLatitude(), 38.115556395496299, 0.000001);
+		Distance dist = geoOperations.geoDist(key, member1, member2, DistanceUnit.MILES);
+		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_MILES, 0.005));
+		assertThat(dist.getUnit(), is(equalTo("mi")));
+	}
 
-        assertEquals(result.get(1).getLongitude(), 15.087267458438873, 0.000001);
-        assertEquals(result.get(1).getLatitude(), 37.50266842333162, 0.000001);
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoDistShouldReturnDistanceInFeeCorrectly() {
 
-        assertNull(result.get(2));
-    }
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
 
-    @Test
-    public void testGeoRadius() throws Exception{
-        K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-        M v2 = valueFactory.instance();
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-        geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
-        geoOperations.geoAdd(key, 15.087269, 37.502669, v2);
+		Distance dist = geoOperations.geoDist(key, member1, member2, DistanceUnit.FEET);
+		assertThat(dist.getValue(), closeTo(DISTANCE_PALERMO_CATANIA_FEET, 0.005));
+		assertThat(dist.getUnit(), is(equalTo("ft")));
+	}
 
-        List<GeoRadiusResponse> result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters);
-        Assert.assertEquals(2, result.size());
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoHash() {
 
-        // with dist, descending
-        result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withDist().sortDescending());
-        Assert.assertEquals(2, result.size());
-        Assert.assertEquals(result.get(0).getDistance(), 190.4424d, 0.0001);
-        Assert.assertEquals(result.get(1).getDistance(), 56.4413d, 0.0001);
+		K key = keyFactory.instance();
+		M v1 = valueFactory.instance();
+		M v2 = valueFactory.instance();
 
-        // with coord, ascending
-        result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withCoord().sortAscending());
-        Assert.assertEquals(2, result.size());
-        Assert.assertEquals(result.get(1).getCoordinate().getLongitude(), 13.361389338970184d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLatitude(), 38.115556395496299d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLongitude(), 15.087267458438873d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLatitude(), 37.50266842333162d, 0.0001);
+		geoOperations.geoAdd(key, POINT_PALERMO, v1);
+		geoOperations.geoAdd(key, POINT_CATANIA, v2);
 
-        // with coord and dist, ascending
-        result = geoOperations.georadius(key, 15, 37, 200, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withCoord().withDist().sortAscending());
-        Assert.assertEquals(2, result.size());
+		List<String> result = geoOperations.geoHash(key, v1, v2);
+		assertThat(result, hasSize(2));
 
-        Assert.assertEquals(result.get(0).getDistance(), 56.4413d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLongitude(), 15.087267458438873d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLatitude(), 37.50266842333162d, 0.0001);
-        Assert.assertEquals(result.get(1).getDistance(), 190.4424d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLongitude(), 13.361389338970184d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLatitude(), 38.115556395496299d, 0.0001);
-    }
+		final RedisSerializer<String> serializer = new StringRedisSerializer();
 
-    @Test
-    public void testGeoRadiusByMember() throws Exception{
-        K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-        M v2 = valueFactory.instance();
-        M v3 = valueFactory.instance();
+		assertThat(result.get(0), is(equalTo("sqc8b49rny0")));
+		assertThat(result.get(1), is(equalTo("sqdtr74hyu0")));
+	}
 
-        geoOperations.geoAdd(key, 13.361389, 38.115556, v1);//palermo
-        geoOperations.geoAdd(key, 15.087269, 37.502669, v2);//catania
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoPos() {
 
-        geoOperations.geoAdd(key, 13.583333, 37.316667, v3);//Agrigento
+		K key = keyFactory.instance();
+		M v1 = valueFactory.instance();
+		M v2 = valueFactory.instance();
+		M v3 = valueFactory.instance();
 
-        List<GeoRadiusResponse> result = geoOperations.georadiusByMember(key, v3, 200, GeoUnit.KiloMeters);
-        Assert.assertEquals(3, result.size());
+		geoOperations.geoAdd(key, POINT_PALERMO, v1);
+		geoOperations.geoAdd(key, POINT_CATANIA, v2);
 
-        // with dist, descending
-        result = geoOperations.georadiusByMember(key, v3, 100, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withDist().sortDescending());
-        Assert.assertEquals(2, result.size());
-        Assert.assertEquals(result.get(0).getDistance(), 90.9778d, 0.0001);
-        Assert.assertEquals(result.get(1).getDistance(), 0.0d, 0.0001); //itself
+		List<Point> result = geoOperations.geoPos(key, v1, v2, v3);// v3 is nonexisting
+		assertThat(result, hasSize(3));
 
-        // with coord, ascending
-        result = geoOperations.georadiusByMember(key, v3, 100, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withCoord().sortAscending());
-        Assert.assertEquals(2, result.size());
-        Assert.assertEquals(result.get(0).getCoordinate().getLongitude(), 13.583331406116486d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLatitude(), 37.316668049938166d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLongitude(), 13.361389338970184d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLatitude(), 38.115556395496299d, 0.0001);
+		assertThat(result.get(0).getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(result.get(0).getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
 
+		assertThat(result.get(1).getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
+		assertThat(result.get(1).getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
 
-        // with coord and dist, ascending
-        result = geoOperations.georadiusByMember(key, v1, 100, GeoUnit.KiloMeters, GeoRadiusParam.geoRadiusParam().withCoord().withDist().sortAscending());
-        Assert.assertEquals(2, result.size());
+		assertThat(result.get(2), is(nullValue()));
+	}
 
-        Assert.assertEquals(result.get(0).getDistance(), 0.0d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLongitude(), 13.361389338970184d, 0.0001);
-        Assert.assertEquals(result.get(0).getCoordinate().getLatitude(), 38.1155563954963d, 0.0001);
-        Assert.assertEquals(result.get(1).getDistance(), 90.9778d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLongitude(), 13.583331406116486d, 0.0001);
-        Assert.assertEquals(result.get(1).getCoordinate().getLatitude(), 37.316668049938166d, 0.0001);
-    }
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusShouldReturnMembersCorrectly() {
 
-    @Test
-    public void testGeoRemove(){
-        K key = keyFactory.instance();
-        M v1 = valueFactory.instance();
-        Long numAdded = geoOperations.geoAdd(key, 13.361389, 38.115556, v1);
-        assertEquals(numAdded.longValue(), 1L);
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
 
-        Long numRemoved = geoOperations.geoRemove(key, v1);
-        assertEquals(1L, numRemoved.longValue());
-    }
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)));
+
+		assertThat(result.getContent(), hasSize(2));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusShouldReturnLocationsWithDistance() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
+				newGeoRadiusArgs().includeDistance().sortDescending());
+
+		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(190.4424d, 0.005)));
+		assertThat(result.getContent().get(0).getDistance().getUnit(), is(equalTo("km")));
+		assertThat(result.getContent().get(0).getContent().getName(), is(member1));
+
+		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(56.4413d, 0.005)));
+		assertThat(result.getContent().get(1).getDistance().getUnit(), is(equalTo("km")));
+		assertThat(result.getContent().get(1).getContent().getName(), is(member2));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusShouldReturnLocationsWithCoordinates() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
+				newGeoRadiusArgs().includeCoordinates().sortAscending());
+
+		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getName(), is(member2));
+
+		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusShouldReturnLocationsWithCoordinatesAndDistance() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
+				newGeoRadiusArgs().includeCoordinates().includeDistance().sortAscending());
+		assertThat(result.getContent(), hasSize(2));
+
+		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(56.4413d, 0.005)));
+		assertThat(result.getContent().get(0).getDistance().getUnit(), is(equalTo("km")));
+		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_CATANIA.getX(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_CATANIA.getY(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getName(), is(member2));
+
+		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(190.4424d, 0.005)));
+		assertThat(result.getContent().get(1).getDistance().getUnit(), is(equalTo("km")));
+		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member3, new Distance(200, KILOMETERS));
+		assertThat(result.getContent(), hasSize(3));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusByMemberShouldReturnDistanceCorrectly() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member3, new Distance(100, KILOMETERS),
+				newGeoRadiusArgs().includeDistance().sortDescending());
+
+		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(90.9778d, 0.005)));
+		assertThat(result.getContent().get(0).getContent().getName(), is(member1));
+		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(0.0d, 0.005))); // itself
+		assertThat(result.getContent().get(1).getContent().getName(), is(member3));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusByMemberShouldReturnCoordinates() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
+
+		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member3,
+				new Distance(100, DistanceUnit.KILOMETERS), newGeoRadiusArgs().includeCoordinates().sortAscending());
+
+		assertThat(result.getContent(), hasSize(2));
+		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_ARIGENTO.getX(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_ARIGENTO.getY(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getName(), is(member3));
+
+		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void geoRadiusByMemberShouldReturnCoordinatesAndDistance() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+		M member2 = valueFactory.instance();
+		M member3 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+		geoOperations.geoAdd(key, POINT_CATANIA, member2);
+		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
+
+		// with coord and dist, ascending
+		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member1, new Distance(100, KILOMETERS),
+				newGeoRadiusArgs().includeCoordinates().includeDistance().sortAscending());
+		assertThat(result.getContent(), hasSize(2));
+
+		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(0.0d, 0.005)));
+		assertThat(result.getContent().get(0).getContent().getPoint().getX(), is(closeTo(POINT_PALERMO.getX(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getPoint().getY(), is(closeTo(POINT_PALERMO.getY(), 0.005)));
+		assertThat(result.getContent().get(0).getContent().getName(), is(member1));
+
+		assertThat(result.getContent().get(1).getDistance().getValue(), is(closeTo(90.9778d, 0.005)));
+		assertThat(result.getContent().get(1).getContent().getPoint().getX(), is(closeTo(POINT_ARIGENTO.getX(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getPoint().getY(), is(closeTo(POINT_ARIGENTO.getY(), 0.005)));
+		assertThat(result.getContent().get(1).getContent().getName(), is(member3));
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRemove() {
+
+		K key = keyFactory.instance();
+		M member1 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1);
+
+		assertThat(geoOperations.geoRemove(key, member1), is(1L));
+	}
 }

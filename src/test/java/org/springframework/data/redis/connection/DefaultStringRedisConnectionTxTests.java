@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@ package org.springframework.data.redis.connection;
 
 import static org.mockito.Mockito.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.redis.core.GeoCoordinate;
-import org.springframework.data.redis.core.GeoRadiusParam;
-import org.springframework.data.redis.core.GeoRadiusResponse;
-import org.springframework.data.redis.core.GeoUnit;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 
 /**
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Ninad Divadkar
  */
 public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConnectionTests {
 
@@ -1294,142 +1296,6 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 	}
 
 	@Test
-	public void testGeoAddBytes(){
-		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
-		super.testGeoAddBytes();
-	}
-
-	@Test
-	public void testGeoAdd(){
-		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
-		super.testGeoAddBytes();
-	}
-
-	@Test
-	public void testGeoAddCoordinateMapBytes(){
-		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
-		super.testGeoAddCoordinateMapBytes();
-	}
-
-	@Test
-	public void testGeoAddCoordinateMap(){
-		doReturn(Arrays.asList(new Object[] { 1l })).when(nativeConnection).exec();
-		super.testGeoAddCoordinateMap();
-	}
-
-	@Test
-	public void testGeoDistBytes(){
-		doReturn(Arrays.asList(new Object[] { 102121.12d })).when(nativeConnection).exec();
-		super.testGeoDistBytes();
-	}
-
-	@Test
-	public void testGeoDist(){
-		doReturn(Arrays.asList(new Object[] { 102121.12d })).when(nativeConnection).exec();
-		super.testGeoDist();
-	}
-
-	@Test
-	public void testGeoHashBytes(){
-		List<byte[]> expected = new ArrayList<byte[]>();
-		expected.add(barBytes);
-		doReturn(Arrays.asList(new Object[] { expected })).when(nativeConnection).exec();
-		super.testGeoHashBytes();
-	}
-
-	@Test
-	public void testGeoHash(){
-		List<byte[]> expected = new ArrayList<byte[]>();
-		expected.add(barBytes);
-		doReturn(Arrays.asList(new Object[] { expected })).when(nativeConnection).exec();
-		super.testGeoHash();
-	}
-
-	@Test
-	public void testGeoPosBytes(){
-		doReturn(Arrays.asList(new Object[] { geoCoordinates })).when(nativeConnection).exec();
-		super.testGeoPosBytes();
-	}
-
-	@Test
-	public void testGeoPos(){
-		doReturn(Arrays.asList(new Object[] { geoCoordinates })).when(nativeConnection).exec();
-		super.testGeoPos();
-	}
-
-	@Test
-	public void testGeoRadiusWithoutParamBytes(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusWithoutParamBytes();
-	}
-
-	@Test
-	public void testGeoRadiusWithoutParam(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusWithoutParam();
-	}
-
-	@Test
-	public void testGeoRadiusWithDistBytes(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusWithDistBytes();
-	}
-
-	@Test
-	public void testGeoRadiusWithDist(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusWithDist();
-	}
-
-	@Test
-	public void testGeoRadiusWithCoordAndDescBytes(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusWithCoordAndDescBytes();
-	}
-
-	@Test
-	public void testGeoRadiusWithCoordAndDesc(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusWithCoordAndDesc();
-	}
-
-	@Test
-	public void testGeoRadiusByMemberWithoutParamBytes(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusByMemberWithoutParamBytes();
-	}
-
-	@Test
-	public void testGeoRadiusByMemberWithoutParam(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusByMemberWithoutParam();
-	}
-
-	@Test
-	public void testGeoRadiusByMemberWithDistAndAscBytes(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusByMemberWithDistAndAscBytes();
-	}
-
-	@Test
-	public void testGeoRadiusByMemberWithDistAndAsc(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusByMemberWithDistAndAsc();
-	}
-
-	@Test
-	public void testGeoRadiusByMemberWithCoordAndCountBytes(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusByMemberWithCoordAndCountBytes();
-	}
-
-	@Test
-	public void testGeoRadiusByMemberWithCoordAndCount(){
-		doReturn(Arrays.asList(new Object[] { geoRadiusResponses })).when(nativeConnection).exec();
-		super.testGeoRadiusByMemberWithCoordAndCount();
-	}
-
-	@Test
 	public void testPExpireBytes() {
 		doReturn(Arrays.asList(new Object[] { true })).when(nativeConnection).exec();
 		super.testPExpireBytes();
@@ -1578,6 +1444,260 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		doReturn(Arrays.asList(new Object[] { 1L })).when(nativeConnection).exec();
 		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 1L }) })).when(nativeConnection).closePipeline();
 		super.testTimeIsDelegatedCorrectlyToNativeConnection();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoAddBytes() {
+
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoAdd() {
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Override
+	public void testGeoAddWithGeoLocationBytes() {
+
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddWithGeoLocationBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Override
+	public void testGeoAddWithGeoLocation() {
+
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddWithGeoLocation();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoAddCoordinateMapBytes() {
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddCoordinateMapBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoAddCoordinateMap() {
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddCoordinateMap();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Override
+	public void testGeoAddWithIterableOfGeoLocationBytes() {
+
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddWithIterableOfGeoLocationBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Override
+	public void testGeoAddWithIterableOfGeoLocation() {
+
+		doReturn(Collections.singletonList(1L)).when(nativeConnection).exec();
+		super.testGeoAddWithIterableOfGeoLocation();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoDistBytes() {
+
+		doReturn(Arrays.asList(new Distance(102121.12d, DistanceUnit.METERS))).when(nativeConnection).exec();
+		super.testGeoDistBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoDist() {
+
+		doReturn(Arrays.asList(new Distance(102121.12d, DistanceUnit.METERS))).when(nativeConnection).exec();
+		super.testGeoDist();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoHashBytes() {
+
+		doReturn(Arrays.asList(Collections.singletonList(bar))).when(nativeConnection).exec();
+		super.testGeoHashBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoHash() {
+
+		doReturn(Arrays.asList(Collections.singletonList(bar))).when(nativeConnection).exec();
+		super.testGeoHash();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoPosBytes() {
+
+		doReturn(Arrays.asList(points)).when(nativeConnection).exec();
+		super.testGeoPosBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoPos() {
+
+		doReturn(Arrays.asList(points)).when(nativeConnection).exec();
+		super.testGeoPos();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusWithoutParamBytes() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusWithoutParamBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusWithoutParam() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusWithoutParam();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusWithDistBytes() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusWithDistBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusWithDist() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusWithDist();
+	}
+
+	@Test
+	public void testGeoRadiusWithCoordAndDescBytes() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusWithCoordAndDescBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusWithCoordAndDesc() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusWithCoordAndDesc();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusByMemberWithoutParamBytes() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusByMemberWithoutParamBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusByMemberWithoutParam() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusByMemberWithoutParam();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusByMemberWithDistAndAscBytes() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusByMemberWithDistAndAscBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusByMemberWithDistAndAsc() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusByMemberWithDistAndAsc();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusByMemberWithCoordAndCountBytes() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusByMemberWithCoordAndCountBytes();
+	}
+
+	/**
+	 * @see DATAREDIS-438
+	 */
+	@Test
+	public void testGeoRadiusByMemberWithCoordAndCount() {
+
+		doReturn(Arrays.asList(geoResults)).when(nativeConnection).exec();
+		super.testGeoRadiusByMemberWithCoordAndCount();
 	}
 
 	protected List<Object> getResults() {

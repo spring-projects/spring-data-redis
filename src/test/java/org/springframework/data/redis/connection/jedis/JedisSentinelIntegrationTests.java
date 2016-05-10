@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -40,20 +42,19 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Thomas Darimont
  */
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
-	
+
 	private static final String MASTER_NAME = "mymaster";
 	private static final RedisServer SENTINEL_0 = new RedisServer("127.0.0.1", 26379);
 	private static final RedisServer SENTINEL_1 = new RedisServer("127.0.0.1", 26380);
-	
+
 	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
 	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
-	
-	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
-			.master(MASTER_NAME)
-			.sentinel(SENTINEL_0)
-			.sentinel(SENTINEL_1);
 
-	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
+	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
+			.master(MASTER_NAME).sentinel(SENTINEL_0).sentinel(SENTINEL_1);
+
+	public static @ClassRule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
+	public @Rule MinimumRedisVersionRule minimumVersionRule = new MinimumRedisVersionRule();
 
 	@Before
 	public void setUp() {
@@ -129,9 +130,9 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
 		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(),is(MASTER_NAME));
+		assertThat(servers.get(0).getName(), is(MASTER_NAME));
 	}
-	
+
 	/**
 	 * @see DATAREDIS-330
 	 */
@@ -139,10 +140,10 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	public void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
-		
+
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
 		assertThat(servers.size(), is(1));
-		
+
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
 		assertThat(slaves.size(), is(2));
 		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));

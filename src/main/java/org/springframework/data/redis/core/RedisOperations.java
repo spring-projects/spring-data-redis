@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Ninad Divadkar
  */
 public interface RedisOperations<K, V> {
 
@@ -283,20 +284,22 @@ public interface RedisOperations<K, V> {
 	 */
 	<HK, HV> BoundHashOperations<K, HK, HV> boundHashOps(K key);
 
-    /**
-     * Returns the operations performed on geo values.
-     *
-     * @return geo operations
-     */
-    GeoOperations<K, V> opsForGeo();
+	/**
+	 * Returns geospatial specific operations interface.
+	 *
+	 * @return never {@literal null}.
+	 * @since 1.8
+	 */
+	GeoOperations<K, V> opsForGeo();
 
-    /**
-     * Returns the operations performed on values bound to the given key.
-     *
-     * @param key Redis key
-     * @return geo operations bound to the given key.
-     */
-    BoundGeoOperations<K, V> boundGeoOps(K key);
+	/**
+	 * Returns geospatial specific operations interface bound to the given key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 1.8
+	 */
+	BoundGeoOperations<K, V> boundGeoOps(K key);
 
 	/**
 	 * Returns the cluster specific operations interface.
