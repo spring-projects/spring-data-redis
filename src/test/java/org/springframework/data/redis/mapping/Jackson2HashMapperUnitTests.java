@@ -73,7 +73,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 	 * @see DATAREDIS-423
 	 */
 	@Test
-	public void shouldMapTypledListOfComplexType() {
+	public void shouldMapTypedListOfComplexType() {
 
 		WithList source = new WithList();
 

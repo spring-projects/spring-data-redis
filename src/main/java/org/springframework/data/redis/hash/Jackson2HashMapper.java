@@ -43,8 +43,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * {@link ObjectMapper} based {@link HashMapper} implementation that allows flattening. Given an entity {@code Person}
- * with an {@code Address} like below the flattening will create individual hash entries for all nested properties.
+ * with an {@code Address} like below the flattening will create individual hash entries for all nested properties and
+ * resolve complex types into simple types, as far as possible.
+ * <p>
+ * Flattening requires all property names to not interfere with JSON paths. Using dots or brackets in map keys or as
+ * property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
  *
+ * <strong>Example</strong>
  * <pre>
  * <code>
  * class Person {
@@ -60,24 +65,25 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * </code>
  * </pre>
  *
- * <pre>
- * <strong>Normal</strong><br />
+ * <strong>Normal</strong>
  * <table>
+ *   <tr><th>Hash field</th><th>Value<th></tr>
  *   <tr><td>firstname</td><td>Jon<td></tr>
  *   <tr><td>lastname</td><td>Snow<td></tr>
- *   <tr><td>address</td><td>{ city : Castle Black, country : The North }<td></tr>
+ *   <tr><td>address</td><td>{ "city" : "Castle Black", "country" : "The North" }<td></tr>
  * </table>
- *
- * <strong>Flat</strong>: <br />
+ * <br />
+ * <strong>Flat</strong>:
  * <table>
+ *   <tr><th>Hash field</th><th>Value<th></tr>
  *   <tr><td>firstname</td><td>Jon<td></tr>
  *   <tr><td>lastname</td><td>Snow<td></tr>
  *   <tr><td>address.city</td><td>Castle Black<td></tr>
  *   <tr><td>address.country</td><td>The North<td></tr>
  * </table>
- * </pre>
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.8
  */
 public class Jackson2HashMapper implements HashMapper<Object, String, Object> {
