@@ -363,9 +363,9 @@ Hash mappers are converters to map objects to a `Map<K, V>` and back. `HashMappe
 
 Multiple implementations are available out of the box:
 
-1. `BeanUtilsHashMapper` using Spring's http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/BeanUtils.html[BeanUtils]
-2. `ObjectHashMapper` using <<redis.repositories.mapping>>
-3. `Jackson2HashMapper` using https://github.com/FasterXML/jackson[FasterXML Jackson].
+1. `BeanUtilsHashMapper` using Spring's http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/BeanUtils.html[BeanUtils].
+2. `ObjectHashMapper` using <<redis.repositories.mapping>>.
+3. <<redis.hashmappers.jackson2,`Jackson2HashMapper`>> using https://github.com/FasterXML/jackson[FasterXML Jackson].
 
 [source,java]
 ----
@@ -396,6 +396,67 @@ public class HashMapping {
   }
 }
 ----
+
+[[redis.hashmappers.jackson2]]
+=== Jackson2HashMapper
+
+`Jackson2HashMapper` provides Redis Hash mapping for domain objects using https://github.com/FasterXML/jackson[FasterXML Jackson].
+`Jackson2HashMapper` can map data map top-level properties as Hash field names and optionally flatten the structure.
+Simple types map to simple values. Complex types (nested objects, collections, maps) are represented as nested JSON.
+
+Flattening creates individual hash entries for all nested properties and resolves complex types into simple types, as far as possible.
+
+[source,java]
+----
+public class Person {
+  String firstname;
+  String lastname;
+  Address address;
+}
+
+public class Address {
+  String city;
+  String country;
+}
+----
+
+.Normal Mapping
+[width="80%",cols="<1,<2",options="header"]
+|====
+|Hash Field
+|Value
+
+|firstname
+|`Jon`
+
+|lastname
+|`Snow`
+
+|address
+|`{ "city" : "Castle Black", "country" : "The North" }`
+|====
+
+.Flat Mapping
+[width="80%",cols="<1,<2",options="header"]
+|====
+|Hash Field
+|Value
+
+|firstname
+|`Jon`
+
+|lastname
+|`Snow`
+
+|address.city
+|`Castle Black`
+
+|address.country
+|`The North`
+|====
+
+NOTE: Flattening requires all property names to not interfere with the JSON path. Using dots or brackets in map keys
+or as property names is not supported using flattening. The resulting hash cannot be mapped back into an Object.
 
 
 :leveloffset: 2

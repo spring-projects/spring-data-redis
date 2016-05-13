@@ -82,7 +82,7 @@ public class Jackson2HashMapperTests {
 	 * @see DATAREDIS-423
 	 */
 	@Test
-	public void shouldWriteReadHashCorrtectly() {
+	public void shouldWriteReadHashCorrectly() {
 
 		Person jon = new Person("jon", "snow", 19);
 		Address adr = new Address();
