@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2016 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,11 +36,12 @@ import org.springframework.util.Assert;
 /**
  * Atomic integer backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
  * operations.
- * 
+ *
  * @see java.util.concurrent.atomic.AtomicInteger
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisAtomicInteger extends Number implements Serializable, BoundKeyOperations<String> {
 
@@ -52,7 +53,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing in Redis or 0 if none is found.
-	 * 
+	 *
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
 	 */
@@ -62,7 +63,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param factory the factory
 	 * @param initialValue the initial value
@@ -73,7 +74,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Constructs a new <code>RedisAtomicInteger</code> instance. Uses the value existing in Redis or 0 if none is found.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @see #RedisAtomicInteger(String, RedisConnectionFactory, int)
@@ -87,7 +88,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 	 * with appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
 	 * {@link #RedisAtomicInteger(String, RedisConnectionFactory, Integer)} constructor which uses appropriate default
 	 * serializers.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @param initialValue the initial value
@@ -139,7 +140,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Get the current value.
-	 * 
+	 *
 	 * @return the current value
 	 */
 	public int get() {
@@ -154,7 +155,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Set to the given value.
-	 * 
+	 *
 	 * @param newValue the new value
 	 */
 	public void set(int newValue) {
@@ -163,17 +164,23 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Set to the give value and return the old value.
-	 * 
+	 *
 	 * @param newValue the new value
 	 * @return the previous value
 	 */
 	public int getAndSet(int newValue) {
-		return operations.getAndSet(key, newValue);
+
+		Integer value = operations.getAndSet(key, newValue);
+		if (value != null) {
+			return value.intValue();
+		}
+
+		return 0;
 	}
 
 	/**
 	 * Atomically set the value to the given updated value if the current value <tt>==</tt> the expected value.
-	 * 
+	 *
 	 * @param expect the expected value
 	 * @param update the new value
 	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
@@ -202,7 +209,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically increment by one the current value.
-	 * 
+	 *
 	 * @return the previous value
 	 */
 	public int getAndIncrement() {
@@ -211,7 +218,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically decrement by one the current value.
-	 * 
+	 *
 	 * @return the previous value
 	 */
 	public int getAndDecrement() {
@@ -220,7 +227,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically add the given value to current value.
-	 * 
+	 *
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
@@ -230,7 +237,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically increment by one the current value.
-	 * 
+	 *
 	 * @return the updated value
 	 */
 	public int incrementAndGet() {
@@ -239,7 +246,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically decrement by one the current value.
-	 * 
+	 *
 	 * @return the updated value
 	 */
 	public int decrementAndGet() {
@@ -248,7 +255,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Atomically add the given value to current value.
-	 * 
+	 *
 	 * @param delta the value to add
 	 * @return the updated value
 	 */
@@ -258,7 +265,7 @@ public class RedisAtomicInteger extends Number implements Serializable, BoundKey
 
 	/**
 	 * Returns the String representation of the current value.
-	 * 
+	 *
 	 * @return the String representation of the current value.
 	 */
 	public String toString() {

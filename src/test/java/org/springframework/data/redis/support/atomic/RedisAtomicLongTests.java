@@ -38,7 +38,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisAtomicLong}
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -49,10 +49,19 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 	private RedisAtomicLong longCounter;
 	private RedisConnectionFactory factory;
+	private RedisTemplate<String, Long> template;
 
 	public RedisAtomicLongTests(RedisConnectionFactory factory) {
-		longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
+
+		this.longCounter = new RedisAtomicLong(getClass().getSimpleName() + ":long", factory);
 		this.factory = factory;
+
+		this.template = new RedisTemplate<String, Long>();
+		this.template.setConnectionFactory(factory);
+		this.template.setKeySerializer(new StringRedisSerializer());
+		this.template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		this.template.afterPropertiesSet();
+
 		ConnectionFactoryTracker.add(factory);
 	}
 
@@ -102,8 +111,53 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(0, longCounter.decrementAndGet());
 	}
 
+		/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndIncrement() {
+
+		longCounter.set(1);
+		assertEquals(1, longCounter.getAndIncrement());
+		assertEquals(2, longCounter.get());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndAdd() {
+
+		longCounter.set(1);
+		assertEquals(1, longCounter.getAndAdd(5));
+		assertEquals(6, longCounter.get());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndDecrement() {
+
+		longCounter.set(1);
+		assertEquals(1, longCounter.getAndDecrement());
+		assertEquals(0, longCounter.get());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndSet() {
+
+		longCounter.set(1);
+		assertEquals(1, longCounter.getAndSet(5));
+		assertEquals(5, longCounter.get());
+	}
+
 	@Test
 	public void testGetExistingValue() throws Exception {
+
 		longCounter.set(5);
 		RedisAtomicLong keyCopy = new RedisAtomicLong(longCounter.getKey(), factory);
 		assertEquals(longCounter.get(), keyCopy.get());
@@ -167,14 +221,23 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		RedisAtomicLong test = new RedisAtomicLong("test", factory, 1);
 		assertThat(test.get(), equalTo(1L)); // this passes
 
-		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
-		template.setConnectionFactory(factory);
-		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		template.afterPropertiesSet();
-
 		template.delete("test");
 
 		test.get();
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
+
+		// setup long
+		RedisAtomicLong test = new RedisAtomicLong("test", factory, 1);
+		assertThat(test.get(), equalTo(1L)); // this passes
+
+		template.delete("test");
+
+		assertThat(test.getAndSet(2), is(0L));
 	}
 }
