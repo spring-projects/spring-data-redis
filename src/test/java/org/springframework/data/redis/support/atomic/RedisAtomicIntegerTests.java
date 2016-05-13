@@ -41,21 +41,31 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisAtomicInteger}
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 	private RedisAtomicInteger intCounter;
 	private RedisConnectionFactory factory;
+	private RedisTemplate<String, Integer> template;
 
 	public RedisAtomicIntegerTests(RedisConnectionFactory factory) {
-		intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
+
+		this.intCounter = new RedisAtomicInteger(getClass().getSimpleName() + ":int", factory);
 		this.factory = factory;
+
+		this.template = new RedisTemplate<String, Integer>();
+		this.template.setConnectionFactory(factory);
+		this.template.setKeySerializer(new StringRedisSerializer());
+		this.template.setValueSerializer(new GenericToStringSerializer<Integer>(Integer.class));
+		this.template.afterPropertiesSet();
+
 		ConnectionFactoryTracker.add(factory);
 	}
 
@@ -77,7 +87,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	}
 
 	@Test
-	public void testCheckAndSet() throws Exception {
+	public void testCheckAndSet() {
 		// Txs not supported in Jredis
 		assumeTrue(!ConnectionUtils.isJredis(factory));
 		intCounter.set(0);
@@ -87,7 +97,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	}
 
 	@Test
-	public void testIncrementAndGet() throws Exception {
+	public void testIncrementAndGet() {
 		intCounter.set(0);
 		assertEquals(1, intCounter.incrementAndGet());
 	}
@@ -100,9 +110,53 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	}
 
 	@Test
-	public void testDecrementAndGet() throws Exception {
+	public void testDecrementAndGet() {
 		intCounter.set(1);
 		assertEquals(0, intCounter.decrementAndGet());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndIncrement() {
+
+		intCounter.set(1);
+		assertEquals(1, intCounter.getAndIncrement());
+		assertEquals(2, intCounter.get());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndAdd() {
+
+		intCounter.set(1);
+		assertEquals(1, intCounter.getAndAdd(5));
+		assertEquals(6, intCounter.get());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndDecrement() {
+
+		intCounter.set(1);
+		assertEquals(1, intCounter.getAndDecrement());
+		assertEquals(0, intCounter.get());
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void testGetAndSet() {
+
+		intCounter.set(1);
+		assertEquals(1, intCounter.getAndSet(5));
+		assertEquals(5, intCounter.get());
 	}
 
 	@Test
@@ -171,12 +225,6 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	@Test
 	public void testShouldBeAbleToUseRedisAtomicIntegerWithProperlyConfiguredRedisTemplate() {
 
-		RedisTemplate<String, Integer> template = new RedisTemplate<String, Integer>();
-		template.setConnectionFactory(factory);
-		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Integer>(Integer.class));
-		template.afterPropertiesSet();
-
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-317.atomicInteger", template);
 		ral.set(32);
 
@@ -192,18 +240,27 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		expectedException.expect(DataRetrievalFailureException.class);
 		expectedException.expectMessage("'test' seems to no longer exist");
 
-		// setup long
+		// setup integer
 		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
 		assertThat(test.get(), equalTo(1)); // this passes
-
-		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
-		template.setConnectionFactory(factory);
-		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		template.afterPropertiesSet();
 
 		template.delete("test");
 
 		test.get();
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
+
+		// setup integer
+		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
+		assertThat(test.get(), equalTo(1)); // this passes
+
+		template.delete("test");
+
+		assertThat(test.getAndSet(2), is(0));
 	}
 }

@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2016 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,11 +36,12 @@ import org.springframework.util.Assert;
 /**
  * Atomic long backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
  * operations.
- * 
+ *
  * @see java.util.concurrent.atomic.AtomicLong
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisAtomicLong extends Number implements Serializable, BoundKeyOperations<String> {
 
@@ -52,7 +53,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing in Redis or 0 if none is found.
-	 * 
+	 *
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
 	 */
@@ -62,7 +63,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance.
-	 * 
+	 *
 	 * @param redisCounter
 	 * @param factory
 	 * @param initialValue
@@ -97,7 +98,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Constructs a new <code>RedisAtomicLong</code> instance. Uses the value existing in Redis or 0 if none is found.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @see #RedisAtomicLong(String, RedisConnectionFactory, long)
@@ -116,7 +117,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 	 * As an alternative one could use the {@link #RedisAtomicLong(String, RedisConnectionFactory, Long)} constructor
 	 * which uses appropriate default serializers, in this case {@link StringRedisSerializer} for the key and
 	 * {@link GenericToStringSerializer} for the value.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @param initialValue the initial value
@@ -147,7 +148,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Gets the current value.
-	 * 
+	 *
 	 * @return the current value
 	 */
 	public long get() {
@@ -162,7 +163,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Sets to the given value.
-	 * 
+	 *
 	 * @param newValue the new value
 	 */
 	public void set(long newValue) {
@@ -171,17 +172,23 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically sets to the given value and returns the old value.
-	 * 
+	 *
 	 * @param newValue the new value
 	 * @return the previous value
 	 */
 	public long getAndSet(long newValue) {
-		return operations.getAndSet(key, newValue);
+
+		Long value = operations.getAndSet(key, newValue);
+		if (value != null) {
+			return value.longValue();
+		}
+
+		return 0;
 	}
 
 	/**
 	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
-	 * 
+	 *
 	 * @param expect the expected value
 	 * @param update the new value
 	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
@@ -210,7 +217,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically increments by one the current value.
-	 * 
+	 *
 	 * @return the previous value
 	 */
 	public long getAndIncrement() {
@@ -219,7 +226,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically decrements by one the current value.
-	 * 
+	 *
 	 * @return the previous value
 	 */
 	public long getAndDecrement() {
@@ -228,7 +235,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically adds the given value to the current value.
-	 * 
+	 *
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
@@ -238,7 +245,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically increments by one the current value.
-	 * 
+	 *
 	 * @return the updated value
 	 */
 	public long incrementAndGet() {
@@ -247,7 +254,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically decrements by one the current value.
-	 * 
+	 *
 	 * @return the updated value
 	 */
 	public long decrementAndGet() {
@@ -256,7 +263,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Atomically adds the given value to the current value.
-	 * 
+	 *
 	 * @param delta the value to add
 	 * @return the updated value
 	 */
@@ -266,7 +273,7 @@ public class RedisAtomicLong extends Number implements Serializable, BoundKeyOpe
 
 	/**
 	 * Returns the String representation of the current value.
-	 * 
+	 *
 	 * @return the String representation of the current value.
 	 */
 	public String toString() {
