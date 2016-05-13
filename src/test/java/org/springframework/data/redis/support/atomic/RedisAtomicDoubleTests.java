@@ -42,21 +42,30 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisAtomicDouble}
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	private RedisAtomicDouble doubleCounter;
-
 	private RedisConnectionFactory factory;
+	private RedisTemplate<String, Double> template;
 
 	public RedisAtomicDoubleTests(RedisConnectionFactory factory) {
-		doubleCounter = new RedisAtomicDouble(getClass().getSimpleName() + ":double", factory);
+
+		this.doubleCounter = new RedisAtomicDouble(getClass().getSimpleName() + ":double", factory);
 		this.factory = factory;
+
+		this.template = new RedisTemplate<String, Double>();
+		this.template.setConnectionFactory(factory);
+		this.template.setKeySerializer(new StringRedisSerializer());
+		this.template.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
+		this.template.afterPropertiesSet();
+
 		ConnectionFactoryTracker.add(factory);
 	}
 
@@ -201,12 +210,6 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 	@Test
 	public void testShouldBeAbleToUseRedisAtomicDoubleWithProperlyConfiguredRedisTemplate() {
 
-		RedisTemplate<String, Double> template = new RedisTemplate<String, Double>();
-		template.setConnectionFactory(factory);
-		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Double>(Double.class));
-		template.afterPropertiesSet();
-
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-317.atomicDouble", template);
 		ral.set(32.23);
 
@@ -222,18 +225,27 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		expectedException.expect(DataRetrievalFailureException.class);
 		expectedException.expectMessage("'test' seems to no longer exist");
 
-		// setup long
+		// setup double
 		RedisAtomicDouble test = new RedisAtomicDouble("test", factory, 1);
 		assertThat(test.get(), equalTo(1D)); // this passes
-
-		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
-		template.setConnectionFactory(factory);
-		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		template.afterPropertiesSet();
 
 		template.delete("test");
 
 		test.get();
+	}
+
+	/**
+	 * @see DATAREDIS-469
+	 */
+	@Test
+	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
+
+		// setup double
+		RedisAtomicDouble test = new RedisAtomicDouble("test", factory, 1);
+		assertThat(test.get(), equalTo(1D)); // this passes
+
+		template.delete("test");
+
+		assertThat(test.getAndSet(2), is(0D));
 	}
 }
