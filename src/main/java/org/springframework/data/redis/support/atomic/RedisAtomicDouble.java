@@ -36,10 +36,11 @@ import org.springframework.util.Assert;
 /**
  * Atomic double backed by Redis. Uses Redis atomic increment/decrement and watch/multi/exec operations for CAS
  * operations.
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class RedisAtomicDouble extends Number implements Serializable, BoundKeyOperations<String> {
 
@@ -51,7 +52,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Constructs a new <code>RedisAtomicDouble</code> instance. Uses the value existing in Redis or 0 if none is found.
-	 * 
+	 *
 	 * @param redisCounter redis counter
 	 * @param factory connection factory
 	 */
@@ -61,7 +62,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Constructs a new <code>RedisAtomicDouble</code> instance.
-	 * 
+	 *
 	 * @param redisCounter
 	 * @param factory
 	 * @param initialValue
@@ -96,7 +97,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Constructs a new <code>RedisAtomicDouble</code> instance. Uses the value existing in Redis or 0 if none is found.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @see #RedisAtomicDouble(String, RedisConnectionFactory, double)
@@ -110,7 +111,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 	 * with appropriate {@link RedisSerializer} for the key and value. As an alternative one could use the
 	 * {@link #RedisAtomicDouble(String, RedisConnectionFactory, Double)} constructor which uses appropriate default
 	 * serializers.
-	 * 
+	 *
 	 * @param redisCounter the redis counter
 	 * @param template the template
 	 * @param initialValue the initial value
@@ -141,7 +142,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Gets the current value.
-	 * 
+	 *
 	 * @return the current value
 	 */
 	public double get() {
@@ -156,7 +157,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Sets to the given value.
-	 * 
+	 *
 	 * @param newValue the new value
 	 */
 	public void set(double newValue) {
@@ -165,17 +166,23 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically sets to the given value and returns the old value.
-	 * 
+	 *
 	 * @param newValue the new value
 	 * @return the previous value
 	 */
 	public double getAndSet(double newValue) {
-		return operations.getAndSet(key, newValue);
+
+		Double value = operations.getAndSet(key, newValue);
+		if (value != null) {
+			return value.doubleValue();
+		}
+
+		return 0;
 	}
 
 	/**
 	 * Atomically sets the value to the given updated value if the current value {@code ==} the expected value.
-	 * 
+	 *
 	 * @param expect the expected value
 	 * @param update the new value
 	 * @return true if successful. False return indicates that the actual value was not equal to the expected value.
@@ -204,7 +211,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically increments by one the current value.
-	 * 
+	 *
 	 * @return the previous value
 	 */
 	public double getAndIncrement() {
@@ -213,7 +220,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically decrements by one the current value.
-	 * 
+	 *
 	 * @return the previous value
 	 */
 	public double getAndDecrement() {
@@ -222,7 +229,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically adds the given value to the current value.
-	 * 
+	 *
 	 * @param delta the value to add
 	 * @return the previous value
 	 */
@@ -232,7 +239,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically increments by one the current value.
-	 * 
+	 *
 	 * @return the updated value
 	 */
 	public double incrementAndGet() {
@@ -241,7 +248,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically decrements by one the current value.
-	 * 
+	 *
 	 * @return the updated value
 	 */
 	public double decrementAndGet() {
@@ -250,7 +257,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Atomically adds the given value to the current value.
-	 * 
+	 *
 	 * @param delta the value to add
 	 * @return the updated value
 	 */
@@ -260,7 +267,7 @@ public class RedisAtomicDouble extends Number implements Serializable, BoundKeyO
 
 	/**
 	 * Returns the String representation of the current value.
-	 * 
+	 *
 	 * @return the String representation of the current value.
 	 */
 	public String toString() {
