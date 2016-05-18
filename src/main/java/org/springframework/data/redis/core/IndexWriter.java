@@ -25,6 +25,7 @@ import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link IndexWriter} takes care of writing <a href="http://redis.io/topics/indexes">secondary index</a> structures to
@@ -58,12 +59,26 @@ class IndexWriter {
 	}
 
 	/**
+	 * Initially creates indexes.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param indexValues can be {@literal null}.
+	 */
+	public void createIndexes(Object key, Iterable<IndexedData> indexValues) {
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.CREATE);
+	}
+
+	/**
 	 * Updates indexes by first removing key from existing one and then persisting new index data.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param indexValues can be {@literal null}.
 	 */
 	public void updateIndexes(Object key, Iterable<IndexedData> indexValues) {
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.UPDATE);
+	}
+
+	private void createOrUpdateIndexes(Object key, Iterable<IndexedData> indexValues, IndexWriteMode writeMode) {
 
 		Assert.notNull(key, "Key must not be null!");
 		if (indexValues == null) {
@@ -72,7 +87,18 @@ class IndexWriter {
 
 		byte[] binKey = toBytes(key);
 
-		removeKeyFromExistingIndexes(binKey, indexValues);
+		if (ObjectUtils.nullSafeEquals(IndexWriteMode.UPDATE, writeMode)) {
+
+			if (indexValues.iterator().hasNext()) {
+				IndexedData data = indexValues.iterator().next();
+				if (data != null && data.getKeyspace() != null) {
+					removeKeyFromIndexes(data.getKeyspace(), binKey);
+				}
+			}
+
+			removeKeyFromExistingIndexes(binKey, indexValues);
+		}
+
 		addKeyToIndexes(binKey, indexValues);
 	}
 
@@ -123,8 +149,8 @@ class IndexWriter {
 	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
 		Assert.notNull(indexedData, "IndexedData must not be null!");
-		Set<byte[]> existingKeys = connection.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName()
-				+ ":*"));
+		Set<byte[]> existingKeys = connection
+				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
@@ -166,8 +192,8 @@ class IndexWriter {
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
 		} else {
-			throw new IllegalArgumentException(String.format("Cannot write index data for unknown index type %s",
-					indexedData.getClass()));
+			throw new IllegalArgumentException(
+					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));
 		}
 	}
 
@@ -185,10 +211,17 @@ class IndexWriter {
 			return converter.getConversionService().convert(source, byte[].class);
 		}
 
-		throw new InvalidDataAccessApiUsageException(
-				String
-						.format(
-								"Cannot convert %s to binary representation for index key generation. Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
-								source.getClass()));
+		throw new InvalidDataAccessApiUsageException(String.format(
+				"Cannot convert %s to binary representation for index key generation. Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
+				source.getClass()));
+	}
+
+	/**
+	 * @author Christoph Strobl
+	 * @since 1.8
+	 */
+	private static enum IndexWriteMode {
+
+		CREATE, UPDATE
 	}
 }
