@@ -64,8 +64,8 @@ public class RedisKeyValueAdapterTests {
 		template = new StringRedisTemplate(connectionFactory);
 		template.afterPropertiesSet();
 
-		RedisMappingContext mappingContext = new RedisMappingContext(new MappingConfiguration(new IndexConfiguration(),
-				new KeyspaceConfiguration()));
+		RedisMappingContext mappingContext = new RedisMappingContext(
+				new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration()));
 		mappingContext.afterPropertiesSet();
 
 		adapter = new RedisKeyValueAdapter(template, mappingContext);
@@ -270,6 +270,45 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:firstname:rand"), is(false));
 		assertThat(template.hasKey("persons:1:idx"), is(false));
 		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
+	}
+
+	/**
+	 * @see DATAREDIS-512
+	 */
+	@Test
+	public void putWritesIndexDataCorrectly() {
+
+		Person rand = new Person();
+		rand.age = 24;
+		rand.firstname = "rand";
+
+		adapter.put("rand", rand, "persons");
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(true));
+		assertThat(template.hasKey("persons:rand:idx"), is(true));
+		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:rand"), is(true));
+
+		Person mat = new Person();
+		mat.age = 22;
+		mat.firstname = "mat";
+		adapter.put("mat", mat, "persons");
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(true));
+		assertThat(template.hasKey("persons:firstname:mat"), is(true));
+		assertThat(template.hasKey("persons:rand:idx"), is(true));
+		assertThat(template.hasKey("persons:mat:idx"), is(true));
+		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:rand"), is(true));
+		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
+
+		rand.firstname = "frodo";
+		adapter.put("rand", rand, "persons");
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(false));
+		assertThat(template.hasKey("persons:firstname:mat"), is(true));
+		assertThat(template.hasKey("persons:firstname:frodo"), is(true));
+		assertThat(template.hasKey("persons:rand:idx"), is(true));
+		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:frodo"), is(true));
+		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
 	}
 
 	@KeySpace("persons")

@@ -16,9 +16,12 @@
 
 package org.springframework.data.redis.core;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,11 +30,15 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.convert.Bucket;
+import org.springframework.data.redis.core.convert.RedisData;
+import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 
 /**
  * Unit tests for {@link RedisKeyValueAdapter}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RedisKeyValueAdapterUnitTests {
@@ -65,5 +72,41 @@ public class RedisKeyValueAdapterUnitTests {
 		redisKeyValueAdapter.destroy();
 
 		verify(jedisConnectionFactoryMock, never()).destroy();
+	}
+
+	/**
+	 * @see DATAREDIS-512
+	 */
+	@Test
+	public void putShouldRemoveExistingIndexValuesWhenUpdating() {
+
+		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
+		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
+
+		when(redisConnectionMock.keys(any(byte[].class)))
+				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
+		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(1L);
+
+		redisKeyValueAdapter.put("1", rd, "persons");
+
+		verify(redisConnectionMock, times(1)).sRem(any(byte[].class), any(byte[].class));
+	}
+
+	/**
+	 * @see DATAREDIS-512
+	 */
+	@Test
+	public void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
+
+		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
+		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
+
+		when(redisConnectionMock.sMembers(any(byte[].class)))
+				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
+		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(0L);
+
+		redisKeyValueAdapter.put("1", rd, "persons");
+
+		verify(redisConnectionMock, never()).sRem(any(byte[].class), (byte[][]) anyVararg());
 	}
 }

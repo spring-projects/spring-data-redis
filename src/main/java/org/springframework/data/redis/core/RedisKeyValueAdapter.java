@@ -25,7 +25,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
@@ -38,7 +37,6 @@ import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.convert.CustomConversions;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
@@ -164,8 +162,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	/**
 	 * Default constructor.
 	 */
-	protected RedisKeyValueAdapter() {
-	}
+	protected RedisKeyValueAdapter() {}
 
 	/*
 	 * (non-Javadoc)
@@ -198,7 +195,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				byte[] key = toBytes(rdo.getId());
 				byte[] objectKey = createKey(rdo.getKeyspace(), rdo.getId());
 
-				connection.del(objectKey);
+				boolean isNew = connection.del(objectKey) == 0;
 
 				connection.hMSet(objectKey, rdo.getBucket().rawMap());
 
@@ -215,7 +212,12 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 				connection.sAdd(toBytes(rdo.getKeyspace()), key);
 
-				new IndexWriter(connection, converter).updateIndexes(key, rdo.getIndexedData());
+				IndexWriter indexWriter = new IndexWriter(connection, converter);
+				if (isNew) {
+					indexWriter.createIndexes(key, rdo.getIndexedData());
+				} else {
+					indexWriter.updateIndexes(key, rdo.getIndexedData());
+				}
 				return null;
 			}
 		});
