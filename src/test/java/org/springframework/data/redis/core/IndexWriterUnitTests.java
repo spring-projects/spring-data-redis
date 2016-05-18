@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 
 import org.junit.Before;
@@ -110,8 +111,8 @@ public class IndexWriterUnitTests {
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
 
-		when(connectionMock.keys(any(byte[].class))).thenReturn(
-				new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
+		when(connectionMock.keys(any(byte[].class)))
+				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
 
@@ -136,8 +137,8 @@ public class IndexWriterUnitTests {
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
 		byte[] indexKey2 = "persons:firstname:mat".getBytes(CHARSET);
 
-		when(connectionMock.keys(any(byte[].class))).thenReturn(
-				new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
+		when(connectionMock.keys(any(byte[].class)))
+				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList(indexKey1, indexKey2)));
 
 		writer.removeAllIndexes(KEYSPACE);
 
@@ -176,6 +177,42 @@ public class IndexWriterUnitTests {
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", value));
 
 		verify(connectionMock).sAdd(eq(("persons:firstname:" + identityHexString).getBytes(CHARSET)), eq(KEY_BIN));
+	}
+
+	/**
+	 * @see DATAREDIS-512
+	 */
+	@Test
+	public void createIndexShouldNotTryToRemoveExistingValues() {
+
+		when(connectionMock.keys(any(byte[].class)))
+				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
+
+		writer.createIndexes(KEY_BIN,
+				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand")));
+
+		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
+		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
+				eq("persons:firstname:Rand".getBytes(CHARSET)));
+		verify(connectionMock, never()).sRem(any(byte[].class), eq(KEY_BIN));
+	}
+
+	/**
+	 * @see DATAREDIS-512
+	 */
+	@Test
+	public void updateIndexShouldRemoveExistingValues() {
+
+		when(connectionMock.keys(any(byte[].class)))
+				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes(CHARSET))));
+
+		writer.updateIndexes(KEY_BIN,
+				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand")));
+
+		verify(connectionMock).sAdd(eq("persons:firstname:Rand".getBytes(CHARSET)), eq(KEY_BIN));
+		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
+				eq("persons:firstname:Rand".getBytes(CHARSET)));
+		verify(connectionMock, times(1)).sRem(any(byte[].class), eq(KEY_BIN));
 	}
 
 	static class StubIndxedData implements IndexedData {
