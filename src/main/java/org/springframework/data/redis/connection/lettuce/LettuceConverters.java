@@ -106,6 +106,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_LIST_OF_CLIENT_INFO = new StringToRedisClientInfoConverter();
 	private static final Converter<Partitions, List<RedisClusterNode>> PARTITIONS_TO_CLUSTER_NODES;
 	private static Converter<com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode, RedisClusterNode> CLUSTER_NODE_TO_CLUSTER_NODE_CONVERTER;
+	private static final Converter<List<byte[]>, Long> BYTES_LIST_TO_TIME_CONVERTER;
 	private static final Converter<GeoCoordinates, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final ListConverter<GeoCoordinates, Point> GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER;
 
@@ -301,6 +302,19 @@ abstract public class LettuceConverters extends Converters {
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
+
+		BYTES_LIST_TO_TIME_CONVERTER = new Converter<List<byte[]>, Long>() {
+
+			@Override
+			public Long convert(List<byte[]> source) {
+
+				Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+				Assert.isTrue(source.size() == 2,
+						"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+
+				return toTimeMillis(LettuceConverters.toString(source.get(0)), LettuceConverters.toString(source.get(1)));
+			}
+		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<com.lambdaworks.redis.GeoCoordinates, Point>() {
 			@Override
@@ -681,6 +695,10 @@ abstract public class LettuceConverters extends Converters {
 			}
 		}
 		return args;
+	}
+
+	static Converter<List<byte[]>, Long> toTimeConverter() {
+		return BYTES_LIST_TO_TIME_CONVERTER;
 	}
 
 	/**

@@ -94,6 +94,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
 	private static final Converter<Expiration, byte[]> EXPIRATION_TO_COMMAND_OPTION_CONVERTER;
 	private static final Converter<SetOption, byte[]> SET_OPTION_TO_COMMAND_OPTION_CONVERTER;
+	private static final Converter<List<String>, Long> STRING_LIST_TO_TIME_CONVERTER;
 	private static final Converter<redis.clients.jedis.GeoCoordinate, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final ListConverter<redis.clients.jedis.GeoCoordinate, Point> LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final Converter<byte[], String> BYTES_TO_STRING_CONVERTER;
@@ -192,6 +193,19 @@ abstract public class JedisConverters extends Converters {
 				throw new IllegalArgumentException(String.format("Invalid argument %s for SetOption.", source));
 			}
 
+		};
+
+		STRING_LIST_TO_TIME_CONVERTER = new Converter<List<String>, Long>() {
+
+			@Override
+			public Long convert(List<String> source) {
+
+				Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+				Assert.isTrue(source.size() == 2,
+						"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+
+				return toTimeMillis(source.get(0), source.get(1));
+			}
 		};
 
 		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<redis.clients.jedis.GeoCoordinate, Point>() {
@@ -491,6 +505,10 @@ abstract public class JedisConverters extends Converters {
 			}
 		}
 		return sp;
+	}
+
+	static Converter<List<String>, Long> toTimeConverter() {
+		return STRING_LIST_TO_TIME_CONVERTER;
 	}
 
 	/**
