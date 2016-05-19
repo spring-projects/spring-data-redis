@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.collection.IsCollectionWithSize.*;
+import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
@@ -1919,13 +1920,17 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	/**
 	 * @see DATAREDIS-206
+	 * @see DATAREDIS-513
 	 */
 	@Test
 	public void testGetTimeShouldRequestServerTime() {
 
-		Long time = connectionFactory.getConnection().time();
-		assertThat(time, notNullValue());
-		assertThat(time > 0, equalTo(true));
+		actual.add(connection.time());
+
+		List<Object> results = getResults();
+		assertThat(results, is(not(empty())));
+		assertThat(results.get(0), notNullValue());
+		assertThat((Long) results.get(0) > 0, equalTo(true));
 	}
 
 	/**
