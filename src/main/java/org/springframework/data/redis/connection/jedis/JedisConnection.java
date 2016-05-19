@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2016 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.convert.Converters;
+import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
@@ -788,8 +788,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		/*
 		 *  @see DATAREDIS-286 to avoid overflow in Jedis
-		 *  
-		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
+		 *
+		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a
 		 *  fix for: https://github.com/xetorthio/jedis/pull/575
 		 */
 		if (seconds > Integer.MAX_VALUE) {
@@ -3181,13 +3181,21 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public Long time() {
 
-		List<String> serverTimeInformation = this.jedis.time();
+		try {
 
-		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
-		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid nr of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.time(), JedisConverters.toTimeConverter()));
+				return null;
+			}
 
-		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.time(), JedisConverters.toTimeConverter()));
+				return null;
+			}
+			return JedisConverters.toTimeConverter().convert(jedis.time());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*

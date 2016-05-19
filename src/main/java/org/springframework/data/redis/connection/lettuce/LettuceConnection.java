@@ -54,7 +54,6 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.KeyBoundCursor;
@@ -111,7 +110,7 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/mp911de/lettuce">Lettuce</a> Redis
  * client.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -254,7 +253,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when instantiating a native connection
 	 */
@@ -264,7 +263,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param timeout The connection timeout (in milliseconds) * @param client The {@link RedisClient} to use when
 	 *          instantiating a pub/sub connection
 	 * @param pool The connection pool to use for all other native connections
@@ -275,7 +274,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Will not be used
 	 *          for transactions or blocking operations
 	 * @param timeout The connection timeout (in milliseconds)
@@ -288,7 +287,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * Instantiates a new lettuce connection.
-	 * 
+	 *
 	 * @param sharedConnection A native connection that is shared with other {@link LettuceConnection}s. Should not be
 	 *          used for transactions or blocking operations
 	 * @param timeout The connection timeout (in milliseconds)
@@ -347,7 +346,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * 'Native' or 'raw' execution of the given command along-side the given arguments.
-	 * 
+	 *
 	 * @see RedisCommands#execute(String, byte[]...)
 	 * @param command Command to execute
 	 * @param commandOutputTypeHint Type of Output to use, may be (may be {@literal null}).
@@ -3085,16 +3084,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long time() {
+
 		try {
 
-			List<byte[]> result = getConnection().time();
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().time(), LettuceConverters.toTimeConverter()));
+				return null;
+			}
 
-			Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
-			Assert.isTrue(result.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
-					+ result.size());
-
-			return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
-
+			return LettuceConverters.toTimeConverter().convert(getConnection().time());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -3406,7 +3408,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link #closePipeline()} and {@link #exec()} will be of the type returned by the Lettuce driver
-	 * 
+	 *
 	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
@@ -3643,7 +3645,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/**
 	 * {@link TypeHints} provide {@link CommandOutput} information for a given {@link CommandType}.
-	 * 
+	 *
 	 * @since 1.2.1
 	 */
 	static class TypeHints {
@@ -3804,7 +3806,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		/**
 		 * Returns the {@link CommandOutput} mapped for given {@link CommandType} or {@link ByteArrayOutput} as default.
-		 * 
+		 *
 		 * @param type
 		 * @return {@link ByteArrayOutput} as default when no matching {@link CommandOutput} available.
 		 */
@@ -3815,7 +3817,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		/**
 		 * Returns the {@link CommandOutput} mapped for given {@link CommandType} given {@link CommandOutput} as default.
-		 * 
+		 *
 		 * @param type
 		 * @return
 		 */

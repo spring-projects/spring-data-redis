@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.number.IsCloseTo.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -76,7 +75,7 @@ import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 
 /**
  * Base test class for AbstractConnection integration tests
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
@@ -1922,13 +1921,17 @@ public abstract class AbstractConnectionIntegrationTests {
 
 	/**
 	 * @see DATAREDIS-206
+	 * @see DATAREDIS-513
 	 */
 	@Test
 	public void testGetTimeShouldRequestServerTime() {
 
-		Long time = connectionFactory.getConnection().time();
-		assertThat(time, notNullValue());
-		assertThat(time > 0, equalTo(true));
+		actual.add(connection.time());
+
+		List<Object> results = getResults();
+		assertThat(results, is(not(empty())));
+		assertThat(results.get(0), notNullValue());
+		assertThat((Long) results.get(0) > 0, equalTo(true));
 	}
 
 	/**

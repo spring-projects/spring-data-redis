@@ -58,7 +58,7 @@ import redis.clients.util.SafeEncoder;
 
 /**
  * Jedis type converters.
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Thomas Darimont
@@ -79,6 +79,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<Object, RedisClusterNode> OBJECT_TO_CLUSTER_NODE_CONVERTER;
 	private static final Converter<Expiration, byte[]> EXPIRATION_TO_COMMAND_OPTION_CONVERTER;
 	private static final Converter<SetOption, byte[]> SET_OPTION_TO_COMMAND_OPTION_CONVERTER;
+	private static final Converter<List<String>, Long> STRING_LIST_TO_TIME_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -165,6 +166,19 @@ abstract public class JedisConverters extends Converters {
 			}
 
 		};
+
+		STRING_LIST_TO_TIME_CONVERTER = new Converter<List<String>, Long>() {
+
+			@Override
+			public Long convert(List<String> source) {
+
+				Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+				Assert.isTrue(source.size() == 2,
+						"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+
+				return toTimeMillis(source.get(0), source.get(1));
+			}
+		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -173,7 +187,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * {@link ListConverter} converting jedis {@link redis.clients.jedis.Tuple} to {@link Tuple}.
-	 * 
+	 *
 	 * @return
 	 * @since 1.4
 	 */
@@ -343,7 +357,7 @@ abstract public class JedisConverters extends Converters {
 	/**
 	 * Converts a given {@link Boundary} to its binary representation suitable for {@literal ZRANGEBY*} commands, despite
 	 * {@literal ZRANGEBYLEX}.
-	 * 
+	 *
 	 * @param boundary
 	 * @param defaultValue
 	 * @return
@@ -360,7 +374,7 @@ abstract public class JedisConverters extends Converters {
 
 	/**
 	 * Converts a given {@link Boundary} to its binary representation suitable for ZRANGEBYLEX command.
-	 * 
+	 *
 	 * @param boundary
 	 * @return
 	 * @since 1.6
@@ -382,7 +396,7 @@ abstract public class JedisConverters extends Converters {
 	 * <dt>{@link TimeUnit#MILLISECONDS}</dt>
 	 * <dd>{@code PX}</dd>
 	 * </dl>
-	 * 
+	 *
 	 * @param expiration
 	 * @return
 	 * @since 1.7
@@ -401,7 +415,7 @@ abstract public class JedisConverters extends Converters {
 	 * <dt>{@link SetOption#SET_IF_PRESENT}</dt>
 	 * <dd>{@code XX}</dd>
 	 * </dl>
-	 * 
+	 *
 	 * @param option
 	 * @return
 	 * @since 1.7
@@ -442,9 +456,9 @@ abstract public class JedisConverters extends Converters {
 	 * @return
 	 */
 	public static ScanParams toScanParams(ScanOptions options) {
-		
+
 		ScanParams sp = new ScanParams();
-		
+
 		if (!options.equals(ScanOptions.NONE)) {
 			if (options.getCount() != null) {
 				sp.count(options.getCount().intValue());
@@ -454,6 +468,10 @@ abstract public class JedisConverters extends Converters {
 			}
 		}
 		return sp;
+	}
+
+	static Converter<List<String>, Long> toTimeConverter() {
+		return STRING_LIST_TO_TIME_CONVERTER;
 	}
 
 }
