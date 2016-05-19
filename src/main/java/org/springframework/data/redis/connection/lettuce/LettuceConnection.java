@@ -60,7 +60,6 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
@@ -3464,16 +3463,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long time() {
+
 		try {
 
-			List<byte[]> result = getConnection().time();
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().time(), LettuceConverters.toTimeConverter()));
+				return null;
+			}
 
-			Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
-			Assert.isTrue(result.size() == 2,
-					"Received invalid nr of arguments from redis server. Expected 2 received " + result.size());
-
-			return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
-
+			return LettuceConverters.toTimeConverter().convert(getConnection().time());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

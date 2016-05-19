@@ -53,7 +53,6 @@ import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
-import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
@@ -3579,13 +3578,21 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public Long time() {
 
-		List<String> serverTimeInformation = this.jedis.time();
+		try {
 
-		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
-		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid nr of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.time(), JedisConverters.toTimeConverter()));
+				return null;
+			}
 
-		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.time(), JedisConverters.toTimeConverter()));
+				return null;
+			}
+			return JedisConverters.toTimeConverter().convert(jedis.time());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*
