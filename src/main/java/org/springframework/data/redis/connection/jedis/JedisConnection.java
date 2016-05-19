@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -786,8 +786,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		/*
 		 *  @see DATAREDIS-286 to avoid overflow in Jedis
-		 *  
-		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
+		 *
+		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a
 		 *  fix for: https://github.com/xetorthio/jedis/pull/575
 		 */
 		if (seconds > Integer.MAX_VALUE) {
@@ -973,8 +973,8 @@ public class JedisConnection extends AbstractRedisConnection {
 
 		/*
 		 *  @see DATAREDIS-286 to avoid overflow in Jedis
-		 *  
-		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
+		 *
+		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a
 		 *  fix for: https://github.com/xetorthio/jedis/pull/575
 		 */
 		if (millis > Integer.MAX_VALUE) {
@@ -3090,13 +3090,21 @@ public class JedisConnection extends AbstractRedisConnection {
 	@Override
 	public Long time() {
 
-		List<String> serverTimeInformation = this.jedis.time();
+		try {
 
-		Assert.notEmpty(serverTimeInformation, "Received invalid result from server. Expected 2 items in collection.");
-		Assert.isTrue(serverTimeInformation.size() == 2,
-				"Received invalid nr of arguments from redis server. Expected 2 received " + serverTimeInformation.size());
+			if (isPipelined()) {
+				pipeline(new JedisResult(pipeline.time(), JedisConverters.toTimeConverter()));
+				return null;
+			}
 
-		return Converters.toTimeMillis(serverTimeInformation.get(0), serverTimeInformation.get(1));
+			if (isQueueing()) {
+				transaction(new JedisResult(transaction.time(), JedisConverters.toTimeConverter()));
+				return null;
+			}
+			return JedisConverters.toTimeConverter().convert(jedis.time());
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
 	}
 
 	/*

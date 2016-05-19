@@ -67,6 +67,7 @@ abstract public class JedisConverters extends Converters {
 	private static final Converter<String[], List<RedisClientInfo>> STRING_TO_CLIENT_INFO_CONVERTER = new StringToRedisClientInfoConverter();
 	private static final Converter<redis.clients.jedis.Tuple, Tuple> TUPLE_CONVERTER;
 	private static final ListConverter<redis.clients.jedis.Tuple, Tuple> TUPLE_LIST_TO_TUPLE_LIST_CONVERTER;
+	private static final Converter<List<String>, Long> STRING_LIST_TO_TIME_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -96,6 +97,19 @@ abstract public class JedisConverters extends Converters {
 		MINUS_BYTES = toBytes("-");
 		POSITIVE_INFINITY_BYTES = toBytes("+inf");
 		NEGATIVE_INFINITY_BYTES = toBytes("-inf");
+
+		STRING_LIST_TO_TIME_CONVERTER = new Converter<List<String>, Long>() {
+
+			@Override
+			public Long convert(List<String> source) {
+
+				Assert.notEmpty(source, "Received invalid result from server. Expected 2 items in collection.");
+				Assert.isTrue(source.size() == 2,
+						"Received invalid nr of arguments from redis server. Expected 2 received " + source.size());
+
+				return toTimeMillis(source.get(0), source.get(1));
+			}
+		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -319,5 +333,9 @@ abstract public class JedisConverters extends Converters {
 		buffer.put(value);
 		return buffer.array();
 
+	}
+
+	static Converter<List<String>, Long> toTimeConverter() {
+		return STRING_LIST_TO_TIME_CONVERTER;
 	}
 }

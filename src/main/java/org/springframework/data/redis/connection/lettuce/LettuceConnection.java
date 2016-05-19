@@ -3060,16 +3060,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	public Long time() {
+
 		try {
 
-			List<byte[]> result = getConnection().time();
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().time(), LettuceConverters.toTimeConverter()));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().time(), LettuceConverters.toTimeConverter()));
+				return null;
+			}
 
-			Assert.notEmpty(result, "Received invalid result from server. Expected 2 items in collection.");
-			Assert.isTrue(result.size() == 2, "Received invalid nr of arguments from redis server. Expected 2 received "
-					+ result.size());
-
-			return Converters.toTimeMillis(new String(result.get(0)), new String(result.get(1)));
-
+			return LettuceConverters.toTimeConverter().convert(getConnection().time());
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
