@@ -72,4 +72,18 @@ public class CompositeIndexResolver implements IndexResolver {
 		return data;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(java.lang.String, java.lang.String, org.springframework.data.util.TypeInformation, java.lang.Object)
+	 */
+	@Override
+	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
+			Object value) {
+
+		Set<IndexedData> data = new LinkedHashSet<IndexedData>();
+		for (IndexResolver resolver : resolvers) {
+			data.addAll(resolver.resolveIndexesFor(keyspace, path, typeInformation, value));
+		}
+		return data;
+	}
+
 }

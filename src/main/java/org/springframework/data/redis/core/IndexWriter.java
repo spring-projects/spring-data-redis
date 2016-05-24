@@ -21,6 +21,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.RedisConverter;
+import org.springframework.data.redis.core.convert.RemoveIndexedData;
 import org.springframework.data.redis.core.convert.SimpleIndexedPropertyValue;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
@@ -32,7 +33,7 @@ import org.springframework.util.ObjectUtils;
  * Redis. Depending on the type of {@link IndexedData} it uses eg. Sets with specific names to add actually referenced
  * keys to. While doing so {@link IndexWriter} also keeps track of all indexes associated with the root types key, which
  * allows to remove the root key from all indexes in case of deletion.
- * 
+ *
  * @author Christoph Strobl
  * @author Rob Winch
  * @since 1.7
@@ -44,7 +45,7 @@ class IndexWriter {
 
 	/**
 	 * Creates new {@link IndexWriter}.
-	 * 
+	 *
 	 * @param keyspace The key space to write index values to. Must not be {@literal null}.
 	 * @param connection must not be {@literal null}.
 	 * @param converter must not be {@literal null}.
@@ -104,7 +105,7 @@ class IndexWriter {
 
 	/**
 	 * Removes a key from all available indexes.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 */
 	public void removeKeyFromIndexes(String keyspace, Object key) {
@@ -142,13 +143,14 @@ class IndexWriter {
 
 	/**
 	 * Remove given key from all indexes matching {@link IndexedData#getIndexName()}:
-	 * 
+	 *
 	 * @param key
 	 * @param indexedData
 	 */
 	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
 		Assert.notNull(indexedData, "IndexedData must not be null!");
+
 		Set<byte[]> existingKeys = connection
 				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
 
@@ -168,7 +170,7 @@ class IndexWriter {
 
 	/**
 	 * Adds a given key to the index for {@link IndexedData#getIndexName()}.
-	 * 
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param indexedData must not be {@literal null}.
 	 */
@@ -177,7 +179,11 @@ class IndexWriter {
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(indexedData, "IndexedData must not be null!");
 
-		if (indexedData instanceof SimpleIndexedPropertyValue) {
+		if (indexedData instanceof RemoveIndexedData) {
+			return;
+		}
+
+		else if (indexedData instanceof SimpleIndexedPropertyValue) {
 
 			Object value = ((SimpleIndexedPropertyValue) indexedData).getValue();
 
@@ -212,7 +218,8 @@ class IndexWriter {
 		}
 
 		throw new InvalidDataAccessApiUsageException(String.format(
-				"Cannot convert %s to binary representation for index key generation. Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
+				"Cannot convert %s to binary representation for index key generation. "
+						+ "Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
 				source.getClass()));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.redis.core.PartialUpdate;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
@@ -174,6 +174,55 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		config.addKeyspaceSettings(setting);
 
 		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(100L)), is(100L));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnDefaultValue() {
+
+		Long ttl = accessor
+				.getTimeToLive(new PartialUpdate<TypeWithRedisHashAnnotation>("123", new TypeWithRedisHashAnnotation()));
+
+		assertThat(ttl, is(5L));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnValueWhenUpdateModifiesTtlProperty() {
+
+		Long ttl = accessor
+				.getTimeToLive(new PartialUpdate<SimpleTypeWithTTLProperty>("123", new SimpleTypeWithTTLProperty())
+						.set("ttl", 100).refreshTtl(true));
+
+		assertThat(ttl, is(100L));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnPropertyValueWhenUpdateModifiesTtlProperty() {
+
+		Long ttl = accessor.getTimeToLive(new PartialUpdate<TypeWithRedisHashAnnotationAndTTLProperty>("123",
+				new TypeWithRedisHashAnnotationAndTTLProperty()).set("ttl", 100).refreshTtl(true));
+
+		assertThat(ttl, is(100L));
+	}
+
+	/**
+	 * @see DATAREDIS-471
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnDefaultValueWhenUpdateDoesNotModifyTtlProperty() {
+
+		Long ttl = accessor.getTimeToLive(new PartialUpdate<TypeWithRedisHashAnnotationAndTTLProperty>("123",
+				new TypeWithRedisHashAnnotationAndTTLProperty()).refreshTtl(true));
+
+		assertThat(ttl, is(10L));
 	}
 
 	static class SimpleType {}

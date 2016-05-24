@@ -487,6 +487,44 @@ mother = persons:a9d4b3a0-50d3-4538-a2fc-f7fc2581ee56      <1>
 WARNING: Referenced Objects are not subject of persisting changes when saving the referencing object. Please make sure to persist changes on referenced objects separately, since only the reference will be stored. 
 Indexes set on properties of referenced types will not be resolved.
 
+[[redis.repositories.partial-updates]]
+== Persisting Partial Updates
+In some cases it is not necessary to load and rewrite the entire entity just to set a new value within it. A session timestamp for last active time might be such a scenario where you just want to alter one property.
+`PartialUpdate` allows to define `set` and `delete` actions on existing objects while taking care of updating potential expiration times of the entity itself as well as index structures.
+
+.Sample Partial Update
+====
+[source,java]
+----
+PartialUpdate<Person> update = new PartialUpdate<Person>("e2c7dcee", Person.class)
+  .set("firstname", "mat")                                                           <1>
+  .set("address.city", "emond's field")                                              <2>
+  .del("age");                                                                       <3>
+
+template.update(update);
+
+update = new PartialUpdate<Person>("e2c7dcee", Person.class)
+  .set("address", new Address("caemlyn", "andor"))                                   <4>
+  .set("attributes", singletonMap("eye-color", "grey"));                             <5>
+
+template.update(update);
+
+update = new PartialUpdate<Person>("e2c7dcee", Person.class)
+  .refreshTtl(true);                                                                 <6>
+  .set("expiration", 1000);
+
+template.update(update);
+----
+<1> Set the simple property _firstname_ to _mat_.
+<2> Set the simple property _address.city_ to _emond's field_ without having to pass in the entire object. This does not work when a custom conversion is registered.
+<3> Remove the property _age_.
+<4> Set complex property _address_.
+<5> Set a map/collection of values removes the previously existing map/collection and replaces the values with the given ones.
+<6> Automatically update the server expiration time when altering <<redis.repositories.expirations>>.
+====
+
+NOTE: Updating complex objects as well as map/collection structures requires further interaction with Redis to determine existing values which means that it might turn out that rewriting the entire entity might be faster.
+
 [[redis.repositories.queries]]
 == Queries and Query Methods
 Query methods allow automatic derivation of simple finder queries from the method name. 

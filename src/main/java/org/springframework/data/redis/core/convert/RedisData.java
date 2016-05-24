@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,7 +27,7 @@ import org.springframework.util.Assert;
 /**
  * Data object holding {@link Bucket} representing the domain object to be stored in a Redis hash. Index information
  * points to additional structures holding the objects is for searching.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -49,7 +50,7 @@ public class RedisData {
 
 	/**
 	 * Creates new {@link RedisData} with {@link Bucket} holding provided values.
-	 * 
+	 *
 	 * @param raw should not be {@literal null}.
 	 */
 	public RedisData(Map<byte[], byte[]> raw) {
@@ -58,7 +59,7 @@ public class RedisData {
 
 	/**
 	 * Creates new {@link RedisData} with {@link Bucket}
-	 * 
+	 *
 	 * @param bucket must not be {@literal null}.
 	 */
 	public RedisData(Bucket bucket) {
@@ -70,7 +71,7 @@ public class RedisData {
 
 	/**
 	 * Set the id to be used as part of the key.
-	 * 
+	 *
 	 * @param id
 	 */
 	public void setId(String id) {
@@ -86,7 +87,7 @@ public class RedisData {
 
 	/**
 	 * Get the time before expiration in seconds.
-	 * 
+	 *
 	 * @return {@literal null} if not set.
 	 */
 	public Long getTimeToLive() {
@@ -94,12 +95,21 @@ public class RedisData {
 	}
 
 	/**
-	 * @param index
+	 * @param index must not be {@literal null}.
 	 */
 	public void addIndexedData(IndexedData index) {
 
 		Assert.notNull(index, "IndexedData to add must not be null!");
 		this.indexedData.add(index);
+	}
+
+	/**
+	 * @param indexes must not be {@literal null}.
+	 */
+	public void addIndexedData(Collection<IndexedData> indexes) {
+
+		Assert.notNull(indexes, "IndexedData to add must not be null!");
+		this.indexedData.addAll(indexes);
 	}
 
 	/**
@@ -132,7 +142,7 @@ public class RedisData {
 
 	/**
 	 * Set the time before expiration in {@link TimeUnit#SECONDS}.
-	 * 
+	 *
 	 * @param timeToLive can be {@literal null}.
 	 */
 	public void setTimeToLive(Long timeToLive) {
@@ -141,7 +151,7 @@ public class RedisData {
 
 	/**
 	 * Set the time before expiration converting the given arguments to {@link TimeUnit#SECONDS}.
-	 * 
+	 *
 	 * @param timeToLive must not be {@literal null}
 	 * @param timeUnit must not be {@literal null}
 	 */

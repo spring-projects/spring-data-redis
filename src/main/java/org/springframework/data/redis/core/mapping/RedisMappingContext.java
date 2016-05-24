@@ -32,6 +32,9 @@ import org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingCon
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.redis.core.PartialUpdate;
+import org.springframework.data.redis.core.PartialUpdate.PropertyUpdate;
+import org.springframework.data.redis.core.PartialUpdate.UpdateCommand;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
@@ -42,6 +45,7 @@ import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
@@ -75,8 +79,8 @@ public class RedisMappingContext extends KeyValueMappingContext {
 	 */
 	public RedisMappingContext(MappingConfiguration mappingConfiguration) {
 
-		this.mappingConfiguration = mappingConfiguration != null ? mappingConfiguration : new MappingConfiguration(
-				new IndexConfiguration(), new KeyspaceConfiguration());
+		this.mappingConfiguration = mappingConfiguration != null ? mappingConfiguration
+				: new MappingConfiguration(new IndexConfiguration(), new KeyspaceConfiguration());
 
 		setFallbackKeySpaceResolver(new ConfigAwareKeySpaceResolver(this.mappingConfiguration.getKeyspaceConfiguration()));
 		this.timeToLiveAccessor = new ConfigAwareTimeToLiveAccessor(this.mappingConfiguration.getKeyspaceConfiguration(),
@@ -245,7 +249,8 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		public Long getTimeToLive(final Object source) {
 
 			Assert.notNull(source, "Source must not be null!");
-			Class<?> type = source instanceof Class<?> ? (Class<?>) source : source.getClass();
+			Class<?> type = source instanceof Class<?> ? (Class<?>) source
+					: (source instanceof PartialUpdate ? ((PartialUpdate) source).getTarget() : source.getClass());
 
 			Long defaultTimeout = resolveDefaultTimeOut(type);
 			TimeUnit unit = TimeUnit.SECONDS;
@@ -257,12 +262,31 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				if (ttlProperty.findAnnotation(TimeToLive.class) != null) {
 					unit = ttlProperty.findAnnotation(TimeToLive.class).unit();
 				}
+			}
+
+			if (source instanceof PartialUpdate) {
+
+				PartialUpdate<?> update = (PartialUpdate<?>) source;
+
+				if (ttlProperty != null && !update.getPropertyUpdates().isEmpty()) {
+					for (PropertyUpdate pUpdate : update.getPropertyUpdates()) {
+
+						if (UpdateCommand.SET.equals(pUpdate.getCmd()) && ttlProperty.getName().equals(pUpdate.getPropertyPath())) {
+
+							return TimeUnit.SECONDS
+									.convert(NumberUtils.convertNumberToTargetClass((Number) pUpdate.getValue(), Long.class), unit);
+						}
+					}
+				}
+
+			} else if (ttlProperty != null) {
 
 				RedisPersistentEntity entity = mappingContext.getPersistentEntity(type);
 				Long timeout = (Long) entity.getPropertyAccessor(source).getProperty(ttlProperty);
 				if (timeout != null) {
 					return TimeUnit.SECONDS.convert(timeout, unit);
 				}
+
 			} else {
 
 				Method timeoutMethod = resolveTimeMethod(type);
@@ -275,14 +299,14 @@ public class RedisMappingContext extends KeyValueMappingContext {
 							return TimeUnit.SECONDS.convert(timeout.longValue(), ttl.unit());
 						}
 					} catch (IllegalAccessException e) {
-						throw new IllegalStateException("Not allowed to access method '" + timeoutMethod.getName() + "': "
-								+ e.getMessage(), e);
-					} catch (IllegalArgumentException e) {
-						throw new IllegalStateException("Cannot invoke method '" + timeoutMethod.getName()
-								+ " without arguments': " + e.getMessage(), e);
-					} catch (InvocationTargetException e) {
 						throw new IllegalStateException(
-								"Cannot access method '" + timeoutMethod.getName() + "': " + e.getMessage(), e);
+								"Not allowed to access method '" + timeoutMethod.getName() + "': " + e.getMessage(), e);
+					} catch (IllegalArgumentException e) {
+						throw new IllegalStateException(
+								"Cannot invoke method '" + timeoutMethod.getName() + " without arguments': " + e.getMessage(), e);
+					} catch (InvocationTargetException e) {
+						throw new IllegalStateException("Cannot access method '" + timeoutMethod.getName() + "': " + e.getMessage(),
+								e);
 					}
 				}
 			}
