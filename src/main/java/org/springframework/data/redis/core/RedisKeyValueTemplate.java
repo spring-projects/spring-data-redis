@@ -140,29 +140,6 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 		super.update(objectToUpdate);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.KeyValueTemplate#destroy()
-	 */
-	@Override
-	public void destroy() throws Exception {
-
-		execute(new RedisKeyValueCallback<Void>() {
-
-			@Override
-			public Void doInRedis(RedisKeyValueAdapter adapter) {
-
-				try {
-					adapter.destroy();
-				} catch (Exception e) {
-					throw new RedisSystemException(e.getMessage(), e);
-				}
-				return null;
-			}
-		});
-
-	}
-
 	protected void doPartialUpdate(final PartialUpdate<?> update) {
 
 		execute(new RedisKeyValueCallback<Void>() {

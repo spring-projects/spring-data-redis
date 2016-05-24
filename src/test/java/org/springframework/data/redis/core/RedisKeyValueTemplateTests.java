@@ -109,6 +109,7 @@ public class RedisKeyValueTemplateTests {
 		});
 
 		template.destroy();
+		adapter.destroy();
 	}
 
 	/**

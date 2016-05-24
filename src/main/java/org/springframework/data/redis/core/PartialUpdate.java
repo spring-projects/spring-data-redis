@@ -114,6 +114,7 @@ public class PartialUpdate<T> {
 		PartialUpdate<T> update = new PartialUpdate<T>(this.id, this.target, this.value, this.refreshTtl,
 				this.propertyUpdates);
 		update.propertyUpdates.add(new PropertyUpdate(UpdateCommand.SET, path, value));
+
 		return update;
 	}
 
@@ -130,6 +131,7 @@ public class PartialUpdate<T> {
 		PartialUpdate<T> update = new PartialUpdate<T>(this.id, this.target, this.value, this.refreshTtl,
 				this.propertyUpdates);
 		update.propertyUpdates.add(new PropertyUpdate(UpdateCommand.DEL, path));
+
 		return update;
 	}
 
