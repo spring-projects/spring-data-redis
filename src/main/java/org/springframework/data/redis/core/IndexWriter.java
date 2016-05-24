@@ -150,6 +150,7 @@ class IndexWriter {
 	protected void removeKeyFromExistingIndexes(byte[] key, IndexedData indexedData) {
 
 		Assert.notNull(indexedData, "IndexedData must not be null!");
+
 		Set<byte[]> existingKeys = connection
 				.keys(toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName() + ":*"));
 
@@ -217,7 +218,8 @@ class IndexWriter {
 		}
 
 		throw new InvalidDataAccessApiUsageException(String.format(
-				"Cannot convert %s to binary representation for index key generation. Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
+				"Cannot convert %s to binary representation for index key generation. "
+						+ "Are you missing a Converter? Did you register a non PathBasedRedisIndexDefinition that might apply to a complex type?",
 				source.getClass()));
 	}
 

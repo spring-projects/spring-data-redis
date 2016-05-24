@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNot.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;

@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsEqual.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -109,6 +107,7 @@ public class RedisKeyValueTemplateTests {
 		});
 
 		template.destroy();
+		adapter.destroy();
 	}
 
 	/**

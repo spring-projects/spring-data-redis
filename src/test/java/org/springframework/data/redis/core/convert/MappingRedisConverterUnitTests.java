@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -1586,8 +1582,7 @@ public class MappingRedisConverterUnitTests {
 	}
 
 	/**
-	 * <<<<<<< HEAD
-	 * 
+	 *
 	 * @see DATAREDIS-509
 	 */
 	@Test

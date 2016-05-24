@@ -62,7 +62,7 @@ public class PathIndexResolver implements IndexResolver {
 	/**
 	 * Creates new {@link PathIndexResolver} with given {@link IndexConfiguration}.
 	 *
-	 * @param mapppingContext must not be {@literal null}.
+	 * @param mappingContext must not be {@literal null}.
 	 */
 	public PathIndexResolver(RedisMappingContext mappingContext) {
 
@@ -80,6 +80,9 @@ public class PathIndexResolver implements IndexResolver {
 				null, value);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.convert.IndexResolver#resolveIndexesFor(java.lang.String, java.lang.String, org.springframework.data.util.TypeInformation, java.lang.Object)
+	 */
 	@Override
 	public Set<IndexedData> resolveIndexesFor(String keyspace, String path, TypeInformation<?> typeInformation,
 			Object value) {
@@ -134,7 +137,7 @@ public class PathIndexResolver implements IndexResolver {
 						final Iterable<?> iterable;
 
 						if (Iterable.class.isAssignableFrom(propertyValue.getClass())) {
-							iterable = (Iterable) propertyValue;
+							iterable = (Iterable<?>) propertyValue;
 						} else if (propertyValue.getClass().isArray()) {
 							iterable = CollectionUtils.arrayToList(propertyValue);
 						} else {

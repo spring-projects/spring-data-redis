@@ -496,7 +496,7 @@ Indexes set on properties of referenced types will not be resolved.
 [[redis.repositories.partial-updates]]
 == Persisting Partial Updates
 In some cases it is not necessary to load and rewrite the entire entity just to set a new value within it. A session timestamp for last active time might be such a scenario where you just want to alter one property.
-`PartialUpdate` allows to define `set`, `delete` actions on existing objects while taking care of updating potential expiration times of the entity itself as well as index structures.
+`PartialUpdate` allows to define `set` and `delete` actions on existing objects while taking care of updating potential expiration times of the entity itself as well as index structures.
 
 .Sample Partial Update
 ====
@@ -521,7 +521,7 @@ update = new PartialUpdate<Person>("e2c7dcee", Person.class)
 
 template.update(update);
 ----
-<1> Set the simple property _firstname_ to _mat_
+<1> Set the simple property _firstname_ to _mat_.
 <2> Set the simple property _address.city_ to _emond's field_ without having to pass in the entire object. This does not work when a custom conversion is registered.
 <3> Remove the property _age_.
 <4> Set complex property _address_.
