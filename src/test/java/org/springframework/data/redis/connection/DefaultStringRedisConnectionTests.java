@@ -1977,7 +1977,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any(Circle.class));
 
 		actual.add(
-				connection.georadius(foo, new Circle(new Point(13.361389, 38.115556), new Distance(10, DistanceUnit.FEET))));
+				connection.geoRadius(foo, new Circle(new Point(13.361389, 38.115556), new Distance(10, DistanceUnit.FEET))));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
@@ -2004,7 +2004,7 @@ public class DefaultStringRedisConnectionTests {
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance();
 		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any(Circle.class), eq(geoRadiusParam));
 
-		actual.add(connection.georadius(foo,
+		actual.add(connection.geoRadius(foo,
 				new Circle(new Point(13.361389, 38.115556), new Distance(10, DistanceUnit.FEET)), geoRadiusParam));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
@@ -2031,7 +2031,7 @@ public class DefaultStringRedisConnectionTests {
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().sortDescending();
 		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any(Circle.class), eq(geoRadiusParam));
 
-		actual.add(connection.georadius(foo,
+		actual.add(connection.geoRadius(foo,
 				new Circle(new Point(13.361389, 38.115556), new Distance(10, DistanceUnit.FEET)), geoRadiusParam));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
@@ -2058,7 +2058,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(geoResults).when(nativeConnection).geoRadiusByMember(fooBytes, barBytes,
 				new Distance(38.115556, DistanceUnit.FEET));
 
-		actual.add(connection.georadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET)));
+		actual.add(connection.geoRadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET)));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
@@ -2087,7 +2087,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(geoResults).when(nativeConnection).geoRadiusByMember(fooBytes, barBytes,
 				new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam);
 
-		actual.add(connection.georadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam));
+		actual.add(connection.geoRadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
@@ -2116,7 +2116,7 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(geoResults).when(nativeConnection).geoRadiusByMember(fooBytes, barBytes,
 				new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam);
 
-		actual.add(connection.georadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam));
+		actual.add(connection.geoRadiusByMember(foo, bar, new Distance(38.115556, DistanceUnit.FEET), geoRadiusParam));
 		verifyResults(Arrays.asList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 

@@ -2499,10 +2499,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadius(java.lang.String, org.springframework.data.geo.Circle)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoRadius(java.lang.String, org.springframework.data.geo.Circle)
 	 */
 	@Override
-	public GeoResults<GeoLocation<String>> georadius(String key, Circle within) {
+	public GeoResults<GeoLocation<String>> geoRadius(String key, Circle within) {
 
 		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(serialize(key), within);
 		if (isFutureConversion()) {
@@ -2514,10 +2514,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadius(java.lang.String, org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoRadius(java.lang.String, org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<String>> georadius(String key, Circle within, GeoRadiusCommandArgs args) {
+	public GeoResults<GeoLocation<String>> geoRadius(String key, Circle within, GeoRadiusCommandArgs args) {
 
 		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadius(serialize(key), within, args);
 		if (isFutureConversion()) {
@@ -2528,19 +2528,19 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadiusByMember(java.lang.String, java.lang.String, double)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoRadiusByMember(java.lang.String, java.lang.String, double)
 	 */
 	@Override
-	public GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, double radius) {
-		return georadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
+	public GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, double radius) {
+		return geoRadiusByMember(key, member, new Distance(radius, DistanceUnit.METERS));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadiusByMember(java.lang.String, java.lang.String, org.springframework.data.geo.Distance)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoRadiusByMember(java.lang.String, java.lang.String, org.springframework.data.geo.Distance)
 	 */
 	@Override
-	public GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius) {
+	public GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius) {
 
 		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(serialize(key), serialize(member), radius);
 		if (isFutureConversion()) {
@@ -2551,10 +2551,10 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.StringRedisConnection#georadiusByMember(java.lang.String, java.lang.String, org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#geoRadiusByMember(java.lang.String, java.lang.String, org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius,
+	public GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius,
 			GeoRadiusCommandArgs args) {
 
 		GeoResults<GeoLocation<byte[]>> result = delegate.geoRadiusByMember(serialize(key), serialize(member), radius,
@@ -2567,7 +2567,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadius(byte[], org.springframework.data.geo.Circle)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
@@ -2581,7 +2581,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
@@ -2595,7 +2595,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], double)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
@@ -2604,7 +2604,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], org.springframework.data.geo.Distance)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
@@ -2618,7 +2618,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,

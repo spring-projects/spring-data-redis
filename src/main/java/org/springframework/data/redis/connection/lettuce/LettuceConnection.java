@@ -3301,7 +3301,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadius(byte[], org.springframework.data.geo.Circle)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
@@ -3337,7 +3337,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadius(byte[], org.springframework.data.geo.Circle, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args) {
@@ -3373,7 +3373,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], double)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius) {
@@ -3382,7 +3382,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], double, org.springframework.data.geo.Metric)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], double, org.springframework.data.geo.Metric)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
@@ -3414,7 +3414,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisGeoCommands#georadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
+	 * @see org.springframework.data.redis.connection.RedisGeoCommands#geoRadiusByMember(byte[], byte[], org.springframework.data.geo.Distance, org.springframework.data.redis.core.GeoRadiusCommandArgs)
 	 */
 	@Override
 	public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,

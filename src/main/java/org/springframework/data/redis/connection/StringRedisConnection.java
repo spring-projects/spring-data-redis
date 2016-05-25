@@ -732,7 +732,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
 	 * @since 1.8
 	 */
-	GeoResults<GeoLocation<String>> georadius(String key, Circle within);
+	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -744,7 +744,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
 	 * @since 1.8
 	 */
-	GeoResults<GeoLocation<String>> georadius(String key, Circle within, GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<String>> geoRadius(String key, Circle within, GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -757,7 +757,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
 	 * @since 1.8
 	 */
-	GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, double radius);
+	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, double radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -770,7 +770,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
 	 * @since 1.8
 	 */
-	GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius);
+	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -784,7 +784,7 @@ public interface StringRedisConnection extends RedisConnection {
 	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
 	 * @since 1.8
 	 */
-	GeoResults<GeoLocation<String>> georadiusByMember(String key, String member, Distance radius,
+	GeoResults<GeoLocation<String>> geoRadiusByMember(String key, String member, Distance radius,
 			GeoRadiusCommandArgs args);
 
 	/**
