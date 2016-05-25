@@ -2660,8 +2660,8 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.georadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS))));
-		actual.add(connection.georadius(key, new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS))));
+		actual.add(connection.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS))));
+		actual.add(connection.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS))));
 
 		List<Object> results = getResults();
 		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent(), hasSize(3));
@@ -2679,7 +2679,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.georadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
+		actual.add(connection.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
 				newGeoRadiusArgs().includeDistance()));
 
 		List<Object> results = getResults();
@@ -2701,7 +2701,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.georadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
+		actual.add(connection.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)),
 				newGeoRadiusArgs().limit(2)));
 
 		List<Object> results = getResults();
@@ -2719,7 +2719,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.georadiusByMember(key, PALERMO.getName(), new Distance(100, KILOMETERS),
+		actual.add(connection.geoRadiusByMember(key, PALERMO.getName(), new Distance(100, KILOMETERS),
 				newGeoRadiusArgs().sortAscending()));
 
 		List<Object> results = getResults();
@@ -2740,7 +2740,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.georadiusByMember(key, PALERMO.getName(), new Distance(100, KILOMETERS),
+		actual.add(connection.geoRadiusByMember(key, PALERMO.getName(), new Distance(100, KILOMETERS),
 				newGeoRadiusArgs().includeDistance()));
 
 		List<Object> results = getResults();
@@ -2762,7 +2762,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		String key = "geo-" + UUID.randomUUID();
 		actual.add(connection.geoAdd(key, Arrays.asList(ARIGENTO, CATANIA, PALERMO)));
 
-		actual.add(connection.georadiusByMember(key, PALERMO.getName(), new Distance(200, KILOMETERS),
+		actual.add(connection.geoRadiusByMember(key, PALERMO.getName(), new Distance(200, KILOMETERS),
 				newGeoRadiusArgs().limit(2)));
 
 		List<Object> results = getResults();

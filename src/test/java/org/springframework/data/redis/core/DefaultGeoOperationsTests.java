@@ -272,7 +272,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1);
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadius(key,
 				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)));
 
 		assertThat(result.getContent(), hasSize(2));
@@ -291,7 +291,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1);
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadius(key,
 				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
 				newGeoRadiusArgs().includeDistance().sortDescending());
 
@@ -318,7 +318,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1);
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadius(key,
 				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
 				newGeoRadiusArgs().includeCoordinates().sortAscending());
 
@@ -345,7 +345,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1);
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadius(key,
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadius(key,
 				new Circle(new Point(15, 37), new Distance(200, KILOMETERS)),
 				newGeoRadiusArgs().includeCoordinates().includeDistance().sortAscending());
 		assertThat(result.getContent(), hasSize(2));
@@ -378,7 +378,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member3, new Distance(200, KILOMETERS));
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadiusByMember(key, member3, new Distance(200, KILOMETERS));
 		assertThat(result.getContent(), hasSize(3));
 	}
 
@@ -397,7 +397,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member3, new Distance(100, KILOMETERS),
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadiusByMember(key, member3, new Distance(100, KILOMETERS),
 				newGeoRadiusArgs().includeDistance().sortDescending());
 
 		assertThat(result.getContent(), hasSize(2));
@@ -422,7 +422,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2);
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
 
-		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member3,
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadiusByMember(key, member3,
 				new Distance(100, DistanceUnit.KILOMETERS), newGeoRadiusArgs().includeCoordinates().sortAscending());
 
 		assertThat(result.getContent(), hasSize(2));
@@ -451,7 +451,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		geoOperations.geoAdd(key, POINT_ARIGENTO, member3);
 
 		// with coord and dist, ascending
-		GeoResults<GeoLocation<M>> result = geoOperations.georadiusByMember(key, member1, new Distance(100, KILOMETERS),
+		GeoResults<GeoLocation<M>> result = geoOperations.geoRadiusByMember(key, member1, new Distance(100, KILOMETERS),
 				newGeoRadiusArgs().includeCoordinates().includeDistance().sortAscending());
 		assertThat(result.getContent(), hasSize(2));
 

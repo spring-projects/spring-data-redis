@@ -118,7 +118,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
 	 */
-	GeoResults<GeoLocation<M>> georadius(Circle within);
+	GeoResults<GeoLocation<M>> geoRadius(Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -128,7 +128,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
 	 */
-	GeoResults<GeoLocation<M>> georadius(Circle within, GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<M>> geoRadius(Circle within, GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -139,7 +139,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
 	 */
-	GeoResults<GeoLocation<M>> georadiusByMember(K key, M member, double radius);
+	GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -150,7 +150,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
 	 */
-	GeoResults<GeoLocation<M>> georadiusByMember(M member, Distance distance);
+	GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -162,7 +162,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
 	 */
-	GeoResults<GeoLocation<M>> georadiusByMember(M member, Distance distance, GeoRadiusCommandArgs args);
+	GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance, GeoRadiusCommandArgs args);
 
 	/**
 	 * Remove the {@literal member}s.
