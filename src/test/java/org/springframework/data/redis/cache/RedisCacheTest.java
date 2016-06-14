@@ -17,6 +17,7 @@
 package org.springframework.data.redis.cache;
 
 import static edu.umd.cs.mtc.TestFramework.*;
+import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNot.*;
@@ -279,6 +280,38 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		}
 
 		assertThat(wrapper.get(), equalTo(value));
+	}
+
+	/**
+	 * @see DATAREDIS-510
+	 */
+	@Test
+	public void cachePutWithNullShouldNotAddStuffToRedis() {
+
+		Object key = getKey();
+		Object value = getValue();
+
+		cache.put(key, null);
+
+		assertThat(cache.get(key), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-510
+	 */
+	@Test
+	public void cachePutWithNullShouldRemoveKeyIfExists() {
+
+		Object key = getKey();
+		Object value = getValue();
+
+		cache.put(key, value);
+
+		assertThat(cache.get(key).get(), is(equalTo(value)));
+
+		cache.put(key, null);
+
+		assertThat(cache.get(key), is(nullValue()));
 	}
 
 	/**
