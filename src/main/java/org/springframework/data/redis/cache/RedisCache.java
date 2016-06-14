@@ -686,10 +686,14 @@ public class RedisCache implements Cache {
 				connection.multi();
 			}
 
-			connection.set(element.getKeyBytes(), element.get());
+			if (element.get().length == 0) {
+				connection.del(element.getKeyBytes());
+			} else {
+				connection.set(element.getKeyBytes(), element.get());
 
-			processKeyExpiration(element, connection);
-			maintainKnownKeys(element, connection);
+				processKeyExpiration(element, connection);
+				maintainKnownKeys(element, connection);
+			}
 
 			if (!isClusterConnection(connection)) {
 				connection.exec();
