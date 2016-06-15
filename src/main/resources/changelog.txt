@@ -6,6 +6,24 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.2.RELEASE (2016-06-15)
+---------------------------------------------
+* DATAREDIS-517 - Back port documentation for New in Spring Data Redis 1.7.
+* DATAREDIS-516 - spring-data-redis requires spring 4.2.x components.
+* DATAREDIS-513 - Pipelining doesn't supports time operation.
+* DATAREDIS-512 - Skip repository index update checks on insert.
+* DATAREDIS-510 - Current CacheValueAccessor implementation Make null value to empty string.
+* DATAREDIS-509 - Handle serializing arrays of primitives.
+* DATAREDIS-507 - RedisKeyValueAdapter.destroy calls RedisConnectionFactory.destroy.
+* DATAREDIS-501 - RedisTemplate's default serializer assumes that its ClassLoader can load application types.
+* DATAREDIS-498 - MappingRedisConverter uses List.sort which requires Java 8.
+* DATAREDIS-492 - "CollectionLike" properties are force cast into Collection<?> even though they could be arrays.
+* DATAREDIS-491 - Prevent KeyspaceEventMessageListener from starting when no repository detected.
+* DATAREDIS-489 - Store and retrieve type hints for Object type property values even when those are considered as simple types.
+* DATAREDIS-488 - Release 1.7.2 (Hopper SR2).
+* DATAREDIS-469 - RedisAtomicLong throws a null pointer if key is removed.
+
+
 Changes in version 1.7.1.RELEASE (2016-04-06)
 ---------------------------------------------
 * DATAREDIS-486 - Release 1.7.1 (Hopper SR1).
