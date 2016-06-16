@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -103,6 +102,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	private ApplicationEventPublisher eventPublisher;
 
 	private EnableKeyspaceEvents enableKeyspaceEvents = EnableKeyspaceEvents.OFF;
+	private String keyspaceNotificationsConfigParameter = null;
 
 	/**
 	 * Creates new {@link RedisKeyValueAdapter} with default {@link RedisMappingContext} and default
@@ -470,6 +470,17 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	}
 
 	/**
+	 * Configure the {@literal notify-keyspace-events} property if not already set. Use an empty {@link String} or
+	 * {@literal null} to retain existing server settings.
+	 *
+	 * @param keyspaceNotificationsConfigParameter can be {@literal null}.
+	 * @since 1.8
+	 */
+	public void setKeyspaceNotificationsConfigParameter(String keyspaceNotificationsConfigParameter) {
+		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
+	}
+
+	/**
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 * @since 1.7.2
 	 */
@@ -491,7 +502,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			this.expirationListener.get().destroy();
 		}
 
-		if(this.messageListenerContainer != null){
+		if (this.messageListenerContainer != null) {
 			this.messageListenerContainer.destroy();
 		}
 	}
@@ -549,6 +560,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			MappingExpirationListener listener = new MappingExpirationListener(this.messageListenerContainer, this.redisOps,
 					this.converter);
+			listener.setKeyspaceNotificationsConfigParameter(keyspaceNotificationsConfigParameter);
 
 			if (this.eventPublisher != null) {
 				listener.setApplicationEventPublisher(this.eventPublisher);

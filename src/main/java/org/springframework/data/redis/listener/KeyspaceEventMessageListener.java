@@ -35,6 +35,7 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 
 	private final RedisMessageListenerContainer listenerContainer;
 	private static final Topic TOPIC_ALL_KEYEVENTS = new PatternTopic("__keyevent@*");
+	private String keyspaceNotificationsConfigParameter = "EA";
 
 	/**
 	 * Creates new {@link KeyspaceEventMessageListener}.
@@ -77,12 +78,11 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 		RedisConnection connection = listenerContainer.getConnectionFactory().getConnection();
 		List<String> config = connection.getConfig("notify-keyspace-events");
 
-		if (config.size() == 2) {
-
-			if (!StringUtils.hasText(config.get(1))) {
-
-				// TODO more fine grained reaction on event configuration
-				connection.setConfig("notify-keyspace-events", "KEA");
+		if (StringUtils.hasText(keyspaceNotificationsConfigParameter)) {
+			if (config.size() == 2) {
+				if (!StringUtils.hasText(config.get(1))) {
+					connection.setConfig("notify-keyspace-events", keyspaceNotificationsConfigParameter);
+				}
 			}
 		}
 		connection.close();
@@ -106,6 +106,16 @@ public abstract class KeyspaceEventMessageListener implements MessageListener, I
 	@Override
 	public void destroy() throws Exception {
 		listenerContainer.removeMessageListener(this);
+	}
+
+	/**
+	 * Set the configuration string to use for {@literal notify-keyspace-events}.
+	 *
+	 * @param keyspaceNotificationsConfigParameter can be {@literal null}.
+	 * @since 1.8
+	 */
+	public void setKeyspaceNotificationsConfigParameter(String keyspaceNotificationsConfigParameter) {
+		this.keyspaceNotificationsConfigParameter = keyspaceNotificationsConfigParameter;
 	}
 
 	/*
