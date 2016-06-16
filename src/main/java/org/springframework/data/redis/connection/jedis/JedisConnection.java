@@ -806,8 +806,11 @@ public class JedisConnection extends AbstractRedisConnection {
 		 *  fix for: https://github.com/xetorthio/jedis/pull/575
 		 */
 		if (seconds > Integer.MAX_VALUE) {
-
-			return pExpireAt(key, time() + TimeUnit.SECONDS.toMillis(seconds));
+			final Long time = time();
+			if (time == null) {
+				return null;
+			}
+			return pExpireAt(key, time + TimeUnit.SECONDS.toMillis(seconds));
 		}
 
 		try {
