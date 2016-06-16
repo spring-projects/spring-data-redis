@@ -166,4 +166,13 @@ public @interface EnableRedisRepositories {
 	 */
 	EnableKeyspaceEvents enableKeyspaceEvents() default EnableKeyspaceEvents.OFF;
 
+	/**
+	 * Configure the {@literal notify-keyspace-events} property if not already set. <br />
+	 * Use an empty {@link String} to keep <b>not</b> alter existing server configuration.
+	 *
+	 * @return {@literal Ex} by default.
+	 * @since 1.8
+	 */
+	String keyspaceNotificationsConfigParameter() default "Ex";
+
 }

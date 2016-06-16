@@ -93,8 +93,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		metadata = new StandardAnnotationMetadata(Config.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry),
-				equalTo((Object) EnableKeyspaceEvents.ON_STARTUP));
+		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry), equalTo((Object) EnableKeyspaceEvents.ON_STARTUP));
 	}
 
 	/**
@@ -106,8 +105,31 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsDisabled.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry),
-				equalTo((Object) EnableKeyspaceEvents.OFF));
+		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry), equalTo((Object) EnableKeyspaceEvents.OFF));
+	}
+
+	/**
+	 * @see DATAREDIS-505
+	 */
+	@Test
+	public void picksUpDefaultKeyspaceNotificationsConfigParameterCorrectly() {
+
+		metadata = new StandardAnnotationMetadata(Config.class, true);
+		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry), equalTo((Object) "Ex"));
+	}
+
+	/**
+	 * @see DATAREDIS-505
+	 */
+	@Test
+	public void picksUpCustomKeyspaceNotificationsConfigParameterCorrectly() {
+
+		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsEnabledAndCustomEventConfig.class, true);
+		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
+
+		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry), equalTo((Object) "KEA"));
 	}
 
 	private static void assertDoesNotHaveRepo(Class<?> repositoryInterface,
@@ -153,6 +175,11 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 				.getPropertyValue("enableKeyspaceEvents").getValue();
 	}
 
+	private Object getKeyspaceNotificationsConfigParameter(BeanDefinitionRegistry beanDefintionRegistry) {
+		return beanDefintionRegistry.getBeanDefinition("redisKeyValueAdapter").getPropertyValues()
+				.getPropertyValue("keyspaceNotificationsConfigParameter").getValue();
+	}
+
 	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP)
 	static class Config {
 
@@ -160,6 +187,12 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 
 	@EnableRedisRepositories(considerNestedRepositories = true)
 	static class ConfigWithKeyspaceEventsDisabled {
+
+	}
+
+	@EnableRedisRepositories(considerNestedRepositories = true, enableKeyspaceEvents = EnableKeyspaceEvents.ON_STARTUP,
+			keyspaceNotificationsConfigParameter = "KEA")
+	static class ConfigWithKeyspaceEventsEnabledAndCustomEventConfig {
 
 	}
 
