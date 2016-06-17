@@ -128,6 +128,8 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 
 		MutablePropertyValues redisKeyValueAdapterProps = new MutablePropertyValues();
 		redisKeyValueAdapterProps.add("enableKeyspaceEvents", attributes.getEnum("enableKeyspaceEvents"));
+		redisKeyValueAdapterProps.add("keyspaceNotificationsConfigParameter",
+				attributes.getString("keyspaceNotificationsConfigParameter"));
 		redisKeyValueAdapterDefinition.setPropertyValues(redisKeyValueAdapterProps);
 
 		registerIfNotAlreadyRegistered(redisKeyValueAdapterDefinition, registry, REDIS_ADAPTER_BEAN_NAME,
