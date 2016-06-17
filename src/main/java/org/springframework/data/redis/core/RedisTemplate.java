@@ -71,6 +71,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Anqing Shao
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate

@@ -43,13 +43,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.Person;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
@@ -57,6 +57,7 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -65,6 +66,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Anqing Shao
  */
 @RunWith(Parameterized.class)
 public class RedisTemplateTests<K, V> {
@@ -291,7 +293,9 @@ public class RedisTemplateTests<K, V> {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testExecutePipelinedCustomSerializer() {
+		
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		
 		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
@@ -303,23 +307,34 @@ public class RedisTemplateTests<K, V> {
 				return null;
 			}
 		}, new GenericToStringSerializer<Long>(Long.class));
+		
 		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
 	}
 
+	/**
+	 * @see DATAREDIS-500
+	 */
 	@Test
 	public void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
+		
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
+		
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-		redisTemplate.setHashValueSerializer(new GenericToStringSerializer<Long>(Long.class));
-		redisTemplate.opsForHash().put((K) "foo", "key", 1L);
+		redisTemplate.setHashKeySerializer(new GenericToStringSerializer<Long>(Long.class));
+		redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<Person>(Person.class));
+
+		Person person = new Person("Homer", "Simpson", 38);
+		
+		redisTemplate.opsForHash().put((K) "foo", 1L, person);
+		
 		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.hGetAll(((StringRedisSerializer) redisTemplate.getKeySerializer()).serialize("foo"));
 				return null;
 			}
 		});
-		assertEquals(((Map) results.get(0)).get("key"), 1L);
+		
+		assertEquals(((Map) results.get(0)).get(1L), person);
 	}
 
 	@Test(expected = InvalidDataAccessApiUsageException.class)
