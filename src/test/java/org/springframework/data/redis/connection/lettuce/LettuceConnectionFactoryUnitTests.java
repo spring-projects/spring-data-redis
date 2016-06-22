@@ -21,6 +21,7 @@ import static org.hamcrest.core.IsInstanceOf.*;
 import static org.junit.Assert.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -28,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 
 import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.RedisClient;
@@ -112,6 +114,28 @@ public class LettuceConnectionFactoryUnitTests {
 		for (RedisURI uri : initialUris) {
 			assertThat(uri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
 		}
+	}
+
+	/**
+	 * @see DATAREDIS-524
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void passwordShouldBeSetCorrectlyOnSentinelClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
+				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setPassword("o_O");
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClient.class));
+
+		RedisURI redisURI = (RedisURI) getField(client, "redisURI");
+
+		assertThat(redisURI.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
 	}
 
 	/**

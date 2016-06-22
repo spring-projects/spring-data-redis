@@ -607,7 +607,14 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	private RedisURI getSentinelRedisURI() {
-		return LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+
+		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+
+		if (StringUtils.hasText(password)) {
+			redisURI.setPassword(password);
+		}
+
+		return redisURI;
 	}
 
 	/**
