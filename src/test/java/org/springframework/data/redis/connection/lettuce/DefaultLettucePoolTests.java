@@ -15,8 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.springframework.test.util.ReflectionTestUtils.*;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -26,9 +29,11 @@ import org.junit.Test;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolConfig;
 import org.springframework.data.redis.connection.PoolException;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.RedisURI;
 
 /**
  * Unit test of {@link DefaultLettucePool}
@@ -187,6 +192,22 @@ public class DefaultLettucePoolTests {
 		pool.setPassword("bad");
 		pool.afterPropertiesSet();
 		pool.getResource();
+	}
+
+	/**
+	 * @see DATAREDIS-524
+	 */
+	@Test
+	public void testCreateSentinelWithPassword() {
+
+		pool = new DefaultLettucePool(new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
+		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		pool.setPassword("foo");
+		pool.afterPropertiesSet();
+
+		RedisURI redisURI = (RedisURI) getField(pool.getClient(), "redisURI");
+
+		assertThat(redisURI.getPassword(), is(equalTo(pool.getPassword().toCharArray())));
 	}
 
 	/**
