@@ -26,6 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
@@ -120,7 +121,13 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	private RedisURI getRedisURI() {
 
 		if (isRedisSentinelAware()) {
-			return LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+			RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+
+			if (StringUtils.hasText(password)) {
+				redisURI.setPassword(password);
+			}
+
+			return redisURI;
 		}
 
 		return createSimpleHostRedisURI();
