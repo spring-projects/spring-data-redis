@@ -20,11 +20,8 @@ import java.util.Collection;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisPool;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
  * @author Costin Leau
@@ -41,11 +38,6 @@ public abstract class AtomicCountersParam {
 		jedisConnFactory.setUsePool(true);
 		jedisConnFactory.afterPropertiesSet();
 
-		// JRedis
-		JredisConnectionFactory jredisConnFactory = new JredisConnectionFactory(new JredisPool(SettingsUtils.getHost(),
-				SettingsUtils.getPort()));
-		jredisConnFactory.afterPropertiesSet();
-
 		// Lettuce
 		LettuceConnectionFactory lettuceConnFactory = new LettuceConnectionFactory();
 		lettuceConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
@@ -53,13 +45,6 @@ public abstract class AtomicCountersParam {
 		lettuceConnFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnFactory.afterPropertiesSet();
 
-		// SRP
-		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
-		srpConnFactory.setPort(SettingsUtils.getPort());
-		srpConnFactory.setHostName(SettingsUtils.getHost());
-		srpConnFactory.afterPropertiesSet();
-
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { jredisConnFactory }, { lettuceConnFactory },
-				{ srpConnFactory } });
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}
 }

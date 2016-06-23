@@ -36,10 +36,8 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
 /**
@@ -107,21 +105,7 @@ public class SubscriptionConnectionTests {
 		lettuceConnFactory.setValidateConnection(true);
 		lettuceConnFactory.afterPropertiesSet();
 
-		// SRP
-		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
-		srpConnFactory.setPort(port);
-		srpConnFactory.setHostName(host);
-		srpConnFactory.afterPropertiesSet();
-
-		// JRedis
-		JredisConnectionFactory jRedisConnectionFactory = new JredisConnectionFactory();
-		jRedisConnectionFactory.setPort(port);
-		jRedisConnectionFactory.setHostName(host);
-		jRedisConnectionFactory.setDatabase(2);
-		jRedisConnectionFactory.afterPropertiesSet();
-
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { srpConnFactory },
-				{ jRedisConnectionFactory } });
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}
 
 	@Test

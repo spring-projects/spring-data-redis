@@ -17,7 +17,6 @@ package org.springframework.data.redis.support.atomic;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -32,7 +31,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -88,8 +86,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testCheckAndSet() {
-		// Txs not supported in Jredis
-		assumeTrue(!ConnectionUtils.isJredis(factory));
+
 		intCounter.set(0);
 		assertFalse(intCounter.compareAndSet(1, 10));
 		assertTrue(intCounter.compareAndSet(0, 10));
@@ -162,8 +159,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 	@Test
 	@Ignore("DATAREDIS-108 Test is intermittently failing")
 	public void testCompareSet() throws Exception {
-		// Txs not supported in Jredis
-		assumeTrue(!ConnectionUtils.isJredis(factory));
+
 		final AtomicBoolean alreadySet = new AtomicBoolean(false);
 		final int NUM = 50;
 		final String KEY = getClass().getSimpleName() + ":atomic:counter";

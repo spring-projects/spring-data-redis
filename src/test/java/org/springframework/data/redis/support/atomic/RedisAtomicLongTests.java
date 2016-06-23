@@ -17,7 +17,6 @@ package org.springframework.data.redis.support.atomic;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 
 import java.util.Collection;
 
@@ -29,7 +28,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -84,8 +82,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testCheckAndSet() throws Exception {
-		// Txs not supported in Jredis
-		assumeTrue(!ConnectionUtils.isJredis(factory));
+
 		longCounter.set(0);
 		assertFalse(longCounter.compareAndSet(1, 10));
 		assertTrue(longCounter.compareAndSet(0, 10));
@@ -111,7 +108,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(0, longCounter.decrementAndGet());
 	}
 
-		/**
+	/**
 	 * @see DATAREDIS-469
 	 */
 	@Test

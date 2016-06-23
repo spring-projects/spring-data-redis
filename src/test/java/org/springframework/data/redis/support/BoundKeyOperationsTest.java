@@ -16,7 +16,6 @@
 package org.springframework.data.redis.support;
 
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 
 import java.util.Collection;
 import java.util.Map;
@@ -32,7 +31,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.BoundKeyOperations;
 import org.springframework.data.redis.core.RedisCallback;
@@ -49,12 +47,12 @@ import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 @RunWith(Parameterized.class)
 public class BoundKeyOperationsTest {
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private BoundKeyOperations keyOps;
 
 	private ObjectFactory<Object> objFactory;
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private RedisTemplate template;
 
 	@SuppressWarnings("rawtypes")
@@ -127,7 +125,6 @@ public class BoundKeyOperationsTest {
 	 */
 	@Test
 	public void testPersist() throws Exception {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 
 		keyOps.persist();
 

@@ -33,7 +33,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 
 /**
  * @author Artem Bilian
@@ -67,11 +66,7 @@ public class MultithreadedRedisTemplateTests {
 		lettuce.setPort(6379);
 		lettuce.afterPropertiesSet();
 
-		SrpConnectionFactory srp = new SrpConnectionFactory();
-		srp.setPort(6379);
-		srp.afterPropertiesSet();
-
-		return Arrays.asList(new Object[][] { { jedis }, { lettuce }, { srp } });
+		return Arrays.asList(new Object[][] { { jedis }, { lettuce } });
 	}
 
 	/**

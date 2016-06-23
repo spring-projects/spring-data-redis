@@ -54,9 +54,7 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -202,8 +200,8 @@ public class RedisTemplateTests<K, V> {
 		});
 		List<V> list = Collections.singletonList(listValue);
 		Set<V> set = new HashSet<V>(Collections.singletonList(setValue));
-		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(Collections.singletonList(new DefaultTypedTuple<V>(
-				zsetValue, 1d)));
+		Set<TypedTuple<V>> tupleSet = new LinkedHashSet<TypedTuple<V>>(
+				Collections.singletonList(new DefaultTypedTuple<V>(zsetValue, 1d)));
 		assertThat(results, isEqual(Arrays.asList(new Object[] { value1, 1l, list, 1l, set, true, tupleSet })));
 	}
 
@@ -261,9 +259,13 @@ public class RedisTemplateTests<K, V> {
 
 	@Test
 	public void testExecConversionDisabled() {
-		SrpConnectionFactory factory2 = new SrpConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
+
+		LettuceConnectionFactory factory2 = new LettuceConnectionFactory(SettingsUtils.getHost(), SettingsUtils.getPort());
 		factory2.setConvertPipelineAndTxResults(false);
 		factory2.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory2);
+
 		StringRedisTemplate template = new StringRedisTemplate(factory2);
 		template.afterPropertiesSet();
 		List<Object> results = template.execute(new SessionCallback<List<Object>>() {
@@ -488,30 +490,6 @@ public class RedisTemplateTests<K, V> {
 				return (!redisTemplate.hasKey(key1));
 			}
 		}, 1500l);
-	}
-
-	@Test
-	public void testExpireMillisNotSupported() throws Exception {
-
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
-		assumeTrue(redisTemplate.getConnectionFactory() instanceof JredisConnectionFactory);
-
-		final K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-
-		assumeTrue(key1 instanceof String && value1 instanceof String);
-
-		final StringRedisTemplate template2 = new StringRedisTemplate(redisTemplate.getConnectionFactory());
-		template2.boundValueOps((String) key1).set((String) value1);
-		template2.expire((String) key1, 10, TimeUnit.MILLISECONDS);
-		Thread.sleep(15);
-		// 10 millis should get rounded up to 1 sec if pExpire not supported
-		assertTrue(template2.hasKey((String) key1));
-		waitFor(new TestCondition() {
-			public boolean passes() {
-				return (!template2.hasKey((String) key1));
-			}
-		}, 1000l);
 	}
 
 	@Test

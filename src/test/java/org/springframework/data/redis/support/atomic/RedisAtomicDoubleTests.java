@@ -94,8 +94,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testCheckAndSet() {
-		// Txs not supported in Jredis
-		assumeTrue(!ConnectionUtils.isJredis(factory));
+
 		doubleCounter.set(0);
 		assertFalse(doubleCounter.compareAndSet(1.2, 10.6));
 		assertTrue(doubleCounter.compareAndSet(0, 10.6));
@@ -104,14 +103,14 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testIncrementAndGet() throws Exception {
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
+		assumeTrue(!(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0);
 		assertEquals(1.0, doubleCounter.incrementAndGet(), 0);
 	}
 
 	@Test
 	public void testAddAndGet() throws Exception {
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
+		assumeTrue(!(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0);
 		double delta = 1.3;
 		assertEquals(delta, doubleCounter.addAndGet(delta), .0001);
@@ -119,7 +118,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testDecrementAndGet() throws Exception {
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
+		assumeTrue(!(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(1);
 		assertEquals(0, doubleCounter.decrementAndGet(), 0);
 	}
@@ -133,7 +132,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testGetAndIncrement() {
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
+		assumeTrue(!(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(2.3);
 		assertEquals(2.3, doubleCounter.getAndIncrement(), 0);
 		assertEquals(3.3, doubleCounter.get(), .0001);
@@ -141,7 +140,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testGetAndDecrement() {
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
+		assumeTrue(!(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0.5);
 		assertEquals(0.5, doubleCounter.getAndDecrement(), 0);
 		assertEquals(-0.5, doubleCounter.get(), .0001);
@@ -149,7 +148,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testGetAndAdd() {
-		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
+		assumeTrue(!(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0.5);
 		assertEquals(0.5, doubleCounter.getAndAdd(0.7), 0);
 		assertEquals(1.2, doubleCounter.get(), .0001);
@@ -163,8 +162,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 	@Test
 	public void testExpireAt() {
-		// JRedis converts Unix time to millis before sending command, so it expires right away
-		assumeTrue(!ConnectionUtils.isJredis(factory));
+
 		doubleCounter.set(7.8);
 		assertTrue(doubleCounter.expireAt(new Date(System.currentTimeMillis() + 10000)));
 		assertTrue(doubleCounter.getExpire() > 0);

@@ -48,7 +48,7 @@ public class RedisTxContextConfiguration {
   } 
 
   @Bean 
-  public RedisConnectionFactory redisConnectionFactory( // jedis, lettuce, srp,... ); 
+  public RedisConnectionFactory redisConnectionFactory( // jedis || lettuce); 
 
   @Bean 
   public DataSource dataSource() throws SQLException { // ... } 

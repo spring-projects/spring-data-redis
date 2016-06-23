@@ -37,20 +37,7 @@ public enum RedisDriver {
 		public boolean matches(RedisConnectionFactory connectionFactory) {
 			return ConnectionUtils.isLettuce(connectionFactory);
 		}
-	},
 
-	SRP {
-		@Override
-		public boolean matches(RedisConnectionFactory connectionFactory) {
-			return ConnectionUtils.isSrp(connectionFactory);
-		}
-	},
-
-	JREDIS {
-		@Override
-		public boolean matches(RedisConnectionFactory connectionFactory) {
-			return ConnectionUtils.isJredis(connectionFactory);
-		}
 	};
 
 	/**

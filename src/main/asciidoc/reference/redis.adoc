@@ -12,7 +12,7 @@ Spring Data Redis provides easy configuration and access to Redis from Spring ap
 [[redis:requirements]]
 == Redis Requirements
 
-Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis], http://github.com/alphazero/jredis[JRedis] (Deprecated since 1.7), http://github.com/spullara/redis-protocol[SRP] (Deprecated since 1.7) and http://github.com/wg/lettuce[Lettuce], four popular open source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
+Spring Redis requires Redis 2.6 or above and Java SE 6.0 or above . In terms of language bindings (or connectors), Spring Redis integrates with http://github.com/xetorthio/jedis[Jedis] and http://github.com/mp911de/lettuce[Lettuce], four popular open source Java libraries for Redis. If you are aware of any other connector that we should be integrating with please send us feedback.
 
 [[redis:architecture]]
 == Redis Support High Level View
@@ -74,69 +74,6 @@ For production use however, one might want to tweak the settings such as the hos
 
 </beans>
 ----
-
-[[redis:connectors:jredis]]
-=== Configuring JRedis connector (Deprecated since 1.7)
-
-http://github.com/alphazero/jredis[JRedis] is another popular, open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.jredis` package.
-
-A typical JRedis configuration can looks like this:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:p="http://www.springframework.org/schema/p"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="jredisConnectionFactory" class="org.springframework.data.redis.connection.jredis.JredisConnectionFactory" p:host-name="server" p:port="6379"/>
-
-</beans>
-----
-
-The configuration is quite similar to Jedis, with one notable exception. By default, the `JedisConnectionFactory` pools connections. In order to use a connection pool with JRedis, configure the `JredisConnectionFactory` with an instance of `JredisPool`. For example:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="jredisConnectionFactory" class="org.springframework.data.redis.connection.jredis.JredisConnectionFactory">
-    <constructor-arg>
-      <bean class="org.springframework.data.redis.connection.jredis.DefaultJredisPool">
-        <constructor-arg value="localhost" />
-        <constructor-arg value="6379" />
-      </bean>
-    </constructor-arg>
-  </bean>
-
-</beans>
-----
-
-[[redis:connectors:srp]]
-=== Configuring SRP connector (Deprecated since 1.7)
-
-https://github.com/spullara/redis-protocol[SRP] (an acronym for Sam's Redis Protocol) is the third open-source connector supported by Spring Data Redis through the `org.springframework.data.redis.connection.srp` package.
-
-By now, its configuration is probably easy to guess:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:p="http://www.springframework.org/schema/p" xsi:schemaLocation="
-  http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="srpConnectionFactory" class="org.springframework.data.redis.connection.srp.SrpConnectionFactory" p:host-name="server" p:port="6379"/>
-
-</beans>
-----
-
-Needless to say, the configuration is quite similar to that of the other connectors.
 
 [[redis:connectors:lettuce]]
 === Configuring Lettuce connector

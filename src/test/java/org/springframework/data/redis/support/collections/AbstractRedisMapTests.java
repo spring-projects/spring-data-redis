@@ -44,7 +44,6 @@ import org.springframework.data.redis.DoubleAsStringObjectFactory;
 import org.springframework.data.redis.LongAsStringObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
@@ -212,8 +211,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testIncrementNotNumber() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory())
-				&& !(valueFactory instanceof LongAsStringObjectFactory));
+		assumeTrue(!(valueFactory instanceof LongAsStringObjectFactory));
 		K k1 = getKey();
 		V v1 = getValue();
 
@@ -291,7 +289,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testPutAll() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		Map<K, V> m = new LinkedHashMap<K, V>();
 		K k1 = getKey();
 		K k2 = getKey();
@@ -372,7 +370,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEntrySet() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		Set<Entry<K, V>> entries = map.entrySet();
 		assertTrue(entries.isEmpty());
 
@@ -404,7 +402,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testPutIfAbsent() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		K k1 = getKey();
 		K k2 = getKey();
 
@@ -424,7 +422,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testConcurrentRemove() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		K k1 = getKey();
 		V v1 = getValue();
 		V v2 = getValue();
@@ -444,7 +442,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testConcurrentReplaceTwoArgs() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		K k1 = getKey();
 		V v1 = getValue();
 		V v2 = getValue();
@@ -471,7 +469,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 	@Test
 	public void testConcurrentReplaceOneArg() {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		K k1 = getKey();
 		V v1 = getValue();
 		V v2 = getValue();

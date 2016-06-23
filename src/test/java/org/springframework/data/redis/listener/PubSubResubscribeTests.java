@@ -16,7 +16,6 @@
 
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -46,13 +45,10 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
-import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -75,7 +71,7 @@ public class PubSubResubscribeTests {
 	private RedisMessageListenerContainer container;
 	private RedisConnectionFactory factory;
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private RedisTemplate template;
 
 	public PubSubResubscribeTests(RedisConnectionFactory connectionFactory) {
@@ -99,7 +95,7 @@ public class PubSubResubscribeTests {
 
 		int port = SettingsUtils.getPort();
 		String host = SettingsUtils.getHost();
-		
+
 		// Jedis
 		JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
 		jedisConnFactory.setUsePool(false);
@@ -117,28 +113,11 @@ public class PubSubResubscribeTests {
 		lettuceConnFactory.setValidateConnection(true);
 		lettuceConnFactory.afterPropertiesSet();
 
-		// SRP
-		SrpConnectionFactory srpConnFactory = new SrpConnectionFactory();
-		srpConnFactory.setPort(port);
-		srpConnFactory.setHostName(host);
-		srpConnFactory.afterPropertiesSet();
-
-		// JRedis
-		JredisConnectionFactory jRedisConnectionFactory = new JredisConnectionFactory();
-		jRedisConnectionFactory.setPort(port);
-		jRedisConnectionFactory.setHostName(host);
-		jRedisConnectionFactory.setDatabase(2);
-		jRedisConnectionFactory.afterPropertiesSet();
-
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { srpConnFactory },
-				{ jRedisConnectionFactory } });
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
 	}
 
 	@Before
 	public void setUp() throws Exception {
-
-		// JredisConnection#publish is currently not supported -> tests would fail
-		assumeThat(ConnectionUtils.isJredis(factory), is(false));
 
 		template = new StringRedisTemplate(factory);
 

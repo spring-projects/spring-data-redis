@@ -15,15 +15,9 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
-import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -234,7 +227,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testPollTimeout() throws InterruptedException {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		T t1 = getT();
 		list.add(t1);
 		assertThat(list.poll(1, TimeUnit.MILLISECONDS), isEqual(t1));
@@ -466,7 +459,7 @@ public abstract class AbstractRedisListTests<T> extends AbstractRedisCollectionT
 
 	@Test
 	public void testPollLastTimeout() throws InterruptedException {
-		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
+
 		T t1 = getT();
 		T t2 = getT();
 
