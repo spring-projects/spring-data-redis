@@ -105,8 +105,9 @@ public abstract class AbstractTransactionalTestBase {
 
 		RedisConnection connection = factory.getConnection();
 		for (String key : KEYS) {
-			Assert.assertThat("Values for " + key + " should " + (valuesShouldHaveBeenPersisted ? "" : "NOT ")
-					+ "have been found.", connection.exists(key.getBytes()), Is.is(valuesShouldHaveBeenPersisted));
+			Assert.assertThat(
+					"Values for " + key + " should " + (valuesShouldHaveBeenPersisted ? "" : "NOT ") + "have been found.",
+					connection.exists(key.getBytes()), Is.is(valuesShouldHaveBeenPersisted));
 		}
 		connection.close();
 	}

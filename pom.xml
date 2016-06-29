@@ -90,6 +90,14 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- reactive -->
+		<dependency>
+		 	<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<version>${reactor}</version>
+			<optional>true</optional>
+ 		</dependency>
+
 		<!--Mapper -->
 
 		<dependency>
@@ -120,6 +128,11 @@
 			<optional>true</optional>
 		</dependency>
 
+		<dependency>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava</artifactId>
+			<version>1.1.1</version>
+		</dependency>
 		<!-- Pool -->
 
 		<dependency>
@@ -206,7 +219,6 @@
 						<include>**/*Tests.java</include>
 						<include>**/*Test.java</include>
 					</includes>
-					<reuseForks>false</reuseForks>
 					<systemProperties>
 						<gemfire.disableShutdownHook>true</gemfire.disableShutdownHook>
 						<javax.net.ssl.keyStore>${basedir}/src/test/resources/trusted.keystore</javax.net.ssl.keyStore>
@@ -231,23 +243,6 @@
 
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>release</id>
-			<build>
-				<plugins>
-
-					<plugin>
-						<groupId>org.jfrog.buildinfo</groupId>
-						<artifactId>artifactory-maven-plugin</artifactId>
-						<inherited>false</inherited>
-					</plugin>
-
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
 
 	<repositories>
 		<repository>
