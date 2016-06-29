@@ -33,14 +33,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
@@ -362,8 +355,22 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
+	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getReactiveConnection()
 	 */
+	@Override
+	public ReactiveRedisConnection getReactiveConnection() {
+		throw new UnsupportedOperationException("Jedis does not support racative connections");
+	}
+
+	@Override
+	public ReactiveRedisClusterConnection getReactiveClusterConnection() {
+		throw new UnsupportedOperationException("Jedis does not support racative connections");
+	}
+
+	/*
+		 * (non-Javadoc)
+		 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
+		 */
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}

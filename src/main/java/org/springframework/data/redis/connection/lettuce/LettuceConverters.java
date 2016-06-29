@@ -345,6 +345,10 @@ abstract public class LettuceConverters extends Converters {
 		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
 	}
 
+	public static Point geoCoordinatesToPoint(GeoCoordinates geoCoordinates) {
+		return GEO_COORDINATE_TO_POINT_CONVERTER.convert(geoCoordinates);
+	}
+
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
 		return new Converter<String, List<RedisClientInfo>>() {
 

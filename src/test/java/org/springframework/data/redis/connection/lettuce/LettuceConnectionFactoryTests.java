@@ -32,6 +32,7 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
+import org.springframework.data.repository.util.QueryExecutionConverters;
 
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.api.async.RedisAsyncCommands;
@@ -324,5 +325,21 @@ public class LettuceConnectionFactoryTests {
 		} finally {
 			connection.close();
 		}
+	}
+
+	/**
+	 * @see DATAREDIS-525
+	 */
+	@Test
+	public void factoryShouldReturnReactiveConnectionWhenCorrectly() {
+
+		LettuceConnectionFactory factory = new LettuceConnectionFactory();
+		factory.afterPropertiesSet();
+
+		ConnectionFactoryTracker.add(factory);
+
+		assertThat(factory.getReactiveConnection()
+				.execute(cmd -> QueryExecutionConverters.RxJava1ObservableToMonoConverter.INSTANCE.convert(cmd.ping()))
+				.blockFirst(), is("PONG"));
 	}
 }

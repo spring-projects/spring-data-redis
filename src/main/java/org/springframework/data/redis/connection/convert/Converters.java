@@ -174,6 +174,10 @@ abstract public class Converters {
 		};
 	}
 
+	public static Boolean stringToBoolean(String s) {
+		return ObjectUtils.nullSafeEquals("OK", s);
+	}
+
 	public static Converter<String, Properties> stringToProps() {
 		return STRING_TO_PROPS;
 	}
@@ -378,7 +382,7 @@ abstract public class Converters {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	static enum DistanceConverterFactory {
+	enum DistanceConverterFactory {
 
 		INSTANCE;
 
