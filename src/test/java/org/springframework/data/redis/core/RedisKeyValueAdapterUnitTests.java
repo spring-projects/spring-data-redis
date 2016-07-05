@@ -19,7 +19,6 @@ package org.springframework.data.redis.core;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
@@ -98,6 +97,7 @@ public class RedisKeyValueAdapterUnitTests {
 
 	/**
 	 * @see DATAREDIS-512
+	 * @see DATAREDIS-530
 	 */
 	@Test
 	public void putShouldRemoveExistingIndexValuesWhenUpdating() {
@@ -105,13 +105,14 @@ public class RedisKeyValueAdapterUnitTests {
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
 
-		when(redisConnectionMock.keys(any(byte[].class)))
+		when(redisConnectionMock.sMembers(org.mockito.Matchers.any(byte[].class)))
 				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
 		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(1L);
 
 		adapter.put("1", rd, "persons");
 
-		verify(redisConnectionMock, times(1)).sRem(any(byte[].class), any(byte[].class));
+		verify(redisConnectionMock, times(1)).sRem(org.mockito.Matchers.any(byte[].class),
+				org.mockito.Matchers.any(byte[].class));
 	}
 
 	/**
@@ -123,20 +124,20 @@ public class RedisKeyValueAdapterUnitTests {
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
 
-		when(redisConnectionMock.sMembers(any(byte[].class)))
+		when(redisConnectionMock.sMembers(org.mockito.Matchers.any(byte[].class)))
 				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
 		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(0L);
 
 		adapter.put("1", rd, "persons");
 
-		verify(redisConnectionMock, never()).sRem(any(byte[].class), (byte[][]) anyVararg());
+		verify(redisConnectionMock, never()).sRem(org.mockito.Matchers.any(byte[].class), (byte[][]) anyVararg());
 	}
 
 	/**
 	 * @see DATAREDIS-491
 	 */
 	@Test
-	public void shouldInitKeyExpirationListenerOnStartup() throws Exception{
+	public void shouldInitKeyExpirationListenerOnStartup() throws Exception {
 
 		adapter.destroy();
 

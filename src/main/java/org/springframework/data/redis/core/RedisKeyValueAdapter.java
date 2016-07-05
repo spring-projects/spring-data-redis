@@ -236,7 +236,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				if (isNew) {
 					indexWriter.createIndexes(key, rdo.getIndexedData());
 				} else {
-					indexWriter.updateIndexes(key, rdo.getIndexedData());
+					indexWriter.deleteAndUpdateIndexes(key, rdo.getIndexedData());
 				}
 				return null;
 			}

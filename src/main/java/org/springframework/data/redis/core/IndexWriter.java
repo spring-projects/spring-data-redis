@@ -76,6 +76,16 @@ class IndexWriter {
 	 * @param indexValues can be {@literal null}.
 	 */
 	public void updateIndexes(Object key, Iterable<IndexedData> indexValues) {
+		createOrUpdateIndexes(key, indexValues, IndexWriteMode.PARTIAL_UPDATE);
+	}
+
+	/**
+	 * Updates indexes by first removing key from existing one and then persisting new index data.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param indexValues can be {@literal null}.
+	 */
+	public void deleteAndUpdateIndexes(Object key, Iterable<IndexedData> indexValues) {
 		createOrUpdateIndexes(key, indexValues, IndexWriteMode.UPDATE);
 	}
 
@@ -96,7 +106,7 @@ class IndexWriter {
 					removeKeyFromIndexes(data.getKeyspace(), binKey);
 				}
 			}
-
+		} else if (ObjectUtils.nullSafeEquals(IndexWriteMode.PARTIAL_UPDATE, writeMode)) {
 			removeKeyFromExistingIndexes(binKey, indexValues);
 		}
 
@@ -229,6 +239,6 @@ class IndexWriter {
 	 */
 	private static enum IndexWriteMode {
 
-		CREATE, UPDATE
+		CREATE, UPDATE, PARTIAL_UPDATE
 	}
 }
