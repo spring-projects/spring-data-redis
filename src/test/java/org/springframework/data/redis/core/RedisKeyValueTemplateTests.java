@@ -790,6 +790,81 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
+	/**
+	 * @see DATAREDIS-530
+	 */
+	@Test
+	public void partialUpdateShouldLeaveIndexesNotInvolvedInUpdateUntouched() {
+
+		final Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al-thor";
+		rand.email = "rand@twof.com";
+
+		template.insert(rand);
+
+		/*
+		 * Set the lastname and make sure we've an index on it afterwards
+		 */
+		PartialUpdate<Person> update = PartialUpdate.newPartialUpdate(rand.id, Person.class).set("lastname", "doe");
+
+		template.doPartialUpdate(update);
+
+		nativeTemplate.execute(new RedisCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+
+				assertThat(connection.hGet(("template-test-person:" + rand.id).getBytes(), "lastname".getBytes()),
+						is(equalTo("doe".getBytes())));
+				assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
+				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
+				assertThat(connection.sIsMember("template-test-person:lastname:doe".getBytes(), rand.id.getBytes()), is(true));
+				return null;
+			}
+		});
+	}
+
+	/**
+	 * @see DATAREDIS-530
+	 */
+	@Test
+	public void updateShouldAlterIndexesCorrectlyWhenValuesGetRemovedFromHash() {
+
+		final Person rand = new Person();
+		rand.firstname = "rand";
+		rand.lastname = "al-thor";
+		rand.email = "rand@twof.com";
+
+		template.insert(rand);
+
+		nativeTemplate.execute(new RedisCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+
+				assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
+				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(true));
+				return null;
+			}
+		});
+
+		rand.lastname = null;
+
+		template.update(rand);
+
+		nativeTemplate.execute(new RedisCallback<Void>() {
+
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+
+				assertThat(connection.exists("template-test-person:email:rand@twof.com".getBytes()), is(true));
+				assertThat(connection.exists("template-test-person:lastname:al-thor".getBytes()), is(false));
+				return null;
+			}
+		});
+	}
+
 	@EqualsAndHashCode
 	@RedisHash("template-test-type-mapping")
 	static class VariousTypes {
@@ -828,6 +903,7 @@ public class RedisKeyValueTemplateTests {
 		@Id String id;
 		String firstname;
 		@Indexed String lastname;
+		@Indexed String email;
 		Integer age;
 		List<String> nicknames;
 

@@ -23,7 +23,6 @@ import java.util.List;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueCallback;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
-import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -135,6 +134,7 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 
 		if (objectToUpdate instanceof PartialUpdate) {
 			doPartialUpdate((PartialUpdate<?>) objectToUpdate);
+			return;
 		}
 
 		super.update(objectToUpdate);
