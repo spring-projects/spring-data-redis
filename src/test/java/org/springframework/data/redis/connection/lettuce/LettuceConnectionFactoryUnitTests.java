@@ -133,9 +133,9 @@ public class LettuceConnectionFactoryUnitTests {
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
 		assertThat(client, instanceOf(RedisClient.class));
 
-		RedisURI redisURI = (RedisURI) getField(client, "redisURI");
+		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisURI.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
+		assertThat(redisUri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
 	}
 
 	/**
