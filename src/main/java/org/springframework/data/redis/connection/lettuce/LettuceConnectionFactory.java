@@ -68,6 +68,7 @@ import com.lambdaworks.redis.resource.ClientResources;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  * @author Mark Paluch
  * @author Balázs Németh
  */
@@ -608,13 +609,13 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	private RedisURI getSentinelRedisURI() {
 
-		RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
 		if (StringUtils.hasText(password)) {
-			redisURI.setPassword(password);
+			redisUri.setPassword(password);
 		}
 
-		return redisURI;
+		return redisUri;
 	}
 
 	/**
@@ -634,6 +635,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	@Override
 	public RedisSentinelConnection getSentinelConnection() {
+
 		if (!(client instanceof RedisClient)) {
 			throw new InvalidDataAccessResourceUsageException("Unable to connect to sentinels using " + client.getClass());
 		}

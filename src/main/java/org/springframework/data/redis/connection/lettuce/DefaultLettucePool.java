@@ -120,26 +120,18 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 	 */
 	private RedisURI getRedisURI() {
 
-		if (isRedisSentinelAware()) {
-			RedisURI redisURI = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
+		RedisURI redisUri = isRedisSentinelAware()
+				? LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration) : createSimpleHostRedisURI();
 
-			if (StringUtils.hasText(password)) {
-				redisURI.setPassword(password);
-			}
-
-			return redisURI;
+		if (StringUtils.hasText(password)) {
+			redisUri.setPassword(password);
 		}
 
-		return createSimpleHostRedisURI();
+		return redisUri;
 	}
 
 	private RedisURI createSimpleHostRedisURI() {
-		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
-		if (password != null) {
-			builder.withPassword(password);
-		}
-		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
-		return builder.build();
+		return RedisURI.Builder.redis(hostName, port).withTimeout(timeout, TimeUnit.MILLISECONDS).build();
 	}
 
 	@SuppressWarnings("unchecked")
