@@ -715,11 +715,14 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 		return execute(new RedisCallback<Long>() {
 
 			public Long doInRedis(RedisConnection connection) {
+				Long expire;
 				try {
-					return timeUnit.convert(connection.pTtl(rawKey), TimeUnit.MILLISECONDS);
+					expire = connection.pTtl(rawKey);
+					return expire < 0 ? expire : timeUnit.convert(expire, TimeUnit.MILLISECONDS);
 				} catch (Exception e) {
 					// Driver may not support pTtl or we may be running on Redis 2.4
-					return timeUnit.convert(connection.ttl(rawKey), TimeUnit.SECONDS);
+					expire = connection.ttl(rawKey);
+					return expire < 0 ? expire : timeUnit.convert(expire, TimeUnit.SECONDS);
 				}
 			}
 		}, true);

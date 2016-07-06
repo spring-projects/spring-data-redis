@@ -531,6 +531,39 @@ public class RedisTemplateTests<K, V> {
 	}
 
 	@Test
+	public void testGetExpireSecondsForKeyDoesNotExist() {
+		final K key1 = keyFactory.instance();
+		Long expire = redisTemplate.getExpire(key1, TimeUnit.SECONDS);
+		assertTrue(expire < 0l);
+	}
+
+	@Test
+	public void testGetExpireSecondsForKeyExistButHasNoAssociatedExpire() {
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key1).set(value1);
+		Long expire = redisTemplate.getExpire(key1, TimeUnit.SECONDS);
+		assertTrue(expire < 0l);
+	}
+
+
+	@Test
+	public void testGetExpireMillisForKeyDoesNotExist() {
+		final K key1 = keyFactory.instance();
+		Long expire = redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS);
+		assertTrue(expire < 0l);
+	}
+
+	@Test
+	public void testGetExpireMillisForKeyExistButHasNoAssociatedExpire() {
+		final K key1 = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		redisTemplate.boundValueOps(key1).set(value1);
+		Long expire = redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS);
+		assertTrue(expire < 0l);
+	}
+
+	@Test
 	public void testGetExpireMillisNotSupported() {
 
 		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory);
