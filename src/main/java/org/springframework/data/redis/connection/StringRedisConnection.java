@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -60,33 +61,175 @@ public interface StringRedisConnection extends RedisConnection {
 
 	Object execute(String command);
 
+	/**
+	 * Determine if given {@code key} exists.
+	 * <p>
+	 * See http://redis.io/commands/exists
+	 *
+	 * @param key
+	 * @return
+	 */
 	Boolean exists(String key);
 
+	/**
+	 * Delete given {@code keys}.
+	 * <p>
+	 * See http://redis.io/commands/del
+	 *
+	 * @param keys
+	 * @return The number of keys that were removed.
+	 */
 	Long del(String... keys);
 
+	/**
+	 * Determine the type stored at {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/type
+	 *
+	 * @param key
+	 * @return
+	 */
 	DataType type(String key);
 
+	/**
+	 * Find all keys matching the given {@code pattern}.
+	 * <p>
+	 * See http://redis.io/commands/keys
+	 *
+	 * @param pattern
+	 * @return
+	 */
 	Collection<String> keys(String pattern);
 
+	/**
+	 * Rename key {@code oleName} to {@code newName}.
+	 * <p>
+	 * See http://redis.io/commands/rename
+	 *
+	 * @param oldName
+	 * @param newName
+	 */
 	void rename(String oldName, String newName);
 
+	/**
+	 * Rename key {@code oleName} to {@code newName} only if {@code newName} does not exist.
+	 * <p>
+	 * See http://redis.io/commands/renamenx
+	 *
+	 * @param oldName
+	 * @param newName
+	 * @return
+	 */
 	Boolean renameNX(String oldName, String newName);
 
+	/**
+	 * Set time to live for given {@code key} in seconds.
+	 * <p>
+	 * See http://redis.io/commands/expire
+	 *
+	 * @param key
+	 * @param seconds
+	 * @return
+	 */
 	Boolean expire(String key, long seconds);
 
+	/**
+	 * Set time to live for given {@code key} in milliseconds.
+	 * <p>
+	 * See http://redis.io/commands/pexpire
+	 *
+	 * @param key
+	 * @param millis
+	 * @return
+	 */
 	Boolean pExpire(String key, long millis);
 
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 * <p>
+	 * See http://redis.io/commands/expireat
+	 *
+	 * @param key
+	 * @param unixTime
+	 * @return
+	 */
 	Boolean expireAt(String key, long unixTime);
 
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
+	 * <p>
+	 * See http://redis.io/commands/pexpireat
+	 *
+	 * @param key
+	 * @param unixTimeInMillis
+	 * @return
+	 */
 	Boolean pExpireAt(String key, long unixTimeInMillis);
 
+	/**
+	 * Remove the expiration from given {@code key}.
+	 * <p>
+	 * See http://redis.io/commands/persist
+	 *
+	 * @param key
+	 * @return
+	 */
 	Boolean persist(String key);
 
+	/**
+	 * Move given {@code key} to database with {@code index}.
+	 * <p>
+	 * See http://redis.io/commands/move
+	 *
+	 * @param key
+	 * @param dbIndex
+	 * @return
+	 */
 	Boolean move(String key, int dbIndex);
 
+	/**
+	 * Get the time to live for {@code key} in seconds.
+	 * <p>
+	 * See http://redis.io/commands/ttl
+	 *
+	 * @param key
+	 * @return
+	 */
 	Long ttl(String key);
 
+	/**
+	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
+	 * <p>
+	 * See http://redis.io/commands/ttl
+	 *
+	 * @param key
+	 * @param timeUnit
+	 * @return
+	 * @since 1.8
+	 */
+	Long ttl(String key, TimeUnit timeUnit);
+
+	/**
+	 * Get the precise time to live for {@code key} in milliseconds.
+	 * <p>
+	 * See http://redis.io/commands/pttl
+	 *
+	 * @param key
+	 * @return
+	 */
 	Long pTtl(String key);
+
+	/**
+	 * Get the precise time to live for {@code key} in and convert it to the given {@link TimeUnit}.
+	 * <p>
+	 * See http://redis.io/commands/pttl
+	 *
+	 * @param key
+	 * @param timeUnit
+	 * @return
+	 * @since 1.8
+	 */
+	Long pTtl(String key, TimeUnit timeUnit);
 
 	String echo(String message);
 

@@ -967,6 +967,22 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { -1L }));
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void testTtlWithTimeUnit() {
+
+		connection.set("whatup", "yo");
+		actual.add(connection.expire("whatup", 10));
+		actual.add(connection.ttl("whatup", TimeUnit.MILLISECONDS));
+
+		List<Object> results = getResults();
+
+		assertTrue((Long) results.get(1) > TimeUnit.SECONDS.toMillis(5));
+		assertTrue((Long) results.get(1) <= TimeUnit.SECONDS.toMillis(10));
+	}
+
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtlNoExpire() {
@@ -978,25 +994,48 @@ public abstract class AbstractConnectionIntegrationTests {
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testPTtl() {
+
 		connection.set("whatup", "yo");
-		actual.add(connection.pExpire("whatup", 9000l));
+		actual.add(connection.pExpire("whatup", TimeUnit.SECONDS.toMillis(10)));
 		actual.add(connection.pTtl("whatup"));
+
 		List<Object> results = getResults();
+
 		assertTrue((Long) results.get(1) > -1);
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "2.6+")
+	public void testPTtlWithTimeUnit() {
+
+		connection.set("whatup", "yo");
+		actual.add(connection.pExpire("whatup", TimeUnit.MINUTES.toMillis(10)));
+		actual.add(connection.pTtl("whatup", TimeUnit.SECONDS));
+
+		List<Object> results = getResults();
+
+		assertTrue((Long) results.get(1) > TimeUnit.MINUTES.toSeconds(9));
+		assertTrue((Long) results.get(1) <= TimeUnit.MINUTES.toSeconds(10));
 	}
 
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.6+")
 	public void testDumpAndRestore() {
+
 		connection.set("testing", "12");
 		actual.add(connection.dump("testing".getBytes()));
 		List<Object> results = getResults();
 		initConnection();
+
 		actual.add(connection.del("testing"));
 		actual.add((connection.get("testing")));
 		connection.restore("testing".getBytes(), 0, (byte[]) results.get(results.size() - 1));
 		actual.add(connection.get("testing"));
-		verifyResults(Arrays.asList(new Object[] { 1l, null, "12" }));
+
+		verifyResults(Arrays.asList(new Object[] { 1L, null, "12" }));
 	}
 
 	@Test

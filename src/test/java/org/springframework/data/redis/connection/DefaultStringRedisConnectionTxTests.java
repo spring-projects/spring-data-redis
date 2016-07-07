@@ -959,6 +959,16 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		super.testTtl();
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Override
+	public void testTtlWithTimeUnit() {
+
+		doReturn(Arrays.asList(new Object[] { 5L })).when(nativeConnection).exec();
+		super.testTtl();
+	}
+
 	@Test
 	public void testTypeBytes() {
 		doReturn(Arrays.asList(new Object[] { DataType.HASH })).when(nativeConnection).exec();

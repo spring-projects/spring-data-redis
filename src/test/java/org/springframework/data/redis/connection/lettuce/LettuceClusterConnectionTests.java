@@ -377,7 +377,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void persistShoudRemoveTTL() {
+	public void persistShouldRemoveTTL() {
 
 		nativeConnection.setex(KEY_1, 10, VALUE_1);
 
@@ -428,6 +428,14 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void ttlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.ttl(KEY_1_BYTES, TimeUnit.HOURS), is(-2L));
+	}
+
+	/**
 	 * @see DATAREDIS-315
 	 */
 	@Test
@@ -436,6 +444,17 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.set(KEY_1, VALUE_1);
 
 		assertThat(clusterConnection.ttl(KEY_1_BYTES), is(-1L));
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void ttlWithTimeUnitShouldReturnMinusOneWhenKeyDoesNotHaveExpirationSet() {
+
+		nativeConnection.set(KEY_1, VALUE_1);
+
+		assertThat(clusterConnection.ttl(KEY_1_BYTES, TimeUnit.SECONDS), is(-1L));
 	}
 
 	/**
@@ -456,6 +475,14 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void pTtlShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES), is(-2L));
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void pTtlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.pTtl(KEY_1_BYTES, TimeUnit.SECONDS), is(-2L));
 	}
 
 	/**

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -49,6 +50,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -77,6 +79,7 @@ import redis.reply.Reply;
  * @author Thomas Darimont
  * @author David Liu
  * @author Ninad Divadkar
+ * @author Mark Paluch
  * @deprecated since 1.7. Will be removed in subsequent version.
  */
 @Deprecated
@@ -765,18 +768,52 @@ public class SrpConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
+	 */
+	@Override
 	public Long ttl(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(new SrpResult(pipeline.ttl(key)));
 				return null;
 			}
+
 			return client.ttl(key).data();
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long ttl(byte[] key, TimeUnit timeUnit) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpResult(pipeline.ttl(key), Converters.secondsToTimeUnit(timeUnit)));
+				return null;
+			}
+			return Converters.secondsToTimeUnit(client.ttl(key).data(), timeUnit);
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
+	 */
+	@Override
 	public Long pTtl(byte[] key) {
 		try {
 			if (isPipelined()) {
@@ -784,6 +821,23 @@ public class SrpConnection extends AbstractRedisConnection {
 				return null;
 			}
 			return client.pttl(key).data();
+		} catch (Exception ex) {
+			throw convertSrpAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long pTtl(byte[] key, TimeUnit timeUnit) {
+		try {
+			if (isPipelined()) {
+				pipeline(new SrpResult(pipeline.pttl(key), Converters.millisecondsToTimeUnit(timeUnit)));
+				return null;
+			}
+			return Converters.millisecondsToTimeUnit(client.pttl(key).data(), timeUnit);
 		} catch (Exception ex) {
 			throw convertSrpAccessException(ex);
 		}

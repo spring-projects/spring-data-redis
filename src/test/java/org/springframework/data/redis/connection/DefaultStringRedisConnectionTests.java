@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -1191,6 +1192,18 @@ public class DefaultStringRedisConnectionTests {
 		doReturn(5l).when(nativeConnection).ttl(fooBytes);
 		actual.add(connection.ttl(foo));
 		verifyResults(Arrays.asList(new Object[] { 5l }));
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void testTtlWithTimeUnit() {
+
+		doReturn(5L).when(nativeConnection).ttl(fooBytes, TimeUnit.SECONDS);
+
+		actual.add(connection.ttl(foo, TimeUnit.SECONDS));
+		verifyResults(Arrays.asList(new Object[] { 5L }));
 	}
 
 	@Test

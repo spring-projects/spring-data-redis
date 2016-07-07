@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.jredis.ClientRuntimeException;
 import org.jredis.JRedis;
@@ -50,6 +51,7 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
@@ -67,6 +69,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Thomas Darimont
  * @author David Liu
  * @author Ninad Divadkar
+ * @author Mark Paluch
  * @deprecated since 1.7. Will be removed in subsequent version.
  */
 @Deprecated
@@ -369,7 +372,21 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
+	 */
+	@Override
 	public Long pTtl(byte[] key) {
+		throw new UnsupportedOperationException();
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long pTtl(byte[] key, TimeUnit timeUnit) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -433,9 +450,33 @@ public class JredisConnection extends AbstractRedisConnection {
 		throw new UnsupportedOperationException();
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
+	 */
+	@Override
 	public Long ttl(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			return jredis.ttl(key);
+		} catch (Exception ex) {
+			throw convertJredisAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long ttl(byte[] key, TimeUnit timeUnit) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			return Converters.secondsToTimeUnit(jredis.ttl(key), timeUnit);
 		} catch (Exception ex) {
 			throw convertJredisAccessException(ex);
 		}

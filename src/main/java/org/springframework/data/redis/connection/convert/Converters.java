@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.Distance;
@@ -43,6 +44,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
@@ -273,6 +275,80 @@ abstract public class Converters {
 	public static Long toTimeMillis(String seconds, String microseconds) {
 		return NumberUtils.parseNumber(seconds, Long.class) * 1000L
 				+ NumberUtils.parseNumber(microseconds, Long.class) / 1000L;
+	}
+
+	/**
+	 * Converts {@code seconds} to the given {@link TimeUnit}.
+	 *
+	 * @param seconds
+	 * @param targetUnit must not be {@literal null}.
+	 * @return
+	 * @since 1.8
+	 */
+	public static long secondsToTimeUnit(long seconds, TimeUnit targetUnit) {
+
+		Assert.notNull(targetUnit, "TimeUnit must not be null!");
+
+		if (seconds > 0) {
+			return targetUnit.convert(seconds, TimeUnit.SECONDS);
+		}
+
+		return seconds;
+	}
+
+	/**
+	 * Creates a new {@link Converter} to convert from seconds to the given {@link TimeUnit}.
+	 * 
+	 * @param timeUnit muist not be {@literal null}.
+	 * @return
+	 * @since 1.8
+	 */
+	public static Converter<Long, Long> secondsToTimeUnit(final TimeUnit timeUnit) {
+
+		return new Converter<Long, Long>() {
+
+			@Override
+			public Long convert(Long seconds) {
+				return secondsToTimeUnit(seconds, timeUnit);
+			}
+		};
+	}
+
+	/**
+	 * Converts {@code milliseconds} to the given {@link TimeUnit}.
+	 *
+	 * @param milliseconds
+	 * @param targetUnit must not be {@literal null}.
+	 * @return
+	 * @since 1.8
+	 */
+	public static long millisecondsToTimeUnit(long milliseconds, TimeUnit targetUnit) {
+
+		Assert.notNull(targetUnit, "TimeUnit must not be null!");
+
+		if (milliseconds > 0) {
+			return targetUnit.convert(milliseconds, TimeUnit.MILLISECONDS);
+		}
+
+		return milliseconds;
+	}
+
+	/**
+	 * Creates a new {@link Converter} to convert from milliseconds to the given {@link TimeUnit}.
+	 *
+	 * @param timeUnit muist not be {@literal null}.
+	 * @return
+	 * @since 1.8
+	 */
+	public static Converter<Long, Long> millisecondsToTimeUnit(final TimeUnit timeUnit) {
+
+		return new Converter<Long, Long>() {
+
+			@Override
+			public Long convert(Long seconds) {
+				return millisecondsToTimeUnit(seconds, timeUnit);
+			}
+		};
 	}
 
 	/**

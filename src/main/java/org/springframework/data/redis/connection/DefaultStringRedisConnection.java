@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -938,11 +939,32 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
+	 */
+	@Override
 	public Long ttl(byte[] key) {
+
 		Long result = delegate.ttl(key);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
+		return result;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long ttl(byte[] key, TimeUnit timeUnit) {
+
+		Long result = delegate.ttl(key, timeUnit);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+
 		return result;
 	}
 
@@ -1329,11 +1351,33 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
+	 */
+	@Override
 	public Long pTtl(byte[] key) {
+
 		Long result = delegate.pTtl(key);
 		if (isFutureConversion()) {
 			addResultConverter(identityConverter);
 		}
+
+		return result;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long pTtl(byte[] key, TimeUnit timeUnit) {
+
+		Long result = delegate.pTtl(key, timeUnit);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+
 		return result;
 	}
 
@@ -2059,12 +2103,22 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return result;
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#ttl(java.lang.String)
+	 */
+	@Override
 	public Long ttl(String key) {
-		Long result = delegate.ttl(serialize(key));
-		if (isFutureConversion()) {
-			addResultConverter(identityConverter);
-		}
-		return result;
+		return ttl(serialize(key));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#ttl(java.lang.String, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long ttl(String key, TimeUnit timeUnit) {
+		return ttl(serialize(key), timeUnit);
 	}
 
 	public DataType type(String key) {
@@ -2689,8 +2743,22 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 		return pExpireAt(serialize(key), unixTimeInMillis);
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pTtl(java.lang.String)
+	 */
+	@Override
 	public Long pTtl(String key) {
 		return pTtl(serialize(key));
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#pTtl(java.lang.String, java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long pTtl(String key, TimeUnit timeUnit) {
+		return pTtl(serialize(key), timeUnit);
 	}
 
 	public String scriptLoad(String script) {

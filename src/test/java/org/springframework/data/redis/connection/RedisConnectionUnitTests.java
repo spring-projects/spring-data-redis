@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +45,7 @@ import org.springframework.util.ObjectUtils;
  * @author Thomas Darimont
  * @author David Liu
  * @author Ninad Divadkar
+ * @author Mark Paluch
  */
 public class RedisConnectionUnitTests {
 
@@ -688,6 +690,10 @@ public class RedisConnectionUnitTests {
 			return delegate.ttl(key);
 		}
 
+		public Long ttl(byte[] key, TimeUnit timeUnit) {
+			return delegate.pTtl(key, timeUnit);
+		}
+
 		public List<byte[]> bLPop(int timeout, byte[]... keys) {
 			return delegate.bLPop(timeout, keys);
 		}
@@ -706,6 +712,10 @@ public class RedisConnectionUnitTests {
 
 		public Long pTtl(byte[] key) {
 			return delegate.pTtl(key);
+		}
+
+		public Long pTtl(byte[] key, TimeUnit timeUnit) {
+			return delegate.pTtl(key, timeUnit);
 		}
 
 		public Cursor<byte[]> sScan(byte[] key, ScanOptions options) {

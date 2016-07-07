@@ -60,6 +60,7 @@ import org.springframework.data.redis.connection.RedisSubscribedConnectionExcept
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.convert.Converters;
 import org.springframework.data.redis.connection.convert.ListConverter;
 import org.springframework.data.redis.connection.convert.TransactionResultConverter;
 import org.springframework.data.redis.core.Cursor;
@@ -949,7 +950,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[])
+	 */
+	@Override
 	public Long pTtl(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().pttl(key)));
@@ -959,7 +968,33 @@ public class LettuceConnection extends AbstractRedisConnection {
 				transaction(new LettuceTxResult(getConnection().pttl(key)));
 				return null;
 			}
+
 			return getConnection().pttl(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long pTtl(byte[] key, TimeUnit timeUnit) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().pttl(key), Converters.millisecondsToTimeUnit(timeUnit)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().pttl(key), Converters.millisecondsToTimeUnit(timeUnit)));
+				return null;
+			}
+
+			return Converters.millisecondsToTimeUnit(getConnection().pttl(key), timeUnit);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1131,7 +1166,15 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[])
+	 */
+	@Override
 	public Long ttl(byte[] key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(new LettuceResult(getAsyncConnection().ttl(key)));
@@ -1141,7 +1184,33 @@ public class LettuceConnection extends AbstractRedisConnection {
 				transaction(new LettuceTxResult(getConnection().ttl(key)));
 				return null;
 			}
+
 			return getConnection().ttl(key);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long ttl(byte[] key, TimeUnit timeUnit) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().ttl(key), Converters.secondsToTimeUnit(timeUnit)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().ttl(key), Converters.secondsToTimeUnit(timeUnit)));
+				return null;
+			}
+
+			return Converters.secondsToTimeUnit(getConnection().ttl(key), timeUnit);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

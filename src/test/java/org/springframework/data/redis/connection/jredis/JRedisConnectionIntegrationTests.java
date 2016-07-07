@@ -349,6 +349,14 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testPTtlNoExpire();
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void testPTtlWithTimeUnit() {
+		super.testPTtlWithTimeUnit();
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testDumpAndRestore() {
 		super.testDumpAndRestore();

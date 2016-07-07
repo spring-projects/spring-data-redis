@@ -128,6 +128,18 @@ public class RedisClusterTemplateTests<K, V> extends RedisTemplateTests<K, V> {
 		super.testSortBulkMapper();
 	}
 
+	@Test
+	@Ignore("This one fails when using GET options on numbers")
+	public void testGetExpireMillisUsingTransactions() {
+		super.testGetExpireMillisUsingTransactions();
+	}
+
+	@Test
+	@Ignore("This one fails when using GET options on numbers")
+	public void testGetExpireMillisUsingPipelining() {
+		super.testGetExpireMillisUsingPipelining();
+	}
+
 	@Parameters
 	public static Collection<Object[]> testParams() {
 

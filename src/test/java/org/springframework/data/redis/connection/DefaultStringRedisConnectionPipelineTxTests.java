@@ -32,6 +32,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Ninad Divadkar
+ * @author Mark Paluch
  */
 public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRedisConnectionTxTests {
 
@@ -1045,6 +1046,16 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 	public void testTtl() {
 		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 5l }) })).when(nativeConnection).closePipeline();
 		super.testTtl();
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Override
+	public void testTtlWithTimeUnit() {
+
+		doReturn(Arrays.asList(new Object[] { Arrays.asList(new Object[] { 5L }) })).when(nativeConnection).closePipeline();
+		super.testTtlWithTimeUnit();
 	}
 
 	@Test

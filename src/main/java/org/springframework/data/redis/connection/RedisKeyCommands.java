@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
@@ -26,6 +27,7 @@ import org.springframework.data.redis.core.ScanOptions;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisKeyCommands {
 
@@ -186,7 +188,19 @@ public interface RedisKeyCommands {
 	Long ttl(byte[] key);
 
 	/**
-	 * Get the time to live for {@code key} in milliseconds.
+	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
+	 * <p>
+	 * See http://redis.io/commands/ttl
+	 *
+	 * @param key
+	 * @param timeUnit
+	 * @return
+	 * @since 1.8
+	 */
+	Long ttl(byte[] key, TimeUnit timeUnit);
+
+	/**
+	 * Get the precise time to live for {@code key} in milliseconds.
 	 * <p>
 	 * See http://redis.io/commands/pttl
 	 * 
@@ -194,6 +208,18 @@ public interface RedisKeyCommands {
 	 * @return
 	 */
 	Long pTtl(byte[] key);
+
+	/**
+	 * Get the precise time to live for {@code key} in and convert it to the given {@link TimeUnit}.
+	 * <p>
+	 * See http://redis.io/commands/pttl
+	 *
+	 * @param key
+	 * @param timeUnit
+	 * @return
+	 * @since 1.8
+	 */
+	Long pTtl(byte[] key, TimeUnit timeUnit);
 
 	/**
 	 * Sort the elements for {@code key}.

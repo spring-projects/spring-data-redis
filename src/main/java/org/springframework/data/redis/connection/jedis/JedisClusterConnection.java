@@ -450,6 +450,19 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			throw convertJedisAccessException(ex);
 		}
 	}
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#ttl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long ttl(byte[] key, TimeUnit timeUnit) {
+
+		try {
+			return Converters.secondsToTimeUnit(cluster.ttl(key), timeUnit);
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -463,6 +476,22 @@ public class JedisClusterConnection implements RedisClusterConnection {
 			@Override
 			public Long doInCluster(Jedis client) {
 				return client.pttl(key);
+			}
+		}, topologyProvider.getTopology().getKeyServingMasterNode(key)).getValue();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisKeyCommands#pTtl(byte[], java.util.concurrent.TimeUnit)
+	 */
+	@Override
+	public Long pTtl(final byte[] key, final TimeUnit timeUnit) {
+
+		return clusterCommandExecutor.executeCommandOnSingleNode(new JedisClusterCommandCallback<Long>() {
+
+			@Override
+			public Long doInCluster(Jedis client) {
+				return Converters.millisecondsToTimeUnit(client.pttl(key), timeUnit);
 			}
 		}, topologyProvider.getTopology().getKeyServingMasterNode(key)).getValue();
 	}

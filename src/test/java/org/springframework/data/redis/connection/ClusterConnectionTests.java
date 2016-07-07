@@ -19,6 +19,7 @@ import org.springframework.data.geo.Point;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface ClusterConnectionTests {
 
@@ -119,7 +120,7 @@ public interface ClusterConnectionTests {
 	/**
 	 * @see DATAREDIS-315
 	 */
-	void persistShoudRemoveTTL();
+	void persistShouldRemoveTTL();
 
 	/**
 	 * @see DATAREDIS-315
@@ -142,6 +143,11 @@ public interface ClusterConnectionTests {
 	void ttlShouldReturnMinusTwoWhenKeyDoesNotExist();
 
 	/**
+	 * @see DATAREDIS-526
+	 */
+	void ttlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist();
+
+	/**
 	 * @see DATAREDIS-315
 	 */
 	void ttlShouldReturnMinusOneWhenKeyDoesNotHaveExpirationSet();
@@ -155,6 +161,11 @@ public interface ClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	void pTtlShouldReturnMinusTwoWhenKeyDoesNotExist();
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	void pTtlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist();
 
 	/**
 	 * @see DATAREDIS-315

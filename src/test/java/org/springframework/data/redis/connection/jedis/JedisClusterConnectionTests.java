@@ -39,6 +39,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -378,7 +379,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	 * @see DATAREDIS-315
 	 */
 	@Test
-	public void persistShoudRemoveTTL() {
+	public void persistShouldRemoveTTL() {
 
 		nativeConnection.setex(KEY_1_BYTES, 10, VALUE_1_BYTES);
 
@@ -429,6 +430,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	}
 
 	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void ttlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.ttl(KEY_1_BYTES, TimeUnit.HOURS), is(-2L));
+	}
+
+	/**
 	 * @see DATAREDIS-315
 	 */
 	@Test
@@ -457,6 +466,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void pTtlShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES), is(-2L));
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void pTtlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist() {
+		assertThat(clusterConnection.pTtl(KEY_1_BYTES, TimeUnit.HOURS), is(-2L));
 	}
 
 	/**

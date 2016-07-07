@@ -599,6 +599,65 @@ public class RedisTemplateTests<K, V> {
 		assertThat(ttl, lessThan(25L));
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void testGetExpireMillisUsingTransactions() {
+
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
+				|| redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
+
+		final K key = keyFactory.instance();
+		List<Object> result = redisTemplate.execute(new SessionCallback<List<Object>>() {
+
+			@Override
+			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+
+				operations.multi();
+				operations.boundValueOps(key).set(valueFactory.instance());
+				operations.expire(key, 1, TimeUnit.DAYS);
+				operations.getExpire(key, TimeUnit.HOURS);
+
+				return operations.exec();
+			}
+		});
+
+		assertThat(result, hasSize(2));
+		assertThat(((Long) result.get(1)), greaterThanOrEqualTo(23L));
+		assertThat(((Long) result.get(1)), lessThan(25L));
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void testGetExpireMillisUsingPipelining() {
+
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
+				|| redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
+
+		final K key = keyFactory.instance();
+		List<Object> result = redisTemplate.executePipelined(new SessionCallback<Object>() {
+
+			@Override
+			public Object execute(RedisOperations operations) throws DataAccessException {
+
+				operations.boundValueOps(key).set(valueFactory.instance());
+				operations.expire(key, 1, TimeUnit.DAYS);
+				operations.getExpire(key, TimeUnit.HOURS);
+
+				return null;
+			}
+		});
+
+		assertThat(result, hasSize(2));
+		assertThat(((Long) result.get(1)), greaterThanOrEqualTo(23L));
+		assertThat(((Long) result.get(1)), lessThan(25L));
+	}
+
 	@Test
 	public void testGetExpireMillisNotSupported() {
 
