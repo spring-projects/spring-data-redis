@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
@@ -54,6 +55,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.core.query.SortQueryBuilder;
@@ -65,10 +67,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration test of {@link RedisTemplate}
- * 
+ *
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author Anqing Shao
+ * @author Duobiao Ou
  */
 @RunWith(Parameterized.class)
 public class RedisTemplateTests<K, V> {
@@ -302,9 +305,9 @@ public class RedisTemplateTests<K, V> {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testExecutePipelinedCustomSerializer() {
-		
+
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
-		
+
 		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				StringRedisConnection stringRedisConn = (StringRedisConnection) connection;
@@ -316,7 +319,7 @@ public class RedisTemplateTests<K, V> {
 				return null;
 			}
 		}, new GenericToStringSerializer<Long>(Long.class));
-		
+
 		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
 	}
 
@@ -325,24 +328,24 @@ public class RedisTemplateTests<K, V> {
 	 */
 	@Test
 	public void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
-		
+
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
-		
+
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new GenericToStringSerializer<Long>(Long.class));
 		redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<Person>(Person.class));
 
 		Person person = new Person("Homer", "Simpson", 38);
-		
+
 		redisTemplate.opsForHash().put((K) "foo", 1L, person);
-		
+
 		List<Object> results = redisTemplate.executePipelined(new RedisCallback() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
 				connection.hGetAll(((StringRedisSerializer) redisTemplate.getKeySerializer()).serialize("foo"));
 				return null;
 			}
 		});
-		
+
 		assertEquals(((Map) results.get(0)).get(1L), person);
 	}
 
@@ -530,37 +533,70 @@ public class RedisTemplateTests<K, V> {
 		assertEquals(Long.valueOf(1), redisTemplate.getExpire(key1, TimeUnit.SECONDS));
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
 	@Test
 	public void testGetExpireSecondsForKeyDoesNotExist() {
-		final K key1 = keyFactory.instance();
-		Long expire = redisTemplate.getExpire(key1, TimeUnit.SECONDS);
-		assertTrue(expire < 0l);
+
+		Long expire = redisTemplate.getExpire(keyFactory.instance(), TimeUnit.SECONDS);
+		assertTrue(expire < 0L);
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
 	@Test
 	public void testGetExpireSecondsForKeyExistButHasNoAssociatedExpire() {
-		final K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		redisTemplate.boundValueOps(key1).set(value1);
-		Long expire = redisTemplate.getExpire(key1, TimeUnit.SECONDS);
-		assertTrue(expire < 0l);
+
+		K key = keyFactory.instance();
+		Long expire = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+
+		assertTrue(expire < 0L);
 	}
 
-
+	/**
+	 * @see DATAREDIS-526
+	 */
 	@Test
 	public void testGetExpireMillisForKeyDoesNotExist() {
-		final K key1 = keyFactory.instance();
-		Long expire = redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS);
-		assertTrue(expire < 0l);
+
+		Long expire = redisTemplate.getExpire(keyFactory.instance(), TimeUnit.MILLISECONDS);
+
+		assertTrue(expire < 0L);
 	}
 
+	/**
+	 * @see DATAREDIS-526
+	 */
 	@Test
 	public void testGetExpireMillisForKeyExistButHasNoAssociatedExpire() {
-		final K key1 = keyFactory.instance();
-		V value1 = valueFactory.instance();
-		redisTemplate.boundValueOps(key1).set(value1);
-		Long expire = redisTemplate.getExpire(key1, TimeUnit.MILLISECONDS);
-		assertTrue(expire < 0l);
+
+		K key = keyFactory.instance();
+		redisTemplate.boundValueOps(key).set(valueFactory.instance());
+
+		Long expire = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+		assertTrue(expire < 0L);
+	}
+
+	/**
+	 * @see DATAREDIS-526
+	 */
+	@Test
+	public void testGetExpireMillis() {
+
+		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
+				|| redisTemplate.getConnectionFactory() instanceof LettuceConnectionFactory);
+
+		final K key = keyFactory.instance();
+		redisTemplate.boundValueOps(key).set(valueFactory.instance());
+		redisTemplate.expire(key, 1, TimeUnit.DAYS);
+
+		Long ttl = redisTemplate.getExpire(key, TimeUnit.HOURS);
+
+		assertThat(ttl, greaterThanOrEqualTo(23L));
+		assertThat(ttl, lessThan(25L));
 	}
 
 	@Test
@@ -771,10 +807,8 @@ public class RedisTemplateTests<K, V> {
 		final DefaultRedisScript<String> script = new DefaultRedisScript<String>();
 		script.setScriptText("return 'Hey'");
 		script.setResultType(String.class);
-		assertEquals(
-				"Hey",
-				redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
-						Collections.singletonList(key1)));
+		assertEquals("Hey", redisTemplate.execute(script, redisTemplate.getValueSerializer(), new StringRedisSerializer(),
+				Collections.singletonList(key1)));
 	}
 
 	@Test
