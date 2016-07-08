@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.util.ObjectUtils;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -865,6 +867,72 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
+	/**
+	 * @see DATAREDIS-523
+	 */
+	@Test
+	public void shouldReadBackExplicitTimeToLive() throws InterruptedException {
+
+		WithTtl source = new WithTtl();
+		source.id = "ttl-1";
+		source.ttl = 5L;
+		source.value = "5 seconds";
+
+		template.insert(source);
+
+		Thread.sleep(1100);
+
+		WithTtl target = template.findById(source.id, WithTtl.class);
+		assertThat(target.ttl, is(notNullValue()));
+		assertThat(target.ttl.doubleValue(), is(closeTo(3D, 1D)));
+	}
+
+	/**
+	 * @see DATAREDIS-523
+	 */
+	@Test
+	public void shouldReadBackExplicitTimeToLiveWhenFetchingList() throws InterruptedException {
+
+		WithTtl source = new WithTtl();
+		source.id = "ttl-1";
+		source.ttl = 5L;
+		source.value = "5 seconds";
+
+		template.insert(source);
+
+		Thread.sleep(1100);
+
+		WithTtl target = template.findAll(WithTtl.class).iterator().next();
+
+		assertThat(target.ttl, is(notNullValue()));
+		assertThat(target.ttl.doubleValue(), is(closeTo(3D, 1D)));
+	}
+
+	/**
+	 * @see DATAREDIS-523
+	 */
+	@Test
+	public void shouldReadBackExplicitTimeToLiveAndSetItToMinusOnelIfPersisted() throws InterruptedException {
+
+		WithTtl source = new WithTtl();
+		source.id = "ttl-1";
+		source.ttl = 5L;
+		source.value = "5 seconds";
+
+		template.insert(source);
+
+		nativeTemplate.execute(new RedisCallback<Boolean>() {
+
+			@Override
+			public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.persist((WithTtl.class.getName() + ":ttl-1").getBytes());
+			}
+		});
+
+		WithTtl target = template.findById(source.id, WithTtl.class);
+		assertThat(target.ttl, is(-1L));
+	}
+
 	@EqualsAndHashCode
 	@RedisHash("template-test-type-mapping")
 	static class VariousTypes {
@@ -972,5 +1040,13 @@ public class RedisKeyValueTemplateTests {
 					+ ", nicknames=" + nicknames + "]";
 		}
 
+	}
+
+	@Data
+	static class WithTtl {
+
+		@Id String id;
+		String value;
+		@TimeToLive Long ttl;
 	}
 }

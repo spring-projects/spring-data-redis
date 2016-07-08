@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -58,6 +60,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
+import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -295,7 +298,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		data.setId(stringId);
 		data.setKeyspace(stringKeyspace);
 
-		return converter.read(type, data);
+		return readBackTimeToLiveIfSet(binId, converter.read(type, data));
 	}
 
 	/*
@@ -346,29 +349,18 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		final byte[] binKeyspace = toBytes(keyspace);
 
-		List<Map<byte[], byte[]>> raw = redisOps.execute(new RedisCallback<List<Map<byte[], byte[]>>>() {
+		Set<byte[]> ids = redisOps.execute(new RedisCallback<Set<byte[]>>() {
 
 			@Override
-			public List<Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
-
-				final List<Map<byte[], byte[]>> rawData = new ArrayList<Map<byte[], byte[]>>();
-
-				Set<byte[]> members = connection.sMembers(binKeyspace);
-
-				for (byte[] id : members) {
-					rawData.add(connection
-							.hGetAll(createKey(asString(keyspace), getConverter().getConversionService().convert(id, String.class))));
-				}
-
-				return rawData;
+			public Set<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sMembers(binKeyspace);
 			}
 		});
 
-		List<Object> result = new ArrayList<Object>(raw.size());
-		for (Map<byte[], byte[]> rawData : raw) {
-			result.add(converter.read(Object.class, new RedisData(rawData)));
+		List<Object> result = new ArrayList<Object>();
+		for (byte[] key : ids) {
+			result.add(get(key, keyspace));
 		}
-
 		return result;
 	}
 
@@ -577,6 +569,49 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		return converter.getConversionService().convert(source, byte[].class);
+	}
+
+	/**
+	 * Read back and set {@link TimeToLive} for the property.
+	 *
+	 * @param key
+	 * @param target
+	 * @return
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private <T> T readBackTimeToLiveIfSet(final byte[] key, T target) {
+
+		if (target == null || key == null) {
+			return target;
+		}
+
+		RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(target.getClass());
+		if (entity.hasExplictTimeToLiveProperty()) {
+
+			PersistentProperty<?> ttlProperty = entity.getExplicitTimeToLiveProperty();
+
+			final TimeToLive ttl = ttlProperty.findAnnotation(TimeToLive.class);
+
+			Long timeout = redisOps.execute(new RedisCallback<Long>() {
+
+				@Override
+				public Long doInRedis(RedisConnection connection) throws DataAccessException {
+
+					if (ObjectUtils.nullSafeEquals(TimeUnit.SECONDS, ttl.unit())) {
+						return connection.ttl(key);
+					}
+
+					return connection.pTtl(key, ttl.unit());
+				}
+			});
+
+			if (timeout != null || (timeout == null && !ttlProperty.getType().isPrimitive())) {
+				entity.getPropertyAccessor(target).setProperty(ttlProperty,
+						NumberUtils.convertNumberToTargetClass(timeout, (Class) ttlProperty.getType()));
+			}
+		}
+
+		return target;
 	}
 
 	/**
