@@ -17,6 +17,7 @@ package org.springframework.data.redis.core.mapping;
 
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 
 /**
@@ -34,5 +35,19 @@ public interface RedisPersistentEntity<T> extends KeyValuePersistentEntity<T> {
 	 * @return never {@literal null}.
 	 */
 	TimeToLiveAccessor getTimeToLiveAccessor();
+
+	/**
+	 * @return {@literal true} when a property is annotated with {@link org.springframework.data.redis.core.TimeToLive}.
+	 * @since 1.8
+	 */
+	boolean hasExplictTimeToLiveProperty();
+
+	/**
+	 * Get the {@link PersistentProperty}
+	 *
+	 * @return can be {@null}.
+	 * @since 1.8
+	 */
+	PersistentProperty<? extends PersistentProperty<?>> getExplicitTimeToLiveProperty();
 
 }

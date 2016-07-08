@@ -453,6 +453,7 @@ public class TimeToLiveOnMethod {
 ----
 ====
 
+NOTE: Annotating a property explicitly with `@TimeToLive` will read back the actual `TTL` or `PTTL` value from Redis. -1 indicates that the object has no expire associated.
 
 The repository implementation ensures subscription to http://redis.io/topics/notifications[Redis keyspace notifications] via `RedisMessageListenerContainer`.
 

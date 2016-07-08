@@ -20,6 +20,7 @@ import org.springframework.data.keyvalue.core.mapping.BasicKeyValuePersistentEnt
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -57,6 +58,24 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	@Override
 	public TimeToLiveAccessor getTimeToLiveAccessor() {
 		return this.timeToLiveAccessor;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#hasExplictTimeToLiveProperty()
+	 */
+	@Override
+	public boolean hasExplictTimeToLiveProperty() {
+		return getExplicitTimeToLiveProperty() != null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getExplicitTimeToLiveProperty()
+	 */
+	@Override
+	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
+		return (RedisPersistentProperty) this.getPersistentProperty(TimeToLive.class);
 	}
 
 	/*
