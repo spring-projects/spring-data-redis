@@ -282,9 +282,9 @@ public class RedisMappingContext extends KeyValueMappingContext {
 			} else if (ttlProperty != null) {
 
 				RedisPersistentEntity entity = mappingContext.getPersistentEntity(type);
-				Long timeout = (Long) entity.getPropertyAccessor(source).getProperty(ttlProperty);
+				Number timeout = (Number) entity.getPropertyAccessor(source).getProperty(ttlProperty);
 				if (timeout != null) {
-					return TimeUnit.SECONDS.convert(timeout, unit);
+					return TimeUnit.SECONDS.convert(timeout.longValue(), unit);
 				}
 
 			} else {
