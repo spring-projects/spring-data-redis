@@ -605,9 +605,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 				}
 			});
 
-			if (timeout != null || (timeout == null && !ttlProperty.getType().isPrimitive())) {
+			if (timeout != null || !ttlProperty.getType().isPrimitive()) {
 				entity.getPropertyAccessor(target).setProperty(ttlProperty,
-						NumberUtils.convertNumberToTargetClass(timeout, (Class) ttlProperty.getType()));
+						converter.getConversionService().convert(timeout, ttlProperty.getType()));
 			}
 		}
 

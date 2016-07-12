@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
+ * Integration tests for {@link RedisKeyValueTemplate}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class RedisKeyValueTemplateTests {
@@ -891,6 +894,25 @@ public class RedisKeyValueTemplateTests {
 	 * @see DATAREDIS-523
 	 */
 	@Test
+	public void shouldReadBackExplicitTimeToLiveToPrimitiveField() throws InterruptedException {
+
+		WithPrimitiveTtl source = new WithPrimitiveTtl();
+		source.id = "ttl-1";
+		source.ttl = 5;
+		source.value = "5 seconds";
+
+		template.insert(source);
+
+		Thread.sleep(1100);
+
+		WithPrimitiveTtl target = template.findById(source.id, WithPrimitiveTtl.class);
+		assertThat((double) target.ttl, is(closeTo(3D, 1D)));
+	}
+
+	/**
+	 * @see DATAREDIS-523
+	 */
+	@Test
 	public void shouldReadBackExplicitTimeToLiveWhenFetchingList() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
@@ -1048,5 +1070,13 @@ public class RedisKeyValueTemplateTests {
 		@Id String id;
 		String value;
 		@TimeToLive Long ttl;
+	}
+
+	@Data
+	static class WithPrimitiveTtl {
+
+		@Id String id;
+		String value;
+		@TimeToLive int ttl;
 	}
 }
