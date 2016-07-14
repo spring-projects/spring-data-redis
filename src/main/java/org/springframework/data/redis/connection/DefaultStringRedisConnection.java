@@ -2431,7 +2431,7 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 		Map<byte[], Point> byteMap = new HashMap<byte[], Point>();
 		for (Entry<String, Point> entry : memberCoordinateMap.entrySet()) {
-			byteMap.put(serialize(entry.getKey()), memberCoordinateMap.get(entry.getValue()));
+			byteMap.put(serialize(entry.getKey()), entry.getValue());
 		}
 
 		return geoAdd(serialize(key), byteMap);

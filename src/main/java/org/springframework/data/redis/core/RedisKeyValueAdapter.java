@@ -42,12 +42,14 @@ import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.PartialUpdate.PropertyUpdate;
 import org.springframework.data.redis.core.PartialUpdate.UpdateCommand;
 import org.springframework.data.redis.core.convert.CustomConversions;
+import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
@@ -461,8 +463,13 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 							redisUpdateObject.fieldsToRemove.toArray(new byte[redisUpdateObject.fieldsToRemove.size()][]));
 				}
 
-				for (byte[] index : redisUpdateObject.indexesToUpdate) {
-					connection.sRem(index, toBytes(redisUpdateObject.targetId));
+				for (RedisUpdateObject.Index index : redisUpdateObject.indexesToUpdate) {
+
+					if (ObjectUtils.nullSafeEquals(DataType.ZSET, index.type)) {
+						connection.zRem(index.key, toBytes(redisUpdateObject.targetId));
+					} else {
+						connection.sRem(index.key, toBytes(redisUpdateObject.targetId));
+					}
 				}
 
 				if (!rdo.getBucket().isEmpty()) {
@@ -509,7 +516,8 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					? ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes((":" + path)), toBytes(":"), value) : null;
 
 			if (connection.exists(existingValueIndexKey)) {
-				redisUpdateObject.addIndexToUpdate(existingValueIndexKey);
+
+				redisUpdateObject.addIndexToUpdate(new RedisUpdateObject.Index(existingValueIndexKey, DataType.SET));
 			}
 			return redisUpdateObject;
 		}
@@ -530,10 +538,20 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 							: null;
 
 					if (connection.exists(existingValueIndexKey)) {
-						redisUpdateObject.addIndexToUpdate(existingValueIndexKey);
+						redisUpdateObject.addIndexToUpdate(new RedisUpdateObject.Index(existingValueIndexKey, DataType.SET));
 					}
 				}
 			}
+		}
+
+		String pathToUse = GeoIndexedPropertyValue.geoIndexName(path);
+		if (connection.zRank(ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes(":"), toBytes(pathToUse)),
+				toBytes(redisUpdateObject.targetId)) != null) {
+
+			redisUpdateObject
+					.addIndexToUpdate(new org.springframework.data.redis.core.RedisKeyValueAdapter.RedisUpdateObject.Index(
+							ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes(":"), toBytes(pathToUse)),
+							DataType.ZSET));
 		}
 
 		return redisUpdateObject;
@@ -855,7 +873,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		private final byte[] targetKey;
 
 		private Set<byte[]> fieldsToRemove = new LinkedHashSet<byte[]>();
-		private Set<byte[]> indexesToUpdate = new LinkedHashSet<byte[]>();
+		private Set<Index> indexesToUpdate = new LinkedHashSet<Index>();
 
 		RedisUpdateObject(byte[] targetKey, String keyspace, Object targetId) {
 
@@ -868,8 +886,19 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			fieldsToRemove.add(field);
 		}
 
-		void addIndexToUpdate(byte[] indexName) {
-			indexesToUpdate.add(indexName);
+		void addIndexToUpdate(Index index) {
+			indexesToUpdate.add(index);
+		}
+
+		static class Index {
+			final DataType type;
+			final byte[] key;
+
+			public Index(byte[] key, DataType type) {
+				this.key = key;
+				this.type = type;
+			}
+
 		}
 	}
 }

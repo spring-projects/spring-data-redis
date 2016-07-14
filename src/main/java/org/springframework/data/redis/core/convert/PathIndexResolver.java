@@ -15,16 +15,22 @@
  */
 package org.springframework.data.redis.core.convert;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.springframework.data.geo.Point;
 import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider;
+import org.springframework.data.redis.core.index.GeoIndexDefinition;
+import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.IndexDefinition;
 import org.springframework.data.redis.core.index.IndexDefinition.Condition;
@@ -49,8 +55,12 @@ import org.springframework.util.CollectionUtils;
  */
 public class PathIndexResolver implements IndexResolver {
 
+	private final Set<Class<?>> VALUE_TYPES = new HashSet<Class<?>>(
+			Arrays.<Class<?>> asList(Point.class, GeoLocation.class));
+
 	private ConfigurableIndexDefinitionProvider indexConfiguration;
 	private RedisMappingContext mappingContext;
+	private IndexedDataFactoryProvider indexedDataFactoryProvider;
 
 	/**
 	 * Creates new {@link PathIndexResolver} with empty {@link IndexConfiguration}.
@@ -69,6 +79,7 @@ public class PathIndexResolver implements IndexResolver {
 		Assert.notNull(mappingContext, "MappingContext must not be null!");
 		this.mappingContext = mappingContext;
 		this.indexConfiguration = mappingContext.getMappingConfiguration().getIndexConfiguration();
+		this.indexedDataFactoryProvider = new IndexedDataFactoryProvider();
 	}
 
 	/*
@@ -94,7 +105,7 @@ public class PathIndexResolver implements IndexResolver {
 
 		RedisPersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
 
-		if (entity == null) {
+		if (entity == null || (value != null && VALUE_TYPES.contains(value.getClass()))) {
 			return resolveIndex(keyspace, path, fallback, value);
 		}
 
@@ -206,10 +217,11 @@ public class PathIndexResolver implements IndexResolver {
 
 				Object transformedValue = indexDefinition.valueTransformer().convert(value);
 
-				IndexedData indexedData = new SimpleIndexedPropertyValue(keyspace, indexDefinition.getIndexName(),
-						transformedValue);
+				IndexedData indexedData = null;
 				if (transformedValue == null) {
 					indexedData = new RemoveIndexedData(indexedData);
+				} else {
+					indexedData = indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value);
 				}
 				data.add(indexedData);
 			}
@@ -220,7 +232,13 @@ public class PathIndexResolver implements IndexResolver {
 			SimpleIndexDefinition indexDefinition = new SimpleIndexDefinition(keyspace, path);
 			indexConfiguration.addIndexDefinition(indexDefinition);
 
-			data.add(new SimpleIndexedPropertyValue(keyspace, path, indexDefinition.valueTransformer().convert(value)));
+			data.add(indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value));
+		} else if (property != null && property.isAnnotationPresent(GeoIndexed.class)) {
+
+			GeoIndexDefinition indexDefinition = new GeoIndexDefinition(keyspace, path);
+			indexConfiguration.addIndexDefinition(indexDefinition);
+
+			data.add(indexedDataFactoryProvider.getIndexedDataFactory(indexDefinition).createIndexedDataFor(value));
 		}
 
 		return data;

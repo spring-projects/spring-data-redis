@@ -210,7 +210,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 		Object instance = instantiator.createInstance((RedisPersistentEntity<?>) entity,
 				new PersistentEntityParameterValueProvider<KeyValuePersistentProperty>(entity,
-						new ConverterAwareParameterValueProvider(source, conversionService), null));
+						new ConverterAwareParameterValueProvider(path, source, conversionService), this.conversionService));
 
 		final PersistentPropertyAccessor accessor = entity.getPropertyAccessor(instance);
 
@@ -259,14 +259,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 
 					Bucket bucket = source.getBucket().extract(currentPath + ".");
 
-					RedisData source = new RedisData(bucket);
+					RedisData newBucket = new RedisData(bucket);
 
 					byte[] type = bucket.get(currentPath + "." + TYPE_HINT_ALIAS);
 					if (type != null && type.length > 0) {
-						source.getBucket().put(TYPE_HINT_ALIAS, type);
+						newBucket.getBucket().put(TYPE_HINT_ALIAS, type);
 					}
 
-					accessor.setProperty(persistentProperty, readInternal(currentPath, targetType, source));
+					accessor.setProperty(persistentProperty, readInternal(currentPath, targetType, newBucket));
 				} else {
 
 					if (persistentProperty.isIdProperty() && StringUtils.isEmpty(path.isEmpty())) {
@@ -602,8 +602,8 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		writeAssociation(path, entity, value, sink);
 	}
 
-	private void writeAssociation(final String path, final KeyValuePersistentEntity<?> entity,
-			final Object value, final RedisData sink) {
+	private void writeAssociation(final String path, final KeyValuePersistentEntity<?> entity, final Object value,
+			final RedisData sink) {
 
 		if (value == null) {
 			return;
@@ -992,10 +992,13 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 	private static class ConverterAwareParameterValueProvider
 			implements PropertyValueProvider<KeyValuePersistentProperty> {
 
+		private final String path;
 		private final RedisData source;
 		private final ConversionService conversionService;
 
-		public ConverterAwareParameterValueProvider(RedisData source, ConversionService conversionService) {
+		public ConverterAwareParameterValueProvider(String path, RedisData source, ConversionService conversionService) {
+
+			this.path = path;
 			this.source = source;
 			this.conversionService = conversionService;
 		}
@@ -1003,7 +1006,9 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 		@Override
 		@SuppressWarnings("unchecked")
 		public <T> T getPropertyValue(KeyValuePersistentProperty property) {
-			return (T) conversionService.convert(source.getBucket().get(property.getName()), property.getActualType());
+
+			String name = StringUtils.hasText(path) ? path + "." + property.getName() : property.getName();
+			return (T) conversionService.convert(source.getBucket().get(name), property.getActualType());
 		}
 	}
 

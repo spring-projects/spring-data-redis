@@ -310,6 +310,8 @@ public class ApplicationConfig {
 == Secondary Indexes
 http://redis.io/topics/indexes[Secondary indexes] are used to enable lookup operations based on native Redis structures. Values are written to the according indexes on every save and are removed when objects are deleted or <<redis.repositories.expirations,expire>>.
 
+=== Simple Property Index
+
 Given the sample `Person` entity we can create an index for _firstname_ by annotating the property with `@Indexed`.
 
 .Annotation driven indexing
@@ -418,6 +420,51 @@ public class ApplicationConfig {
 }
 ----
 ====
+
+=== Geospatial Index
+
+Assume the `Address` type contains a property `location` of type `Point` that holds the geo coordinates of the particular address. By annotating the property with `@GeoIndexed` those values will be added using  Redis `GEO` commands.
+
+====
+[source,java]
+----
+@RedisHash("persons")
+public class Person {
+
+  Address address;
+
+  // ... other properties omitted
+}
+
+public class Address {
+
+  @GeoIndexed Point location;
+
+  // ... other properties omitted
+}
+
+public interface PersonRepository extends CrudRepository<Person, String> {
+
+  List<Person> findByAddressLocationNear(Point point, Distance distance);     <1>
+  List<Person> findByAddressLocationWithin(Circle circle);                    <2>
+}
+
+Person rand = new Person("rand", "al'thor");
+rand.setAddress(new Address(new Point(13.361389D, 38.115556D)));
+
+repository.save(rand);                                                        <3>
+
+repository.findByAddressLocationNear(new Point(15D, 37D), new Distance(200)); <4>
+----
+<1> finder declaration on nested property using Point and Distance.
+<2> finder declaration on nested property using Circle to search within.
+<3> `GEOADD persons:address:location 13.361389 38.115556 e2c7dcee-b8cd-4424-883e-736ce564363e`
+<4> `GEORADIUS persons:address:location 15.0 37.0 200.0 km`
+====
+
+In the above example the lon/lat values are stored using `GEOADD` using the objects `id` as the members name. The finder methods allow usage of `Circle` or `Point, Distance` combinations for querying those values.
+
+NOTE: It is **not** possible to combine `near`/`within` with other criteria.
 
 
 [[redis.repositories.expirations]]
