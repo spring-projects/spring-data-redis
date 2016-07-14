@@ -15,11 +15,15 @@
  */
 package org.springframework.data.redis.repository.query;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Point;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -32,6 +36,8 @@ public class RedisOperationChain {
 
 	private Set<PathAndValue> sismember = new LinkedHashSet<PathAndValue>();
 	private Set<PathAndValue> orSismember = new LinkedHashSet<PathAndValue>();
+
+	private NearPath near;
 
 	public void sismember(String path, Object value) {
 		sismember(new PathAndValue(path, value));
@@ -59,6 +65,14 @@ public class RedisOperationChain {
 
 	public Set<PathAndValue> getOrSismember() {
 		return orSismember;
+	}
+
+	public void near(NearPath near) {
+		this.near = near;
+	}
+
+	public NearPath getNear() {
+		return near;
 	}
 
 	public static class PathAndValue {
@@ -126,6 +140,28 @@ public class RedisOperationChain {
 			return ObjectUtils.nullSafeEquals(this.values, that.values);
 		}
 
+	}
+
+	/**
+	 * @since 1.8
+	 * @author Christoph Strobl
+	 */
+	public static class NearPath extends PathAndValue {
+
+		public NearPath(String path, Point point, Distance distance) {
+			super(path, Arrays.<Object> asList(point, distance));
+		}
+
+		public Point getPoint() {
+			return (Point) getFirstValue();
+		}
+
+		public Distance getDistance() {
+
+			Iterator<Object> it = values().iterator();
+			it.next();
+			return (Distance) it.next();
+		}
 	}
 
 }

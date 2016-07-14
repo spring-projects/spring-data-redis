@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.repository;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
@@ -34,13 +32,18 @@ import org.springframework.data.annotation.Reference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
+import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.IndexDefinition;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
@@ -52,6 +55,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public abstract class RedisRepositoryIntegrationTestBase {
 
 	@Autowired PersonRepository repo;
+	@Autowired CityRepository cityRepo;
 	@Autowired KeyValueTemplate kvTemplate;
 
 	@Before
@@ -318,6 +322,74 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		}
 	}
 
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void nearQueryShouldReturnResultsCorrectly() {
+
+		City palermo = new City();
+		palermo.location = new Point(13.361389D, 38.115556D);
+
+		City catania = new City();
+		catania.location = new Point(15.087269D, 37.502669D);
+
+		cityRepo.save(Arrays.asList(palermo, catania));
+
+		List<City> result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS));
+		assertThat(result, hasItems(palermo, catania));
+
+		result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(100, Metrics.KILOMETERS));
+		assertThat(result, hasItems(catania));
+		assertThat(result, not(hasItems(palermo)));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void nearQueryShouldFindNothingIfOutOfRange() {
+
+		City palermo = new City();
+		palermo.location = new Point(13.361389D, 38.115556D);
+
+		City catania = new City();
+		catania.location = new Point(15.087269D, 37.502669D);
+
+		cityRepo.save(Arrays.asList(palermo, catania));
+
+		List<City> result = cityRepo.findByLocationNear(new Point(15D, 37D), new Distance(10, Metrics.KILOMETERS));
+		assertThat(result, is(empty()));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void nearQueryShouldReturnResultsCorrectlyOnNestedProperty() {
+
+		City palermo = new City();
+		palermo.location = new Point(13.361389D, 38.115556D);
+
+		City catania = new City();
+		catania.location = new Point(15.087269D, 37.502669D);
+
+		Person p1 = new Person("foo", "bar");
+		p1.hometown = palermo;
+
+		Person p2 = new Person("two", "two");
+		p2.hometown = catania;
+
+		repo.save(Arrays.asList(p1, p2));
+
+		List<Person> result = repo.findByHometownLocationNear(new Point(15D, 37D), new Distance(200, Metrics.KILOMETERS));
+		assertThat(result, hasItems(p1, p2));
+
+		result = repo.findByHometownLocationNear(new Point(15D, 37D), new Distance(100, Metrics.KILOMETERS));
+		assertThat(result, hasItems(p2));
+		assertThat(result, not(hasItems(p1)));
+	}
+
 	public static interface PersonRepository extends PagingAndSortingRepository<Person, String> {
 
 		List<Person> findByFirstname(String firstname);
@@ -337,6 +409,13 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findTop2ByLastname(String lastname);
 
 		Page<Person> findBy(Pageable page);
+
+		List<Person> findByHometownLocationNear(Point point, Distance distance);
+	}
+
+	public static interface CityRepository extends CrudRepository<City, String> {
+
+		List<City> findByLocationNear(Point point, Distance distance);
 	}
 
 	/**
@@ -373,6 +452,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		@Indexed String firstname;
 		String lastname;
 		@Reference City city;
+		City hometown;
 
 		public Person() {}
 
@@ -460,8 +540,11 @@ public abstract class RedisRepositoryIntegrationTestBase {
 	}
 
 	public static class City {
+
 		@Id String id;
 		String name;
+
+		@GeoIndexed Point location;
 
 		@Override
 		public int hashCode() {

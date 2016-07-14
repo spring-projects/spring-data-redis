@@ -34,10 +34,13 @@ import java.util.Set;
 import org.hamcrest.core.IsCollectionContaining;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
@@ -48,6 +51,7 @@ import org.springframework.data.redis.core.convert.ConversionTestEntities.Person
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Size;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
+import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
@@ -60,6 +64,8 @@ import org.springframework.data.util.ClassTypeInformation;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PathIndexResolverUnitTests {
+
+	public @Rule ExpectedException exception = ExpectedException.none();
 
 	IndexConfiguration indexConfig;
 	PathIndexResolver indexResolver;
@@ -514,6 +520,68 @@ public class PathIndexResolverUnitTests {
 						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 3)));
 	}
 
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void resolveGeoIndexShouldMapNameCorrectly() {
+
+		when(propertyMock.isMap()).thenReturn(true);
+		when(propertyMock.isAnnotationPresent(eq(GeoIndexed.class))).thenReturn(true);
+		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(createGeoIndexedInstance());
+
+		IndexedData index = resolve("location", new Point(1D, 2D));
+
+		assertThat(index.getIndexName(), is("location"));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void resolveGeoIndexShouldMapNameForNestedPropertyCorrectly() {
+
+		when(propertyMock.isMap()).thenReturn(true);
+		when(propertyMock.isAnnotationPresent(eq(GeoIndexed.class))).thenReturn(true);
+		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(createGeoIndexedInstance());
+
+		IndexedData index = resolve("property.location", new Point(1D, 2D));
+
+		assertThat(index.getIndexName(), is("property:location"));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void resolveGeoIndexOnPointField() {
+
+		GeoIndexedOnPoint source = new GeoIndexedOnPoint();
+		source.location = new Point(1D, 2D);
+
+		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(GeoIndexedOnPoint.class),
+				source);
+
+		assertThat(indexes.size(), is(1));
+		assertThat(indexes, IsCollectionContaining.<IndexedData> hasItems(
+				new GeoIndexedPropertyValue(GeoIndexedOnPoint.class.getName(), "location", source.location)));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void resolveGeoIndexOnArrayFieldThrowsError() {
+
+		exception.expect(IllegalArgumentException.class);
+		exception.expectMessage("GeoIndexed property needs to be of type Point or GeoLocation");
+
+		GeoIndexedOnArray source = new GeoIndexedOnArray();
+		source.location = new double[] { 10D, 20D };
+
+		indexResolver.resolveIndexesFor(ClassTypeInformation.from(GeoIndexedOnArray.class), source);
+	}
+
 	private IndexedData resolve(String path, Object value) {
 
 		Set<IndexedData> data = indexResolver.resolveIndex(KEYSPACE_PERSON, path, propertyMock, value);
@@ -534,7 +602,16 @@ public class PathIndexResolverUnitTests {
 			public Class<? extends Annotation> annotationType() {
 				return Indexed.class;
 			}
+		};
+	}
 
+	private GeoIndexed createGeoIndexedInstance() {
+
+		return new GeoIndexed() {
+			@Override
+			public Class<? extends Annotation> annotationType() {
+				return GeoIndexed.class;
+			}
 		};
 	}
 
@@ -551,6 +628,14 @@ public class PathIndexResolverUnitTests {
 	static class IndexedOnMapField {
 
 		@Indexed Map<String, String> values;
+	}
+
+	static class GeoIndexedOnPoint {
+		@GeoIndexed Point location;
+	}
+
+	static class GeoIndexedOnArray {
+		@GeoIndexed double[] location;
 	}
 
 }

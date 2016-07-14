@@ -25,13 +25,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.keyvalue.core.CriteriaAccessor;
 import org.springframework.data.keyvalue.core.QueryEngine;
 import org.springframework.data.keyvalue.core.SortAccessor;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
+import org.springframework.data.redis.repository.query.RedisOperationChain.NearPath;
 import org.springframework.data.redis.repository.query.RedisOperationChain.PathAndValue;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.CollectionUtils;
@@ -74,7 +80,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			final int rows, final Serializable keyspace, Class<T> type) {
 
 		if (criteria == null
-				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))) {
+				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))
+						&& criteria.getNear() == null) {
 			return (Collection<T>) getAdapter().getAllOf(keyspace, offset, rows);
 		}
 
@@ -97,6 +104,15 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 				}
 				if (!criteria.getOrSismember().isEmpty()) {
 					allKeys.addAll(connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())));
+				}
+
+				if (criteria.getNear() != null) {
+
+					GeoResults<GeoLocation<byte[]>> x = connection.geoRadius(geoKey(keyspace + ":", criteria.getNear()),
+							new Circle(criteria.getNear().getPoint(), criteria.getNear().getDistance()));
+					for (GeoResult<GeoLocation<byte[]>> y : x) {
+						allKeys.add(y.getContent().getName());
+					}
 				}
 
 				byte[] keyspaceBin = getAdapter().getConverter().getConversionService().convert(keyspace + ":", byte[].class);
@@ -193,6 +209,13 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			i++;
 		}
 		return keys;
+	}
+
+	private byte[] geoKey(String prefix, NearPath source) {
+
+		String path = GeoIndexedPropertyValue.geoIndexName(source.getPath());
+		return getAdapter().getConverter().getConversionService().convert(prefix + path, byte[].class);
+
 	}
 
 	/**

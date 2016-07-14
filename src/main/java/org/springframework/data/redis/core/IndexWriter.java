@@ -18,7 +18,9 @@ package org.springframework.data.redis.core;
 import java.util.Set;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.RedisConverter;
 import org.springframework.data.redis.core.convert.RemoveIndexedData;
@@ -126,7 +128,13 @@ class IndexWriter {
 		byte[] indexHelperKey = ByteUtils.concatAll(toBytes(keyspace + ":"), binKey, toBytes(":idx"));
 
 		for (byte[] indexKey : connection.sMembers(indexHelperKey)) {
-			connection.sRem(indexKey, binKey);
+
+			DataType type = connection.type(indexKey);
+			if (DataType.ZSET.equals(type)) {
+				connection.zRem(indexKey, binKey);
+			} else {
+				connection.sRem(indexKey, binKey);
+			}
 		}
 
 		connection.del(indexHelperKey);
@@ -166,7 +174,12 @@ class IndexWriter {
 
 		if (!CollectionUtils.isEmpty(existingKeys)) {
 			for (byte[] existingKey : existingKeys) {
-				connection.sRem(existingKey, key);
+
+				if (indexedData instanceof GeoIndexedPropertyValue) {
+					connection.geoRemove(existingKey, key);
+				} else {
+					connection.sRem(existingKey, key);
+				}
 			}
 		}
 	}
@@ -207,7 +220,23 @@ class IndexWriter {
 
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
-		} else {
+		} else if (indexedData instanceof GeoIndexedPropertyValue) {
+
+			GeoIndexedPropertyValue geoIndexedData = ((GeoIndexedPropertyValue) indexedData);
+
+			Object value = geoIndexedData.getValue();
+			if (value == null) {
+				return;
+			}
+
+			byte[] indexKey = toBytes(indexedData.getKeyspace() + ":" + indexedData.getIndexName());
+			connection.geoAdd(indexKey, geoIndexedData.getPoint(), key);
+
+			// keep track of indexes used for the object
+			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
+		}
+
+		else {
 			throw new IllegalArgumentException(
 					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));
 		}

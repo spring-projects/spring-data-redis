@@ -35,6 +35,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.convert.GeoIndexedPropertyValue;
 import org.springframework.data.redis.core.convert.IndexedData;
 import org.springframework.data.redis.core.convert.MappingRedisConverter;
 import org.springframework.data.redis.core.convert.PathIndexResolver;
@@ -213,6 +214,21 @@ public class IndexWriterUnitTests {
 		verify(connectionMock).sAdd(eq("persons:key-1:idx".getBytes(CHARSET)),
 				eq("persons:firstname:Rand".getBytes(CHARSET)));
 		verify(connectionMock, times(1)).sRem(any(byte[].class), eq(KEY_BIN));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void removeGeoIndexShouldCallGeoRemove() {
+
+		byte[] indexKey1 = "persons:location".getBytes(CHARSET);
+
+		when(connectionMock.keys(any(byte[].class))).thenReturn(new LinkedHashSet<byte[]>(Arrays.asList(indexKey1)));
+
+		writer.removeKeyFromExistingIndexes(KEY_BIN, new GeoIndexedPropertyValue(KEYSPACE, "address.city", null));
+
+		verify(connectionMock).geoRemove(indexKey1, KEY_BIN);
 	}
 
 	static class StubIndxedData implements IndexedData {

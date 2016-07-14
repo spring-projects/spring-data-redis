@@ -36,6 +36,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Reference;
+import org.springframework.data.geo.Point;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -45,6 +46,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.convert.Bucket;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
+import org.springframework.data.redis.core.index.GeoIndexed;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
@@ -510,6 +512,90 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "relatives.[stepfather].firstname"), is(false));
 	}
 
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void putShouldCreateGeoIndexCorrectly() {
+
+		Person tam = new Person();
+		tam.id = "1";
+		tam.firstname = "tam";
+		tam.address = new Address();
+		tam.address.location = new Point(10, 20);
+
+		adapter.put("1", tam, "persons");
+
+		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(notNullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void deleteShouldRemoveGeoIndexCorrectly() {
+
+		Person tam = new Person();
+		tam.id = "1";
+		tam.firstname = "tam";
+		tam.address = new Address();
+		tam.address.location = new Point(10, 20);
+
+		adapter.put("1", tam, "persons");
+
+		adapter.delete("1", "persons", Person.class);
+
+		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void updateShouldAlterGeoIndexCorrectlyOnDelete() {
+
+		Person tam = new Person();
+		tam.id = "1";
+		tam.firstname = "tam";
+		tam.address = new Address();
+		tam.address.location = new Point(10, 20);
+
+		adapter.put("1", tam, "persons");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+				.del("address.location");
+
+		adapter.update(update);
+
+		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-533
+	 */
+	@Test
+	public void updateShouldAlterGeoIndexCorrectlyOnUpdate() {
+
+		Person tam = new Person();
+		tam.id = "1";
+		tam.firstname = "tam";
+		tam.address = new Address();
+		tam.address.location = new Point(10, 20);
+
+		adapter.put("1", tam, "persons");
+
+		PartialUpdate<Person> update = new PartialUpdate<Person>("1", Person.class) //
+				.set("address.location", new Point(17, 18));
+
+		adapter.update(update);
+
+		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(notNullValue()));
+		Point updatedLocation = template.opsForGeo().geoPos("persons:address:location", "1").iterator().next();
+
+		assertThat(updatedLocation.getX(), is(closeTo(17D, 0.005)));
+		assertThat(updatedLocation.getY(), is(closeTo(18D, 0.005)));
+	}
+
 	@KeySpace("persons")
 	static class Person {
 
@@ -536,6 +622,8 @@ public class RedisKeyValueAdapterTests {
 
 		String city;
 		@Indexed String country;
+		@GeoIndexed Point location;
+
 	}
 
 	static class AddressWithId extends Address {
