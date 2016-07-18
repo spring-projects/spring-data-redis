@@ -798,11 +798,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
+	protected StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
+
 		close();
-		// open a pubsub one
 		return ((RedisClient) client).connectPubSub(CODEC);
-		// return ((RedisClient) client).connectPubSub(CODEC);
 	}
 
 	void pipeline(LettuceResult result) {
@@ -892,7 +891,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 					((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
 				}
 			}
-
 		}
 
 		if (asyncDedicatedConn instanceof StatefulRedisConnection) {

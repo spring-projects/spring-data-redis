@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.listener;
 
 import static org.junit.Assert.*;
@@ -45,6 +44,8 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
+import org.springframework.data.redis.connection.ClusterTestVariables;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -113,7 +114,16 @@ public class PubSubResubscribeTests {
 		lettuceConnFactory.setValidateConnection(true);
 		lettuceConnFactory.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
+		LettuceConnectionFactory lettuceClusterConnFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
+		lettuceClusterConnFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		lettuceClusterConnFactory.setPort(port);
+		lettuceClusterConnFactory.setHostName(host);
+		lettuceClusterConnFactory.setValidateConnection(true);
+		lettuceClusterConnFactory.afterPropertiesSet();
+
+		return Arrays
+				.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { lettuceClusterConnFactory } });
 	}
 
 	@Before
@@ -251,7 +261,7 @@ public class PubSubResubscribeTests {
 	/**
 	 * Validates the behavior of {@link RedisMessageListenerContainer} when it needs to spin up a thread executing its
 	 * PatternSubscriptionTask
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
