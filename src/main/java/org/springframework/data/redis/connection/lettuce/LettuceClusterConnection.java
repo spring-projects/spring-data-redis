@@ -22,9 +22,9 @@ import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.SlotHash;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
-import io.lettuce.core.cluster.models.partitions.Partitions;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +35,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -101,9 +100,9 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		Assert.notNull(executor, "ClusterCommandExecutor must not be null.");
 
 		this.clusterClient = clusterClient;
-		topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
-		clusterCommandExecutor = executor;
-		disposeClusterCommandExecutorOnClose = false;
+		this.topologyProvider = new LettuceClusterTopologyProvider(clusterClient);
+		this.clusterCommandExecutor = executor;
+		this.disposeClusterCommandExecutorOnClose = false;
 	}
 
 	/*
@@ -224,9 +223,7 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 	@Override
 	public RedisClusterNode clusterGetNodeForSlot(int slot) {
 
-		DirectFieldAccessor accessor = new DirectFieldAccessor(clusterClient);
-		return LettuceConverters
-				.toRedisClusterNode(((Partitions) accessor.getPropertyValue("partitions")).getPartitionBySlot(slot));
+		return LettuceConverters.toRedisClusterNode(clusterClient.getPartitions().getPartitionBySlot(slot));
 	}
 
 	/*
@@ -516,6 +513,19 @@ public class LettuceClusterConnection extends LettuceConnection implements Defau
 		}
 
 		return result;
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceConnection#switchToPubSub()
+	 */
+	@Override
+	protected StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
+
+		close();
+
+		// open a pubsub one
+		return clusterClient.connectPubSub(CODEC);
 	}
 
 	public ClusterCommandExecutor getClusterCommandExecutor() {
