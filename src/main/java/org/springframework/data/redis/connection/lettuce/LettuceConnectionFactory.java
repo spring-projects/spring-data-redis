@@ -565,6 +565,10 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 				RedisURI redisURI = new RedisURI(node.getHost(), node.getPort(), timeout, TimeUnit.MILLISECONDS);
 
+				redisURI.setSsl(useSsl);
+				redisURI.setVerifyPeer(verifyPeer);
+				redisURI.setStartTls(startTls);
+
 				if (StringUtils.hasText(password)) {
 					redisURI.setPassword(password);
 				}
