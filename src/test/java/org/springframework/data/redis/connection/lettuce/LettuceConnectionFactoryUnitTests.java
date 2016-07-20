@@ -28,6 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.connection.ClusterTestVariables;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 
@@ -243,4 +244,69 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isStartTls(), is(true));
 	}
 
+	/**
+	 * @see DATAREDIS-537
+	 */
+	@Test
+	public void sslShouldBeSetCorrectlyOnClusterClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setUseSsl(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClusterClient.class));
+
+		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
+
+		for (RedisURI uri : initialUris) {
+			assertThat(uri.isSsl(), is(true));
+		}
+	}
+
+	/**
+	 * @see DATAREDIS-537
+	 */
+	@Test
+	public void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setStartTls(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClusterClient.class));
+
+		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
+
+		for (RedisURI uri : initialUris) {
+			assertThat(uri.isStartTls(), is(true));
+		}
+	}
+
+	/**
+	 * @see DATAREDIS-537
+	 */
+	@Test
+	public void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
+
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
+		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setVerifyPeer(true);
+		connectionFactory.afterPropertiesSet();
+		ConnectionFactoryTracker.add(connectionFactory);
+
+		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
+		assertThat(client, instanceOf(RedisClusterClient.class));
+
+		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
+
+		for (RedisURI uri : initialUris) {
+			assertThat(uri.isVerifyPeer(), is(true));
+		}
+	}
 }
