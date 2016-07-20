@@ -1,8 +1,11 @@
+[![Spring Data Redis](https://spring.io/badges/spring-data-redis/ga.svg)](http://projects.spring.io/spring-data-redis/#quick-start)
+[![Spring Data Redis](https://spring.io/badges/spring-data-redis/snapshot.svg)](http://projects.spring.io/spring-data-redis/#quick-start)
+
 Spring Data Redis
 =======================
 
 The primary goal of the [Spring Data](http://projects.spring.io/spring-data/) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
-This modules provides integration with the [Redis] (http://redis.io/) store. 
+This modules provides integration with the [Redis](http://redis.io/) store. 
 
 # Docs
 
