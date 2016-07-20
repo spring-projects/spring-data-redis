@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Christoph Strobl
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 1.7
  */
 public class RedisMappingContext extends KeyValueMappingContext {
@@ -291,6 +292,10 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 				Method timeoutMethod = resolveTimeMethod(type);
 				if (timeoutMethod != null) {
+
+					if (!timeoutMethod.isAccessible()) {
+						ReflectionUtils.makeAccessible(timeoutMethod);
+					}
 
 					TimeToLive ttl = AnnotationUtils.findAnnotation(timeoutMethod, TimeToLive.class);
 					try {

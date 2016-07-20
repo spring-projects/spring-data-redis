@@ -28,7 +28,10 @@ import org.springframework.data.redis.core.convert.KeyspaceConfiguration.Keyspac
 import org.springframework.data.redis.core.mapping.RedisMappingContext.ConfigAwareTimeToLiveAccessor;
 
 /**
+ * Unit tests for {@link ConfigAwareTimeToLiveAccessor}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class ConfigAwareTimeToLiveAccessorUnitTests {
 
@@ -177,6 +180,14 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 	}
 
 	/**
+	 * @see DATAREDIS-538
+	 */
+	@Test
+	public void getTimeToLiveShouldReturnMethodLevelTimeToLiveOfNonPublicTypeIfPresent() {
+		assertThat(accessor.getTimeToLive(new PrivateTypeWithTtlOnMethod(10L)), is(10L));
+	}
+
+	/**
 	 * @see DATAREDIS-471
 	 */
 	@Test
@@ -258,6 +269,22 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		Long value;
 
 		public TypeWithTtlOnMethod(Long value) {
+			this.value = value;
+		}
+
+		@TimeToLive
+		private Long getTimeToLive() {
+			return value;
+		}
+	}
+
+	// Type must be private so it does not fall in the
+	// package-default scope like the types from above
+	private static class PrivateTypeWithTtlOnMethod {
+
+		Long value;
+
+		public PrivateTypeWithTtlOnMethod(Long value) {
 			this.value = value;
 		}
 
