@@ -19,6 +19,8 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsInstanceOf.*;
 import static org.junit.Assert.*;
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.util.Collections;
@@ -28,7 +30,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.connection.ClusterTestVariables;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 
@@ -63,7 +64,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -78,7 +79,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void timeoutShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setTimeout(1000);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -102,7 +103,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void passwordShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -121,12 +122,11 @@ public class LettuceConnectionFactoryUnitTests {
 	 * @see DATAREDIS-524
 	 */
 	@Test
-	@SuppressWarnings("unchecked")
 	public void passwordShouldBeSetCorrectlyOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
 				new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setPassword("o_O");
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -143,7 +143,6 @@ public class LettuceConnectionFactoryUnitTests {
 	 * @see DATAREDIS-462
 	 */
 	@Test
-	@SuppressWarnings("unchecked")
 	public void clusterClientShouldInitializeWithoutClientResources() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
@@ -162,7 +161,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void sslOptionsShouldBeDisabledByDefaultOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
@@ -186,7 +185,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void sslShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setUseSsl(true);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -209,7 +208,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setVerifyPeer(false);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -230,7 +229,7 @@ public class LettuceConnectionFactoryUnitTests {
 	public void startTLSOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setStartTls(true);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -250,8 +249,9 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test
 	public void sslShouldBeSetCorrectlyOnClusterClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setUseSsl(true);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -272,8 +272,9 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test
 	public void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setStartTls(true);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
@@ -294,8 +295,9 @@ public class LettuceConnectionFactoryUnitTests {
 	@Test
 	public void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new RedisClusterConfiguration().clusterNode(ClusterTestVariables.CLUSTER_NODE_1));
-		connectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
+				new RedisClusterConfiguration().clusterNode(CLUSTER_NODE_1));
+		connectionFactory.setClientResources(getSharedClientResources());
 		connectionFactory.setVerifyPeer(true);
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
