@@ -97,6 +97,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private int timeout = Protocol.DEFAULT_TIMEOUT;
 	private String password;
 	private boolean usePool = true;
+	private boolean useSsl = false;
 	private Pool<Jedis> pool;
 	private JedisPoolConfig poolConfig = new JedisPoolConfig();
 	private int dbIndex = 0;
@@ -264,8 +265,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 * @since 1.4
 	 */
 	protected Pool<Jedis> createRedisPool() {
-		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
-				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword());
+
+		return useSsl
+				? new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
+						getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), true)
+				: new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
+						getTimeoutFrom(getShardInfo()), getShardInfo().getPassword());
 	}
 
 	private JedisCluster createCluster() {
@@ -295,14 +300,15 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects().intValue() : 5;
 
-		if (StringUtils.hasText(getPassword())) {
-			throw new IllegalArgumentException("Jedis does not support password protected Redis Cluster configurations!");
+		if (poolConfig != null) {
+			return StringUtils.hasText(getPassword())
+					? new JedisCluster(hostAndPort, timeout, timeout, redirects, getPassword(), poolConfig)
+					: new JedisCluster(hostAndPort, timeout, redirects, poolConfig);
 		}
 
-		if (poolConfig != null) {
-			return new JedisCluster(hostAndPort, timeout, redirects, poolConfig);
-		}
-		return new JedisCluster(hostAndPort, timeout, redirects, poolConfig);
+		return StringUtils.hasText(getPassword())
+				? new JedisCluster(hostAndPort, timeout, timeout, redirects, getPassword(), poolConfig)
+				: new JedisCluster(hostAndPort, timeout, redirects, poolConfig);
 	}
 
 	/*
@@ -389,6 +395,26 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	}
 
 	/**
+	 * Sets whether to use SSL.
+	 *
+	 * @param useSsl {@literal true} to use SSL.
+	 * @since 1.8
+	 */
+	public void setUseSsl(boolean useSsl) {
+		this.useSsl = useSsl;
+	}
+
+	/**
+	 * Returns whether to use SSL.
+	 *
+	 * @return use of SSL
+	 * @since 1.8
+	 */
+	public boolean isUseSsl() {
+		return useSsl;
+	}
+
+	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 * 
 	 * @return password for authentication
@@ -413,7 +439,6 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	public int getPort() {
 		return port;
-
 	}
 
 	/**

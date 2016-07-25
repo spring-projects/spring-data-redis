@@ -770,7 +770,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				throw new InvalidDataAccessApiUsageException("No ongoing transaction. Did you forget to call multi?");
 			}
 			List<Object> results = transaction.exec();
-			return convertPipelineAndTxResults
+			return convertPipelineAndTxResults && results != null && !results.isEmpty()
 					? new TransactionResultConverter<Response<?>>(txResults, JedisConverters.exceptionConverter())
 							.convert(results)
 					: results;

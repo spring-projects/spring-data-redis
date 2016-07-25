@@ -57,6 +57,7 @@ work/sentinel-%.conf:
 
 	echo port $* >> $@
 	echo daemonize yes >> $@
+	echo bind 0.0.0.0 >> $@
 	echo pidfile $(shell pwd)/work/sentinel-$*.pid >> $@
 	echo logfile $(shell pwd)/work/sentinel-$*.log >> $@
 	echo save \"\" >> $@

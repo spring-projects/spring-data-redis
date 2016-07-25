@@ -71,6 +71,7 @@ import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.SortParameters.Order;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -830,7 +831,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		connection.set("testitnow", "somethingelse");
 		actual.add(connection.exec());
 		actual.add(connection.get("testitnow"));
-		verifyResults(Arrays.asList(new Object[] { null, "something" }));
+
+		if (connectionFactory instanceof JedisConnectionFactory) {
+			verifyResults(Arrays.asList(new Object[] { Collections.emptyList(), "something" }));
+		} else {
+			verifyResults(Arrays.asList(new Object[] { null, "something" }));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
