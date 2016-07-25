@@ -72,6 +72,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @author Christoph Strobl
  * @author Anqing Shao
  * @author Duobiao Ou
+ * @author Mark Paluch
  */
 @RunWith(Parameterized.class)
 public class RedisTemplateTests<K, V> {
@@ -785,7 +786,12 @@ public class RedisTemplateTests<K, V> {
 				return operations.exec();
 			}
 		});
-		assertNull(results);
+
+		if (redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory) {
+			assertThat(results, is(empty()));
+		} else {
+			assertNull(results);
+		}
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}
 
@@ -848,7 +854,13 @@ public class RedisTemplateTests<K, V> {
 				return operations.exec();
 			}
 		});
-		assertNull(results);
+
+		if (redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory) {
+			assertThat(results, is(empty()));
+		} else {
+			assertNull(results);
+		}
+
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}
 
