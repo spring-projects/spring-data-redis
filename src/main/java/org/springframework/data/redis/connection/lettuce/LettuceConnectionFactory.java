@@ -562,26 +562,11 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 			List<RedisURI> initialUris = new ArrayList<RedisURI>();
 			for (RedisNode node : this.clusterConfiguration.getClusterNodes()) {
-
-				RedisURI redisURI = new RedisURI(node.getHost(), node.getPort(), timeout, TimeUnit.MILLISECONDS);
-
-				redisURI.setSsl(useSsl);
-				redisURI.setVerifyPeer(verifyPeer);
-				redisURI.setStartTls(startTls);
-
-				if (StringUtils.hasText(password)) {
-					redisURI.setPassword(password);
-				}
-
-				initialUris.add(redisURI);
+				initialUris.add(createRedisURIAndApplySettings(node.getHost(), node.getPort()));
 			}
 
-			RedisClusterClient clusterClient;
-			if (clientResources == null) {
-				clusterClient = RedisClusterClient.create(initialUris);
-			} else {
-				clusterClient = RedisClusterClient.create(clientResources, initialUris);
-			}
+			RedisClusterClient clusterClient = clientResources != null
+					? RedisClusterClient.create(clientResources, initialUris) : RedisClusterClient.create(initialUris);
 
 			this.clusterCommandExecutor = new ClusterCommandExecutor(
 					new LettuceClusterConnection.LettuceClusterTopologyProvider(clusterClient),
@@ -594,21 +579,8 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 			return pool.getClient();
 		}
 
-		RedisURI.Builder builder = RedisURI.Builder.redis(hostName, port);
-		if (password != null) {
-			builder.withPassword(password);
-		}
-
-		builder.withSsl(useSsl);
-		builder.withVerifyPeer(verifyPeer);
-		builder.withStartTls(startTls);
-		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
-
-		if (clientResources != null) {
-			return RedisClient.create(clientResources, builder.build());
-		}
-
-		return RedisClient.create(builder.build());
+		RedisURI uri = createRedisURIAndApplySettings(hostName, port);
+		return clientResources != null ? RedisClient.create(clientResources, uri) : RedisClient.create(uri);
 	}
 
 	private RedisURI getSentinelRedisURI() {
@@ -620,6 +592,21 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		}
 
 		return redisUri;
+	}
+
+	private RedisURI createRedisURIAndApplySettings(String host, int port) {
+
+		RedisURI.Builder builder = RedisURI.Builder.redis(host, port);
+		if (StringUtils.hasText(password)) {
+			builder.withPassword(password);
+		}
+
+		builder.withSsl(useSsl);
+		builder.withVerifyPeer(verifyPeer);
+		builder.withStartTls(startTls);
+		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+
+		return builder.build();
 	}
 
 	/**
