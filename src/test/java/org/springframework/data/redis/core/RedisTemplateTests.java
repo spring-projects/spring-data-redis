@@ -761,6 +761,9 @@ public class RedisTemplateTests<K, V> {
 		assertEquals(DataType.STRING, redisTemplate.type(key1));
 	}
 
+	/**
+	 * @see DATAREDIS-506
+	 */
 	@Test
 	public void testWatch() {
 		final K key1 = keyFactory.instance();
@@ -768,19 +771,24 @@ public class RedisTemplateTests<K, V> {
 		final V value2 = valueFactory.instance();
 		final V value3 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
+
 		final Thread th = new Thread(new Runnable() {
 			public void run() {
 				redisTemplate.opsForValue().set(key1, value2);
 			}
 		});
+
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+
 				operations.watch(key1);
+
 				th.start();
 				try {
 					th.join();
 				} catch (InterruptedException e) {}
+
 				operations.multi();
 				operations.opsForValue().set(key1, value3);
 				return operations.exec();
@@ -792,11 +800,13 @@ public class RedisTemplateTests<K, V> {
 		} else {
 			assertNull(results);
 		}
+
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value2));
 	}
 
 	@Test
 	public void testUnwatch() {
+
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		final V value2 = valueFactory.instance();
@@ -807,48 +817,62 @@ public class RedisTemplateTests<K, V> {
 				redisTemplate.opsForValue().set(key1, value2);
 			}
 		});
+
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+
 				operations.watch(key1);
+
 				th.start();
 				try {
 					th.join();
 				} catch (InterruptedException e) {}
+
 				operations.unwatch();
 				operations.multi();
 				operations.opsForValue().set(key1, value3);
 				return operations.exec();
 			}
 		});
+
 		assertTrue(results.isEmpty());
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value3));
 	}
 
+	/**
+	 * @see DATAREDIS-506
+	 */
 	@Test
 	public void testWatchMultipleKeys() {
+
 		final K key1 = keyFactory.instance();
 		final K key2 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		final V value2 = valueFactory.instance();
 		final V value3 = valueFactory.instance();
 		redisTemplate.opsForValue().set(key1, value1);
+
 		final Thread th = new Thread(new Runnable() {
 			public void run() {
 				redisTemplate.opsForValue().set(key1, value2);
 			}
 		});
+
 		List<Object> results = redisTemplate.execute(new SessionCallback<List<Object>>() {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public List<Object> execute(RedisOperations operations) throws DataAccessException {
+
 				List<K> keys = new ArrayList<K>();
 				keys.add(key1);
 				keys.add(key2);
 				operations.watch(keys);
+
 				th.start();
 				try {
 					th.join();
 				} catch (InterruptedException e) {}
+
 				operations.multi();
 				operations.opsForValue().set(key1, value3);
 				return operations.exec();
