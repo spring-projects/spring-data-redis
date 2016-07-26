@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	private final Log logger = LogFactory.getLog(RedisCacheManager.class);
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	private final RedisOperations redisOperations;
 
 	private boolean usePrefix = false;
@@ -91,16 +91,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	public RedisCacheManager(RedisOperations redisOperations, Collection<String> cacheNames) {
 		this.redisOperations = redisOperations;
 		setCacheNames(cacheNames);
-	}
-
-	@Override
-	public Cache getCache(String name) {
-		Cache cache = super.getCache(name);
-		if (cache == null && this.dynamic) {
-			return createAndAddCache(name);
-		}
-
-		return cache;
 	}
 
 	/**
@@ -169,8 +159,21 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	protected Collection<? extends Cache> loadCaches() {
 
 		Assert.notNull(this.redisOperations, "A redis template is required in order to interact with data store");
-		return addConfiguredCachesIfNecessary(loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : Collections
-				.<Cache> emptyList());
+
+		Set<Cache> caches = new LinkedHashSet<Cache>(
+				loadRemoteCachesOnStartup ? loadAndInitRemoteCaches() : new ArrayList<Cache>());
+
+		Set<String> cachesToLoad = new LinkedHashSet<String>(this.configuredCacheNames);
+		cachesToLoad.addAll(this.getCacheNames());
+
+		if (!CollectionUtils.isEmpty(cachesToLoad)) {
+
+			for (String cacheName : cachesToLoad) {
+				caches.add(createCache(cacheName));
+			}
+		}
+
+		return caches;
 	}
 
 	/**
@@ -206,9 +209,27 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 		return result;
 	}
 
+	/**
+	 * Will no longer add the cache to the set of
+	 *
+	 * @param cacheName
+	 * @return
+	 * @deprecated since 1.8 - please use {@link #getCache(String)}.
+	 */
+	@Deprecated
 	protected Cache createAndAddCache(String cacheName) {
-		addCache(createCache(cacheName));
-		return super.getCache(cacheName);
+
+		Cache cache = super.getCache(cacheName);
+		return cache != null ? cache : createCache(cacheName);
+	}
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.springframework.cache.support.AbstractCacheManager#getMissingCache(java.lang.String)
+	 */
+	@Override
+	protected Cache getMissingCache(String name) {
+		return this.dynamic ? createCache(name) : null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -280,27 +301,6 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	protected boolean isUsePrefix() {
 		return usePrefix;
-	}
-
-	/**
-	 * The number of caches and their names will be fixed after a call to this method, with no creation of further cache
-	 * regions at runtime.
-	 * 
-	 * @see org.springframework.cache.support.AbstractCacheManager#afterPropertiesSet()
-	 */
-	@Override
-	public void afterPropertiesSet() {
-
-		if (!CollectionUtils.isEmpty(configuredCacheNames)) {
-
-			for (String cacheName : configuredCacheNames) {
-				createAndAddCache(cacheName);
-			}
-
-			configuredCacheNames.clear();
-		}
-
-		super.afterPropertiesSet();
 	}
 
 	/* (non-Javadoc)
