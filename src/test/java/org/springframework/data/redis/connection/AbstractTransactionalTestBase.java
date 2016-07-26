@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,11 @@ import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.transaction.AfterTransaction;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(RelaxedJUnit4ClassRunner.class)
-@Transactional
-@TransactionConfiguration(transactionManager = "transactionManager")
+@Transactional(transactionManager = "transactionManager")
 public abstract class AbstractTransactionalTestBase {
 
 	@Configuration
