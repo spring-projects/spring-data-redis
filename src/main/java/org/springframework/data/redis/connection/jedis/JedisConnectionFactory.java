@@ -266,18 +266,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	protected Pool<Jedis> createRedisPool() {
 
-		return useSsl
-				? new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
-						getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), true)
-				: new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
-						getTimeoutFrom(getShardInfo()), getShardInfo().getPassword());
+		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
+				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), useSsl);
 	}
 
 	private JedisCluster createCluster() {
 
 		JedisCluster cluster = createCluster(this.clusterConfig, this.poolConfig);
-		this.clusterCommandExecutor = new ClusterCommandExecutor(new JedisClusterConnection.JedisClusterTopologyProvider(
-				cluster), new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster), EXCEPTION_TRANSLATION);
+		this.clusterCommandExecutor = new ClusterCommandExecutor(
+				new JedisClusterConnection.JedisClusterTopologyProvider(cluster),
+				new JedisClusterConnection.JedisClusterNodeResourceProvider(cluster), EXCEPTION_TRANSLATION);
 		return cluster;
 	}
 
@@ -300,14 +298,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 		int redirects = clusterConfig.getMaxRedirects() != null ? clusterConfig.getMaxRedirects().intValue() : 5;
 
-		if (poolConfig != null) {
-			return StringUtils.hasText(getPassword())
-					? new JedisCluster(hostAndPort, timeout, timeout, redirects, getPassword(), poolConfig)
-					: new JedisCluster(hostAndPort, timeout, redirects, poolConfig);
-		}
-
 		return StringUtils.hasText(getPassword())
-				? new JedisCluster(hostAndPort, timeout, timeout, redirects, getPassword(), poolConfig)
+				? new JedisCluster(hostAndPort, timeout, timeout, redirects, password, poolConfig)
 				: new JedisCluster(hostAndPort, timeout, redirects, poolConfig);
 	}
 
@@ -349,8 +341,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex) : new JedisConnection(jedis,
-				null, dbIndex));
+		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex)
+				: new JedisConnection(jedis, null, dbIndex));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}

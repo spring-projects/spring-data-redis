@@ -65,6 +65,7 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -770,7 +771,7 @@ public class JedisConnection extends AbstractRedisConnection {
 				throw new InvalidDataAccessApiUsageException("No ongoing transaction. Did you forget to call multi?");
 			}
 			List<Object> results = transaction.exec();
-			return convertPipelineAndTxResults && results != null && !results.isEmpty()
+			return convertPipelineAndTxResults && !CollectionUtils.isEmpty(results)
 					? new TransactionResultConverter<Response<?>>(txResults, JedisConverters.exceptionConverter())
 							.convert(results)
 					: results;
@@ -3401,19 +3402,13 @@ public class JedisConnection extends AbstractRedisConnection {
 				.geoRadiusResponseToGeoResultsConverter(within.getRadius().getMetric());
 		try {
 			if (isPipelined()) {
-				pipeline(
-						new JedisResult(
-								pipeline.georadius(key, within.getCenter().getX(), within.getCenter().getY(),
-										within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())),
-								converter));
+				pipeline(new JedisResult(pipeline.georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+						within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())), converter));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						new JedisResult(
-								transaction.georadius(key, within.getCenter().getX(), within.getCenter().getY(),
-										within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())),
-								converter));
+				transaction(new JedisResult(transaction.georadius(key, within.getCenter().getX(), within.getCenter().getY(),
+						within.getRadius().getValue(), JedisConverters.toGeoUnit(within.getRadius().getMetric())), converter));
 				return null;
 			}
 
