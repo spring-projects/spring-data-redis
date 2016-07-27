@@ -6,6 +6,39 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.0.M1 (2016-07-27)
+----------------------------------------
+* DATAREDIS-540 - Assert compatibility with Spring 5.
+* DATAREDIS-537 - Add support for Redis Cluster and SSL.
+* DATAREDIS-536 - Integrate version badge from spring.io.
+* DATAREDIS-530 - PartialUpdate removes existing indexes.
+* DATAREDIS-526 - RedisOperations.getExpire returns zero for negative timeout values.
+* DATAREDIS-524 - NOAUTH Authentication required when connecting to Redis Sentinel with LettuceConnectionFactory.
+* DATAREDIS-523 - Read back actual TTL into TimeToLive property.
+* DATAREDIS-516 - spring-data-redis requires spring 4.2.x components.
+* DATAREDIS-514 - Unify georadius capitalization.
+* DATAREDIS-513 - Pipelining doesn't supports time operation.
+* DATAREDIS-512 - Skip repository index update checks on insert.
+* DATAREDIS-510 - Current CacheValueAccessor implementation Make null value to empty string.
+* DATAREDIS-509 - Handle serializing arrays of primitives.
+* DATAREDIS-507 - RedisKeyValueAdapter.destroy calls RedisConnectionFactory.destroy.
+* DATAREDIS-506 - Upgrade to Jedis 2.9.0.
+* DATAREDIS-505 - Allow configuration of Redis Keyspace events config value.
+* DATAREDIS-503 - Add HashMapper implementation based on MappingRedisConverter.
+* DATAREDIS-502 - App fails to start on AWS due to spring-data-redis use of unsupported CONFIG command.
+* DATAREDIS-501 - RedisTemplate's default serializer assumes that its ClassLoader can load application types.
+* DATAREDIS-500 - executePipelined with RedisCallback uses wrong serializer (RedisTemplate.java).
+* DATAREDIS-498 - MappingRedisConverter uses List.sort which requires Java 8.
+* DATAREDIS-492 - "CollectionLike" properties are force cast into Collection<?> even though they could be arrays.
+* DATAREDIS-491 - Prevent KeyspaceEventMessageListener from starting when no repository detected.
+* DATAREDIS-489 - Store and retrieve type hints for Object type property values even when those are considered as simple types.
+* DATAREDIS-487 - Release 1.8 M1 (Ingalls).
+* DATAREDIS-471 - Incremental updates for Redis KeyValue Template.
+* DATAREDIS-469 - RedisAtomicLong throws a null pointer if key is removed.
+* DATAREDIS-438 - Add support for geo commands.
+* DATAREDIS-423 - Add Jackson2 HashMapper implementation.
+
+
 Changes in version 1.7.2.RELEASE (2016-06-15)
 ---------------------------------------------
 * DATAREDIS-517 - Back port documentation for New in Spring Data Redis 1.7.
