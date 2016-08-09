@@ -15,18 +15,14 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.AnyOf.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.anyOf;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.After;
@@ -113,7 +109,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		V value2 = valueFactory.instance();
 		zSetOps.add(key1, value1, 2.5);
 		zSetOps.add(key1, value2, 5.5);
-		assertEquals(Long.valueOf(1), zSetOps.count(key1, 2.7, 5.7));
+		assertThat(zSetOps.count(key1, 2.7, 5.7)).isEqualTo(1);
 	}
 
 	@Test
@@ -121,11 +117,11 @@ public class DefaultZSetOperationsTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		zSetOps.add(key1, value1, 2.5);
-		assertEquals(Double.valueOf(5.7), zSetOps.incrementScore(key1, value1, 3.2));
+		assertThat(zSetOps.incrementScore(key1, value1, 3.2)).isEqualTo(5.7);
 		Set<TypedTuple<V>> values = zSetOps.rangeWithScores(key1, 0, -1);
-		assertEquals(1, values.size());
+		assertThat(values).hasSize(1);
 		TypedTuple<V> tuple = values.iterator().next();
-		assertEquals(new DefaultTypedTuple<V>(value1, 5.7), tuple);
+		assertThat(tuple).isEqualTo(new DefaultTypedTuple<V>(value1, 5.7));
 	}
 
 	@Test
@@ -134,11 +130,10 @@ public class DefaultZSetOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
-		System.out.println(value1 + "*" + value2 + "*" + value3);
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		assertThat(zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1), isEqual(Collections.singleton(value1)));
+		assertThat(zSetOps.rangeByScore(key, 1.5, 4.7, 0, 1)).containsOnly(value1);
 	}
 
 	@Test
@@ -151,9 +146,9 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<TypedTuple<V>> tuples = zSetOps.rangeByScoreWithScores(key, 1.5, 4.7, 0, 1);
-		assertEquals(1, tuples.size());
+		assertThat(tuples).hasSize(1);
 		TypedTuple<V> tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value1, 1.9)));
+		assertThat(tuple).isEqualTo(new DefaultTypedTuple<V>(value1, 1.9));
 	}
 
 	@Test
@@ -165,7 +160,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value1, 1.9);
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
-		assertThat(zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1), isEqual(Collections.singleton(value2)));
+		assertThat(zSetOps.reverseRangeByScore(key, 1.5, 4.7, 0, 1)).containsOnly(value2);
 	}
 
 	@Test
@@ -178,9 +173,9 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value2, 3.7);
 		zSetOps.add(key, value3, 5.8);
 		Set<TypedTuple<V>> tuples = zSetOps.reverseRangeByScoreWithScores(key, 1.5, 4.7, 0, 1);
-		assertEquals(1, tuples.size());
+		assertThat(tuples).hasSize(1);
 		TypedTuple<V> tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
+		assertThat(tuple).isEqualTo(new DefaultTypedTuple<V>(value2, 3.7));
 	}
 
 	@Test // DATAREDIS-407
@@ -199,9 +194,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded());
 
-		assertEquals(3, tuples.size());
-		V tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(value1));
+		assertThat(tuples).hasSize(3).contains(value1);
 	}
 
 	@Test // DATAREDIS-407
@@ -220,9 +213,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, value3, 5.8);
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gt(value1).lt(value3));
 
-		assertEquals(1, tuples.size());
-		V tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(value2));
+		assertThat(tuples).containsOnly(value2);
 	}
 
 	@Test // DATAREDIS-407
@@ -242,9 +233,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.unbounded(),
 				RedisZSetCommands.Limit.limit().count(1).offset(1));
 
-		assertEquals(1, tuples.size());
-		V tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(value2));
+		assertThat(tuples).containsOnly(value2);
 	}
 
 	@Test // DATAREDIS-407
@@ -264,9 +253,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		Set<V> tuples = zSetOps.rangeByLex(key, RedisZSetCommands.Range.range().gte(value1),
 				RedisZSetCommands.Limit.limit().count(1).offset(1));
 
-		assertEquals(1, tuples.size());
-		V tuple = tuples.iterator().next();
-		assertThat(tuple, isEqual(value2));
+		assertThat(tuples).containsOnly(value2);
 	}
 
 	@Test
@@ -279,12 +266,9 @@ public class DefaultZSetOperationsTests<K, V> {
 		values.add(new DefaultTypedTuple<V>(value1, 1.7));
 		values.add(new DefaultTypedTuple<V>(value2, 3.2));
 		values.add(new DefaultTypedTuple<V>(value3, 0.8));
-		assertEquals(Long.valueOf(3), zSetOps.add(key, values));
-		Set<V> expected = new LinkedHashSet<V>();
-		expected.add(value3);
-		expected.add(value1);
-		expected.add(value2);
-		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
+
+		assertThat(zSetOps.add(key, values)).isEqualTo(3);
+		assertThat(zSetOps.range(key, 0, -1)).containsSequence(value3, value1, value2);
 	}
 
 	@Test
@@ -297,11 +281,10 @@ public class DefaultZSetOperationsTests<K, V> {
 		values.add(new DefaultTypedTuple<V>(value1, 1.7));
 		values.add(new DefaultTypedTuple<V>(value2, 3.2));
 		values.add(new DefaultTypedTuple<V>(value3, 0.8));
-		assertEquals(Long.valueOf(3), zSetOps.add(key, values));
-		assertEquals(Long.valueOf(2), zSetOps.remove(key, value1, value3));
-		Set<V> expected = new LinkedHashSet<V>();
-		expected.add(value2);
-		assertThat(zSetOps.range(key, 0, -1), isEqual(expected));
+
+		assertThat(zSetOps.add(key, values)).isEqualTo(3);
+		assertThat(zSetOps.remove(key, value1, value3)).isEqualTo(2);
+		assertThat(zSetOps.range(key, 0, -1)).containsExactly(value2);
 	}
 
 	@Test
@@ -318,7 +301,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		values.add(new DefaultTypedTuple<V>(value3, 0.8));
 		zSetOps.add(key, values);
 
-		assertThat(zSetOps.zCard(key), equalTo(3L));
+		assertThat(zSetOps.zCard(key)).isEqualTo(3);
 	}
 
 	@Test
@@ -335,7 +318,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		values.add(new DefaultTypedTuple<V>(value3, 0.8));
 		zSetOps.add(key, values);
 
-		assertThat(zSetOps.size(key), equalTo(3L));
+		assertThat(zSetOps.size(key)).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-306
@@ -358,14 +341,9 @@ public class DefaultZSetOperationsTests<K, V> {
 
 		zSetOps.add(key, values);
 
-		int count = 0;
-		Cursor<TypedTuple<V>> it = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build());
-		while (it.hasNext()) {
-			assertThat(it.next(), anyOf(equalTo(tuple1), equalTo(tuple2), equalTo(tuple3)));
-			count++;
-		}
+		Cursor<TypedTuple<V>> cursor = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build());
 
-		it.close();
-		assertThat(count, equalTo(3));
+		assertThat(cursor).hasSize(3).contains(tuple1, tuple2, tuple3);
+		cursor.close();
 	}
 }

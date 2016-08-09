@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -101,7 +101,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "somethingelse" }), execResults);
+		assertThat(execResults).isEqualTo(Arrays.asList(new Object[] { "somethingelse" }));
 	}
 
 	@Test

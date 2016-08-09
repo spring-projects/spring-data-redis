@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,14 +45,14 @@ public class ConfigAwareKeySpaceResolverUnitTests {
 
 	@Test // DATAREDIS-425
 	public void resolveShouldUseClassNameAsDefaultKeyspace() {
-		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class), is(TypeWithoutAnySettings.class.getName()));
+		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isEqualTo(TypeWithoutAnySettings.class.getName());
 	}
 
 	@Test // DATAREDIS-425
 	public void resolveShouldFavorConfiguredNameOverClassName() {
 
 		config.addKeyspaceSettings(new KeyspaceSettings(TypeWithoutAnySettings.class, "ji'e'toh"));
-		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class), is("ji'e'toh"));
+		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isEqualTo("ji'e'toh");
 	}
 
 	static class TypeWithoutAnySettings {

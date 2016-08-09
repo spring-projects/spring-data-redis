@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -23,8 +24,6 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -125,8 +124,7 @@ public class TransactionalRedisCacheManagerWithCommitUnitTests {
 		verify(redisTemplate.getConnectionFactory().getConnection(), times(1)).zAdd(keyCaptor.capture(), eq(0D),
 				valueCaptor.capture());
 
-		Assert.assertThat(new StringRedisSerializer().deserialize(keyCaptor.getValue()).toString(),
-				IsEqual.equalTo("bar~keys"));
+		assertThat(new StringRedisSerializer().deserialize(keyCaptor.getValue()).toString()).isEqualTo("bar~keys");
 	}
 
 	@Rollback(false)

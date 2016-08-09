@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,26 +35,26 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 	@Test
 	public void testUsePipelineAfterTxExec() {
 		connection.set("foo", "bar");
-		assertNull(connection.exec());
-		assertNull(connection.get("foo"));
+		assertThat(connection.exec()).isNull();
+		assertThat(connection.get("foo")).isNull();
 		List<Object> results = connection.closePipeline();
-		assertEquals(Arrays.asList(new Object[] { Collections.emptyList(), "bar" }), results);
-		assertEquals("bar", connection.get("foo"));
+		assertThat(results).isEqualTo(Arrays.asList(new Object[] { Collections.emptyList(), "bar" }));
+		assertThat(connection.get("foo")).isEqualTo("bar");
 	}
 
 	@Test
 	public void testExec2TransactionsInPipeline() {
 		connection.set("foo", "bar");
-		assertNull(connection.get("foo"));
-		assertNull(connection.exec());
+		assertThat(connection.get("foo")).isNull();
+		assertThat(connection.exec()).isNull();
 		connection.multi();
 		connection.set("foo", "baz");
-		assertNull(connection.get("foo"));
-		assertNull(connection.exec());
+		assertThat(connection.get("foo")).isNull();
+		assertThat(connection.exec()).isNull();
 		List<Object> results = connection.closePipeline();
-		assertEquals(2, results.size());
-		assertEquals(Arrays.asList(new Object[] { "bar" }), results.get(0));
-		assertEquals(Arrays.asList(new Object[] { "baz" }), results.get(1));
+		assertThat(results).hasSize(2);
+		assertThat(results.get(0)).isEqualTo(Arrays.asList(new Object[] { "bar" }));
+		assertThat(results.get(1)).isEqualTo(Arrays.asList(new Object[] { "baz" }));
 	}
 
 	@Test(expected = RedisPipelineException.class)
@@ -101,10 +100,10 @@ public class SrpConnectionPipelineTxIntegrationTests extends SrpConnectionTransa
 
 	@SuppressWarnings("unchecked")
 	protected List<Object> getResults() {
-		assertNull(connection.exec());
+		assertThat(connection.exec()).isNull();
 		List<Object> pipelined = connection.closePipeline();
 		// We expect only the results of exec to be in the closed pipeline
-		assertEquals(1, pipelined.size());
+		assertThat(pipelined).hasSize(1);
 		List<Object> txResults = (List<Object>) pipelined.get(0);
 		// Return exec results and this test should behave exactly like its superclass
 		return txResults;

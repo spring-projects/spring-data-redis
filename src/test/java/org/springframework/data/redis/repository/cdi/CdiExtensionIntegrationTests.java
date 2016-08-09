@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.repository.cdi;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 import java.util.Set;
@@ -57,8 +56,8 @@ public class CdiExtensionIntegrationTests {
 
 		Set<Bean<?>> beans = container.getBeanManager().getBeans(PersonRepository.class);
 
-		assertThat(beans, hasSize(1));
-		assertThat(beans.iterator().next().getScope(), is(equalTo((Class) ApplicationScoped.class)));
+		assertThat(beans).hasSize(1);
+		assertThat(beans.iterator().next().getScope()).isEqualTo(ApplicationScoped.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -72,7 +71,7 @@ public class CdiExtensionIntegrationTests {
 		repositoryConsumer.getUnqualifiedRepo().save(person);
 		List<Person> result = repositoryConsumer.getUnqualifiedRepo().findByName("foo");
 
-		assertThat(result, contains(person));
+		assertThat(result).contains(person);
 	}
 
 	@Test // DATAREDIS-425
@@ -86,7 +85,7 @@ public class CdiExtensionIntegrationTests {
 		repositoryConsumer.getUnqualifiedRepo().save(person);
 		List<Person> result = repositoryConsumer.getQualifiedRepo().findByName("foo");
 
-		assertThat(result, contains(person));
+		assertThat(result).contains(person);
 	}
 	
 	
@@ -96,7 +95,7 @@ public class CdiExtensionIntegrationTests {
 		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
 
 		int result = repositoryConsumer.getUnqualifiedRepo().returnOne();
-		assertThat(result, is(1));
+		assertThat(result).isEqualTo(1);
 	}
 
 }

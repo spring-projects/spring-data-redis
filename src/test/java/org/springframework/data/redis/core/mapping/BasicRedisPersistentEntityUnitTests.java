@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -112,6 +111,6 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		entity.addPersistentProperty(property1);
 		entity.addPersistentProperty(property2);
 
-		assertThat(entity.getIdProperty(), is(equalTo(property2)));
+		assertThat(entity.getIdProperty()).isEqualTo(property2);
 	}
 }

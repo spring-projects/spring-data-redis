@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +23,6 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.ConnectionFactoryTracker;
@@ -81,8 +77,8 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	public void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
-		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(), is(MASTER_NAME));
+		assertThat(servers).hasSize(1);
+		assertThat(servers.get(0).getName()).isEqualTo(MASTER_NAME);
 	}
 
 	@Test // DATAREDIS-348
@@ -91,11 +87,11 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
-		assertThat(servers.size(), is(1));
+		assertThat(servers).hasSize(1);
 
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size(), is(2));
-		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+		assertThat(slaves).hasSize(2);
+		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
 	}
 
 	@Test // DATAREDIS-462
@@ -110,7 +106,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.ping()).isEqualTo("PONG");
 		} finally {
 			connection.close();
 		}

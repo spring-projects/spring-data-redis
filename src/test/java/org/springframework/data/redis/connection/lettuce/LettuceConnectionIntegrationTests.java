@@ -16,8 +16,7 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
@@ -26,9 +25,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.hamcrest.core.AllOf;
-import org.hamcrest.core.IsCollectionContaining;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -83,7 +79,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		Thread.sleep(1000);
 		connection.set("heythere", "hi");
 		th.join();
-		assertEquals("hi", connection.get("heythere"));
+		assertThat(connection.get("heythere")).isEqualTo("hi");
 	}
 
 	@Test
@@ -96,14 +92,14 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		// We get immediate results executing command in separate conn (not part
 		// of tx)
 		conn2.set("txs2", "hi");
-		assertEquals("hi", conn2.get("txs2"));
+		assertThat(conn2.get("txs2")).isEqualTo("hi");
 
 		// Transactional value not yet set
-		assertEquals("rightnow", conn2.get("txs1"));
+		assertThat(conn2.get("txs1")).isEqualTo("rightnow");
 		connection.exec();
 
 		// Now it should be set
-		assertEquals("delay", conn2.get("txs1"));
+		assertThat(conn2.get("txs1")).isEqualTo("delay");
 		conn2.closePipeline();
 		conn2.close();
 	}
@@ -268,11 +264,11 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		th.start();
 		Thread.sleep(1000);
 		connection.scriptKill();
-		assertTrue(waitFor(new TestCondition() {
+		assertThat(waitFor(new TestCondition() {
 			public boolean passes() {
 				return scriptDead.get();
 			}
-		}, 3000l));
+		}, 3000l)).isTrue();
 	}
 
 	@Test
@@ -288,7 +284,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar", conn2.get("foo"));
+			assertThat(conn2.get("foo")).isEqualTo("bar");
 		} finally {
 			if (conn2.exists("foo")) {
 				conn2.del("foo");
@@ -307,9 +303,9 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		connection.set("redis", "supercalifragilisticexpialidocious");
 
 		assertThat(
-				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes()),
-				AllOf.allOf(IsInstanceOf.instanceOf(List.class), IsCollectionContaining.hasItems("awesome".getBytes(),
-						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
+				(Iterable<byte[]>) connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes())).
+				isInstanceOf(List.class).contains("awesome".getBytes(),
+						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -322,8 +318,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+		assertThat(scriptResults).contains("key1".getBytes(), "arg1".getBytes());
 	}
 
 	@Test // DATAREDIS-106
@@ -335,15 +330,15 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 
 		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
 
-		assertEquals("two", new String(zRangeByScore.iterator().next()));
+		assertThat(new String(zRangeByScore.iterator().next())).isEqualTo("two");
 	}
 
 	@Test // DATAREDIS-348
 	@RequiresRedisSentinel(RedisSentinelRule.SentinelsAvailable.ONE_ACTIVE)
 	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 
-		((LettuceConnection) byteConnection).setSentinelConfiguration(
-				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
-		assertThat(connection.getSentinelConnection(), notNullValue());
+		((LettuceConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
+				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
+		assertThat(connection.getSentinelConnection()).isNotNull();
 	}
 }

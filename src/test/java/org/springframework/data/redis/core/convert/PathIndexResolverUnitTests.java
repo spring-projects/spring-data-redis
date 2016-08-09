@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.collection.IsEmptyCollection.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
@@ -31,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hamcrest.core.IsCollectionContaining;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -93,8 +87,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Address.class), address);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(Address.class.getName(), "country", "andor")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(Address.class.getName(), "country", "andor"));
 	}
 
 	@Test // DATAREDIS-425
@@ -105,7 +98,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Address.class), address);
 
-		assertThat(indexes.size(), is(0));
+		assertThat(indexes).isEmpty();
 	}
 
 	@Test // DATAREDIS-425
@@ -117,8 +110,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), person);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor"));
 	}
 
 	@Test // DATAREDIS-425
@@ -140,11 +132,8 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
 
-		assertThat(indexes.size(), is(2));
-		assertThat(indexes,
-				IsCollectionContaining.<IndexedData> hasItems(
-						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "andor"),
-						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "saldaea")));
+		assertThat(indexes).hasSize(2).contains(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "andor"),
+						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "saldaea"));
 	}
 
 	@Test // DATAREDIS-425
@@ -163,9 +152,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TheWheelOfTime.class), twot);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes,
-				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country", "illian")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country", "illian"));
 	}
 
 	@Test // DATAREDIS-425
@@ -179,9 +166,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes,
-				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "physicalAttributes.eye-color", "grey")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "physicalAttributes.eye-color", "grey"));
 	}
 
 	@Test // DATAREDIS-425
@@ -199,9 +184,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes,
-				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "relatives.father.firstname", "janduin")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "relatives.father.firstname", "janduin"));
 	}
 
 	@Test // DATAREDIS-425, DATAREDIS-471
@@ -215,8 +198,8 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Person.class), rand);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes.iterator().next(), IsInstanceOf.instanceOf(RemoveIndexedData.class));
+		assertThat(indexes.size()).isEqualTo(1);
+		assertThat(indexes.iterator().next()).isInstanceOf(RemoveIndexedData.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -230,14 +213,14 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver
 				.resolveIndexesFor(ClassTypeInformation.from(PersonWithAddressReference.class), rand);
 
-		assertThat(indexes.size(), is(0));
+		assertThat(indexes).isEmpty();
 	}
 
 	@Test // DATAREDIS-425
 	public void resolveIndexShouldReturnNullWhenNoIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
-		assertThat(resolve("foo", "rand"), nullValue());
+		assertThat(resolve("foo", "rand")).isNull();
 	}
 
 	@Test // DATAREDIS-425
@@ -246,7 +229,7 @@ public class PathIndexResolverUnitTests {
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "foo"));
 
-		assertThat(resolve("foo", "rand"), notNullValue());
+		assertThat(resolve("foo", "rand")).isNotNull();
 	}
 
 	@Test // DATAREDIS-425
@@ -255,7 +238,7 @@ public class PathIndexResolverUnitTests {
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
 		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
 
-		assertThat(resolve("foo", "rand"), notNullValue());
+		assertThat(resolve("foo", "rand")).isNotNull();
 	}
 
 	@Test // DATAREDIS-425
@@ -267,7 +250,7 @@ public class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
-		assertThat(index.getIndexName(), is("list.name"));
+		assertThat(index.getIndexName()).isEqualTo("list.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -279,7 +262,7 @@ public class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
-		assertThat(index.getIndexName(), is("map.foo.name"));
+		assertThat(index.getIndexName()).isEqualTo("map.foo.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -291,7 +274,7 @@ public class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
-		assertThat(index.getIndexName(), is("map.0.name"));
+		assertThat(index.getIndexName()).isEqualTo("map.0.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -305,8 +288,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "feature.type", "hat")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "feature.type", "hat"));
 	}
 
 	@Test // DATAREDIS-425
@@ -320,7 +302,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
 
-		assertThat(indexes.size(), is(0));
+		assertThat(indexes.size()).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-425
@@ -336,9 +318,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes,
-				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "characteristics.clothing.type", "hat")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "characteristics.clothing.type", "hat"));
 	}
 
 	@Test // DATAREDIS-425
@@ -354,8 +334,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "items.type", "hat")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "items.type", "hat"));
 	}
 
 	@Test // DATAREDIS-425
@@ -373,8 +352,7 @@ public class PathIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(TaVeren.class), mat);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat")));
+		assertThat(indexes).hasSize(1).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat"));
 	}
 
 	@Test // DATAREDIS-425
@@ -386,7 +364,7 @@ public class PathIndexResolverUnitTests {
 		size.width = 30;
 
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(Size.class), size);
-		assertThat(indexes, is(empty()));
+		assertThat(indexes).isEmpty();
 	}
 
 	@Test // DATAREDIS-425
@@ -401,11 +379,8 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnMapField.class),
 				source);
 
-		assertThat(indexes.size(), is(2));
-		assertThat(indexes,
-				IsCollectionContaining.<IndexedData> hasItems(
-						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.jon", "snow"),
-						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.arya", "stark")));
+		assertThat(indexes).hasSize(2).contains(new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.jon", "snow"),
+						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.arya", "stark"));
 	}
 
 	@Test // DATAREDIS-425
@@ -420,11 +395,9 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(IndexedOnListField.class),
 				source);
 
-		assertThat(indexes.size(), is(2));
-		assertThat(indexes,
-				IsCollectionContaining.<IndexedData> hasItems(
-						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "jon"),
-						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya")));
+		assertThat(indexes.size()).isEqualTo(2);
+		assertThat(indexes).contains(new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "jon"),
+						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya"));
 	}
 
 	@Test // DATAREDIS-509
@@ -436,12 +409,10 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver
 				.resolveIndexesFor(ClassTypeInformation.from(IndexedOnPrimitiveArrayField.class), source);
 
-		assertThat(indexes.size(), is(3));
-		assertThat(indexes,
-				IsCollectionContaining.<IndexedData> hasItems(
+		assertThat(indexes).hasSize(3).contains(
 						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 1),
 						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 2),
-						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 3)));
+						new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 3));
 	}
 
 	@Test // DATAREDIS-533
@@ -453,7 +424,7 @@ public class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("location", new Point(1D, 2D));
 
-		assertThat(index.getIndexName(), is("location"));
+		assertThat(index.getIndexName()).isEqualTo("location");
 	}
 
 	@Test // DATAREDIS-533
@@ -465,7 +436,7 @@ public class PathIndexResolverUnitTests {
 
 		IndexedData index = resolve("property.location", new Point(1D, 2D));
 
-		assertThat(index.getIndexName(), is("property:location"));
+		assertThat(index.getIndexName()).isEqualTo("property:location");
 	}
 
 	@Test // DATAREDIS-533
@@ -477,9 +448,8 @@ public class PathIndexResolverUnitTests {
 		Set<IndexedData> indexes = indexResolver.resolveIndexesFor(ClassTypeInformation.from(GeoIndexedOnPoint.class),
 				source);
 
-		assertThat(indexes.size(), is(1));
-		assertThat(indexes, IsCollectionContaining.<IndexedData> hasItems(
-				new GeoIndexedPropertyValue(GeoIndexedOnPoint.class.getName(), "location", source.location)));
+		assertThat(indexes).hasSize(1).contains(
+				new GeoIndexedPropertyValue(GeoIndexedOnPoint.class.getName(), "location", source.location));
 	}
 
 	@Test // DATAREDIS-533
@@ -502,7 +472,7 @@ public class PathIndexResolverUnitTests {
 			return null;
 		}
 
-		assertThat(data.size(), is(1));
+		assertThat(data.size()).isEqualTo(1);
 		return data.iterator().next();
 	}
 

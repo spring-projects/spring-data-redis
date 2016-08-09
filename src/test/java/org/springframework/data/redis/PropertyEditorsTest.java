@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis;
 
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -46,10 +46,10 @@ public class PropertyEditorsTest {
 		RedisViewPE bean = ctx.getBean(RedisViewPE.class);
 		RedisOperations<?, ?> ops = ctx.getBean(RedisOperations.class);
 
-		assertSame(ops.opsForValue(), bean.getValueOps());
-		assertSame(ops.opsForList(), bean.getListOps());
-		assertSame(ops.opsForSet(), bean.getSetOps());
-		assertSame(ops.opsForZSet(), bean.getZsetOps());
-		assertSame(ops, bean.getHashOps().getOperations());
+		assertThat(bean.getValueOps()).isSameAs(ops.opsForValue());
+		assertThat(bean.getListOps()).isSameAs(ops.opsForList());
+		assertThat(bean.getSetOps()).isSameAs(ops.opsForSet());
+		assertThat(bean.getZsetOps()).isSameAs(ops.opsForZSet());
+		assertThat(bean.getHashOps().getOperations()).isSameAs(ops);
 	}
 }

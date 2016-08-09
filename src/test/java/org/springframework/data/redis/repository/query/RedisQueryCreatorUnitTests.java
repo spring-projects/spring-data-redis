@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.repository.query;
 
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 
@@ -60,8 +56,8 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getSismember(), hasSize(1));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCritieria().getSismember()).hasSize(1);
+		assertThat(query.getCritieria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
 	@Test // DATAREDIS-425
@@ -73,9 +69,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getSismember(), hasSize(2));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("age", 43)));
+		assertThat(query.getCritieria().getSismember()).hasSize(2);
+		assertThat(query.getCritieria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
+		assertThat(query.getCritieria().getSismember()).contains(new PathAndValue("age", 43));
 	}
 
 	@Test // DATAREDIS-425
@@ -87,9 +83,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getOrSismember(), hasSize(2));
-		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("age", 43)));
-		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCritieria().getOrSismember()).hasSize(2);
+		assertThat(query.getCritieria().getOrSismember()).contains(new PathAndValue("age", 43));
+		assertThat(query.getCritieria().getOrSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
 	@Test // DATAREDIS-533
@@ -101,9 +97,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getNear(), is(notNullValue()));
-		assertThat(query.getCritieria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCritieria().getNear()).isNotNull();
+		assertThat(query.getCritieria().getNear().getPoint()).isEqualTo(new Point(1, 2));
+		assertThat(query.getCritieria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
 	@Test // DATAREDIS-533
@@ -115,9 +111,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getNear(), is(notNullValue()));
-		assertThat(query.getCritieria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCritieria().getNear()).isNotNull();
+		assertThat(query.getCritieria().getNear().getPoint()).isEqualTo(new Point(1, 2));
+		assertThat(query.getCritieria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
 	@Test // DATAREDIS-533
@@ -129,9 +125,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getNear(), is(notNullValue()));
-		assertThat(query.getCritieria().getNear().getPoint(), is(new Point(1, 2)));
-		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
+		assertThat(query.getCritieria().getNear()).isNotNull();
+		assertThat(query.getCritieria().getNear().getPoint()).isEqualTo(new Point(1, 2));
+		assertThat(query.getCritieria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
 	@Test // DATAREDIS-533

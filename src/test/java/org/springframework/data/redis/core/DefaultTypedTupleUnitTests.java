@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -34,22 +33,22 @@ public class DefaultTypedTupleUnitTests {
 	@Test // DATAREDIS-294
 	public void compareToShouldUseScore() {
 
-		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_2), equalTo(-1));
-		assertThat(WITH_SCORE_2.compareTo(WITH_SCORE_1), equalTo(1));
-		assertThat(WITH_SCORE_1.compareTo(ANOTHER_ONE_WITH_SCORE_1), equalTo(0));
+		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_2)).isEqualTo(-1);
+		assertThat(WITH_SCORE_2.compareTo(WITH_SCORE_1)).isEqualTo(1);
+		assertThat(WITH_SCORE_1.compareTo(ANOTHER_ONE_WITH_SCORE_1)).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-294
 	public void compareToShouldConsiderGivenNullAsZeroScore() {
 
-		assertThat(WITH_SCORE_1.compareTo(null), equalTo(1));
-		assertThat(WITH_SCORE_NULL.compareTo(null), equalTo(0));
+		assertThat(WITH_SCORE_1.compareTo(null)).isEqualTo(1);
+		assertThat(WITH_SCORE_NULL.compareTo(null)).isEqualTo(0);
 	}
 
 	@Test // DATAREDIS-294
 	public void compareToShouldConsiderNullScoreAsZeroScore() {
 
-		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_NULL), equalTo(1));
-		assertThat(WITH_SCORE_NULL.compareTo(WITH_SCORE_1), equalTo(-1));
+		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_NULL)).isEqualTo(1);
+		assertThat(WITH_SCORE_NULL.compareTo(WITH_SCORE_1)).isEqualTo(-1);
 	}
 }

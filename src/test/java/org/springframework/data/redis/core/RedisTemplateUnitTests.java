@@ -15,10 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.hamcrest.core.IsSame.*;
-import static org.junit.Assert.*;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -83,8 +81,8 @@ public class RedisTemplateUnitTests {
 				.thenReturn(new JdkSerializationRedisSerializer().serialize(new SomeArbitrarySerializableObject()));
 
 		Object deserialized = template.opsForValue().get("spring");
-		assertThat(deserialized, notNullValue());
-		assertThat(deserialized.getClass().getClassLoader(), is((ClassLoader) scl));
+		assertThat(deserialized).isNotNull();
+		assertThat(deserialized.getClass().getClassLoader()).isEqualTo(scl);
 	}
 
 	@Test // DATAREDIS-531
@@ -93,7 +91,7 @@ public class RedisTemplateUnitTests {
 		CapturingCallback callback = new CapturingCallback();
 		template.executeWithStickyConnection(callback);
 
-		assertThat(callback.getConnection(), sameInstance(redisConnectionMock));
+		assertThat(callback.getConnection()).isSameAs(redisConnectionMock);
 		verify(redisConnectionMock, never()).close();
 	}
 

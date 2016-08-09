@@ -16,8 +16,7 @@
 
 package org.springframework.data.redis.cache;
 
-import static org.junit.Assert.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -61,12 +60,12 @@ public abstract class AbstractNativeCacheTest<T> {
 
 	@Test
 	public void testCacheName() throws Exception {
-		assertEquals(CACHE_NAME, cache.getName());
+		assertThat(cache.getName()).isEqualTo(CACHE_NAME);
 	}
 
 	@Test
 	public void testNativeCache() throws Exception {
-		assertSame(nativeCache, cache.getNativeCache());
+		assertThat(cache.getNativeCache()).isSameAs(nativeCache);
 	}
 
 	@Test
@@ -74,19 +73,11 @@ public abstract class AbstractNativeCacheTest<T> {
 		Object key = getKey();
 		Object value = getValue();
 
-		assertNotNull(value);
-		assertNull(cache.get(key));
+		assertThat(value).isNotNull();
+		assertThat(cache.get(key)).isNull();
 		cache.put(key, value);
 		ValueWrapper valueWrapper = cache.get(key);
-		if (valueWrapper != null) {
-			assertThat(valueWrapper.get(), isEqual(value));
-		}
-		// keeps failing on the CI server so do
-		else {
-			// Thread.sleep(200);
-			// assertNotNull(cache.get(key));
-			// ignore for now
-		}
+		assertThat(valueWrapper.get()).isEqualTo(value);
 	}
 
 	@Test
@@ -97,12 +88,12 @@ public abstract class AbstractNativeCacheTest<T> {
 		Object key2 = getKey();
 		Object value2 = getValue();
 
-		assertNull(cache.get(key1));
+		assertThat(cache.get(key1)).isNull();
 		cache.put(key1, value1);
-		assertNull(cache.get(key2));
+		assertThat(cache.get(key2)).isNull();
 		cache.put(key2, value2);
 		cache.clear();
-		assertNull(cache.get(key2));
-		assertNull(cache.get(key1));
+		assertThat(cache.get(key2)).isNull();
+		assertThat(cache.get(key1)).isNull();
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.util.Collections;
@@ -66,7 +65,7 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		client.sync().ping();
 		client.close();
 	}
@@ -81,7 +80,7 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		try {
 			pool.getResource();
 			fail("PoolException should be thrown when pool exhausted");
@@ -99,7 +98,7 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		client.close();
 	}
 
@@ -122,9 +121,9 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		pool.returnResource(client);
-		assertNotNull(pool.getResource());
+		assertThat(pool.getResource()).isNotNull();
 		client.close();
 	}
 
@@ -138,10 +137,10 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
 		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		pool.returnBrokenResource(client);
 		StatefulRedisConnection<byte[], byte[]> client2 = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
-		assertNotSame(client, client2);
+		assertThat(client2).isNotSameAs(client);
 		try {
 			client.sync().ping();
 			fail("Broken resouce connection should be closed");
@@ -158,7 +157,7 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.setDatabase(1);
 		pool.afterPropertiesSet();
-		assertNotNull(pool.getResource());
+		assertThat(pool.getResource()).isNotNull();
 	}
 
 	@Test(expected = PoolException.class)
@@ -215,7 +214,7 @@ public class DefaultLettucePoolTests {
 
 		RedisURI redisUri = (RedisURI) getField(pool.getClient(), "redisURI");
 
-		assertThat(redisUri.getPassword(), is(equalTo(pool.getPassword().toCharArray())));
+		assertThat(redisUri.getPassword()).isEqualTo(pool.getPassword().toCharArray());
 	}
 
 	@Test // DATAREDIS-462
@@ -224,6 +223,6 @@ public class DefaultLettucePoolTests {
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.setDatabase(1);
 		pool.afterPropertiesSet();
-		assertNotNull(pool.getResource());
+		assertThat(pool.getResource()).isNotNull();
 	}
 }

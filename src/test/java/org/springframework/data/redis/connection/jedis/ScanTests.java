@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -129,6 +128,6 @@ public class ScanTests {
 
 		executor.shutdown();
 
-		assertThat(exception.get(), is(nullValue()));
+		assertThat(exception.get()).isNull();
 	}
 }

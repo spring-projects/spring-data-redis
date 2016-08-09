@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -1560,9 +1560,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		connection.get(bar);
 		connection.exec();
 		List<Object> results = connection.closePipeline();
-		assertEquals(
-				Arrays.asList(new Object[] { Arrays.asList(new Object[] { bar }), Arrays.asList(new Object[] { foo }) }),
-				results);
+        assertThat(results).contains(Arrays.asList(new Object[] { bar }), Arrays.asList(new Object[] { foo }));
 	}
 
 	@Test // DATAREDIS-438

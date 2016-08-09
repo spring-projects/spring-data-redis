@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.connection.srp;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.nio.charset.Charset;
 
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.convert.converter.Converter;
@@ -45,7 +45,7 @@ public class SrpReplyToTimeAsLongConverterUnitTests {
 		Reply<?> seconds = new BulkReply("1392183718".getBytes(Charset.forName("UTF-8")));
 		Reply<?> microseconds = new BulkReply("555122".getBytes(Charset.forName("UTF-8")));
 
-		Assert.assertThat(converter.convert(new Reply[] { seconds, microseconds }), IsEqual.equalTo(1392183718555L));
+		assertThat(converter.convert(new Reply[] { seconds, microseconds })).isEqualTo(1392183718555L);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-206

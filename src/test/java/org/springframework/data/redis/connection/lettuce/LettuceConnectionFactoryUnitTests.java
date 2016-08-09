@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.connection.lettuce.LettuceTestClientResources.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
@@ -65,7 +62,7 @@ public class LettuceConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 		ConnectionFactoryTracker.add(connectionFactory);
 
-		assertThat(getField(connectionFactory, "client"), instanceOf(RedisClusterClient.class));
+		assertThat(getField(connectionFactory, "client")).isInstanceOf(RedisClusterClient.class);
 	}
 
 	@Test // DATAREDIS-315
@@ -79,13 +76,13 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getTimeout(), is(equalTo(connectionFactory.getTimeout())));
-			assertThat(uri.getUnit(), is(equalTo(TimeUnit.MILLISECONDS)));
+			assertThat(uri.getTimeout()).isEqualTo(connectionFactory.getTimeout());
+			assertThat(uri.getUnit()).isEqualTo(TimeUnit.MILLISECONDS);
 		}
 	}
 
@@ -100,12 +97,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
+			assertThat(uri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 		}
 	}
 
@@ -120,11 +117,11 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
+		assertThat(redisUri.getPassword()).isEqualTo(connectionFactory.getPassword().toCharArray());
 	}
 
 	@Test // DATAREDIS-462
@@ -136,7 +133,7 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 	}
 
 	@Test // DATAREDIS-480
@@ -148,16 +145,16 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isSsl(), is(false));
-		assertThat(connectionFactory.isUseSsl(), is(false));
-		assertThat(redisUri.isStartTls(), is(false));
-		assertThat(connectionFactory.isStartTls(), is(false));
-		assertThat(redisUri.isVerifyPeer(), is(true));
-		assertThat(connectionFactory.isVerifyPeer(), is(true));
+		assertThat(redisUri.isSsl()).isFalse();
+		assertThat(connectionFactory.isUseSsl()).isFalse();
+		assertThat(redisUri.isStartTls()).isFalse();
+		assertThat(connectionFactory.isStartTls()).isFalse();
+		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.isVerifyPeer()).isTrue();
 	}
 
 	@Test // DATAREDIS-476
@@ -170,14 +167,14 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isSsl(), is(true));
-		assertThat(connectionFactory.isUseSsl(), is(true));
-		assertThat(redisUri.isVerifyPeer(), is(true));
-		assertThat(connectionFactory.isVerifyPeer(), is(true));
+		assertThat(redisUri.isSsl()).isTrue();
+		assertThat(connectionFactory.isUseSsl()).isTrue();
+		assertThat(redisUri.isVerifyPeer()).isTrue();
+		assertThat(connectionFactory.isVerifyPeer()).isTrue();
 	}
 
 	@Test // DATAREDIS-480
@@ -190,12 +187,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isVerifyPeer(), is(false));
-		assertThat(connectionFactory.isVerifyPeer(), is(false));
+		assertThat(redisUri.isVerifyPeer()).isFalse();
+		assertThat(connectionFactory.isVerifyPeer()).isFalse();
 	}
 
 	@Test // DATAREDIS-480
@@ -208,12 +205,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClient.class));
+		assertThat(client).isInstanceOf(RedisClient.class);
 
 		RedisURI redisUri = (RedisURI) getField(client, "redisURI");
 
-		assertThat(redisUri.isStartTls(), is(true));
-		assertThat(connectionFactory.isStartTls(), is(true));
+		assertThat(redisUri.isStartTls()).isTrue();
+		assertThat(connectionFactory.isStartTls()).isTrue();
 	}
 
 	@Test // DATAREDIS-537
@@ -227,12 +224,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.isSsl(), is(true));
+			assertThat(uri.isSsl()).isTrue();
 		}
 	}
 
@@ -247,12 +244,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.isStartTls(), is(true));
+			assertThat(uri.isStartTls()).isTrue();
 		}
 	}
 
@@ -267,12 +264,12 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.add(connectionFactory);
 
 		AbstractRedisClient client = (AbstractRedisClient) getField(connectionFactory, "client");
-		assertThat(client, instanceOf(RedisClusterClient.class));
+		assertThat(client).isInstanceOf(RedisClusterClient.class);
 
 		Iterable<RedisURI> initialUris = (Iterable<RedisURI>) getField(client, "initialUris");
 
 		for (RedisURI uri : initialUris) {
-			assertThat(uri.isVerifyPeer(), is(true));
+			assertThat(uri.isVerifyPeer()).isTrue();
 		}
 	}
 }

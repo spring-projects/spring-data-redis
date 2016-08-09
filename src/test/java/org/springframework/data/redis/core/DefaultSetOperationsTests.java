@@ -15,19 +15,15 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -110,12 +106,12 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(setKey, v2);
 		setOps.add(setKey, v3);
 		Set<V> members = setOps.distinctRandomMembers(setKey, 2);
-		assertEquals(2, members.size());
+		assertThat(members).hasSize(2);
 		Set<V> expected = new HashSet<V>();
 		expected.add(v1);
 		expected.add(v2);
 		expected.add(v3);
-		assertThat(expected, hasItems((V[]) members.toArray()));
+		assertThat(expected).contains((V[]) members.toArray());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,9 +124,9 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(setKey, v1);
 		setOps.add(setKey, v2);
 		List<V> members = setOps.randomMembers(setKey, 2);
-		assertEquals(2, members.size());
+		assertThat(members).hasSize(2);
 
-		assertThat(members, CoreMatchers.<Iterable<? super V>> either(hasItem(v1)).or(hasItem(v2)));
+		assertThat(members).contains(v1, v2);
 	}
 
 	@Test
@@ -161,8 +157,8 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(key1, v1);
 		setOps.add(key1, v2);
 		setOps.move(key1, v1, key2);
-		assertThat(setOps.members(key1), isEqual(new HashSet<V>(Collections.singletonList(v2))));
-		assertThat(setOps.members(key2), isEqual(new HashSet<V>(Collections.singletonList(v1))));
+		assertThat(setOps.members(key1)).containsExactly(v2);
+		assertThat(setOps.members(key2)).containsExactly(v1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -171,8 +167,8 @@ public class DefaultSetOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		setOps.add(key, v1);
-		assertThat(setOps.pop(key), isEqual(v1));
-		assertTrue(setOps.members(key).isEmpty());
+		assertThat(setOps.pop(key)).isEqualTo(v1);
+		assertThat(setOps.members(key)).isEmpty();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -181,7 +177,7 @@ public class DefaultSetOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		setOps.add(key, v1);
-		assertThat(setOps.randomMember(key), isEqual(v1));
+		assertThat(setOps.randomMember(key)).isEqualTo(v1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -190,11 +186,8 @@ public class DefaultSetOperationsTests<K, V> {
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
 		V v2 = valueFactory.instance();
-		assertEquals(Long.valueOf(2), setOps.add(key, v1, v2));
-		Set<V> expected = new HashSet<V>();
-		expected.add(v1);
-		expected.add(v2);
-		assertThat(setOps.members(key), isEqual(expected));
+		assertThat(setOps.add(key, v1, v2)).isEqualTo(2);
+		assertThat(setOps.members(key)).containsOnly(v1, v2);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -206,8 +199,8 @@ public class DefaultSetOperationsTests<K, V> {
 		V v3 = valueFactory.instance();
 		V v4 = valueFactory.instance();
 		setOps.add(key, v1, v2, v3);
-		assertEquals(Long.valueOf(2), setOps.remove(key, v1, v2, v4));
-		assertThat(setOps.members(key), isEqual(Collections.singleton(v3)));
+		assertThat(setOps.remove(key, v1, v2, v4)).isEqualTo(2);
+		assertThat(setOps.members(key)).containsExactly(v3);
 	}
 
 	@Test // DATAREDIS-304
@@ -216,19 +209,19 @@ public class DefaultSetOperationsTests<K, V> {
 	public void testSSCanReadsValuesFully() throws IOException {
 
 		K key = keyFactory.instance();
-		V v1 = valueFactory.instance();
-		V v2 = valueFactory.instance();
-		V v3 = valueFactory.instance();
+		final V v1 = valueFactory.instance();
+		final V v2 = valueFactory.instance();
+		final V v3 = valueFactory.instance();
 
 		setOps.add(key, v1, v2, v3);
-		Cursor<V> it = setOps.scan(key, ScanOptions.scanOptions().count(1).build());
+		Cursor<V> cursor = setOps.scan(key, ScanOptions.scanOptions().count(1).build());
 		long count = 0;
-		while (it.hasNext()) {
-			assertThat(it.next(), anyOf(equalTo(v1), equalTo(v2), equalTo(v3)));
+		while (cursor.hasNext()) {
+			assertThat(cursor.next()).isIn(v1, v2, v3);
 			count++;
 		}
-		it.close();
-		assertThat(count, is(setOps.size(key)));
+		cursor.close();
+		assertThat(count).isEqualTo(setOps.size(key));
 	}
 
 	@Test // DATAREDIS-448
@@ -246,6 +239,6 @@ public class DefaultSetOperationsTests<K, V> {
 		setOps.add(sourceKey1, v1, v2, v3);
 		setOps.add(sourceKey2, v2, v3, v4);
 
-		assertThat(setOps.intersectAndStore(sourceKey1, sourceKey2, destinationKey), is(2L));
+		assertThat(setOps.intersectAndStore(sourceKey1, sourceKey2, destinationKey)).isEqualTo(2L);
 	}
 }

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -53,9 +53,8 @@ public class ClusterSlotHashUtilsTests {
 				int slot = ClusterSlotHashUtil.calculateSlot(key);
 				Long serverSlot = jedis.clusterKeySlot(key);
 
-				assertEquals(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot),
-						serverSlot.intValue(), slot);
+				assertThat(slot).as(
+						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key, slot, serverSlot)).isEqualTo(serverSlot.intValue());
 
 			}
 			pool.returnResource(jedis);
@@ -86,18 +85,19 @@ public class ClusterSlotHashUtilsTests {
 				int slot1 = ClusterSlotHashUtil.calculateSlot(key1);
 				int slot2 = ClusterSlotHashUtil.calculateSlot(key2);
 
-				assertEquals(String.format("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1, key2,
-						slot1, slot2), slot1, slot2);
+				assertThat(slot2).as(String.format("Expected slot for prefixed keys '%s' and '%s' to be %s but was  %s.", key1, key2,
+						slot1, slot2)).isEqualTo(slot1);
 
 				Long serverSlot1 = jedis.clusterKeySlot(key1);
 				Long serverSlot2 = jedis.clusterKeySlot(key2);
 
-				assertEquals(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key1, slot1, serverSlot1),
-						serverSlot1.intValue(), slot1);
-				assertEquals(
-						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key2, slot2, serverSlot2),
-						serverSlot1.intValue(), slot1);
+				assertThat(serverSlot1).as(
+						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key1, slot1, serverSlot1)).
+						isEqualTo(slot1);
+
+				assertThat(serverSlot2).as(
+						String.format("Expected slot for key '%s' to be %s but server calculated %s.", key2, slot2, serverSlot2)).
+						isEqualTo(slot2);
 
 			}
 			pool.returnResource(jedis);

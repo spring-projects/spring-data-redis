@@ -15,12 +15,13 @@
  */
 package org.springframework.data.redis.connection.srp;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.RedisConnection;
-import static org.junit.Assert.fail;
 
 /**
  * Integration test of {@link SrpConnectionFactory}

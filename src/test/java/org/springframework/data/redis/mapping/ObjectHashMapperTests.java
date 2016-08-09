@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.mapping;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Map;
 
@@ -46,7 +45,7 @@ public class ObjectHashMapperTests extends AbstractHashMapperTest {
 
 		Integer result = objectHashMapper.fromHash(hash, Integer.class);
 
-		assertThat(result, is(equalTo(new Integer(100))));
+		assertThat(result).isEqualTo(100);
 	}
 
 	@Test(expected = ClassCastException.class) // DATAREDIS-503

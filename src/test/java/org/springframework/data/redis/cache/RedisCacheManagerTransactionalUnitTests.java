@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.sql.Connection;
@@ -109,13 +109,13 @@ public class RedisCacheManagerTransactionalUnitTests {
 		Cache cache = cacheManager.getCache(cacheName);
 
 		// the cache must be decorated with the TransactionAwareCacheDecorator
-		assertTrue(cache instanceof TransactionAwareCacheDecorator);
+		assertThat(cache).isInstanceOf(TransactionAwareCacheDecorator.class);
 		TransactionAwareCacheDecorator transactionalCache = (TransactionAwareCacheDecorator) cache;
 
 		// get the target cache via reflection
 		Object targetCache = new DirectFieldAccessor(transactionalCache).getPropertyValue("targetCache");
 
 		// the target cache must be an instance of RedisCache and not TransactionAwareCacheDecorator
-		assertTrue(targetCache instanceof RedisCache);
+		assertThat(targetCache).isInstanceOf(RedisCache.class);
 	}
 }
