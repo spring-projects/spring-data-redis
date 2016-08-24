@@ -72,6 +72,7 @@ import org.springframework.util.CollectionUtils;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Anqing Shao
+ * @author Mark Paluch
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -199,10 +200,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 			// TODO: any other connection processing?
 			return postProcessResult(result, connToUse, existingConnection);
 		} finally {
-
-			if (!enableTransactionSupport) {
-				RedisConnectionUtils.releaseConnection(conn, factory);
-			}
+			RedisConnectionUtils.releaseConnection(conn, factory);
 		}
 	}
 
