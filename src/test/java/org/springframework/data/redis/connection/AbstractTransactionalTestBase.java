@@ -39,6 +39,13 @@ import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Base class with integration tests for transactional use.
+ *
+ * @author Thomas Darimont
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @Transactional(transactionManager = "transactionManager")
 public abstract class AbstractTransactionalTestBase {
@@ -130,6 +137,19 @@ public abstract class AbstractTransactionalTestBase {
 	}
 
 	/**
+	 * @see DATAREDIS-548
+	 */
+	@Test
+	@Transactional(readOnly = true)
+	public void valueOperationShouldWorkWithReadOnlyTransactions() {
+
+		this.valuesShouldHaveBeenPersisted = false;
+		for (String key : KEYS) {
+			template.opsForValue().get(key);
+		}
+	}
+
+	/**
 	 * @see DATAREDIS-73
 	 */
 	@Rollback(true)
@@ -146,7 +166,7 @@ public abstract class AbstractTransactionalTestBase {
 	 */
 	@Rollback(false)
 	@Test
-	public void listOperationLPushShoudBeCommittedCorrectly() {
+	public void listOperationLPushShouldBeCommittedCorrectly() {
 
 		this.valuesShouldHaveBeenPersisted = true;
 		for (String key : KEYS) {
