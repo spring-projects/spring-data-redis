@@ -34,6 +34,7 @@ import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.repository.query.RedisOperationChain;
 import org.springframework.data.redis.repository.query.RedisOperationChain.PathAndValue;
 import org.springframework.data.redis.util.ByteUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Redis specific {@link QueryEngine} implementation.
@@ -67,8 +68,14 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable, java.lang.Class)
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final int offset,
 			final int rows, final Serializable keyspace, Class<T> type) {
+
+		if (criteria == null
+				|| (CollectionUtils.isEmpty(criteria.getOrSismember()) && CollectionUtils.isEmpty(criteria.getSismember()))) {
+			return (Collection<T>) getAdapter().getAllOf(keyspace, offset, rows);
+		}
 
 		RedisCallback<Map<byte[], Map<byte[], byte[]>>> callback = new RedisCallback<Map<byte[], Map<byte[], byte[]>>>() {
 
@@ -99,8 +106,9 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 					return Collections.emptyMap();
 				}
 
-				if (offset >= 0 && rows > 0) {
-					allKeys = allKeys.subList(Math.max(0, offset), Math.min(offset + rows, allKeys.size()));
+				int offsetToUse = Math.max(0, offset);
+				if (rows > 0) {
+					allKeys = allKeys.subList(Math.max(0, offsetToUse), Math.min(offsetToUse + rows, allKeys.size()));
 				}
 				for (byte[] id : allKeys) {
 
@@ -171,8 +179,8 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 		int i = 0;
 		for (PathAndValue pathAndValue : source) {
 
-			byte[] convertedValue = getAdapter().getConverter().getConversionService()
-					.convert(pathAndValue.getFirstValue(), byte[].class);
+			byte[] convertedValue = getAdapter().getConverter().getConversionService().convert(pathAndValue.getFirstValue(),
+					byte[].class);
 			byte[] fullPath = getAdapter().getConverter().getConversionService()
 					.convert(prefix + pathAndValue.getPath() + ":", byte[].class);
 
