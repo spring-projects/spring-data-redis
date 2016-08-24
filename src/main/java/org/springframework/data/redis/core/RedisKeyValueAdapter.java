@@ -338,32 +338,33 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.io.Serializable)
 	 */
 	public List<?> getAllOf(final Serializable keyspace) {
+		return getAllOf(keyspace, -1, -1);
+	}
+
+	public List<?> getAllOf(final Serializable keyspace, int offset, int rows) {
 
 		final byte[] binKeyspace = toBytes(keyspace);
 
-		List<Map<byte[], byte[]>> raw = redisOps.execute(new RedisCallback<List<Map<byte[], byte[]>>>() {
+		Set<byte[]> ids = redisOps.execute(new RedisCallback<Set<byte[]>>() {
 
 			@Override
-			public List<Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
-
-				final List<Map<byte[], byte[]>> rawData = new ArrayList<Map<byte[], byte[]>>();
-
-				Set<byte[]> members = connection.sMembers(binKeyspace);
-
-				for (byte[] id : members) {
-					rawData.add(connection
-							.hGetAll(createKey(asString(keyspace), getConverter().getConversionService().convert(id, String.class))));
-				}
-
-				return rawData;
+			public Set<byte[]> doInRedis(RedisConnection connection) throws DataAccessException {
+				return connection.sMembers(binKeyspace);
 			}
 		});
 
-		List<Object> result = new ArrayList<Object>(raw.size());
-		for (Map<byte[], byte[]> rawData : raw) {
-			result.add(converter.read(Object.class, new RedisData(rawData)));
+		List<Object> result = new ArrayList<Object>();
+
+		List<byte[]> keys = new ArrayList<byte[]>(ids);
+
+		offset = Math.max(0, offset);
+		if (offset >= 0 && rows > 0) {
+			keys = keys.subList(offset, Math.min(offset + rows, keys.size()));
 		}
 
+		for (byte[] key : keys) {
+			result.add(get(key, keyspace));
+		}
 		return result;
 	}
 
