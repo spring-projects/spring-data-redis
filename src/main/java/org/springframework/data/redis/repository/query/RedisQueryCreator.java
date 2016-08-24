@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Redis specific query creator.
@@ -87,11 +88,13 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 		KeyValueQuery<RedisOperationChain> query = new KeyValueQuery<RedisOperationChain>(criteria);
 
-		if (query.getCritieria().getSismember().size() == 1 && query.getCritieria().getOrSismember().size() == 1) {
+		if (query.getCritieria() != null && !CollectionUtils.isEmpty(query.getCritieria().getSismember())
+				&& !CollectionUtils.isEmpty(query.getCritieria().getOrSismember()))
+			if (query.getCritieria().getSismember().size() == 1 && query.getCritieria().getOrSismember().size() == 1) {
 
-			query.getCritieria().getOrSismember().add(query.getCritieria().getSismember().iterator().next());
-			query.getCritieria().getSismember().clear();
-		}
+				query.getCritieria().getOrSismember().add(query.getCritieria().getSismember().iterator().next());
+				query.getCritieria().getSismember().clear();
+			}
 
 		if (sort != null) {
 			query.setSort(sort);

@@ -60,7 +60,6 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
-import org.springframework.util.NumberUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -346,6 +345,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.io.Serializable)
 	 */
 	public List<?> getAllOf(final Serializable keyspace) {
+		return getAllOf(keyspace, -1, -1);
+	}
+
+	public List<?> getAllOf(final Serializable keyspace, int offset, int rows) {
 
 		final byte[] binKeyspace = toBytes(keyspace);
 
@@ -358,7 +361,15 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		});
 
 		List<Object> result = new ArrayList<Object>();
-		for (byte[] key : ids) {
+
+		List<byte[]> keys = new ArrayList<byte[]>(ids);
+
+		offset = Math.max(0, offset);
+		if (offset >= 0 && rows > 0) {
+			keys = keys.subList(offset, Math.min(offset + rows, keys.size()));
+		}
+
+		for (byte[] key : keys) {
 			result.add(get(key, keyspace));
 		}
 		return result;

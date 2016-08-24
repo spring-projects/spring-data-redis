@@ -15,10 +15,9 @@
  */
 package org.springframework.data.redis.repository;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
@@ -42,7 +41,7 @@ import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.IndexDefinition;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.redis.core.index.SimpleIndexDefinition;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * Base for testing Redis repository support in different configurations.
@@ -190,7 +189,76 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(eddardAndJon, containsInAnyOrder(eddard, jon));
 	}
 
-	public static interface PersonRepository extends CrudRepository<Person, String> {
+	/**
+	 * @see DATAREDIS-547
+	 */
+	@Test
+	public void shouldApplyFirstKeywordCorrectly() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+
+		repo.save(Arrays.asList(eddard, robb, jon));
+
+		assertThat(repo.findFirstBy(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAREDIS-547
+	 */
+	@Test
+	public void shouldApplyPageableCorrectlyWhenUsingFindAll() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+
+		repo.save(Arrays.asList(eddard, robb, jon));
+
+		Page<Person> firstPage = repo.findAll(new PageRequest(0, 2));
+		assertThat(firstPage.getContent(), hasSize(2));
+		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAREDIS-547
+	 */
+	@Test
+	public void shouldApplyTopKeywordCorrectly() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+
+		repo.save(Arrays.asList(eddard, robb, jon));
+
+		assertThat(repo.findTop2By(), hasSize(2));
+	}
+
+	/**
+	 * @see DATAREDIS-547
+	 */
+	@Test
+	public void shouldApplyTopKeywordCorrectlyWhenCriteriaPresent() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person tyrion = new Person("tyrion", "lannister");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+		Person arya = new Person("arya", "stark");
+
+		repo.save(Arrays.asList(eddard, tyrion, robb, jon, arya));
+
+		List<Person> result = repo.findTop2ByLastname("stark");
+
+		assertThat(result, hasSize(2));
+		for (Person p : result) {
+			assertThat(p.getLastname(), is("stark"));
+		}
+	}
+
+	public static interface PersonRepository extends PagingAndSortingRepository<Person, String> {
 
 		List<Person> findByFirstname(String firstname);
 
@@ -201,6 +269,12 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByFirstnameAndLastname(String firstname, String lastname);
 
 		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
+
+		List<Person> findFirstBy();
+
+		List<Person> findTop2By();
+
+		List<Person> findTop2ByLastname(String lastname);
 	}
 
 	/**
