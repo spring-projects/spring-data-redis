@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>1.8.0.BUILD-SNAPSHOT</version>
+	<version>1.8.0.DATAREDIS-531-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
