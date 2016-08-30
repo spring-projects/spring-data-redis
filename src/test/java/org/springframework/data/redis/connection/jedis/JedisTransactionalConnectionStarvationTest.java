@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @ContextConfiguration(classes = { PooledJedisContextConfiguration.class })
 public class JedisTransactionalConnectionStarvationTest extends AbstractTransactionalTestBase {
@@ -72,6 +74,15 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 	@Test
 	@Rollback
 	public void testNumberOfOperationsGreaterThanNumberOfConnections() {
+		tryOperations(MAX_CONNECTIONS + 1);
+	}
+
+	/**
+	 * @see DATAREDIS-548
+	 */
+	@Test
+	@Transactional(readOnly = true)
+	public void readonlyTransactionSyncShouldNotExcceedMaxConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);
 	}
 
