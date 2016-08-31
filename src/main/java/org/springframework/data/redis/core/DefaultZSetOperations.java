@@ -409,13 +409,13 @@ class DefaultZSetOperations<K, V> extends AbstractOperations<K, V> implements ZS
 	public Cursor<TypedTuple<V>> scan(K key, final ScanOptions options) {
 
 		final byte[] rawKey = rawKey(key);
-		Cursor<Tuple> cursor = execute(new RedisCallback<Cursor<Tuple>>() {
+		Cursor<Tuple> cursor = template.executeWithStickyConnection(new RedisCallback<Cursor<Tuple>>() {
 
 			@Override
 			public Cursor<Tuple> doInRedis(RedisConnection connection) throws DataAccessException {
 				return connection.zScan(rawKey, options);
 			}
-		}, true);
+		});
 
 		return new ConvertingCursor<Tuple, TypedTuple<V>>(cursor, new Converter<Tuple, TypedTuple<V>>() {
 

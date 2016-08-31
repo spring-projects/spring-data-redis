@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,9 @@ public interface SetOperations<K, V> {
 	RedisOperations<K, V> getOperations();
 
 	/**
-	 * Iterate over elements in set at {@code key}.
-	 * 
+	 * Iterate over elements in set at {@code key}. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
+	 *
 	 * @since 1.4
 	 * @param key
 	 * @param options

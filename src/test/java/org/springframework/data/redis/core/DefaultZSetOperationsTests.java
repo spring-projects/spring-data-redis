@@ -22,10 +22,10 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -355,7 +355,7 @@ public class DefaultZSetOperationsTests<K, V> {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
-	public void testZScanShouldReadEntireValueRange() {
+	public void testZScanShouldReadEntireValueRange() throws IOException {
 
 		K key = keyFactory.instance();
 
@@ -374,12 +374,13 @@ public class DefaultZSetOperationsTests<K, V> {
 		zSetOps.add(key, values);
 
 		int count = 0;
-		Iterator<TypedTuple<V>> it = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build());
+		Cursor<TypedTuple<V>> it = zSetOps.scan(key, ScanOptions.scanOptions().count(2).build());
 		while (it.hasNext()) {
 			assertThat(it.next(), anyOf(equalTo(tuple1), equalTo(tuple2), equalTo(tuple3)));
 			count++;
 		}
 
+		it.close();
 		assertThat(count, equalTo(3));
 	}
 }

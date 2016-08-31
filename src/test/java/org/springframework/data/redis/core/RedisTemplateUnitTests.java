@@ -23,11 +23,13 @@ import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 
+import org.hamcrest.core.IsSame;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -94,8 +96,37 @@ public class RedisTemplateUnitTests {
 		assertThat(deserialized.getClass().getClassLoader(), is((ClassLoader) scl));
 	}
 
+	/**
+	 * @see DATAREDIS-531
+	 */
+	@Test
+	public void executeWithStickyConnectionShouldNotCloseConnectionWhenDone() {
+
+		CapturingCallback callback = new CapturingCallback();
+		template.executeWithStickyConnection(callback);
+
+		assertThat(callback.getConnection(), IsSame.sameInstance(redisConnectionMock));
+		verify(redisConnectionMock, never()).close();
+	}
+
 	static class SomeArbitrarySeriaizableObject implements Serializable {
 		private static final long serialVersionUID = -5973659324040506423L;
+	}
+
+	static class CapturingCallback implements RedisCallback<Cursor<Object>> {
+
+		private RedisConnection connection;
+
+		@Override
+		public Cursor<Object> doInRedis(RedisConnection connection) throws DataAccessException {
+			this.connection = connection;
+			return null;
+		}
+
+		public RedisConnection getConnection() {
+			return connection;
+		}
+
 	}
 
 }

@@ -136,6 +136,9 @@ public interface ZSetOperations<K, V> {
 	RedisOperations<K, V> getOperations();
 
 	/**
+	 * Iterate over elements in zset at {@code key}. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
+	 *
 	 * @since 1.4
 	 * @param key
 	 * @param options

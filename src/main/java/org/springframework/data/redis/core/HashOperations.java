@@ -150,7 +150,8 @@ public interface HashOperations<H, HK, HV> {
 	RedisOperations<H, ?> getOperations();
 
 	/**
-	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}.
+	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
 	 *
 	 * @since 1.4
 	 * @param key must not be {@literal null}.

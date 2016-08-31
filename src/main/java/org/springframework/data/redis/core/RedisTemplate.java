@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.io.Closeable;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -302,6 +303,23 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 	public <T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
 			List<K> keys, Object... args) {
 		return scriptExecutor.execute(script, argsSerializer, resultSerializer, keys, args);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.RedisOperations#executeWithStickyConnection(org.springframework.data.redis.core.RedisCallback)
+	 */
+	public <T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback) {
+
+		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
+		Assert.notNull(callback, "Callback object must not be null");
+
+		RedisConnectionFactory factory = getConnectionFactory();
+
+		RedisConnection connection = preProcessConnection(RedisConnectionUtils.doGetConnection(factory, true, false, false),
+				false);
+
+		return callback.doInRedis(connection);
 	}
 
 	private Object executeSession(SessionCallback<?> session) {
