@@ -18,9 +18,9 @@ package org.springframework.data.redis.core;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.After;
@@ -154,7 +154,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
-	public void testHScanReadsValuesFully() {
+	public void testHScanReadsValuesFully() throws IOException {
 
 		K key = keyFactory.instance();
 		HK key1 = hashKeyFactory.instance();
@@ -164,7 +164,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 
-		Iterator<Map.Entry<HK, HV>> it = hashOps.scan(key, ScanOptions.scanOptions().count(1).build());
+		Cursor<Map.Entry<HK, HV>> it = hashOps.scan(key, ScanOptions.scanOptions().count(1).build());
 
 		long count = 0;
 		while (it.hasNext()) {
@@ -174,6 +174,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 			count++;
 		}
 
+		it.close();
 		assertThat(count, is(hashOps.size(key)));
 	}
 

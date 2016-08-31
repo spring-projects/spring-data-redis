@@ -3790,6 +3790,10 @@ public class JedisConnection extends AbstractRedisConnection {
 						JedisConverters.stringListToByteList().convert(result.getResult()));
 			}
 
+			protected void doClose() {
+				JedisConnection.this.close();
+			};
+
 		}.open();
 
 	}
@@ -3828,6 +3832,10 @@ public class JedisConnection extends AbstractRedisConnection {
 						JedisConverters.tuplesToTuples().convert(result.getResult()));
 			}
 
+			protected void doClose() {
+				JedisConnection.this.close();
+			};
+
 		}.open();
 	}
 
@@ -3863,6 +3871,10 @@ public class JedisConnection extends AbstractRedisConnection {
 				redis.clients.jedis.ScanResult<byte[]> result = jedis.sscan(key, JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<byte[]>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
+
+			protected void doClose() {
+				JedisConnection.this.close();
+			};
 		}.open();
 	}
 
@@ -3898,6 +3910,11 @@ public class JedisConnection extends AbstractRedisConnection {
 				ScanResult<Entry<byte[], byte[]>> result = jedis.hscan(key, JedisConverters.toBytes(cursorId), params);
 				return new ScanIteration<Map.Entry<byte[], byte[]>>(Long.valueOf(result.getStringCursor()), result.getResult());
 			}
+
+			protected void doClose() {
+				JedisConnection.this.close();
+			};
+
 		}.open();
 	}
 

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import java.io.Closeable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.query.SortQuery;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.types.RedisClientInfo;
@@ -128,6 +130,16 @@ public interface RedisOperations<K, V> {
 	 */
 	<T> T execute(RedisScript<T> script, RedisSerializer<?> argsSerializer, RedisSerializer<T> resultSerializer,
 			List<K> keys, Object... args);
+
+	/**
+	 * Allocates and binds a new {@link RedisConnection} to the actual return type of the method. It is up to the caller
+	 * to free resources after use.
+	 *
+	 * @param callback must not be {@literal null}.
+	 * @return
+	 * @since 1.8
+	 */
+	<T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback);
 
 	Boolean hasKey(K key);
 

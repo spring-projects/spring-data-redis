@@ -3719,6 +3719,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), (keys));
 			}
+
+			protected void doClose() {
+				LettuceConnection.this.close();
+			}
+
 		}.open();
 
 	}
@@ -3757,6 +3762,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 				Map<byte[], byte[]> values = mapScanCursor.getMap();
 				return new ScanIteration<Entry<byte[], byte[]>>(Long.valueOf(nextCursorId), values.entrySet());
+			}
+
+			protected void doClose() {
+				LettuceConnection.this.close();
 			}
 
 		}.open();
@@ -3798,6 +3807,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 				List<byte[]> values = failsafeReadScanValues(valueScanCursor.getValues(), null);
 				return new ScanIteration<byte[]>(Long.valueOf(nextCursorId), values);
 			}
+
+			protected void doClose() {
+				LettuceConnection.this.close();
+			}
+
 		}.open();
 	}
 
@@ -3839,6 +3853,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 				List<Tuple> values = failsafeReadScanValues(result, LettuceConverters.scoredValuesToTupleList());
 				return new ScanIteration<Tuple>(Long.valueOf(nextCursorId), values);
 			}
+
+			protected void doClose() {
+				LettuceConnection.this.close();
+			}
+
 		}.open();
 	}
 

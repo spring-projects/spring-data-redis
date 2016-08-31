@@ -20,11 +20,11 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -47,6 +47,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -493,7 +494,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
-	public void testScanWorksCorrectly() {
+	public void testScanWorksCorrectly() throws IOException {
 
 		K k1 = getKey();
 		K k2 = getKey();
@@ -504,11 +505,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k1, v1);
 		map.put(k2, v2);
 
-		Iterator<Entry<K, V>> it = map.scan();
-		while (it.hasNext()) {
-			Entry<K, V> entry = it.next();
+		Cursor<Entry<K, V>> cursor = (Cursor<Entry<K, V>>) map.scan();
+		while (cursor.hasNext()) {
+			Entry<K, V> entry = cursor.next();
 			assertThat(entry.getKey(), anyOf(equalTo(k1), equalTo(k2)));
 			assertThat(entry.getValue(), anyOf(equalTo(v1), equalTo(v2)));
 		}
+		cursor.close();
 	}
 }

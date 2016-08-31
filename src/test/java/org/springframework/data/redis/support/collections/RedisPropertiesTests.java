@@ -18,6 +18,7 @@ package org.springframework.data.redis.support.collections;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -225,7 +226,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 	@Override
 	@Test(expected = UnsupportedOperationException.class)
-	public void testScanWorksCorrectly() {
+	public void testScanWorksCorrectly() throws IOException {
 		super.testScanWorksCorrectly();
 	}
 

@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -31,6 +32,7 @@ import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClientRule;
@@ -308,14 +310,15 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@Test
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
-	public void testScanWorksCorrectly() {
+	public void testScanWorksCorrectly() throws IOException {
 
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		collection.addAll((List<T>) Arrays.asList(expectedArray));
 
-		Iterator<T> it = set.scan();
-		while (it.hasNext()) {
-			assertThat(it.next(), anyOf(equalTo(expectedArray[0]), equalTo(expectedArray[1]), equalTo(expectedArray[2])));
+		Cursor<T> cursor = (Cursor<T>) set.scan();
+		while (cursor.hasNext()) {
+			assertThat(cursor.next(), anyOf(equalTo(expectedArray[0]), equalTo(expectedArray[1]), equalTo(expectedArray[2])));
 		}
+		cursor.close();
 	}
 }

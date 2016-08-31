@@ -255,7 +255,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 	public Cursor<V> scan(K key, final ScanOptions options) {
 
 		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Cursor<V>>() {
+		return template.executeWithStickyConnection(new RedisCallback<Cursor<V>>() {
 
 			@Override
 			public Cursor<V> doInRedis(RedisConnection connection) throws DataAccessException {
@@ -267,7 +267,7 @@ class DefaultSetOperations<K, V> extends AbstractOperations<K, V> implements Set
 					}
 				});
 			}
-		}, true);
+		});
 
 	}
 }

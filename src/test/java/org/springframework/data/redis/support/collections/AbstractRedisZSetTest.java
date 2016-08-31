@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -37,6 +38,7 @@ import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.core.BoundZSetOperations;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
@@ -645,7 +647,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@Test
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
-	public void testScanWorksCorrectly() {
+	public void testScanWorksCorrectly() throws IOException {
 
 		T t1 = getT();
 		T t2 = getT();
@@ -657,9 +659,12 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		zSet.add(t3, 3);
 		zSet.add(t4, 4);
 
-		Iterator<T> it = zSet.scan();
-		while (it.hasNext()) {
-			assertThat(it.next(), anyOf(equalTo(t1), equalTo(t2), equalTo(t3), equalTo(t4)));
+		Cursor<T> cursor = (Cursor<T>) zSet.scan();
+		while (cursor.hasNext()) {
+			assertThat(cursor.next(), anyOf(equalTo(t1), equalTo(t2), equalTo(t3), equalTo(t4)));
 		}
+
+		cursor.close();
+
 	}
 }

@@ -235,7 +235,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 	public Cursor<Entry<HK, HV>> scan(K key, final ScanOptions options) {
 
 		final byte[] rawKey = rawKey(key);
-		return execute(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
+		return template.executeWithStickyConnection(new RedisCallback<Cursor<Map.Entry<HK, HV>>>() {
 
 			@Override
 			public Cursor<Entry<HK, HV>> doInRedis(RedisConnection connection) throws DataAccessException {
@@ -268,7 +268,7 @@ class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> imp
 						});
 			}
 
-		}, true);
+		});
 
 	}
 }

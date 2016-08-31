@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map.Entry;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,11 +33,16 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.AbstractConnectionUnitTestBase;
 import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOption;
+import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionPipelineUnitTests;
 import org.springframework.data.redis.connection.jedis.JedisConnectionUnitTestSuite.JedisConnectionUnitTests;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 
 import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 
 /**
  * @author Christoph Strobl
@@ -205,6 +214,122 @@ public class JedisConnectionUnitTestSuite {
 			connection.zRangeByScore("foo".getBytes(), "foo", "bar", Integer.MAX_VALUE, new Long(Integer.MAX_VALUE) + 1L);
 		}
 
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void scanShouldKeepTheConnectionOpen() {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
+					any(ScanParams.class));
+
+			connection.scan();
+
+			verify(jedisSpy, never()).close();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).scan(anyString(),
+					any(ScanParams.class));
+
+			Cursor<byte[]> cursor = connection.scan();
+			cursor.close();
+
+			verify(jedisSpy, times(1)).quit();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void sScanShouldKeepTheConnectionOpen() {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			connection.sScan("foo".getBytes(), ScanOptions.NONE);
+
+			verify(jedisSpy, never()).close();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			Cursor<byte[]> cursor = connection.sScan("foo".getBytes(), ScanOptions.NONE);
+			cursor.close();
+
+			verify(jedisSpy, times(1)).quit();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void zScanShouldKeepTheConnectionOpen() {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			connection.zScan("foo".getBytes(), ScanOptions.NONE);
+
+			verify(jedisSpy, never()).close();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			Cursor<Tuple> cursor = connection.zScan("foo".getBytes(), ScanOptions.NONE);
+			cursor.close();
+
+			verify(jedisSpy, times(1)).quit();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void hScanShouldKeepTheConnectionOpen() {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			connection.hScan("foo".getBytes(), ScanOptions.NONE);
+
+			verify(jedisSpy, never()).close();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test
+		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+
+			doReturn(new ScanResult<String>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
+					any(byte[].class), any(ScanParams.class));
+
+			Cursor<Entry<byte[], byte[]>> cursor = connection.hScan("foo".getBytes(), ScanOptions.NONE);
+			cursor.close();
+
+			verify(jedisSpy, times(1)).quit();
+		}
+
 	}
 
 	public static class JedisConnectionPipelineUnitTests extends JedisConnectionUnitTests {
@@ -265,6 +390,70 @@ public class JedisConnectionUnitTestSuite {
 		@Test(expected = UnsupportedOperationException.class)
 		public void slaveOfNoOneShouldBeSentCorrectly() {
 			super.slaveOfNoOneShouldBeSentCorrectly();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void scanShouldKeepTheConnectionOpen() {
+			super.scanShouldKeepTheConnectionOpen();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+			super.scanShouldCloseTheConnectionWhenCursorIsClosed();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void sScanShouldKeepTheConnectionOpen() {
+			super.sScanShouldKeepTheConnectionOpen();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+			super.sScanShouldCloseTheConnectionWhenCursorIsClosed();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void zScanShouldKeepTheConnectionOpen() {
+			super.zScanShouldKeepTheConnectionOpen();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+			super.zScanShouldCloseTheConnectionWhenCursorIsClosed();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void hScanShouldKeepTheConnectionOpen() {
+			super.hScanShouldKeepTheConnectionOpen();
+		}
+
+		/**
+		 * @see DATAREDIS-531
+		 */
+		@Test(expected = UnsupportedOperationException.class)
+		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
+			super.hScanShouldCloseTheConnectionWhenCursorIsClosed();
 		}
 
 	}

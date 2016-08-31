@@ -20,10 +20,10 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -216,7 +216,7 @@ public class DefaultSetOperationsTests<K, V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
-	public void testSSCanReadsValuesFully() {
+	public void testSSCanReadsValuesFully() throws IOException {
 
 		K key = keyFactory.instance();
 		V v1 = valueFactory.instance();
@@ -224,12 +224,13 @@ public class DefaultSetOperationsTests<K, V> {
 		V v3 = valueFactory.instance();
 
 		setOps.add(key, v1, v2, v3);
-		Iterator<V> it = setOps.scan(key, ScanOptions.scanOptions().count(1).build());
+		Cursor<V> it = setOps.scan(key, ScanOptions.scanOptions().count(1).build());
 		long count = 0;
 		while (it.hasNext()) {
 			assertThat(it.next(), anyOf(equalTo(v1), equalTo(v2), equalTo(v3)));
 			count++;
 		}
+		it.close();
 		assertThat(count, is(setOps.size(key)));
 	}
 
