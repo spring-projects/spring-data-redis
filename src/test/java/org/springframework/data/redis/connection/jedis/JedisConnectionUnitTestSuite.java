@@ -225,7 +225,7 @@ public class JedisConnectionUnitTestSuite {
 
 			connection.scan();
 
-			verify(jedisSpy, never()).close();
+			verify(jedisSpy, never()).quit();
 		}
 
 		/**
@@ -254,7 +254,7 @@ public class JedisConnectionUnitTestSuite {
 
 			connection.sScan("foo".getBytes(), ScanOptions.NONE);
 
-			verify(jedisSpy, never()).close();
+			verify(jedisSpy, never()).quit();
 		}
 
 		/**
@@ -283,7 +283,7 @@ public class JedisConnectionUnitTestSuite {
 
 			connection.zScan("foo".getBytes(), ScanOptions.NONE);
 
-			verify(jedisSpy, never()).close();
+			verify(jedisSpy, never()).quit();
 		}
 
 		/**
@@ -312,7 +312,7 @@ public class JedisConnectionUnitTestSuite {
 
 			connection.hScan("foo".getBytes(), ScanOptions.NONE);
 
-			verify(jedisSpy, never()).close();
+			verify(jedisSpy, never()).quit();
 		}
 
 		/**
@@ -467,6 +467,5 @@ public class JedisConnectionUnitTestSuite {
 			super(host);
 			this.client = client;
 		}
-
 	}
 }
