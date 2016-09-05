@@ -17,13 +17,13 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsNull.*;
+import static org.hamcrest.core.IsSame.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 
-import org.hamcrest.core.IsSame;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,7 +89,7 @@ public class RedisTemplateUnitTests {
 		template.afterPropertiesSet();
 
 		when(redisConnectionMock.get(any(byte[].class)))
-				.thenReturn(new JdkSerializationRedisSerializer().serialize(new SomeArbitrarySeriaizableObject()));
+				.thenReturn(new JdkSerializationRedisSerializer().serialize(new SomeArbitrarySerializableObject()));
 
 		Object deserialized = template.opsForValue().get("spring");
 		assertThat(deserialized, notNullValue());
@@ -105,11 +105,11 @@ public class RedisTemplateUnitTests {
 		CapturingCallback callback = new CapturingCallback();
 		template.executeWithStickyConnection(callback);
 
-		assertThat(callback.getConnection(), IsSame.sameInstance(redisConnectionMock));
+		assertThat(callback.getConnection(), sameInstance(redisConnectionMock));
 		verify(redisConnectionMock, never()).close();
 	}
 
-	static class SomeArbitrarySeriaizableObject implements Serializable {
+	static class SomeArbitrarySerializableObject implements Serializable {
 		private static final long serialVersionUID = -5973659324040506423L;
 	}
 
@@ -126,7 +126,5 @@ public class RedisTemplateUnitTests {
 		public RedisConnection getConnection() {
 			return connection;
 		}
-
 	}
-
 }
