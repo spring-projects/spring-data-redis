@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
  * Redis specific {@link QueryEngine} implementation.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationChain, Comparator<?>> {
@@ -155,6 +156,10 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 */
 	@Override
 	public long count(final RedisOperationChain criteria, final Serializable keyspace) {
+
+		if(criteria == null) {
+			return this.getAdapter().count(keyspace);
+		}
 
 		return this.getAdapter().execute(new RedisCallback<Long>() {
 

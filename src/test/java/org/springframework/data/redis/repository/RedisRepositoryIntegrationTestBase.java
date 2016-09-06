@@ -203,8 +203,26 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.save(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findAll(new PageRequest(0, 2));
- 		assertThat(firstPage.getContent(), hasSize(2));
- 		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
+		assertThat(firstPage.getContent(), hasSize(2));
+		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAREDIS-551
+	 */
+	@Test
+	public void shouldApplyPageableCorrectlyWhenUsingFindByWithoutCriteria() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+
+		repo.save(Arrays.asList(eddard, robb, jon));
+
+		Page<Person> firstPage = repo.findBy(new PageRequest(0, 2));
+		assertThat(firstPage.getContent(), hasSize(2));
+		assertThat(firstPage.getTotalElements(), is(equalTo(3L)));
+		assertThat(repo.findBy(firstPage.nextPageable()).getContent(), hasSize(1));
 	}
 
 	/**
@@ -280,6 +298,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		List<Person> findByFirstnameOrLastname(String firstname, String lastname);
 
 		List<Person> findBy();
+
+		Page<Person> findBy(Pageable page);
 	}
 
 	/**
