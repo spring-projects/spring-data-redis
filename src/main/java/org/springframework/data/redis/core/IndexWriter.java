@@ -206,7 +206,7 @@ class IndexWriter {
 			return;
 		}
 
-		else if (indexedData instanceof SimpleIndexedPropertyValue) {
+		if (indexedData instanceof SimpleIndexedPropertyValue) {
 
 			Object value = ((SimpleIndexedPropertyValue) indexedData).getValue();
 
@@ -234,9 +234,7 @@ class IndexWriter {
 
 			// keep track of indexes used for the object
 			connection.sAdd(ByteUtils.concatAll(toBytes(indexedData.getKeyspace() + ":"), key, toBytes(":idx")), indexKey);
-		}
-
-		else {
+		} else {
 			throw new IllegalArgumentException(
 					String.format("Cannot write index data for unknown index type %s", indexedData.getClass()));
 		}

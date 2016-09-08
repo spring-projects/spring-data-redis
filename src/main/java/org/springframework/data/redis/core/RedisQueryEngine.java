@@ -90,18 +90,11 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			@Override
 			public Map<byte[], Map<byte[], byte[]>> doInRedis(RedisConnection connection) throws DataAccessException {
 
-				String key = keyspace + ":";
-				byte[][] keys = new byte[criteria.getSismember().size()][];
-				int i = 0;
-				for (Object o : criteria.getSismember()) {
-					keys[i] = getAdapter().getConverter().getConversionService().convert(key + o, byte[].class);
-					i++;
-				}
-
 				List<byte[]> allKeys = new ArrayList<byte[]>();
 				if (!criteria.getSismember().isEmpty()) {
 					allKeys.addAll(connection.sInter(keys(keyspace + ":", criteria.getSismember())));
 				}
+
 				if (!criteria.getOrSismember().isEmpty()) {
 					allKeys.addAll(connection.sUnion(keys(keyspace + ":", criteria.getOrSismember())));
 				}
@@ -229,5 +222,4 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 			return (RedisOperationChain) query.getCritieria();
 		}
 	}
-
 }

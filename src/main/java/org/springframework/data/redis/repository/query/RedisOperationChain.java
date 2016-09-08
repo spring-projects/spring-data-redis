@@ -27,7 +27,7 @@ import org.springframework.data.geo.Point;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Simple set of operations requried to run queries against Redis.
+ * Simple set of operations required to run queries against Redis.
  * 
  * @author Christoph Strobl
  * @since 1.7
@@ -36,7 +36,6 @@ public class RedisOperationChain {
 
 	private Set<PathAndValue> sismember = new LinkedHashSet<PathAndValue>();
 	private Set<PathAndValue> orSismember = new LinkedHashSet<PathAndValue>();
-
 	private NearPath near;
 
 	public void sismember(String path, Object value) {
@@ -163,5 +162,4 @@ public class RedisOperationChain {
 			return (Distance) it.next();
 		}
 	}
-
 }

@@ -7,6 +7,7 @@ New and noteworthy in the latest releases.
 == New in Spring Data Redis 1.8
 
 * Support for Redis http://redis.io/commands#geo[GEO] commands.
+* Support for Geospatial Indexes using Spring Data Repository abstractions (see <<redis.repositories.indexes.geospatial>>).
 
 [[new-in-1.7.0]]
 == New in Spring Data Redis 1.7
