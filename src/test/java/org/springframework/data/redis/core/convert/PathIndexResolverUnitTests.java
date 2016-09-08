@@ -637,5 +637,4 @@ public class PathIndexResolverUnitTests {
 	static class GeoIndexedOnArray {
 		@GeoIndexed double[] location;
 	}
-
 }

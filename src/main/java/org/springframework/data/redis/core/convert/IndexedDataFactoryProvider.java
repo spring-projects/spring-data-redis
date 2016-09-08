@@ -81,5 +81,4 @@ class IndexedDataFactoryProvider {
 					(Point) indexDefinition.valueTransformer().convert(value));
 		}
 	}
-
 }

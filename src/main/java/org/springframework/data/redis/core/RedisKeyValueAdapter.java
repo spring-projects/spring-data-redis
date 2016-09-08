@@ -516,9 +516,9 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					? ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes((":" + path)), toBytes(":"), value) : null;
 
 			if (connection.exists(existingValueIndexKey)) {
-
 				redisUpdateObject.addIndexToUpdate(new RedisUpdateObject.Index(existingValueIndexKey, DataType.SET));
 			}
+
 			return redisUpdateObject;
 		}
 
@@ -545,13 +545,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		}
 
 		String pathToUse = GeoIndexedPropertyValue.geoIndexName(path);
-		if (connection.zRank(ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes(":"), toBytes(pathToUse)),
-				toBytes(redisUpdateObject.targetId)) != null) {
+		byte[] existingGeoIndexKey = ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes(":"),
+				toBytes(pathToUse));
 
-			redisUpdateObject
-					.addIndexToUpdate(new org.springframework.data.redis.core.RedisKeyValueAdapter.RedisUpdateObject.Index(
-							ByteUtils.concatAll(toBytes(redisUpdateObject.keyspace), toBytes(":"), toBytes(pathToUse)),
-							DataType.ZSET));
+		if (connection.zRank(existingGeoIndexKey, toBytes(redisUpdateObject.targetId)) != null) {
+			redisUpdateObject.addIndexToUpdate(new RedisUpdateObject.Index(existingGeoIndexKey, DataType.ZSET));
 		}
 
 		return redisUpdateObject;

@@ -41,7 +41,6 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 	public RedisQueryCreator(PartTree tree, ParameterAccessor parameters) {
 		super(tree, parameters);
-
 	}
 
 	/*
@@ -68,7 +67,6 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 		}
 
 		return sink;
-
 	}
 
 	/*
@@ -150,5 +148,4 @@ public class RedisQueryCreator extends AbstractQueryCreator<KeyValueQuery<RedisO
 
 		return new NearPath(part.getProperty().toDotPath(), point, distance);
 	}
-
 }

@@ -584,5 +584,4 @@ public abstract class RedisRepositoryIntegrationTestBase {
 			return true;
 		}
 	}
-
 }
