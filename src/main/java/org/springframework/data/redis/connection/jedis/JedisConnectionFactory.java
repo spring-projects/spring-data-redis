@@ -56,6 +56,7 @@ import redis.clients.util.Pool;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Fu Jian
  */
 public class JedisConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
 
@@ -94,6 +95,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private Pool<Jedis> pool;
 	private JedisPoolConfig poolConfig = new JedisPoolConfig();
 	private int dbIndex = 0;
+	private String clientName;
 	private boolean convertPipelineAndTxResults = true;
 	private RedisSentinelConfiguration sentinelConfig;
 	private RedisClusterConfiguration clusterConfig;
@@ -248,7 +250,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Pool<Jedis> createRedisSentinelPool(RedisSentinelConfiguration config) {
 		return new JedisSentinelPool(config.getMaster().getName(), convertToJedisSentinelSet(config.getSentinels()),
 				getPoolConfig() != null ? getPoolConfig() : new JedisPoolConfig(), getTimeoutFrom(getShardInfo()),
-				getShardInfo().getPassword());
+				getShardInfo().getPassword(), Protocol.DEFAULT_DATABASE, clientName);
 	}
 
 	/**
@@ -260,7 +262,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	protected Pool<Jedis> createRedisPool() {
 
 		return new JedisPool(getPoolConfig(), getShardInfo().getHost(), getShardInfo().getPort(),
-				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), useSsl);
+				getTimeoutFrom(getShardInfo()), getShardInfo().getPassword(), Protocol.DEFAULT_DATABASE, clientName, useSsl);
 	}
 
 	private JedisCluster createCluster() {
@@ -536,6 +538,24 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	public void setDatabase(int index) {
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 		this.dbIndex = index;
+	}
+	
+	/**
+	 * Returns the client name.
+	 * 
+	 * @return Returns the client name
+	 */
+	public String getClientName() {
+		return clientName;
+	}
+
+	/**
+	 * Sets the client name used by this connection factory. Default is empty.
+	 * 
+	 * @param clientName client name
+	 */
+	public void setClientName(String clientName) {
+		this.clientName = clientName;
 	}
 
 	/**

@@ -39,6 +39,7 @@ public class JedisConnectionFactoryTests {
 	@Before
 	public void setUp() {
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory.setClientName("clientName");
 		factory.afterPropertiesSet();
 	}
 
@@ -53,5 +54,10 @@ public class JedisConnectionFactoryTests {
 	@Test
 	public void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 		assertThat(factory.getConnection().ping(), equalTo("PONG"));
+	}
+	
+	@Test
+	public void getClientNameShouldEqualWithFactorySetting() {
+		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
 	}
 }
