@@ -102,7 +102,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 
 				final Map<byte[], Map<byte[], byte[]>> rawData = new LinkedHashMap<byte[], Map<byte[], byte[]>>();
 
-				if (allKeys.size() == 0 || allKeys.size() < offset) {
+				if (allKeys.isEmpty() || allKeys.size() < offset) {
 					return Collections.emptyMap();
 				}
 

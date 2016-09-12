@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -363,6 +364,11 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		List<Object> result = new ArrayList<Object>();
 
 		List<byte[]> keys = new ArrayList<byte[]>(ids);
+
+
+		if (keys.isEmpty() || keys.size() < offset) {
+			return Collections.emptyList();
+		}
 
 		offset = Math.max(0, offset);
 		if (offset >= 0 && rows > 0) {
