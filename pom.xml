@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>1.8.0.BUILD-SNAPSHOT</version>
+	<version>1.8.0.DATAREDIS-547-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
@@ -17,7 +17,7 @@
 
 	<properties>
 		<dist.key>DATAREDIS</dist.key>
-		<springdata.keyvalue>1.2.0.BUILD-SNAPSHOT</springdata.keyvalue>
+		<springdata.keyvalue>1.2.0.DATAKV-142-SNAPSHOT</springdata.keyvalue>
 		<jta>1.1</jta>
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
