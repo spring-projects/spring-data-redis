@@ -540,6 +540,7 @@ Here's an overview of the keywords supported for Redis and what a method contain
 |`And`|`findByLastnameAndFirstname`|`SINTER …:firstname:rand …:lastname:al’thor`
 |`Or`|`findByLastnameOrFirstname`|`SUNION …:firstname:rand …:lastname:al’thor`
 |`Is,Equals`|`findByFirstname`,`findByFirstnameIs`,`findByFirstnameEquals`|`SINTER …:firstname:rand`
+|`Top,First`|`findFirst10ByFirstname`,`findTop5ByFirstname`|
 |===============
 ====
 

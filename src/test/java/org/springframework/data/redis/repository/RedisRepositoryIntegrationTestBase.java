@@ -47,6 +47,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * Base for testing Redis repository support in different configurations.
  * 
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public abstract class RedisRepositoryIntegrationTestBase {
 
@@ -202,8 +203,49 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.save(Arrays.asList(eddard, robb, jon));
 
 		Page<Person> firstPage = repo.findAll(new PageRequest(0, 2));
-		assertThat(firstPage.getContent(), hasSize(2));
-		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
+ 		assertThat(firstPage.getContent(), hasSize(2));
+ 		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
+	}
+
+	/**
+	 * @see DATAREDIS-547
+	 */
+	@Test
+	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person jon = new Person("jon", "snow");
+
+		repo.save(Arrays.asList(eddard, robb, jon));
+
+		Page<Person> firstPage = repo.findAll(new PageRequest(100, 2));
+		assertThat(firstPage.getContent(), hasSize(0));
+	}
+
+	/**
+	 * @see DATAREDIS-547
+	 */
+	@Test
+	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingQueryMethod() {
+
+		Person eddard = new Person("eddard", "stark");
+		Person robb = new Person("robb", "stark");
+		Person sansa = new Person("sansa", "stark");
+
+		repo.save(Arrays.asList(eddard, robb, sansa));
+
+		Page<Person> page1 = repo.findPersonByLastname("stark", new PageRequest(1, 3));
+
+		assertThat(page1.getNumberOfElements(), is(0));
+		assertThat(page1.getContent(), hasSize(0));
+		assertThat(page1.getTotalElements(), is(3L));
+
+		Page<Person> page2 = repo.findPersonByLastname("stark", new PageRequest(2, 3));
+
+		assertThat(page2.getNumberOfElements(), is(0));
+		assertThat(page2.getContent(), hasSize(0));
+		assertThat(page2.getTotalElements(), is(3L));
 	}
 
 	/**
