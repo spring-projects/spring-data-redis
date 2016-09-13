@@ -157,7 +157,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	@Override
 	public long count(final RedisOperationChain criteria, final Serializable keyspace) {
 
-		if(criteria == null) {
+		if (criteria == null) {
 			return this.getAdapter().count(keyspace);
 		}
 
