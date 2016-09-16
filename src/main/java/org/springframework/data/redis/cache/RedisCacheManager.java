@@ -29,12 +29,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.support.NullValue;
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -70,6 +72,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	private Set<String> configuredCacheNames;
 
+	private final boolean cacheNullValues;
+
 	/**
 	 * Construct a {@link RedisCacheManager}.
 	 * 
@@ -89,7 +93,25 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	 */
 	@SuppressWarnings("rawtypes")
 	public RedisCacheManager(RedisOperations redisOperations, Collection<String> cacheNames) {
+		this(redisOperations, cacheNames, false);
+	}
+
+	/**
+	 * Construct a static {@link RedisCacheManager}, managing caches for the specified cache names only. <br />
+	 * <br />
+	 * <strong>NOTE</strong> When enabling {@code cacheNullValues} please make sure the {@link RedisSerializer} used by
+	 * {@link RedisOperations} is capable of serializing {@link NullValue}.
+	 *
+	 * @param redisOperations {@link RedisOperations} to work upon.
+	 * @param cacheNames {@link Collection} of known cache names.
+	 * @param cacheNullValues set to {@literal true} to allow caching {@literal null}.
+	 * @since 1.8
+	 */
+	@SuppressWarnings("rawtypes")
+	public RedisCacheManager(RedisOperations redisOperations, Collection<String> cacheNames, boolean cacheNullValues) {
+
 		this.redisOperations = redisOperations;
+		this.cacheNullValues = cacheNullValues;
 		setCacheNames(cacheNames);
 	}
 
@@ -235,7 +257,8 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	@SuppressWarnings("unchecked")
 	protected RedisCache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
-		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), redisOperations, expiration);
+		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), redisOperations, expiration,
+				cacheNullValues);
 	}
 
 	protected long computeExpiration(String name) {
