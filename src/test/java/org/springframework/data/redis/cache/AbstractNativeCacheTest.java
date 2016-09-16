@@ -16,12 +16,8 @@
 
 package org.springframework.data.redis.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.junit.Assert.*;
+import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,21 +34,30 @@ public abstract class AbstractNativeCacheTest<T> {
 	private T nativeCache;
 	protected Cache cache;
 	protected final static String CACHE_NAME = "testCache";
+	private final boolean allowCacheNullValues;
+
+	protected AbstractNativeCacheTest(boolean allowCacheNullValues) {
+		this.allowCacheNullValues = allowCacheNullValues;
+	}
 
 	@Before
 	public void setUp() throws Exception {
 		nativeCache = createNativeCache();
-		cache = createCache(nativeCache);
+		cache = createCache(nativeCache, allowCacheNullValues);
 		cache.clear();
 	}
 
 	protected abstract T createNativeCache() throws Exception;
 
-	protected abstract Cache createCache(T nativeCache);
+	protected abstract Cache createCache(T nativeCache, boolean allowCacheNullValues);
 
 	protected abstract Object getKey();
 
 	protected abstract Object getValue();
+
+	protected boolean getAllowCacheNullValues() {
+		return allowCacheNullValues;
+	}
 
 	@Test
 	public void testCacheName() throws Exception {

@@ -195,7 +195,7 @@ public class RedisCacheUnitTests {
 			}
 		});
 
-		verify(connectionMock, times(2)).get(eq(KEY_BYTES));
+		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
 		verify(connectionMock, times(1)).multi();
 		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
 		verify(connectionMock, times(1)).exec();
@@ -212,7 +212,7 @@ public class RedisCacheUnitTests {
 		Callable<Object> callableMock = mock(Callable.class);
 
 		when(connectionMock.exists(KEY_BYTES)).thenReturn(true);
-		when(connectionMock.get(KEY_BYTES)).thenReturn(null).thenReturn(VALUE_BYTES);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(VALUE_BYTES);
 
 		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
 		verifyZeroInteractions(callableMock);
@@ -258,7 +258,7 @@ public class RedisCacheUnitTests {
 			}
 		});
 
-		verify(clusterConnectionMock, times(2)).get(eq(KEY_BYTES));
+		verify(clusterConnectionMock, times(1)).get(eq(KEY_BYTES));
 		verify(clusterConnectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
 
 		verify(clusterConnectionMock, never()).multi();

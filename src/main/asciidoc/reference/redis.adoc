@@ -546,4 +546,5 @@ NOTE: By default `RedisCacheManager` will not participate in any ongoing transac
 
 NOTE: By default `RedisCacheManager` does not prefix keys for cache regions, which can lead to an unexpected growth of a `ZSET` used to maintain known keys. It's highly recommended to enable the usage of prefixes in order to avoid this unexpected growth and potential key clashes using more than one cache region.
 
+NOTE: By default `RedisCache` will not cache any `null` values as keys without a value get dropped by Redis itself. However you can explicitly enable `null` value caching via `RedisCacheManager` which will store `org.springframework.cache.support.NullValue` as a placeholder.
 

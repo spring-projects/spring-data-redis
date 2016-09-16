@@ -15,15 +15,22 @@
  */
 package org.springframework.data.redis.serializer;
 
+import java.io.IOException;
+
+import org.springframework.cache.support.NullValue;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.SerializerFactory;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
  * @author Christoph Strobl
@@ -50,6 +57,10 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	public GenericJackson2JsonRedisSerializer(String classPropertyTypeName) {
 
 		this(new ObjectMapper());
+
+		// simply setting {@code mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)} does not help here since we need
+		// the type hint embedded for deserialization using the default typing feature.
+		mapper.registerModule(new SimpleModule().addSerializer(new NullValueSerializer(classPropertyTypeName)));
 
 		if (StringUtils.hasText(classPropertyTypeName)) {
 			mapper.enableDefaultTypingAsProperty(DefaultTyping.NON_FINAL, classPropertyTypeName);
@@ -118,5 +129,41 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		} catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
+	}
+
+	/**
+	 * {@link StdSerializer} adding class information required by default typing. This allows de-/seriialization of
+	 * {@link NullValue}.
+	 *
+	 * @author Christoph Strobl
+	 * @since 1.8
+	 */
+	private class NullValueSerializer extends StdSerializer<NullValue> {
+
+		private static final long serialVersionUID = 1999052150548658808L;
+		private final String classIdentifyer;
+
+		/**
+		 * @param classIdentifyer can be {@literal null} and will be defaulted to {@code @class}.
+		 */
+		NullValueSerializer(String classIdentifyer) {
+
+			super(NullValue.class);
+			this.classIdentifyer = StringUtils.hasText(classIdentifyer) ? classIdentifyer : "@class";
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see com.fasterxml.jackson.databind.ser.std.StdSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)
+		 */
+		@Override
+		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider)
+				throws IOException, JsonProcessingException {
+
+			jgen.writeStartObject();
+			jgen.writeStringField(classIdentifyer, NullValue.class.getName());
+			jgen.writeEndObject();
+		}
+
 	}
 }
