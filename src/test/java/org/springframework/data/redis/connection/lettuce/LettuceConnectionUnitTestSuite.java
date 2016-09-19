@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -30,8 +31,10 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettuceConnectionUnitTests;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionUnitTestSuite.LettucePipelineConnectionUnitTests;
 
-import com.lambdaworks.redis.RedisAsyncConnectionImpl;
 import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
+import com.lambdaworks.redis.api.sync.RedisCommands;
 import com.lambdaworks.redis.codec.RedisCodec;
 
 /**
@@ -43,17 +46,27 @@ import com.lambdaworks.redis.codec.RedisCodec;
 public class LettuceConnectionUnitTestSuite {
 
 	@SuppressWarnings("rawtypes")
-	public static class LettuceConnectionUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncConnectionImpl> {
+	public static class LettuceConnectionUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
 
 		protected LettuceConnection connection;
 		private RedisClient clientMock;
+		protected StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
+		protected RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
+		protected RedisCommands syncCommandsMock;
 
 		@SuppressWarnings({ "unchecked" })
 		@Before
 		public void setUp() throws InvocationTargetException, IllegalAccessException {
 
 			clientMock = mock(RedisClient.class);
-			when(clientMock.connectAsync((RedisCodec) any())).thenReturn(getNativeRedisConnectionMock());
+			statefulConnectionMock = mock(StatefulRedisConnection.class);
+			when(clientMock.connect((RedisCodec) any())).thenReturn(statefulConnectionMock);
+
+			asyncCommandsMock = getNativeRedisConnectionMock();
+			syncCommandsMock = mock(RedisCommands.class);
+
+			when(statefulConnectionMock.async()).thenReturn(getNativeRedisConnectionMock());
+			when(statefulConnectionMock.sync()).thenReturn(syncCommandsMock);
 			connection = new LettuceConnection(0, clientMock);
 		}
 
@@ -61,10 +74,10 @@ public class LettuceConnectionUnitTestSuite {
 		 * @see DATAREDIS-184
 		 */
 		@Test
-		public void shutdownWithNullOpionsIsCalledCorrectly() {
+		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
-			verifyNativeConnectionInvocation().shutdown(true);
+			verify(syncCommandsMock, times(1)).shutdown(true);
 		}
 
 		/**
@@ -74,7 +87,7 @@ public class LettuceConnectionUnitTestSuite {
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
-			verifyNativeConnectionInvocation().shutdown(false);
+			verify(syncCommandsMock, times(1)).shutdown(false);
 		}
 
 		/**
@@ -84,7 +97,7 @@ public class LettuceConnectionUnitTestSuite {
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
-			verifyNativeConnectionInvocation().shutdown(true);
+			verify(syncCommandsMock, times(1)).shutdown(true);
 		}
 
 		/**
@@ -95,7 +108,7 @@ public class LettuceConnectionUnitTestSuite {
 
 			String ipPort = "127.0.0.1:1001";
 			connection.killClient("127.0.0.1", 1001);
-			verifyNativeConnectionInvocation().clientKill(eq(ipPort));
+			verify(syncCommandsMock, times(1)).clientKill(eq(ipPort));
 		}
 
 		/**
@@ -105,7 +118,7 @@ public class LettuceConnectionUnitTestSuite {
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
-			verifyNativeConnectionInvocation().clientGetname();
+			verify(syncCommandsMock, times(1)).clientGetname();
 		}
 
 		/**
@@ -123,7 +136,7 @@ public class LettuceConnectionUnitTestSuite {
 		public void slaveOfShouldBeSentCorrectly() {
 
 			connection.slaveOf("127.0.0.1", 1001);
-			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
+			verify(syncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
 		/**
@@ -133,7 +146,7 @@ public class LettuceConnectionUnitTestSuite {
 		public void slaveOfNoOneShouldBeSentCorrectly() {
 
 			connection.slaveOfNoOne();
-			verifyNativeConnectionInvocation().slaveofNoOne();
+			verify(syncCommandsMock, times(1)).slaveofNoOne();
 		}
 
 		/**
@@ -148,12 +161,12 @@ public class LettuceConnectionUnitTestSuite {
 		 * @see DATAREDIS-431
 		 */
 		@Test
-		public void dbIndexShouldBeSetWhenOptainingConnection() {
+		public void dbIndexShouldBeSetWhenObtainingConnection() {
 
 			connection = new LettuceConnection(null, 0, clientMock, null, 1);
 			connection.getNativeConnection();
 
-			verify(getNativeRedisConnectionMock(), times(1)).select(1);
+			verify(syncCommandsMock, times(1)).select(1);
 		}
 	}
 
@@ -165,6 +178,76 @@ public class LettuceConnectionUnitTestSuite {
 			super.setUp();
 			this.connection.openPipeline();
 		}
-	}
 
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void shutdownWithSaveOptionIsCalledCorrectly() {
+
+			connection.shutdown(ShutdownOption.SAVE);
+			verify(asyncCommandsMock, times(1)).shutdown(true);
+		}
+
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void shutdownWithNosaveOptionIsCalledCorrectly() {
+
+			connection.shutdown(ShutdownOption.NOSAVE);
+			verify(asyncCommandsMock, times(1)).shutdown(false);
+		}
+
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void slaveOfShouldBeSentCorrectly() {
+
+			connection.slaveOf("127.0.0.1", 1001);
+			verify(asyncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
+		}
+
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void shutdownWithNullOptionsIsCalledCorrectly() {
+
+			connection.shutdown(null);
+			verify(asyncCommandsMock, times(1)).shutdown(true);
+		}
+
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void killClientShouldDelegateCallCorrectly() {
+
+			String ipPort = "127.0.0.1:1001";
+			connection.killClient("127.0.0.1", 1001);
+			verify(asyncCommandsMock, times(1)).clientKill(eq(ipPort));
+		}
+
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void slaveOfNoOneShouldBeSentCorrectly() {
+
+			connection.slaveOfNoOne();
+			verify(asyncCommandsMock, times(1)).slaveofNoOne();
+		}
+
+		/**
+		 * @see DATAREDIS-528
+		 */
+		@Test
+		public void getClientNameShouldSendRequestCorrectly() {
+
+			connection.getClientName();
+			verify(asyncCommandsMock, times(1)).clientGetname();
+		}
+	}
 }

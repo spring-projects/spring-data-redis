@@ -35,8 +35,8 @@ public class LettuceTestClientResources {
 
 	static {
 
-		SHARED_CLIENT_RESOURCES = new DefaultClientResources.Builder()
-				.eventLoopGroupProvider(new TestEventLoopGroupProvider()).build();
+		SHARED_CLIENT_RESOURCES = DefaultClientResources.builder().eventLoopGroupProvider(new TestEventLoopGroupProvider())
+				.build();
 		appendShutdownHook();
 	}
 

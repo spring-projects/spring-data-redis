@@ -19,7 +19,7 @@ package org.springframework.data.redis.connection.lettuce;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.util.AbstractSubscription;
 
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * Message subscription on top of Lettuce.
@@ -28,10 +28,10 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  */
 class LettuceSubscription extends AbstractSubscription {
 
-	final RedisPubSubConnection<byte[], byte[]> pubsub;
+	final StatefulRedisPubSubConnection<byte[], byte[]> pubsub;
 	private LettuceMessageListener listener;
 
-	LettuceSubscription(MessageListener listener, RedisPubSubConnection<byte[], byte[]> pubsubConnection) {
+	LettuceSubscription(MessageListener listener, StatefulRedisPubSubConnection<byte[], byte[]> pubsubConnection) {
 		super(listener);
 		this.pubsub = pubsubConnection;
 		this.listener = new LettuceMessageListener(listener);
@@ -41,30 +41,30 @@ class LettuceSubscription extends AbstractSubscription {
 
 	protected void doClose() {
 		if (!getChannels().isEmpty()) {
-			pubsub.unsubscribe(new byte[0]);
+			pubsub.sync().unsubscribe(new byte[0]);
 		}
 		if (!getPatterns().isEmpty()) {
-			pubsub.punsubscribe(new byte[0]);
+			pubsub.sync().punsubscribe(new byte[0]);
 		}
 		pubsub.removeListener(this.listener);
 		pubsub.close();
 	}
 
 	protected void doPsubscribe(byte[]... patterns) {
-		pubsub.psubscribe(patterns);
+		pubsub.sync().psubscribe(patterns);
 	}
 
 	protected void doPUnsubscribe(boolean all, byte[]... patterns) {
 		// lettuce doesn't automatically subscribe from all channels
-		pubsub.punsubscribe(patterns);
+		pubsub.sync().punsubscribe(patterns);
 	}
 
 	protected void doSubscribe(byte[]... channels) {
-		pubsub.subscribe(channels);
+		pubsub.sync().subscribe(channels);
 	}
 
 	protected void doUnsubscribe(boolean all, byte[]... channels) {
 		// lettuce doesn't automatically subscribe from all patterns
-		pubsub.unsubscribe(channels);
+		pubsub.sync().unsubscribe(channels);
 	}
 }

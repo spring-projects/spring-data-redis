@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.dao.DataAccessException;
@@ -72,8 +71,9 @@ import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.test.annotation.IfProfileValue;
 
 import com.lambdaworks.redis.RedisURI.Builder;
-import com.lambdaworks.redis.cluster.RedisAdvancedClusterConnection;
+import com.lambdaworks.redis.api.sync.RedisHLLCommands;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
+import com.lambdaworks.redis.cluster.api.sync.RedisAdvancedClusterCommands;
 
 /**
  * @author Christoph Strobl
@@ -105,7 +105,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 			POINT_PALERMO);
 
 	RedisClusterClient client;
-	RedisAdvancedClusterConnection<String, String> nativeConnection;
+	RedisAdvancedClusterCommands<String, String> nativeConnection;
 	LettuceClusterConnection clusterConnection;
 
 	public static @ClassRule RedisClusterRule clusterAvailable = new RedisClusterRule();
@@ -120,7 +120,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
 				Builder.redis(CLUSTER_HOST, MASTER_NODE_1_PORT).withTimeout(100, TimeUnit.MILLISECONDS).build());
-		nativeConnection = client.connectCluster();
+		nativeConnection = client.connect().sync();
 		clusterConnection = new LettuceClusterConnection(client);
 	}
 
@@ -128,7 +128,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	public void tearDown() throws InterruptedException {
 
 		clusterConnection.flushDb();
-		nativeConnection.close();
+		nativeConnection.getStatefulConnection().close();
 		clusterConnection.close();
 		client.shutdown(0, 0, TimeUnit.MILLISECONDS);
 	}
@@ -2243,7 +2243,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.pfAdd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
 
-		assertThat(nativeConnection.pfcount(KEY_1), is(3L));
+		assertThat(((RedisHLLCommands<String, String>) nativeConnection).pfcount(KEY_1), is(3L));
 	}
 
 	/**
@@ -2252,7 +2252,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void pfCountShouldAllowCountingOnSingleKey() {
 
-		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
 		assertThat(clusterConnection.pfCount(KEY_1_BYTES), is(3L));
 	}
@@ -2263,8 +2263,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void pfCountShouldAllowCountingOnSameSlotKeys() {
 
-		nativeConnection.pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
-		nativeConnection.pfadd(SAME_SLOT_KEY_2, VALUE_2, VALUE_3);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(SAME_SLOT_KEY_2, VALUE_2, VALUE_3);
 
 		assertThat(clusterConnection.pfCount(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), is(3L));
 	}
@@ -2275,8 +2275,8 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test(expected = DataAccessException.class)
 	public void pfCountShouldThrowErrorCountingOnDifferentSlotKeys() {
 
-		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2);
-		nativeConnection.pfadd(KEY_2, VALUE_2, VALUE_3);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(KEY_1, VALUE_1, VALUE_2);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(KEY_2, VALUE_2, VALUE_3);
 
 		clusterConnection.pfCount(KEY_1_BYTES, KEY_2_BYTES);
 	}
@@ -2287,12 +2287,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	@Test
 	public void pfMergeShouldWorkWhenAllKeysMapToSameSlot() {
 
-		nativeConnection.pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
-		nativeConnection.pfadd(SAME_SLOT_KEY_2, VALUE_2, VALUE_3);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
+		((RedisHLLCommands<String, String>) nativeConnection).pfadd(SAME_SLOT_KEY_2, VALUE_2, VALUE_3);
 
-		nativeConnection.pfmerge(SAME_SLOT_KEY_3, SAME_SLOT_KEY_1, SAME_SLOT_KEY_2);
+		((RedisHLLCommands<String, String>) nativeConnection).pfmerge(SAME_SLOT_KEY_3, SAME_SLOT_KEY_1, SAME_SLOT_KEY_2);
 
-		assertThat(nativeConnection.pfcount(SAME_SLOT_KEY_3), is(3L));
+		assertThat(((RedisHLLCommands<String, String>) nativeConnection).pfcount(SAME_SLOT_KEY_3), is(3L));
 	}
 
 	/**
@@ -2558,7 +2558,6 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	@Ignore("see mp911de/lettuce#241")
 	public void geoHash() {
 
 		nativeConnection.geoadd(KEY_1, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -2573,7 +2572,6 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 	 */
 	@Test
 	@IfProfileValue(name = "redisVersion", value = "3.2+")
-	@Ignore("see mp911de/lettuce#241")
 	public void geoHashNonExisting() {
 
 		nativeConnection.geoadd(KEY_1, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());

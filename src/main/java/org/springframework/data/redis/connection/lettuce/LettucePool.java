@@ -18,15 +18,15 @@ package org.springframework.data.redis.connection.lettuce;
 
 import org.springframework.data.redis.connection.Pool;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.api.StatefulConnection;
 
 /**
- * Pool of Lettuce {@link RedisAsyncConnection}s
+ * Pool of Lettuce {@link StatefulConnection}s
  * 
  * @author Jennifer Hickey
  */
-public interface LettucePool extends Pool<RedisAsyncConnection<byte[], byte[]>> {
+public interface LettucePool extends Pool<StatefulConnection<byte[], byte[]>> {
 
 	/**
 	 * @return The {@link RedisClient} used to create pooled connections

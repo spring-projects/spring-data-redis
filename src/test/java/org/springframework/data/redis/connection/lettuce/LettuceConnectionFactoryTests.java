@@ -33,8 +33,8 @@ import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 
 /**
  * Integration test of {@link LettuceConnectionFactory}
@@ -79,8 +79,8 @@ public class LettuceConnectionFactoryTests {
 	public void testGetNewConnectionOnError() throws Exception {
 		factory.setValidateConnection(true);
 		connection.lPush("alist", "baz");
-		RedisAsyncConnection nativeConn = (RedisAsyncConnection) connection.getNativeConnection();
-		nativeConn.close();
+		RedisAsyncCommands nativeConn = (RedisAsyncCommands) connection.getNativeConnection();
+		nativeConn.getStatefulConnection().close();
 		// Give some time for async channel close
 		Thread.sleep(500);
 		connection.bLPop(1, "alist".getBytes());
@@ -101,7 +101,7 @@ public class LettuceConnectionFactoryTests {
 	@Test
 	public void testConnectionErrorNoValidate() throws Exception {
 		connection.lPush("ablist", "baz");
-		((RedisAsyncConnection) connection.getNativeConnection()).close();
+		((RedisAsyncCommands) connection.getNativeConnection()).getStatefulConnection().close();
 		// Give some time for async channel close
 		Thread.sleep(500);
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory.getConnection());
@@ -159,7 +159,7 @@ public class LettuceConnectionFactoryTests {
 		// Give some time for native connection to asynchronously close
 		Thread.sleep(100);
 		try {
-			((RedisAsyncConnection<byte[], byte[]>) conn2.getNativeConnection()).ping();
+			((RedisAsyncCommands<byte[], byte[]>) conn2.getNativeConnection()).ping();
 			fail("The native connection should be closed");
 		} catch (RedisException e) {
 			// expected
@@ -169,17 +169,17 @@ public class LettuceConnectionFactoryTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testResetConnection() {
-		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
+		RedisAsyncCommands<byte[], byte[]> nativeConn = (RedisAsyncCommands<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.resetConnection();
 		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
-		nativeConn.close();
+		nativeConn.getStatefulConnection().close();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testInitConnection() {
-		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
+		RedisAsyncCommands<byte[], byte[]> nativeConn = (RedisAsyncCommands<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.initConnection();
 		RedisConnection newConnection = factory.getConnection();
@@ -190,7 +190,7 @@ public class LettuceConnectionFactoryTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testResetAndInitConnection() {
-		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
+		RedisAsyncCommands<byte[], byte[]> nativeConn = (RedisAsyncCommands<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.resetConnection();
 		factory.initConnection();

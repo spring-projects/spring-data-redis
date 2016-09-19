@@ -44,12 +44,10 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.LettuceFutures;
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
 import com.lambdaworks.redis.resource.ClientResources;
 
@@ -88,7 +86,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	private long shutdownTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
-	private RedisAsyncConnection<byte[], byte[]> connection;
+	private StatefulRedisConnection<byte[], byte[]> connection;
 	private LettucePool pool;
 	private int dbIndex = 0;
 	/** Synchronization monitor for the shared Connection */
@@ -207,6 +205,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	}
 
 	public void initConnection() {
+
 		synchronized (this.connectionMonitor) {
 			if (this.connection != null) {
 				resetConnection();
@@ -237,11 +236,8 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 			if (connection.isOpen()) {
 				try {
-					RedisFuture<String> ping = connection.ping();
-					LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS, ping);
-					if (PING_REPLY.equalsIgnoreCase(ping.get())) {
-						valid = true;
-					}
+					connection.sync().ping();
+					valid = true;
 				} catch (Exception e) {
 					log.debug("Validation failed", e);
 				}
@@ -511,7 +507,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
 	}
 
-	protected RedisAsyncConnection<byte[], byte[]> getSharedConnection() {
+	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
 		if (shareNativeConnection) {
 			synchronized (this.connectionMonitor) {
 				if (this.connection == null) {
@@ -527,18 +523,17 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		}
 	}
 
-	protected RedisAsyncConnection<byte[], byte[]> createLettuceConnector() {
+	protected StatefulRedisConnection<byte[], byte[]> createLettuceConnector() {
 		try {
 
-			RedisAsyncConnection connection = null;
+			StatefulRedisConnection<byte[], byte[]> connection = null;
 			if (client instanceof RedisClient) {
-				connection = ((RedisClient) client).connectAsync(LettuceConnection.CODEC);
+				connection = ((RedisClient) client).connect(LettuceConnection.CODEC);
 				if (dbIndex > 0) {
-					connection.select(dbIndex);
+					connection.sync().select(dbIndex);
 				}
 			} else {
-				connection = (RedisAsyncConnection<byte[], byte[]>) ((RedisClusterClient) client)
-						.connectClusterAsync(LettuceConnection.CODEC);
+				connection = null;
 			}
 			return connection;
 		} catch (RedisException e) {
@@ -630,6 +625,6 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		if (!(client instanceof RedisClient)) {
 			throw new InvalidDataAccessResourceUsageException("Unable to connect to sentinels using " + client.getClass());
 		}
-		return new LettuceSentinelConnection(((RedisClient) client).connectSentinelAsync());
+		return new LettuceSentinelConnection(((RedisClient) client).connectSentinel());
 	}
 }

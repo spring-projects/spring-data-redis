@@ -372,6 +372,10 @@ public class ClusterCommandExecutor implements DisposableBean {
 		if (executor instanceof DisposableBean) {
 			((DisposableBean) executor).destroy();
 		}
+
+		if (resourceProvider instanceof DisposableBean) {
+			((DisposableBean) resourceProvider).destroy();
+		}
 	}
 
 	/**

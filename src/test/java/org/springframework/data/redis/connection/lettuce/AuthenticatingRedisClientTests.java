@@ -17,9 +17,10 @@ package org.springframework.data.redis.connection.lettuce;
 
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
+import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -50,8 +51,8 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void connect() {
-		RedisConnection<String, String> conn = client.connect();
-		conn.ping();
+		StatefulRedisConnection<String, String> conn = client.connect();
+		conn.sync().ping();
 		conn.close();
 	}
 
@@ -68,8 +69,8 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void codecConnect() {
-		RedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
-		conn.ping();
+		StatefulRedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
+		conn.sync().ping();
 		conn.close();
 	}
 
@@ -89,15 +90,15 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void connectPubSub() {
-		RedisPubSubConnection<String, String> conn = client.connectPubSub();
-		conn.ping();
+		StatefulRedisPubSubConnection<String, String> conn = client.connectPubSub();
+		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
 	public void codecConnectPubSub() {
-		RedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
-		conn.ping();
+		StatefulRedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
+		conn.sync().ping();
 		conn.close();
 	}
 
