@@ -15,54 +15,44 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
  * 
  * @author Jennifer Hickey
- * @author Mar Paluch
+ * @author Mark Paluch
  * @author Christoph Strobl
  * @deprecated since 1.6 - Please use {@link RedisURI#setPassword(String)}
  */
 @Deprecated
 public class AuthenticatingRedisClient extends RedisClient {
 
-	private String password;
-
 	public AuthenticatingRedisClient(String host, int port, String password) {
-		super(host, port);
-		this.password = password;
+		super(null, RedisURI.builder().withHost(host).withPort(port).withPassword(password).build());
 	}
 
 	public AuthenticatingRedisClient(String host, String password) {
-		super(host);
-		this.password = password;
+		super(null, RedisURI.builder().withHost(host).withPassword(password).build());
 	}
 
 	@Override
-	public <K, V> RedisConnection<K, V> connect(RedisCodec<K, V> codec) {
-		RedisConnection<K, V> conn = super.connect(codec);
-		conn.auth(password);
-		return conn;
+	public <K, V> StatefulRedisConnection<K, V> connect(RedisCodec<K, V> codec) {
+		return super.connect(codec);
 	}
 
 	@Override
-	public <K, V> RedisAsyncConnection<K, V> connectAsync(RedisCodec<K, V> codec) {
-		RedisAsyncConnection<K, V> conn = super.connectAsync(codec);
-		conn.auth(password);
-		return conn;
+	public <K, V> RedisAsyncCommands<K, V> connectAsync(RedisCodec<K, V> codec) {
+		return super.connectAsync(codec);
 	}
 
 	@Override
-	public <K, V> RedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
-		RedisPubSubConnection<K, V> conn = super.connectPubSub(codec);
-		conn.auth(password);
-		return conn;
+	public <K, V> StatefulRedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
+		return super.connectPubSub(codec);
 	}
 }

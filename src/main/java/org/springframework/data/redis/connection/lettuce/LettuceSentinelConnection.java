@@ -27,9 +27,9 @@ import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisSentinelAsyncConnection;
 import com.lambdaworks.redis.RedisURI.Builder;
 import com.lambdaworks.redis.resource.ClientResources;
+import com.lambdaworks.redis.sentinel.api.StatefulRedisSentinelConnection;
 
 /**
  * @author Christoph Strobl
@@ -42,7 +42,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 			LettuceConverters.exceptionConverter());
 
 	private RedisClient redisClient;
-	private RedisSentinelAsyncConnection<String, String> connection;
+	private StatefulRedisSentinelConnection<String, String> connection;
 
 	/**
 	 * Creates a {@link LettuceSentinelConnection} with a dedicated client for a supplied {@link RedisNode}.
@@ -101,7 +101,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	 * 
 	 * @param connection native Lettuce connection, must not be {@literal null}
 	 */
-	protected LettuceSentinelConnection(RedisSentinelAsyncConnection<String, String> connection) {
+	protected LettuceSentinelConnection(StatefulRedisSentinelConnection<String, String> connection) {
 
 		Assert.notNull(connection, "Cannot create LettuceSentinelConnection using 'null' as connection.");
 		this.connection = connection;
@@ -116,7 +116,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 		Assert.notNull(master, "Redis node master must not be 'null' for failover.");
 		Assert.hasText(master.getName(), "Redis master name must not be 'null' or empty for failover.");
-		connection.failover(master.getName());
+		connection.sync().failover(master.getName());
 	}
 
 	/*
@@ -126,7 +126,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	@Override
 	public List<RedisServer> masters() {
 		try {
-			return LettuceConverters.toListOfRedisServer(connection.masters().get());
+			return LettuceConverters.toListOfRedisServer(connection.sync().masters());
 		} catch (Exception e) {
 			throw EXCEPTION_TRANSLATION.translate(e);
 		}
@@ -152,7 +152,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 
 		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when loading slaves.");
 		try {
-			return LettuceConverters.toListOfRedisServer(connection.slaves(masterName).get());
+			return LettuceConverters.toListOfRedisServer(connection.sync().slaves(masterName));
 		} catch (Exception e) {
 			throw EXCEPTION_TRANSLATION.translate(e);
 		}
@@ -176,7 +176,7 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 	public void remove(String masterName) {
 
 		Assert.hasText(masterName, "Name of redis master cannot be 'null' or empty when trying to remove.");
-		connection.remove(masterName);
+		connection.sync().remove(masterName);
 	}
 
 	/*
@@ -191,7 +191,8 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		Assert.hasText(server.getHost(), "Host must not be 'null' for server to monitor.");
 		Assert.notNull(server.getPort(), "Port must not be 'null' for server to monitor.");
 		Assert.notNull(server.getQuorum(), "Quorum must not be 'null' for server to monitor.");
-		connection.monitor(server.getName(), server.getHost(), server.getPort().intValue(), server.getQuorum().intValue());
+		connection.sync().monitor(server.getName(), server.getHost(), server.getPort().intValue(),
+				server.getQuorum().intValue());
 	}
 
 	/*
@@ -214,13 +215,12 @@ public class LettuceSentinelConnection implements RedisSentinelConnection {
 		}
 	}
 
-	private RedisSentinelAsyncConnection<String, String> connectSentinel() {
-		return redisClient.connectSentinelAsync();
+	private StatefulRedisSentinelConnection<String, String> connectSentinel() {
+		return redisClient.connectSentinel();
 	}
 
 	@Override
 	public boolean isOpen() {
 		return connection != null && connection.isOpen();
 	}
-
 }

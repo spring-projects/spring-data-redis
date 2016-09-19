@@ -49,7 +49,7 @@ import org.springframework.data.redis.test.util.RequiresRedisSentinel;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 
 /**
  * Integration test of {@link LettuceConnection}
@@ -210,7 +210,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		RedisConnection connection = factory2.getConnection();
 		// Use the connection to make sure the channel is initialized, else nothing happens on close
 		connection.ping();
-		((RedisAsyncConnection) connection.getNativeConnection()).close();
+		((RedisAsyncCommands) connection.getNativeConnection()).getStatefulConnection().close();
 		try {
 			connection.ping();
 			fail("Exception should be thrown trying to use a closed connection");
@@ -351,8 +351,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	@RequiresRedisSentinel(RedisSentinelRule.SentinelsAvailable.ONE_ACTIVE)
 	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 
-		((LettuceConnection) byteConnection).setSentinelConfiguration(new RedisSentinelConfiguration().master("mymaster")
-				.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
+		((LettuceConnection) byteConnection).setSentinelConfiguration(
+				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
 		assertThat(connection.getSentinelConnection(), notNullValue());
 	}
 }

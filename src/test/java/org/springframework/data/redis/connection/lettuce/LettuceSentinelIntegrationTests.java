@@ -124,24 +124,4 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 			connection.close();
 		}
 	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoHash() {
-		super.geoHash();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoHashNonExisting() {
-		super.geoHashNonExisting();
-	}
 }

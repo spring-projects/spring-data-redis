@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -40,10 +39,10 @@ import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterNode;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
+import com.lambdaworks.redis.cluster.api.async.RedisClusterAsyncCommands;
+import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 import com.lambdaworks.redis.cluster.models.partitions.Partitions;
 import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
 
@@ -65,10 +64,10 @@ public class LettuceClusterConnectionUnitTests {
 	@Mock RedisClusterClient clusterMock;
 
 	@Mock ClusterNodeResourceProvider resourceProvider;
-	@Mock RedisAsyncConnection<byte[], byte[]> dedicatedConnectionMock;
-	@Mock RedisConnection<byte[], byte[]> clusterConnection1Mock;
-	@Mock RedisConnection<byte[], byte[]> clusterConnection2Mock;
-	@Mock RedisConnection<byte[], byte[]> clusterConnection3Mock;
+	@Mock RedisClusterAsyncCommands<byte[], byte[]> dedicatedConnectionMock;
+	@Mock RedisClusterCommands<byte[], byte[]> clusterConnection1Mock;
+	@Mock RedisClusterCommands<byte[], byte[]> clusterConnection2Mock;
+	@Mock RedisClusterCommands<byte[], byte[]> clusterConnection3Mock;
 
 	LettuceClusterConnection connection;
 
@@ -112,7 +111,7 @@ public class LettuceClusterConnectionUnitTests {
 		connection = new LettuceClusterConnection(clusterMock, executor) {
 
 			@Override
-			protected RedisAsyncConnection<byte[], byte[]> getAsyncDedicatedConnection() {
+			protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
 				return dedicatedConnectionMock;
 			}
 
@@ -139,12 +138,12 @@ public class LettuceClusterConnectionUnitTests {
 
 		connection.clusterMeet(UNKNOWN_CLUSTER_NODE);
 
-		verify(clusterConnection1Mock, times(1))
-				.clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(), UNKNOWN_CLUSTER_NODE.getPort());
-		verify(clusterConnection2Mock, times(1))
-				.clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(), UNKNOWN_CLUSTER_NODE.getPort());
-		verify(clusterConnection3Mock, times(1))
-				.clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(), UNKNOWN_CLUSTER_NODE.getPort());
+		verify(clusterConnection1Mock, times(1)).clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(),
+				UNKNOWN_CLUSTER_NODE.getPort());
+		verify(clusterConnection2Mock, times(1)).clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(),
+				UNKNOWN_CLUSTER_NODE.getPort());
+		verify(clusterConnection3Mock, times(1)).clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(),
+				UNKNOWN_CLUSTER_NODE.getPort());
 	}
 
 	/**
@@ -210,9 +209,9 @@ public class LettuceClusterConnectionUnitTests {
 	@Test
 	public void keysShouldBeRunOnAllClusterNodes() {
 
-		when(clusterConnection1Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
-		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
-		when(clusterConnection3Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
+		when(clusterConnection1Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
+		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
+		when(clusterConnection3Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
 
 		byte[] pattern = LettuceConverters.toBytes("*");
 
@@ -229,7 +228,7 @@ public class LettuceClusterConnectionUnitTests {
 	@Test
 	public void keysShouldOnlyBeRunOnDedicatedNodeWhenPinned() {
 
-		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
+		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]>emptyList());
 
 		byte[] pattern = LettuceConverters.toBytes("*");
 

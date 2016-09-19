@@ -37,9 +37,9 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
 
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.SetArgs;
 import com.lambdaworks.redis.cluster.models.partitions.Partitions;
 import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
-import com.lambdaworks.redis.protocol.SetArgs;
 
 /**
  * @author Christoph Strobl
@@ -53,7 +53,7 @@ public class LettuceConvertersUnitTests {
 	 */
 	@Test
 	public void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(LettuceConverters.toListOfRedisClientInformation(""), equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(LettuceConverters.toListOfRedisClientInformation(""), equalTo(Collections.<RedisClientInfo>emptyList()));
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class LettuceConvertersUnitTests {
 	@Test
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfRedisClientInformation(null),
-				equalTo(Collections.<RedisClientInfo> emptyList()));
+				equalTo(Collections.<RedisClientInfo>emptyList()));
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class LettuceConvertersUnitTests {
 		partition.setConnected(true);
 		partition.setFlags(new HashSet<NodeFlag>(Arrays.asList(NodeFlag.MASTER, NodeFlag.MYSELF)));
 		partition.setUri(RedisURI.create("redis://" + CLUSTER_HOST + ":" + MASTER_NODE_1_PORT));
-		partition.setSlots(Arrays.<Integer> asList(1, 2, 3, 4, 5));
+		partition.setSlots(Arrays.<Integer>asList(1, 2, 3, 4, 5));
 
 		partitions.addPartition(partition);
 

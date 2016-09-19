@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -73,11 +74,11 @@ import com.lambdaworks.redis.KeyValue;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.ScoredValue;
 import com.lambdaworks.redis.ScriptOutputType;
+import com.lambdaworks.redis.SetArgs;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.cluster.models.partitions.Partitions;
 import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
-import com.lambdaworks.redis.protocol.SetArgs;
 
 /**
  * Lettuce type converters
@@ -95,6 +96,7 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<byte[], String> BYTES_TO_STRING;
 	private static final Converter<String, byte[]> STRING_TO_BYTES;
 	private static final Converter<Set<byte[]>, List<byte[]>> BYTES_SET_TO_BYTES_LIST;
+	private static final Converter<Collection<byte[]>, List<byte[]>> BYTES_COLLECTION_TO_BYTES_LIST;
 	private static final Converter<KeyValue<byte[], byte[]>, List<byte[]>> KEY_VALUE_TO_BYTES_LIST;
 	private static final Converter<List<ScoredValue<byte[]>>, Set<Tuple>> SCORED_VALUES_TO_TUPLE_SET;
 	private static final Converter<List<ScoredValue<byte[]>>, List<Tuple>> SCORED_VALUES_TO_TUPLE_LIST;
@@ -148,6 +150,14 @@ abstract public class LettuceConverters extends Converters {
 		};
 		BYTES_SET_TO_BYTES_LIST = new Converter<Set<byte[]>, List<byte[]>>() {
 			public List<byte[]> convert(Set<byte[]> results) {
+				return results != null ? new ArrayList<byte[]>(results) : null;
+			}
+		};
+		BYTES_COLLECTION_TO_BYTES_LIST = new Converter<Collection<byte[]>, List<byte[]>>() {
+			public List<byte[]> convert(Collection<byte[]> results) {
+				if (results instanceof List) {
+					return (List<byte[]>) results;
+				}
 				return results != null ? new ArrayList<byte[]>(results) : null;
 			}
 		};
@@ -365,8 +375,12 @@ abstract public class LettuceConverters extends Converters {
 		return KEY_VALUE_TO_BYTES_LIST;
 	}
 
-	public static Converter<Set<byte[]>, List<byte[]>> bytesSetToBytesList() {
-		return BYTES_SET_TO_BYTES_LIST;
+	public static Converter<Collection<byte[]>, List<byte[]>> bytesSetToBytesList() {
+		return BYTES_COLLECTION_TO_BYTES_LIST;
+	}
+
+	public static Converter<Collection<byte[]>, List<byte[]>> bytesCollectionToBytesList() {
+		return BYTES_COLLECTION_TO_BYTES_LIST;
 	}
 
 	public static Converter<List<ScoredValue<byte[]>>, Set<Tuple>> scoredValuesToTupleSet() {
@@ -405,8 +419,8 @@ abstract public class LettuceConverters extends Converters {
 		return KEY_VALUE_TO_BYTES_LIST.convert(source);
 	}
 
-	public static List<byte[]> toBytesList(Set<byte[]> source) {
-		return BYTES_SET_TO_BYTES_LIST.convert(source);
+	public static List<byte[]> toBytesList(Collection<byte[]> source) {
+		return BYTES_COLLECTION_TO_BYTES_LIST.convert(source);
 	}
 
 	public static Set<Tuple> toTupleSet(List<ScoredValue<byte[]>> source) {
@@ -769,7 +783,7 @@ abstract public class LettuceConverters extends Converters {
 			public GeoResults<GeoLocation<byte[]>> convert(Set<byte[]> source) {
 
 				if (CollectionUtils.isEmpty(source)) {
-					return new GeoResults<GeoLocation<byte[]>>(Collections.<GeoResult<GeoLocation<byte[]>>> emptyList());
+					return new GeoResults<GeoLocation<byte[]>>(Collections.<GeoResult<GeoLocation<byte[]>>>emptyList());
 				}
 
 				List<GeoResult<GeoLocation<byte[]>>> results = new ArrayList<GeoResult<GeoLocation<byte[]>>>(source.size());

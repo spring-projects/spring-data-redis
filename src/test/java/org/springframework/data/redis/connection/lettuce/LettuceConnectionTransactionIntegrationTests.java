@@ -19,7 +19,6 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionTransactionIntegrationTests;
@@ -66,85 +65,5 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 	@Test(expected = UnsupportedOperationException.class)
 	public void testSelect() {
 		super.testSelect();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoPosition() {
-		super.geoPosition();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoPositionNonExisting() {
-		super.geoPositionNonExisting();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoRadiusByMemberShouldApplyLimit() {
-		super.geoRadiusByMemberShouldApplyLimit();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoRadiusByMemberShouldReturnDistanceCorrectly() {
-		super.geoRadiusByMemberShouldReturnDistanceCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
-		super.geoRadiusByMemberShouldReturnMembersCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoRadiusShouldApplyLimit() {
-		super.geoRadiusShouldApplyLimit();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#")
-	public void geoRadiusShouldReturnDistanceCorrectly() {
-		super.geoRadiusShouldReturnDistanceCorrectly();
-	}
-
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
-	@Override
-	@Ignore("see mp911de/lettuce#241")
-	public void geoRadiusShouldReturnMembersCorrectly() {
-		super.geoRadiusShouldReturnMembersCorrectly();
 	}
 }
