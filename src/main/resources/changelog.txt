@@ -6,6 +6,15 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.6.5.RELEASE (2016-09-20)
+---------------------------------------------
+* DATAREDIS-554 - Release 1.6.5 (Gosling SR5).
+* DATAREDIS-548 - Connection should be released when used with read-only transactions.
+* DATAREDIS-513 - Pipelining doesn't supports time operation.
+* DATAREDIS-500 - executePipelined with RedisCallback uses wrong serializer (RedisTemplate.java).
+* DATAREDIS-469 - RedisAtomicLong throws a null pointer if key is removed.
+
+
 Changes in version 1.7.3.RELEASE (2016-09-20)
 ---------------------------------------------
 * DATAREDIS-551 - NPE when counting keys while invoking findBy(Pageable).
