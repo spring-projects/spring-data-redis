@@ -6,6 +6,20 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.3.RELEASE (2016-09-20)
+---------------------------------------------
+* DATAREDIS-551 - NPE when counting keys while invoking findBy(Pageable).
+* DATAREDIS-548 - Connection should be released when used with read-only transactions.
+* DATAREDIS-547 - Getting NPE when writing valid Query Method without any criteria.
+* DATAREDIS-540 - Assert compatibility with Spring 5.
+* DATAREDIS-537 - Add support for Redis Cluster and SSL.
+* DATAREDIS-524 - NOAUTH Authentication required when connecting to Redis Sentinel with LettuceConnectionFactory.
+* DATAREDIS-522 - Release 1.7.3 (Hopper SR3).
+* DATAREDIS-505 - Allow configuration of Redis Keyspace events config value.
+* DATAREDIS-502 - App fails to start on AWS due to spring-data-redis use of unsupported CONFIG command.
+* DATAREDIS-500 - executePipelined with RedisCallback uses wrong serializer (RedisTemplate.java).
+
+
 Changes in version 1.8.0.M1 (2016-07-27)
 ----------------------------------------
 * DATAREDIS-540 - Assert compatibility with Spring 5.
