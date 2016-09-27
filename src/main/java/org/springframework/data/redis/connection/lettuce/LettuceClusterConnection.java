@@ -298,7 +298,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		Assert.noNullElements(keys, "Keys must not be null or contain null key!");
 
-		// Routing for mget is handled by lettuce itself.
+		// Routing for mget is handled by lettuce.
 		return super.del(keys);
 	}
 
@@ -876,7 +876,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		// Routing for mget is handled by lettuce itself.
+		// Routing for mget is handled by lettuce.
 		return super.mGet(keys);
 	}
 
@@ -889,7 +889,7 @@ public class LettuceClusterConnection extends LettuceConnection
 
 		Assert.notNull(tuples, "Tuples must not be null!");
 
-		// Routing for msetnx is handled by lettuce itself.
+		// Routing for mset is handled by lettuce.
 		super.mSet(tuples);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,16 +41,28 @@ public class AuthenticatingRedisClient extends RedisClient {
 		super(null, RedisURI.builder().withHost(host).withPassword(password).build());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.lambdaworks.redis.RedisClient#connect(com.lambdaworks.redis.codec.RedisCodec)
+	 */
 	@Override
 	public <K, V> StatefulRedisConnection<K, V> connect(RedisCodec<K, V> codec) {
 		return super.connect(codec);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.lambdaworks.redis.RedisClient#connectAsync(com.lambdaworks.redis.codec.RedisCodec)
+	 */
 	@Override
 	public <K, V> RedisAsyncCommands<K, V> connectAsync(RedisCodec<K, V> codec) {
 		return super.connectAsync(codec);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.lambdaworks.redis.RedisClient#connectPubSub(com.lambdaworks.redis.codec.RedisCodec)
+	 */
 	@Override
 	public <K, V> StatefulRedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
 		return super.connectPubSub(codec);

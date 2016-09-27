@@ -8,6 +8,7 @@ New and noteworthy in the latest releases.
 
 * Support for Redis http://redis.io/commands#geo[GEO] commands.
 * Support for Geospatial Indexes using Spring Data Repository abstractions (see <<redis.repositories.indexes.geospatial>>).
+* Upgrade to `Lettuce` 4.2. Lettuce 4.2 requires Java 8.
 
 [[new-in-1.7.0]]
 == New in Spring Data Redis 1.7
