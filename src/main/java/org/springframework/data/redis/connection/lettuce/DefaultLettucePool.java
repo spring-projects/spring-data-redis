@@ -103,6 +103,10 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		return sentinelConfiguration != null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
 	@SuppressWarnings({ "rawtypes" })
 	public void afterPropertiesSet() {
 
@@ -136,6 +140,11 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		return RedisURI.Builder.redis(hostName, port).withTimeout(timeout, TimeUnit.MILLISECONDS).build();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Pool#getResource()
+	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public StatefulConnection<byte[], byte[]> getResource() {
 		try {
@@ -145,7 +154,13 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Pool#returnBrokenResource(java.lang.Object)
+	 */
+	@Override
 	public void returnBrokenResource(final StatefulConnection<byte[], byte[]> resource) {
+
 		try {
 			internalPool.invalidateObject(resource);
 		} catch (Exception e) {
@@ -153,7 +168,13 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Pool#returnResource(java.lang.Object)
+	 */
+	@Override
 	public void returnResource(final StatefulConnection<byte[], byte[]> resource) {
+
 		try {
 			internalPool.returnObject(resource);
 		} catch (Exception e) {
@@ -161,7 +182,13 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.Pool#destroy()
+	 */
+	@Override
 	public void destroy() {
+
 		try {
 			client.shutdown();
 			internalPool.close();
@@ -316,6 +343,10 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 			this.dbIndex = dbIndex;
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.apache.commons.pool2.BasePooledObjectFactory#activateObject(org.apache.commons.pool2.PooledObject)
+		 */
 		@Override
 		public void activateObject(PooledObject<StatefulConnection<byte[], byte[]>> pooledObject) throws Exception {
 
@@ -324,6 +355,11 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 			}
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.apache.commons.pool2.BasePooledObjectFactory#destroyObject(org.apache.commons.pool2.PooledObject)
+		 */
+		@Override
 		public void destroyObject(final PooledObject<StatefulConnection<byte[], byte[]>> obj) throws Exception {
 			try {
 				obj.getObject().close();
@@ -332,6 +368,11 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 			}
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.apache.commons.pool2.BasePooledObjectFactory#validateObject(org.apache.commons.pool2.PooledObject)
+		 */
+		@Override
 		public boolean validateObject(final PooledObject<StatefulConnection<byte[], byte[]>> obj) {
 			try {
 				if (obj.getObject() instanceof StatefulRedisConnection) {
@@ -343,11 +384,19 @@ public class DefaultLettucePool implements LettucePool, InitializingBean {
 			}
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.apache.commons.pool2.BasePooledObjectFactory#create()
+		 */
 		@Override
 		public StatefulConnection<byte[], byte[]> create() throws Exception {
 			return client.connect(LettuceConnection.CODEC);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.apache.commons.pool2.BasePooledObjectFactory#wrap(java.lang.Object)
+		 */
 		@Override
 		public PooledObject<StatefulConnection<byte[], byte[]>> wrap(StatefulConnection<byte[], byte[]> obj) {
 			return new DefaultPooledObject<StatefulConnection<byte[], byte[]>>(obj);

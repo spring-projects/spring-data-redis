@@ -459,15 +459,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	public List<Object> closePipeline() {
+
 		if (isPipelined) {
 			isPipelined = false;
 			List<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>>();
 			for (LettuceResult result : ppline) {
 				futures.add(result.getResultHolder());
 			}
-
-			// boolean done = LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS,
-			// futures.toArray(new Command[futures.size()]));
 
 			try {
 				boolean done = LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS,
@@ -479,7 +477,9 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 				if (done) {
 					for (LettuceResult result : ppline) {
+
 						if (result.getResultHolder().getOutput().hasError()) {
+
 							Exception err = new InvalidDataAccessApiUsageException(result.getResultHolder().getOutput().getError());
 							// remember only the first error
 							if (problem == null) {
@@ -487,6 +487,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 							}
 							results.add(err);
 						} else if (!convertPipelineAndTxResults || !(result.isStatus())) {
+
 							try {
 								results.add(result.get());
 							} catch (DataAccessException e) {
@@ -3970,7 +3971,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncDedicatedConn).async();
 		}
 
-		throw new IllegalStateException(String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
+		throw new IllegalStateException(
+				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
 	}
 
 	protected StatefulConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
@@ -4004,7 +4006,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncDedicatedConn).sync();
 		}
 
-		throw new IllegalStateException(String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
+		throw new IllegalStateException(
+				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
 	}
 
 	private Future<Long> asyncBitOp(BitOperation op, byte[] destination, byte[]... keys) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,23 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 /**
  * Integration test of {@link AuthenticatingRedisClient}. Enable requirepass and comment out the @Ignore to run.
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @Ignore("Redis must have requirepass set to run this test")
 public class AuthenticatingRedisClientTests {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,21 @@ package org.springframework.data.redis.connection.lettuce;
 
 import org.springframework.data.redis.connection.Pool;
 
-import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.api.StatefulConnection;
 
 /**
  * Pool of Lettuce {@link StatefulConnection}s
  * 
  * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface LettucePool extends Pool<StatefulConnection<byte[], byte[]>> {
 
 	/**
-	 * @return The {@link RedisClient} used to create pooled connections
+	 * @return The {@link AbstractRedisClient} used to create pooled connections
 	 */
-	RedisClient getClient();
+	AbstractRedisClient getClient();
 
 }
