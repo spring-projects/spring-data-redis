@@ -51,6 +51,7 @@ import org.springframework.data.redis.core.AbstractOperationsTestParams;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import edu.umd.cs.mtc.MultithreadedTestCase;
 
@@ -379,6 +380,71 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		cache.put(key, null);
 
 		assertThat(cache.get(key, String.class), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-553
+	 */
+	@Test
+	public void testCacheGetSynchronizedNullAllowingNull() {
+
+		assumeThat(getAllowCacheNullValues(), is(true));
+		assumeThat(cache, instanceOf(RedisCache.class));
+
+		Object key = getKey();
+		Object value = cache.get(key, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return null;
+			}
+		});
+
+		assertThat(value, is(nullValue()));
+		assertThat(cache.get(key).get(), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-553
+	 */
+	@Test
+	public void testCacheGetSynchronizedNullNotAllowingNull() {
+
+		assumeThat(getAllowCacheNullValues(), is(false));
+		assumeThat(cache, instanceOf(RedisCache.class));
+		assumeThat(template.getValueSerializer(), not(instanceOf(StringRedisSerializer.class)));
+
+		Object key = getKey();
+		Object value = cache.get(key, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return null;
+			}
+		});
+
+		assertThat(value, is(nullValue()));
+		assertThat(cache.get(key), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-553
+	 */
+	@Test
+	public void testCacheGetSynchronizedNullWithStoredNull() {
+
+		assumeThat(getAllowCacheNullValues(), is(true));
+		assumeThat(cache, instanceOf(RedisCache.class));
+
+		Object key = getKey();
+		cache.put(key, null);
+
+		Object cachedValue = cache.get(key, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return null;
+			}
+		});
+
+		assertThat(cachedValue, is(nullValue()));
 	}
 
 	@SuppressWarnings("unused")

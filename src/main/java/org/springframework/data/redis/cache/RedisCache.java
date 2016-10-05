@@ -142,8 +142,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	public <T> T get(final Object key, final Callable<T> valueLoader) {
 
-		BinaryRedisCacheElement rce = new BinaryRedisCacheElement(new RedisCacheElement(new RedisCacheKey(key).usePrefix(
-				cacheMetadata.getKeyPrefix()).withKeySerializer(redisOperations.getKeySerializer()), valueLoader),
+		BinaryRedisCacheElement rce = new BinaryRedisCacheElement(
+				new RedisCacheElement(new RedisCacheKey(key).usePrefix(cacheMetadata.getKeyPrefix())
+						.withKeySerializer(redisOperations.getKeySerializer()), new StoreTranslatingCallable(valueLoader)),
 				cacheValueAccessor);
 
 		ValueWrapper val = get(key);
@@ -155,11 +156,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		try {
 			byte[] result = (byte[]) redisOperations.execute(callback);
-			return (T) (result == null ? null : cacheValueAccessor.deserializeIfNecessary(result));
+			return (T) (result == null ? null : fromStoreValue(cacheValueAccessor.deserializeIfNecessary(result)));
 		} catch (RuntimeException e) {
 			throw CacheValueRetrievalExceptionFactory.INSTANCE.create(key, valueLoader, e);
 		}
-
 	}
 
 	/**
@@ -331,6 +331,27 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		});
 
 		return bytes == null ? null : cacheValueAccessor.deserializeIfNecessary(bytes);
+	}
+
+	/**
+	 * {@link Callable} to transform a value obtained from another {@link Callable} to its store value.
+	 * 
+	 * @author Mark Paluch
+	 * @since 1.8
+	 * @see #toStoreValue(Object)
+	 */
+	private class StoreTranslatingCallable implements Callable<Object> {
+
+		private Callable<?> valueLoader;
+
+		public StoreTranslatingCallable(Callable<?> valueLoader) {
+			this.valueLoader = valueLoader;
+		}
+
+		@Override
+		public Object call() throws Exception {
+			return toStoreValue(valueLoader.call());
+		}
 	}
 
 	/**
@@ -849,10 +870,14 @@ public class RedisCache extends AbstractValueAdaptingCache {
 					}
 
 					value = element.get();
-					connection.set(element.getKeyBytes(), value);
 
-					processKeyExpiration(element, connection);
-					maintainKnownKeys(element, connection);
+					if (value.length == 0) {
+						connection.del(element.getKeyBytes());
+					} else {
+						connection.set(element.getKeyBytes(), value);
+						processKeyExpiration(element, connection);
+						maintainKnownKeys(element, connection);
+					}
 
 					if (!isClusterConnection(connection)) {
 						connection.exec();
