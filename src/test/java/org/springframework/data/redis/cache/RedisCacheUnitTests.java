@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
+import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -138,7 +139,7 @@ public class RedisCacheUnitTests {
 	 * @see DATAREDIS-369
 	 */
 	@Test
-	public void clearShouldCallLuaScritpToRemoveKeysWhenPrefixIsSet() {
+	public void clearShouldCallLuaScriptToRemoveKeysWhenPrefixIsSet() {
 
 		cache = new RedisCache(CACHE_NAME, PREFIX_BYTES, templateSpy, EXPIRATION);
 		cache.clear();
@@ -214,7 +215,7 @@ public class RedisCacheUnitTests {
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	public void getWithCallable() throws ClassNotFoundException, LinkageError {
+	public void getWithCallable() throws ClassNotFoundException {
 
 		if (isPresent("org.springframework.cache.Cache$ValueRetrievalException", getDefaultClassLoader())) {
 			exception.expect((Class<? extends Throwable>) forName("org.springframework.cache.Cache$ValueRetrievalException",
@@ -233,6 +234,51 @@ public class RedisCacheUnitTests {
 				throw new UnsupportedOperationException("Expected exception");
 			}
 		});
+	}
+
+	/**
+	 * @see DATAREDIS-553
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getWithCallableShouldStoreNullNotAllowingNull() throws ClassNotFoundException {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L, false);
+
+		cache.get(KEY, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return null;
+			}
+		});
+
+		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
+		verify(connectionMock, times(1)).multi();
+		verify(connectionMock, times(1)).del(eq(KEY_BYTES));
+		verify(connectionMock, times(1)).exec();
+	}
+
+	/**
+	 * @see DATAREDIS-553
+	 */
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getWithCallableShouldStoreNullAllowingNull() throws ClassNotFoundException {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L, true);
+
+		cache.get(KEY, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return null;
+			}
+		});
+
+		verify(valueSerializerMock).serialize(isA(NullValue.class));
+		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
+		verify(connectionMock, times(1)).multi();
+		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock, times(1)).exec();
 	}
 
 	/**
