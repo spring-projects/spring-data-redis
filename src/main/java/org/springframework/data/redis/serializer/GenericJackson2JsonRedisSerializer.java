@@ -132,7 +132,7 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	}
 
 	/**
-	 * {@link StdSerializer} adding class information required by default typing. This allows de-/seriialization of
+	 * {@link StdSerializer} adding class information required by default typing. This allows de-/serialization of
 	 * {@link NullValue}.
 	 *
 	 * @author Christoph Strobl
@@ -141,15 +141,15 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 	private class NullValueSerializer extends StdSerializer<NullValue> {
 
 		private static final long serialVersionUID = 1999052150548658808L;
-		private final String classIdentifyer;
+		private final String classIdentifier;
 
 		/**
-		 * @param classIdentifyer can be {@literal null} and will be defaulted to {@code @class}.
+		 * @param classIdentifier can be {@literal null} and will be defaulted to {@code @class}.
 		 */
-		NullValueSerializer(String classIdentifyer) {
+		NullValueSerializer(String classIdentifier) {
 
 			super(NullValue.class);
-			this.classIdentifyer = StringUtils.hasText(classIdentifyer) ? classIdentifyer : "@class";
+			this.classIdentifier = StringUtils.hasText(classIdentifier) ? classIdentifier : "@class";
 		}
 
 		/*
@@ -158,12 +158,11 @@ public class GenericJackson2JsonRedisSerializer implements RedisSerializer<Objec
 		 */
 		@Override
 		public void serialize(NullValue value, JsonGenerator jgen, SerializerProvider provider)
-				throws IOException, JsonProcessingException {
+				throws IOException {
 
 			jgen.writeStartObject();
-			jgen.writeStringField(classIdentifyer, NullValue.class.getName());
+			jgen.writeStringField(classIdentifier, NullValue.class.getName());
 			jgen.writeEndObject();
 		}
-
 	}
 }
