@@ -17,7 +17,6 @@
 package org.springframework.data.redis.cache;
 
 import static org.springframework.util.Assert.*;
-import static org.springframework.util.ObjectUtils.*;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
@@ -37,6 +36,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Cache implementation on top of Redis.
@@ -720,20 +720,27 @@ public class RedisCache implements Cache {
 		public byte[] doInRedis(BinaryRedisCacheElement element, RedisConnection connection) throws DataAccessException {
 
 			waitForLock(connection);
-			byte[] resultValue = put(element, connection);
 
-			if (nullSafeEquals(element.get(), resultValue)) {
+			byte existingValue[] = null;
+
+			boolean keyMaintenance;
+
+			byte[] keyBytes = element.getKeyBytes();
+			byte[] value = element.get();
+
+			if (connection.setNX(keyBytes, value)) {
+				keyMaintenance = true;
+			} else {
+				existingValue = connection.get(keyBytes);
+				keyMaintenance = ObjectUtils.nullSafeEquals(value, existingValue);
+			}
+
+			if (keyMaintenance) {
 				processKeyExpiration(element, connection);
 				maintainKnownKeys(element, connection);
 			}
 
-			return resultValue;
-		}
-
-		private byte[] put(BinaryRedisCacheElement element, RedisConnection connection) {
-
-			boolean valueWasSet = connection.setNX(element.getKeyBytes(), element.get());
-			return valueWasSet ? null : connection.get(element.getKeyBytes());
+			return existingValue;
 		}
 	}
 
