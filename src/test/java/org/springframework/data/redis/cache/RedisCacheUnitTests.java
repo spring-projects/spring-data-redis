@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.cache;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -30,6 +33,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.cache.Cache;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -40,6 +44,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @SuppressWarnings("rawtypes")
 @RunWith(MockitoJUnitRunner.class)
@@ -152,6 +157,56 @@ public class RedisCacheUnitTests {
 		cache.put(KEY, VALUE);
 
 		verify(connectionMock, never()).expire(eq(KNOWN_KEYS_SET_NAME_BYTES), anyLong());
+	}
+
+	/**
+	 * @see DATAREDIS-542
+	 */
+	@Test
+	public void putIfAbsentShouldExpireWhenValueWasSet() {
+
+		when(connectionMock.setNX(KEY_BYTES, VALUE_BYTES)).thenReturn(true);
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 10L);
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
+
+		assertThat(valueWrapper, is(nullValue()));
+		verify(connectionMock).setNX(KEY_BYTES, VALUE_BYTES);
+		verify(connectionMock).expire(eq(KEY_BYTES), anyLong());
+	}
+
+	/**
+	 * @see DATAREDIS-542
+	 */
+	@Test
+	public void putIfAbsentShouldNotExpireWhenValueWasNotSetAndRedisContainsOtherData() {
+
+		String other = "other";
+		when(connectionMock.setNX(KEY_BYTES, VALUE_BYTES)).thenReturn(false);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(other.getBytes());
+		when(valueSerializerMock.deserialize(eq(other.getBytes()))).thenReturn(other);
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 10L);
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
+
+		assertThat(valueWrapper, is(notNullValue()));
+		verify(connectionMock, never()).expire(eq(KEY_BYTES), anyLong());
+	}
+
+	/**
+	 * @see DATAREDIS-542
+	 */
+	@Test
+	public void putIfAbsentShouldExpireWhenValueWasNotSetAndRedisContainsSameData() {
+
+		when(connectionMock.setNX(KEY_BYTES, VALUE_BYTES)).thenReturn(false);
+		when(connectionMock.get(KEY_BYTES)).thenReturn(VALUE_BYTES);
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 10L);
+		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
+
+		assertThat(valueWrapper, is(notNullValue()));
+		verify(connectionMock).expire(eq(KEY_BYTES), anyLong());
 	}
 
 	/**
