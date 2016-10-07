@@ -73,7 +73,7 @@ public class RedisCache implements Cache {
 	/**
 	 * Return the value to which this cache maps the specified key, generically specifying a type that return value will
 	 * be cast to.
-	 * 
+	 *
 	 * @param key
 	 * @param type
 	 * @return
@@ -123,7 +123,7 @@ public class RedisCache implements Cache {
 
 	/**
 	 * Return the value to which this cache maps the specified key.
-	 * 
+	 *
 	 * @param cacheKey the key whose associated value is to be returned via its binary representation.
 	 * @return the {@link RedisCacheElement} stored at given key or {@literal null} if no value found for key.
 	 * @since 1.5
@@ -159,7 +159,7 @@ public class RedisCache implements Cache {
 	 * Add the element by adding {@link RedisCacheElement#get()} at {@link RedisCacheElement#getKeyBytes()}. If the cache
 	 * previously contained a mapping for this {@link RedisCacheElement#getKeyBytes()}, the old value is replaced by
 	 * {@link RedisCacheElement#get()}.
-	 * 
+	 *
 	 * @param element must not be {@literal null}.
 	 * @since 1.5
 	 */
@@ -185,7 +185,7 @@ public class RedisCache implements Cache {
 	/**
 	 * Add the element as long as no element exists at {@link RedisCacheElement#getKeyBytes()}. If a value is present for
 	 * {@link RedisCacheElement#getKeyBytes()} this one is returned.
-	 * 
+	 *
 	 * @param element must not be {@literal null}.
 	 * @return
 	 * @since 1.5
@@ -253,7 +253,7 @@ public class RedisCache implements Cache {
 	/**
 	 * Metadata required to maintain {@link RedisCache}. Keeps track of additional data structures required for processing
 	 * cache operations.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.5
 	 */
@@ -291,7 +291,7 @@ public class RedisCache implements Cache {
 
 		/**
 		 * Get the binary representation of the key prefix.
-		 * 
+		 *
 		 * @return never {@literal null}.
 		 */
 		public byte[] getKeyPrefix() {
@@ -300,7 +300,7 @@ public class RedisCache implements Cache {
 
 		/**
 		 * Get the binary representation of the key identifying the data structure used to maintain known keys.
-		 * 
+		 *
 		 * @return never {@literal null}.
 		 */
 		public byte[] getSetOfKnownKeysKey() {
@@ -309,7 +309,7 @@ public class RedisCache implements Cache {
 
 		/**
 		 * Get the binary representation of the key identifying the data structure used to lock the cache.
-		 * 
+		 *
 		 * @return never {@literal null}.
 		 */
 		public byte[] getCacheLockKey() {
@@ -318,7 +318,7 @@ public class RedisCache implements Cache {
 
 		/**
 		 * Get the name of the cache.
-		 * 
+		 *
 		 * @return
 		 */
 		public String getCacheName() {
@@ -327,7 +327,7 @@ public class RedisCache implements Cache {
 
 		/**
 		 * Set the default expiration time in seconds
-		 * 
+		 *
 		 * @param defaultExpiration
 		 */
 		public void setDefaultExpiration(long seconds) {
@@ -336,7 +336,7 @@ public class RedisCache implements Cache {
 
 		/**
 		 * Get the default expiration time in seconds.
-		 * 
+		 *
 		 * @return
 		 */
 		public long getDefaultExpiration() {
@@ -701,26 +701,17 @@ public class RedisCache implements Cache {
 
 			waitForLock(connection);
 
-			byte existingValue[] = null;
-
-			boolean keyMaintenance;
-
 			byte[] keyBytes = element.getKeyBytes();
 			byte[] value = element.get();
 
-			if (connection.setNX(keyBytes, value)) {
-				keyMaintenance = true;
-			} else {
-				existingValue = connection.get(keyBytes);
-				keyMaintenance = ObjectUtils.nullSafeEquals(value, existingValue);
+			if (!connection.setNX(keyBytes, value)) {
+				return connection.get(keyBytes);
 			}
 
-			if (keyMaintenance) {
-				processKeyExpiration(element, connection);
-				maintainKnownKeys(element, connection);
-			}
+			maintainKnownKeys(element, connection);
+			processKeyExpiration(element, connection);
 
-			return existingValue;
+			return null;
 		}
 	}
 
