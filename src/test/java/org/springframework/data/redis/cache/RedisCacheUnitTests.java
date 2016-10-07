@@ -197,7 +197,7 @@ public class RedisCacheUnitTests {
 	 * @see DATAREDIS-542
 	 */
 	@Test
-	public void putIfAbsentShouldExpireWhenValueWasNotSetAndRedisContainsSameData() {
+	public void putIfAbsentShouldNotSetExpireWhenValueWasNotSetAndRedisContainsSameData() {
 
 		when(connectionMock.setNX(KEY_BYTES, VALUE_BYTES)).thenReturn(false);
 		when(connectionMock.get(KEY_BYTES)).thenReturn(VALUE_BYTES);
@@ -206,7 +206,7 @@ public class RedisCacheUnitTests {
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
 
 		assertThat(valueWrapper, is(notNullValue()));
-		verify(connectionMock).expire(eq(KEY_BYTES), anyLong());
+		verify(connectionMock, never()).expire(eq(KEY_BYTES), anyLong());
 	}
 
 	/**
