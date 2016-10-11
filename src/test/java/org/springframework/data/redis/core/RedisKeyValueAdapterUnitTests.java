@@ -16,10 +16,8 @@
 
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
@@ -134,7 +132,7 @@ public class RedisKeyValueAdapterUnitTests {
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
-		assertThat(listener, notNullValue());
+		assertThat(listener).isNotNull();
 	}
 
 	@Test // DATAREDIS-491
@@ -148,17 +146,17 @@ public class RedisKeyValueAdapterUnitTests {
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-NOT-start-listener", new WithoutTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-start-listener", new WithTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, notNullValue());
+		assertThat(listener).isNotNull();
 	}
 
 	@Test // DATAREDIS-491
@@ -171,17 +169,17 @@ public class RedisKeyValueAdapterUnitTests {
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-NOT-start-listener", new WithoutTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-start-listener", new WithTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 	}
 
 	static class WithoutTimeToLive {

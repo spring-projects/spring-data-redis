@@ -15,16 +15,11 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -34,7 +29,6 @@ import org.springframework.data.redis.connection.RedisClusterNode.Flag;
 import org.springframework.data.redis.connection.RedisClusterNode.LinkState;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.core.types.RedisClientInfo;
 
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.models.partitions.Partitions;
@@ -50,13 +44,12 @@ public class LettuceConvertersUnitTests {
 
 	@Test // DATAREDIS-268
 	public void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(LettuceConverters.toListOfRedisClientInformation(""), equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(LettuceConverters.toListOfRedisClientInformation("")).isEmpty();
 	}
 
 	@Test // DATAREDIS-268
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(LettuceConverters.toListOfRedisClientInformation(null),
-				equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(LettuceConverters.toListOfRedisClientInformation(null)).isEmpty();
 	}
 
 	@Test // DATAREDIS-268
@@ -67,12 +60,12 @@ public class LettuceConvertersUnitTests {
 		sb.append("\r\n");
 		sb.append(CLIENT_ALL_SINGLE_LINE_RESPONSE);
 
-		assertThat(LettuceConverters.toListOfRedisClientInformation(sb.toString()).size(), equalTo(2));
+		assertThat(LettuceConverters.toListOfRedisClientInformation(sb.toString())).hasSize(2);
 	}
 
 	@Test // DATAREDIS-315
 	public void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartionsDoesNotContainElements() {
-		assertThat(LettuceConverters.partitionsToClusterNodes(new Partitions()), notNullValue());
+		assertThat(LettuceConverters.partitionsToClusterNodes(new Partitions())).isNotNull();
 	}
 
 	@Test // DATAREDIS-315
@@ -90,15 +83,15 @@ public class LettuceConvertersUnitTests {
 		partitions.addPartition(partition);
 
 		List<RedisClusterNode> nodes = LettuceConverters.partitionsToClusterNodes(partitions);
-		assertThat(nodes.size(), is(1));
+		assertThat(nodes).hasSize(1);
 
 		RedisClusterNode node = nodes.get(0);
-		assertThat(node.getHost(), is(CLUSTER_HOST));
-		assertThat(node.getPort(), is(MASTER_NODE_1_PORT));
-		assertThat(node.getFlags(), hasItems(Flag.MASTER, Flag.MYSELF));
-		assertThat(node.getId(), is(CLUSTER_NODE_1.getId()));
-		assertThat(node.getLinkState(), is(LinkState.CONNECTED));
-		assertThat(node.getSlotRange().getSlots(), hasItems(1, 2, 3, 4, 5));
+		assertThat(node.getHost()).isEqualTo(CLUSTER_HOST);
+		assertThat(node.getPort()).isEqualTo(MASTER_NODE_1_PORT);
+		assertThat(node.getFlags()).contains(Flag.MASTER, Flag.MYSELF);
+		assertThat(node.getId()).isEqualTo(CLUSTER_NODE_1.getId());
+		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
+		assertThat(node.getSlotRange().getSlots()).contains(1, 2, 3, 4, 5);
 	}
 
 	@Test // DATAREDIS-316
@@ -106,10 +99,10 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, null);
 
-		assertThat(getField(args, "ex"), is(nullValue()));
-		assertThat(getField(args, "px"), is(nullValue()));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+		assertThat(getField(args, "ex")).isNull();
+		assertThat(getField(args, "px")).isNull();
+		assertThat((Boolean) getField(args, "nx")).isFalse();
+		assertThat((Boolean) getField(args, "xx")).isFalse();
 	}
 
 	@Test // DATAREDIS-316
@@ -117,10 +110,10 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), null);
 
-		assertThat(getField(args, "ex"), is(nullValue()));
-		assertThat(getField(args, "px"), is(nullValue()));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+		assertThat(getField(args, "ex")).isNull();
+		assertThat(getField(args, "px")).isNull();
+		assertThat((Boolean) getField(args, "nx")).isFalse();
+		assertThat((Boolean) getField(args, "xx")).isFalse();
 	}
 
 	@Test // DATAREDIS-316
@@ -128,10 +121,10 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), null);
 
-		assertThat((Long) getField(args, "ex"), is(10L));
-		assertThat(getField(args, "px"), is(nullValue()));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+		assertThat((Long) getField(args, "ex")).isEqualTo(10L);
+		assertThat(getField(args, "px")).isNull();
+		assertThat((Boolean) getField(args, "nx")).isFalse();
+		assertThat((Boolean) getField(args, "xx")).isFalse();
 	}
 
 	@Test // DATAREDIS-316
@@ -139,10 +132,10 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), null);
 
-		assertThat(getField(args, "ex"), is(nullValue()));
-		assertThat((Long) getField(args, "px"), is(100L));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+		assertThat(getField(args, "ex")).isNull();
+		assertThat((Long) getField(args, "px")).isEqualTo(100L);
+		assertThat((Boolean) getField(args, "nx")).isFalse();
+		assertThat((Boolean) getField(args, "xx")).isFalse();
 	}
 
 	@Test // DATAREDIS-316
@@ -150,10 +143,10 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifAbsent());
 
-		assertThat(getField(args, "ex"), is(nullValue()));
-		assertThat(getField(args, "px"), is(nullValue()));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.TRUE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+		assertThat(getField(args, "ex")).isNull();
+		assertThat(getField(args, "px")).isNull();
+		assertThat((Boolean) getField(args, "nx")).isEqualTo(Boolean.TRUE);
+		assertThat((Boolean) getField(args, "xx")).isFalse();
 	}
 
 	@Test // DATAREDIS-316
@@ -161,10 +154,10 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifPresent());
 
-		assertThat(getField(args, "ex"), is(nullValue()));
-		assertThat(getField(args, "px"), is(nullValue()));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.TRUE));
+		assertThat(getField(args, "ex")).isNull();
+		assertThat(getField(args, "px")).isNull();
+		assertThat((Boolean) getField(args, "nx")).isFalse();
+		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test // DATAREDIS-316
@@ -172,9 +165,9 @@ public class LettuceConvertersUnitTests {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.upsert());
 
-		assertThat(getField(args, "ex"), is(nullValue()));
-		assertThat(getField(args, "px"), is(nullValue()));
-		assertThat((Boolean) getField(args, "nx"), is(Boolean.FALSE));
-		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
+		assertThat(getField(args, "ex")).isNull();
+		assertThat(getField(args, "px")).isNull();
+		assertThat((Boolean) getField(args, "nx")).isFalse();
+		assertThat((Boolean) getField(args, "xx")).isFalse();
 	}
 }

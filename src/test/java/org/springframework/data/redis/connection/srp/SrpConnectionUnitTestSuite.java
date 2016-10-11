@@ -27,10 +27,10 @@ import org.springframework.data.redis.connection.RedisServerCommands.ShutdownOpt
 import org.springframework.data.redis.connection.srp.SrpConnectionUnitTestSuite.SrpConnectionPiplineUnitTests;
 import org.springframework.data.redis.connection.srp.SrpConnectionUnitTestSuite.SrpConnectionUnitTests;
 
+import com.google.common.base.Charsets;
+
 import redis.client.RedisClient;
 import redis.client.RedisClient.Pipeline;
-
-import com.google.common.base.Charsets;
 
 /**
  * @author Christoph Strobl

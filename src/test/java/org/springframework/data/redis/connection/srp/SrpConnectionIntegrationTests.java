@@ -16,16 +16,13 @@
 
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.hamcrest.core.Is;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.redis.connection.AbstractConnectionIntegrationTests;
@@ -94,13 +91,13 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		connection.set("redis", "supercalifragilisticexpialidocious");
 
 		Object result = connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes());
-		Assert.assertThat(result, IsInstanceOf.instanceOf(Reply[].class));
+		assertThat(result).isInstanceOf(Reply[].class);
 
 		Reply<?>[] replies = (Reply[]) result;
 
-		Assert.assertThat(replies[0].data(), Is.<Object> is("awesome".getBytes()));
-		Assert.assertThat(replies[1].data(), Is.<Object> is("cool".getBytes()));
-		Assert.assertThat(replies[2].data(), Is.<Object> is("supercalifragilisticexpialidocious".getBytes()));
+		assertThat(replies[0].data()).isEqualTo("awesome".getBytes());
+		assertThat(replies[1].data()).isEqualTo("cool".getBytes());
+		assertThat(replies[2].data()).isEqualTo("supercalifragilisticexpialidocious".getBytes());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -113,8 +110,7 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		actual.add(connection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+		assertThat(scriptResults).contains("key1".getBytes(), "arg1".getBytes());
 	}
 
 	@Test // DATAREDIS-106
@@ -126,6 +122,6 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 
 		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
 
-		Assert.assertEquals("two", new String(zRangeByScore.iterator().next()));
+		assertThat(new String(zRangeByScore.iterator().next())).isEqualTo("two");
 	}
 }

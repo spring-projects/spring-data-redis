@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,14 +39,14 @@ import org.springframework.test.annotation.IfProfileValue;
  * @author Thomas Darimont
  */
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
-	
+
 	private static final String MASTER_NAME = "mymaster";
 	private static final RedisServer SENTINEL_0 = new RedisServer("127.0.0.1", 26379);
 	private static final RedisServer SENTINEL_1 = new RedisServer("127.0.0.1", 26380);
-	
+
 	private static final RedisServer SLAVE_0 = new RedisServer("127.0.0.1", 6380);
 	private static final RedisServer SLAVE_1 = new RedisServer("127.0.0.1", 6381);
-	
+
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration() //
 			.master(MASTER_NAME)
 			.sentinel(SENTINEL_0)
@@ -125,21 +124,21 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	public void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
-		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(),is(MASTER_NAME));
+
+		assertThat(servers).hasSize(1).extracting("name").contains(MASTER_NAME);
 	}
 	
 	@Test // DATAREDIS-330
 	public void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
-		
+
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
-		assertThat(servers.size(), is(1));
-		
+		assertThat(servers).hasSize(1);
+
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size(), is(2));
-		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+		assertThat(slaves).hasSize(2);
+		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
 	}
 
 }

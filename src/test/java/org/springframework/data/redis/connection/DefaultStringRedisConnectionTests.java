@@ -15,20 +15,11 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -1743,6 +1734,6 @@ public class DefaultStringRedisConnectionTests {
 	}
 
 	protected void verifyResults(List<?> expected) {
-		assertEquals(expected, getResults());
+		assertThat(getResults()).isEqualTo(expected);
 	}
 }

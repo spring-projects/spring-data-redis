@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -49,6 +48,6 @@ public class JedisConnectionFactoryTests {
 
 	@Test // DATAREDIS-324
 	public void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
-		assertThat(factory.getConnection().ping(), equalTo("PONG"));
+		assertThat(factory.getConnection().ping()).isEqualTo("PONG");
 	}
 }

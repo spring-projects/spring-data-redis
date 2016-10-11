@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
@@ -160,11 +161,11 @@ public class JedisClusterConnectionUnitTests {
 	@Test // DATAREDIS-315
 	public void isClosedShouldReturnConnectionStateCorrectly() {
 
-		assertThat(connection.isClosed(), is(false));
+		assertThat(connection.isClosed()).isFalse();
 
 		connection.close();
 
-		assertThat(connection.isClosed(), is(true));
+		assertThat(connection.isClosed()).isTrue();
 	}
 
 	@Test // DATAREDIS-315
@@ -175,7 +176,7 @@ public class JedisClusterConnectionUnitTests {
 		when(con3Mock.clusterInfo()).thenReturn(CLUSTER_INFO_RESPONSE);
 
 		ClusterInfo p = connection.clusterGetClusterInfo();
-		assertThat(p.getSlotsAssigned(), is(16384L));
+		assertThat(p.getSlotsAssigned()).isEqualTo(16384L);
 
 		verifyInvocationsAcross("clusterInfo", times(1), con1Mock, con2Mock, con3Mock);
 	}

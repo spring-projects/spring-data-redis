@@ -15,18 +15,14 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import java.util.Collection;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.never;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertArrayEquals;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisInvalidSubscriptionException;
 
@@ -58,9 +54,9 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe();
 		verify(jedisPubSub, times(1)).unsubscribe();
 		verify(jedisPubSub, never()).punsubscribe();
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -70,11 +66,11 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe();
 		verify(jedisPubSub, times(1)).unsubscribe();
 		verify(jedisPubSub, never()).punsubscribe();
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -84,9 +80,9 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe(channel);
 		verify(jedisPubSub, times(1)).unsubscribe(channel);
 		verify(jedisPubSub, never()).punsubscribe();
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -96,11 +92,11 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe(new byte[][] { "a".getBytes() });
 		verify(jedisPubSub, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
 		verify(jedisPubSub, never()).punsubscribe();
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subChannels = subscription.getChannels();
-		assertEquals(1, subChannels.size());
-		assertArrayEquals("b".getBytes(), subChannels.iterator().next());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subChannels).hasSize(1);
+		assertThat(subChannels.iterator().next()).isEqualTo("b".getBytes());
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -111,11 +107,11 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe(channel);
 		verify(jedisPubSub, times(1)).unsubscribe(channel);
 		verify(jedisPubSub, never()).punsubscribe();
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -126,13 +122,13 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe(channel);
 		verify(jedisPubSub, times(1)).unsubscribe(channel);
 		verify(jedisPubSub, never()).punsubscribe();
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("b".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("b".getBytes());
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -141,18 +137,18 @@ public class JedisSubscriptionTests {
 		subscription.unsubscribe();
 		verify(jedisPubSub, never()).unsubscribe();
 		verify(jedisPubSub, never()).punsubscribe();
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
 	public void testUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.unsubscribe();
 		verify(jedisPubSub, times(1)).unsubscribe();
 		verify(jedisPubSub, never()).punsubscribe();
@@ -162,7 +158,7 @@ public class JedisSubscriptionTests {
 	public void testSubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.subscribe(new byte[][] { "s".getBytes() });
 	}
 
@@ -172,9 +168,9 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(jedisPubSub, never()).unsubscribe();
 		verify(jedisPubSub, times(1)).punsubscribe();
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -184,11 +180,11 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(jedisPubSub, never()).unsubscribe();
 		verify(jedisPubSub, times(1)).punsubscribe();
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 	}
 
 	@Test
@@ -198,9 +194,9 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe(pattern);
 		verify(jedisPubSub, never()).unsubscribe();
 		verify(jedisPubSub, times(1)).punsubscribe(pattern);
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -210,11 +206,11 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe(new byte[][] { "a*".getBytes() });
 		verify(jedisPubSub, times(1)).punsubscribe(new byte[][] { "a*".getBytes() });
 		verify(jedisPubSub, never()).unsubscribe();
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subPatterns = subscription.getPatterns();
-		assertEquals(1, subPatterns.size());
-		assertArrayEquals("b*".getBytes(), subPatterns.iterator().next());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subPatterns).hasSize(1);
+		assertThat(subPatterns.iterator().next()).isEqualTo("b*".getBytes());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -225,11 +221,11 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe(pattern);
 		verify(jedisPubSub, times(1)).punsubscribe(pattern);
 		verify(jedisPubSub, never()).unsubscribe();
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 	}
 
 	@Test
@@ -240,13 +236,13 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe(pattern);
 		verify(jedisPubSub, never()).unsubscribe();
 		verify(jedisPubSub, times(1)).punsubscribe(pattern);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("b*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("b*".getBytes());
 	}
 
 	@Test
@@ -255,18 +251,18 @@ public class JedisSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(jedisPubSub, never()).unsubscribe();
 		verify(jedisPubSub, never()).punsubscribe();
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("s".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("s".getBytes());
 	}
 
 	@Test
 	public void testPUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.pUnsubscribe();
 		verify(jedisPubSub, times(1)).unsubscribe();
 		verify(jedisPubSub, never()).punsubscribe();
@@ -276,7 +272,7 @@ public class JedisSubscriptionTests {
 	public void testPSubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 	}
 

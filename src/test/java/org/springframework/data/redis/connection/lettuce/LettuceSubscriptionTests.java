@@ -15,14 +15,10 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.any;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+
 import java.util.Collection;
 
 import org.junit.Before;
@@ -63,9 +59,9 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, never()).punsubscribe(new byte[0]);
 		verify(pubsub).close();
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -76,11 +72,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -93,9 +89,9 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, never()).punsubscribe(new byte[0]);
 		verify(pubsub).close();
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -106,11 +102,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subChannels = subscription.getChannels();
-		assertEquals(1, subChannels.size());
-		assertArrayEquals("b".getBytes(), subChannels.iterator().next());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subChannels).hasSize(1);
+		assertThat(subChannels.iterator().next()).isEqualTo("b".getBytes());
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -122,11 +118,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).unsubscribe(channel);
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -138,13 +134,13 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).unsubscribe(channel);
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("b".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("b".getBytes());
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -153,11 +149,11 @@ public class LettuceSubscriptionTests {
 		subscription.unsubscribe();
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -166,7 +162,7 @@ public class LettuceSubscriptionTests {
 		subscription.unsubscribe();
 		verify(pubsub, times(1)).close();
 		verify(pubsub, times(1)).removeListener(any(LettuceMessageListener.class));
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.unsubscribe();
 		verify(pubsub, times(1)).unsubscribe(new byte[][] { "a".getBytes() });
 		verify(pubsub, never()).unsubscribe(new byte[0]);
@@ -177,7 +173,7 @@ public class LettuceSubscriptionTests {
 	public void testSubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.subscribe(new byte[][] { "s".getBytes() });
 	}
 
@@ -188,11 +184,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
 		verify(pubsub, times(1)).punsubscribe(new byte[][] { "a*".getBytes() });
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		verify(pubsub).close();
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -203,11 +199,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
 		verify(pubsub, times(1)).punsubscribe(new byte[][] { "s*".getBytes() });
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 	}
 
 	@Test
@@ -220,9 +216,9 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).punsubscribe(pattern);
 		verify(pubsub).close();
 		verify(pubsub).removeListener(any(LettuceMessageListener.class));
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -233,11 +229,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).punsubscribe(new byte[][] { "a*".getBytes() });
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subPatterns = subscription.getPatterns();
-		assertEquals(1, subPatterns.size());
-		assertArrayEquals("b*".getBytes(), subPatterns.iterator().next());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subPatterns).hasSize(1);
+		assertThat(subPatterns.iterator().next()).isEqualTo("b*".getBytes());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -249,11 +245,11 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, times(1)).punsubscribe(pattern);
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 	}
 
 	@Test
@@ -265,13 +261,13 @@ public class LettuceSubscriptionTests {
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
 		verify(pubsub, times(1)).punsubscribe(pattern);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("b*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("b*".getBytes());
 	}
 
 	@Test
@@ -280,18 +276,18 @@ public class LettuceSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(pubsub, never()).unsubscribe(new byte[0]);
 		verify(pubsub, never()).punsubscribe(new byte[0]);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("s".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("s".getBytes());
 	}
 
 	@Test
 	public void testPUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.pUnsubscribe();
 		verify(pubsub, times(1)).close();
 		verify(pubsub, times(1)).removeListener(any(LettuceMessageListener.class));
@@ -304,7 +300,7 @@ public class LettuceSubscriptionTests {
 	public void testPSubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 	}
 

@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -81,8 +79,8 @@ public class RedisTemplateUnitTests {
 				.thenReturn(new JdkSerializationRedisSerializer().serialize(new SomeArbitrarySeriaizableObject()));
 
 		Object deserialized = template.opsForValue().get("spring");
-		assertThat(deserialized, notNullValue());
-		assertThat(deserialized.getClass().getClassLoader(), is((ClassLoader) scl));
+		assertThat(deserialized).isNotNull();
+		assertThat(deserialized.getClass().getClassLoader()).isEqualTo(scl);
 	}
 
 	static class SomeArbitrarySeriaizableObject implements Serializable {

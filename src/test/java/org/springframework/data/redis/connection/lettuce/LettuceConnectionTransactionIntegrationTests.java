@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
@@ -52,7 +52,7 @@ public class LettuceConnectionTransactionIntegrationTests extends AbstractConnec
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar", conn2.get("foo"));
+			assertThat(conn2.get("foo")).isEqualTo("bar");
 		} finally {
 			if (conn2.exists("foo")) {
 				conn2.del("foo");

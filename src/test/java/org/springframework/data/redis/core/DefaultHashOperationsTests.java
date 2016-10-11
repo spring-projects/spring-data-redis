@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -121,8 +120,8 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key2, val2);
 
 		for (Map.Entry<HK, HV> entry : hashOps.entries(key).entrySet()) {
-			assertThat(entry.getKey(), anyOf(equalTo(key1), equalTo(key2)));
-			assertThat(entry.getValue(), anyOf(equalTo(val1), equalTo(val2)));
+			assertThat(entry.getKey()).isIn(key1, key2);
+			assertThat(entry.getValue()).isIn(val1, val2);
 		}
 	}
 
@@ -136,8 +135,9 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		hashOps.put(key, key1, val1);
 		hashOps.put(key, key2, val2);
 		Long numDeleted = hashOps.delete(key, key1, key2);
-		assertTrue(hashOps.keys(key).isEmpty());
-		assertEquals(2L, numDeleted.longValue());
+
+		assertThat(hashOps.keys(key)).isEmpty();
+		assertThat(numDeleted.longValue()).isEqualTo(2);
 	}
 
 	@Test // DATAREDIS-305
@@ -157,12 +157,12 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		long count = 0;
 		while (it.hasNext()) {
 			Map.Entry<HK, HV> entry = it.next();
-			assertThat(entry.getKey(), anyOf(equalTo(key1), equalTo(key2)));
-			assertThat(entry.getValue(), anyOf(equalTo(val1), equalTo(val2)));
+			assertThat(entry.getKey()).isIn(key1, key2);
+			assertThat(entry.getValue()).isIn(val1, val2);
 			count++;
 		}
 
-		assertThat(count, is(hashOps.size(key)));
+		assertThat(count).isEqualTo(hashOps.size(key));
 	}
 
 }

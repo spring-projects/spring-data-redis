@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jredis;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.jredis.JRedis;
@@ -58,7 +58,7 @@ public class JredisPoolTests {
 	public void testGetResource() throws RedisException {
 		this.pool = new JredisPool(connectionSpec);
 		JRedis client = pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		client.ping();
 	}
 
@@ -69,7 +69,7 @@ public class JredisPoolTests {
 		poolConfig.setMaxWaitMillis(1);
 		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		try {
 			pool.getResource();
 			fail("PoolException should be thrown when pool exhausted");
@@ -84,7 +84,7 @@ public class JredisPoolTests {
 		poolConfig.setTestOnBorrow(true);
 		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 	}
 
 	@Test(expected = PoolException.class)
@@ -103,9 +103,9 @@ public class JredisPoolTests {
 		poolConfig.setMaxWaitMillis(1);
 		this.pool = new JredisPool(connectionSpec);
 		JRedis client = pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		pool.returnResource(client);
-		assertNotNull(pool.getResource());
+		assertThat(pool.getResource()).isNotNull();
 	}
 
 	@Test
@@ -116,10 +116,10 @@ public class JredisPoolTests {
 		poolConfig.setMaxWaitMillis(1);
 		this.pool = new JredisPool(connectionSpec, poolConfig);
 		JRedis client = pool.getResource();
-		assertNotNull(client);
+		assertThat(client).isNotNull();
 		pool.returnBrokenResource(client);
 		JRedis client2 = pool.getResource();
-		assertNotSame(client, client2);
+		assertThat(client2).isNotSameAs(client);
 		try {
 			client.ping();
 			fail("Broken resouce connection should be closed");
@@ -129,13 +129,13 @@ public class JredisPoolTests {
 	@Test
 	public void testCreateWithHostAndPort() {
 		this.pool = new JredisPool(SettingsUtils.getHost(), SettingsUtils.getPort());
-		assertNotNull(pool.getResource());
+		assertThat(pool.getResource()).isNotNull();
 	}
 
 	@Test
 	public void testCreateWithHostPortAndDbIndex() {
 		this.pool = new JredisPool(SettingsUtils.getHost(), SettingsUtils.getPort(), 1, null, 0);
-		assertNotNull(pool.getResource());
+		assertThat(pool.getResource()).isNotNull();
 	}
 
 }

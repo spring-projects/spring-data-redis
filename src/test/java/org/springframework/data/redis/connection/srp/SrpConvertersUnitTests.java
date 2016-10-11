@@ -15,15 +15,12 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 
 import org.junit.Test;
-import org.springframework.data.redis.core.types.RedisClientInfo;
 
 import redis.reply.BulkReply;
 import redis.reply.Reply;
@@ -37,19 +34,17 @@ public class SrpConvertersUnitTests {
 
 	@Test // DATAREDIS-268
 	public void convertingNullReplyToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(null)),
-				equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(null))).isEmpty();
 	}
 
 	@Test // DATAREDIS-268
 	public void convertingEmptyReplyToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(new byte[0])),
-				equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(new byte[0]))).isEmpty();
 	}
 
 	@Test // DATAREDIS-268
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(SrpConverters.toListOfRedisClientInformation(null), equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(SrpConverters.toListOfRedisClientInformation(null)).isEmpty();
 	}
 
 	@Test // DATAREDIS-268
@@ -60,7 +55,7 @@ public class SrpConvertersUnitTests {
 		sb.append("\r\n");
 		sb.append(CLIENT_ALL_SINGLE_LINE_RESPONSE);
 
-		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(sb.toString().getBytes())).size(), equalTo(2));
+		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(sb.toString().getBytes()))).hasSize(2);
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-268

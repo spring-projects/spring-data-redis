@@ -15,16 +15,10 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
-import static org.springframework.data.redis.test.util.IsBucketMatcher.*;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
@@ -36,18 +30,8 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import org.hamcrest.core.IsEqual;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,22 +40,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithPostcode;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.ExipringPersonWithExplicitProperty;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.ExpiringPerson;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Gender;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Species;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TypeWithObjectValueTypes;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.WithArrays;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.test.util.BucketTester;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -100,7 +73,7 @@ public class MappingRedisConverterUnitTests {
 
 	@Test // DATAREDIS-425
 	public void writeAppendsTypeHintForRootCorrectly() {
-		assertThat(write(rand).getBucket(), isBucket().containingTypeHint("_class", Person.class));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingTypeHint("_class", Person.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -108,7 +81,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.id = "1";
 
-		assertThat(write(rand).getId(), is((Serializable) "1"));
+		assertThat(write(rand).getId()).isEqualTo("1");
 	}
 
 	@Test // DATAREDIS-425
@@ -123,8 +96,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData data = write(rand);
 
-		assertThat(data.getId(), is((Serializable) "1"));
-		assertThat(data.getBucket(), isBucket().containingUtf8String("address.id", "tear"));
+		assertThat(data.getId()).isEqualTo((Serializable) "1");
+		assertThat(BucketTester.from(data.getBucket())).containingUtf8String("address.id", "tear");
 	}
 
 	@Test // DATAREDIS-425
@@ -132,7 +105,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.firstname = "rand";
 
-		assertThat(write(rand).getBucket(), isBucket().without("lastname"));
+		assertThat(BucketTester.from(write(rand).getBucket())).without("lastname");
 	}
 
 	@Test // DATAREDIS-425
@@ -140,7 +113,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.firstname = "rand";
 
-		assertThat(write(rand).getBucket(), isBucket().without("nicknames"));
+		assertThat(BucketTester.from(write(rand).getBucket())).without("nicknames");
 	}
 
 	@Test // DATAREDIS-425
@@ -148,7 +121,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.firstname = "nynaeve";
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("firstname", "nynaeve"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("firstname", "nynaeve");
 	}
 
 	@Test // DATAREDIS-425
@@ -158,8 +131,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("nicknames.[0]", "dragon reborn")
-				.containingUtf8String("nicknames.[1]", "lews therin"));
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("nicknames.[0]", "dragon reborn")
+				.containingUtf8String("nicknames.[1]", "lews therin");
 	}
 
 	@Test // DATAREDIS-425
@@ -172,8 +145,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("address.city", "two rivers")
-				.containingUtf8String("address.country", "andora"));
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("address.city", "two rivers")
+				.containingUtf8String("address.country", "andora");
 	}
 
 	@Test // DATAREDIS-425
@@ -194,11 +167,10 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingUtf8String("coworkers.[0].firstname", "mat") //
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("coworkers.[0].firstname", "mat") //
 						.containingUtf8String("coworkers.[0].nicknames.[0]", "prince of the ravens") //
 						.containingUtf8String("coworkers.[1].firstname", "perrin") //
-						.containingUtf8String("coworkers.[1].address.city", "two rivers"));
+						.containingUtf8String("coworkers.[1].address.city", "two rivers");
 	}
 
 	@Test // DATAREDIS-425
@@ -211,7 +183,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().without("address._class"));
+		assertThat(BucketTester.from(target.getBucket())).without("address._class");
 	}
 
 	@Test // DATAREDIS-425
@@ -225,7 +197,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingTypeHint("address._class", AddressWithPostcode.class));
+		assertThat(BucketTester.from(target.getBucket())).containingTypeHint("address._class", AddressWithPostcode.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -237,7 +209,7 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.address, instanceOf(AddressWithPostcode.class));
+		assertThat(target.address).isInstanceOf(AddressWithPostcode.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -250,7 +222,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingTypeHint("coworkers.[0]._class", TaVeren.class));
+		assertThat(BucketTester.from(target.getBucket())).containingTypeHint("coworkers.[0]._class", TaVeren.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -258,7 +230,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("firstname", "rand")));
 
-		assertThat(converter.read(Person.class, rdo).firstname, is("rand"));
+		assertThat(converter.read(Person.class, rdo).firstname).isEqualTo("rand");
 	}
 
 	@Test // DATAREDIS-425
@@ -269,7 +241,7 @@ public class MappingRedisConverterUnitTests {
 		map.put("nicknames.[1]", "lews therin");
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
 
-		assertThat(converter.read(Person.class, rdo).nicknames, contains("dragon reborn", "lews therin"));
+		assertThat(converter.read(Person.class, rdo).nicknames).contains("dragon reborn", "lews therin");
 	}
 
 	@Test // DATAREDIS-425
@@ -281,7 +253,7 @@ public class MappingRedisConverterUnitTests {
 		map.put("nicknames.[1]", "dragon reborn");
 		RedisData rdo = new RedisData(Bucket.newBucketFromStringMap(map));
 
-		assertThat(converter.read(Person.class, rdo).nicknames, contains("dragon reborn", "car'a'carn", "lews therin"));
+		assertThat(converter.read(Person.class, rdo).nicknames).contains("dragon reborn", "car'a'carn", "lews therin");
 	}
 
 	@Test // DATAREDIS-425
@@ -294,9 +266,9 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, rdo);
 
-		assertThat(target.address, notNullValue());
-		assertThat(target.address.city, is("two rivers"));
-		assertThat(target.address.country, is("andor"));
+		assertThat(target.address).isNotNull();
+		assertThat(target.address.city).isEqualTo("two rivers");
+		assertThat(target.address.country).isEqualTo("andor");
 	}
 
 	@Test // DATAREDIS-425
@@ -312,14 +284,14 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, rdo);
 
-		assertThat(target.coworkers, notNullValue());
-		assertThat(target.coworkers.get(0).firstname, is("mat"));
-		assertThat(target.coworkers.get(0).nicknames, notNullValue());
-		assertThat(target.coworkers.get(0).nicknames.get(0), is("prince of the ravens"));
-		assertThat(target.coworkers.get(0).nicknames.get(1), is("gambler"));
+		assertThat(target.coworkers).isNotNull();
+		assertThat(target.coworkers.get(0).firstname).isEqualTo("mat");
+		assertThat(target.coworkers.get(0).nicknames).isNotNull();
+		assertThat(target.coworkers.get(0).nicknames.get(0)).isEqualTo("prince of the ravens");
+		assertThat(target.coworkers.get(0).nicknames.get(1)).isEqualTo("gambler");
 
-		assertThat(target.coworkers.get(1).firstname, is("perrin"));
-		assertThat(target.coworkers.get(1).address.city, is("two rivers"));
+		assertThat(target.coworkers.get(1).firstname).isEqualTo("perrin");
+		assertThat(target.coworkers.get(1).address.city).isEqualTo("two rivers");
 	}
 
 	@Test // DATAREDIS-425
@@ -336,14 +308,14 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, rdo);
 
-		assertThat(target.coworkers, notNullValue());
-		assertThat(target.coworkers.get(0).firstname, is("mat"));
-		assertThat(target.coworkers.get(0).nicknames, notNullValue());
-		assertThat(target.coworkers.get(0).nicknames.get(0), is("prince of the ravens"));
-		assertThat(target.coworkers.get(0).nicknames.get(1), is("gambler"));
+		assertThat(target.coworkers).isNotNull();
+		assertThat(target.coworkers.get(0).firstname).isEqualTo("mat");
+		assertThat(target.coworkers.get(0).nicknames).isNotNull();
+		assertThat(target.coworkers.get(0).nicknames.get(0)).isEqualTo("prince of the ravens");
+		assertThat(target.coworkers.get(0).nicknames.get(1)).isEqualTo("gambler");
 
-		assertThat(target.coworkers.get(1).firstname, is("perrin"));
-		assertThat(target.coworkers.get(1).address.city, is("two rivers"));
+		assertThat(target.coworkers.get(1).firstname).isEqualTo("perrin");
+		assertThat(target.coworkers.get(1).address.city).isEqualTo("two rivers");
 	}
 
 	@Test // DATAREDIS-425
@@ -357,9 +329,9 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, rdo);
 
-		assertThat(target.coworkers, notNullValue());
-		assertThat(target.coworkers.get(0), instanceOf(TaVeren.class));
-		assertThat(target.coworkers.get(0).firstname, is("mat"));
+		assertThat(target.coworkers).isNotNull();
+		assertThat(target.coworkers.get(0)).isInstanceOf(TaVeren.class);
+		assertThat(target.coworkers.get(0).firstname).isEqualTo("mat");
 	}
 
 	@Test // DATAREDIS-425
@@ -373,8 +345,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("physicalAttributes.[hair-color]", "red") //
-				.containingUtf8String("physicalAttributes.[eye-color]", "grey"));
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("physicalAttributes.[hair-color]", "red") //
+				.containingUtf8String("physicalAttributes.[eye-color]", "grey");
 	}
 
 	@Test // DATAREDIS-425
@@ -390,9 +362,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingUtf8String("coworkers.[0].physicalAttributes.[hair-color]", "red") //
-						.containingUtf8String("coworkers.[0].physicalAttributes.[eye-color]", "grey"));
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("coworkers.[0].physicalAttributes.[hair-color]", "red") //
+						.containingUtf8String("coworkers.[0].physicalAttributes.[eye-color]", "grey");
 	}
 
 	@Test // DATAREDIS-425
@@ -406,9 +377,9 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, rdo);
 
-		assertThat(target.physicalAttributes, notNullValue());
-		assertThat(target.physicalAttributes.get("hair-color"), is("red"));
-		assertThat(target.physicalAttributes.get("eye-color"), is("grey"));
+		assertThat(target.physicalAttributes).isNotNull();
+		assertThat(target.physicalAttributes.get("hair-color")).isEqualTo("red");
+		assertThat(target.physicalAttributes.get("eye-color")).isEqualTo("grey");
 	}
 
 	@Test // DATAREDIS-425
@@ -426,8 +397,8 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(), isBucket().containingUtf8String("relatives.[father].firstname", "janduin") //
-				.containingUtf8String("relatives.[step-father].firstname", "tam"));
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("relatives.[father].firstname", "janduin") //
+				.containingUtf8String("relatives.[step-father].firstname", "tam");
 	}
 
 	@Test // DATAREDIS-425
@@ -439,11 +410,11 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.relatives, notNullValue());
-		assertThat(target.relatives.get("father"), notNullValue());
-		assertThat(target.relatives.get("father").firstname, is("janduin"));
-		assertThat(target.relatives.get("step-father"), notNullValue());
-		assertThat(target.relatives.get("step-father").firstname, is("tam"));
+		assertThat(target.relatives).isNotNull();
+		assertThat(target.relatives.get("father")).isNotNull();
+		assertThat(target.relatives.get("father").firstname).isEqualTo("janduin");
+		assertThat(target.relatives.get("step-father")).isNotNull();
+		assertThat(target.relatives.get("step-father").firstname).isEqualTo("tam");
 	}
 
 	@Test // DATAREDIS-425
@@ -458,8 +429,7 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingTypeHint("relatives.[previous-incarnation]._class", TaVeren.class));
+		assertThat(BucketTester.from(target.getBucket())).containingTypeHint("relatives.[previous-incarnation]._class", TaVeren.class);
 	}
 
 	@Test // DATAREDIS-425
@@ -471,9 +441,9 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.relatives.get("previous-incarnation"), notNullValue());
-		assertThat(target.relatives.get("previous-incarnation"), instanceOf(TaVeren.class));
-		assertThat(target.relatives.get("previous-incarnation").firstname, is("lews"));
+		assertThat(target.relatives.get("previous-incarnation")).isNotNull();
+		assertThat(target.relatives.get("previous-incarnation")).isInstanceOf(TaVeren.class);
+		assertThat(target.relatives.get("previous-incarnation").firstname).isEqualTo("lews");
 	}
 
 	@Test // DATAREDIS-425
@@ -481,7 +451,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.age = 20;
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("age", "20"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("age", "20");
 	}
 
 	@Test // DATAREDIS-425
@@ -489,7 +459,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.localDateTime = LocalDateTime.parse("2016-02-19T10:18:01");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("localDateTime", "2016-02-19T10:18:01"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("localDateTime", "2016-02-19T10:18:01");
 	}
 
 	@Test // DATAREDIS-425
@@ -498,7 +468,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("localDateTime", "2016-02-19T10:18:01"))));
 
-		assertThat(target.localDateTime, is(LocalDateTime.parse("2016-02-19T10:18:01")));
+		assertThat(target.localDateTime).isEqualTo(LocalDateTime.parse("2016-02-19T10:18:01"));
 	}
 
 	@Test // DATAREDIS-425
@@ -506,7 +476,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.localDate = LocalDate.parse("2016-02-19");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("localDate", "2016-02-19"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("localDate", "2016-02-19");
 	}
 
 	@Test // DATAREDIS-425
@@ -515,7 +485,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("localDate", "2016-02-19"))));
 
-		assertThat(target.localDate, is(LocalDate.parse("2016-02-19")));
+		assertThat(target.localDate).isEqualTo(LocalDate.parse("2016-02-19"));
 	}
 
 	@Test // DATAREDIS-425
@@ -523,7 +493,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.localTime = LocalTime.parse("11:12:13");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("localTime", "11:12:13"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("localTime", "11:12:13");
 	}
 
 	@Test // DATAREDIS-425
@@ -532,7 +502,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("localTime", "11:12"))));
 
-		assertThat(target.localTime, is(LocalTime.parse("11:12:00")));
+		assertThat(target.localTime).isEqualTo(LocalTime.parse("11:12:00"));
 	}
 
 	@Test // DATAREDIS-425
@@ -540,8 +510,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.zonedDateTime = ZonedDateTime.parse("2007-12-03T10:15:30+01:00[Europe/Paris]");
 
-		assertThat(write(rand).getBucket(),
-				isBucket().containingUtf8String("zonedDateTime", "2007-12-03T10:15:30+01:00[Europe/Paris]"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("zonedDateTime", "2007-12-03T10:15:30+01:00[Europe/Paris]");
 	}
 
 	@Test // DATAREDIS-425
@@ -550,7 +519,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class, new RedisData(Bucket
 				.newBucketFromStringMap(Collections.singletonMap("zonedDateTime", "2007-12-03T10:15:30+01:00[Europe/Paris]"))));
 
-		assertThat(target.zonedDateTime, is(ZonedDateTime.parse("2007-12-03T10:15:30+01:00[Europe/Paris]")));
+		assertThat(target.zonedDateTime).isEqualTo(ZonedDateTime.parse("2007-12-03T10:15:30+01:00[Europe/Paris]"));
 	}
 
 	@Test // DATAREDIS-425
@@ -558,7 +527,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.instant = Instant.parse("2007-12-03T10:15:30.01Z");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("instant", "2007-12-03T10:15:30.010Z"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("instant", "2007-12-03T10:15:30.010Z");
 	}
 
 	@Test // DATAREDIS-425
@@ -567,7 +536,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("instant", "2007-12-03T10:15:30.01Z"))));
 
-		assertThat(target.instant, is(Instant.parse("2007-12-03T10:15:30.01Z")));
+		assertThat(target.instant).isEqualTo(Instant.parse("2007-12-03T10:15:30.01Z"));
 	}
 
 	@Test // DATAREDIS-425
@@ -575,7 +544,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.zoneId = ZoneId.of("Europe/Paris");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("zoneId", "Europe/Paris"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("zoneId", "Europe/Paris");
 	}
 
 	@Test // DATAREDIS-425
@@ -584,7 +553,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("zoneId", "Europe/Paris"))));
 
-		assertThat(target.zoneId, is(ZoneId.of("Europe/Paris")));
+		assertThat(target.zoneId).isEqualTo(ZoneId.of("Europe/Paris"));
 	}
 
 	@Test // DATAREDIS-425
@@ -592,7 +561,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.duration = Duration.parse("P2DT3H4M");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("duration", "PT51H4M"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("duration", "PT51H4M");
 	}
 
 	@Test // DATAREDIS-425
@@ -601,7 +570,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("duration", "PT51H4M"))));
 
-		assertThat(target.duration, is(Duration.parse("P2DT3H4M")));
+		assertThat(target.duration).isEqualTo(Duration.parse("P2DT3H4M"));
 	}
 
 	@Test // DATAREDIS-425
@@ -609,7 +578,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.period = Period.parse("P1Y2M25D");
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("period", "P1Y2M25D"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("period", "P1Y2M25D");
 	}
 
 	@Test // DATAREDIS-425
@@ -618,7 +587,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("period", "P1Y2M25D"))));
 
-		assertThat(target.period, is(Period.parse("P1Y2M25D")));
+		assertThat(target.period).isEqualTo(Period.parse("P1Y2M25D"));
 	}
 
 	@Test // DATAREDIS-425
@@ -626,7 +595,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.gender = Gender.MALE;
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("gender", "MALE"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("gender", "MALE");
 	}
 
 	@Test // DATAREDIS-425
@@ -635,7 +604,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("gender", "MALE"))));
 
-		assertThat(target.gender, is(Gender.MALE));
+		assertThat(target.gender).isEqualTo(Gender.MALE);
 	}
 
 	@Test // DATAREDIS-425
@@ -643,7 +612,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.alive = Boolean.TRUE;
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("alive", "1"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("alive", "1");
 	}
 
 	@Test // DATAREDIS-425
@@ -652,7 +621,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("alive", "1"))));
 
-		assertThat(target.alive, is(Boolean.TRUE));
+		assertThat(target.alive).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test // DATAREDIS-425
@@ -661,7 +630,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class,
 				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("alive", "true"))));
 
-		assertThat(target.alive, is(Boolean.TRUE));
+		assertThat(target.alive).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test // DATAREDIS-425
@@ -672,7 +641,7 @@ public class MappingRedisConverterUnitTests {
 
 		rand.birthdate = cal.getTime();
 
-		assertThat(write(rand).getBucket(), isBucket().containingDateAsMsec("birthdate", rand.birthdate));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingDateAsMsec("birthdate", rand.birthdate);
 	}
 
 	@Test // DATAREDIS-425
@@ -686,7 +655,7 @@ public class MappingRedisConverterUnitTests {
 		Person target = converter.read(Person.class, new RedisData(
 				Bucket.newBucketFromStringMap(Collections.singletonMap("birthdate", Long.valueOf(date.getTime()).toString()))));
 
-		assertThat(target.birthdate, is(date));
+		assertThat(target.birthdate).isEqualTo(date);
 	}
 
 	@Test // DATAREDIS-425
@@ -700,10 +669,9 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingUtf8String("location", "locations:1") //
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("location", "locations:1") //
 						.without("location.id") //
-						.without("location.name"));
+						.without("location.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -725,7 +693,7 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.location, is(location));
+		assertThat(target.location).isEqualTo(location);
 	}
 
 	@Test // DATAREDIS-425
@@ -742,10 +710,9 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingUtf8String("coworkers.[0].location", "locations:1") //
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("coworkers.[0].location", "locations:1") //
 						.without("coworkers.[0].location.id") //
-						.without("coworkers.[0].location.name"));
+						.without("coworkers.[0].location.name");
 	}
 
 	@Test // DATAREDIS-425
@@ -767,7 +734,7 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.coworkers.get(0).location, is(location));
+		assertThat(target.coworkers.get(0).location).isEqualTo(location);
 	}
 
 	@Test // DATAREDIS-425
@@ -789,10 +756,9 @@ public class MappingRedisConverterUnitTests {
 
 		RedisData target = write(rand);
 
-		assertThat(target.getBucket(),
-				isBucket().containingUtf8String("visited.[0]", "locations:1") //
+		assertThat(BucketTester.from(target.getBucket())).containingUtf8String("visited.[0]", "locations:1") //
 						.containingUtf8String("visited.[1]", "locations:2") //
-						.containingUtf8String("visited.[2]", "locations:3"));
+						.containingUtf8String("visited.[2]", "locations:3");
 	}
 
 	@Test // DATAREDIS-425
@@ -838,9 +804,9 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.visited.get(0), is(tarValon));
-		assertThat(target.visited.get(1), is(falme));
-		assertThat(target.visited.get(2), is(tear));
+		assertThat(target.visited.get(0)).isEqualTo(tarValon);
+		assertThat(target.visited.get(1)).isEqualTo(falme);
+		assertThat(target.visited.get(2)).isEqualTo(tear);
 	}
 
 	@Test // DATAREDIS-425
@@ -850,7 +816,7 @@ public class MappingRedisConverterUnitTests {
 		birgitte.id = "birgitte";
 		birgitte.name = "Birgitte Silverbow";
 
-		assertThat(write(birgitte).getTimeToLive(), is(5L));
+		assertThat(write(birgitte).getTimeToLive()).isEqualTo(5L);
 	}
 
 	@Test // DATAREDIS-425
@@ -860,7 +826,7 @@ public class MappingRedisConverterUnitTests {
 		tear.id = "tear";
 		tear.name = "Tear";
 
-		assertThat(write(tear).getTimeToLive(), nullValue());
+		assertThat(write(tear).getTimeToLive()).isNull();
 	}
 
 	@Test // DATAREDIS-425
@@ -872,7 +838,7 @@ public class MappingRedisConverterUnitTests {
 		Address address = new Address();
 		address.city = "Tear";
 
-		assertThat(write(address).getKeyspace(), is("o_O"));
+		assertThat(write(address).getKeyspace()).isEqualTo("o_O");
 	}
 
 	@Test // DATAREDIS-425
@@ -887,7 +853,7 @@ public class MappingRedisConverterUnitTests {
 		Address address = new Address();
 		address.city = "Tear";
 
-		assertThat(write(address).getTimeToLive(), is(5L));
+		assertThat(write(address).getTimeToLive()).isEqualTo(5L);
 	}
 
 	@Test // DATAREDIS-425
@@ -902,8 +868,7 @@ public class MappingRedisConverterUnitTests {
 		address.country = "Tel'aran'rhiod";
 		address.city = "unknown";
 
-		assertThat(write(address).getBucket(),
-				isBucket().containingUtf8String("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+		assertThat(BucketTester.from(write(address).getBucket())).containingUtf8String("_raw", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
 	}
 
 	@Test // DATAREDIS-425
@@ -919,8 +884,7 @@ public class MappingRedisConverterUnitTests {
 		address.city = "unknown";
 		rand.address = address;
 
-		assertThat(write(rand).getBucket(),
-				isBucket().containingUtf8String("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("address", "{\"city\":\"unknown\",\"country\":\"Tel'aran'rhiod\"}");
 	}
 
 	@Test // DATAREDIS-425
@@ -935,8 +899,7 @@ public class MappingRedisConverterUnitTests {
 		address.country = "andor";
 		rand.address = address;
 
-		assertThat(write(rand).getIndexedData(),
-				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor")));
+		assertThat(write(rand).getIndexedData()).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor"));
 	}
 
 	@Test // DATAREDIS-425
@@ -952,7 +915,7 @@ public class MappingRedisConverterUnitTests {
 		address.city = "unknown";
 		rand.address = address;
 
-		assertThat(write(rand).getIndexedData().isEmpty(), is(false));
+		assertThat(write(rand).getIndexedData().isEmpty()).isFalse();
 	}
 
 	@Test // DATAREDIS-425
@@ -968,8 +931,8 @@ public class MappingRedisConverterUnitTests {
 
 		Address target = converter.read(Address.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.city, is("unknown"));
-		assertThat(target.country, is("Tel'aran'rhiod"));
+		assertThat(target.city).isEqualTo("unknown");
+		assertThat(target.country).isEqualTo("Tel'aran'rhiod");
 	}
 
 	@Test // DATAREDIS-425
@@ -985,9 +948,9 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target.address, notNullValue());
-		assertThat(target.address.city, is("unknown"));
-		assertThat(target.address.country, is("Tel'aran'rhiod"));
+		assertThat(target.address).isNotNull();
+		assertThat(target.address.city).isEqualTo("unknown");
+		assertThat(target.address.country).isEqualTo("Tel'aran'rhiod");
 	}
 
 	@Test // DATAREDIS-425
@@ -997,7 +960,7 @@ public class MappingRedisConverterUnitTests {
 		aviendha.id = "aviendha";
 		aviendha.ttl = 2L;
 
-		assertThat(write(aviendha).getTimeToLive(), is(120L));
+		assertThat(write(aviendha).getTimeToLive()).isEqualTo(120L);
 	}
 
 	@Test // DATAREDIS-425
@@ -1006,7 +969,7 @@ public class MappingRedisConverterUnitTests {
 		ExipringPersonWithExplicitProperty aviendha = new ExipringPersonWithExplicitProperty();
 		aviendha.id = "aviendha";
 
-		assertThat(write(aviendha).getTimeToLive(), is(5L));
+		assertThat(write(aviendha).getTimeToLive()).isEqualTo(5L);
 	}
 
 	@Test // DATAREDIS-425
@@ -1020,8 +983,8 @@ public class MappingRedisConverterUnitTests {
 		myrddraal.name = "myrddraal";
 		myrddraal.alsoKnownAs = Arrays.asList("halfmen", "fades", "neverborn");
 
-		assertThat(write(myrddraal).getBucket(), isBucket().containingUtf8String("species-name", "myrddraal")
-				.containingUtf8String("species-nicknames", "halfmen,fades,neverborn"));
+		assertThat(BucketTester.from(write(myrddraal).getBucket())).containingUtf8String("species-name", "myrddraal")
+				.containingUtf8String("species-nicknames", "halfmen,fades,neverborn");
 	}
 
 	@Test // DATAREDIS-425
@@ -1034,7 +997,7 @@ public class MappingRedisConverterUnitTests {
 		rand.species = new Species();
 		rand.species.name = "human";
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("species.species-name", "human"));
+		assertThat(BucketTester.from(write(rand).getBucket())).containingUtf8String("species.species-name", "human");
 	}
 
 	@Test // DATAREDIS-425
@@ -1048,8 +1011,8 @@ public class MappingRedisConverterUnitTests {
 
 		Species target = converter.read(Species.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target, notNullValue());
-		assertThat(target.name, is("trolloc"));
+		assertThat(target).isNotNull();
+		assertThat(target.name).isEqualTo("trolloc");
 	}
 
 	@Test // DATAREDIS-425
@@ -1064,8 +1027,8 @@ public class MappingRedisConverterUnitTests {
 
 		Person target = converter.read(Person.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target, notNullValue());
-		assertThat(target.species.name, is("trolloc"));
+		assertThat(target).isNotNull();
+		assertThat(target.species.name).isEqualTo("trolloc");
 	}
 
 	@Test // DATAREDIS-425
@@ -1083,8 +1046,8 @@ public class MappingRedisConverterUnitTests {
 		myrddraal.alsoKnownAs = Arrays.asList("halfmen", "fades", "neverborn");
 		twot.species.add(myrddraal);
 
-		assertThat(write(twot).getBucket(), isBucket().containingUtf8String("species.[0].species-name", "myrddraal")
-				.containingUtf8String("species.[0].species-nicknames", "halfmen,fades,neverborn"));
+		assertThat(BucketTester.from(write(twot).getBucket())).containingUtf8String("species.[0].species-name", "myrddraal")
+				.containingUtf8String("species.[0].species-nicknames", "halfmen,fades,neverborn");
 	}
 
 	@Test // DATAREDIS-425
@@ -1099,10 +1062,10 @@ public class MappingRedisConverterUnitTests {
 
 		TheWheelOfTime target = converter.read(TheWheelOfTime.class, new RedisData(Bucket.newBucketFromStringMap(map)));
 
-		assertThat(target, notNullValue());
-		assertThat(target.species, notNullValue());
-		assertThat(target.species.get(0), notNullValue());
-		assertThat(target.species.get(0).name, is("trolloc"));
+		assertThat(target).isNotNull();
+		assertThat(target.species).isNotNull();
+		assertThat(target.species.get(0)).isNotNull();
+		assertThat(target.species.get(0).name).isEqualTo("trolloc");
 	}
 
 	@Test // DATAREDIS-492
@@ -1128,10 +1091,9 @@ public class MappingRedisConverterUnitTests {
 		WithArrays source = new WithArrays();
 		source.arrayOfSimpleTypes = new String[] { "rand", "mat", "perrin" };
 
-		assertThat(write(source).getBucket(),
-				isBucket().containingUtf8String("arrayOfSimpleTypes.[0]", "rand")
+		assertThat(BucketTester.from(write(source).getBucket())).containingUtf8String("arrayOfSimpleTypes.[0]", "rand")
 						.containingUtf8String("arrayOfSimpleTypes.[1]", "mat")
-						.containingUtf8String("arrayOfSimpleTypes.[2]", "perrin"));
+						.containingUtf8String("arrayOfSimpleTypes.[2]", "perrin");
 	}
 
 	@Test // DATAREDIS-492
@@ -1144,7 +1106,7 @@ public class MappingRedisConverterUnitTests {
 
 		WithArrays target = read(WithArrays.class, source);
 
-		assertThat(target.arrayOfSimpleTypes, IsEqual.equalTo(new String[] { "rand", "mat", "perrin" }));
+		assertThat(target.arrayOfSimpleTypes).isEqualTo(new String[] { "rand", "mat", "perrin" });
 	}
 
 	@Test // DATAREDIS-492
@@ -1161,12 +1123,11 @@ public class MappingRedisConverterUnitTests {
 
 		source.arrayOfCompexTypes = new Species[] { trolloc, myrddraal };
 
-		assertThat(write(source).getBucket(),
-				isBucket().containingUtf8String("arrayOfCompexTypes.[0].name", "trolloc") //
+		assertThat(BucketTester.from(write(source).getBucket())).containingUtf8String("arrayOfCompexTypes.[0].name", "trolloc") //
 						.containingUtf8String("arrayOfCompexTypes.[1].name", "myrddraal") //
 						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[0]", "halfmen") //
 						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[1]", "fades") //
-						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[2]", "neverborn"));
+						.containingUtf8String("arrayOfCompexTypes.[1].alsoKnownAs.[2]", "neverborn");
 	}
 
 	@Test // DATAREDIS-492
@@ -1181,11 +1142,11 @@ public class MappingRedisConverterUnitTests {
 
 		WithArrays target = read(WithArrays.class, source);
 
-		assertThat(target.arrayOfCompexTypes[0], notNullValue());
-		assertThat(target.arrayOfCompexTypes[0].name, is("trolloc"));
-		assertThat(target.arrayOfCompexTypes[1], notNullValue());
-		assertThat(target.arrayOfCompexTypes[1].name, is("myrddraal"));
-		assertThat(target.arrayOfCompexTypes[1].alsoKnownAs, contains("halfmen", "fades", "neverborn"));
+		assertThat(target.arrayOfCompexTypes[0]).isNotNull();
+		assertThat(target.arrayOfCompexTypes[0].name).isEqualTo("trolloc");
+		assertThat(target.arrayOfCompexTypes[1]).isNotNull();
+		assertThat(target.arrayOfCompexTypes[1].name).isEqualTo("myrddraal");
+		assertThat(target.arrayOfCompexTypes[1].alsoKnownAs).contains("halfmen", "fades", "neverborn");
 	}
 
 	@Test // DATAREDIS-489
@@ -1197,13 +1158,12 @@ public class MappingRedisConverterUnitTests {
 		WithArrays source = new WithArrays();
 		source.arrayOfObject = new Object[] { "rand", trolloc, 100L };
 
-		assertThat(write(source).getBucket(),
-				isBucket().containingUtf8String("arrayOfObject.[0]", "rand") //
+		assertThat(BucketTester.from(write(source).getBucket())).containingUtf8String("arrayOfObject.[0]", "rand") //
 						.containingUtf8String("arrayOfObject.[0]._class", "java.lang.String")
 						.containingUtf8String("arrayOfObject.[1]._class", Species.class.getName()) //
 						.containingUtf8String("arrayOfObject.[1].name", "trolloc") //
 						.containingUtf8String("arrayOfObject.[2]._class", "java.lang.Long") //
-						.containingUtf8String("arrayOfObject.[2]", "100"));
+						.containingUtf8String("arrayOfObject.[2]", "100");
 	}
 
 	@Test // DATAREDIS-489
@@ -1219,12 +1179,9 @@ public class MappingRedisConverterUnitTests {
 
 		WithArrays target = read(WithArrays.class, source);
 
-		assertThat(target.arrayOfObject[0], notNullValue());
-		assertThat(target.arrayOfObject[0], instanceOf(String.class));
-		assertThat(target.arrayOfObject[1], notNullValue());
-		assertThat(target.arrayOfObject[1], instanceOf(Species.class));
-		assertThat(target.arrayOfObject[2], notNullValue());
-		assertThat(target.arrayOfObject[2], instanceOf(Long.class));
+		assertThat(target.arrayOfObject[0]).isInstanceOf(String.class);
+		assertThat(target.arrayOfObject[1]).isInstanceOf(Species.class);
+		assertThat(target.arrayOfObject[2]).isInstanceOf(Long.class);
 	}
 
 	@Test // DATAREDIS-489
@@ -1235,8 +1192,7 @@ public class MappingRedisConverterUnitTests {
 
 		Bucket bucket = write(sample).getBucket();
 
-		assertThat(bucket,
-				isBucket().containingUtf8String("object", "bar").containingUtf8String("object._class", "java.lang.String"));
+		assertThat(BucketTester.from(bucket)).containingUtf8String("object", "bar").containingUtf8String("object._class", "java.lang.String");
 	}
 
 	@Test // DATAREDIS-489
@@ -1248,7 +1204,7 @@ public class MappingRedisConverterUnitTests {
 		RedisData rd = write(di);
 
 		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
-		assertThat(result.object, instanceOf(String.class));
+		assertThat(result.object).isInstanceOf(String.class);
 	}
 
 	@Test // DATAREDIS-489
@@ -1261,11 +1217,10 @@ public class MappingRedisConverterUnitTests {
 
 		Bucket bucket = write(sample).getBucket();
 
-		assertThat(bucket, isBucket().containingUtf8String("map.[string]", "bar")
-				.containingUtf8String("map.[string]._class", "java.lang.String"));
-		assertThat(bucket,
-				isBucket().containingUtf8String("map.[long]", "1").containingUtf8String("map.[long]._class", "java.lang.Long"));
-		assertThat(bucket, isBucket().containingUtf8String("map.[date]._class", "java.util.Date"));
+		assertThat(BucketTester.from(bucket)).containingUtf8String("map.[string]", "bar")
+				.containingUtf8String("map.[string]._class", "java.lang.String");
+		assertThat(BucketTester.from(bucket)).containingUtf8String("map.[long]", "1").containingUtf8String("map.[long]._class", "java.lang.Long");
+		assertThat(BucketTester.from(bucket)).containingUtf8String("map.[date]._class", "java.util.Date");
 	}
 
 	@Test // DATAREDIS-489
@@ -1279,9 +1234,9 @@ public class MappingRedisConverterUnitTests {
 		RedisData rd = write(sample);
 
 		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
-		assertThat(result.map.get("string"), instanceOf(String.class));
-		assertThat(result.map.get("long"), instanceOf(Long.class));
-		assertThat(result.map.get("date"), instanceOf(Date.class));
+		assertThat(result.map.get("string")).isInstanceOf(String.class);
+		assertThat(result.map.get("long")).isInstanceOf(Long.class);
+		assertThat(result.map.get("date")).isInstanceOf(Date.class);
 	}
 
 	@Test // DATAREDIS-489
@@ -1294,11 +1249,10 @@ public class MappingRedisConverterUnitTests {
 
 		Bucket bucket = write(sample).getBucket();
 
-		assertThat(bucket, isBucket().containingUtf8String("list.[0]", "string").containingUtf8String("list.[0]._class",
-				"java.lang.String"));
-		assertThat(bucket,
-				isBucket().containingUtf8String("list.[1]", "1").containingUtf8String("list.[1]._class", "java.lang.Long"));
-		assertThat(bucket, isBucket().containingUtf8String("list.[2]._class", "java.util.Date"));
+		assertThat(BucketTester.from(bucket)).containingUtf8String("list.[0]", "string").containingUtf8String("list.[0]._class",
+				"java.lang.String");
+		assertThat(BucketTester.from(bucket)).containingUtf8String("list.[1]", "1").containingUtf8String("list.[1]._class", "java.lang.Long");
+		assertThat(BucketTester.from(bucket)).containingUtf8String("list.[2]._class", "java.util.Date");
 	}
 
 	@Test // DATAREDIS-489
@@ -1312,9 +1266,9 @@ public class MappingRedisConverterUnitTests {
 		RedisData rd = write(sample);
 
 		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
-		assertThat(result.list.get(0), instanceOf(String.class));
-		assertThat(result.list.get(1), instanceOf(Long.class));
-		assertThat(result.list.get(2), instanceOf(Date.class));
+		assertThat(result.list.get(0)).isInstanceOf(String.class);
+		assertThat(result.list.get(1)).isInstanceOf(Long.class);
+		assertThat(result.list.get(2)).isInstanceOf(Date.class);
 	}
 
 	@Test // DATAREDIS-509
@@ -1327,9 +1281,9 @@ public class MappingRedisConverterUnitTests {
 
 		WithArrays target = read(WithArrays.class, source);
 
-		assertThat(target.arrayOfPrimitives[0], is(1));
-		assertThat(target.arrayOfPrimitives[1], is(2));
-		assertThat(target.arrayOfPrimitives[2], is(3));
+		assertThat(target.arrayOfPrimitives[0]).isEqualTo(1);
+		assertThat(target.arrayOfPrimitives[1]).isEqualTo(2);
+		assertThat(target.arrayOfPrimitives[2]).isEqualTo(3);
 	}
 
 	@Test // DATAREDIS-509
@@ -1337,8 +1291,8 @@ public class MappingRedisConverterUnitTests {
 
 		WithArrays source = new WithArrays();
 		source.arrayOfPrimitives = new int[] { 1, 2, 3 };
-		assertThat(write(source).getBucket(), isBucket().containingUtf8String("arrayOfPrimitives.[0]", "1")
-				.containingUtf8String("arrayOfPrimitives.[1]", "2").containingUtf8String("arrayOfPrimitives.[2]", "3"));
+		assertThat(BucketTester.from(write(source).getBucket())).containingUtf8String("arrayOfPrimitives.[0]", "1")
+				.containingUtf8String("arrayOfPrimitives.[1]", "2").containingUtf8String("arrayOfPrimitives.[2]", "3");
 	}
 
 	private RedisData write(Object source) {

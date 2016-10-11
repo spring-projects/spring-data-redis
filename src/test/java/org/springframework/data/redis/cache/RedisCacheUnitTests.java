@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.ClassUtils.*;
@@ -152,7 +148,7 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 10L);
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
 
-		assertThat(valueWrapper, is(nullValue()));
+		assertThat(valueWrapper).isNull();
 		verify(connectionMock).setNX(KEY_BYTES, VALUE_BYTES);
 		verify(connectionMock).expire(eq(KEY_BYTES), anyLong());
 	}
@@ -168,7 +164,7 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 10L);
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
 
-		assertThat(valueWrapper, is(notNullValue()));
+		assertThat(valueWrapper).isNotNull();
 		verify(connectionMock, never()).expire(eq(KEY_BYTES), anyLong());
 	}
 
@@ -181,7 +177,7 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 10L);
 		Cache.ValueWrapper valueWrapper = cache.putIfAbsent(KEY, VALUE);
 
-		assertThat(valueWrapper, is(notNullValue()));
+		assertThat(valueWrapper).isNotNull();
 		verify(connectionMock, never()).expire(eq(KEY_BYTES), anyLong());
 	}
 
@@ -236,7 +232,7 @@ public class RedisCacheUnitTests {
 		when(connectionMock.exists(KEY_BYTES)).thenReturn(true);
 		when(connectionMock.get(KEY_BYTES)).thenReturn(null).thenReturn(VALUE_BYTES);
 
-		assertThat((String) cache.get(KEY, callableMock), equalTo(VALUE));
+		assertThat((String) cache.get(KEY, callableMock)).isEqualTo(VALUE);
 		verifyZeroInteractions(callableMock);
 	}
 

@@ -15,16 +15,13 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -47,6 +44,7 @@ import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ConnectionUtils;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -130,11 +128,11 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testClear() {
 		map.clear();
-		assertEquals(0, map.size());
+		assertThat(map).isEmpty();
 		map.put(getKey(), getValue());
-		assertEquals(1, map.size());
+		assertThat(map).hasSize(1);
 		map.clear();
-		assertEquals(0, map.size());
+		assertThat(map).isEmpty();
 	}
 
 	@Test
@@ -142,12 +140,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		K k2 = getKey();
 
-		assertFalse(map.containsKey(k1));
-		assertFalse(map.containsKey(k2));
+		assertThat(map.containsKey(k1)).isFalse();
+		assertThat(map.containsKey(k2)).isFalse();
 		map.put(k1, getValue());
-		assertTrue(map.containsKey(k1));
+		assertThat(map.containsKey(k1)).isTrue();
 		map.put(k2, getValue());
-		assertTrue(map.containsKey(k2));
+		assertThat(map.containsKey(k2)).isTrue();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -155,12 +153,12 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 		V v2 = getValue();
 
-		assertFalse(map.containsValue(v1));
-		assertFalse(map.containsValue(v2));
+		assertThat(map.containsValue(v1)).isFalse();
+		assertThat(map.containsValue(v2)).isFalse();
 		map.put(getKey(), v1);
-		assertTrue(map.containsValue(v1));
+		assertThat(map.containsValue(v1)).isTrue();
 		map.put(getKey(), v2);
-		assertTrue(map.containsValue(v2));
+		assertThat(map.containsValue(v2)).isTrue();
 	}
 
 	public Set<Entry<K, V>> entrySet() {
@@ -170,17 +168,17 @@ public abstract class AbstractRedisMapTests<K, V> {
 	@Test
 	public void testEquals() {
 		RedisStore clone = copyStore(map);
-		assertEquals(clone, map);
-		assertEquals(clone, clone);
-		assertEquals(map, map);
+		assertThat(map).isEqualTo(clone);
+		assertThat(clone).isEqualTo(clone);
+		assertThat(map).isEqualTo(map);
 	}
 
 	@Test
 	public void testNotEquals() {
 		RedisOperations<String, ?> ops = map.getOperations();
 		RedisStore newInstance = new DefaultRedisMap<K, V>(ops.<K, V> boundHashOps(map.getKey() + ":new"));
-		assertFalse(map.equals(newInstance));
-		assertFalse(newInstance.equals(map));
+		assertThat(map.equals(newInstance)).isFalse();
+		assertThat(newInstance.equals(map)).isFalse();
 	}
 
 	@Test
@@ -188,25 +186,25 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		V v1 = getValue();
 
-		assertNull(map.get(k1));
+		assertThat(map.get(k1)).isNull();
 		map.put(k1, v1);
-		assertThat(map.get(k1), isEqual(v1));
+		assertThat(map.get(k1)).isEqualTo(v1);
 	}
 
 	@Test
 	public void testGetKey() {
-		assertNotNull(map.getKey());
+		assertThat(map.getKey()).isNotNull();
 	}
 
 	@Test
 	public void testGetOperations() {
-		assertEquals(template, map.getOperations());
+		assertThat(map.getOperations()).isEqualTo(template);
 	}
 
 	@Test
 	public void testHashCode() {
-		assertThat(map.hashCode(), not(equalTo(map.getKey().hashCode())));
-		assertEquals(map.hashCode(), copyStore(map).hashCode());
+		assertThat(map.hashCode()).isNotEqualTo(map.getKey().hashCode());
+		assertThat(copyStore(map).hashCode()).isEqualTo(map.hashCode());
 	}
 
 	@Test
@@ -232,7 +230,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		K k1 = getKey();
 		V v1 = getValue();
 		map.put(k1, v1);
-		assertEquals(Long.valueOf(Long.valueOf((String) v1) + 10), map.increment(k1, 10));
+		assertThat(map.increment(k1, 10)).isEqualTo(Long.valueOf((String) v1) + 10);
 	}
 
 	@Test
@@ -243,24 +241,24 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 		map.put(k1, v1);
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
-		assertEquals(twoDForm.format(Double.valueOf((String) v1) + 3.4), twoDForm.format(map.increment(k1, 3.4)));
+		assertThat(map.increment(k1, 3.4)).isEqualTo(Double.valueOf((String) v1) + 3.4, offset(0.01));
 	}
 
 	@Test
 	public void testIsEmpty() {
 		map.clear();
-		assertTrue(map.isEmpty());
+		assertThat(map.isEmpty()).isTrue();
 		map.put(getKey(), getValue());
-		assertFalse(map.isEmpty());
+		assertThat(map.isEmpty()).isFalse();
 		map.clear();
-		assertTrue(map.isEmpty());
+		assertThat(map.isEmpty()).isTrue();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testKeySet() {
 		map.clear();
-		assertTrue(map.keySet().isEmpty());
+		assertThat(map.keySet().isEmpty()).isTrue();
 		K k1 = getKey();
 		K k2 = getKey();
 		K k3 = getKey();
@@ -270,8 +268,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k3, getValue());
 
 		Set<K> keySet = map.keySet();
-		assertThat(keySet, hasItems(k1, k2, k3));
-		assertEquals(3, keySet.size());
+		assertThat(keySet).contains(k1, k2, k3);
+		assertThat(keySet).hasSize(3);
 	}
 
 	@Test
@@ -284,8 +282,8 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k1, v1);
 		map.put(k2, v2);
 
-		assertThat(map.get(k1), isEqual(v1));
-		assertThat(map.get(k2), isEqual(v2));
+		assertThat(map.get(k1)).isEqualTo(v1);
+		assertThat(map.get(k2)).isEqualTo(v2);
 	}
 
 	@Test
@@ -301,13 +299,13 @@ public abstract class AbstractRedisMapTests<K, V> {
 		m.put(k1, v1);
 		m.put(k2, v2);
 
-		assertNull(map.get(k1));
-		assertNull(map.get(k2));
+		assertThat(map.get(k1)).isNull();
+		assertThat(map.get(k2)).isNull();
 
 		map.putAll(m);
 
-		assertThat(map.get(k1), isEqual(v1));
-		assertThat(map.get(k2), isEqual(v2));
+		assertThat(map.get(k1)).isEqualTo(v1);
+		assertThat(map.get(k2)).isEqualTo(v2);
 	}
 
 	@Test
@@ -318,34 +316,34 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 		V v2 = getValue();
 
-		assertNull(map.remove(k1));
-		assertNull(map.remove(k2));
+		assertThat(map.remove(k1)).isNull();
+		assertThat(map.remove(k2)).isNull();
 
 		map.put(k1, v1);
 		map.put(k2, v2);
 
-		assertThat(map.remove(k1), isEqual(v1));
-		assertNull(map.remove(k1));
-		assertNull(map.get(k1));
+		assertThat(map.remove(k1)).isEqualTo(v1);
+		assertThat(map.remove(k1)).isNull();
+		assertThat(map.get(k1)).isNull();
 
-		assertThat(map.remove(k2), isEqual(v2));
-		assertNull(map.remove(k2));
-		assertNull(map.get(k2));
+		assertThat(map.remove(k2)).isEqualTo(v2);
+		assertThat(map.remove(k2)).isNull();
+		assertThat(map.get(k2)).isNull();
 	}
 
 	@Test
 	public void testSize() {
-		assertEquals(0, map.size());
+		assertThat(map).isEmpty();
 		map.put(getKey(), getValue());
-		assertEquals(1, map.size());
+		assertThat(map).hasSize(1);
 		K k = getKey();
 		map.put(k, getValue());
-		assertEquals(2, map.size());
+		assertThat(map).hasSize(2);
 		map.remove(k);
-		assertEquals(1, map.size());
+		assertThat(map).hasSize(1);
 
 		map.clear();
-		assertEquals(0, map.size());
+		assertThat(map).isEmpty();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -359,13 +357,13 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(getKey(), v2);
 
 		Collection<V> values = map.values();
-		assertEquals(2, values.size());
-		assertThat(values, hasItems(v1, v2));
+		assertThat(values).hasSize(2);
+		assertThat(values).contains(v1, v2);
 
 		map.put(getKey(), v3);
 		values = map.values();
-		assertEquals(3, values.size());
-		assertThat(values, hasItems(v1, v2, v3));
+		assertThat(values).hasSize(3);
+		assertThat(values).contains(v1, v2, v3);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -373,7 +371,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 	public void testEntrySet() {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 		Set<Entry<K, V>> entries = map.entrySet();
-		assertTrue(entries.isEmpty());
+		assertThat(entries.isEmpty()).isTrue();
 
 		K k1 = getKey();
 		K k2 = getKey();
@@ -394,11 +392,11 @@ public abstract class AbstractRedisMapTests<K, V> {
 			values.add(entry.getValue());
 		}
 
-		assertEquals(2, keys.size());
+		assertThat(keys).hasSize(2);
 
-		assertThat(keys, hasItems(k1, k2));
-		assertThat(values, hasItem(v1));
-		assertThat(values, not(hasItem(v2)));
+		assertThat(keys).contains(k1, k2);
+		assertThat(values).contains(v1);
+		assertThat(values).doesNotContain(v2);
 	}
 
 	@Test
@@ -410,15 +408,15 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 		V v2 = getValue();
 
-		assertNull(map.get(k1));
-		assertNull(map.putIfAbsent(k1, v1));
-		assertThat(map.putIfAbsent(k1, v2), isEqual(v1));
-		assertThat(map.get(k1), isEqual(v1));
+		assertThat(map.get(k1)).isNull();
+		assertThat(map.putIfAbsent(k1, v1)).isNull();
+		assertThat(map.putIfAbsent(k1, v2)).isEqualTo(v1);
+		assertThat(map.get(k1)).isEqualTo(v1);
 
-		assertNull(map.putIfAbsent(k2, v2));
-		assertThat(map.putIfAbsent(k2, v1), isEqual(v2));
+		assertThat(map.putIfAbsent(k2, v2)).isNull();
+		assertThat(map.putIfAbsent(k2, v1)).isEqualTo(v2);
 
-		assertThat(map.get(k2), isEqual(v2));
+		assertThat(map.get(k2)).isEqualTo(v2);
 	}
 
 	@Test
@@ -430,10 +428,10 @@ public abstract class AbstractRedisMapTests<K, V> {
 		// No point testing this with byte[], they will never be equal
 		assumeTrue(!(v1 instanceof byte[]));
 		map.put(k1, v2);
-		assertFalse(map.remove(k1, v1));
-		assertThat(map.get(k1), isEqual(v2));
-		assertTrue(map.remove(k1, v2));
-		assertNull(map.get(k1));
+		assertThat(map.remove(k1, v1)).isFalse();
+		assertThat(map.get(k1)).isEqualTo(v2);
+		assertThat(map.remove(k1, v2)).isTrue();
+		assertThat(map.get(k1)).isNull();
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -452,10 +450,10 @@ public abstract class AbstractRedisMapTests<K, V> {
 
 		map.put(k1, v1);
 
-		assertFalse(map.replace(k1, v2, v1));
-		assertThat(map.get(k1), isEqual(v1));
-		assertTrue(map.replace(k1, v1, v2));
-		assertThat(map.get(k1), isEqual(v2));
+		assertThat(map.replace(k1, v2, v1)).isFalse();
+		assertThat(map.get(k1)).isEqualTo(v1);
+		assertThat(map.replace(k1, v1, v2)).isTrue();
+		assertThat(map.get(k1)).isEqualTo(v2);
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -475,11 +473,11 @@ public abstract class AbstractRedisMapTests<K, V> {
 		V v1 = getValue();
 		V v2 = getValue();
 
-		assertNull(map.replace(k1, v1));
+		assertThat(map.replace(k1, v1)).isNull();
 		map.put(k1, v1);
-		assertNull(map.replace(getKey(), v1));
-		assertThat(map.replace(k1, v2), isEqual(v1));
-		assertThat(map.get(k1), isEqual(v2));
+		assertThat(map.replace(getKey(), v1)).isNull();
+		assertThat(map.replace(k1, v2)).isEqualTo(v1);
+		assertThat(map.get(k1)).isEqualTo(v2);
 	}
 
 	@Test(expected = NullPointerException.class)
@@ -501,11 +499,11 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.put(k1, v1);
 		map.put(k2, v2);
 
-		Iterator<Entry<K, V>> it = map.scan();
-		while (it.hasNext()) {
-			Entry<K, V> entry = it.next();
-			assertThat(entry.getKey(), anyOf(equalTo(k1), equalTo(k2)));
-			assertThat(entry.getValue(), anyOf(equalTo(v1), equalTo(v2)));
+		Cursor<Entry<K, V>> cursor = (Cursor<Entry<K, V>>) map.scan();
+		while (cursor.hasNext()) {
+			Entry<K, V> entry = cursor.next();
+			assertThat(entry.getKey()).isIn(k1, k2);
+			assertThat(entry.getValue()).isIn(v1, v2);
 		}
 	}
 }

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -117,8 +116,9 @@ public class SimpleRedisSerializerTests {
 
 	private void verifySerializedObjects(Object... objects) {
 		for (Object object : objects) {
-			assertEquals("Incorrectly (de)serialized object " + object, object,
-					serializer.deserialize(serializer.serialize(object)));
+			assertThat(serializer.deserialize(serializer.serialize(object))).
+					as("Incorrectly (de)serialized object " + object).
+					isEqualTo(object);
 		}
 	}
 
@@ -133,25 +133,25 @@ public class SimpleRedisSerializerTests {
 		byte[] serialized = serializer.serialize(domainClass);
 		Object deserialized = serializer.deserialize(serialized);
 
-		assertThat(deserialized.getClass().getName(), is(equalTo(SerializableDomainClass.class.getName())));
-		assertThat(deserialized, is(not(instanceOf(SerializableDomainClass.class))));
-		assertThat(deserialized.getClass().getClassLoader(), is(equalTo(customClassLoader)));
+		assertThat(deserialized.getClass().getName()).isEqualTo(SerializableDomainClass.class.getName());
+		assertThat(deserialized).isNotInstanceOf(SerializableDomainClass.class);
+		assertThat(deserialized.getClass().getClassLoader()).isEqualTo(customClassLoader);
 	}
 
 	@Test
 	public void testStringEncodedSerialization() {
 		String value = UUID.randomUUID().toString();
-		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
-		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
-		assertEquals(value, serializer.deserialize(serializer.serialize(value)));
+		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
+		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
+		assertThat(serializer.deserialize(serializer.serialize(value))).isEqualTo(value);
 	}
 
 	@Test
 	public void testPersonSerialization() throws Exception {
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
-		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
-		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
+		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
+		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
 	}
 
 	@Test
@@ -163,8 +163,8 @@ public class SimpleRedisSerializerTests {
 
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
-		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
-		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
+		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
+		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
 	}
 
 	@Test
@@ -172,7 +172,7 @@ public class SimpleRedisSerializerTests {
 		JacksonJsonRedisSerializer<Person> serializer = new JacksonJsonRedisSerializer<Person>(Person.class);
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
-		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
-		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
+		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
+		assertThat(serializer.deserialize(serializer.serialize(p1))).isEqualTo(p1);
 	}
 }

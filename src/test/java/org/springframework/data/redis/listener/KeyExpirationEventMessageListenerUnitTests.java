@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.junit.Assert.*;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -61,8 +60,8 @@ public class KeyExpirationEventMessageListenerUnitTests {
 		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
 
 		verify(publisherMock, times(1)).publishEvent(captor.capture());
-		assertThat(captor.getValue(), instanceOf(RedisKeyExpiredEvent.class));
-		assertThat((byte[]) captor.getValue().getSource(), is(MESSAGE_BODY.getBytes()));
+		assertThat(captor.getValue()).isInstanceOf(RedisKeyExpiredEvent.class);
+		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(MESSAGE_BODY.getBytes());
 	}
 
 	@Test // DATAREDIS-425

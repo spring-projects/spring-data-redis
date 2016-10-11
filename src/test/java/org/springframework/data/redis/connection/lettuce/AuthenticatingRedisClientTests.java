@@ -15,15 +15,16 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
  * Integration test of {@link AuthenticatingRedisClient}. Enable requirepass and comment out the @Ignore to run.

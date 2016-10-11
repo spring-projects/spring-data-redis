@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -70,7 +69,7 @@ public class JedisConnectionUnitTestSuite {
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
 
-			assertThat(captor.getValue(), equalTo("return redis.call('SHUTDOWN','NOSAVE')".getBytes()));
+			assertThat(captor.getValue()).isEqualTo("return redis.call('SHUTDOWN','NOSAVE')".getBytes());
 		}
 
 		@Test // DATAREDIS-184
@@ -81,7 +80,7 @@ public class JedisConnectionUnitTestSuite {
 			ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 			verifyNativeConnectionInvocation().eval(captor.capture(), any(byte[].class), any(byte[][].class));
 
-			assertThat(captor.getValue(), equalTo("return redis.call('SHUTDOWN','SAVE')".getBytes()));
+			assertThat(captor.getValue()).isEqualTo("return redis.call('SHUTDOWN','SAVE')".getBytes());
 		}
 
 		@Test // DATAREDIS-267

@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -91,9 +88,9 @@ public class LettuceConnectionFactoryTests {
 			// expected, shared conn is closed
 		}
 		DefaultStringRedisConnection conn2 = new DefaultStringRedisConnection(factory.getConnection());
-		assertNotSame(nativeConn, conn2.getNativeConnection());
+		assertThat(conn2.getNativeConnection()).isNotSameAs(nativeConn);
 		conn2.set("anotherkey", "anothervalue");
-		assertEquals("anothervalue", conn2.get("anotherkey"));
+		assertThat(conn2.get("anotherkey")).isEqualTo("anothervalue");
 		conn2.close();
 	}
 
@@ -119,7 +116,7 @@ public class LettuceConnectionFactoryTests {
 	public void testValidateNoError() {
 		factory.setValidateConnection(true);
 		RedisConnection conn2 = factory.getConnection();
-		assertSame(connection.getNativeConnection(), conn2.getNativeConnection());
+		assertThat(conn2.getNativeConnection()).isSameAs(connection.getNativeConnection());
 	}
 
 	@Test
@@ -139,7 +136,7 @@ public class LettuceConnectionFactoryTests {
 		connection.set("sometestkey", "sometestvalue");
 		try {
 			// there should still be nothing in database 1
-			assertEquals(Long.valueOf(0), connection2.dbSize());
+			assertThat(connection2.dbSize()).isEqualTo(Long.valueOf(0));
 		} finally {
 			connection2.close();
 			factory2.destroy();
@@ -151,11 +148,11 @@ public class LettuceConnectionFactoryTests {
 	public void testDisableSharedConnection() throws Exception {
 		factory.setShareNativeConnection(false);
 		RedisConnection conn2 = factory.getConnection();
-		assertNotSame(connection.getNativeConnection(), conn2.getNativeConnection());
+		assertThat(conn2.getNativeConnection()).isNotSameAs(connection.getNativeConnection());
 		// Give some time for native connection to asynchronously initialize, else close doesn't work
 		Thread.sleep(100);
 		conn2.close();
-		assertTrue(conn2.isClosed());
+		assertThat(conn2.isClosed()).isTrue();
 		// Give some time for native connection to asynchronously close
 		Thread.sleep(100);
 		try {
@@ -172,7 +169,7 @@ public class LettuceConnectionFactoryTests {
 		RedisAsyncConnection<byte[], byte[]> nativeConn = (RedisAsyncConnection<byte[], byte[]>) connection
 				.getNativeConnection();
 		factory.resetConnection();
-		assertNotSame(nativeConn, factory.getConnection().getNativeConnection());
+		assertThat(factory.getConnection().getNativeConnection()).isNotSameAs(nativeConn);
 		nativeConn.close();
 	}
 
@@ -183,7 +180,7 @@ public class LettuceConnectionFactoryTests {
 				.getNativeConnection();
 		factory.initConnection();
 		RedisConnection newConnection = factory.getConnection();
-		assertNotSame(nativeConn, newConnection.getNativeConnection());
+		assertThat(newConnection.getNativeConnection()).isNotSameAs(nativeConn);
 		newConnection.close();
 	}
 
@@ -195,7 +192,7 @@ public class LettuceConnectionFactoryTests {
 		factory.resetConnection();
 		factory.initConnection();
 		RedisConnection newConnection = factory.getConnection();
-		assertNotSame(nativeConn, newConnection.getNativeConnection());
+		assertThat(newConnection.getNativeConnection()).isNotSameAs(nativeConn);
 		newConnection.close();
 	}
 
@@ -223,7 +220,7 @@ public class LettuceConnectionFactoryTests {
 		factory.setShareNativeConnection(false);
 		factory.setHostName("fakeHost");
 		factory.afterPropertiesSet();
-		assertNull(factory.getSharedConnection());
+		assertThat(factory.getSharedConnection()).isNull();
 	}
 
 	@Test
@@ -295,8 +292,8 @@ public class LettuceConnectionFactoryTests {
 			String key = "key-in-db-2";
 			connectionToDbIndex2.set(key, "the wheel of time");
 
-			assertThat(connection.get(key), nullValue());
-			assertThat(connectionToDbIndex2.get(key), notNullValue());
+			assertThat(connection.get(key)).isNull();
+			assertThat(connectionToDbIndex2.get(key)).isNotNull();
 		} finally {
 			connectionToDbIndex2.close();
 		}
@@ -314,7 +311,7 @@ public class LettuceConnectionFactoryTests {
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.ping()).isEqualTo("PONG");
 		} finally {
 			connection.close();
 		}

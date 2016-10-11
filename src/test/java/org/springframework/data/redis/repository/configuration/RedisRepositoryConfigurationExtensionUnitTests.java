@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.repository.configuration;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 
@@ -81,7 +81,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		metadata = new StandardAnnotationMetadata(Config.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry), equalTo((Object) EnableKeyspaceEvents.ON_STARTUP));
+		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry)).isEqualTo(EnableKeyspaceEvents.ON_STARTUP);
 	}
 
 	@Test // DATAREDIS-491
@@ -90,7 +90,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsDisabled.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry), equalTo((Object) EnableKeyspaceEvents.OFF));
+		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry)).isEqualTo(EnableKeyspaceEvents.OFF);
 	}
 
 	@Test // DATAREDIS-505
@@ -99,7 +99,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		metadata = new StandardAnnotationMetadata(Config.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry), equalTo((Object) "Ex"));
+		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo("Ex");
 	}
 
 	@Test // DATAREDIS-505
@@ -108,7 +108,7 @@ public class RedisRepositoryConfigurationExtensionUnitTests {
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsEnabledAndCustomEventConfig.class, true);
 		BeanDefinitionRegistry beanDefintionRegistry = getBeanDefinitionRegistry();
 
-		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry), equalTo((Object) "KEA"));
+		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo("KEA");
 	}
 
 	private static void assertDoesNotHaveRepo(Class<?> repositoryInterface,

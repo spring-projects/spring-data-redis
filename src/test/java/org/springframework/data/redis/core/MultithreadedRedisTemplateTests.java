@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,7 +94,7 @@ public class MultithreadedRedisTemplateTests {
 		}
 
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+		assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 }

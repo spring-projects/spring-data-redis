@@ -15,14 +15,10 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.any;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+
 import java.util.Collection;
 
 import org.junit.Before;
@@ -60,10 +56,10 @@ public class SrpSubscriptionTests {
 		subscription.unsubscribe();
 		verify(redisClient, times(1)).unsubscribe((Object[]) null);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		verify(redisClient).removeListener(any(ReplyListener.class));
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -73,11 +69,11 @@ public class SrpSubscriptionTests {
 		subscription.unsubscribe();
 		verify(redisClient, times(1)).unsubscribe((Object[]) null);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -88,9 +84,9 @@ public class SrpSubscriptionTests {
 		verify(redisClient, times(1)).unsubscribe((Object[]) channel);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
 		verify(redisClient).removeListener(any(ReplyListener.class));
-		assertFalse(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isFalse();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -100,11 +96,11 @@ public class SrpSubscriptionTests {
 		subscription.unsubscribe(new byte[][] { "a".getBytes() });
 		verify(redisClient, times(1)).unsubscribe((Object[]) new byte[][] { "a".getBytes() });
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subChannels = subscription.getChannels();
-		assertEquals(1, subChannels.size());
-		assertArrayEquals("b".getBytes(), subChannels.iterator().next());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subChannels).hasSize(1);
+		assertThat(subChannels.iterator().next()).isEqualTo("b".getBytes());
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -115,11 +111,11 @@ public class SrpSubscriptionTests {
 		subscription.unsubscribe(channel);
 		verify(redisClient, times(1)).unsubscribe((Object[]) channel);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -130,13 +126,13 @@ public class SrpSubscriptionTests {
 		subscription.unsubscribe(channel);
 		verify(redisClient, times(1)).unsubscribe((Object[]) channel);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("b".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("b".getBytes());
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
@@ -145,18 +141,18 @@ public class SrpSubscriptionTests {
 		subscription.unsubscribe();
 		verify(redisClient, never()).unsubscribe((Object[]) null);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("s*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("s*".getBytes());
 	}
 
 	@Test
 	public void testUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.unsubscribe();
 		verify(redisClient, times(1)).removeListener(any(ReplyListener.class));
 		verify(redisClient, times(1)).unsubscribe((Object[]) null);
@@ -167,7 +163,7 @@ public class SrpSubscriptionTests {
 	public void testSubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.subscribe(new byte[][] { "s".getBytes() });
 	}
 
@@ -177,10 +173,10 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(redisClient, never()).unsubscribe((Object[]) null);
 		verify(redisClient, times(1)).punsubscribe((Object[]) null);
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		verify(redisClient).removeListener(any(ReplyListener.class));
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -190,11 +186,11 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(redisClient, never()).unsubscribe((Object[]) null);
 		verify(redisClient, times(1)).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 	}
 
 	@Test
@@ -204,10 +200,10 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe(pattern);
 		verify(redisClient, never()).unsubscribe((Object[]) null);
 		verify(redisClient, times(1)).punsubscribe((Object[]) pattern);
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		verify(redisClient).removeListener(any(ReplyListener.class));
-		assertTrue(subscription.getChannels().isEmpty());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -217,11 +213,11 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe(new byte[][] { "a*".getBytes() });
 		verify(redisClient, times(1)).punsubscribe((Object[]) new byte[][] { "a*".getBytes() });
 		verify(redisClient, never()).unsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> subPatterns = subscription.getPatterns();
-		assertEquals(1, subPatterns.size());
-		assertArrayEquals("b*".getBytes(), subPatterns.iterator().next());
-		assertTrue(subscription.getChannels().isEmpty());
+		assertThat(subPatterns).hasSize(1);
+		assertThat(subPatterns.iterator().next()).isEqualTo("b*".getBytes());
+		assertThat(subscription.getChannels().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -232,11 +228,11 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe(pattern);
 		verify(redisClient, times(1)).punsubscribe((Object[]) pattern);
 		verify(redisClient, never()).unsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 	}
 
 	@Test
@@ -247,13 +243,13 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe(pattern);
 		verify(redisClient, never()).unsubscribe((Object[]) null);
 		verify(redisClient, times(1)).punsubscribe((Object[]) pattern);
-		assertTrue(subscription.isAlive());
+		assertThat(subscription.isAlive()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("a".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("a".getBytes());
 		Collection<byte[]> patterns = subscription.getPatterns();
-		assertEquals(1, patterns.size());
-		assertArrayEquals("b*".getBytes(), patterns.iterator().next());
+		assertThat(patterns).hasSize(1);
+		assertThat(patterns.iterator().next()).isEqualTo("b*".getBytes());
 	}
 
 	@Test
@@ -262,18 +258,18 @@ public class SrpSubscriptionTests {
 		subscription.pUnsubscribe();
 		verify(redisClient, never()).unsubscribe((Object[]) null);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
-		assertTrue(subscription.isAlive());
-		assertTrue(subscription.getPatterns().isEmpty());
+		assertThat(subscription.isAlive()).isTrue();
+		assertThat(subscription.getPatterns().isEmpty()).isTrue();
 		Collection<byte[]> channels = subscription.getChannels();
-		assertEquals(1, channels.size());
-		assertArrayEquals("s".getBytes(), channels.iterator().next());
+		assertThat(channels).hasSize(1);
+		assertThat(channels.iterator().next()).isEqualTo("s".getBytes());
 	}
 
 	@Test
 	public void testPUnsubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.pUnsubscribe();
 		verify(redisClient, times(1)).unsubscribe((Object[]) null);
 		verify(redisClient, never()).punsubscribe((Object[]) null);
@@ -284,7 +280,7 @@ public class SrpSubscriptionTests {
 	public void testPSubscribeNotAlive() {
 		subscription.subscribe(new byte[][] { "a".getBytes() });
 		subscription.unsubscribe();
-		assertFalse(subscription.isAlive());
+		assertThat(subscription.isAlive()).isFalse();
 		subscription.pSubscribe(new byte[][] { "s*".getBytes() });
 	}
 
