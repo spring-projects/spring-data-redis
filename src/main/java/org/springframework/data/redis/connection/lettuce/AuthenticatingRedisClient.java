@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,54 +15,56 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.codec.RedisCodec;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * Extension of {@link RedisClient} that calls auth on all new connections using the supplied credentials
  * 
  * @author Jennifer Hickey
- * @author Mar Paluch
+ * @author Mark Paluch
  * @author Christoph Strobl
  * @deprecated since 1.6 - Please use {@link RedisURI#setPassword(String)}
  */
 @Deprecated
 public class AuthenticatingRedisClient extends RedisClient {
 
-	private String password;
-
 	public AuthenticatingRedisClient(String host, int port, String password) {
-		super(host, port);
-		this.password = password;
+		super(null, RedisURI.builder().withHost(host).withPort(port).withPassword(password).build());
 	}
 
 	public AuthenticatingRedisClient(String host, String password) {
-		super(host);
-		this.password = password;
+		super(null, RedisURI.builder().withHost(host).withPassword(password).build());
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.lambdaworks.redis.RedisClient#connect(com.lambdaworks.redis.codec.RedisCodec)
+	 */
 	@Override
-	public <K, V> RedisConnection<K, V> connect(RedisCodec<K, V> codec) {
-		RedisConnection<K, V> conn = super.connect(codec);
-		conn.auth(password);
-		return conn;
+	public <K, V> StatefulRedisConnection<K, V> connect(RedisCodec<K, V> codec) {
+		return super.connect(codec);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.lambdaworks.redis.RedisClient#connectAsync(com.lambdaworks.redis.codec.RedisCodec)
+	 */
 	@Override
-	public <K, V> RedisAsyncConnection<K, V> connectAsync(RedisCodec<K, V> codec) {
-		RedisAsyncConnection<K, V> conn = super.connectAsync(codec);
-		conn.auth(password);
-		return conn;
+	public <K, V> RedisAsyncCommands<K, V> connectAsync(RedisCodec<K, V> codec) {
+		return super.connectAsync(codec);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.lambdaworks.redis.RedisClient#connectPubSub(com.lambdaworks.redis.codec.RedisCodec)
+	 */
 	@Override
-	public <K, V> RedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
-		RedisPubSubConnection<K, V> conn = super.connectPubSub(codec);
-		conn.auth(password);
-		return conn;
+	public <K, V> StatefulRedisPubSubConnection<K, V> connectPubSub(RedisCodec<K, V> codec) {
+		return super.connectPubSub(codec);
 	}
 }

@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>1.8.0.BUILD-SNAPSHOT</version>
+	<version>1.8.0.DATAREDIS-528-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
@@ -22,7 +22,7 @@
 		<beanutils>1.9.2</beanutils>
 		<xstream>1.4.8</xstream>
 		<pool>2.2</pool>
-		<lettuce>3.4.2.Final</lettuce>
+		<lettuce>4.2.2.Final</lettuce>
 		<jedis>2.9.0</jedis>
 		<srp>0.7</srp>
 		<jredis>06052013</jredis>

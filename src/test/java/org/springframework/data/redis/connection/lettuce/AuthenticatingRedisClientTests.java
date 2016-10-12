@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,23 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisConnection;
-import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.lambdaworks.redis.RedisAsyncConnection;
+import com.lambdaworks.redis.RedisClient;
+import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
+import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
 
 /**
  * Integration test of {@link AuthenticatingRedisClient}. Enable requirepass and comment out the @Ignore to run.
  * 
  * @author Jennifer Hickey
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 @Ignore("Redis must have requirepass set to run this test")
 public class AuthenticatingRedisClientTests {
@@ -50,8 +52,8 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void connect() {
-		RedisConnection<String, String> conn = client.connect();
-		conn.ping();
+		StatefulRedisConnection<String, String> conn = client.connect();
+		conn.sync().ping();
 		conn.close();
 	}
 
@@ -68,8 +70,8 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void codecConnect() {
-		RedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
-		conn.ping();
+		StatefulRedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
+		conn.sync().ping();
 		conn.close();
 	}
 
@@ -89,15 +91,15 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void connectPubSub() {
-		RedisPubSubConnection<String, String> conn = client.connectPubSub();
-		conn.ping();
+		StatefulRedisPubSubConnection<String, String> conn = client.connectPubSub();
+		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
 	public void codecConnectPubSub() {
-		RedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
-		conn.ping();
+		StatefulRedisPubSubConnection<byte[], byte[]> conn = client.connectPubSub(LettuceConnection.CODEC);
+		conn.sync().ping();
 		conn.close();
 	}
 

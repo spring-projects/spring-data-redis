@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection.lettuce;
 import static com.lambdaworks.redis.protocol.CommandType.*;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +31,6 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -74,7 +72,6 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
 
 import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.GeoArgs;
@@ -83,14 +80,9 @@ import com.lambdaworks.redis.GeoWithin;
 import com.lambdaworks.redis.KeyScanCursor;
 import com.lambdaworks.redis.LettuceFutures;
 import com.lambdaworks.redis.MapScanCursor;
-import com.lambdaworks.redis.RedisAsyncConnection;
-import com.lambdaworks.redis.RedisAsyncConnectionImpl;
-import com.lambdaworks.redis.RedisChannelHandler;
 import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisClusterConnection;
-import com.lambdaworks.redis.RedisConnection;
 import com.lambdaworks.redis.RedisException;
-import com.lambdaworks.redis.RedisSentinelAsyncConnection;
+import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.ScanArgs;
 import com.lambdaworks.redis.ScoredValue;
@@ -98,9 +90,20 @@ import com.lambdaworks.redis.ScoredValueScanCursor;
 import com.lambdaworks.redis.SortArgs;
 import com.lambdaworks.redis.ValueScanCursor;
 import com.lambdaworks.redis.ZStoreArgs;
+import com.lambdaworks.redis.api.StatefulConnection;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
+import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
+import com.lambdaworks.redis.api.sync.RedisCommands;
+import com.lambdaworks.redis.api.sync.RedisHLLCommands;
+import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
+import com.lambdaworks.redis.cluster.api.async.RedisClusterAsyncCommands;
+import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
+import com.lambdaworks.redis.codec.ByteArrayCodec;
 import com.lambdaworks.redis.codec.RedisCodec;
 import com.lambdaworks.redis.output.BooleanOutput;
 import com.lambdaworks.redis.output.ByteArrayOutput;
+import com.lambdaworks.redis.output.CommandOutput;
 import com.lambdaworks.redis.output.DateOutput;
 import com.lambdaworks.redis.output.DoubleOutput;
 import com.lambdaworks.redis.output.IntegerOutput;
@@ -114,9 +117,9 @@ import com.lambdaworks.redis.output.ValueOutput;
 import com.lambdaworks.redis.output.ValueSetOutput;
 import com.lambdaworks.redis.protocol.Command;
 import com.lambdaworks.redis.protocol.CommandArgs;
-import com.lambdaworks.redis.protocol.CommandOutput;
 import com.lambdaworks.redis.protocol.CommandType;
-import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
+import com.lambdaworks.redis.pubsub.StatefulRedisPubSubConnection;
+import com.lambdaworks.redis.sentinel.api.StatefulRedisSentinelConnection;
 
 /**
  * {@code RedisConnection} implementation on top of <a href="https://github.com/mp911de/lettuce">Lettuce</a> Redis
@@ -132,9 +135,8 @@ import com.lambdaworks.redis.pubsub.RedisPubSubConnection;
  */
 public class LettuceConnection extends AbstractRedisConnection {
 
-	static final RedisCodec<byte[], byte[]> CODEC = new BytesRedisCodec();
+	static final RedisCodec<byte[], byte[]> CODEC = ByteArrayCodec.INSTANCE;
 
-	private static final Method SYNC_HANDLER;
 	private static final ExceptionTranslationStrategy EXCEPTION_TRANSLATION = new FallbackExceptionTranslationStrategy(
 			LettuceConverters.exceptionConverter());
 	private static final TypeHints typeHints = new TypeHints();
@@ -142,16 +144,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private final int defaultDbIndex;
 	private int dbIndex;
 
-	static {
-		SYNC_HANDLER = ReflectionUtils.findMethod(AbstractRedisClient.class, "syncHandler", RedisChannelHandler.class,
-				Class[].class);
-		ReflectionUtils.makeAccessible(SYNC_HANDLER);
-	}
-
-	private final com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncSharedConn;
-	private final com.lambdaworks.redis.RedisConnection<byte[], byte[]> sharedConn;
-	private com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> asyncDedicatedConn;
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> dedicatedConn;
+	private final StatefulConnection<byte[], byte[]> asyncSharedConn;
+	private StatefulConnection<byte[], byte[]> asyncDedicatedConn;
 
 	private final long timeout;
 
@@ -169,13 +163,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	private boolean convertPipelineAndTxResults = true;
 
 	@SuppressWarnings("rawtypes")
-	private class LettuceResult extends FutureResult<Command<?, ?, ?>> {
+	private class LettuceResult extends FutureResult<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>> {
 		public <T> LettuceResult(Future<T> resultHolder, Converter<T, ?> converter) {
-			super((Command) resultHolder, converter);
+			super((com.lambdaworks.redis.protocol.RedisCommand) resultHolder, converter);
 		}
 
 		public LettuceResult(Future resultHolder) {
-			super((Command) resultHolder);
+			super((com.lambdaworks.redis.protocol.RedisCommand) resultHolder);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -183,10 +177,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		public Object get() {
 			try {
 				if (convertPipelineAndTxResults && converter != null) {
-					return converter.convert(resultHolder.get());
+					return converter.convert(resultHolder.getOutput().get());
 				}
-				return resultHolder.get();
-			} catch (ExecutionException e) {
+				return resultHolder.getOutput().get();
+			} catch (Exception e) {
 				throw EXCEPTION_TRANSLATION.translate(e);
 			}
 		}
@@ -292,8 +286,7 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param timeout The connection timeout (in milliseconds)
 	 * @param client The {@link RedisClient} to use when making pub/sub, blocking, and tx connections
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
-			RedisClient client) {
+	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout, RedisClient client) {
 		this(sharedConnection, timeout, client, null);
 	}
 
@@ -306,8 +299,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param client The {@link RedisClient} to use when making pub/sub connections
 	 * @param pool The connection pool to use for blocking and tx operations
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
-			RedisClient client, LettucePool pool) {
+	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout, RedisClient client,
+			LettucePool pool) {
 
 		this(sharedConnection, timeout, client, pool, 0);
 	}
@@ -321,13 +314,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 * @param defaultDbIndex The db index to use along with {@link RedisClient} when establishing a dedicated connection.
 	 * @since 1.7
 	 */
-	public LettuceConnection(com.lambdaworks.redis.RedisAsyncConnection<byte[], byte[]> sharedConnection, long timeout,
+	public LettuceConnection(StatefulRedisConnection<byte[], byte[]> sharedConnection, long timeout,
 			AbstractRedisClient client, LettucePool pool, int defaultDbIndex) {
 
 		this.asyncSharedConn = sharedConnection;
 		this.timeout = timeout;
 		this.client = client;
-		this.sharedConn = sharedConnection != null ? syncConnection(asyncSharedConn) : null;
 		this.pool = pool;
 		this.defaultDbIndex = defaultDbIndex;
 		this.dbIndex = this.defaultDbIndex;
@@ -344,11 +336,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Object await(com.lambdaworks.redis.protocol.RedisCommand cmd) {
-		if (isMulti && cmd instanceof Command && ((Command) cmd).isMulti()) {
+	private Object await(RedisFuture<?> cmd) {
+
+		if (isMulti) {
 			return null;
 		}
-		return LettuceFutures.await(cmd, timeout, TimeUnit.MILLISECONDS);
+
+		return LettuceFutures.awaitOrCancel(cmd, timeout, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
@@ -380,21 +374,21 @@ public class LettuceConnection extends AbstractRedisConnection {
 				cmdArg.addKeys(args);
 			}
 
-			RedisAsyncConnectionImpl<byte[], byte[]> connectionImpl = (RedisAsyncConnectionImpl<byte[], byte[]>) getAsyncConnection();
+			RedisClusterAsyncCommands<byte[], byte[]> connectionImpl = getAsyncConnection();
 
 			CommandOutput expectedOutput = commandOutputTypeHint != null ? commandOutputTypeHint
 					: typeHints.getTypeHint(commandType);
 			Command cmd = new Command(commandType, expectedOutput, cmdArg);
 			if (isPipelined()) {
 
-				pipeline(new LettuceResult(connectionImpl.dispatch(cmd)));
+				pipeline(new LettuceResult(connectionImpl.dispatch(cmd.getType(), cmd.getOutput(), cmd.getArgs())));
 				return null;
 			} else if (isQueueing()) {
 
-				transaction(new LettuceTxResult(connectionImpl.dispatch(cmd)));
+				transaction(new LettuceTxResult(connectionImpl.dispatch(cmd.getType(), cmd.getOutput(), cmd.getArgs())));
 				return null;
 			} else {
-				return await(connectionImpl.dispatch(cmd));
+				return await(connectionImpl.dispatch(cmd.getType(), cmd.getOutput(), cmd.getArgs()));
 			}
 		} catch (RedisException ex) {
 			throw convertLettuceAccessException(ex);
@@ -445,8 +439,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 		return isClosed && !isSubscribed();
 	}
 
-	public RedisAsyncConnection<byte[], byte[]> getNativeConnection() {
-		return (subscription != null ? subscription.pubsub : getAsyncConnection());
+	public RedisClusterAsyncCommands<byte[], byte[]> getNativeConnection() {
+		return (subscription != null ? subscription.pubsub.async() : getAsyncConnection());
 	}
 
 	public boolean isQueueing() {
@@ -465,49 +459,59 @@ public class LettuceConnection extends AbstractRedisConnection {
 	}
 
 	public List<Object> closePipeline() {
+
 		if (isPipelined) {
 			isPipelined = false;
-			List<Command<?, ?, ?>> futures = new ArrayList<Command<?, ?, ?>>();
+			List<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>> futures = new ArrayList<com.lambdaworks.redis.protocol.RedisCommand<?, ?, ?>>();
 			for (LettuceResult result : ppline) {
 				futures.add(result.getResultHolder());
 			}
-			boolean done = LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS,
-					futures.toArray(new Command[futures.size()]));
-			List<Object> results = new ArrayList<Object>(futures.size());
 
-			Exception problem = null;
+			try {
+				boolean done = LettuceFutures.awaitAll(timeout, TimeUnit.MILLISECONDS,
+						futures.toArray(new RedisFuture[futures.size()]));
 
-			if (done) {
-				for (LettuceResult result : ppline) {
-					if (result.getResultHolder().getOutput().hasError()) {
-						Exception err = new InvalidDataAccessApiUsageException(result.getResultHolder().getOutput().getError());
-						// remember only the first error
-						if (problem == null) {
-							problem = err;
-						}
-						results.add(err);
-					} else if (!convertPipelineAndTxResults || !(result.isStatus())) {
-						try {
-							results.add(result.get());
-						} catch (DataAccessException e) {
+				List<Object> results = new ArrayList<Object>(futures.size());
+
+				Exception problem = null;
+
+				if (done) {
+					for (LettuceResult result : ppline) {
+
+						if (result.getResultHolder().getOutput().hasError()) {
+
+							Exception err = new InvalidDataAccessApiUsageException(result.getResultHolder().getOutput().getError());
+							// remember only the first error
 							if (problem == null) {
-								problem = e;
+								problem = err;
 							}
-							results.add(e);
+							results.add(err);
+						} else if (!convertPipelineAndTxResults || !(result.isStatus())) {
+
+							try {
+								results.add(result.get());
+							} catch (DataAccessException e) {
+								if (problem == null) {
+									problem = e;
+								}
+								results.add(e);
+							}
 						}
 					}
 				}
-			}
-			ppline.clear();
+				ppline.clear();
 
-			if (problem != null) {
-				throw new RedisPipelineException(problem, results);
-			}
-			if (done) {
-				return results;
-			}
+				if (problem != null) {
+					throw new RedisPipelineException(problem, results);
+				}
+				if (done) {
+					return results;
+				}
 
-			throw new RedisPipelineException(new QueryTimeoutException("Redis command timed out"));
+				throw new RedisPipelineException(new QueryTimeoutException("Redis command timed out"));
+			} catch (Exception e) {
+				throw new RedisPipelineException(e);
+			}
 		}
 
 		return Collections.emptyList();
@@ -839,10 +843,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncDedicatedConnection().discard()));
+				pipeline(new LettuceStatusResult(((RedisAsyncCommands) getAsyncDedicatedConnection()).discard()));
 				return;
 			}
-			getDedicatedConnection().discard();
+			((RedisCommands) getDedicatedConnection()).discard();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		} finally {
@@ -855,11 +859,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 		isMulti = false;
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncDedicatedConnection().exec(), new LettuceTransactionResultConverter(
-						new LinkedList<FutureResult<?>>(txResults), LettuceConverters.exceptionConverter())));
+				pipeline(new LettuceResult(((RedisAsyncCommands) getAsyncDedicatedConnection()).exec(),
+						new LettuceTransactionResultConverter(new LinkedList<FutureResult<?>>(txResults),
+								LettuceConverters.exceptionConverter())));
 				return null;
 			}
-			List<Object> results = getDedicatedConnection().exec();
+			List<Object> results = ((RedisCommands) getDedicatedConnection()).exec();
 			return convertPipelineAndTxResults
 					? new LettuceTransactionResultConverter(txResults, LettuceConverters.exceptionConverter()).convert(results)
 					: results;
@@ -873,14 +878,16 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public Boolean exists(byte[] key) {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceResult(getAsyncConnection().exists(key)));
+				pipeline(new LettuceResult(getAsyncConnection().exists(new byte[][] { key }),
+						LettuceConverters.longToBooleanConverter()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxResult(getConnection().exists(key)));
+				transaction(new LettuceResult(getAsyncConnection().exists(new byte[][] { key }),
+						LettuceConverters.longToBooleanConverter()));
 				return null;
 			}
-			return getConnection().exists(key);
+			return LettuceConverters.longToBooleanConverter().convert(getConnection().exists(new byte[][] { key }));
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1055,10 +1062,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 		isMulti = true;
 		try {
 			if (isPipelined()) {
-				getAsyncDedicatedConnection().multi();
+				((RedisAsyncCommands) getAsyncDedicatedConnection()).multi();
 				return;
 			}
-			getDedicatedConnection().multi();
+			((RedisCommands) getDedicatedConnection()).multi();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1157,10 +1164,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 			this.dbIndex = dbIndex;
 			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getConnection().select(dbIndex)));
+				transaction(new LettuceTxStatusResult(((RedisCommands) getAsyncConnection()).select(dbIndex)));
 				return;
 			}
-			getConnection().select(dbIndex);
+			((RedisCommands) getConnection()).select(dbIndex);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1235,14 +1242,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public void unwatch() {
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncDedicatedConnection().unwatch()));
+				pipeline(new LettuceStatusResult(((RedisAsyncCommands) getAsyncDedicatedConnection()).unwatch()));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(getDedicatedConnection().unwatch()));
+				transaction(new LettuceTxStatusResult(((RedisAsyncCommands) getDedicatedConnection()).unwatch()));
 				return;
 			}
-			getDedicatedConnection().unwatch();
+			((RedisCommands) getDedicatedConnection()).unwatch();
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -1254,10 +1261,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(getAsyncDedicatedConnection().watch(keys)));
+				pipeline(new LettuceStatusResult(((RedisAsyncCommands) getAsyncDedicatedConnection()).watch(keys)));
 				return;
 			}
-			getDedicatedConnection().watch(keys);
+			if (isQueueing()) {
+				transaction(new LettuceTxStatusResult(((RedisAsyncCommands) getDedicatedConnection()).watch()));
+				return;
+			}
+			((RedisCommands) getDedicatedConnection()).watch(keys);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -2135,13 +2146,13 @@ public class LettuceConnection extends AbstractRedisConnection {
 	public List<byte[]> sRandMember(byte[] key, long count) {
 		try {
 			if (isPipelined()) {
-				pipeline(
-						new LettuceResult(getAsyncConnection().srandmember(key, count), LettuceConverters.bytesSetToBytesList()));
+				pipeline(new LettuceResult((RedisFuture) getAsyncConnection().srandmember(key, count),
+						LettuceConverters.bytesCollectionToBytesList()));
 				return null;
 			}
 			if (isQueueing()) {
-				transaction(
-						new LettuceTxResult(getConnection().srandmember(key, count), LettuceConverters.bytesSetToBytesList()));
+				transaction(new LettuceTxResult(getConnection().srandmember(key, count),
+						LettuceConverters.bytesCollectionToBytesList()));
 				return null;
 			}
 			return LettuceConverters.toBytesList(getConnection().srandmember(key, count));
@@ -3336,7 +3347,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 		Assert.notNull(members, "Members must not be null!");
 		Assert.noNullElements(members, "Members must not contain null!");
 
-		throw new UnsupportedOperationException("Lettuce does currently not supprt GEOHASH.");
+		try {
+			if (isPipelined()) {
+				pipeline(new LettuceResult(getAsyncConnection().geohash(key, members)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(new LettuceTxResult(getConnection().geohash(key, members)));
+				return null;
+			}
+			return getConnection().geohash(key, members);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
 	}
 
 	/*
@@ -3702,16 +3725,6 @@ public class LettuceConnection extends AbstractRedisConnection {
 				com.lambdaworks.redis.ScanCursor scanCursor = getScanCursor(cursorId);
 				ScanArgs scanArgs = getScanArgs(options);
 
-				if (isPipelined()) {
-					pipeline(new LettuceResult(getAsyncConnection().scan(scanCursor, scanArgs)));
-					return null;
-				}
-
-				if (isQueueing()) {
-					transaction(new LettuceTxResult(getAsyncConnection().scan(scanCursor, scanArgs)));
-					return null;
-				}
-
 				KeyScanCursor<byte[]> keyScanCursor = getConnection().scan(scanCursor, scanArgs);
 				String nextCursorId = keyScanCursor.getCursor();
 
@@ -3889,10 +3902,11 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 	}
 
-	private RedisPubSubConnection<byte[], byte[]> switchToPubSub() {
+	private StatefulRedisPubSubConnection<byte[], byte[]> switchToPubSub() {
 		close();
 		// open a pubsub one
 		return ((RedisClient) client).connectPubSub(CODEC);
+		// return ((RedisClient) client).connectPubSub(CODEC);
 	}
 
 	private void pipeline(LettuceResult result) {
@@ -3907,63 +3921,93 @@ public class LettuceConnection extends AbstractRedisConnection {
 		txResults.add(result);
 	}
 
-	private RedisAsyncConnection<byte[], byte[]> getAsyncConnection() {
+	private RedisClusterAsyncCommands<byte[], byte[]> getAsyncConnection() {
 		if (isQueueing()) {
 			return getAsyncDedicatedConnection();
 		}
 		if (asyncSharedConn != null) {
-			return asyncSharedConn;
+
+			if (asyncSharedConn instanceof StatefulRedisConnection) {
+				return ((StatefulRedisConnection<byte[], byte[]>) asyncSharedConn).async();
+			}
 		}
 		return getAsyncDedicatedConnection();
 	}
 
-	protected com.lambdaworks.redis.RedisConnection<byte[], byte[]> getConnection() {
+	protected RedisClusterCommands<byte[], byte[]> getConnection() {
+
 		if (isQueueing()) {
 			return getDedicatedConnection();
 		}
-		if (sharedConn != null) {
-			return sharedConn;
+		if (asyncSharedConn != null) {
+
+			if (asyncSharedConn instanceof StatefulRedisConnection) {
+				return ((StatefulRedisConnection<byte[], byte[]>) asyncSharedConn).sync();
+			}
+			if (asyncSharedConn instanceof StatefulRedisClusterConnection) {
+				return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncSharedConn).sync();
+			}
 		}
 		return getDedicatedConnection();
 	}
 
-	protected RedisAsyncConnection<byte[], byte[]> getAsyncDedicatedConnection() {
+	protected RedisClusterAsyncCommands<byte[], byte[]> getAsyncDedicatedConnection() {
 		if (asyncDedicatedConn == null) {
 
 			asyncDedicatedConn = doGetAsyncDedicatedConnection();
 
 			if (this.pool == null) {
-				this.asyncDedicatedConn.select(dbIndex);
-			}
 
+				if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+					((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
+				}
+			}
 		}
-		return asyncDedicatedConn;
+
+		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+			return ((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).async();
+		}
+		if (asyncDedicatedConn instanceof StatefulRedisClusterConnection) {
+			return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncDedicatedConn).async();
+		}
+
+		throw new IllegalStateException(
+				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
 	}
 
-	protected RedisAsyncConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
+	protected StatefulConnection<byte[], byte[]> doGetAsyncDedicatedConnection() {
 
 		if (this.pool != null) {
 			return pool.getResource();
 		} else {
-			return ((RedisClient) client).connectAsync(CODEC);
+			return ((RedisClient) client).connect(CODEC);
 		}
 	}
 
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> getDedicatedConnection() {
-		if (dedicatedConn == null) {
-			this.dedicatedConn = syncConnection(getAsyncDedicatedConnection());
-		}
-		return dedicatedConn;
-	}
+	private RedisClusterCommands<byte[], byte[]> getDedicatedConnection() {
 
-	private com.lambdaworks.redis.RedisConnection<byte[], byte[]> syncConnection(
-			RedisAsyncConnection<byte[], byte[]> asyncConnection) {
-		try {
-			return (com.lambdaworks.redis.RedisConnection<byte[], byte[]>) SYNC_HANDLER.invoke(null, asyncConnection,
-					new Class[] { com.lambdaworks.redis.RedisConnection.class, RedisClusterConnection.class });
-		} catch (Exception ex) {
-			throw convertLettuceAccessException(ex);
+		if (asyncDedicatedConn == null) {
+
+			asyncDedicatedConn = doGetAsyncDedicatedConnection();
+
+			if (this.pool == null) {
+
+				if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+					((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync().select(dbIndex);
+				}
+			}
+
 		}
+
+		if (asyncDedicatedConn instanceof StatefulRedisConnection) {
+			return ((StatefulRedisConnection<byte[], byte[]>) asyncDedicatedConn).sync();
+		}
+		if (asyncDedicatedConn instanceof StatefulRedisClusterConnection) {
+			return ((StatefulRedisClusterConnection<byte[], byte[]>) asyncDedicatedConn).sync();
+		}
+
+		throw new IllegalStateException(
+				String.format("%s is not a supported connection type.", asyncDedicatedConn.getClass().getName()));
 	}
 
 	private Future<Long> asyncBitOp(BitOperation op, byte[] destination, byte[]... keys) {
@@ -4025,7 +4069,12 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return null;
 		}
 
-		ScanArgs scanArgs = ScanArgs.Builder.matches(options.getPattern());
+		ScanArgs scanArgs = new ScanArgs();
+
+		if (options.getPattern() != null) {
+			scanArgs.match(options.getPattern());
+		}
+
 		if (options.getCount() != null) {
 			scanArgs.limit(options.getCount());
 		}
@@ -4082,10 +4131,10 @@ public class LettuceConnection extends AbstractRedisConnection {
 			return false;
 		}
 
-		RedisConnection<String, String> connection = null;
+		StatefulRedisConnection<String, String> connection = null;
 		try {
 			connection = ((RedisClient) client).connect(getRedisURI(node));
-			return connection.ping().equalsIgnoreCase("pong");
+			return connection.sync().ping().equalsIgnoreCase("pong");
 		} catch (Exception e) {
 			return false;
 		} finally {
@@ -4105,8 +4154,8 @@ public class LettuceConnection extends AbstractRedisConnection {
 	 */
 	@Override
 	protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
-		RedisSentinelAsyncConnection<String, String> connection = ((RedisClient) client)
-				.connectSentinelAsync(getRedisURI(sentinel));
+		StatefulRedisSentinelConnection<String, String> connection = ((RedisClient) client)
+				.connectSentinel(getRedisURI(sentinel));
 		return new LettuceSentinelConnection(connection);
 	}
 
@@ -4363,30 +4412,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			if (isPipelined()) {
-				if (values.length == 1) {
-					pipeline(new LettuceResult(getAsyncConnection().pfadd(key, values[0])));
-				} else {
-					pipeline(
-							new LettuceResult(getAsyncConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
-				}
+				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
+				pipeline(new LettuceResult(asyncConnection.pfadd(key, values)));
 				return null;
 			}
+
 			if (isQueueing()) {
-				if (values.length == 1) {
-					transaction(new LettuceTxResult(getConnection().pfadd(key, values[0])));
-				} else {
-					transaction(
-							new LettuceTxResult(getConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1))));
-				}
-
+				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
+				transaction(new LettuceResult(asyncConnection.pfadd(key, values)));
 				return null;
 			}
 
-			if (values.length == 1) {
-				return getConnection().pfadd(key, values[0]);
-			}
-
-			return getConnection().pfadd(key, values[0], LettuceConverters.subarray(values, 1));
+			RedisHLLCommands<byte[], byte[]> connection = getConnection();
+			return connection.pfadd(key, values);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -4403,28 +4441,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 		Assert.noNullElements(keys, "Keys for PFCOUNT must not contain 'null'.");
 		try {
 			if (isPipelined()) {
-				if (keys.length == 1) {
-					pipeline(new LettuceResult(getAsyncConnection().pfcount(keys[0])));
-				} else {
-					pipeline(new LettuceResult(getAsyncConnection().pfcount(keys[0], LettuceConverters.subarray(keys, 1))));
-				}
+				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
+				pipeline(new LettuceResult(asyncConnection.pfcount(keys)));
 				return null;
 			}
+
 			if (isQueueing()) {
-				if (keys.length == 1) {
-					transaction(new LettuceTxResult(getConnection().pfcount(keys[0])));
-				} else {
-					transaction(new LettuceTxResult(getConnection().pfcount(keys[0], LettuceConverters.subarray(keys, 1))));
-				}
-
+				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
+				transaction(new LettuceResult(asyncConnection.pfcount(keys)));
 				return null;
 			}
 
-			if (keys.length == 1) {
-				return getConnection().pfcount(keys[0]);
-			}
-
-			return getConnection().pfcount(keys[0], LettuceConverters.subarray(keys, 1));
+			RedisHLLCommands<byte[], byte[]> connection = getConnection();
+			return connection.pfcount(keys);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}
@@ -4442,27 +4471,19 @@ public class LettuceConnection extends AbstractRedisConnection {
 
 		try {
 			if (isPipelined()) {
-				if (sourceKeys.length == 1) {
-					pipeline(new LettuceResult(getAsyncConnection().pfmerge(destinationKey, sourceKeys[0])));
-				} else {
-					pipeline(new LettuceResult(
-							getAsyncConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1))));
-				}
-			}
-			if (isQueueing()) {
-				if (sourceKeys.length == 1) {
-					transaction(new LettuceTxResult(getConnection().pfmerge(destinationKey, sourceKeys[0])));
-				} else {
-					transaction(new LettuceTxResult(
-							getConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1))));
-				}
+				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
+				pipeline(new LettuceResult(asyncConnection.pfmerge(destinationKey, sourceKeys)));
+				return;
 			}
 
-			if (sourceKeys.length == 1) {
-				getConnection().pfmerge(destinationKey, sourceKeys[0]);
-			} else {
-				getConnection().pfmerge(destinationKey, sourceKeys[0], LettuceConverters.subarray(sourceKeys, 1));
+			if (isQueueing()) {
+				RedisHLLAsyncCommands<byte[], byte[]> asyncConnection = getAsyncConnection();
+				transaction(new LettuceResult(asyncConnection.pfmerge(destinationKey, sourceKeys)));
+				return;
 			}
+
+			RedisHLLCommands<byte[], byte[]> connection = getConnection();
+			connection.pfmerge(destinationKey, sourceKeys);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

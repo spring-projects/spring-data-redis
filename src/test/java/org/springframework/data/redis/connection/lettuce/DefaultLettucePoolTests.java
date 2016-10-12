@@ -30,9 +30,9 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.PoolException;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.RedisURI;
+import com.lambdaworks.redis.api.StatefulRedisConnection;
 
 /**
  * Unit test of {@link DefaultLettucePool}
@@ -65,9 +65,9 @@ public class DefaultLettucePoolTests {
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
-		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
+		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
 		assertNotNull(client);
-		client.ping();
+		client.sync().ping();
 		client.close();
 	}
 
@@ -80,7 +80,7 @@ public class DefaultLettucePoolTests {
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
-		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
+		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
 		assertNotNull(client);
 		try {
 			pool.getResource();
@@ -98,7 +98,7 @@ public class DefaultLettucePoolTests {
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
-		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
+		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
 		assertNotNull(client);
 		client.close();
 	}
@@ -121,7 +121,7 @@ public class DefaultLettucePoolTests {
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
-		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
+		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
 		assertNotNull(client);
 		pool.returnResource(client);
 		assertNotNull(pool.getResource());
@@ -137,13 +137,13 @@ public class DefaultLettucePoolTests {
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort(), poolConfig);
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.afterPropertiesSet();
-		RedisAsyncConnection<byte[], byte[]> client = pool.getResource();
+		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
 		assertNotNull(client);
 		pool.returnBrokenResource(client);
-		RedisAsyncConnection<byte[], byte[]> client2 = pool.getResource();
+		StatefulRedisConnection<byte[], byte[]> client2 = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
 		assertNotSame(client, client2);
 		try {
-			client.ping();
+			client.sync().ping();
 			fail("Broken resouce connection should be closed");
 		} catch (RedisException e) {} finally {
 			client.close();
@@ -189,9 +189,9 @@ public class DefaultLettucePoolTests {
 		pool.setClientResources(LettuceTestClientResources.getSharedClientResources());
 		pool.setPassword("foo");
 		pool.afterPropertiesSet();
-		RedisAsyncConnection<byte[], byte[]> conn = pool.getResource();
-		conn.ping();
-		conn.close();
+		StatefulRedisConnection<byte[], byte[]> client = (StatefulRedisConnection<byte[], byte[]>) pool.getResource();
+		client.sync().ping();
+		client.sync().getStatefulConnection().close();
 	}
 
 	@Ignore("Redis must have requirepass set to run this test")
