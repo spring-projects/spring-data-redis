@@ -341,8 +341,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex)
-				: new JedisConnection(jedis, null, dbIndex));
+		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, this, dbIndex)
+				: new JedisConnection(jedis, null, this, dbIndex));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}

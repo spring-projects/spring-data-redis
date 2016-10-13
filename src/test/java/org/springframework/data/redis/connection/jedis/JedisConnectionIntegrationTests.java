@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,17 @@
 
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -45,6 +50,8 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.StringRedisConnection.StringTuple;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule.SentinelsAvailable;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
@@ -62,6 +69,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author David Liu
+ * @author Mark Paluch
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -415,5 +423,104 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		Set<byte[]> zRangeByScore = connection.zRangeByScore("myzset", "(1", "2");
 
 		assertEquals("two", new String(zRangeByScore.iterator().next()));
+	}
+
+	/**
+	 * @see DATAREDIS-531
+	 */
+	@Test
+	public void scanShouldOperateOnActiveConnection() throws IOException {
+
+		connection.set("key", "value");
+
+		Cursor<byte[]> scan = connection.scan(ScanOptions.NONE);
+		List<String> list = collectToList(scan);
+
+		assertThat(list, contains("key"));
+	}
+
+	/**
+	 * @see DATAREDIS-531
+	 */
+	@Test
+	public void scanShouldOperateOnClosedConnection() throws IOException {
+
+		connection.set("key", "value");
+		connection.close();
+
+		Cursor<byte[]> scan = connection.scan(ScanOptions.NONE);
+		List<String> list = collectToList(scan);
+
+		assertThat(list, contains("key"));
+	}
+
+	/**
+	 * @see DATAREDIS-531
+	 */
+	@Test
+	public void hscanShouldOperateOnClosedConnection() throws IOException {
+
+		connection.hSet("key", "field", "value");
+		connection.close();
+
+		Cursor<Map.Entry<String, String>> scan = connection.hScan("key", ScanOptions.NONE);
+
+		List<String> list = new ArrayList<String>();
+
+		while (scan.hasNext()) {
+			Map.Entry<String, String> entry = scan.next();
+			list.add(entry.getKey());
+		}
+		scan.close();
+
+		assertThat(list, contains("field"));
+	}
+
+	/**
+	 * @see DATAREDIS-531
+	 */
+	@Test
+	public void sscanShouldOperateOnClosedConnection() throws IOException {
+
+		connection.sAdd("key", "value");
+		connection.close();
+
+		Cursor<byte[]> scan = connection.sScan("key".getBytes(), ScanOptions.NONE);
+		List<String> list = collectToList(scan);
+
+		assertThat(list, contains("value"));
+	}
+
+	/**
+	 * @see DATAREDIS-531
+	 */
+	@Test
+	public void zscanShouldOperateOnClosedConnection() throws IOException {
+
+		connection.zAdd("key", 10, "value");
+		connection.close();
+
+		Cursor<StringTuple> scan = connection.zScan("key", ScanOptions.NONE);
+
+		List<String> list = new ArrayList<String>();
+
+		while (scan.hasNext()) {
+			StringTuple entry = scan.next();
+			list.add(entry.getValueAsString());
+		}
+		scan.close();
+
+		assertThat(list, contains("value"));
+	}
+
+	private List<String> collectToList(Cursor<byte[]> scan) throws IOException {
+
+		List<String> list = new ArrayList<String>();
+
+		while (scan.hasNext()) {
+			list.add(new String(scan.next()));
+		}
+		scan.close();
+		return list;
 	}
 }
