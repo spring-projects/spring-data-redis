@@ -471,6 +471,27 @@ class JedisClusterStringCommands implements RedisStringCommands {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitfield(byte[] key, BitfieldCommand command) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(command, "Command must not be null!");
+
+		try {
+
+			List untypedListToAvoidClassCastErrorsSinceThisOneDeclaresListOfByteArrayButReturnsListOfLong = connection.getCluster()
+					.bitfield(key, JedisConverters.toBitfieldCommandArguments(command));
+			return (List<Long>) untypedListToAvoidClassCastErrorsSinceThisOneDeclaresListOfByteArrayButReturnsListOfLong;
+		} catch (Exception ex) {
+			throw convertJedisAccessException(ex);
+		}
+	}
+
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitOp(org.springframework.data.redis.connection.RedisStringCommands.BitOperation, byte[], byte[][])
 	 */
 	@Override

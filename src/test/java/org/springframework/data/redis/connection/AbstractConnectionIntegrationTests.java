@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static org.hamcrest.collection.IsEmptyCollection.*;
+import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
@@ -25,6 +26,10 @@ import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+import static org.springframework.data.redis.connection.RedisStringCommands.BitfieldIncrBy.Overflow.FAIL;
+import static org.springframework.data.redis.connection.RedisStringCommands.BitfieldCommand.newBitfieldCommand;
+import static org.springframework.data.redis.connection.RedisStringCommands.BitfieldType.*;
+import static org.springframework.data.redis.connection.RedisStringCommands.Offset.*;
 import static org.springframework.data.redis.core.ScanOptions.*;
 
 import java.time.Duration;
@@ -2900,6 +2905,116 @@ public abstract class AbstractConnectionIntegrationTests {
 		actual.add(connection.refcount("refcount.this"));
 
 		verifyResults(Arrays.asList(new Object[] { null }));
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldSetShouldWorkCorrectly() {
+
+		String key = "bitfield-" + UUID.randomUUID();
+
+		actual.add(connection.bitfield(key, newBitfieldCommand().set(INT_8).valueAt(offset(0L)).to(10L)));
+		actual.add(connection.bitfield(key, newBitfieldCommand().set(INT_8).valueAt(offset(0L)).to(20L)));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(0L));
+		assertThat((List<Long>) results.get(1), contains(10L));
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldGetShouldWorkCorrectly() {
+
+		String key = "bitfield-" + UUID.randomUUID();
+
+		actual.add(connection.bitfield(key, newBitfieldCommand().get(INT_8).valueAt(offset(0L))));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(0L));
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldIncrByShouldWorkCorrectly() {
+
+		String key = "bitfield-" + UUID.randomUUID();
+
+		actual.add(connection.bitfield(key, newBitfieldCommand().incr(INT_8).valueAt(offset(100L)).by(1L)));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(1L));
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
+
+		String key = "bitfield-" + UUID.randomUUID();
+
+		actual.add(
+				connection.bitfield(key, newBitfieldCommand().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(
+				connection.bitfield(key, newBitfieldCommand().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(
+				connection.bitfield(key, newBitfieldCommand().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+		actual.add(
+				connection.bitfield(key, newBitfieldCommand().incr(unsigned(2)).valueAt(offset(102L)).overflow(FAIL).by(1L)));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(1L));
+		assertThat((List<Long>) results.get(1), contains(2L));
+		assertThat((List<Long>) results.get(2), contains(3L));
+		assertThat(((List<Long>) results.get(3)).get(0), is(nullValue()));
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitfieldShouldAllowMultipleSubcommands() {
+
+		String key = "bitfield-" + UUID.randomUUID();
+
+		actual.add(connection.bitfield(key,
+				newBitfieldCommand().incr(signed(5)).valueAt(offset(100L)).by(1L).get(unsigned(4)).valueAt(0L)));
+
+		assertThat((List<Long>) getResults().get(0), contains(1L, 0L));
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@IfProfileValue(name = "redisVersion", value = "3.2+")
+	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
+	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
+
+		String key = "bitfield-" + UUID.randomUUID();
+
+		actual.add(connection.bitfield(key, newBitfieldCommand().set(INT_8).valueAt(offset(0L).multipliedByTypeLength()).to(100L).set(INT_8).valueAt(offset(1L).multipliedByTypeLength()).to(200L)));
+		actual.add(connection.bitfield(key, newBitfieldCommand().get(INT_8).valueAt(offset(0L).multipliedByTypeLength()).get(INT_8).valueAt(offset(1L).multipliedByTypeLength())));
+
+		List<Object> results = getResults();
+		assertThat((List<Long>) results.get(0), contains(0L, 0L));
+		assertThat((List<Long>) results.get(1), contains(100L, -56L));
 	}
 
 	protected void verifyResults(List<Object> expected) {

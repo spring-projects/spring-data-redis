@@ -404,6 +404,13 @@ public interface DefaultedRedisConnection extends RedisConnection {
 	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
 	@Override
 	@Deprecated
+	default List<Long> bitfield(byte[] key, BitfieldCommand operation) {
+		return stringCommands().bitfield(key, operation);
+	}
+
+	/** @deprecated in favor of {@link RedisConnection#stringCommands()}}. */
+	@Override
+	@Deprecated
 	default Long bitOp(BitOperation op, byte[] destination, byte[]... keys) {
 		return stringCommands().bitOp(op, destination, keys);
 	}

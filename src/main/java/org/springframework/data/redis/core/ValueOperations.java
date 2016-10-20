@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.connection.RedisStringCommands;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -347,6 +349,16 @@ public interface ValueOperations<K, V> {
 	@Nullable
 	Boolean getBit(K key, long offset);
 
-	RedisOperations<K, V> getOperations();
+	/**
+	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
+	 * at a given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param command must not be {@literal null}.
+	 * @return
+	 * @since 2.1
+	 */
+	List<Long> bitfield(K key, RedisStringCommands.BitfieldCommand command);
 
+	RedisOperations<K, V> getOperations();
 }
