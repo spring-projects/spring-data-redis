@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import io.lettuce.core.BitFieldArgs;
+import io.lettuce.core.BitFieldArgs.Offset;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
@@ -598,6 +600,78 @@ class LettuceStringCommands implements RedisStringCommands {
 				return null;
 			}
 			return getConnection().bitcount(key, start, end);
+		} catch (Exception ex) {
+			throw convertLettuceAccessException(ex);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitfield(byte[] key, BitfieldCommand command) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(command, "Command must not be null!");
+
+		BitFieldArgs args = new BitFieldArgs();
+
+		for (BitfieldSubCommand subCommand : command.getSubCommands()) {
+
+			BitFieldArgs.BitFieldType bft = subCommand.getType().isSigned() ? BitFieldArgs.signed(subCommand.getType().getBits())
+					: BitFieldArgs.unsigned(subCommand.getType().getBits());
+
+			BitFieldArgs.Offset offset;
+			if (!subCommand.getOffset().isZeroBased()) {
+				offset = BitFieldArgs.offset(subCommand.getOffset().getValue().intValue());
+			}else{
+				offset = BitFieldArgs.typeWidthBasedOffset(subCommand.getOffset().getValue().intValue());
+			}
+
+			if (subCommand instanceof BitfieldGet) {
+				args = args.get(bft, offset);
+			} else if (subCommand instanceof BitfieldSet) {
+				args = args.set(bft, offset, ((BitfieldSet) subCommand).getValue());
+			} else if (subCommand instanceof BitfieldIncrBy) {
+
+				BitfieldIncrBy.Overflow overflow = ((BitfieldIncrBy) subCommand).getOverflow();
+				if (overflow != null) {
+
+					BitFieldArgs.OverflowType type;
+
+					switch (overflow) {
+						case SAT:
+							type = BitFieldArgs.OverflowType.SAT;
+							break;
+						case FAIL:
+							type = BitFieldArgs.OverflowType.FAIL;
+							break;
+						case WRAP:
+							type = BitFieldArgs.OverflowType.WRAP;
+							break;
+						default:
+							throw new IllegalArgumentException(
+									String.format("o_O invalid OVERFLOW. Expected one the following %s but got %s.",
+											BitfieldIncrBy.Overflow.values(), overflow));
+					}
+					args = args.overflow(type);
+				}
+
+				args = args.incrBy(bft, subCommand.getOffset().getValue().intValue(), ((BitfieldIncrBy) subCommand).getValue());
+			}
+		}
+
+		try {
+			if (isPipelined()) {
+				pipeline(connection.newLettuceResult(getAsyncConnection().bitfield(key, args)));
+				return null;
+			}
+			if (isQueueing()) {
+				transaction(connection.newLettuceResult(getAsyncConnection().bitfield(key, args)));
+				return null;
+			}
+			return getConnection().bitfield(key, args);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsCollectionContaining;
 import org.hamcrest.core.IsInstanceOf;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -336,5 +337,25 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		((LettuceConnection) byteConnection).setSentinelConfiguration(
 				new RedisSentinelConfiguration().master("mymaster").sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380));
 		assertThat(connection.getSentinelConnection(), notNullValue());
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@Ignore("Lettuce Bug")
+	@Override
+	public void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
+		super.bitFieldIncrByWithOverflowShouldWorkCorrectly();
+	}
+
+	/**
+	 * @see DATAREDIS-562
+	 */
+	@Test
+	@Ignore("Lettuce Bug")
+	@Override
+	public void bitfieldShouldWorkUsingNonZeroBasedOffset() {
+		super.bitfieldShouldWorkUsingNonZeroBasedOffset();
 	}
 }

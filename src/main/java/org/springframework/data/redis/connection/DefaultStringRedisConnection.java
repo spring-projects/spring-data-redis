@@ -3659,6 +3659,29 @@ public class DefaultStringRedisConnection implements StringRedisConnection, Deco
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.RedisStringCommands#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitfield(byte[] key, BitfieldCommand operation) {
+		return delegate.bitfield(key, operation);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.StringRedisConnection#bitfield(byte[], BitfieldCommand)
+	 */
+	@Override
+	public List<Long> bitfield(String key, BitfieldCommand operation) {
+
+		List<Long> results = delegate.bitfield(serialize(key), operation);
+		if (isFutureConversion()) {
+			addResultConverter(identityConverter);
+		}
+		return results;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.data.redis.connection.DecoratedRedisConnection#getDelegate()
 	 */
 	@Override

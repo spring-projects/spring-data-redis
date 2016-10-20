@@ -103,6 +103,8 @@ abstract public class JedisConverters extends Converters {
 	private static final ListConverter<redis.clients.jedis.GeoCoordinate, Point> LIST_GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final Converter<byte[], String> BYTES_TO_STRING_CONVERTER;
 	private static final ListConverter<byte[], String> BYTES_LIST_TO_STRING_LIST_CONVERTER;
+	private static final ListConverter<byte[], Long> BYTES_LIST_TO_LONG_LIST_CONVERTER;
+	private static final Converter<RedisStringCommands.BitfieldCommand, List<byte[]>> BITFIELD_COMMAND_ARGUMENT_CONVERTER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -191,6 +193,50 @@ abstract public class JedisConverters extends Converters {
 		GEO_COORDINATE_TO_POINT_CONVERTER = geoCoordinate -> geoCoordinate != null
 				? new Point(geoCoordinate.getLongitude(), geoCoordinate.getLatitude()) : null;
 		LIST_GEO_COORDINATE_TO_POINT_CONVERTER = new ListConverter<>(GEO_COORDINATE_TO_POINT_CONVERTER);
+
+		BYTES_LIST_TO_LONG_LIST_CONVERTER = new ListConverter<byte[], Long>(new Converter<byte[], Long>() {
+			@Override
+			public Long convert(byte[] source) {
+				return Long.valueOf(JedisConverters.toString(source));
+			}
+		});
+
+		BITFIELD_COMMAND_ARGUMENT_CONVERTER = new Converter<RedisStringCommands.BitfieldCommand, List<byte[]>>() {
+			@Override
+			public List<byte[]> convert(RedisStringCommands.BitfieldCommand source) {
+
+				if (source == null) {
+					return Collections.emptyList();
+				}
+
+				List<byte[]> args = new ArrayList<byte[]>(source.getSubCommands().size() * 4);
+
+				for (RedisStringCommands.BitfieldSubCommand command : source.getSubCommands()) {
+
+					if (command instanceof RedisStringCommands.BitfieldIncrBy) {
+
+						RedisStringCommands.BitfieldIncrBy.Overflow overflow = ((RedisStringCommands.BitfieldIncrBy) command)
+								.getOverflow();
+						if (overflow != null) {
+							args.add(JedisConverters.toBytes("OVERFLOW"));
+							args.add(JedisConverters.toBytes(overflow.name()));
+						}
+					}
+
+					args.add(JedisConverters.toBytes(command.getCommand()));
+					args.add(JedisConverters.toBytes(command.getType().asString()));
+					args.add(JedisConverters.toBytes(command.getOffset().asString()));
+
+					if (command instanceof RedisStringCommands.BitfieldSet) {
+						args.add(JedisConverters.toBytes(((RedisStringCommands.BitfieldSet) command).getValue()));
+					} else if (command instanceof RedisStringCommands.BitfieldIncrBy) {
+						args.add(JedisConverters.toBytes(((RedisStringCommands.BitfieldIncrBy) command).getValue()));
+					}
+				}
+
+				return args;
+			}
+		};
 	}
 
 	public static Converter<String, byte[]> stringToBytes() {
@@ -548,6 +594,10 @@ abstract public class JedisConverters extends Converters {
 		return BYTES_LIST_TO_STRING_LIST_CONVERTER;
 	}
 
+	public static ListConverter<byte[], Long> getBytesListToLongListConverter() {
+		return BYTES_LIST_TO_LONG_LIST_CONVERTER;
+	}
+
 	/**
 	 * @return
 	 * @since 1.8
@@ -636,6 +686,20 @@ abstract public class JedisConverters extends Converters {
 		}
 
 		return param;
+	}
+
+	/**
+	 * Convert given {@link org.springframework.data.redis.connection.RedisStringCommands.BitfieldCommand} into argument
+	 * array.
+	 *
+	 * @param bitfieldOperation
+	 * @return never {@literal null}.
+	 * @since 1.8
+	 */
+	public static byte[][] toBitfieldCommandArguments(RedisStringCommands.BitfieldCommand bitfieldOperation) {
+
+		List<byte[]> tmp = BITFIELD_COMMAND_ARGUMENT_CONVERTER.convert(bitfieldOperation);
+		return tmp.toArray(new byte[tmp.size()][]);
 	}
 
 	/**

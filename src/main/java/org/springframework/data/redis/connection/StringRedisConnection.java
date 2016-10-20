@@ -1945,4 +1945,14 @@ public interface StringRedisConnection extends RedisConnection {
 	 */
 	List<RedisClientInfo> getClientList();
 
+
+	/**
+	 * Get / Manipulate specific integer fields of varying bit widths and arbitrary non (necessary) aligned offset stored
+	 * at a given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param command must not be {@literal null}.
+	 * @return
+	 */
+	List<Long> bitfield(String key, BitfieldCommand command);
 }
