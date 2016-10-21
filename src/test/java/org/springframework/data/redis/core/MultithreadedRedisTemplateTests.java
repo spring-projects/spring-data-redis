@@ -74,10 +74,7 @@ public class MultithreadedRedisTemplateTests {
 		return Arrays.asList(new Object[][] { { jedis }, { lettuce }, { srp } });
 	}
 
-	/**
-	 * @see DATAREDIS-300
-	 */
-	@Test
+	@Test // DATAREDIS-300
 	public void assertResouresAreReleasedProperlyWhenSharingRedisTemplate() throws InterruptedException {
 
 		final RedisTemplate<Object, Object> template = new RedisTemplate<Object, Object>();

@@ -86,10 +86,7 @@ public class RedisRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldPickUpReferenceResolver() {
 
 			RedisKeyValueAdapter adapter = (RedisKeyValueAdapter) ctx.getBean("redisKeyValueAdapter");
@@ -118,18 +115,12 @@ public class RedisRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldInitWithDefaults() {
 			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));
 		}
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldRegisterDefaultBeans() {
 
 			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));

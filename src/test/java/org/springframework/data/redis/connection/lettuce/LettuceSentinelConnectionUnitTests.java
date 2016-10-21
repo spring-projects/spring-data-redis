@@ -58,44 +58,29 @@ public class LettuceSentinelConnectionUnitTests {
 		this.connection = new LettuceSentinelConnection(redisClientMock);
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void shouldConnectAfterCreation() {
 		verify(redisClientMock, times(1)).connectSentinelAsync();
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void failoverShouldBeSentCorrectly() {
 
 		connection.failover(new RedisNodeBuilder().withName(MASTER_ID).build());
 		verify(connectionMock, times(1)).failover(eq(MASTER_ID));
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void failoverShouldThrowExceptionIfMasterNodeIsNull() {
 		connection.failover(null);
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void failoverShouldThrowExceptionIfMasterNodeNameIsEmpty() {
 		connection.failover(new RedisNodeBuilder().build());
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void mastersShouldReadMastersCorrectly() {
 
 		when(connectionMock.masters()).thenReturn(redisFutureMock);
@@ -103,10 +88,7 @@ public class LettuceSentinelConnectionUnitTests {
 		verify(connectionMock, times(1)).masters();
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void shouldReadSlavesCorrectly() {
 
 		when(connectionMock.slaves(MASTER_ID)).thenReturn(redisFutureMock);
@@ -114,10 +96,7 @@ public class LettuceSentinelConnectionUnitTests {
 		verify(connectionMock, times(1)).slaves(eq(MASTER_ID));
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
 
 		when(connectionMock.slaves(MASTER_ID)).thenReturn(redisFutureMock);
@@ -125,68 +104,44 @@ public class LettuceSentinelConnectionUnitTests {
 		verify(connectionMock, times(1)).slaves(eq(MASTER_ID));
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void readSlavesShouldThrowExceptionWhenGivenEmptyMasterName() {
 		connection.slaves("");
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void readSlavesShouldThrowExceptionWhenGivenNull() {
 		connection.slaves((RedisNode) null);
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
 		connection.slaves(new RedisNodeBuilder().build());
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void shouldRemoveMasterCorrectlyWhenGivenNamedNode() {
 
 		connection.remove(new RedisNodeBuilder().withName(MASTER_ID).build());
 		verify(connectionMock, times(1)).remove(eq(MASTER_ID));
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void removeShouldThrowExceptionWhenGivenEmptyMasterName() {
 		connection.remove("");
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void removeShouldThrowExceptionWhenGivenNull() {
 		connection.remove((RedisNode) null);
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-348
 	public void removeShouldThrowExceptionWhenNodeWithoutName() {
 		connection.remove(new RedisNodeBuilder().build());
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void monitorShouldBeSentCorrectly() {
 
 		RedisServer server = new RedisServer("127.0.0.1", 6382);

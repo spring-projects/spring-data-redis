@@ -76,9 +76,6 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS
-	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addShouldAddDistinctValuesCorrectly() {
@@ -91,10 +88,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v1, v2, v3), equalTo(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void addShouldNotAddExistingValuesCorrectly() {
 
@@ -107,10 +101,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v2), equalTo(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void sizeShouldCountValuesCorrectly() {
 
@@ -123,10 +114,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.size(key), equalTo(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void sizeShouldCountValuesOfMultipleKeysCorrectly() {
 
@@ -143,11 +131,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.size(key, key2), equalTo(4L));
 	}
 
-	/**
-	 * @throws InterruptedException
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void unionShouldMergeValuesOfMultipleKeysCorrectly() throws InterruptedException {
 

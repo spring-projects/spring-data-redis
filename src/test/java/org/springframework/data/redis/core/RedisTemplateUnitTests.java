@@ -53,30 +53,21 @@ public class RedisTemplateUnitTests {
 		template.afterPropertiesSet();
 	}
 
-	/**
-	 * @see DATAREDIS-277
-	 */
-	@Test
+	@Test // DATAREDIS-277
 	public void slaveOfIsDelegatedToConnectionCorrectly() {
 
 		template.slaveOf("127.0.0.1", 1001);
 		verify(redisConnectionMock, times(1)).slaveOf(eq("127.0.0.1"), eq(1001));
 	}
 
-	/**
-	 * @see DATAREDIS-277
-	 */
-	@Test
+	@Test // DATAREDIS-277
 	public void slaveOfNoOneIsDelegatedToConnectionCorrectly() {
 
 		template.slaveOfNoOne();
 		verify(redisConnectionMock, times(1)).slaveOfNoOne();
 	}
 
-	/**
-	 * @see DATAREDIS-501
-	 */
-	@Test
+	@Test // DATAREDIS-501
 	public void templateShouldPassOnAndUseResoureLoaderClassLoaderToDefaultJdkSerializerWhenNotAlreadySet() {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());

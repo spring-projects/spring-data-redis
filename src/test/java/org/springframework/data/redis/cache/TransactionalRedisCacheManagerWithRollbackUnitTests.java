@@ -119,11 +119,8 @@ public class TransactionalRedisCacheManagerWithRollbackUnitTests {
 				any(byte[].class));
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
 	@Rollback(true)
-	@Test
+	@Test // DATAREDIS-246
 	public void tesValuesNotAddedToCacheWhenTransactionIsRolledBack() {
 		transactionalService.foo();
 	}

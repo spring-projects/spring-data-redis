@@ -278,10 +278,7 @@ public class LettuceConnectionFactoryTests {
 		conn.close();
 	}
 
-	/**
-	 * @see DATAREDIS-431
-	 */
-	@Test
+	@Test // DATAREDIS-431
 	public void dbIndexShouldBePropagatedCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
@@ -305,10 +302,7 @@ public class LettuceConnectionFactoryTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-462
-	 */
-	@Test
+	@Test // DATAREDIS-462
 	public void factoryWorksWithoutClientResources() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();

@@ -48,42 +48,28 @@ public class SrpConnectionUnitTestSuite {
 			connection = new SrpConnection(getNativeRedisConnectionMock());
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNullOpionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
 			verifyNativeConnectionInvocation().shutdown("SAVE".getBytes(Charsets.UTF_8), null);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithSaveIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
 			verifyNativeConnectionInvocation().shutdown("SAVE".getBytes(Charsets.UTF_8), null);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNosaveIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verifyNativeConnectionInvocation().shutdown("NOSAVE".getBytes(Charsets.UTF_8), null);
 		}
 
-		/**
-		 * <<<<<<< HEAD
-		 * 
-		 * @see DATAREDIS-267
-		 */
-		@Test
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 
 			String ipPort = "127.0.0.1:1001";
@@ -91,38 +77,26 @@ public class SrpConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().client_kill(eq(ipPort));
 		}
 
-		/**
-		 * @see DATAREDIS-270
-		 */
-		@Test
+		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
 			verifyNativeConnectionInvocation().client_getname();
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test(expected = IllegalArgumentException.class)
+		@Test(expected = IllegalArgumentException.class) // DATAREDIS-277
 		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
 			connection.slaveOf(null, 0);
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test
+		@Test // DATAREDIS-277
 		public void slaveOfShouldBeSentCorrectly() {
 
 			connection.slaveOf("127.0.0.1", 1001);
 			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test
+		@Test // DATAREDIS-277
 		public void slaveOfNoOneShouldBeSentCorrectly() {
 
 			connection.slaveOfNoOne();
@@ -144,40 +118,28 @@ public class SrpConnectionUnitTestSuite {
 			connection.openPipeline();
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNullOpionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
 			verifyNativeConnectionInvocation().shutdown("SAVE".getBytes(Charsets.UTF_8), null);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithSaveIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
 			verifyNativeConnectionInvocation().shutdown("SAVE".getBytes(Charsets.UTF_8), null);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNosaveIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verifyNativeConnectionInvocation().shutdown("NOSAVE".getBytes(Charsets.UTF_8), null);
 		}
 
-		/**
-		 * @see DATAREDIS-270
-		 */
-		@Test
+		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();

@@ -120,10 +120,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		assertTrue(results.isEmpty());
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	@Ignore
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {

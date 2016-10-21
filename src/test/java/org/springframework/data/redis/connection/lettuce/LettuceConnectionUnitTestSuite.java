@@ -57,40 +57,28 @@ public class LettuceConnectionUnitTestSuite {
 			connection = new LettuceConnection(0, clientMock);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNullOpionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
 			verifyNativeConnectionInvocation().shutdown(true);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verifyNativeConnectionInvocation().shutdown(false);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
 			verifyNativeConnectionInvocation().shutdown(true);
 		}
 
-		/**
-		 * @see DATAREDIS-267
-		 */
-		@Test
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 
 			String ipPort = "127.0.0.1:1001";
@@ -98,56 +86,38 @@ public class LettuceConnectionUnitTestSuite {
 			verifyNativeConnectionInvocation().clientKill(eq(ipPort));
 		}
 
-		/**
-		 * @see DATAREDIS-270
-		 */
-		@Test
+		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
 			verifyNativeConnectionInvocation().clientGetname();
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test(expected = IllegalArgumentException.class)
+		@Test(expected = IllegalArgumentException.class) // DATAREDIS-277
 		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
 			connection.slaveOf(null, 0);
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test
+		@Test // DATAREDIS-277
 		public void slaveOfShouldBeSentCorrectly() {
 
 			connection.slaveOf("127.0.0.1", 1001);
 			verifyNativeConnectionInvocation().slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test
+		@Test // DATAREDIS-277
 		public void slaveOfNoOneShouldBeSentCorrectly() {
 
 			connection.slaveOfNoOne();
 			verifyNativeConnectionInvocation().slaveofNoOne();
 		}
 
-		/**
-		 * @see DATAREDIS-348
-		 */
-		@Test(expected = InvalidDataAccessResourceUsageException.class)
+		@Test(expected = InvalidDataAccessResourceUsageException.class) // DATAREDIS-348
 		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
 			connection.getSentinelConnection();
 		}
 
-		/**
-		 * @see DATAREDIS-431
-		 */
-		@Test
+		@Test // DATAREDIS-431
 		public void dbIndexShouldBeSetWhenOptainingConnection() {
 
 			connection = new LettuceConnection(null, 0, clientMock, null, 1);

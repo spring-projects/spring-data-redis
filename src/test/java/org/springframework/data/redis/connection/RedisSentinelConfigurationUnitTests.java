@@ -39,10 +39,7 @@ public class RedisSentinelConfigurationUnitTests {
 	static final String HOST_AND_PORT_3 = "localhost:789";
 	static final String HOST_AND_NO_PORT = "localhost";
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test
+	@Test // DATAREDIS-372
 	public void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndSingleHostAndPortString() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster",
@@ -52,10 +49,7 @@ public class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels(), hasItems(new RedisNode("127.0.0.1", 123)));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test
+	@Test // DATAREDIS-372
 	public void shouldCreateRedisSentinelConfigurationCorrectlyGivenMasterAndMultipleHostAndPortStrings() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", new HashSet<String>(Arrays.asList(
@@ -66,26 +60,17 @@ public class RedisSentinelConfigurationUnitTests {
 				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-372
 	public void shouldThrowExecptionOnInvalidHostAndPortString() {
 		new RedisSentinelConfiguration("mymaster", Collections.singleton(HOST_AND_NO_PORT));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-372
 	public void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		new RedisSentinelConfiguration("mymaster", Collections.<String> singleton(null));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test
+	@Test // DATAREDIS-372
 	public void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration("mymaster", Collections.<String> emptySet());
@@ -93,18 +78,12 @@ public class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels().size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-372
 	public void shouldThrowExceptionGivenNullPropertySource() {
 		new RedisSentinelConfiguration((PropertySource<?>) null);
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test
+	@Test // DATAREDIS-372
 	public void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
 
 		RedisSentinelConfiguration config = new RedisSentinelConfiguration(new MockPropertySource());
@@ -113,10 +92,7 @@ public class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels().size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test
+	@Test // DATAREDIS-372
 	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMasterAndSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
@@ -130,10 +106,7 @@ public class RedisSentinelConfigurationUnitTests {
 		assertThat(config.getSentinels(), hasItems(new RedisNode("127.0.0.1", 123)));
 	}
 
-	/**
-	 * @see DATAREDIS-372
-	 */
-	@Test
+	@Test // DATAREDIS-372
 	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMasterAndMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();

@@ -200,10 +200,7 @@ public class DefaultSetOperationsTests<K, V> {
 		assertThat(setOps.members(key), isEqual(Collections.singleton(v3)));
 	}
 
-	/**
-	 * @see DATAREDIS-304
-	 */
-	@Test
+	@Test // DATAREDIS-304
 	@SuppressWarnings("unchecked")
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testSSCanReadsValuesFully() {
@@ -223,10 +220,7 @@ public class DefaultSetOperationsTests<K, V> {
 		assertThat(count, is(setOps.size(key)));
 	}
 
-	/**
-	 * @see DATAREDIS-448
-	 */
-	@Test
+	@Test // DATAREDIS-448
 	public void intersectAndStoreShouldReturnNumberOfElementsInDestination() {
 
 		K sourceKey1 = keyFactory.instance();

@@ -298,11 +298,8 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-285
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-285
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
 
 		connection.set("spring", "awesome");
@@ -329,10 +326,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
 
-	/**
-	 * @see DATAREDIS-106
-	 */
-	@Test
+	@Test // DATAREDIS-106
 	public void zRangeByScoreTest() {
 
 		connection.zAdd("myzset", 1, "one");
@@ -344,10 +338,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		assertEquals("two", new String(zRangeByScore.iterator().next()));
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	@RequiresRedisSentinel(RedisSentinelRule.SentinelsAvailable.ONE_ACTIVE)
 	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 

@@ -140,10 +140,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		assertEquals(2L, numDeleted.longValue());
 	}
 
-	/**
-	 * @see DATAREDIS-305
-	 */
-	@Test
+	@Test // DATAREDIS-305
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testHScanReadsValuesFully() {
 

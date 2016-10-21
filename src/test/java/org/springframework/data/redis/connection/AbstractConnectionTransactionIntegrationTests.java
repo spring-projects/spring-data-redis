@@ -107,10 +107,7 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 		connection.scriptKill();
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	@Ignore
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {

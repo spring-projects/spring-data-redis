@@ -94,10 +94,7 @@ public class RedisCacheUnitTests {
 		when(valueSerializerMock.deserialize(eq(VALUE_BYTES))).thenReturn(VALUE);
 	}
 
-	/**
-	 * @see DATAREDIS-369
-	 */
-	@Test
+	@Test // DATAREDIS-369
 	public void putShouldNotKeepTrackOfKnownKeysWhenPrefixIsSet() {
 
 		cache = new RedisCache(CACHE_NAME, PREFIX_BYTES, templateSpy, EXPIRATION);
@@ -108,10 +105,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, never()).zAdd(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0D), any(byte[].class));
 	}
 
-	/**
-	 * @see DATAREDIS-369
-	 */
-	@Test
+	@Test // DATAREDIS-369
 	public void putShouldKeepTrackOfKnownKeysWhenNoPrefixIsSet() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, EXPIRATION);
@@ -122,10 +116,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, times(1)).zAdd(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0D), eq(KEY_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-369
-	 */
-	@Test
+	@Test // DATAREDIS-369
 	public void clearShouldRemoveKeysUsingKnownKeysWhenNoPrefixIsSet() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, EXPIRATION);
@@ -134,10 +125,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, times(1)).zRange(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0L), eq(127L));
 	}
 
-	/**
-	 * @see DATAREDIS-369
-	 */
-	@Test
+	@Test // DATAREDIS-369
 	public void clearShouldCallLuaScritpToRemoveKeysWhenPrefixIsSet() {
 
 		cache = new RedisCache(CACHE_NAME, PREFIX_BYTES, templateSpy, EXPIRATION);
@@ -147,10 +135,7 @@ public class RedisCacheUnitTests {
 				eq((PREFIX + "*").getBytes()));
 	}
 
-	/**
-	 * @see DATAREDIS-402
-	 */
-	@Test
+	@Test // DATAREDIS-402
 	public void putShouldNotExpireKnownKeysSetWhenTtlIsZero() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
@@ -159,10 +144,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, never()).expire(eq(KNOWN_KEYS_SET_NAME_BYTES), anyLong());
 	}
 
-	/**
-	 * @see DATAREDIS-542
-	 */
-	@Test
+	@Test // DATAREDIS-542
 	public void putIfAbsentShouldExpireWhenValueWasSet() {
 
 		when(connectionMock.setNX(KEY_BYTES, VALUE_BYTES)).thenReturn(true);
@@ -175,10 +157,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock).expire(eq(KEY_BYTES), anyLong());
 	}
 
-	/**
-	 * @see DATAREDIS-542
-	 */
-	@Test
+	@Test // DATAREDIS-542
 	public void putIfAbsentShouldNotExpireWhenValueWasNotSetAndRedisContainsOtherData() {
 
 		String other = "other";
@@ -193,10 +172,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, never()).expire(eq(KEY_BYTES), anyLong());
 	}
 
-	/**
-	 * @see DATAREDIS-542
-	 */
-	@Test
+	@Test // DATAREDIS-542
 	public void putIfAbsentShouldNotSetExpireWhenValueWasNotSetAndRedisContainsSameData() {
 
 		when(connectionMock.setNX(KEY_BYTES, VALUE_BYTES)).thenReturn(false);
@@ -209,10 +185,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, never()).expire(eq(KEY_BYTES), anyLong());
 	}
 
-	/**
-	 * @see DATAREDIS-443
-	 */
-	@Test
+	@Test // DATAREDIS-443
 	@SuppressWarnings("unchecked")
 	public void getWithCallable() throws ClassNotFoundException, LinkageError {
 
@@ -235,10 +208,7 @@ public class RedisCacheUnitTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-443
-	 */
-	@Test
+	@Test // DATAREDIS-443
 	public void getWithCallableShouldReadValueFromCallableAddToCache() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
@@ -256,10 +226,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, times(1)).exec();
 	}
 
-	/**
-	 * @see DATAREDIS-443
-	 */
-	@Test
+	@Test // DATAREDIS-443
 	@SuppressWarnings("unchecked")
 	public void getWithCallableShouldNotReadValueFromCallableWhenAlreadyPresent() {
 
@@ -273,10 +240,7 @@ public class RedisCacheUnitTests {
 		verifyZeroInteractions(callableMock);
 	}
 
-	/**
-	 * @see DATAREDIS-468
-	 */
-	@Test
+	@Test // DATAREDIS-468
 	public void noMultiExecForCluster() {
 
 		RedisClusterConnection clusterConnectionMock = mock(RedisClusterConnection.class);
@@ -295,10 +259,7 @@ public class RedisCacheUnitTests {
 		verifyZeroInteractions(connectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-468
-	 */
-	@Test
+	@Test // DATAREDIS-468
 	public void getWithCallableForCluster() {
 
 		RedisClusterConnection clusterConnectionMock = mock(RedisClusterConnection.class);

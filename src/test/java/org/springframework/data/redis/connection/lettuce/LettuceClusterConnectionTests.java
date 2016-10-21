@@ -102,20 +102,14 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		client.shutdown(0, 0, TimeUnit.MILLISECONDS);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldAllowSettingAndGettingValues() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		assertThat(clusterConnection.get(KEY_1_BYTES), is(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void delShouldRemoveSingleKeyCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -125,10 +119,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void delShouldRemoveMultipleKeysCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -141,10 +132,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void delShouldRemoveMultipleKeysOnSameSlotCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -156,10 +144,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void typeShouldReadKeyTypeCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1);
@@ -171,10 +156,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.type(KEY_3_BYTES), is(DataType.HASH));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void keysShouldReturnAllKeys() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -183,10 +165,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keys(LettuceConverters.toBytes("*")), hasItems(KEY_1_BYTES, KEY_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void keysShouldReturnAllKeysForSpecificNode() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -199,10 +178,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(keysOnNode, not(hasItems(KEY_1_BYTES)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnCorrectlyWhenKeysAvailable() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -211,18 +187,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.randomKey(), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnNullWhenNoKeysAvailable() {
 		assertThat(clusterConnection.randomKey(), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void rename() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -233,10 +203,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void renameSameKeysOnSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -247,10 +214,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void renameNXWhenTargetKeyDoesNotExist() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -261,10 +225,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void renameNXWhenTargetKeyDoesExist() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -276,10 +237,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void renameNXWhenOnSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -290,10 +248,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void expireShouldBeSetCorreclty() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -303,10 +258,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(LettuceConverters.toString(KEY_1_BYTES)) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pExpireShouldBeSetCorreclty() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -316,10 +268,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(LettuceConverters.toString(KEY_1_BYTES)) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void expireAtShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -329,10 +278,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(LettuceConverters.toString(KEY_1_BYTES)) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pExpireAtShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -342,10 +288,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(LettuceConverters.toString(KEY_1_BYTES)) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void persistShoudRemoveTTL() {
 
 		nativeConnection.setex(KEY_1, 10, VALUE_1);
@@ -354,18 +297,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1), is(-1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-315
 	public void moveShouldNotBeSupported() {
 		clusterConnection.move(KEY_1_BYTES, 3);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void dbSizeShouldReturnCummulatedDbSize() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -374,10 +311,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.dbSize(), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void dbSizeForSpecificNodeShouldGetNodeDbSize() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -388,18 +322,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.dbSize(new RedisClusterNode("127.0.0.1", 7381, null)), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void ttlShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES), is(-2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void ttlShouldReturnMinusOneWhenKeyDoesNotHaveExpirationSet() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -407,10 +335,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES), is(-1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void ttlShouldReturnValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -419,18 +344,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pTtlShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES), is(-2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pTtlShouldReturnMinusOneWhenKeyDoesNotHaveExpirationSet() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -438,10 +357,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES), is(-1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pTtlShouldReturValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -450,10 +366,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sortShouldReturnValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
@@ -462,10 +375,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sortAndStoreShouldAddSortedValuesValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
@@ -474,18 +384,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_2), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sortAndStoreShouldReturnZeroWhenListDoesNotExist() {
 		assertThat(clusterConnection.sort(KEY_1_BYTES, new DefaultSortParameters().alpha(), KEY_2_BYTES), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void dumpAndRestoreShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -496,10 +400,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getShouldReturnValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -507,10 +408,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.get(KEY_1_BYTES), is(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getSetShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -521,10 +419,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), is(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mGetShouldReturnCorrectlyWhenKeysMapToSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -534,10 +429,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				contains(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mGetShouldReturnCorrectlyWhenKeysDoNotMapToSameSlot() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -546,10 +438,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES), contains(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void setShouldSetValueCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -557,10 +446,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void setNxShouldSetValueCorrectly() {
 
 		clusterConnection.setNX(KEY_1_BYTES, VALUE_1_BYTES);
@@ -568,10 +454,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void setNxShouldNotSetValueWhenAlreadyExistsInDBCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -581,10 +464,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void setExShouldSetValueCorrectly() {
 
 		clusterConnection.setEx(KEY_1_BYTES, 5, VALUE_1_BYTES);
@@ -593,10 +473,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pSetExShouldSetValueCorrectly() {
 
 		clusterConnection.pSetEx(KEY_1_BYTES, 5000, VALUE_1_BYTES);
@@ -605,10 +482,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysMapToSameSlot() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
@@ -621,10 +495,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), is(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysDoNotMapToSameSlot() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
@@ -637,10 +508,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mSetNXShouldReturnTrueIfAllKeysSet() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
@@ -653,10 +521,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mSetNXShouldReturnFalseIfNotAllKeysSet() {
 
 		nativeConnection.set(KEY_2, VALUE_3);
@@ -670,10 +535,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void mSetNXShouldWorkForOnSameSlotKeys() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<byte[], byte[]>();
@@ -686,10 +548,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), is(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void incrShouldIncreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "1");
@@ -697,10 +556,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.incr(KEY_1_BYTES), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void incrByFloatShouldIncreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "1");
@@ -708,10 +564,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.incrBy(KEY_1_BYTES, 5.5D), is(6.5D));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void incrByShouldIncreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "1");
@@ -719,10 +572,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.incrBy(KEY_1_BYTES, 5), is(6L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void decrShouldDecreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "5");
@@ -730,10 +580,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.decr(KEY_1_BYTES), is(4L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void decrByShouldDecreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "5");
@@ -741,10 +588,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.decrBy(KEY_1_BYTES, 4), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void appendShouldAddValueCorrectly() {
 
 		clusterConnection.append(KEY_1_BYTES, VALUE_1_BYTES);
@@ -753,10 +597,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), is(VALUE_1.concat(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getRangeShouldReturnValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -764,10 +605,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.getRange(KEY_1_BYTES, 0, 2), is(LettuceConverters.toBytes("val")));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void setRangeShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -777,10 +615,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1), is("valUE1"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getBitShouldWorkCorrectly() {
 
 		nativeConnection.setbit(KEY_1, 0, 1);
@@ -790,10 +625,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.getBit(KEY_1_BYTES, 1), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void setBitShouldWorkCorrectly() {
 
 		clusterConnection.setBit(KEY_1_BYTES, 0, true);
@@ -803,10 +635,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.getbit(KEY_1, 1), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void bitCountShouldWorkCorrectly() {
 
 		nativeConnection.setbit(KEY_1, 0, 1);
@@ -815,10 +644,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bitCount(KEY_1_BYTES), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void bitCountWithRangeShouldWorkCorrectly() {
 
 		nativeConnection.setbit(KEY_1, 0, 1);
@@ -830,10 +656,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bitCount(KEY_1_BYTES, 0, 3), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void bitOpShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -844,18 +667,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3), is("bab"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void bitOpShouldThrowExceptionWhenKeysDoNotMapToSameSlot() {
 		clusterConnection.bitOp(BitOperation.AND, KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void strLenShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -863,10 +680,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.strLen(KEY_1_BYTES), is(6L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void rPushShoultAddValuesCorrectly() {
 
 		clusterConnection.rPush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -874,10 +688,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1), hasItems(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lPushShoultAddValuesCorrectly() {
 
 		clusterConnection.lPush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -885,10 +696,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1), hasItems(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void rPushNXShoultNotAddValuesWhenKeyDoesNotExist() {
 
 		clusterConnection.rPushX(KEY_1_BYTES, VALUE_1_BYTES);
@@ -896,10 +704,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_1), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lPushNXShoultNotAddValuesWhenKeyDoesNotExist() {
 
 		clusterConnection.lPushX(KEY_1_BYTES, VALUE_1_BYTES);
@@ -907,10 +712,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_1), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lLenShouldCountValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -918,10 +720,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lLen(KEY_1_BYTES), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lRangeShouldGetValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -929,10 +728,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lRange(KEY_1_BYTES, 0L, -1L), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lTrimShouldTrimListCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -942,10 +738,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1), hasItems(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lIndexShouldGetElementAtIndexCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -953,10 +746,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lIndex(KEY_1_BYTES, 1), is(VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lInsertShouldAddElementAtPositionCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -966,10 +756,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(2), is("booh!"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lSetShouldSetElementAtPositionCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -979,10 +766,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(1), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lRemShouldRemoveElementAtPositionCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -992,10 +776,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.llen(KEY_1), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void lPopShouldReturnElementCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -1003,10 +784,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lPop(KEY_1_BYTES), is(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void rPopShouldReturnElementCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -1014,10 +792,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.rPop(KEY_1_BYTES), is(VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void blPopShouldPopElementCorectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -1026,10 +801,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bLPop(100, KEY_1_BYTES, KEY_2_BYTES).size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void blPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1038,10 +810,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bLPop(100, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES).size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void brPopShouldPopElementCorectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -1050,10 +819,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bRPop(100, KEY_1_BYTES, KEY_2_BYTES).size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void brPopShouldPopElementCorectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1062,10 +828,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bRPop(100, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES).size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void rPopLPushShouldWorkWhenDoNotMapToSameSlot() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -1074,10 +837,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bLPop(100, KEY_1_BYTES, KEY_2_BYTES).size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void bRPopLPushShouldWork() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -1086,10 +846,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_2), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void bRPopLPushShouldWorkOnSameSlotKeys() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1098,10 +855,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void rPopLPushShouldWorkWhenKeysOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1110,10 +864,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sAddShouldAddValueToSetCorrectly() {
 
 		clusterConnection.sAdd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1121,10 +872,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_1), hasItems(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sRemShouldRemoveValueFromSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1134,10 +882,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_1), hasItems(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sPopShouldPopValueFromSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1145,10 +890,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sPop(KEY_1_BYTES), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sMoveShouldWorkWhenKeysMapToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1160,10 +902,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.sismember(SAME_SLOT_KEY_2, VALUE_2), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sMoveShouldWorkWhenKeysDoNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1175,10 +914,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.sismember(KEY_2, VALUE_2), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sCardShouldCountValuesInSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1186,10 +922,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sCard(KEY_1_BYTES), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sIsMemberShouldReturnTrueIfValueIsMemberOfSet() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1197,10 +930,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sIsMember(KEY_1_BYTES, VALUE_1_BYTES), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sIsMemberShouldReturnFalseIfValueIsMemberOfSet() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1208,10 +938,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sIsMember(KEY_1_BYTES, LettuceConverters.toBytes("foo")), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sInterShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1220,10 +947,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sInter(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), hasItem(VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sInterShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1232,10 +956,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sInter(KEY_1_BYTES, KEY_2_BYTES), hasItem(VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sInterStoreShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1246,10 +967,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(SAME_SLOT_KEY_3), hasItem(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sInterStoreShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1260,10 +978,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_3), hasItem(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sUnionShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1273,10 +988,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sUnionShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1286,10 +998,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sUnionStoreShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1300,10 +1009,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(SAME_SLOT_KEY_3), hasItems(VALUE_1, VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sUnionStoreShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1314,10 +1020,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_3), hasItems(VALUE_1, VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sDiffShouldWorkWhenKeysMapToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1326,10 +1029,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sDiff(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), hasItems(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sDiffShouldWorkWhenKeysNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1338,10 +1038,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sDiff(KEY_1_BYTES, KEY_2_BYTES), hasItems(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sDiffStoreShouldWorkWhenKeysMapToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1352,10 +1049,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(SAME_SLOT_KEY_3), hasItems(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sDiffStoreShouldWorkWhenKeysNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1366,10 +1060,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_3), hasItems(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sMembersShouldReturnValuesContainedInSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1377,10 +1068,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sMembers(KEY_1_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sRandMamberShouldReturnValueCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1388,10 +1076,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sRandMember(KEY_1_BYTES), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sRandMamberWithCountShouldReturnValueCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1399,10 +1084,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sRandMember(KEY_1_BYTES, 3), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void sscanShouldRetrieveAllValuesInSetCorrectly() {
 
 		for (int i = 0; i < 30; i++) {
@@ -1419,10 +1101,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(count, is(30));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zAddShouldAddValueWithScoreCorrectly() {
 
 		clusterConnection.zAdd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -1431,10 +1110,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zcard(KEY_1), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRemShouldRemoveValueWithScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1445,10 +1121,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zcard(KEY_1), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zIncrByShouldIncScoreForValueCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1459,10 +1132,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrank(KEY_1, VALUE_1), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRankShouldReturnPositionForValueCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1471,10 +1141,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRank(KEY_1_BYTES, VALUE_2_BYTES), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRankShouldReturnReversePositionForValueCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1483,10 +1150,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRank(KEY_1_BYTES, VALUE_2_BYTES), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1496,10 +1160,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRange(KEY_1_BYTES, 1, 2), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1510,10 +1171,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D), (Tuple) new DefaultTuple(VALUE_2_BYTES, 20D)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeByScoreShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1523,10 +1181,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRangeByScore(KEY_1_BYTES, 10, 20), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeByScoreWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1537,10 +1192,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D), (Tuple) new DefaultTuple(VALUE_2_BYTES, 20D)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeByScoreShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1550,10 +1202,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRangeByScore(KEY_1_BYTES, 10D, 20D, 0L, 1L), hasItems(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeByScoreWithScoresShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1564,10 +1213,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRevRangeShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1577,10 +1223,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRange(KEY_1_BYTES, 1, 2), hasItems(VALUE_3_BYTES, VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRevRangeWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1591,10 +1234,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems((Tuple) new DefaultTuple(VALUE_3_BYTES, 5D), (Tuple) new DefaultTuple(VALUE_1_BYTES, 10D)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1604,10 +1244,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRangeByScore(KEY_1_BYTES, 10D, 20D), hasItems(VALUE_2_BYTES, VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1618,10 +1255,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems((Tuple) new DefaultTuple(VALUE_2_BYTES, 20D), (Tuple) new DefaultTuple(VALUE_1_BYTES, 10D)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1631,10 +1265,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRangeByScore(KEY_1_BYTES, 10D, 20D, 0L, 1L), hasItems(VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreWithScoresShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1645,10 +1276,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				hasItems((Tuple) new DefaultTuple(VALUE_2_BYTES, 20D)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zCountShouldCountValuesInRange() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1658,10 +1286,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zCount(KEY_1_BYTES, 10, 20), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zCardShouldReturnTotalNumberOfValues() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1671,10 +1296,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zCard(KEY_1_BYTES), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zScoreShouldRetrieveScoreForValue() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1683,10 +1305,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zScore(KEY_1_BYTES, VALUE_2_BYTES), is(20D));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRemRangeShouldRemoveValues() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1699,10 +1318,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(KEY_1, 0, -1), hasItem(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRemRangeByScoreShouldRemoveValues() {
 
 		nativeConnection.zadd(KEY_1, 10D, VALUE_1);
@@ -1715,10 +1331,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(KEY_1, 0, -1), hasItems(VALUE_1, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zUnionStoreShouldWorkForSameSlotKeys() {
 
 		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
@@ -1730,18 +1343,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3, 0, -1), hasItems(VALUE_1, VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		clusterConnection.zUnionStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zInterStoreShouldWorkForSameSlotKeys() {
 
 		nativeConnection.zadd(SAME_SLOT_KEY_1, 10D, VALUE_1);
@@ -1755,10 +1362,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(SAME_SLOT_KEY_3, 0, -1), hasItems(VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void zInterStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
 	}
@@ -1783,10 +1387,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(count, equalTo(nrOfValues));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hSetShouldSetValueCorrectly() {
 
 		clusterConnection.hSet(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -1794,10 +1395,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1, KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hSetNXShouldSetValueCorrectly() {
 
 		clusterConnection.hSetNX(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -1805,10 +1403,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1, KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hSetNXShouldNotSetValueWhenAlreadyExists() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1818,10 +1413,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1, KEY_2), is(VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hGetShouldRetrieveValueCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1829,10 +1421,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES), is(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hMGetShouldRetrieveValueCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1841,10 +1430,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hMGet(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hMSetShouldAddValuesCorrectly() {
 
 		Map<byte[], byte[]> hashes = new HashMap<byte[], byte[]>();
@@ -1856,10 +1442,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hmget(KEY_1, KEY_2, KEY_3), hasItems(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hIncrByShouldIncreaseFieldCorretly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, "1");
@@ -1870,10 +1453,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1, KEY_3), is("5"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hIncrByFloatShouldIncreaseFieldCorretly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, "1");
@@ -1884,10 +1464,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1, KEY_3), is("5.5"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hExistsShouldReturnPresenceOfFieldCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1897,10 +1474,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hExists(LettuceConverters.toBytes("foo"), KEY_2_BYTES), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hDelShouldRemoveFieldsCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1912,10 +1486,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hexists(KEY_1, KEY_3), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hLenShouldRetrieveSizeCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1924,10 +1495,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hLen(KEY_1_BYTES), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hKeysShouldRetrieveKeysCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1936,10 +1504,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hKeys(KEY_1_BYTES), hasItems(KEY_2_BYTES, KEY_3_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hValsShouldRetrieveValuesCorrectly() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_1);
@@ -1948,10 +1513,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hVals(KEY_1_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void hGetAllShouldRetrieveEntriesCorrectly() {
 
 		Map<String, String> hashes = new HashMap<String, String>();
@@ -1986,98 +1548,62 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(i, is(nrOfValues));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void multiShouldThrowException() {
 		clusterConnection.multi();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void execShouldThrowException() {
 		clusterConnection.exec();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void discardShouldThrowException() {
 		clusterConnection.discard();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void watchShouldThrowException() {
 		clusterConnection.watch();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void unwatchShouldThrowException() {
 		clusterConnection.unwatch();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void selectShouldAllowSelectionOfDBIndexZero() {
 		clusterConnection.select(0);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void selectShouldThrowExceptionWhenSelectingNonZeroDbIndex() {
 		clusterConnection.select(1);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void echoShouldReturnInputCorrectly() {
 		assertThat(clusterConnection.echo(VALUE_1_BYTES), is(VALUE_1_BYTES));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pingShouldRetrunPongForExistingNode() {
 		assertThat(clusterConnection.ping(new RedisClusterNode("127.0.0.1", 7379, null)), is("PONG"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pingShouldRetrunPong() {
 		assertThat(clusterConnection.ping(), is("PONG"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void pingShouldThrowExceptionWhenNodeNotKnownToCluster() {
 		clusterConnection.ping(new RedisClusterNode("127.0.0.1", 1234, null));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void flushDbShouldFlushAllClusterNodes() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2089,10 +1615,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void flushDbOnSingleNodeShouldFlushOnlyGivenNodesDb() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2104,10 +1627,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void zRangeByLexShouldReturnResultCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 0, "a");
@@ -2141,34 +1661,22 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 				LettuceConverters.toBytes("c"), LettuceConverters.toBytes("d"))));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void infoShouldCollectionInfoFromAllClusterNodes() {
 		assertThat(Double.valueOf(clusterConnection.info().size()), closeTo(245d, 35d));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clientListShouldGetInfosForAllClients() {
 		assertThat(clusterConnection.getClientList().isEmpty(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getClusterNodeForKeyShouldReturnNodeCorrectly() {
 		assertThat((RedisNode) clusterConnection.clusterGetNodeForKey(KEY_1_BYTES), is(new RedisNode("127.0.0.1", 7380)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void countKeysShouldReturnNumberOfKeysInSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -2177,10 +1685,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.clusterCountKeysInSlot(ClusterSlotHashUtil.calculateSlot(SAME_SLOT_KEY_1)), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pfAddShouldAddValuesCorrectly() {
 
 		clusterConnection.pfAdd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
@@ -2188,10 +1693,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.pfcount(KEY_1), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pfCountShouldAllowCountingOnSingleKey() {
 
 		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -2199,10 +1701,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pfCount(KEY_1_BYTES), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pfCountShouldAllowCountingOnSameSlotKeys() {
 
 		nativeConnection.pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -2211,10 +1710,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pfCount(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void pfCountShouldThrowErrorCountingOnDifferentSlotKeys() {
 
 		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2);
@@ -2223,10 +1719,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		clusterConnection.pfCount(KEY_1_BYTES, KEY_2_BYTES);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pfMergeShouldWorkWhenAllKeysMapToSameSlot() {
 
 		nativeConnection.pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -2237,18 +1730,12 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.pfcount(SAME_SLOT_KEY_3), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = DataAccessException.class)
+	@Test(expected = DataAccessException.class) // DATAREDIS-315
 	public void pfMergeShouldThrowErrorOnDifferentSlotKeys() {
 		clusterConnection.pfMerge(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void infoShouldCollectInfoForSpecificNode() {
 
 		Properties properties = clusterConnection.info(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT));
@@ -2256,10 +1743,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(properties.getProperty("tcp_port"), is(Integer.toString(MASTER_NODE_2_PORT)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void infoShouldCollectInfoForSpecificNodeAndSection() {
 
 		Properties properties = clusterConnection.info(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT), "server");
@@ -2268,10 +1752,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(properties.getProperty("used_memory"), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getConfigShouldLoadCumulatedConfiguration() {
 
 		List<String> result = clusterConnection.getConfig("*max-*-entries*");
@@ -2287,10 +1768,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getConfigShouldLoadConfigurationOfSpecificNode() {
 
 		List<String> result = clusterConnection.getConfig(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT), "*");
@@ -2310,10 +1788,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.get(valueIndex), endsWith("7379"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterGetSlavesShouldReturnSlaveCorrectly() {
 
 		Set<RedisClusterNode> slaves = clusterConnection
@@ -2323,10 +1798,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(slaves, hasItem(new RedisClusterNode(CLUSTER_HOST, SLAVEOF_NODE_1_PORT)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterGetMasterSlaveMapShouldListMastersAndSlavesCorrectly() {
 
 		Map<RedisClusterNode, Collection<RedisClusterNode>> masterSlaveMap = clusterConnection.clusterGetMasterSlaveMap();
@@ -2339,10 +1811,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(masterSlaveMap.get(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithExpirationInSecondsShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.upsert());
@@ -2351,10 +1820,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithExpirationInMillisecondsShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.milliseconds(500), SetOption.upsert());
@@ -2363,20 +1829,14 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.pttl(KEY_1).doubleValue(), is(closeTo(500d, 499d)));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithOptionIfPresentShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
 		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.persistent(), SetOption.ifPresent());
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithOptionIfAbsentShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifAbsent());
@@ -2385,10 +1845,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1), is(-1L));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfAbsentShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifAbsent());
@@ -2397,10 +1854,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfAbsentShouldNotBeAppliedWhenKeyExists() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2413,10 +1867,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfPresentShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2429,10 +1880,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfPresentShouldNotBeAppliedWhenKeyDoesNotExists() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifPresent());

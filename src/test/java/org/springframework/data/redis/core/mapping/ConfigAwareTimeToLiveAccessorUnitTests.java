@@ -42,26 +42,17 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		accessor = new ConfigAwareTimeToLiveAccessor(config, new RedisMappingContext());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void getTimeToLiveShouldThrowExceptionWhenSourceObjectIsNull() {
 		accessor.getTimeToLive(null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnNullIfNothingConfiguredOrAnnotated() {
 		assertThat(accessor.getTimeToLive(new SimpleType()), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnConfiguredValueForSimpleType() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleType.class, null);
@@ -71,18 +62,12 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleType()), is(10L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueWhenTypeIsAnnotated() {
 		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotation()), is(5L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveConsidersAnnotationOverConfig() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithRedisHashAnnotation.class, null);
@@ -92,34 +77,22 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotation()), is(5L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueWhenPropertyIsAnnotatedAndHasValue() {
 		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotationAndTTLProperty(20L)), is(20L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueFromTypeAnnotationWhenPropertyIsAnnotatedAndHasNullValue() {
 		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotationAndTTLProperty()), is(10L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnNullWhenPropertyIsAnnotatedAndHasNullValue() {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty()), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnConfiguredValueWhenPropertyIsAnnotatedAndHasNullValue() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleTypeWithTTLProperty.class, null);
@@ -129,10 +102,7 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty()), is(10L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldFavorAnnotatedNotNullPropertyValueOverConfiguredOne() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleTypeWithTTLProperty.class, null);
@@ -142,18 +112,12 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty(25L)), is(25L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnMethodLevelTimeToLiveIfPresent() {
 		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(10L)), is(10L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnConfiguredValueWhenMethodLevelTimeToLiveIfPresentButHasNullValue() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
@@ -163,10 +127,7 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(null)), is(10L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueWhenMethodLevelTimeToLiveIfPresentAlthoughConfiguredValuePresent() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);

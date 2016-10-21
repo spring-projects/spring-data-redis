@@ -92,22 +92,16 @@ public class AbstractRedisCollectionUnitTests {
 		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-188
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-188
 	public void testRenameOfEmptyCollectionShouldNotTriggerRedisOperation() {
 
 		collection.rename("new-key");
 		verify(redisTemplateSpy, never()).rename(eq("key"), eq("new-key"));
 	}
 
-	/**
-	 * @see DATAREDIS-188
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-188
 	public void testRenameCollectionShouldTriggerRedisOperation() {
 
 		when(redisTemplateSpy.hasKey(anyObject())).thenReturn(Boolean.TRUE);

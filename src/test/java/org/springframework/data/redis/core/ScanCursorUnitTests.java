@@ -41,28 +41,19 @@ public class ScanCursorUnitTests {
 
 	public @Rule ExpectedException exception = ExpectedException.none();
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
+	@Test // DATAREDIS-290
 	public void cursorShouldNotLoopWhenNoValuesFound() {
 
 		CapturingCursorDummy cursor = initCursor(new LinkedList<ScanIteration<String>>());
 		assertThat(cursor.hasNext(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test(expected = NoSuchElementException.class)
+	@Test(expected = NoSuchElementException.class) // DATAREDIS-290
 	public void cursorShouldReturnNullWhenNoNextElementAvailable() {
 		initCursor(new LinkedList<ScanIteration<String>>()).next();
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
+	@Test // DATAREDIS-290
 	public void cursorShouldNotLoopWhenReachingStartingPointInFistLoop() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -82,10 +73,7 @@ public class ScanCursorUnitTests {
 		assertThat(cursor.hasNext(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
+	@Test // DATAREDIS-290
 	public void cursorShouldStopLoopWhenReachingStartingPoint() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -107,10 +95,7 @@ public class ScanCursorUnitTests {
 		assertThat(cursor.hasNext(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
+	@Test // DATAREDIS-290
 	public void shouldThrowExceptionWhenAccessingClosedCursor() {
 
 		CapturingCursorDummy cursor = new CapturingCursorDummy(null);
@@ -123,10 +108,7 @@ public class ScanCursorUnitTests {
 		cursor.next();
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-290
 	public void repoeningCursorShouldHappenAtLastPosition() throws IOException {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -146,10 +128,7 @@ public class ScanCursorUnitTests {
 		cursor.open();
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
+	@Test // DATAREDIS-290
 	public void positionShouldBeIncrementedCorrectly() throws IOException {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -167,10 +146,7 @@ public class ScanCursorUnitTests {
 		assertThat(cursor.getPosition(), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	public void hasNextShouldCallScanUntilFinishedWhenScanResultIsAnEmptyCollection() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -191,10 +167,7 @@ public class ScanCursorUnitTests {
 		assertThat(result, hasItems("spring", "redis"));
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	public void hasNextShouldStopWhenScanResultIsAnEmptyCollectionAndStateIsFinished() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();
@@ -217,10 +190,7 @@ public class ScanCursorUnitTests {
 		assertThat(result, hasItems("spring", "data"));
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	public void hasNextShouldStopCorrectlyWhenWholeScanIterationDoesNotReturnResultsAndStateIsFinished() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<ScanIteration<String>>();

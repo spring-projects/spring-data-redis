@@ -1431,10 +1431,7 @@ public class DefaultStringRedisConnectionTxTests extends DefaultStringRedisConne
 		verifyResults(Arrays.asList(new Object[] { foo }));
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test
+	@Test // DATAREDIS-206
 	@Override
 	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
 

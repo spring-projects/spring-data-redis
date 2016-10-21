@@ -87,10 +87,7 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 		verifyResults(Arrays.asList(new Object[] { Arrays.asList(new Object[] { "OK", "OK" }) }));
 	}
 
-	/**
-	 * @see DATAREDIS-285
-	 */
-	@Test
+	@Test // DATAREDIS-285
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
@@ -120,10 +117,7 @@ public class SrpConnectionIntegrationTests extends AbstractConnectionIntegration
 				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
 	}
 
-	/**
-	 * @see DATAREDIS-106
-	 */
-	@Test
+	@Test // DATAREDIS-106
 	public void zRangeByScoreTest() {
 
 		connection.zAdd("myzset", 1, "one");

@@ -121,10 +121,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		super.testErrorInTx();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
@@ -132,10 +129,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		assertThat(servers.get(0).getName(),is(MASTER_NAME));
 	}
 	
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();

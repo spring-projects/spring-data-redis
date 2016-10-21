@@ -42,10 +42,7 @@ public class JedisConnectionFactoryUnitTests {
 	private static final RedisClusterConfiguration CLUSTER_CONFIG = new RedisClusterConfiguration().clusterNode(
 			"127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
 
-	/**
-	 * @see DATAREDIS-324
-	 */
-	@Test
+	@Test // DATAREDIS-324
 	public void shouldInitSentinelPoolWhenSentinelConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory(SINGLE_SENTINEL_CONFIG, new JedisPoolConfig());
@@ -55,10 +52,7 @@ public class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
-	/**
-	 * @see DATAREDIS-324
-	 */
-	@Test
+	@Test // DATAREDIS-324
 	public void shouldInitJedisPoolWhenNoSentinelConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory((RedisSentinelConfiguration) null, new JedisPoolConfig());
@@ -68,10 +62,7 @@ public class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createRedisSentinelPool(Matchers.any(RedisSentinelConfiguration.class));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldInitConnectionCorrectlyWhenClusterConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
@@ -82,11 +73,7 @@ public class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
-	/**
-	 * @throws IOException
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldClostClusterCorrectlyOnFactoryDestruction() throws IOException {
 
 		JedisCluster clusterMock = mock(JedisCluster.class);

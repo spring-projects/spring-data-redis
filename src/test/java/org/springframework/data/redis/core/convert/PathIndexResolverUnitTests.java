@@ -73,18 +73,12 @@ public class PathIndexResolverUnitTests {
 				new RedisMappingContext(new MappingConfiguration(indexConfig, new KeyspaceConfiguration())));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void shouldThrowExceptionOnNullMappingContext() {
 		new PathIndexResolver(null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldResolveAnnotatedIndexOnRootWhenValueIsNotNull() {
 
 		Address address = new Address();
@@ -96,10 +90,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(Address.class.getName(), "country", "andor")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldNotResolveAnnotatedIndexOnRootWhenValueIsNull() {
 
 		Address address = new Address();
@@ -110,10 +101,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes.size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldResolveAnnotatedIndexOnNestedObjectWhenValueIsNotNull() {
 
 		Person person = new Person();
@@ -126,10 +114,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldResolveMultipleAnnotatedIndexesInLists() {
 
 		TheWheelOfTime twot = new TheWheelOfTime();
@@ -155,10 +140,7 @@ public class PathIndexResolverUnitTests {
 						new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "saldaea")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldResolveAnnotatedIndexesInMap() {
 
 		TheWheelOfTime twot = new TheWheelOfTime();
@@ -179,10 +161,7 @@ public class PathIndexResolverUnitTests {
 				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country", "illian")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldResolveConfiguredIndexesInMapOfSimpleTypes() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
@@ -198,10 +177,7 @@ public class PathIndexResolverUnitTests {
 				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "physicalAttributes.eye-color", "grey")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldResolveConfiguredIndexesInMapOfComplexTypes() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "relatives.father.firstname"));
@@ -221,10 +197,7 @@ public class PathIndexResolverUnitTests {
 				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "relatives.father.firstname", "janduin")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldIgnoreConfiguredIndexesInMapWhenValueIsNull() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
@@ -238,10 +211,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes.size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldNotResolveIndexOnReferencedEntity() {
 
 		PersonWithAddressReference rand = new PersonWithAddressReference();
@@ -255,20 +225,14 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes.size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldReturnNullWhenNoIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
 		assertThat(resolve("foo", "rand"), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldReturnDataWhenIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
@@ -277,10 +241,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldReturnDataWhenNoIndexConfiguredButPropertyAnnotated() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
@@ -289,10 +250,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldRemovePositionIndicatorForValuesInLists() {
 
 		when(propertyMock.isCollectionLike()).thenReturn(true);
@@ -304,10 +262,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName(), is("list.name"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldRemoveKeyIndicatorForValuesInMap() {
 
 		when(propertyMock.isMap()).thenReturn(true);
@@ -319,10 +274,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName(), is("map.foo.name"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldKeepNumericalKeyForValuesInMap() {
 
 		when(propertyMock.isMap()).thenReturn(true);
@@ -334,10 +286,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName(), is("map.0.name"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldInspectObjectTypeProperties() {
 
 		Item hat = new Item();
@@ -352,10 +301,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "feature.type", "hat")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldInspectObjectTypePropertiesButIgnoreNullValues() {
 
 		Item hat = new Item();
@@ -369,10 +315,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes.size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldInspectObjectTypeValuesInMapProperties() {
 
 		Item hat = new Item();
@@ -390,10 +333,7 @@ public class PathIndexResolverUnitTests {
 				hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "characteristics.clothing.type", "hat")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexShouldInspectObjectTypeValuesInListProperties() {
 
 		Item hat = new Item();
@@ -410,10 +350,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "items.type", "hat")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexAllowCustomIndexName() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "items.type", "itemsType"));
@@ -432,10 +369,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexForTypeThatHasNoIndexDefined() {
 
 		Size size = new Size();
@@ -447,10 +381,7 @@ public class PathIndexResolverUnitTests {
 		assertThat(indexes, is(empty()));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexOnMapField() {
 
 		IndexedOnMapField source = new IndexedOnMapField();
@@ -469,10 +400,7 @@ public class PathIndexResolverUnitTests {
 						new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.arya", "stark")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveIndexOnListField() {
 
 		IndexedOnListField source = new IndexedOnListField();
@@ -491,10 +419,7 @@ public class PathIndexResolverUnitTests {
 						new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya")));
 	}
 
-	/**
-	 * @see DATAREDIS-509
-	 */
-	@Test
+	@Test // DATAREDIS-509
 	public void resolveIndexOnPrimitiveArrayField() {
 
 		IndexedOnPrimitiveArrayField source = new IndexedOnPrimitiveArrayField();

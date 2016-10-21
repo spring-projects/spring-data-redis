@@ -780,18 +780,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-206
 	public void testGetTimeShouldRequestServerTime() {
 		super.testGetTimeShouldRequestServerTime();
 	}
 
-	/**
-	 * @see DATAREDIS-285
-	 */
-	@Test
+	@Test // DATAREDIS-285
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
@@ -808,28 +802,19 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 						"supercalifragilisticexpialidocious".getBytes()));
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-271
 	public void testPsetEx() throws Exception {
 		super.testPsetEx();
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		super.clientSetNameWorksCorrectly();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}

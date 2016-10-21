@@ -176,10 +176,7 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
-	@Test
+	@Test // DATAREDIS-288
 	@SuppressWarnings("unchecked")
 	public void testRightPushAllCollection() {
 
@@ -193,35 +190,23 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v1, v2, v3 })));
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
 	public void rightPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
 		listOps.rightPushAll(keyFactory.instance(), Collections.<V> emptyList());
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
 	public void rightPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
 		listOps.rightPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
 	public void rightPushAllShouldThrowExceptionWhenCalledWithNull() {
 		listOps.rightPushAll(keyFactory.instance(), (Collection<V>) null);
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
-	@Test
+	@Test // DATAREDIS-288
 	@SuppressWarnings("unchecked")
 	public void testLeftPushAllCollection() {
 
@@ -235,27 +220,18 @@ public class DefaultListOperationsTests<K, V> {
 		assertThat(listOps.range(key, 0, -1), isEqual(Arrays.asList(new Object[] { v3, v2, v1 })));
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
 	public void leftPushAllShouldThrowExceptionWhenCalledWithEmptyCollection() {
 		listOps.leftPushAll(keyFactory.instance(), Collections.<V> emptyList());
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
 	public void leftPushAllShouldThrowExceptionWhenCollectionContainsNullValue() {
 		listOps.leftPushAll(keyFactory.instance(), Arrays.asList(valueFactory.instance(), null));
 	}
 
-	/**
-	 * @see DATAREDIS-288
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-288
 	public void leftPushAllShouldThrowExceptionWhenCalledWithNull() {
 		listOps.leftPushAll(keyFactory.instance(), (Collection<V>) null);
 	}

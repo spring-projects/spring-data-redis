@@ -229,9 +229,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 		super.testScanWorksCorrectly();
 	}
 
-	/**
-	 * @see DATAREDIS-241
-	 */
+	// DATAREDIS-241
 	@Parameters
 	public static Collection<Object[]> testParams() {
 

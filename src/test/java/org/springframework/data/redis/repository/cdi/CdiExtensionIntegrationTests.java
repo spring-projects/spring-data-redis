@@ -51,10 +51,7 @@ public class CdiExtensionIntegrationTests {
 		LOGGER.debug("CDI container bootstrapped!");
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	@SuppressWarnings("rawtypes")
 	public void beanShouldBeRegistered() {
 
@@ -64,10 +61,7 @@ public class CdiExtensionIntegrationTests {
 		assertThat(beans.iterator().next().getScope(), is(equalTo((Class) ApplicationScoped.class)));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void saveAndFindUnqualified() {
 
 		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
@@ -81,10 +75,7 @@ public class CdiExtensionIntegrationTests {
 		assertThat(result, contains(person));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void saveAndFindQualified() {
 
 		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);
@@ -99,10 +90,7 @@ public class CdiExtensionIntegrationTests {
 	}
 	
 	
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void callMethodOnCustomRepositoryShouldSuceed() {
 
 		RepositoryConsumer repositoryConsumer = container.getInstance(RepositoryConsumer.class);

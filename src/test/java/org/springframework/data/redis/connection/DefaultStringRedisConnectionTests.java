@@ -909,10 +909,7 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Arrays.asList(new Object[] { true }));
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test
+	@Test // DATAREDIS-271
 	public void testPSetExShouldDelegateCallToNativeConnection() {
 
 		connection.pSetEx(fooBytes, 10L, barBytes);
@@ -1689,10 +1686,7 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Arrays.asList(new Object[] { "foo" }));
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test
+	@Test // DATAREDIS-206
 	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
 
 		doReturn(1L).when(nativeConnection).time();
@@ -1700,30 +1694,21 @@ public class DefaultStringRedisConnectionTests {
 		verifyResults(Arrays.asList(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test
+	@Test // DATAREDIS-184
 	public void testShutdownInDelegatedCorrectlyToNativeConnection() {
 
 		connection.shutdown(ShutdownOption.NOSAVE);
 		verify(nativeConnection, times(1)).shutdown(eq(ShutdownOption.NOSAVE));
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
-	@Test
+	@Test // DATAREDIS-269
 	public void settingClientNameShouldDelegateToNativeConnection() {
 
 		connection.setClientName("foo");
 		verify(nativeConnection, times(1)).setClientName(eq("foo".getBytes()));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	public void pfAddShouldDelegateToNativeConnectionCorrectly() {
 
 		connection.pfAdd("hll", "spring", "data", "redis");
@@ -1731,20 +1716,14 @@ public class DefaultStringRedisConnectionTests {
 				"redis".getBytes());
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	public void pfCountShouldDelegateToNativeConnectionCorrectly() {
 
 		connection.pfCount("hll", "hyperLogLog");
 		verify(nativeConnection, times(1)).pfCount("hll".getBytes(), "hyperLogLog".getBytes());
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	public void pfMergeShouldDelegateToNativeConnectionCorrectly() {
 
 		connection.pfMerge("merged", "spring", "data", "redis");
@@ -1752,10 +1731,7 @@ public class DefaultStringRedisConnectionTests {
 				"redis".getBytes());
 	}
 
-	/**
-	 * @see DATAREDIS-270
-	 */
-	@Test
+	@Test // DATAREDIS-270
 	public void testGetClientNameIsDelegatedCorrectlyToNativeConnection() {
 
 		actual.add(connection.getClientName());

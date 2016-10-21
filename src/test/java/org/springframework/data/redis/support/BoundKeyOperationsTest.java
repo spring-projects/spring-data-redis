@@ -108,10 +108,7 @@ public class BoundKeyOperationsTest {
 		assertEquals(key, keyOps.getKey());
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
-	@Test
+	@Test // DATAREDIS-251
 	public void testExpire() throws Exception {
 
 		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
@@ -122,10 +119,7 @@ public class BoundKeyOperationsTest {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
-	@Test
+	@Test // DATAREDIS-251
 	public void testPersist() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 

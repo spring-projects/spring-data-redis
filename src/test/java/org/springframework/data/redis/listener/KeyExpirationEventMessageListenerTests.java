@@ -81,10 +81,7 @@ public class KeyExpirationEventMessageListenerTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void listenerShouldPublishEventCorrectly() throws InterruptedException {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
@@ -110,10 +107,7 @@ public class KeyExpirationEventMessageListenerTests {
 		assertThat((byte[]) captor.getValue().getSource(), is(key));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();

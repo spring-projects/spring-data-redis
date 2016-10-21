@@ -399,10 +399,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertTrue(waitFor(new KeyExpired("expy"), 2500l));
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test
+	@Test // DATAREDIS-271
 	@IfProfileValue(name = "runLongTests", value = "true")
 	public void testPsetEx() throws Exception {
 
@@ -1919,11 +1916,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertNotNull(results.get(0));
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 * @see DATAREDIS-513
-	 */
-	@Test
+	@Test // DATAREDIS-206, DATAREDIS-513
 	public void testGetTimeShouldRequestServerTime() {
 
 		actual.add(connection.time());
@@ -1934,18 +1927,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(0) > 0, equalTo(true));
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
-	@Test
+	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		connection.setClientName("foo".getBytes());
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 
 		actual.add(connection.getClientList());
@@ -1961,10 +1948,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.getDatabaseId(), is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-290
-	 */
-	@Test
+	@Test // DATAREDIS-290
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void scanShouldReadEntireValueRange() {
 
@@ -1995,10 +1979,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(itemCount));
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
@@ -2016,10 +1997,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(10));
 	}
 
-	/**
-	 * @see DATAREDIS-306
-	 */
-	@Test
+	@Test // DATAREDIS-306
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void zScanShouldReadEntireValueRange() {
 
@@ -2051,10 +2029,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(count, equalTo(3));
 	}
 
-	/**
-	 * @see DATAREDIS-304
-	 */
-	@Test
+	@Test // DATAREDIS-304
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void sScanShouldReadEntireValueRange() {
 
@@ -2080,10 +2055,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(6));
 	}
 
-	/**
-	 * @see DATAREDIS-305
-	 */
-	@Test
+	@Test // DATAREDIS-305
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void hScanShouldReadEntireValueRange() {
 
@@ -2118,10 +2090,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i, is(3));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfAddShouldAddToNonExistingKeyCorrectly() {
@@ -2132,10 +2101,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(0), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
@@ -2150,10 +2116,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(2), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountShouldReturnCorrectly() {
@@ -2166,10 +2129,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(1), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
@@ -2184,21 +2144,15 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(2), is(6L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-308
 	@IfProfileValue(name = "redisVersion", value = "2.8.9+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
 		actual.add(connection.pfCount((String[]) null));
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-378
 	@IfProfileValue(name = "redisVersion", value = "2.9.0+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void zRangeByLexTest() {
@@ -2236,10 +2190,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(values, not(hasItems("a", "b", "c", "d")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndNullOpionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2254,10 +2205,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500d, 499d)));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2272,10 +2220,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(500d, 499d)));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesExist() {
 
@@ -2293,10 +2238,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("data")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesExist() {
 
@@ -2314,10 +2256,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("spring")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2334,10 +2273,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("data")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndPresentOptionShouldSetTtlWhenKeyDoesExist() {
 
@@ -2355,10 +2291,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("data")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithExpirationAndPresentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2374,10 +2307,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-2, 0)));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithNullExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2392,10 +2322,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithoutExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2410,10 +2337,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(1)).doubleValue(), is(closeTo(-1, 0)));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithoutExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesExist() {
 
@@ -2431,10 +2355,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("data")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithoutExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesExist() {
 
@@ -2452,10 +2373,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("spring")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithoutExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
@@ -2472,10 +2390,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("data")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithoutExpirationAndPresentOptionShouldSetTtlWhenKeyDoesExist() {
 
@@ -2493,10 +2408,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((String) result.get(2)), is(equalTo("data")));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void setWithoutExpirationAndPresentOptionShouldSetTtlWhenKeyDoesNotExist() {
 

@@ -39,10 +39,7 @@ public class SrpReplyToTimeAsLongConverterUnitTests {
 		this.converter = SrpConverters.repliesToTimeAsLong();
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test
+	@Test // DATAREDIS-206
 	public void testConverterShouldCreateMillisecondsCorrectlyWhenGivenValidReplyArray() {
 
 		Reply<?> seconds = new BulkReply("1392183718".getBytes(Charset.forName("UTF-8")));
@@ -51,46 +48,31 @@ public class SrpReplyToTimeAsLongConverterUnitTests {
 		Assert.assertThat(converter.convert(new Reply[] { seconds, microseconds }), IsEqual.equalTo(1392183718555L));
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-206
 	public void testConverterShouldThrowExceptionWhenGivenReplyArrayIsNull() {
 
 		converter.convert(null);
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-206
 	public void testConverterShouldThrowExceptionWhenGivenReplyArrayIsEmpty() {
 
 		converter.convert(new Reply[] {});
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-206
 	public void testConverterShouldThrowExceptionWhenGivenReplyArrayHasOnlyOneItem() {
 
 		converter.convert(new Reply[] { new BulkReply(null) });
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-206
 	public void testConverterShouldThrowExceptionWhenGivenReplyArrayMoreThanTwoItems() {
 
 		converter.convert(new Reply[] { new BulkReply(null), new BulkReply(null), new BulkReply(null) });
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = NumberFormatException.class)
+	@Test(expected = NumberFormatException.class) // DATAREDIS-206
 	public void testConverterShouldThrowExecptionForNonParsableReply() {
 
 		Reply<?> invalidDataBlock = new BulkReply("123-not-a-number".getBytes(Charset.forName("UTF-8")));
@@ -99,10 +81,7 @@ public class SrpReplyToTimeAsLongConverterUnitTests {
 		converter.convert(new Reply[] { invalidDataBlock, microseconds });
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-206
 	public void testConverterShouldThrowExecptionForEmptyDataBlocks() {
 
 		Reply<?> invalidDataBlock = new BulkReply(null);

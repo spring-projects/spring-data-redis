@@ -246,10 +246,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		assertEquals("HELLO", scriptExecutor.execute(script, null));
 	}
 
-	/**
-	 * @see DATAREDIS-356
-	 */
-	@Test
+	@Test // DATAREDIS-356
 	public void shouldTransparentlyReEvaluateScriptIfNotPresent() throws Exception {
 
 		this.template = new StringRedisTemplate();

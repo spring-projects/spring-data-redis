@@ -53,10 +53,7 @@ public class DefaultScriptExecutorUnitTests {
 		executor = new DefaultScriptExecutor<String>(template);
 	}
 
-	/**
-	 * @see DATAREDIS-347
-	 */
-	@Test
+	@Test // DATAREDIS-347
 	public void excuteCheckForPresenceOfScriptViaEvalSha1() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn("FOO".getBytes());
@@ -66,10 +63,7 @@ public class DefaultScriptExecutorUnitTests {
 		verify(redisConnectionMock, times(1)).evalSha(anyString(), any(ReturnType.class), anyInt());
 	}
 
-	/**
-	 * @see DATAREDIS-347
-	 */
-	@Test
+	@Test // DATAREDIS-347
 	public void excuteShouldNotCallEvalWhenSha1Exists() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn("FOO".getBytes());
@@ -79,10 +73,7 @@ public class DefaultScriptExecutorUnitTests {
 		verify(redisConnectionMock, never()).eval(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
-	/**
-	 * @see DATAREDIS-347
-	 */
-	@Test
+	@Test // DATAREDIS-347
 	public void excuteShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
@@ -93,10 +84,7 @@ public class DefaultScriptExecutorUnitTests {
 		verify(redisConnectionMock, times(1)).eval(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
-	/**
-	 * @see DATAREDIS-347
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-347
 	public void excuteShouldThrowExceptionInCaseEvalShaFailsWithOtherThanRedisSystemException() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
@@ -105,10 +93,7 @@ public class DefaultScriptExecutorUnitTests {
 		executor.execute(SCRIPT, null);
 	}
 
-	/**
-	 * @see DATAREDIS-347
-	 */
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = RedisSystemException.class) // DATAREDIS-347
 	public void excuteShouldThrowExceptionInCaseEvalShaFailsWithAlthoughTheScriptExists() {
 
 		when(redisConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(

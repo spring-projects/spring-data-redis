@@ -85,10 +85,7 @@ public class RedisKeyValueAdapterUnitTests {
 		adapter.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-507
-	 */
-	@Test
+	@Test // DATAREDIS-507
 	public void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
 		adapter.destroy();
@@ -96,10 +93,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(jedisConnectionFactoryMock, never()).destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putShouldRemoveExistingIndexValuesWhenUpdating() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -114,10 +108,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(redisConnectionMock, times(1)).sRem(any(byte[].class), any(byte[].class));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -132,10 +123,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(redisConnectionMock, never()).sRem(any(byte[].class), (byte[][]) anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldInitKeyExpirationListenerOnStartup() throws Exception{
 
 		adapter.destroy();
@@ -149,10 +137,7 @@ public class RedisKeyValueAdapterUnitTests {
 		assertThat(listener, notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
 
 		adapter.destroy();
@@ -176,10 +161,7 @@ public class RedisKeyValueAdapterUnitTests {
 		assertThat(listener, notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldNeverInitKeyExpirationListener() throws Exception {
 
 		adapter.destroy();

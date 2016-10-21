@@ -28,10 +28,7 @@ import org.junit.Test;
  */
 public class ExpirationUnitTests {
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void fromDefault() throws Exception {
 
 		Expiration expiration = Expiration.from(5, null);
@@ -40,10 +37,7 @@ public class ExpirationUnitTests {
 		assertThat(expiration.getTimeUnit(), is(TimeUnit.SECONDS));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void fromNanos() throws Exception {
 
 		Expiration expiration = Expiration.from(5L * 1000 * 1000, TimeUnit.NANOSECONDS);
@@ -52,10 +46,7 @@ public class ExpirationUnitTests {
 		assertThat(expiration.getTimeUnit(), is(TimeUnit.MILLISECONDS));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void fromMinutes() throws Exception {
 
 		Expiration expiration = Expiration.from(5, TimeUnit.MINUTES);

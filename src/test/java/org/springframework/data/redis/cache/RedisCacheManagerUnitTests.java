@@ -68,38 +68,26 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.afterPropertiesSet();
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testGetCacheReturnsNewCacheWhenRequestedCacheIsNotAvailable() {
 
 		Cache cache = cacheManager.getCache("not-available");
 		assertThat(cache, notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testGetCacheReturnsExistingCacheWhenRequested() {
 
 		Cache cache = cacheManager.getCache("cache");
 		assertThat(cacheManager.getCache("cache"), sameInstance(cache));
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitSouldNotRequestRemoteKeysByDefault() {
 		Mockito.verifyZeroInteractions(redisConnectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitShouldFetchAllCacheKeysWhenLoadingRemoteCachesOnStartupIsEnabled() {
 
 		cacheManager = new RedisCacheManager(redisTemplate);
@@ -111,11 +99,8 @@ public class RedisCacheManagerUnitTests {
 		assertThat(redisTemplate.getKeySerializer().deserialize(captor.getValue()).toString(), is("*~keys"));
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitShouldInitializeRemoteCachesCorrectlyWhenLoadingRemoteCachesOnStartupIsEnabled() {
 
 		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(redisTemplate.getKeySerializer()
@@ -129,10 +114,7 @@ public class RedisCacheManagerUnitTests {
 		assertThat(cacheManager.getCacheNames(), IsCollectionContaining.hasItem("remote-cache"));
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitShouldNotInitialzeCachesWhenLoadingRemoteCachesOnStartupIsEnabledAndNoCachesAvailableOnRemoteServer() {
 
 		when(redisConnectionMock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptySet());
@@ -184,10 +166,7 @@ public class RedisCacheManagerUnitTests {
 		assertThat(cacheManager.getCache("redis"), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-283
-	 */
-	@Test
+	@Test // DATAREDIS-283
 	public void testRetainConfiguredCachesAfterBeanInitialization() {
 
 		cacheManager = new RedisCacheManager(redisTemplate);
@@ -198,10 +177,7 @@ public class RedisCacheManagerUnitTests {
 		assertThat(cacheManager.getCache("data"), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-283
-	 */
-	@Test
+	@Test // DATAREDIS-283
 	public void testRetainConfiguredCachesAfterBeanInitializationWithLoadingOfRemoteKeys() {
 
 		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(redisTemplate.getKeySerializer()

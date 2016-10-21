@@ -173,10 +173,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexUnbounded() {
 
 		assumeThat(
@@ -199,10 +196,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(value1));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexBounded() {
 
 		assumeThat(
@@ -225,10 +219,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(value2));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexUnboundedWithLimit() {
 
 		assumeThat(
@@ -252,10 +243,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(value2));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexBoundedWithLimit() {
 
 		assumeThat(
@@ -348,10 +336,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(zSetOps.size(key), equalTo(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-306
-	 */
-	@Test
+	@Test // DATAREDIS-306
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testZScanShouldReadEntireValueRange() {
 

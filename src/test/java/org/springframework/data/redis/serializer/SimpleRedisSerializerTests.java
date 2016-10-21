@@ -122,10 +122,7 @@ public class SimpleRedisSerializerTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-427
-	 */
-	@Test
+	@Test // DATAREDIS-427
 	public void jdkSerializerShouldUseCustomClassLoader() throws ClassNotFoundException {
 
 		ClassLoader customClassLoader = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());

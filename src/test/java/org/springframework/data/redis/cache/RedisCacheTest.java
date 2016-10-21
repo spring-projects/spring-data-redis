@@ -193,10 +193,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertFalse(monitorStateException.get());
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test
+	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnCachedInstance() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -207,10 +204,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(value, isEqual(((RedisCache) cache).get(key, Object.class)));
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test
+	@Test // DATAREDIS-243
 	public void testCacheGetShouldRetunInstanceOfCorrectType() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -222,10 +216,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(redisCache.get(key, value.getClass()), instanceOf(value.getClass()));
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test(expected = ClassCastException.class)
+	@Test(expected = ClassCastException.class) // DATAREDIS-243
 	public void testCacheGetShouldThrowExceptionOnInvalidType() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -238,10 +229,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		Cache retrievedObject = redisCache.get(key, Cache.class);
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test
+	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnNullIfNoCachedValueFound() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -255,11 +243,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(redisCache.get(invalidKey, value.getClass()), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-344
-	 * @see DATAREDIS-416
-	 */
-	@Test
+	@Test // DATAREDIS-344, DATAREDIS-416
 	public void putIfAbsentShouldSetValueOnlyIfNotPresent() {
 
 		assumeThat(cache, instanceOf(RedisCache.class));
@@ -282,10 +266,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(wrapper.get(), equalTo(value));
 	}
 
-	/**
-	 * @see DATAREDIS-510
-	 */
-	@Test
+	@Test // DATAREDIS-510
 	public void cachePutWithNullShouldNotAddStuffToRedis() {
 
 		Object key = getKey();
@@ -296,10 +277,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-510
-	 */
-	@Test
+	@Test // DATAREDIS-510
 	public void cachePutWithNullShouldRemoveKeyIfExists() {
 
 		Object key = getKey();
@@ -314,11 +292,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-443
-	 * @see DATAREDIS-452
-	 */
-	@Test
+	@Test // DATAREDIS-443, DATAREDIS-452
 	public void testCacheGetSynchronized() throws Throwable {
 
 		assumeThat(cache, instanceOf(RedisCache.class));

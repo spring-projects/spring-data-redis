@@ -343,11 +343,8 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		factory2.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-285
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-285
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
@@ -359,10 +356,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
 
-	/**
-	 * @see DATAREDIS-286
-	 */
-	@Test
+	@Test // DATAREDIS-286
 	public void expireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("expireKey", "foo");
@@ -374,10 +368,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(ttl, is(seconds));
 	}
 
-	/**
-	 * @see DATAREDIS-286
-	 */
-	@Test
+	@Test // DATAREDIS-286
 	public void pExpireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("pexpireKey", "foo");
@@ -390,10 +381,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				millis, ttl, millis - ttl), millis - ttl < 20L);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	@RequiresRedisSentinel(SentinelsAvailable.ONE_ACTIVE)
 	public void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 
@@ -402,10 +390,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(connection.getSentinelConnection(), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-106
-	 */
-	@Test
+	@Test // DATAREDIS-106
 	public void zRangeByScoreTest() {
 
 		connection.zAdd("myzset", 1, "one");

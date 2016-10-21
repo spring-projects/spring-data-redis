@@ -47,10 +47,7 @@ public class JedisConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-324
-	 */
-	@Test
+	@Test // DATAREDIS-324
 	public void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 		assertThat(factory.getConnection().ping(), equalTo("PONG"));
 	}

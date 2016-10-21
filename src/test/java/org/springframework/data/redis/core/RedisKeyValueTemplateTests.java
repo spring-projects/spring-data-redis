@@ -96,10 +96,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void savesObjectCorrectly() {
 
 		final Person rand = new Person();
@@ -118,10 +115,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningSingleIdCorrectly() {
 
 		Person rand = new Person();
@@ -145,10 +139,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result, hasItems(mat));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningMultipleIdsCorrectly() {
 
 		final Person rand = new Person();
@@ -172,10 +163,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result, hasItems(rand, mat));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningNullCorrectly() {
 
 		Person rand = new Person();

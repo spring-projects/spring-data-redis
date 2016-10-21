@@ -57,10 +57,7 @@ public class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
@@ -71,10 +68,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(getField(connectionFactory, "client"), instanceOf(RedisClusterClient.class));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
 	public void timeoutShouldBeSetCorrectlyOnClusterClient() {
 
@@ -95,10 +89,7 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
 	public void passwordShouldBeSetCorrectlyOnClusterClient() {
 
@@ -118,10 +109,7 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-524
-	 */
-	@Test
+	@Test // DATAREDIS-524
 	public void passwordShouldBeSetCorrectlyOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -139,10 +127,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.getPassword(), is(equalTo(connectionFactory.getPassword().toCharArray())));
 	}
 
-	/**
-	 * @see DATAREDIS-462
-	 */
-	@Test
+	@Test // DATAREDIS-462
 	public void clusterClientShouldInitializeWithoutClientResources() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
@@ -154,10 +139,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(client, instanceOf(RedisClusterClient.class));
 	}
 
-	/**
-	 * @see DATAREDIS-480
-	 */
-	@Test
+	@Test // DATAREDIS-480
 	public void sslOptionsShouldBeDisabledByDefaultOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
@@ -178,10 +160,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isVerifyPeer(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-476
-	 */
-	@Test
+	@Test // DATAREDIS-476
 	public void sslShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
@@ -201,10 +180,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isVerifyPeer(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-480
-	 */
-	@Test
+	@Test // DATAREDIS-480
 	public void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
@@ -222,10 +198,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isVerifyPeer(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-480
-	 */
-	@Test
+	@Test // DATAREDIS-480
 	public void startTLSOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
@@ -243,10 +216,7 @@ public class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isStartTls(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-537
-	 */
-	@Test
+	@Test // DATAREDIS-537
 	public void sslShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -266,10 +236,7 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-537
-	 */
-	@Test
+	@Test // DATAREDIS-537
 	public void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -289,10 +256,7 @@ public class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-537
-	 */
-	@Test
+	@Test // DATAREDIS-537
 	public void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(

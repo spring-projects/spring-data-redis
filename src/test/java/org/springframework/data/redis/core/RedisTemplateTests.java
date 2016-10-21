@@ -320,10 +320,7 @@ public class RedisTemplateTests<K, V> {
 		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
 	}
 
-	/**
-	 * @see DATAREDIS-500
-	 */
-	@Test
+	@Test // DATAREDIS-500
 	public void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
 		
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);

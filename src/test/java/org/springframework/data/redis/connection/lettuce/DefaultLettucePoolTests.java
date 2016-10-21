@@ -205,10 +205,7 @@ public class DefaultLettucePoolTests {
 		pool.getResource();
 	}
 
-	/**
-	 * @see DATAREDIS-524
-	 */
-	@Test
+	@Test // DATAREDIS-524
 	public void testCreateSentinelWithPassword() {
 
 		pool = new DefaultLettucePool(new RedisSentinelConfiguration("mymaster", Collections.singleton("host:1234")));
@@ -221,10 +218,7 @@ public class DefaultLettucePoolTests {
 		assertThat(redisUri.getPassword(), is(equalTo(pool.getPassword().toCharArray())));
 	}
 
-	/**
-	 * @see DATAREDIS-462
-	 */
-	@Test
+	@Test // DATAREDIS-462
 	public void poolWorksWithoutClientResources() {
 
 		pool = new DefaultLettucePool(SettingsUtils.getHost(), SettingsUtils.getPort());

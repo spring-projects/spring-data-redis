@@ -103,10 +103,7 @@ public class JedisClusterConnectionUnitTests {
 		connection = new JedisClusterConnection(clusterMock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void thowsExceptionWhenClusterCommandExecturorIsNull() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -114,10 +111,7 @@ public class JedisClusterConnectionUnitTests {
 		new JedisClusterConnection(clusterMock, null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterMeetShouldSendCommandsToExistingNodesCorrectly() {
 
 		connection.clusterMeet(UNKNOWN_CLUSTER_NODE);
@@ -127,10 +121,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con2Mock, times(1)).clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(), UNKNOWN_CLUSTER_NODE.getPort());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterMeetShouldThrowExceptionWhenNodeIsNull() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -138,10 +129,7 @@ public class JedisClusterConnectionUnitTests {
 		connection.clusterMeet(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterForgetShouldSendCommandsToRemainingNodesCorrectly() {
 
 		connection.clusterForget(CLUSTER_NODE_2);
@@ -151,10 +139,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con3Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterReplicateShouldSendCommandsCorrectly() {
 
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
@@ -164,10 +149,7 @@ public class JedisClusterConnectionUnitTests {
 		verifyZeroInteractions(con1Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void closeShouldNotCloseUnderlyingClusterPool() throws IOException {
 
 		connection.close();
@@ -175,10 +157,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(clusterMock, never()).close();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void isClosedShouldReturnConnectionStateCorrectly() {
 
 		assertThat(connection.isClosed(), is(false));
@@ -188,10 +167,7 @@ public class JedisClusterConnectionUnitTests {
 		assertThat(connection.isClosed(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterInfoShouldBeReturnedCorrectly() {
 
 		when(con1Mock.clusterInfo()).thenReturn(CLUSTER_INFO_RESPONSE);
@@ -204,10 +180,7 @@ public class JedisClusterConnectionUnitTests {
 		verifyInvocationsAcross("clusterInfo", times(1), con1Mock, con2Mock, con3Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotImportingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.IMPORTING);
@@ -215,10 +188,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con1Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotMigratingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.MIGRATING);
@@ -226,10 +196,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con1Mock, times(1)).clusterSetSlotMigrating(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotStableShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.STABLE);
@@ -237,10 +204,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con1Mock, times(1)).clusterSetSlotStable(eq(100));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotNodeShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.NODE);
@@ -248,10 +212,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con1Mock, times(1)).clusterSetSlotNode(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotShouldBeExecutedOnTargetNodeWhenNodeIdNotSet() {
 
 		connection.clusterSetSlot(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT), 100, AddSlots.IMPORTING);
@@ -259,18 +220,12 @@ public class JedisClusterConnectionUnitTests {
 		verify(con2Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_2.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterDeleteSlotsShouldBeExecutedCorrectly() {
 
 		int[] slots = new int[] { 9000, 10000 };
@@ -279,18 +234,12 @@ public class JedisClusterConnectionUnitTests {
 		verify(con2Mock, times(1)).clusterDelSlots((int[]) anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
 		connection.clusterDeleteSlots(null, new int[] { 1 });
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void timeShouldBeExecutedOnArbitraryNode() {
 
 		List<String> values = Arrays.asList("1449655759", "92217");
@@ -303,10 +252,7 @@ public class JedisClusterConnectionUnitTests {
 		verifyInvocationsAcross("time", times(1), con1Mock, con2Mock, con3Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void timeShouldBeExecutedOnSingleNode() {
 
 		when(con2Mock.time()).thenReturn(Arrays.asList("1449655759", "92217"));
@@ -318,10 +264,7 @@ public class JedisClusterConnectionUnitTests {
 		verifyZeroInteractions(con1Mock, con3Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void resetConfigStatsShouldBeExecutedOnAllNodes() {
 
 		connection.resetConfigStats();
@@ -331,10 +274,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con3Mock, times(1)).configResetStat();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void resetConfigStatsShouldBeExecutedOnSingleNodeCorrectly() {
 
 		connection.resetConfigStats(CLUSTER_NODE_2);
@@ -344,10 +284,7 @@ public class JedisClusterConnectionUnitTests {
 		verify(con3Mock, never()).configResetStat();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterTopologyProviderShouldCollectErrorsWhenLoadingNodes() {
 
 		expectedException.expect(ClusterStateFailureException.class);

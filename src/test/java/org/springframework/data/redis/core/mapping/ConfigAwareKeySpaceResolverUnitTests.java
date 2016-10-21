@@ -38,26 +38,17 @@ public class ConfigAwareKeySpaceResolverUnitTests {
 		this.resolver = new ConfigAwareKeySpaceResolver(config);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void resolveShouldThrowExceptionWhenTypeIsNull() {
 		resolver.resolveKeySpace(null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveShouldUseClassNameAsDefaultKeyspace() {
 		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class), is(TypeWithoutAnySettings.class.getName()));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolveShouldFavorConfiguredNameOverClassName() {
 
 		config.addKeyspaceSettings(new KeyspaceSettings(TypeWithoutAnySettings.class, "ji'e'toh"));

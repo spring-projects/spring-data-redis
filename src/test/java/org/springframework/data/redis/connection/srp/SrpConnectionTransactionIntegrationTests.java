@@ -60,10 +60,7 @@ public class SrpConnectionTransactionIntegrationTests extends AbstractConnection
 		super.testZUnionStoreAggWeights();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}

@@ -129,11 +129,8 @@ public class TransactionalRedisCacheManagerWithCommitUnitTests {
 				IsEqual.equalTo("bar~keys"));
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
 	@Rollback(false)
-	@Test
+	@Test // DATAREDIS-246
 	public void testValuesAddedToCacheWhenTransactionIsCommited() {
 		transactionalService.foo();
 	}

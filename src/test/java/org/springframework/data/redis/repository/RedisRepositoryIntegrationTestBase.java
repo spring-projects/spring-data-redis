@@ -62,10 +62,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		kvTemplate.delete(City.class);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void simpleFindShouldReturnEntitiesCorrectly() {
 
 		Person rand = new Person();
@@ -91,10 +88,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findByLastname("al'thor"), hasItem(rand));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void simpleFindByMultipleProperties() {
 
 		Person egwene = new Person();
@@ -113,10 +107,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findByFirstnameAndLastname("egwene", "al'vere").get(0), is(egwene));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findReturnsReferenceDataCorrectly() {
 
 		// Prepare referenced data entry
@@ -146,10 +137,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(reLoaded.city, IsNull.nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findReturnsPageCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -172,10 +160,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(page2.getTotalElements(), is(6L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findUsingOrReturnsResultCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -190,10 +175,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(eddardAndJon, containsInAnyOrder(eddard, jon));
 	}
 
-	/**
-	 * @see DATAREDIS-547
-	 */
-	@Test
+	@Test // DATAREDIS-547
 	public void shouldApplyPageableCorrectlyWhenUsingFindAll() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -207,10 +189,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findAll(firstPage.nextPageable()).getContent(), hasSize(1));
 	}
 
-	/**
-	 * @see DATAREDIS-551
-	 */
-	@Test
+	@Test // DATAREDIS-551
 	public void shouldApplyPageableCorrectlyWhenUsingFindByWithoutCriteria() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -225,10 +204,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(repo.findBy(firstPage.nextPageable()).getContent(), hasSize(1));
 	}
 
-	/**
-	 * @see DATAREDIS-547
-	 */
-	@Test
+	@Test // DATAREDIS-547
 	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -241,10 +217,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(firstPage.getContent(), hasSize(0));
 	}
 
-	/**
-	 * @see DATAREDIS-547
-	 */
-	@Test
+	@Test // DATAREDIS-547
 	public void shouldReturnEmptyListWhenPageableOutOfBoundsUsingQueryMethod() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -266,10 +239,7 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		assertThat(page2.getTotalElements(), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-547
-	 */
-	@Test
+	@Test // DATAREDIS-547
 	public void shouldApplyReturnResultsCorrectlyWhenNoCriteriaPresent() {
 
 		Person eddard = new Person("eddard", "stark");

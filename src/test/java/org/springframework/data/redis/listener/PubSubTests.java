@@ -175,11 +175,8 @@ public class PubSubTests<T> {
 		container.start();
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-251
 	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));

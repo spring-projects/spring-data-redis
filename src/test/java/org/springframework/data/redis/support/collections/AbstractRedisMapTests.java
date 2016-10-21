@@ -487,10 +487,7 @@ public abstract class AbstractRedisMapTests<K, V> {
 		map.replace(getKey(), null);
 	}
 
-	/**
-	 * @see DATAREDIS-314
-	 */
-	@Test
+	@Test // DATAREDIS-314
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void testScanWorksCorrectly() {

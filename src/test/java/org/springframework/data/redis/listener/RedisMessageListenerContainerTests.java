@@ -79,10 +79,7 @@ public class RedisMessageListenerContainerTests {
 		connectionFactory.destroy();
 	}
 
-	/*
-	 * @see DATAREDIS-415
-	 */
-	@Test
+	@Test // DATAREDIS-415
 	public void interruptAtStart() throws Exception {
 
 		final Thread main = Thread.currentThread();

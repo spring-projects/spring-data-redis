@@ -58,10 +58,7 @@ public class ConvertersUnitTests {
 
 	private static final String CLUSTER_NODE_IMPORTING_SLOT = "ef570f86c7b1a953846668debc177a3a16733420 127.0.0.1:6379 myself,master - 0 0 1 connected [5461-<-0f2ee5df45d18c50aca07228cc18b1da96fd5e84]";
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void toSetOfRedis30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(REDIS_3_0_CLUSTER_NODES_RESPONSE).iterator();
@@ -111,10 +108,7 @@ public class ConvertersUnitTests {
 		assertThat(node.getLinkState(), is(LinkState.CONNECTED));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void toSetOfRedis32ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(REDIS_3_2_CLUSTER_NODES_RESPONSE).iterator();
@@ -164,10 +158,7 @@ public class ConvertersUnitTests {
 		assertThat(node.getLinkState(), is(LinkState.CONNECTED));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void toSetOfRedisClusterNodesShouldConvertNodesWithSingleSlotCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_WITH_SINGLE_SLOT_RESPONSE)
@@ -181,10 +172,7 @@ public class ConvertersUnitTests {
 		assertThat(node.getSlotRange().contains(3456), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void toSetOfRedisClusterNodesShouldParseLinkStateAndDisconnectedCorrectly() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(
@@ -200,10 +188,7 @@ public class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void toSetOfRedisClusterNodesShouldIgnoreImportingSlot() {
 
 		Iterator<RedisClusterNode> nodes = Converters.toSetOfRedisClusterNodes(CLUSTER_NODE_IMPORTING_SLOT).iterator();

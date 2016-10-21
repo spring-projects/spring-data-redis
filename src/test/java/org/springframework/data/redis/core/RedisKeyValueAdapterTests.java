@@ -99,10 +99,7 @@ public class RedisKeyValueAdapterTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesDataCorrectly() {
 
 		Person rand = new Person();
@@ -116,10 +113,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesSimpleIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -131,10 +125,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), hasItems("1"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesNestedDataCorrectly() {
 
 		Person rand = new Person();
@@ -147,10 +138,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesSimpleNestedIndexValuesCorrectly() {
 
 		Person rand = new Person();
@@ -163,10 +151,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:address.country:Andor"), hasItems("1"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getShouldReadSimpleObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -180,10 +165,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(((Person) loaded).age, is(24));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getShouldReadNestedObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -197,10 +179,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(((Person) loaded).address.country, is("Andor"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void couldReadsKeyspaceSizeCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -213,10 +192,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(adapter.count("persons"), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void deleteRemovesEntriesCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -231,10 +207,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:1"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void deleteCleansIndexedDataCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -251,10 +224,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void keyExpiredEventShouldRemoveHelperStructures() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -273,10 +243,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putWritesIndexDataCorrectly() {
 
 		Person rand = new Person();

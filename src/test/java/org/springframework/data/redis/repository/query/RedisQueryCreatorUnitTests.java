@@ -39,10 +39,7 @@ public class RedisQueryCreatorUnitTests {
 
 	private @Mock RepositoryMetadata metadataMock;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findBySingleSimpleProperty() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -54,10 +51,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findByMultipleSimpleProperties() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -71,10 +65,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("age", 43)));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findByMultipleSimplePropertiesUsingOr() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(

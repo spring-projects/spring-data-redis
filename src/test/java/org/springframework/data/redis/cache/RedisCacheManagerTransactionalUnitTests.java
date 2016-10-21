@@ -103,10 +103,7 @@ public class RedisCacheManagerTransactionalUnitTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-375
-	 */
-	@Test
+	@Test // DATAREDIS-375
 	public void testCacheIsNotDecoratedTwiceWithTransactionAwareCacheDecorator() {
 
 		Cache cache = cacheManager.getCache(cacheName);

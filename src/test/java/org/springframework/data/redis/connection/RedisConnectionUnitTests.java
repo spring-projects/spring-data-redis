@@ -54,10 +54,7 @@ public class RedisConnectionUnitTests {
 		connection.setSentinelConnection(sentinelConnectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldCloseSentinelConnectionAlongWithRedisConnection() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true).thenReturn(false);
@@ -69,10 +66,7 @@ public class RedisConnectionUnitTests {
 		verify(sentinelConnectionMock, times(1)).close();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldNotTryToCloseSentinelConnectionsWhenAlreadyClosed() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true);

@@ -31,10 +31,7 @@ public class DefaultTypedTupleUnitTests {
 	private static final TypedTuple<String> WITH_SCORE_2 = new DefaultTypedTuple<String>("bar", 2D);
 	private static final TypedTuple<String> WITH_SCORE_NULL = new DefaultTypedTuple<String>("foo", null);
 
-	/**
-	 * @see DATAREDIS-294
-	 */
-	@Test
+	@Test // DATAREDIS-294
 	public void compareToShouldUseScore() {
 
 		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_2), equalTo(-1));
@@ -42,20 +39,14 @@ public class DefaultTypedTupleUnitTests {
 		assertThat(WITH_SCORE_1.compareTo(ANOTHER_ONE_WITH_SCORE_1), equalTo(0));
 	}
 
-	/**
-	 * @see DATAREDIS-294
-	 */
-	@Test
+	@Test // DATAREDIS-294
 	public void compareToShouldConsiderGivenNullAsZeroScore() {
 
 		assertThat(WITH_SCORE_1.compareTo(null), equalTo(1));
 		assertThat(WITH_SCORE_NULL.compareTo(null), equalTo(0));
 	}
 
-	/**
-	 * @see DATAREDIS-294
-	 */
-	@Test
+	@Test // DATAREDIS-294
 	public void compareToShouldConsiderNullScoreAsZeroScore() {
 
 		assertThat(WITH_SCORE_1.compareTo(WITH_SCORE_NULL), equalTo(1));

@@ -79,10 +79,7 @@ public class DefaultClusterOperationsUnitTests {
 		this.clusterOps = new DefaultClusterOperations<String, String>(template);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void keysShouldDelegateToConnectionCorrectly() {
 
 		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(serializer.serialize("key-1"), serializer.serialize("key-2")));
@@ -91,18 +88,12 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.keys(NODE_1, "*"), hasItems("key-1", "key-2"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void keysShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.keys(null, "*");
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void keysShouldReturnEmptySetWhenNoKeysAvailable() {
 
 		when(connection.keys(any(RedisClusterNode.class), any(byte[].class))).thenReturn(null);
@@ -110,10 +101,7 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.keys(NODE_1, "*"), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldDelegateToConnection() {
 
 		when(connection.randomKey(any(RedisClusterNode.class))).thenReturn(serializer.serialize("key-1"));
@@ -121,18 +109,12 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.randomKey(NODE_1), is("key-1"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void randomKeyShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.randomKey(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnNullWhenNoKeyAvailable() {
 
 		when(connection.randomKey(any(RedisClusterNode.class))).thenReturn(null);
@@ -140,10 +122,7 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.randomKey(NODE_1), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void pingShouldDelegateToConnection() {
 
 		when(connection.ping(any(RedisClusterNode.class))).thenReturn("PONG");
@@ -151,18 +130,12 @@ public class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.ping(NODE_1), is("PONG"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void pingShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.ping(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void addSlotsShouldDelegateToConnection() {
 
 		clusterOps.addSlots(NODE_1, 1, 2, 3);
@@ -170,18 +143,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void addSlotsShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.addSlots(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void addSlotsWithRangeShouldDelegateToConnection() {
 
 		clusterOps.addSlots(NODE_1, new SlotRange(1, 3));
@@ -189,18 +156,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void addSlotsWithRangeShouldThrowExceptionWhenRangeIsNull() {
 		clusterOps.addSlots(NODE_1, (SlotRange) null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void bgSaveShouldDelegateToConnection() {
 
 		clusterOps.bgSave(NODE_1);
@@ -208,18 +169,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).bgSave(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void bgSaveShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.bgSave(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void meetShouldDelegateToConnection() {
 
 		clusterOps.meet(NODE_1);
@@ -227,18 +182,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterMeet(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void meetShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.meet(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void forgetShouldDelegateToConnection() {
 
 		clusterOps.forget(NODE_1);
@@ -246,18 +195,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterForget(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void forgetShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.forget(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void flushDbShouldDelegateToConnection() {
 
 		clusterOps.flushDb(NODE_1);
@@ -265,18 +208,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).flushDb(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void flushDbShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.flushDb(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void getSlavesShouldDelegateToConnection() {
 
 		clusterOps.getSlaves(NODE_1);
@@ -284,18 +221,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterGetSlaves(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void getSlavesShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.getSlaves(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void saveShouldDelegateToConnection() {
 
 		clusterOps.save(NODE_1);
@@ -303,18 +234,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).save(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void saveShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.save(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shutdownShouldDelegateToConnection() {
 
 		clusterOps.shutdown(NODE_1);
@@ -322,18 +247,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).shutdown(eq(NODE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void shutdownShouldThrowExceptionWhenNodeIsNull() {
 		clusterOps.shutdown(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeShouldDelegateToConnection() {
 
 		final byte[] key = serializer.serialize("foo");
@@ -348,18 +267,12 @@ public class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).get(eq(key));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeShouldThrowExceptionWhenCallbackIsNull() {
 		clusterOps.execute(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void reshardShouldExecuteCommandsCorrectly() {
 
 		byte[] key = "foo".getBytes();
