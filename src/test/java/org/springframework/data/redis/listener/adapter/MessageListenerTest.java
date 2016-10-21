@@ -15,8 +15,8 @@
  */
 package org.springframework.data.redis.listener.adapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -67,12 +67,12 @@ public class MessageListenerTest {
 	@Test
 	public void testThatWhenNoDelegateIsSuppliedTheDelegateIsAssumedToBeTheMessageListenerAdapterItself()
 			throws Exception {
-		assertSame(adapter, adapter.getDelegate());
+		assertThat(adapter.getDelegate()).isSameAs(adapter);
 	}
 
 	@Test
 	public void testThatTheDefaultMessageHandlingMethodNameIsTheConstantDefault() throws Exception {
-		assertEquals(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD, adapter.getDefaultListenerMethod());
+		assertThat(adapter.getDefaultListenerMethod()).isEqualTo(MessageListenerAdapter.ORIGINAL_DEFAULT_LISTENER_METHOD);
 	}
 
 	public void testAdapterWithListenerAndDefaultMessage() throws Exception {
@@ -139,10 +139,7 @@ public class MessageListenerTest {
 		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);
 	}
 
-	/**
-	 * @see DATAREDIS-92
-	 */
-	@Test
+	@Test // DATAREDIS-92
 	public void triggersListenerImplementingInterfaceCorrectly() {
 
 		SampleListener listener = new SampleListener();
@@ -155,13 +152,10 @@ public class MessageListenerTest {
 		};
 
 		listenerAdapter.onMessage(STRING_MSG, RAW_CHANNEL);
-		assertEquals(1, listener.count);
+		assertThat(listener.count).isEqualTo(1);
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void defaultConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -174,10 +168,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessage(anyString(), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void defaultConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -191,10 +182,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessage(any(byte[].class), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void defaultConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -208,10 +196,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessage(any(Pojo.class), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -225,10 +210,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handle(anyString(), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteMessageOnlyHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -242,10 +224,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessageOnly(anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -260,10 +239,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handle(any(byte[].class), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -289,7 +265,6 @@ public class MessageListenerTest {
 
 	/**
 	 * @author Thomas Darimont
-	 * @see DATAREDIS-337
 	 */
 	static class AbstractMessageHandler {
 
@@ -310,7 +285,6 @@ public class MessageListenerTest {
 
 	/**
 	 * @author Thomas Darimont
-	 * @see DATAREDIS-337
 	 */
 	static class ConcreteMessageHandler extends AbstractMessageHandler {
 

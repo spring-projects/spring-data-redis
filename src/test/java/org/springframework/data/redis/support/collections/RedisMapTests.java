@@ -63,9 +63,7 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		return new DefaultRedisMap<Object, Object>(redisName, template);
 	}
 
-	/**
-	 * @see DATAREDIS-241
-	 */
+	// DATAREDIS-241
 	@SuppressWarnings("rawtypes")
 	@Parameters
 	public static Collection<Object[]> testParams() {

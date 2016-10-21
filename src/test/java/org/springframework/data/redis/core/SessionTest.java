@@ -15,7 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Test;
@@ -23,11 +24,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.core.RedisCallback;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * @author Costin Leau
@@ -48,7 +44,7 @@ public class SessionTest {
 			public Object execute(RedisOperations operations) {
 				checkConnection(template, stringConn);
 				template.discard();
-				assertSame(template, operations);
+				assertThat(operations).isSameAs(template);
 				checkConnection(template, stringConn);
 				return null;
 			}
@@ -58,7 +54,7 @@ public class SessionTest {
 	private void checkConnection(RedisTemplate<?, ?> template, final RedisConnection expectedConnection) {
 		template.execute(new RedisCallback<Object>() {
 			public Object doInRedis(RedisConnection connection) throws DataAccessException {
-				assertSame(expectedConnection, connection);
+				assertThat(connection).isSameAs(expectedConnection);
 				return null;
 			}
 		}, true);

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import java.util.Collection;
@@ -91,72 +90,60 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		// Txs not supported in Jredis
 		assumeTrue(!ConnectionUtils.isJredis(factory));
 		intCounter.set(0);
-		assertFalse(intCounter.compareAndSet(1, 10));
-		assertTrue(intCounter.compareAndSet(0, 10));
-		assertTrue(intCounter.compareAndSet(10, 0));
+		assertThat(intCounter.compareAndSet(1, 10)).isFalse();
+		assertThat(intCounter.compareAndSet(0, 10)).isTrue();
+		assertThat(intCounter.compareAndSet(10, 0)).isTrue();
 	}
 
 	@Test
 	public void testIncrementAndGet() {
 		intCounter.set(0);
-		assertEquals(1, intCounter.incrementAndGet());
+		assertThat(intCounter.incrementAndGet()).isEqualTo(1);
 	}
 
 	@Test
 	public void testAddAndGet() throws Exception {
 		intCounter.set(0);
 		int delta = 5;
-		assertEquals(delta, intCounter.addAndGet(delta));
+		assertThat(intCounter.addAndGet(delta)).isEqualTo(delta);
 	}
 
 	@Test
 	public void testDecrementAndGet() {
 		intCounter.set(1);
-		assertEquals(0, intCounter.decrementAndGet());
+		assertThat(intCounter.decrementAndGet()).isEqualTo(0);
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndIncrement() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndIncrement());
-		assertEquals(2, intCounter.get());
+		assertThat(intCounter.getAndIncrement()).isEqualTo(1);
+		assertThat(intCounter.get()).isEqualTo(2);
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndAdd() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndAdd(5));
-		assertEquals(6, intCounter.get());
+		assertThat(intCounter.getAndAdd(5)).isEqualTo(1);
+		assertThat(intCounter.get()).isEqualTo(6);
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndDecrement() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndDecrement());
-		assertEquals(0, intCounter.get());
+		assertThat(intCounter.getAndDecrement()).isEqualTo(1);
+		assertThat(intCounter.get()).isEqualTo(0);
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndSet() {
 
 		intCounter.set(1);
-		assertEquals(1, intCounter.getAndSet(5));
-		assertEquals(5, intCounter.get());
+		assertThat(intCounter.getAndSet(5)).isEqualTo(1);
+		assertThat(intCounter.get()).isEqualTo(5);
 	}
 
 	@Test
@@ -190,13 +177,10 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		}
 		latch.await();
 
-		assertFalse("counter already modified", failed.get());
+		assertThat(failed.get()).as("counter already modified").isFalse();
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -205,10 +189,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicInteger("foo", new RedisTemplate<String, Integer>());
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -219,22 +200,16 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicInteger("foo", template);
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldBeAbleToUseRedisAtomicIntegerWithProperlyConfiguredRedisTemplate() {
 
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-317.atomicInteger", template);
 		ral.set(32);
 
-		assertThat(ral.get(), is(32));
+		assertThat(ral.get()).isEqualTo(32);
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		expectedException.expect(DataRetrievalFailureException.class);
@@ -242,25 +217,22 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 
 		// setup integer
 		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
-		assertThat(test.get(), equalTo(1)); // this passes
+		assertThat(test.get()).isEqualTo(1); // this passes
 
 		template.delete("test");
 
 		test.get();
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup integer
 		RedisAtomicInteger test = new RedisAtomicInteger("test", factory, 1);
-		assertThat(test.get(), equalTo(1)); // this passes
+		assertThat(test.get()).isEqualTo(1); // this passes
 
 		template.delete("test");
 
-		assertThat(test.getAndSet(2), is(0));
+		assertThat(test.getAndSet(2)).isEqualTo(0);
 	}
 }

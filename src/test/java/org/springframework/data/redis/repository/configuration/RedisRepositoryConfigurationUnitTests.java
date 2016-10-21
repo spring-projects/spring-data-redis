@@ -15,10 +15,8 @@ package org.springframework.data.redis.repository.configuration;
  * limitations under the License.
  */
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Test;
@@ -86,18 +84,15 @@ public class RedisRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldPickUpReferenceResolver() {
 
 			RedisKeyValueAdapter adapter = (RedisKeyValueAdapter) ctx.getBean("redisKeyValueAdapter");
 
 			Object referenceResolver = ReflectionTestUtils.getField(adapter.getConverter(), "referenceResolver");
 
-			assertThat(referenceResolver, is(equalTo(ctx.getBean("redisReferenceResolver"))));
-			assertThat(mockingDetails(referenceResolver).isMock(), is(true));
+			assertThat(referenceResolver).isEqualTo(ctx.getBean("redisReferenceResolver"));
+			assertThat(mockingDetails(referenceResolver).isMock()).isTrue();
 		}
 	}
 
@@ -118,24 +113,18 @@ public class RedisRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldInitWithDefaults() {
-			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));
+			assertThat(ctx.getBean(ContextSampleRepository.class)).isNotNull();
 		}
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldRegisterDefaultBeans() {
 
-			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));
-			assertThat(ctx.getBean("redisKeyValueAdapter"), is(notNullValue()));
-			assertThat(ctx.getBean("redisCustomConversions"), is(notNullValue()));
-			assertThat(ctx.getBean("redisReferenceResolver"), is(notNullValue()));
+			assertThat(ctx.getBean(ContextSampleRepository.class)).isNotNull();
+			assertThat(ctx.getBean("redisKeyValueAdapter")).isNotNull();
+			assertThat(ctx.getBean("redisCustomConversions")).isNotNull();
+			assertThat(ctx.getBean("redisReferenceResolver")).isNotNull();
 		}
 	}
 

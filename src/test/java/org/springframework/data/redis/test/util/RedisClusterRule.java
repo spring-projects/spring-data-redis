@@ -16,8 +16,8 @@
 package org.springframework.data.redis.test.util;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assume.*;
 
-import org.junit.Assume;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -60,7 +60,7 @@ public class RedisClusterRule extends ExternalResource {
 	 */
 	@Override
 	protected void before() throws Throwable {
-		Assume.assumeThat(mode, is("cluster"));
+		assumeThat(mode, is(equalTo("cluster")));
 	}
 
 	private void init() {

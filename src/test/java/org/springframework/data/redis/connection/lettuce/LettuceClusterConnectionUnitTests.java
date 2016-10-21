@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.AnyOf.*;
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
@@ -30,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -123,18 +119,12 @@ public class LettuceClusterConnectionUnitTests {
 		};
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void thowsExceptionWhenClusterCommandExecturorIsNull() {
 		new LettuceClusterConnection(clusterMock, null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterMeetShouldSendCommandsToExistingNodesCorrectly() {
 
 		connection.clusterMeet(UNKNOWN_CLUSTER_NODE);
@@ -147,18 +137,12 @@ public class LettuceClusterConnectionUnitTests {
 				.clusterMeet(UNKNOWN_CLUSTER_NODE.getHost(), UNKNOWN_CLUSTER_NODE.getPort());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void clusterMeetShouldThrowExceptionWhenNodeIsNull() {
 		connection.clusterMeet(null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterForgetShouldSendCommandsToRemainingNodesCorrectly() {
 
 		connection.clusterForget(CLUSTER_NODE_2);
@@ -168,10 +152,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterReplicateShouldSendCommandsCorrectly() {
 
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
@@ -180,10 +161,7 @@ public class LettuceClusterConnectionUnitTests {
 		verifyZeroInteractions(clusterConnection1Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void closeShouldNotCloseUnderlyingClusterPool() throws IOException {
 
 		connection.close();
@@ -191,23 +169,17 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterMock, never()).shutdown();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void isClosedShouldReturnConnectionStateCorrectly() {
 
-		assertThat(connection.isClosed(), is(false));
+		assertThat(connection.isClosed()).isFalse();
 
 		connection.close();
 
-		assertThat(connection.isClosed(), is(true));
+		assertThat(connection.isClosed()).isTrue();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void keysShouldBeRunOnAllClusterNodes() {
 
 		when(clusterConnection1Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
@@ -223,10 +195,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, times(1)).keys(pattern);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void keysShouldOnlyBeRunOnDedicatedNodeWhenPinned() {
 
 		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
@@ -240,51 +209,39 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, never()).keys(pattern);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnAnyKeyFromRandomNode() {
 
 		when(clusterConnection1Mock.randomkey()).thenReturn(KEY_1_BYTES);
 		when(clusterConnection2Mock.randomkey()).thenReturn(KEY_2_BYTES);
 		when(clusterConnection3Mock.randomkey()).thenReturn(KEY_3_BYTES);
 
-		assertThat(connection.randomKey(), anyOf(is(KEY_1_BYTES), is(KEY_2_BYTES), is(KEY_3_BYTES)));
+		assertThat(Arrays.asList(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES)).contains(connection.randomKey());
 		verifyInvocationsAcross("randomkey", times(1), clusterConnection1Mock, clusterConnection2Mock,
 				clusterConnection3Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnKeyWhenAvailableOnAnyNode() {
 
 		when(clusterConnection3Mock.randomkey()).thenReturn(KEY_3_BYTES);
 
 		for (int i = 0; i < 100; i++) {
-			assertThat(connection.randomKey(), is(KEY_3_BYTES));
+			assertThat(connection.randomKey()).isEqualTo(KEY_3_BYTES);
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnNullWhenNoKeysPresentOnAllNodes() {
 
 		when(clusterConnection1Mock.randomkey()).thenReturn(null);
 		when(clusterConnection2Mock.randomkey()).thenReturn(null);
 		when(clusterConnection3Mock.randomkey()).thenReturn(null);
 
-		assertThat(connection.randomKey(), nullValue());
+		assertThat(connection.randomKey()).isNull();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotImportingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.IMPORTING);
@@ -292,10 +249,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotMigratingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.MIGRATING);
@@ -303,10 +257,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotMigrating(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotStableShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.STABLE);
@@ -314,10 +265,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotStable(eq(100));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotNodeShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.NODE);
@@ -325,10 +273,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotNode(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterSetSlotShouldBeExecutedOnTargetNodeWhenNodeIdNotSet() {
 
 		connection.clusterSetSlot(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT), 100, AddSlots.IMPORTING);
@@ -336,18 +281,12 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection2Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_2.getId()));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void clusterDeleteSlotsShouldBeExecutedCorrectly() {
 
 		int[] slots = new int[] { 9000, 10000 };
@@ -356,18 +295,12 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection2Mock, times(1)).clusterDelSlots((int[]) anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
 		connection.clusterDeleteSlots(null, new int[] { 1 });
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void timeShouldBeExecutedOnArbitraryNode() {
 
 		List<byte[]> values = Arrays.asList("1449655759".getBytes(), "92217".getBytes());
@@ -380,10 +313,7 @@ public class LettuceClusterConnectionUnitTests {
 		verifyInvocationsAcross("time", times(1), clusterConnection1Mock, clusterConnection2Mock, clusterConnection3Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void timeShouldBeExecutedOnSingleNode() {
 
 		when(clusterConnection2Mock.time()).thenReturn(Arrays.asList("1449655759".getBytes(), "92217".getBytes()));
@@ -394,10 +324,7 @@ public class LettuceClusterConnectionUnitTests {
 		verifyZeroInteractions(clusterConnection1Mock, clusterConnection3Mock);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void resetConfigStatsShouldBeExecutedOnAllNodes() {
 
 		connection.resetConfigStats();
@@ -407,10 +334,7 @@ public class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, times(1)).configResetstat();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void resetConfigStatsShouldBeExecutedOnSingleNodeCorrectly() {
 
 		connection.resetConfigStats(CLUSTER_NODE_2);

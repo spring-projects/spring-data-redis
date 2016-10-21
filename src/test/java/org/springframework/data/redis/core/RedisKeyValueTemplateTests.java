@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,10 +94,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void savesObjectCorrectly() {
 
 		final Person rand = new Person();
@@ -112,16 +107,13 @@ public class RedisKeyValueTemplateTests {
 			@Override
 			public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
-				assertThat(connection.exists(("template-test-person:" + rand.id).getBytes()), is(true));
+				assertThat(connection.exists(("template-test-person:" + rand.id).getBytes())).isTrue();
 				return null;
 			}
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningSingleIdCorrectly() {
 
 		Person rand = new Person();
@@ -141,14 +133,10 @@ public class RedisKeyValueTemplateTests {
 			}
 		}, Person.class);
 
-		assertThat(result.size(), is(1));
-		assertThat(result, hasItems(mat));
+		assertThat(result).hasSize(1).contains(mat);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningMultipleIdsCorrectly() {
 
 		final Person rand = new Person();
@@ -168,14 +156,10 @@ public class RedisKeyValueTemplateTests {
 			}
 		}, Person.class);
 
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItems(rand, mat));
+		assertThat(result).contains(rand, mat);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningNullCorrectly() {
 
 		Person rand = new Person();
@@ -195,7 +179,7 @@ public class RedisKeyValueTemplateTests {
 			}
 		}, Person.class);
 
-		assertThat(result.size(), is(0));
+		assertThat(result).isEmpty();
 	}
 
 	@RedisHash("template-test-person")

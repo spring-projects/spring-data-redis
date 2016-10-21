@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -39,26 +38,17 @@ public class CompositeIndexResolverUnitTests {
 	@Mock IndexResolver resolver2;
 	@Mock TypeInformation<?> typeInfoMock;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void shouldRejectNull() {
 		new CompositeIndexResolver(null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void shouldRejectCollectionWithNullValues() {
 		new CompositeIndexResolver(Arrays.asList(resolver1, null, resolver2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldCollectionIndexesFromResolvers() {
 
 		when(resolver1.resolveIndexesFor(any(TypeInformation.class), anyObject())).thenReturn(
@@ -68,6 +58,6 @@ public class CompositeIndexResolverUnitTests {
 
 		CompositeIndexResolver resolver = new CompositeIndexResolver(Arrays.asList(resolver1, resolver2));
 
-		assertThat(resolver.resolveIndexesFor(typeInfoMock, "o.O").size(), equalTo(2));
+		assertThat(resolver.resolveIndexesFor(typeInfoMock, "o.O").size()).isEqualTo(2);
 	}
 }

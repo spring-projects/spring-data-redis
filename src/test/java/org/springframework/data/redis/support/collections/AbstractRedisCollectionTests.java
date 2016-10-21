@@ -15,18 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -111,9 +100,9 @@ public abstract class AbstractRedisCollectionTests<T> {
 	@Test
 	public void testAdd() {
 		T t1 = getT();
-		assertThat(collection.add(t1), is(true));
-		assertThat(collection, hasItem(t1));
-		assertEquals(1, collection.size());
+		assertThat(collection.add(t1)).isTrue();
+		assertThat(collection).contains(t1);
+		assertThat(collection).hasSize(1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -125,29 +114,29 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 		List<T> list = Arrays.asList(t1, t2, t3);
 
-		assertThat(collection.addAll(list), is(true));
-		assertThat(collection, hasItem(t1));
-		assertThat(collection, hasItem(t2));
-		assertThat(collection, hasItem(t3));
-		assertEquals(collection.size(), 3);
+		assertThat(collection.addAll(list)).isTrue();
+		assertThat(collection).contains(t1);
+		assertThat(collection).contains(t2);
+		assertThat(collection).contains(t3);
+		assertThat(3).isEqualTo(collection.size());
 	}
 
 	@Test
 	public void testClear() {
 		T t1 = getT();
-		assertEquals(0, collection.size());
+		assertThat(collection).isEmpty();
 		collection.add(t1);
-		assertEquals(1, collection.size());
+		assertThat(collection).hasSize(1);
 		collection.clear();
-		assertEquals(0, collection.size());
+		assertThat(collection).isEmpty();
 	}
 
 	@Test
 	public void testContainsObject() {
 		T t1 = getT();
-		assertThat(collection, not(hasItem(t1)));
-		assertThat(collection.add(t1), is(true));
-		assertThat(collection, hasItem(t1));
+		assertThat(collection).doesNotContain(t1);
+		assertThat(collection.add(t1)).isTrue();
+		assertThat(collection).contains(t1);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -159,30 +148,30 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 		List<T> list = Arrays.asList(t1, t2, t3);
 
-		assertThat(collection.addAll(list), is(true));
-		assertThat(collection, hasItems((T[]) list.toArray()));
-		assertThat(collection, hasItems(t1, t2, t3));
+		assertThat(collection.addAll(list)).isTrue();
+		assertThat(collection).contains((T[]) list.toArray());
+		assertThat(collection).contains(t1, t2, t3);
 	}
 
 	@Test
 	public void testEquals() {
-		// assertEquals(collection, copyStore(collection));
+		// assertThat(copyStore(collection)).isEqualTo(collection);
 	}
 
 	@Test
 	public void testHashCode() {
-		assertThat(collection.hashCode(), not(equalTo(collection.getKey().hashCode())));
+		assertThat(collection.hashCode()).isNotEqualTo(collection.getKey().hashCode());
 	}
 
 	@Test
 	public void testIsEmpty() {
-		assertEquals(0, collection.size());
-		assertTrue(collection.isEmpty());
+		assertThat(collection).isEmpty();
+		assertThat(collection.isEmpty()).isTrue();
 		collection.add(getT());
-		assertEquals(1, collection.size());
-		assertFalse(collection.isEmpty());
+		assertThat(collection).hasSize(1);
+		assertThat(collection.isEmpty()).isFalse();
 		collection.clear();
-		assertTrue(collection.isEmpty());
+		assertThat(collection.isEmpty()).isTrue();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -195,14 +184,14 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 		List<T> list = Arrays.asList(t1, t2, t3, t4);
 
-		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.addAll(list)).isTrue();
 		Iterator<T> iterator = collection.iterator();
 
-		assertThat(iterator.next(), isEqual(t1));
-		assertThat(iterator.next(), isEqual(t2));
-		assertThat(iterator.next(), isEqual(t3));
-		assertThat(iterator.next(), isEqual(t4));
-		assertFalse(iterator.hasNext());
+		assertThat(iterator.next()).isEqualTo(t1);
+		assertThat(iterator.next()).isEqualTo(t2);
+		assertThat(iterator.next()).isEqualTo(t3);
+		assertThat(iterator.next()).isEqualTo(t4);
+		assertThat(iterator.hasNext()).isFalse();
 	}
 
 	@Test
@@ -211,16 +200,16 @@ public abstract class AbstractRedisCollectionTests<T> {
 		T t2 = getT();
 		T t3 = getT();
 
-		assertEquals(0, collection.size());
-		assertThat(collection.add(t1), is(true));
-		assertThat(collection.add(t2), is(true));
-		assertEquals(2, collection.size());
-		assertThat(collection.remove(t3), is(false));
-		assertThat(collection.remove(t2), is(true));
-		assertThat(collection.remove(t2), is(false));
-		assertEquals(1, collection.size());
-		assertThat(collection.remove(t1), is(true));
-		assertEquals(0, collection.size());
+		assertThat(collection).isEmpty();
+		assertThat(collection.add(t1)).isTrue();
+		assertThat(collection.add(t2)).isTrue();
+		assertThat(collection).hasSize(2);
+		assertThat(collection.remove(t3)).isFalse();
+		assertThat(collection.remove(t2)).isTrue();
+		assertThat(collection.remove(t2)).isFalse();
+		assertThat(collection).hasSize(1);
+		assertThat(collection.remove(t1)).isTrue();
+		assertThat(collection).isEmpty();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -232,19 +221,19 @@ public abstract class AbstractRedisCollectionTests<T> {
 
 		List<T> list = Arrays.asList(t1, t2, t3);
 
-		assertThat(collection.addAll(list), is(true));
-		assertThat(collection, hasItems((T[]) list.toArray()));
-		assertThat(collection, hasItems(t1, t2, t3));
+		assertThat(collection.addAll(list)).isTrue();
+		assertThat(collection).contains((T[]) list.toArray());
+		assertThat(collection).contains(t1, t2, t3);
 
 		List<T> newList = Arrays.asList(getT(), getT());
 		List<T> partialList = Arrays.asList(getT(), t1, getT());
 
-		assertThat(collection.removeAll(newList), is(false));
-		assertThat(collection.removeAll(partialList), is(true));
-		assertThat(collection, not(hasItem(t1)));
-		assertThat(collection, hasItems(t2, t3));
-		assertThat(collection.removeAll(list), is(true));
-		assertThat(collection, not(hasItems(t2, t3)));
+		assertThat(collection.removeAll(newList)).isFalse();
+		assertThat(collection.removeAll(partialList)).isTrue();
+		assertThat(collection).doesNotContain(t1);
+		assertThat(collection).contains(t2, t3);
+		assertThat(collection.removeAll(list)).isTrue();
+		assertThat(collection).doesNotContain(t2, t3);
 	}
 
 	// @Test(expected = UnsupportedOperationException.class)
@@ -257,22 +246,22 @@ public abstract class AbstractRedisCollectionTests<T> {
 		List<T> list = Arrays.asList(t1, t2);
 		List<T> newList = Arrays.asList(t2, t3);
 
-		assertThat(collection.addAll(list), is(true));
-		assertThat(collection, hasItems(t1, t2));
-		assertThat(collection.retainAll(newList), is(true));
-		assertThat(collection, not(hasItem(t1)));
-		assertThat(collection, hasItem(t2));
+		assertThat(collection.addAll(list)).isTrue();
+		assertThat(collection).contains(t1, t2);
+		assertThat(collection.retainAll(newList)).isTrue();
+		assertThat(collection).doesNotContain(t1);
+		assertThat(collection).contains(t2);
 	}
 
 	@Test
 	public void testSize() {
-		assertEquals(0, collection.size());
-		assertTrue(collection.isEmpty());
+		assertThat(collection).isEmpty();
+		assertThat(collection.isEmpty()).isTrue();
 		collection.add(getT());
-		assertEquals(1, collection.size());
+		assertThat(collection).hasSize(1);
 		collection.add(getT());
 		collection.add(getT());
-		assertEquals(3, collection.size());
+		assertThat(collection).hasSize(3);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -281,10 +270,10 @@ public abstract class AbstractRedisCollectionTests<T> {
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
 
-		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.addAll(list)).isTrue();
 
 		Object[] array = collection.toArray();
-		assertArrayEquals(expectedArray, array);
+		assertThat(array).isEqualTo(expectedArray);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -293,21 +282,21 @@ public abstract class AbstractRedisCollectionTests<T> {
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
 
-		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.addAll(list)).isTrue();
 
 		Object[] array = collection.toArray(new Object[expectedArray.length]);
-		assertArrayEquals(expectedArray, array);
+		assertThat(array).isEqualTo(expectedArray);
 	}
 
 	@Test
 	public void testToString() {
 		String name = collection.toString();
 		collection.add(getT());
-		assertEquals(name, collection.toString());
+		assertThat(collection.toString()).isEqualTo(name);
 	}
 
 	@Test
 	public void testGetKey() throws Exception {
-		assertNotNull(collection.getKey());
+		assertThat(collection.getKey()).isNotNull();
 	}
 }

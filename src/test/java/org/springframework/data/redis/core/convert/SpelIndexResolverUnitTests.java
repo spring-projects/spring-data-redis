@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.convert;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,74 +72,53 @@ public class SpelIndexResolverUnitTests {
 		resolver = createWithExpression("getAttribute('" + securityContextAttrName + "')?.authentication?.name");
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void constructorNullRedisMappingContext() {
 
 		mappingContext = null;
 		new SpelIndexResolver(mappingContext);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void constructorNullSpelExpressionParser() {
 		new SpelIndexResolver(mappingContext, null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void nullValue() {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, null);
 
-		assertThat(indexes.size(), equalTo(0));
+		assertThat(indexes).isEmpty();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void wrongKeyspace() {
 
 		typeInformation = ClassTypeInformation.from(String.class);
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, "");
 
-		assertThat(indexes.size(), equalTo(0));
+		assertThat(indexes).isEmpty();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void sessionAttributeNull() {
 
 		session = new Session();
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
-		assertThat(indexes.size(), equalTo(0));
+		assertThat(indexes).isEmpty();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void resolvePrincipalName() {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(keyspace, indexName, username)));
+		assertThat(indexes).contains(new SimpleIndexedPropertyValue(keyspace, indexName, username));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = SpelEvaluationException.class)
+	@Test(expected = SpelEvaluationException.class) // DATAREDIS-425
 	public void spelError() {
 
 		session.setAttribute(securityContextAttrName, "");
@@ -148,10 +126,7 @@ public class SpelIndexResolverUnitTests {
 		resolver.resolveIndexesFor(typeInformation, session);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void withBeanAndThis() {
 
 		this.resolver = createWithExpression("@bean.run(#this)");
@@ -169,7 +144,7 @@ public class SpelIndexResolverUnitTests {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
 
-		assertThat(indexes, hasItem(new SimpleIndexedPropertyValue(keyspace, indexName, session)));
+		assertThat(indexes).contains(new SimpleIndexedPropertyValue(keyspace, indexName, session));
 	}
 
 	private SpelIndexResolver createWithExpression(String expression) {

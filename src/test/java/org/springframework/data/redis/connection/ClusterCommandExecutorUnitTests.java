@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.connection;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
@@ -26,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -131,10 +128,7 @@ public class ClusterCommandExecutorUnitTests {
 		this.executor.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, CLUSTER_NODE_2);
@@ -142,10 +136,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK,
@@ -154,10 +145,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeByNodeIdShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, new RedisClusterNode(CLUSTER_NODE_2.id));
@@ -165,34 +153,22 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenCommandCallbackIsNull() {
 		executor.executeCommandOnSingleNode(null, CLUSTER_NODE_1);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsUnknown() {
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, UNKNOWN_CLUSTER_NODE);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodes() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -206,10 +182,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByHostAndPort() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -225,10 +198,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByNodeId() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -243,10 +213,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldFailOnGivenUnknownNodes() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -257,10 +224,7 @@ public class ClusterCommandExecutorUnitTests {
 				Arrays.asList(new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnownClusterNode() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -274,10 +238,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldCompleteAndCollectErrorsOfAllNodes() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
@@ -288,8 +249,8 @@ public class ClusterCommandExecutorUnitTests {
 			executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
 		} catch (ClusterCommandExecutionFailureException e) {
 
-			assertThat(e.getCauses().size(), is(1));
-			assertThat(e.getCauses().iterator().next(), IsInstanceOf.instanceOf(DataAccessException.class));
+			assertThat(e.getCauses()).hasSize(1);
+			assertThat(e.getCauses().iterator().next()).isInstanceOf(DataAccessException.class);
 		}
 
 		verify(con1, times(1)).theWheelWeavesAsTheWheelWills();
@@ -297,10 +258,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldCollectResultsCorrectly() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
@@ -309,14 +267,10 @@ public class ClusterCommandExecutorUnitTests {
 
 		MulitNodeResult<String> result = executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
 
-		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin"));
+		assertThat(result.resultsAsList()).contains("rand", "mat", "perrin");
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 * @see DATAREDIS-467
-	 */
-	@Test
+	@Test // DATAREDIS-315, DATAREDIS-467
 	public void executeMultikeyCommandShouldRunCommandAcrossCluster() {
 
 		// key-1 and key-9 map both to node1
@@ -329,16 +283,13 @@ public class ClusterCommandExecutorUnitTests {
 		MulitNodeResult<String> result = executor.executeMuliKeyCommand(MULTIKEY_CALLBACK, new HashSet<byte[]>(
 				Arrays.asList("key-1".getBytes(), "key-2".getBytes(), "key-3".getBytes(), "key-9".getBytes())));
 
-		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin", "egwene"));
+		assertThat(result.resultsAsList()).contains("rand", "mat", "perrin", "egwene");
 
 		// check that 2 keys have been routed to node1
-		assertThat(captor.getAllValues().size(), is(2));
+		assertThat(captor.getAllValues()).hasSize(2);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeAndFollowRedirect() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT));
@@ -350,10 +301,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeAndFollowRedirectButStopsAfterMaxRedirects() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT));
@@ -364,7 +312,7 @@ public class ClusterCommandExecutorUnitTests {
 			executor.setMaxRedirects(4);
 			executor.executeCommandOnSingleNode(COMMAND_CALLBACK, CLUSTER_NODE_1);
 		} catch (Exception e) {
-			assertThat(e, IsInstanceOf.instanceOf(TooManyClusterRedirectionsException.class));
+			assertThat(e).isInstanceOf(TooManyClusterRedirectionsException.class);
 		}
 
 		verify(con1, times(2)).theWheelWeavesAsTheWheelWills();
@@ -372,10 +320,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnArbitraryNodeShouldPickARandomNode() {
 
 		executor.executeCommandOnArbitraryNode(COMMAND_CALLBACK);

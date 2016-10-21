@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,7 +29,6 @@ import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
  * @author Christoph Strobl
@@ -41,26 +37,17 @@ public class JedisConvertersUnitTests {
 
 	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(JedisConverters.toListOfRedisClientInformation(""), equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(JedisConverters.toListOfRedisClientInformation("")).isEmpty();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
-		assertThat(JedisConverters.toListOfRedisClientInformation(null), equalTo(Collections.<RedisClientInfo> emptyList()));
+		assertThat(JedisConverters.toListOfRedisClientInformation(null)).isEmpty();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingMultipleLiesToListOfRedisClientInfoReturnsListCorrectly() {
 
 		StringBuilder sb = new StringBuilder();
@@ -68,52 +55,40 @@ public class JedisConvertersUnitTests {
 		sb.append("\r\n");
 		sb.append(CLIENT_ALL_SINGLE_LINE_RESPONSE);
 
-		assertThat(JedisConverters.toListOfRedisClientInformation(sb.toString()).size(), equalTo(2));
+		assertThat(JedisConverters.toListOfRedisClientInformation(sb.toString())).hasSize(2);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void convertsSingleMapToRedisServerReturnsCollectionCorrectly() {
 
 		Map<String, String> values = getRedisServerInfoMap("mymaster", 23697);
 		List<RedisServer> servers = JedisConverters.toListOfRedisServer(Collections.singletonList(values));
 
-		assertThat(servers.size(), is(1));
+		assertThat(servers).hasSize(1);
 		verifyRedisServerInfo(servers.get(0), values);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void convertsMultipleMapsToRedisServerReturnsCollectionCorrectly() {
 
 		List<Map<String, String>> vals = Arrays.asList(getRedisServerInfoMap("mymaster", 23697),
 				getRedisServerInfoMap("yourmaster", 23680));
 		List<RedisServer> servers = JedisConverters.toListOfRedisServer(vals);
 
-		assertThat(servers.size(), is(vals.size()));
+		assertThat(servers).hasSize(vals.size());
 		for (int i = 0; i < vals.size(); i++) {
 			verifyRedisServerInfo(servers.get(i), vals.get(i));
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void convertsRedisServersCorrectlyWhenGivenAnEmptyList() {
-		assertThat(JedisConverters.toListOfRedisServer(Collections.<Map<String, String>> emptyList()), notNullValue());
+		assertThat(JedisConverters.toListOfRedisServer(Collections.<Map<String, String>>emptyList())).isNotNull();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void convertsRedisServersCorrectlyWhenGivenNull() {
-		assertThat(JedisConverters.toListOfRedisServer(null), notNullValue());
+		assertThat(JedisConverters.toListOfRedisServer(null)).isNotNull();
 	}
 
 	/**
@@ -123,196 +98,132 @@ public class JedisConvertersUnitTests {
 
 		byte[] defaultValue = "tyrion".getBytes();
 
-		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(null, defaultValue), is(defaultValue));
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(null, defaultValue)).isEqualTo(defaultValue);
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test
+	@Test // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryValueIsNull() {
 
 		byte[] defaultValue = "tyrion".getBytes();
 
-		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.unbounded().getMax(), defaultValue),
-				is(defaultValue));
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.unbounded().getMax(), defaultValue)).
+				isEqualTo(defaultValue);
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test
+	@Test // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
 
 		assertThat(
-				JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
-				is(JedisConverters.toBytes("[a")));
+				JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null)).isEqualTo(JedisConverters.toBytes("[a"));
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test
+	@Test // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
 
 		assertThat(
-				JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null),
-				is(JedisConverters.toBytes("(a")));
+				JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null)).isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test
+	@Test // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsAString() {
 
-		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt("a").getMin(), null),
-				is(JedisConverters.toBytes("(a")));
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt("a").getMin(), null)).isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test
+	@Test // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
 
-		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(1L).getMin(), null),
-				is(JedisConverters.toBytes("(1")));
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(1L).getMin(), null)).isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
-	/**
-	 * @see DATAREDIS-378
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-378
 	public void boundaryToBytesForZRangeByLexShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
 		JedisConverters.boundaryToBytesForZRangeByLex(Range.range().gt(new Date()).getMin(), null);
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryIsNull() {
 
 		byte[] defaultValue = "tyrion".getBytes();
 
-		assertThat(JedisConverters.boundaryToBytesForZRange(null, defaultValue), is(defaultValue));
+		assertThat(JedisConverters.boundaryToBytesForZRange(null, defaultValue)).isEqualTo(defaultValue);
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryValueIsNull() {
 
 		byte[] defaultValue = "tyrion".getBytes();
 
-		assertThat(JedisConverters.boundaryToBytesForZRange(Range.unbounded().getMax(), defaultValue), is(defaultValue));
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.unbounded().getMax(), defaultValue)).isEqualTo(defaultValue);
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
 
 		assertThat(
-				JedisConverters.boundaryToBytesForZRange(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null),
-				is(JedisConverters.toBytes("a")));
+				JedisConverters.boundaryToBytesForZRange(Range.range().gte(JedisConverters.toBytes("a")).getMin(), null)).isEqualTo(JedisConverters.toBytes("a"));
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
 
-		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null),
-				is(JedisConverters.toBytes("(a")));
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(JedisConverters.toBytes("a")).getMin(), null)).isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsAString() {
 
-		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt("a").getMin(), null),
-				is(JedisConverters.toBytes("(a")));
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt("a").getMin(), null)).
+				isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test
+	@Test // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
 
-		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(1L).getMin(), null),
-				is(JedisConverters.toBytes("(1")));
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.range().gt(1L).getMin(), null)).
+				isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
-	/**
-	 * @see DATAREDIS-352
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-352
 	public void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
 		JedisConverters.boundaryToBytesForZRange(Range.range().gt(new Date()).getMin(), null);
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEXforSeconds() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)), equalTo(JedisConverters.toBytes("EX")));
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100))).isEqualTo(JedisConverters.toBytes("EX"));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
 
-		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)),
-				equalTo(JedisConverters.toBytes("PX")));
+		assertThat(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100))).isEqualTo(JedisConverters.toBytes("PX"));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetCommandExPxOptionShouldReturnEmptyArrayForNull() {
-		assertThat(JedisConverters.toSetCommandExPxArgument(null), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandExPxArgument(null)).isEqualTo(new byte[] {});
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()), equalTo(JedisConverters.toBytes("NX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent())).isEqualTo(JedisConverters.toBytes("NX"));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()), equalTo(JedisConverters.toBytes("XX")));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent())).isEqualTo(JedisConverters.toBytes("XX"));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
-		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()), equalTo(new byte[] {}));
+		assertThat(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert())).isEqualTo(new byte[] {});
 	}
 
 	private void verifyRedisServerInfo(RedisServer server, Map<String, String> values) {
 
 		for (Map.Entry<String, String> entry : values.entrySet()) {
-			assertThat(server.get(entry.getKey()), equalTo(entry.getValue()));
+			assertThat(server.get(entry.getKey())).isEqualTo(entry.getValue());
 		}
 	}
 

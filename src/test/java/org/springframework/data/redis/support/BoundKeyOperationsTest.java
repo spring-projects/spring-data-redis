@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.support;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import java.util.Collection;
@@ -102,42 +102,36 @@ public class BoundKeyOperationsTest {
 		Object newName = objFactory.instance();
 
 		keyOps.rename(newName);
-		assertEquals(newName, keyOps.getKey());
+		assertThat(keyOps.getKey()).isEqualTo(newName);
 
 		keyOps.rename(key);
-		assertEquals(key, keyOps.getKey());
+		assertThat(keyOps.getKey()).isEqualTo(key);
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
-	@Test
+	@Test // DATAREDIS-251
 	public void testExpire() throws Exception {
 
-		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
+		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey()).isEqualTo(Long.valueOf(-1));
 
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
 			long expire = keyOps.getExpire().longValue();
-			assertTrue(expire <= 10 && expire > 5);
+			assertThat(expire).isGreaterThan(5).isLessThanOrEqualTo(10);
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
-	@Test
+	@Test // DATAREDIS-251
 	public void testPersist() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(template.getConnectionFactory()));
 
 		keyOps.persist();
 
-		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
+		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey()).isEqualTo( Long.valueOf(-1));
 		if (keyOps.expire(10, TimeUnit.SECONDS)) {
-			assertTrue(keyOps.getExpire().longValue() > 0);
+			assertThat(keyOps.getExpire()).isGreaterThan(0);
 		}
 
 		keyOps.persist();
-		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), -1, keyOps.getExpire().longValue());
+		assertThat(keyOps.getExpire().longValue()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey()).isEqualTo(-1);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

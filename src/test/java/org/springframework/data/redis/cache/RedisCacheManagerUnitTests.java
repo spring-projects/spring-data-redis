@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.hamcrest.core.IsSame.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -27,7 +24,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hamcrest.core.IsCollectionContaining;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,38 +64,26 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.afterPropertiesSet();
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testGetCacheReturnsNewCacheWhenRequestedCacheIsNotAvailable() {
 
 		Cache cache = cacheManager.getCache("not-available");
-		assertThat(cache, notNullValue());
+		assertThat(cache).isNotNull();
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testGetCacheReturnsExistingCacheWhenRequested() {
 
 		Cache cache = cacheManager.getCache("cache");
-		assertThat(cacheManager.getCache("cache"), sameInstance(cache));
+		assertThat(cacheManager.getCache("cache")).isSameAs(cache);
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitSouldNotRequestRemoteKeysByDefault() {
 		Mockito.verifyZeroInteractions(redisConnectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitShouldFetchAllCacheKeysWhenLoadingRemoteCachesOnStartupIsEnabled() {
 
 		cacheManager = new RedisCacheManager(redisTemplate);
@@ -108,14 +92,11 @@ public class RedisCacheManagerUnitTests {
 
 		ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
 		verify(redisConnectionMock, times(1)).keys(captor.capture());
-		assertThat(redisTemplate.getKeySerializer().deserialize(captor.getValue()).toString(), is("*~keys"));
+		assertThat(redisTemplate.getKeySerializer().deserialize(captor.getValue()).toString()).isEqualTo("*~keys");
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitShouldInitializeRemoteCachesCorrectlyWhenLoadingRemoteCachesOnStartupIsEnabled() {
 
 		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(redisTemplate.getKeySerializer()
@@ -126,13 +107,10 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCacheNames(), IsCollectionContaining.hasItem("remote-cache"));
+		assertThat(cacheManager.getCacheNames()).contains("remote-cache");
 	}
 
-	/**
-	 * @see DATAREDIS-246
-	 */
-	@Test
+	@Test // DATAREDIS-246
 	public void testCacheInitShouldNotInitialzeCachesWhenLoadingRemoteCachesOnStartupIsEnabledAndNoCachesAvailableOnRemoteServer() {
 
 		when(redisConnectionMock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptySet());
@@ -141,7 +119,7 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCacheNames().isEmpty(), is(true));
+		assertThat(cacheManager.getCacheNames().isEmpty()).isTrue();
 	}
 
 	/**
@@ -154,7 +132,7 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCache("redis"), nullValue());
+		assertThat(cacheManager.getCache("redis")).isNull();
 	}
 
 	/**
@@ -167,7 +145,7 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCache("spring"), notNullValue());
+		assertThat(cacheManager.getCache("spring")).isNotNull();
 	}
 
 	/**
@@ -181,27 +159,21 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCache("redis"), notNullValue());
+		assertThat(cacheManager.getCache("redis")).isNotNull();
 	}
 
-	/**
-	 * @see DATAREDIS-283
-	 */
-	@Test
+	@Test // DATAREDIS-283
 	public void testRetainConfiguredCachesAfterBeanInitialization() {
 
 		cacheManager = new RedisCacheManager(redisTemplate);
 		cacheManager.setCacheNames(Arrays.asList("spring", "data"));
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCache("spring"), notNullValue());
-		assertThat(cacheManager.getCache("data"), notNullValue());
+		assertThat(cacheManager.getCache("spring")).isNotNull();
+		assertThat(cacheManager.getCache("data")).isNotNull();
 	}
 
-	/**
-	 * @see DATAREDIS-283
-	 */
-	@Test
+	@Test // DATAREDIS-283
 	public void testRetainConfiguredCachesAfterBeanInitializationWithLoadingOfRemoteKeys() {
 
 		Set<byte[]> keys = new HashSet<byte[]>(Arrays.asList(redisTemplate.getKeySerializer()
@@ -213,8 +185,8 @@ public class RedisCacheManagerUnitTests {
 		cacheManager.setLoadRemoteCachesOnStartup(true);
 		cacheManager.afterPropertiesSet();
 
-		assertThat(cacheManager.getCache("spring"), notNullValue());
-		assertThat(cacheManager.getCache("data"), notNullValue());
-		assertThat(cacheManager.getCacheNames(), IsCollectionContaining.hasItem("remote-cache"));
+		assertThat(cacheManager.getCache("spring")).isNotNull();
+		assertThat(cacheManager.getCache("data")).isNotNull();
+		assertThat(cacheManager.getCacheNames()).contains("remote-cache");
 	}
 }

@@ -1429,10 +1429,7 @@ public class DefaultStringRedisConnectionPipelineTests extends DefaultStringRedi
 		verifyResults(Arrays.asList(new Object[] { barBytes, 3l }));
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test
+	@Test // DATAREDIS-206
 	@Override
 	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
 

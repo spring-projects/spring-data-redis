@@ -1,8 +1,7 @@
 package org.springframework.data.redis.connection;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -1530,9 +1529,7 @@ public class DefaultStringRedisConnectionPipelineTxTests extends DefaultStringRe
 		connection.get(bar);
 		connection.exec();
 		List<Object> results = connection.closePipeline();
-		assertEquals(
-				Arrays.asList(new Object[] { Arrays.asList(new Object[] { bar }), Arrays.asList(new Object[] { foo }) }),
-				results);
+        assertThat(results).contains(Arrays.asList(new Object[] { bar }), Arrays.asList(new Object[] { foo }));
 	}
 
 	@SuppressWarnings("unchecked")

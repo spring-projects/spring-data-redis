@@ -61,10 +61,7 @@ public class ConnectionSplittingInterceptorUnitTests {
 		Mockito.when(connectionFactoryMock.getConnection()).thenReturn(freshConnectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void interceptorShouldRequestFreshConnectionForReadonlyCommand() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} }, null);
@@ -72,10 +69,7 @@ public class ConnectionSplittingInterceptorUnitTests {
 		Mockito.verifyZeroInteractions(boundConnectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void interceptorShouldUseBoundConnectionForWriteOperations() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L }, null);
@@ -83,11 +77,8 @@ public class ConnectionSplittingInterceptorUnitTests {
 		Mockito.verifyZeroInteractions(connectionFactoryMock);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
 	@SuppressWarnings("unchecked")
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-73
 	public void interceptorShouldNotWrapException() throws Throwable {
 
 		Mockito.when(freshConnectionMock.keys(Mockito.any(byte[].class))).thenThrow(

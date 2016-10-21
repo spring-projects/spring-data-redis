@@ -16,7 +16,7 @@
 
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,13 +117,10 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 	public void testClosePipelineNotOpen() {
 		getResults();
 		List<Object> results = connection.closePipeline();
-		assertTrue(results.isEmpty());
+		assertThat(results.isEmpty()).isTrue();
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	@Ignore
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
@@ -139,9 +136,9 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		for (int i = 0; i < actual.size(); i++) {
 			expectedPipeline.add(null);
 		}
-		assertEquals(expectedPipeline, actual);
+		assertThat(actual).isEqualTo(expectedPipeline);
 		List<Object> results = getResults();
-		assertEquals(expected, results);
+		assertThat(results).isEqualTo(expected);
 	}
 
 	protected List<Object> getResults() {

@@ -16,8 +16,9 @@
 
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -79,10 +80,7 @@ public class RedisMessageListenerContainerTests {
 		connectionFactory.destroy();
 	}
 
-	/*
-	 * @see DATAREDIS-415
-	 */
-	@Test
+	@Test // DATAREDIS-415
 	public void interruptAtStart() throws Exception {
 
 		final Thread main = Thread.currentThread();
@@ -102,9 +100,9 @@ public class RedisMessageListenerContainerTests {
 		container.start();
 
 		// reset the interrupted flag to not destroy the teardown
-		assertThat(Thread.interrupted(), is(true));
+		assertThat(Thread.interrupted()).isTrue();
 
-		assertThat(container.isRunning(), is(false));
+		assertThat(container.isRunning()).isFalse();
 	}
 
 }

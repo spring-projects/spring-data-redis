@@ -16,10 +16,8 @@
 
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
@@ -85,10 +83,7 @@ public class RedisKeyValueAdapterUnitTests {
 		adapter.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-507
-	 */
-	@Test
+	@Test // DATAREDIS-507
 	public void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
 		adapter.destroy();
@@ -96,10 +91,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(jedisConnectionFactoryMock, never()).destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putShouldRemoveExistingIndexValuesWhenUpdating() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -114,10 +106,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(redisConnectionMock, times(1)).sRem(any(byte[].class), any(byte[].class));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -132,10 +121,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(redisConnectionMock, never()).sRem(any(byte[].class), (byte[][]) anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldInitKeyExpirationListenerOnStartup() throws Exception{
 
 		adapter.destroy();
@@ -146,13 +132,10 @@ public class RedisKeyValueAdapterUnitTests {
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
-		assertThat(listener, notNullValue());
+		assertThat(listener).isNotNull();
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
 
 		adapter.destroy();
@@ -163,23 +146,20 @@ public class RedisKeyValueAdapterUnitTests {
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-NOT-start-listener", new WithoutTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-start-listener", new WithTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, notNullValue());
+		assertThat(listener).isNotNull();
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldNeverInitKeyExpirationListener() throws Exception {
 
 		adapter.destroy();
@@ -189,17 +169,17 @@ public class RedisKeyValueAdapterUnitTests {
 
 		KeyExpirationEventMessageListener listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter,
 				"expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-NOT-start-listener", new WithoutTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 
 		adapter.put("should-start-listener", new WithTimeToLive(), "keyspace");
 
 		listener = ((AtomicReference<KeyExpirationEventMessageListener>) getField(adapter, "expirationListener")).get();
-		assertThat(listener, nullValue());
+		assertThat(listener).isNull();
 	}
 
 	static class WithoutTimeToLive {

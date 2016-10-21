@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -73,37 +70,28 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		((LettuceConnectionFactory) connectionFactory).destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void shouldReadMastersCorrectly() {
 
 		List<RedisServer> servers = (List<RedisServer>) connectionFactory.getSentinelConnection().masters();
-		assertThat(servers.size(), is(1));
-		assertThat(servers.get(0).getName(), is(MASTER_NAME));
+		assertThat(servers).hasSize(1);
+		assertThat(servers.get(0).getName()).isEqualTo(MASTER_NAME);
 	}
 
-	/**
-	 * @see DATAREDIS-348
-	 */
-	@Test
+	@Test // DATAREDIS-348
 	public void shouldReadSlavesOfMastersCorrectly() {
 
 		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
 
 		List<RedisServer> servers = (List<RedisServer>) sentinelConnection.masters();
-		assertThat(servers.size(), is(1));
+		assertThat(servers).hasSize(1);
 
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
-		assertThat(slaves.size(), is(2));
-		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+		assertThat(slaves).hasSize(2);
+		assertThat(slaves).contains(SLAVE_0, SLAVE_1);
 	}
 
-	/**
-	 * @see DATAREDIS-462
-	 */
-	@Test
+	@Test // DATAREDIS-462
 	public void factoryWorksWithoutClientResources() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG);
@@ -115,7 +103,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		StringRedisConnection connection = new DefaultStringRedisConnection(factory.getConnection());
 
 		try {
-			assertThat(connection.ping(), is(equalTo("PONG")));
+			assertThat(connection.ping()).isEqualTo("PONG");
 		} finally {
 			connection.close();
 		}

@@ -16,8 +16,7 @@
 
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
@@ -43,7 +42,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.data.redis.ConnectionFactoryTracker;
-import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.TestCondition;
 import org.springframework.data.redis.connection.ConnectionUtils;
@@ -86,7 +84,7 @@ public class PubSubResubscribeTests {
 
 	@BeforeClass
 	public static void shouldRun() {
-		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
+		//assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 	}
 
 	@AfterClass
@@ -138,7 +136,7 @@ public class PubSubResubscribeTests {
 	public void setUp() throws Exception {
 
 		// JredisConnection#publish is currently not supported -> tests would fail
-		assumeThat(ConnectionUtils.isJredis(factory), is(false));
+		assumeFalse(ConnectionUtils.isJredis(factory));
 
 		template = new StringRedisTemplate(factory);
 
@@ -197,13 +195,11 @@ public class PubSubResubscribeTests {
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 
-		assertEquals(2, msgs.size());
-		assertTrue(msgs.contains(payload1));
-		assertTrue(msgs.contains(payload2));
+		assertThat(msgs).hasSize(2).contains(payload1, payload2);
 		msgs.clear();
 
 		// unsubscribed adapter did not receive message
-		assertNull(bag.poll(500, TimeUnit.MILLISECONDS));
+		assertThat(bag.poll(500, TimeUnit.MILLISECONDS)).isNull();
 
 		// bind original listener on another channel
 		container.addMessageListener(adapter, new ChannelTopic(ANOTHER_CHANNEL));
@@ -219,16 +215,14 @@ public class PubSubResubscribeTests {
 		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
 		msgs.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
-		assertTrue(msgs.contains(payload2));
-		assertTrue(msgs.contains(null));
+		assertThat(msgs).contains(payload2);
+		assertThat(msgs.contains(null)).isTrue();
 
 		// another listener receives messages on both channels
 		msgs.clear();
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
 		msgs.add(bag2.poll(500, TimeUnit.MILLISECONDS));
-		assertEquals(2, msgs.size());
-		assertTrue(msgs.contains(payload1));
-		assertTrue(msgs.contains(payload2));
+		assertThat(msgs).hasSize(2).contains(payload1, payload2);
 	}
 
 	@Test
@@ -262,11 +256,11 @@ public class PubSubResubscribeTests {
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
-		assertFalse(set.contains(payload1));
-		assertFalse(set.contains(payload2));
+		assertThat(set.contains(payload1)).isFalse();
+		assertThat(set.contains(payload2)).isFalse();
 
-		assertTrue(set.contains(anotherPayload1));
-		assertTrue(set.contains(anotherPayload2));
+		assertThat(set.contains(anotherPayload1)).isTrue();
+		assertThat(set.contains(anotherPayload2)).isTrue();
 	}
 
 	/**
@@ -295,7 +289,7 @@ public class PubSubResubscribeTests {
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 		set.add(bag.poll(500, TimeUnit.MILLISECONDS));
 
-		assertEquals(new HashSet<String>(Arrays.asList(new String[] { "HELLO", "WORLD" })), set);
+		assertThat(set).isEqualTo(new HashSet<String>(Arrays.asList(new String[] { "HELLO", "WORLD" })));
 	}
 
 	private class MessageHandler {

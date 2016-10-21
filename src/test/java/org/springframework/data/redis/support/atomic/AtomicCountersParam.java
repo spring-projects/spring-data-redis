@@ -20,8 +20,8 @@ import java.util.Collection;
 
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.connection.jredis.JredisPool;
 import org.springframework.data.redis.connection.jredis.JredisConnectionFactory;
+import org.springframework.data.redis.connection.jredis.JredisPool;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.connection.srp.SrpConnectionFactory;

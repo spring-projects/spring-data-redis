@@ -33,34 +33,22 @@ public class JRedisConnectionUnitTests extends AbstractConnectionUnitTestBase<JR
 		connection = new JredisConnection(getNativeRedisConnectionMock());
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
 	public void shutdownSaveShouldThrowUnsupportedOperationException() {
 		connection.shutdown(ShutdownOption.SAVE);
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
 	public void shutdownNosaveShouldThrowUnsupportedOperationException() {
 		connection.shutdown(ShutdownOption.NOSAVE);
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
 	public void shutdownWithNullShouldThrowUnsupportedOperationException() {
 		connection.shutdown(null);
 	}
 
-	/**
-	 * @see DATAREDIS-270
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-270
 	public void getClientNameShouldSendRequestCorrectly() {
 		connection.getClientName();
 	}

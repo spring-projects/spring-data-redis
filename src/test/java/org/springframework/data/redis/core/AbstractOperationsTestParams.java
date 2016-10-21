@@ -44,9 +44,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  */
 abstract public class AbstractOperationsTestParams {
 
-	/**
-	 * @see DATAREDIS-241
-	 */
+	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
 
 		ObjectFactory<String> stringFactory = new StringObjectFactory();

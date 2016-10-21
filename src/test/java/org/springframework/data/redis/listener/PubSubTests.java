@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import java.util.Arrays;
@@ -141,7 +140,7 @@ public class PubSubTests<T> {
 		set.add((T) bag.poll(1, TimeUnit.SECONDS));
 		set.add((T) bag.poll(1, TimeUnit.SECONDS));
 
-		assertThat(set, hasItems(payload1, payload2));
+		assertThat(set).contains(payload1, payload2);
 	}
 
 	@Test
@@ -152,7 +151,7 @@ public class PubSubTests<T> {
 		}
 
 		Thread.sleep(1000);
-		assertEquals(COUNT, bag.size());
+		assertThat(bag.size()).isEqualTo(COUNT);
 	}
 
 	@Test
@@ -164,7 +163,7 @@ public class PubSubTests<T> {
 		template.convertAndSend(CHANNEL, payload1);
 		template.convertAndSend(CHANNEL, payload2);
 
-		assertNull(bag.poll(1, TimeUnit.SECONDS));
+		assertThat(bag.poll(1, TimeUnit.SECONDS)).isNull();
 	}
 
 	@Test
@@ -175,11 +174,8 @@ public class PubSubTests<T> {
 		container.start();
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-251
 	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));
@@ -194,6 +190,6 @@ public class PubSubTests<T> {
 		Set<T> set = new LinkedHashSet<T>();
 		set.add((T) bag.poll(3, TimeUnit.SECONDS));
 
-		assertThat(set, hasItems(payload));
+		assertThat(set).contains(payload);
 	}
 }

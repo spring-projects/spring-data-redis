@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.redis.SpinBarrier.*;
 
@@ -81,11 +81,11 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		Thread.sleep(1000);
 		connection.scriptKill();
 		getResults();
-		assertTrue(waitFor(new TestCondition() {
+		assertThat(waitFor(new TestCondition() {
 			public boolean passes() {
 				return scriptDead.get();
 			}
-		}, 3000l));
+		}, 3000l)).isTrue();
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar", conn2.get("foo"));
+			assertThat(conn2.get("foo")).isEqualTo("bar");
 		} finally {
 			if (conn2.exists("foo")) {
 				conn2.del("foo");
@@ -110,11 +110,8 @@ public class LettuceConnectionPipelineIntegrationTests extends AbstractConnectio
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}

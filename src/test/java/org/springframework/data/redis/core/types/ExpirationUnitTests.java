@@ -16,8 +16,7 @@
 
 package org.springframework.data.redis.core.types;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,39 +27,30 @@ import org.junit.Test;
  */
 public class ExpirationUnitTests {
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void fromDefault() throws Exception {
 
 		Expiration expiration = Expiration.from(5, null);
 
-		assertThat(expiration.getExpirationTime(), is(5L));
-		assertThat(expiration.getTimeUnit(), is(TimeUnit.SECONDS));
+		assertThat(expiration.getExpirationTime()).isEqualTo(5L);
+		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.SECONDS);
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void fromNanos() throws Exception {
 
 		Expiration expiration = Expiration.from(5L * 1000 * 1000, TimeUnit.NANOSECONDS);
 
-		assertThat(expiration.getExpirationTime(), is(5L));
-		assertThat(expiration.getTimeUnit(), is(TimeUnit.MILLISECONDS));
+		assertThat(expiration.getExpirationTime()).isEqualTo(5L);
+		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void fromMinutes() throws Exception {
 
 		Expiration expiration = Expiration.from(5, TimeUnit.MINUTES);
 
-		assertThat(expiration.getExpirationTime(), is(5L * 60));
-		assertThat(expiration.getTimeUnit(), is(TimeUnit.SECONDS));
+		assertThat(expiration.getExpirationTime()).isEqualTo(5L * 60);
+		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.SECONDS);
 	}
 }

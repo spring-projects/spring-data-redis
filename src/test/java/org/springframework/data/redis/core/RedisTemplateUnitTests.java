@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -53,30 +51,21 @@ public class RedisTemplateUnitTests {
 		template.afterPropertiesSet();
 	}
 
-	/**
-	 * @see DATAREDIS-277
-	 */
-	@Test
+	@Test // DATAREDIS-277
 	public void slaveOfIsDelegatedToConnectionCorrectly() {
 
 		template.slaveOf("127.0.0.1", 1001);
 		verify(redisConnectionMock, times(1)).slaveOf(eq("127.0.0.1"), eq(1001));
 	}
 
-	/**
-	 * @see DATAREDIS-277
-	 */
-	@Test
+	@Test // DATAREDIS-277
 	public void slaveOfNoOneIsDelegatedToConnectionCorrectly() {
 
 		template.slaveOfNoOne();
 		verify(redisConnectionMock, times(1)).slaveOfNoOne();
 	}
 
-	/**
-	 * @see DATAREDIS-501
-	 */
-	@Test
+	@Test // DATAREDIS-501
 	public void templateShouldPassOnAndUseResoureLoaderClassLoaderToDefaultJdkSerializerWhenNotAlreadySet() {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());
@@ -90,8 +79,8 @@ public class RedisTemplateUnitTests {
 				.thenReturn(new JdkSerializationRedisSerializer().serialize(new SomeArbitrarySeriaizableObject()));
 
 		Object deserialized = template.opsForValue().get("spring");
-		assertThat(deserialized, notNullValue());
-		assertThat(deserialized.getClass().getClassLoader(), is((ClassLoader) scl));
+		assertThat(deserialized).isNotNull();
+		assertThat(deserialized.getClass().getClassLoader()).isEqualTo(scl);
 	}
 
 	static class SomeArbitrarySeriaizableObject implements Serializable {

@@ -50,37 +50,25 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-332
-	 */
-	@Test
+	@Test // DATAREDIS-332
 	@Rollback
 	public void testNumberOfOperationsIsOne() {
 		tryOperations(1);
 	}
 
-	/**
-	 * @see DATAREDIS-332
-	 */
-	@Test
+	@Test // DATAREDIS-332
 	@Rollback
 	public void testNumberOfOperationsEqualToNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS);
 	}
 
-	/**
-	 * @see DATAREDIS-332
-	 */
-	@Test
+	@Test // DATAREDIS-332
 	@Rollback
 	public void testNumberOfOperationsGreaterThanNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);
 	}
 
-	/**
-	 * @see DATAREDIS-548
-	 */
-	@Test
+	@Test // DATAREDIS-548
 	@Transactional(readOnly = true)
 	public void readonlyTransactionSyncShouldNotExcceedMaxConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);

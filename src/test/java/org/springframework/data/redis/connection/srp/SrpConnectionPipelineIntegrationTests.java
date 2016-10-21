@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.srp;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -82,8 +82,7 @@ public class SrpConnectionPipelineIntegrationTests extends AbstractConnectionPip
 		actual.add(byteConnection.evalSha(sha1, ReturnType.MULTI, 1, "key1".getBytes(), "arg1".getBytes()));
 		List<Object> results = getResults();
 		List<byte[]> scriptResults = (List<byte[]>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "key1", "arg1" }),
-				Arrays.asList(new Object[] { new String(scriptResults.get(0)), new String(scriptResults.get(1)) }));
+		assertThat(scriptResults).contains("key1".getBytes(), "arg1".getBytes());
 	}
 
 }

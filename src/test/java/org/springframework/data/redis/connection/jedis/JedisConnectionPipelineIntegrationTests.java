@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -101,7 +101,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		actual.add(connection.exec());
 		List<Object> results = getResults();
 		List<Object> execResults = (List<Object>) results.get(0);
-		assertEquals(Arrays.asList(new Object[] { "somethingelse" }), execResults);
+		assertThat(execResults).isEqualTo(Arrays.asList(new Object[] { "somethingelse" }));
 	}
 
 	@Test
@@ -255,27 +255,18 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		super.testZAddMultiple();
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		super.clientSetNameWorksCorrectly();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}
 
-	/**
-	 * @see DATAREDIS-296
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-296
 	public void testExecWithoutMulti() {
 		super.testExecWithoutMulti();
 	}

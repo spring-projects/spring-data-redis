@@ -15,8 +15,9 @@
  */
 package org.springframework.data.redis.listener;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.UUID;
@@ -81,10 +82,7 @@ public class KeyExpirationEventMessageListenerTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void listenerShouldPublishEventCorrectly() throws InterruptedException {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
@@ -107,13 +105,10 @@ public class KeyExpirationEventMessageListenerTests {
 		ArgumentCaptor<ApplicationEvent> captor = ArgumentCaptor.forClass(ApplicationEvent.class);
 
 		verify(publisherMock, times(1)).publishEvent(captor.capture());
-		assertThat((byte[]) captor.getValue().getSource(), is(key));
+		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(key);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();

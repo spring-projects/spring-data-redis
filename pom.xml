@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>1.7.5.BUILD-SNAPSHOT</version>
+	<version>1.7.5.DATAREDIS-549-SNAPSHOT</version>
 
 	<name>Spring Data Redis</name>
 
@@ -27,6 +27,7 @@
 		<srp>0.7</srp>
 		<jredis>06052013</jredis>
 		<multithreadedtc>1.01</multithreadedtc>
+		<assertj>3.5.2</assertj>
 	</properties>
 
 	<dependencyManagement>
@@ -215,6 +216,13 @@
 			<groupId>edu.umd.cs.mtc</groupId>
 			<artifactId>multithreadedtc</artifactId>
 			<version>${multithreadedtc}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

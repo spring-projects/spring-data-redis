@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,12 +29,14 @@ import org.junit.Test;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisClientRule;
 import org.springframework.data.redis.test.util.RedisDriver;
 import org.springframework.data.redis.test.util.WithRedisDriver;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Integration test for Redis set.
@@ -97,8 +97,8 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		diffSet2.add(t3);
 
 		Set<T> diff = set.diff(Arrays.asList(diffSet1, diffSet2));
-		assertEquals(1, diff.size());
-		assertThat(diff, hasItem(t1));
+		assertThat(diff).hasSize(1);
+		assertThat(diff).contains(t1);
 	}
 
 	@Test
@@ -122,9 +122,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		String resultName = "test:set:diff:result:1";
 		RedisSet<T> diff = set.diffAndStore(Arrays.asList(diffSet1, diffSet2), resultName);
 
-		assertEquals(1, diff.size());
-		assertThat(diff, hasItem(t1));
-		assertEquals(resultName, diff.getKey());
+		assertThat(diff).hasSize(1);
+		assertThat(diff).contains(t1);
+		assertThat(diff.getKey()).isEqualTo(resultName);
 	}
 
 	@Test
@@ -147,8 +147,8 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		intSet2.add(t3);
 
 		Set<T> inter = set.intersect(Arrays.asList(intSet1, intSet2));
-		assertEquals(1, inter.size());
-		assertThat(inter, hasItem(t2));
+		assertThat(inter).hasSize(1);
+		assertThat(inter).contains(t2);
 	}
 
 	public void testIntersectAndStore() {
@@ -171,9 +171,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 		String resultName = "test:set:intersect:result:1";
 		RedisSet<T> inter = set.intersectAndStore(Arrays.asList(intSet1, intSet2), resultName);
-		assertEquals(1, inter.size());
-		assertThat(inter, hasItem(t2));
-		assertEquals(resultName, inter.getKey());
+		assertThat(inter).hasSize(1);
+		assertThat(inter).contains(t2);
+		assertThat(inter.getKey()).isEqualTo(resultName);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -195,8 +195,8 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		unionSet2.add(t3);
 
 		Set<T> union = set.union(Arrays.asList(unionSet1, unionSet2));
-		assertEquals(4, union.size());
-		assertThat(union, hasItems(t1, t2, t3, t4));
+		assertThat(union).hasSize(4);
+		assertThat(union).contains(t1, t2, t3, t4);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -219,9 +219,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 		String resultName = "test:set:union:result:1";
 		RedisSet<T> union = set.unionAndStore(Arrays.asList(unionSet1, unionSet2), resultName);
-		assertEquals(4, union.size());
-		assertThat(union, hasItems(t1, t2, t3, t4));
-		assertEquals(resultName, union.getKey());
+		assertThat(union).hasSize(4);
+		assertThat(union).contains(t1, t2, t3, t4);
+		assertThat(union.getKey()).isEqualTo(resultName);
 	}
 
 	@Test
@@ -233,7 +233,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 
 		List<T> list = Arrays.asList(t1, t2, t3, t4);
 
-		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.addAll(list)).isTrue();
 		Iterator<T> iterator = collection.iterator();
 
 		List<T> result = new ArrayList<T>(list);
@@ -243,13 +243,13 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 			Iterator<T> resultItr = result.iterator();
 			while (resultItr.hasNext()) {
 				T obj = resultItr.next();
-				if (isEqual(expected).matches(obj)) {
+				if (ObjectUtils.nullSafeEquals(obj, expected)) {
 					resultItr.remove();
 				}
 			}
 		}
 
-		assertEquals(0, result.size());
+		assertThat(result).isEmpty();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -258,7 +258,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
 
-		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.addAll(list)).isTrue();
 
 		Object[] array = collection.toArray();
 
@@ -268,13 +268,13 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 			Iterator<T> resultItr = result.iterator();
 			while (resultItr.hasNext()) {
 				T obj = resultItr.next();
-				if (isEqual(array[i]).matches(obj)) {
+				if (ObjectUtils.nullSafeEquals(obj, array[i])) {
 					resultItr.remove();
 				}
 			}
 		}
 
-		assertEquals(0, result.size());
+		assertThat(result).isEmpty();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -283,7 +283,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		List<T> list = (List<T>) Arrays.asList(expectedArray);
 
-		assertThat(collection.addAll(list), is(true));
+		assertThat(collection.addAll(list)).isTrue();
 
 		Object[] array = collection.toArray(new Object[expectedArray.length]);
 		List<T> result = new ArrayList<T>(list);
@@ -292,18 +292,16 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 			Iterator<T> resultItr = result.iterator();
 			while (resultItr.hasNext()) {
 				T obj = resultItr.next();
-				if (isEqual(array[i]).matches(obj)) {
+				if (ObjectUtils.nullSafeEquals(obj, array[i])) {
 					resultItr.remove();
 				}
 			}
 		}
 
-		assertEquals(0, result.size());
+		assertThat(result).isEmpty();
 	}
 
-	/**
-	 * @see DATAREDIS-314
-	 */
+	// DATAREDIS-314
 	@SuppressWarnings("unchecked")
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@Test
@@ -313,9 +311,9 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		Object[] expectedArray = new Object[] { getT(), getT(), getT() };
 		collection.addAll((List<T>) Arrays.asList(expectedArray));
 
-		Iterator<T> it = set.scan();
-		while (it.hasNext()) {
-			assertThat(it.next(), anyOf(equalTo(expectedArray[0]), equalTo(expectedArray[1]), equalTo(expectedArray[2])));
+		Cursor<T> cursor = (Cursor<T>) set.scan();
+		while (cursor.hasNext()) {
+			assertThat(cursor.next()).isIn(expectedArray[0], expectedArray[1], expectedArray[2]);
 		}
 	}
 }

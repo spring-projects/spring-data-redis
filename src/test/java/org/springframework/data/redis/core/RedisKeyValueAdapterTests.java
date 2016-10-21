@@ -15,11 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.hamcrest.core.IsInstanceOf.*;
-import static org.hamcrest.core.IsNot.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -99,10 +95,7 @@ public class RedisKeyValueAdapterTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesDataCorrectly() {
 
 		Person rand = new Person();
@@ -110,16 +103,13 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		assertThat(template.keys("persons*"), hasItems("persons", "persons:1"));
-		assertThat(template.opsForSet().size("persons"), is(1L));
-		assertThat(template.opsForSet().members("persons"), hasItems("1"));
-		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
+		assertThat(template.keys("persons*")).contains("persons", "persons:1");
+		assertThat(template.opsForSet().size("persons")).isEqualTo(1L);
+		assertThat(template.opsForSet().members("persons")).contains("1");
+		assertThat(template.opsForHash().entries("persons:1").size()).isEqualTo(2);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesSimpleIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -127,14 +117,11 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		assertThat(template.keys("persons*"), hasItem("persons:firstname:rand"));
-		assertThat(template.opsForSet().members("persons:firstname:rand"), hasItems("1"));
+		assertThat(template.keys("persons*")).contains("persons:firstname:rand");
+		assertThat(template.opsForSet().members("persons:firstname:rand")).contains("1");
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesNestedDataCorrectly() {
 
 		Person rand = new Person();
@@ -143,14 +130,11 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		assertThat(template.keys("persons*"), hasItems("persons", "persons:1"));
-		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
+		assertThat(template.keys("persons*")).contains("persons", "persons:1");
+		assertThat(template.opsForHash().entries("persons:1").size()).isEqualTo(2);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesSimpleNestedIndexValuesCorrectly() {
 
 		Person rand = new Person();
@@ -159,14 +143,11 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("1", rand, "persons");
 
-		assertThat(template.keys("persons*"), hasItem("persons:address.country:Andor"));
-		assertThat(template.opsForSet().members("persons:address.country:Andor"), hasItems("1"));
+		assertThat(template.keys("persons*")).contains("persons:address.country:Andor");
+		assertThat(template.opsForSet().members("persons:address.country:Andor")).contains("1");
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getShouldReadSimpleObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -176,14 +157,11 @@ public class RedisKeyValueAdapterTests {
 
 		Object loaded = adapter.get("load-1", "persons");
 
-		assertThat(loaded, instanceOf(Person.class));
-		assertThat(((Person) loaded).age, is(24));
+		assertThat(loaded).isInstanceOf(Person.class);
+		assertThat(((Person) loaded).age).isEqualTo(24);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getShouldReadNestedObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -193,14 +171,11 @@ public class RedisKeyValueAdapterTests {
 
 		Object loaded = adapter.get("load-1", "persons");
 
-		assertThat(loaded, instanceOf(Person.class));
-		assertThat(((Person) loaded).address.country, is("Andor"));
+		assertThat(loaded).isInstanceOf(Person.class);
+		assertThat(((Person) loaded).address.country).isEqualTo("Andor");
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void couldReadsKeyspaceSizeCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -210,13 +185,10 @@ public class RedisKeyValueAdapterTests {
 
 		template.opsForSet().add("persons", "1", "2", "3");
 
-		assertThat(adapter.count("persons"), is(3L));
+		assertThat(adapter.count("persons")).isEqualTo(3L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void deleteRemovesEntriesCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -227,14 +199,11 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.delete("1", "persons");
 
-		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
-		assertThat(template.hasKey("persons:1"), is(false));
+		assertThat(template.opsForSet().members("persons")).doesNotContain("1");
+		assertThat(template.hasKey("persons:1")).isFalse();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void deleteCleansIndexedDataCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -248,13 +217,10 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.delete("1", "persons");
 
-		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
+		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void keyExpiredEventShouldRemoveHelperStructures() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -268,15 +234,12 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.onApplicationEvent(new RedisKeyExpiredEvent("persons:1".getBytes(Bucket.CHARSET)));
 
-		assertThat(template.hasKey("persons:firstname:rand"), is(false));
-		assertThat(template.hasKey("persons:1:idx"), is(false));
-		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
+		assertThat(template.hasKey("persons:firstname:rand")).isFalse();
+		assertThat(template.hasKey("persons:1:idx")).isFalse();
+		assertThat(template.opsForSet().members("persons")).doesNotContain("1");
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putWritesIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -285,31 +248,31 @@ public class RedisKeyValueAdapterTests {
 
 		adapter.put("rand", rand, "persons");
 
-		assertThat(template.hasKey("persons:firstname:rand"), is(true));
-		assertThat(template.hasKey("persons:rand:idx"), is(true));
-		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:rand"), is(true));
+		assertThat(template.hasKey("persons:firstname:rand")).isTrue();
+		assertThat(template.hasKey("persons:rand:idx")).isTrue();
+		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:rand")).isTrue();
 
 		Person mat = new Person();
 		mat.age = 22;
 		mat.firstname = "mat";
 		adapter.put("mat", mat, "persons");
 
-		assertThat(template.hasKey("persons:firstname:rand"), is(true));
-		assertThat(template.hasKey("persons:firstname:mat"), is(true));
-		assertThat(template.hasKey("persons:rand:idx"), is(true));
-		assertThat(template.hasKey("persons:mat:idx"), is(true));
-		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:rand"), is(true));
-		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
+		assertThat(template.hasKey("persons:firstname:rand")).isTrue();
+		assertThat(template.hasKey("persons:firstname:mat")).isTrue();
+		assertThat(template.hasKey("persons:rand:idx")).isTrue();
+		assertThat(template.hasKey("persons:mat:idx")).isTrue();
+		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:rand")).isTrue();
+		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat")).isTrue();
 
 		rand.firstname = "frodo";
 		adapter.put("rand", rand, "persons");
 
-		assertThat(template.hasKey("persons:firstname:rand"), is(false));
-		assertThat(template.hasKey("persons:firstname:mat"), is(true));
-		assertThat(template.hasKey("persons:firstname:frodo"), is(true));
-		assertThat(template.hasKey("persons:rand:idx"), is(true));
-		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:frodo"), is(true));
-		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
+		assertThat(template.hasKey("persons:firstname:rand")).isFalse();
+		assertThat(template.hasKey("persons:firstname:mat")).isTrue();
+		assertThat(template.hasKey("persons:firstname:frodo")).isTrue();
+		assertThat(template.hasKey("persons:rand:idx")).isTrue();
+		assertThat(template.opsForSet().isMember("persons:rand:idx", "persons:firstname:frodo")).isTrue();
+		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat")).isTrue();
 	}
 
 	@KeySpace("persons")

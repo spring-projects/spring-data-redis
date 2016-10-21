@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsNull.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,138 +40,99 @@ public class ConfigAwareTimeToLiveAccessorUnitTests {
 		accessor = new ConfigAwareTimeToLiveAccessor(config, new RedisMappingContext());
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void getTimeToLiveShouldThrowExceptionWhenSourceObjectIsNull() {
 		accessor.getTimeToLive(null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnNullIfNothingConfiguredOrAnnotated() {
-		assertThat(accessor.getTimeToLive(new SimpleType()), nullValue());
+		assertThat(accessor.getTimeToLive(new SimpleType())).isNull();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnConfiguredValueForSimpleType() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleType.class, null);
 		setting.setTimeToLive(10L);
 		config.addKeyspaceSettings(setting);
 
-		assertThat(accessor.getTimeToLive(new SimpleType()), is(10L));
+		assertThat(accessor.getTimeToLive(new SimpleType())).isEqualTo(10L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueWhenTypeIsAnnotated() {
-		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotation()), is(5L));
+		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotation())).isEqualTo(5L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveConsidersAnnotationOverConfig() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithRedisHashAnnotation.class, null);
 		setting.setTimeToLive(10L);
 		config.addKeyspaceSettings(setting);
 
-		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotation()), is(5L));
+		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotation())).isEqualTo(5L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueWhenPropertyIsAnnotatedAndHasValue() {
-		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotationAndTTLProperty(20L)), is(20L));
+		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotationAndTTLProperty(20L))).isEqualTo(20L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueFromTypeAnnotationWhenPropertyIsAnnotatedAndHasNullValue() {
-		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotationAndTTLProperty()), is(10L));
+		assertThat(accessor.getTimeToLive(new TypeWithRedisHashAnnotationAndTTLProperty())).isEqualTo(10L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnNullWhenPropertyIsAnnotatedAndHasNullValue() {
-		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty()), nullValue());
+		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty())).isNull();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnConfiguredValueWhenPropertyIsAnnotatedAndHasNullValue() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleTypeWithTTLProperty.class, null);
 		setting.setTimeToLive(10L);
 		config.addKeyspaceSettings(setting);
 
-		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty()), is(10L));
+		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty())).isEqualTo(10L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldFavorAnnotatedNotNullPropertyValueOverConfiguredOne() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleTypeWithTTLProperty.class, null);
 		setting.setTimeToLive(10L);
 		config.addKeyspaceSettings(setting);
 
-		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty(25L)), is(25L));
+		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty(25L))).isEqualTo(25L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnMethodLevelTimeToLiveIfPresent() {
-		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(10L)), is(10L));
+		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(10L))).isEqualTo(10L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnConfiguredValueWhenMethodLevelTimeToLiveIfPresentButHasNullValue() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
 		setting.setTimeToLive(10L);
 		config.addKeyspaceSettings(setting);
 
-		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(null)), is(10L));
+		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(null))).isEqualTo(10L);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getTimeToLiveShouldReturnValueWhenMethodLevelTimeToLiveIfPresentAlthoughConfiguredValuePresent() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
 		setting.setTimeToLive(10L);
 		config.addKeyspaceSettings(setting);
 
-		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(100L)), is(100L));
+		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(100L))).isEqualTo(100L);
 	}
 
 	static class SimpleType {}

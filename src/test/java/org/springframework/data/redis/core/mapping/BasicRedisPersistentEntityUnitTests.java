@@ -15,9 +15,8 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import static org.hamcrest.core.Is.*;
-import static org.hamcrest.core.IsEqual.*;
-import static org.junit.Assert.*;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -61,10 +60,7 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		entity = new BasicRedisPersistentEntity<T>(entityInformation, keySpaceResolver, ttlAccessor);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void addingMultipleIdPropertiesWithoutAnExplicitOneThrowsException() {
 
 		expectedException.expect(MappingException.class);
@@ -81,10 +77,7 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		entity.addPersistentProperty(property2);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	@SuppressWarnings("unchecked")
 	public void addingMultipleExplicitIdPropertiesThrowsException() {
 
@@ -104,10 +97,7 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		entity.addPersistentProperty(property2);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	@SuppressWarnings("unchecked")
 	public void explicitIdPropertiyShouldBeFavoredOverNonExplicit() {
 
@@ -121,6 +111,6 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		entity.addPersistentProperty(property1);
 		entity.addPersistentProperty(property2);
 
-		assertThat(entity.getIdProperty(), is(equalTo(property2)));
+		assertThat(entity.getIdProperty()).isEqualTo(property2);
 	}
 }

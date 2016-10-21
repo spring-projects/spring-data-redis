@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,66 +29,42 @@ public class RedisCommandUnitTests {
 
 	public @Rule ExpectedException expectedException = ExpectedException.none();
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectly() {
-		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("setconfig"), equalTo(true));
+		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("setconfig")).isTrue();
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCase() {
-		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("SetConfig"), equalTo(true));
+		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("SetConfig")).isTrue();
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldNotThrowExceptionWhenUsingNullKeyForRepresentationCheck() {
-		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy(null), equalTo(false));
+		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy(null)).isFalse();
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyViaLookup() {
-		assertThat(RedisCommand.failsafeCommandLookup("setconfig"), is(RedisCommand.CONFIG_SET));
+		assertThat(RedisCommand.failsafeCommandLookup("setconfig")).isEqualTo(RedisCommand.CONFIG_SET);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCaseViaLookup() {
-		assertThat(RedisCommand.failsafeCommandLookup("SetConfig"), is(RedisCommand.CONFIG_SET));
+		assertThat(RedisCommand.failsafeCommandLookup("SetConfig")).isEqualTo(RedisCommand.CONFIG_SET);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldReturnUnknownCommandForUnknownCommandString() {
-		assertThat(RedisCommand.failsafeCommandLookup("strangecommand"), is(RedisCommand.UNKNOWN));
+		assertThat(RedisCommand.failsafeCommandLookup("strangecommand")).isEqualTo(RedisCommand.UNKNOWN);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldNotThrowExceptionOnValidArgumentCount() {
 		RedisCommand.AUTH.validateArgumentCount(1);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExcatMatch() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -97,10 +72,7 @@ public class RedisCommandUnitTests {
 		RedisCommand.AUTH.validateArgumentCount(2);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedMinimalMatch() {
 
 		expectedException.expect(IllegalArgumentException.class);

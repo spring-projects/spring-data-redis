@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.support.atomic;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import java.util.Collection;
@@ -97,16 +96,16 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		// Txs not supported in Jredis
 		assumeTrue(!ConnectionUtils.isJredis(factory));
 		doubleCounter.set(0);
-		assertFalse(doubleCounter.compareAndSet(1.2, 10.6));
-		assertTrue(doubleCounter.compareAndSet(0, 10.6));
-		assertTrue(doubleCounter.compareAndSet(10.6, 0));
+		assertThat(doubleCounter.compareAndSet(1.2, 10.6)).isFalse();
+		assertThat(doubleCounter.compareAndSet(0, 10.6)).isTrue();
+		assertThat(doubleCounter.compareAndSet(10.6, 0)).isTrue();
 	}
 
 	@Test
 	public void testIncrementAndGet() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0);
-		assertEquals(1.0, doubleCounter.incrementAndGet(), 0);
+		assertThat(doubleCounter.incrementAndGet()).isEqualTo(1.0);
 	}
 
 	@Test
@@ -114,51 +113,51 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0);
 		double delta = 1.3;
-		assertEquals(delta, doubleCounter.addAndGet(delta), .0001);
+		assertThat(doubleCounter.addAndGet(delta)).isEqualTo(delta, offset(.0001));
 	}
 
 	@Test
 	public void testDecrementAndGet() throws Exception {
 		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(1);
-		assertEquals(0, doubleCounter.decrementAndGet(), 0);
+		assertThat(doubleCounter.decrementAndGet()).isEqualTo(0);
 	}
 
 	@Test
 	public void testGetAndSet() {
 		doubleCounter.set(3.4);
-		assertEquals(3.4, doubleCounter.getAndSet(1.2), 0);
-		assertEquals(1.2, doubleCounter.get(), 0);
+		assertThat(doubleCounter.getAndSet(1.2)).isEqualTo(3.4);
+		assertThat(doubleCounter.get()).isEqualTo(1.2);
 	}
 
 	@Test
 	public void testGetAndIncrement() {
 		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(2.3);
-		assertEquals(2.3, doubleCounter.getAndIncrement(), 0);
-		assertEquals(3.3, doubleCounter.get(), .0001);
+		assertThat(doubleCounter.getAndIncrement()).isEqualTo(2.3);
+		assertThat(doubleCounter.get()).isEqualTo(3.3, offset(.0001));
 	}
 
 	@Test
 	public void testGetAndDecrement() {
 		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0.5);
-		assertEquals(0.5, doubleCounter.getAndDecrement(), 0);
-		assertEquals(-0.5, doubleCounter.get(), .0001);
+		assertThat(doubleCounter.getAndDecrement()).isEqualTo(0.5);
+		assertThat(doubleCounter.get()).isEqualTo(-0.5, offset(.0001));
 	}
 
 	@Test
 	public void testGetAndAdd() {
 		assumeTrue(!ConnectionUtils.isJredis(factory) && !(ConnectionUtils.isJedis(factory)));
 		doubleCounter.set(0.5);
-		assertEquals(0.5, doubleCounter.getAndAdd(0.7), 0);
-		assertEquals(1.2, doubleCounter.get(), .0001);
+		assertThat(doubleCounter.getAndAdd(0.7)).isEqualTo(0.5);
+		assertThat(doubleCounter.get()).isEqualTo(1.2, offset(.0001));
 	}
 
 	@Test
 	public void testExpire() {
-		assertTrue(doubleCounter.expire(1, TimeUnit.SECONDS));
-		assertTrue(doubleCounter.getExpire() > 0);
+		assertThat(doubleCounter.expire(1, TimeUnit.SECONDS)).isTrue();
+		assertThat(doubleCounter.getExpire()).isGreaterThan(0);
 	}
 
 	@Test
@@ -166,22 +165,19 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		// JRedis converts Unix time to millis before sending command, so it expires right away
 		assumeTrue(!ConnectionUtils.isJredis(factory));
 		doubleCounter.set(7.8);
-		assertTrue(doubleCounter.expireAt(new Date(System.currentTimeMillis() + 10000)));
-		assertTrue(doubleCounter.getExpire() > 0);
+		assertThat(doubleCounter.expireAt(new Date(System.currentTimeMillis() + 10000))).isTrue();
+		assertThat(doubleCounter.getExpire()).isGreaterThan(0);
 	}
 
 	@Test
 	public void testRename() {
 		doubleCounter.set(5.6);
 		doubleCounter.rename("foodouble");
-		assertEquals("5.6", new String(factory.getConnection().get("foodouble".getBytes())));
-		assertNull(factory.getConnection().get((getClass().getSimpleName() + ":double").getBytes()));
+		assertThat(new String(factory.getConnection().get("foodouble".getBytes()))).isEqualTo("5.6");
+		assertThat(factory.getConnection().get((getClass().getSimpleName() + ":double").getBytes())).isNull();
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -190,10 +186,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicDouble("foo", new RedisTemplate<String, Double>());
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -204,22 +197,16 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicDouble("foo", template);
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldBeAbleToUseRedisAtomicDoubleWithProperlyConfiguredRedisTemplate() {
 
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-317.atomicDouble", template);
 		ral.set(32.23);
 
-		assertThat(ral.get(), is(32.23));
+		assertThat(ral.get()).isEqualTo(32.23);
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		expectedException.expect(DataRetrievalFailureException.class);
@@ -227,25 +214,22 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 
 		// setup double
 		RedisAtomicDouble test = new RedisAtomicDouble("test", factory, 1);
-		assertThat(test.get(), equalTo(1D)); // this passes
+		assertThat(test.get()).isEqualTo(1D); // this passes
 
 		template.delete("test");
 
 		test.get();
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup double
 		RedisAtomicDouble test = new RedisAtomicDouble("test", factory, 1);
-		assertThat(test.get(), equalTo(1D)); // this passes
+		assertThat(test.get()).isEqualTo(1D); // this passes
 
 		template.delete("test");
 
-		assertThat(test.getAndSet(2), is(0D));
+		assertThat(test.getAndSet(2)).isEqualTo(0D);
 	}
 }

@@ -15,12 +15,10 @@
  */
 package org.springframework.data.redis.serializer;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 
-import org.hamcrest.core.Is;
-import org.hamcrest.core.IsNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.redis.Person;
@@ -39,36 +37,24 @@ public class Jackson2JsonRedisSerializerTests {
 		this.serializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 	}
 
-	/**
-	 * @see DATAREDIS-241
-	 */
-	@Test
+	@Test // DATAREDIS-241
 	public void testJackson2JsonSerializer() throws Exception {
 
 		Person person = new PersonObjectFactory().instance();
-		assertEquals(person, serializer.deserialize(serializer.serialize(person)));
+		assertThat(serializer.deserialize(serializer.serialize(person))).isEqualTo(person);
 	}
 
-	/**
-	 * @see DATAREDIS-241
-	 */
-	@Test
+	@Test // DATAREDIS-241
 	public void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
-		assertThat(serializer.serialize(null), Is.is(new byte[0]));
+		assertThat(serializer.serialize(null)).isEqualTo(new byte[0]);
 	}
 
-	/**
-	 * @see DTATREDIS-241
-	 */
-	@Test
+	@Test // DTATREDIS-241
 	public void testJackson2JsonSerializerShouldReturnNullWhenDerserializingEmtyByteArray() {
-		assertThat(serializer.deserialize(new byte[0]), IsNull.nullValue());
+		assertThat(serializer.deserialize(new byte[0])).isNull();
 	}
 
-	/**
-	 * @see DTATREDIS-241
-	 */
-	@Test(expected = SerializationException.class)
+	@Test(expected = SerializationException.class) // DTATREDIS-241
 	public void testJackson2JsonSerilizerShouldThrowExceptionWhenDeserializingInvalidByteArray() {
 
 		Person person = new PersonObjectFactory().instance();
@@ -78,10 +64,7 @@ public class Jackson2JsonRedisSerializerTests {
 		serializer.deserialize(serializedValue);
 	}
 
-	/**
-	 * @see DTATREDIS-241
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DTATREDIS-241
 	public void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
 		serializer.setObjectMapper(null);
 	}

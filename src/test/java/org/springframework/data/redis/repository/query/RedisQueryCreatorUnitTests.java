@@ -15,9 +15,7 @@
  */
 package org.springframework.data.redis.repository.query;
 
-import static org.hamcrest.collection.IsCollectionWithSize.*;
-import static org.hamcrest.core.IsCollectionContaining.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.lang.reflect.Method;
 
@@ -39,10 +37,7 @@ public class RedisQueryCreatorUnitTests {
 
 	private @Mock RepositoryMetadata metadataMock;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findBySingleSimpleProperty() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -50,14 +45,11 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getSismember(), hasSize(1));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCritieria().getSismember()).hasSize(1);
+		assertThat(query.getCritieria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findByMultipleSimpleProperties() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -66,15 +58,12 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getSismember(), hasSize(2));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
-		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("age", 43)));
+		assertThat(query.getCritieria().getSismember()).hasSize(2);
+		assertThat(query.getCritieria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
+		assertThat(query.getCritieria().getSismember()).contains(new PathAndValue("age", 43));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findByMultipleSimplePropertiesUsingOr() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -83,9 +72,9 @@ public class RedisQueryCreatorUnitTests {
 
 		KeyValueQuery<RedisOperationChain> query = creator.createQuery();
 
-		assertThat(query.getCritieria().getOrSismember(), hasSize(2));
-		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("age", 43)));
-		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("firstname", "eddard")));
+		assertThat(query.getCritieria().getOrSismember()).hasSize(2);
+		assertThat(query.getCritieria().getOrSismember()).contains(new PathAndValue("age", 43));
+		assertThat(query.getCritieria().getOrSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
 	private RedisQueryCreator createQueryCreatorForMethodWithArgs(Method method, Object[] args) {

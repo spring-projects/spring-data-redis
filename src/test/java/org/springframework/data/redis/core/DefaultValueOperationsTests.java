@@ -15,17 +15,12 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.springframework.data.redis.SpinBarrier.waitFor;
-import static org.springframework.data.redis.matcher.RedisTestMatchers.isEqual;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.data.Offset.offset;
+import static org.junit.Assume.*;
+import static org.springframework.data.redis.SpinBarrier.*;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,16 +91,13 @@ public class DefaultValueOperationsTests<K, V> {
 		V v1 = valueFactory.instance();
 		assumeTrue(v1 instanceof Long);
 		valueOps.set(key, v1);
-		assertEquals(Long.valueOf((Long) v1 - 10), valueOps.increment(key, -10));
-		assertEquals(Long.valueOf((Long) v1 - 10), (Long) valueOps.get(key));
+		assertThat(valueOps.increment(key, -10)).isEqualTo(Long.valueOf((Long) v1 - 10));
+		assertThat(valueOps.get(key)).isEqualTo(Long.valueOf((Long) v1 - 10));
 		valueOps.increment(key, -10);
-		assertEquals(Long.valueOf((Long) v1 - 20), (Long) valueOps.get(key));
+		assertThat((Long) valueOps.get(key)).isEqualTo(Long.valueOf((Long) v1 - 20));
 	}
 
-	/**
-	 * @see DATAREDIS-247
-	 */
-	@Test
+	@Test // DATAREDIS-247
 	public void testIncrementDouble() {
 
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
@@ -115,10 +107,10 @@ public class DefaultValueOperationsTests<K, V> {
 		valueOps.set(key, v1);
 		DecimalFormat twoDForm = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 
-		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4)), valueOps.increment(key, 1.4));
-		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4)), valueOps.get(key));
+		assertThat(valueOps.increment(key, 1.4)).isEqualTo((Double) v1 + 1.4, offset(0.01));
+		assertThat((Double) valueOps.get(key)).isEqualTo((Double) v1 + 1.4, offset(0.01));
 		valueOps.increment(key, -10d);
-		assertEquals(Double.valueOf(twoDForm.format((Double) v1 + 1.4 - 10d)), valueOps.get(key));
+		assertThat((Double) valueOps.get(key)).isEqualTo((Double) v1 + 1.4 - 10, offset(0.01));
 	}
 
 	@Test
@@ -130,8 +122,8 @@ public class DefaultValueOperationsTests<K, V> {
 		V value2 = valueFactory.instance();
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
-		assertTrue(valueOps.multiSetIfAbsent(keysAndValues));
-		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<V>(keysAndValues.values())));
+		assertThat(valueOps.multiSetIfAbsent(keysAndValues)).isTrue();
+		assertThat(valueOps.multiGet(keysAndValues.keySet())).containsAll(keysAndValues.values());
 	}
 
 	@Test
@@ -145,7 +137,7 @@ public class DefaultValueOperationsTests<K, V> {
 		Map<K, V> keysAndValues = new HashMap<K, V>();
 		keysAndValues.put(key1, value2);
 		keysAndValues.put(key2, value3);
-		assertFalse(valueOps.multiSetIfAbsent(keysAndValues));
+		assertThat(valueOps.multiSetIfAbsent(keysAndValues)).isFalse();
 	}
 
 	@Test
@@ -158,7 +150,7 @@ public class DefaultValueOperationsTests<K, V> {
 		keysAndValues.put(key1, value1);
 		keysAndValues.put(key2, value2);
 		valueOps.multiSet(keysAndValues);
-		assertThat(valueOps.multiGet(keysAndValues.keySet()), isEqual(new ArrayList<V>(keysAndValues.values())));
+		assertThat(valueOps.multiGet(keysAndValues.keySet())).containsAll(keysAndValues.values());
 	}
 
 	@Test
@@ -166,7 +158,7 @@ public class DefaultValueOperationsTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		valueOps.set(key1, value1);
-		assertThat(valueOps.get(key1), isEqual(value1));
+		assertThat(valueOps.get(key1)).isEqualTo(value1);
 	}
 
 	@Test
@@ -175,7 +167,7 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 		valueOps.set(key1, value1);
-		assertThat(valueOps.getAndSet(key1, value2), isEqual(value1));
+		assertThat(valueOps.getAndSet(key1, value2)).isEqualTo(value1);
 	}
 
 	@Test
@@ -191,10 +183,7 @@ public class DefaultValueOperationsTests<K, V> {
 		}, 1000);
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test
+	@Test // DATAREDIS-271
 	public void testSetWithExpirationWithTimeUnitMilliseconds() {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
@@ -214,8 +203,8 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
 		valueOps.set(key1, value1);
-		assertEquals(Integer.valueOf(((String) value1).length() + 3), valueOps.append(key1, "aaa"));
-		assertEquals((String) value1 + "aaa", valueOps.get(key1));
+		assertThat(valueOps.append(key1, "aaa")).isEqualTo(((String) value1).length() + 3);
+		assertThat(valueOps.get(key1)).isEqualTo(value1 + "aaa");
 	}
 
 	@Test
@@ -224,7 +213,7 @@ public class DefaultValueOperationsTests<K, V> {
 		V value1 = valueFactory.instance();
 		assumeTrue(value1 instanceof String);
 		valueOps.set(key1, value1);
-		assertEquals(2, valueOps.get(key1, 0, 1).length());
+		assertThat(valueOps.get(key1, 0, 1).length()).isEqualTo(2);
 	}
 
 	@Test
@@ -235,7 +224,7 @@ public class DefaultValueOperationsTests<K, V> {
 		assumeTrue(value1 instanceof String);
 		valueOps.set(key1, value1);
 		valueOps.set(key1, value2, 0);
-		assertEquals(value2, valueOps.get(key1));
+		assertThat(valueOps.get(key1)).isEqualTo(value2);
 	}
 
 	@Test
@@ -243,8 +232,8 @@ public class DefaultValueOperationsTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
-		assertTrue(valueOps.setIfAbsent(key1, value1));
-		assertFalse(valueOps.setIfAbsent(key1, value2));
+		assertThat(valueOps.setIfAbsent(key1, value1)).isTrue();
+		assertThat(valueOps.setIfAbsent(key1, value2)).isFalse();
 	}
 
 	@Test
@@ -252,7 +241,7 @@ public class DefaultValueOperationsTests<K, V> {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
 		valueOps.set(key1, value1);
-		assertTrue(valueOps.size(key1) > 0);
+		assertThat(valueOps.size(key1)).isGreaterThan(0);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -261,7 +250,7 @@ public class DefaultValueOperationsTests<K, V> {
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		byte[][] rawKeys = ((DefaultValueOperations) valueOps).rawKeys(key1, key2);
-		assertEquals(2, rawKeys.length);
+		assertThat(rawKeys.length).isEqualTo(2);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -270,7 +259,7 @@ public class DefaultValueOperationsTests<K, V> {
 		K key1 = keyFactory.instance();
 		K key2 = keyFactory.instance();
 		byte[][] rawKeys = ((DefaultValueOperations) valueOps).rawKeys(Arrays.asList(new Object[] { key1, key2 }));
-		assertEquals(2, rawKeys.length);
+		assertThat(rawKeys.length).isEqualTo(2);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -278,22 +267,19 @@ public class DefaultValueOperationsTests<K, V> {
 	public void testDeserializeKey() {
 		K key1 = keyFactory.instance();
 		assumeTrue(key1 instanceof byte[]);
-		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
+		assertThat(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1)).isNotNull();
 	}
 	
-	/**
-	 * @see DATAREDIS-197
-	 */
-	@Test
+	@Test // DATAREDIS-197
 	public void testSetAndGetBit() {
-		
+
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
-		
+
 		K key1 = keyFactory.instance();
 		int bitOffset = 65;
 		valueOps.setBit(key1, bitOffset, true);
-		
-		assertEquals(true, valueOps.getBit(key1, bitOffset));
+
+		assertThat(valueOps.getBit(key1, bitOffset)).isTrue();
 	}
 
 }

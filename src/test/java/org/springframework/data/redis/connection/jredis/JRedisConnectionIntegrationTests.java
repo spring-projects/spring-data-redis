@@ -16,7 +16,7 @@
 
 package org.springframework.data.redis.connection.jredis;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,8 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.hamcrest.core.IsCollectionContaining;
-import org.hamcrest.core.IsInstanceOf;
 import org.jredis.JRedis;
 import org.jredis.protocol.BulkResponse;
 import org.jredis.ri.alphazero.protocol.SyncProtocol.SyncMultiBulkResponse;
@@ -618,8 +616,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("sortlist", "foo");
 		connection.rPush("sortlist", "bar");
 		connection.rPush("sortlist", "baz");
-		assertEquals(Arrays.asList(new String[] { "bar", "baz", "foo" }),
-				connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true)));
+		assertThat(connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true))).containsSequence("bar", "baz", "foo" );
 	}
 
 	@Test
@@ -627,9 +624,8 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("sortlist", "foo");
 		connection.rPush("sortlist", "bar");
 		connection.rPush("sortlist", "baz");
-		assertEquals(Long.valueOf(3),
-				connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true), "newlist"));
-		assertEquals(Arrays.asList(new String[] { "bar", "baz", "foo" }), connection.lRange("newlist", 0, 9));
+		assertThat(connection.sort("sortlist", new DefaultSortParameters(null, Order.ASC, true), "newlist")).isEqualTo(3);
+		assertThat(connection.lRange("newlist", 0, 9)).hasSize(3).containsSequence("bar", "baz", "foo" );
 	}
 
 	@Test
@@ -655,7 +651,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 	public void testLPop() {
 		connection.rPush("PopList", "hello");
 		connection.rPush("PopList", "world");
-		assertEquals("hello", connection.lPop("PopList"));
+		assertThat(connection.lPop("PopList")).isEqualTo("hello");
 	}
 
 	@Test
@@ -664,8 +660,8 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "big");
 		connection.rPush("PopList", "world");
 		connection.rPush("PopList", "hello");
-		assertEquals(Long.valueOf(2), connection.lRem("PopList", 2, "hello"));
-		assertEquals(Arrays.asList(new String[] { "big", "world" }), connection.lRange("PopList", 0, -1));
+		assertThat(connection.lRem("PopList", 2, "hello")).isEqualTo(2);
+		assertThat(connection.lRange("PopList", 0, -1)).hasSize(2).containsSequence("big", "world");
 	}
 
 	@Test
@@ -674,7 +670,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "big");
 		connection.rPush("PopList", "world");
 		connection.lSet("PopList", 1, "cruel");
-		assertEquals(Arrays.asList(new String[] { "hello", "cruel", "world" }), connection.lRange("PopList", 0, -1));
+		assertThat(connection.lRange("PopList", 0, -1)).hasSize(3).containsSequence("hello", "cruel", "world");
 	}
 
 	@Test
@@ -683,14 +679,14 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "big");
 		connection.rPush("PopList", "world");
 		connection.lTrim("PopList", 1, -1);
-		assertEquals(Arrays.asList(new String[] { "big", "world" }), connection.lRange("PopList", 0, -1));
+		assertThat(connection.lRange("PopList", 0, -1)).hasSize(2).containsSequence("big", "world");
 	}
 
 	@Test
 	public void testRPop() {
 		connection.rPush("PopList", "hello");
 		connection.rPush("PopList", "world");
-		assertEquals("world", connection.rPop("PopList"));
+		assertThat(connection.rPop("PopList")).isEqualTo("world");
 	}
 
 	@Test
@@ -698,29 +694,29 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		connection.rPush("PopList", "hello");
 		connection.rPush("PopList", "world");
 		connection.rPush("pop2", "hey");
-		assertEquals("world", connection.rPopLPush("PopList", "pop2"));
-		assertEquals(Arrays.asList(new String[] { "hello" }), connection.lRange("PopList", 0, -1));
-		assertEquals(Arrays.asList(new String[] { "world", "hey" }), connection.lRange("pop2", 0, -1));
+		assertThat(connection.rPopLPush("PopList", "pop2")).isEqualTo("world");
+		assertThat(connection.lRange("PopList", 0, -1)).containsOnly("hello");
+		assertThat(connection.lRange("pop2", 0, -1)).hasSize(2).containsSequence("world", "hey");
 	}
 
 	@Test
 	public void testLIndex() {
 		connection.lPush("testylist", "foo");
-		assertEquals("foo", connection.lIndex("testylist", 0));
+		assertThat(connection.lIndex("testylist", 0)).isEqualToIgnoringCase("foo");
 	}
 
 	@Test
 	public void testLPush() throws Exception {
 		connection.lPush("testlist", "bar");
 		connection.lPush("testlist", "baz");
-		assertEquals(Arrays.asList(new String[] { "baz", "bar" }), connection.lRange("testlist", 0, -1));
+		assertThat(connection.lRange("testlist", 0, -1)).hasSize(2).containsSequence("baz", "bar");
 	}
 
 	@Test
 	public void testExecute() {
 		connection.set("foo", "bar");
 		BulkResponse response = (BulkResponse) connection.execute("GET", "foo".getBytes());
-		assertEquals("bar", stringSerializer.deserialize(response.getBulkData()));
+		assertThat(stringSerializer.deserialize(response.getBulkData())).isEqualTo("bar");
 	}
 
 	@Test
@@ -771,7 +767,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		factory2.afterPropertiesSet();
 		StringRedisConnection conn2 = new DefaultStringRedisConnection(factory2.getConnection());
 		try {
-			assertEquals("bar", conn2.get("foo"));
+			assertThat(conn2.get("foo")).isEqualTo("bar");
 		} finally {
 			if (conn2.exists("foo")) {
 				conn2.del("foo");
@@ -780,18 +776,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-206
 	public void testGetTimeShouldRequestServerTime() {
 		super.testGetTimeShouldRequestServerTime();
 	}
 
-	/**
-	 * @see DATAREDIS-285
-	 */
-	@Test
+	@Test // DATAREDIS-285
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
@@ -799,37 +789,27 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 
 		Object result = connection.execute("MGET", "spring".getBytes(), "data".getBytes(), "redis".getBytes());
 
-		assertThat(result, IsInstanceOf.instanceOf(SyncMultiBulkResponse.class));
+		assertThat(result).isInstanceOf(SyncMultiBulkResponse.class);
 
 		List<byte[]> data = ((SyncMultiBulkResponse) result).getMultiBulkData();
-		assertThat(
-				data,
-				IsCollectionContaining.hasItems("awesome".getBytes(), "cool".getBytes(),
-						"supercalifragilisticexpialidocious".getBytes()));
+
+		assertThat(data).contains("awesome".getBytes(), "cool".getBytes(),
+						"supercalifragilisticexpialidocious".getBytes());
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-271
 	public void testPsetEx() throws Exception {
 		super.testPsetEx();
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		super.clientSetNameWorksCorrectly();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}

@@ -15,8 +15,7 @@
  */
 package org.springframework.data.redis.core.index;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.Test;
 
@@ -26,51 +25,39 @@ import org.junit.Test;
  */
 public class IndexConfigurationUnitTests {
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameDefaulted() {
 
 		String path = "path";
 		SimpleIndexDefinition setting = new SimpleIndexDefinition("keyspace", path);
-		assertThat(setting.getIndexName(), equalTo(path));
+		assertThat(setting.getIndexName()).isEqualTo(path);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameExplicit() {
 
 		String indexName = "indexName";
 		SimpleIndexDefinition setting = new SimpleIndexDefinition("keyspace", "index", indexName);
-		assertThat(setting.getIndexName(), equalTo(indexName));
+		assertThat(setting.getIndexName()).isEqualTo(indexName);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameUsedInEquals() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
 		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
 				+ "other");
 
-		assertThat(setting1, not(equalTo(setting2)));
+		assertThat(setting1).isNotEqualTo(setting2);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameUsedInHashCode() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
 		SimpleIndexDefinition setting2 = new SimpleIndexDefinition(setting1.getKeyspace(), "path", setting1.getIndexName()
 				+ "other");
 
-		assertThat(setting1.hashCode(), not(equalTo(setting2.hashCode())));
+		assertThat(setting1.hashCode()).isNotEqualTo(setting2.hashCode());
 	}
 }

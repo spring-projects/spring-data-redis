@@ -16,7 +16,7 @@
 
 package org.springframework.data.redis.connection;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,10 +107,7 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 		connection.scriptKill();
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	@Ignore
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {
@@ -130,8 +127,8 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 		for (int i = 0; i < actual.size(); i++) {
 			expectedTx.add(null);
 		}
-		assertEquals(expectedTx, actual);
+		assertThat(actual).isEqualTo(expectedTx);
 		List<Object> results = getResults();
-		assertEquals(expected, results);
+		assertThat(results).isEqualTo(expected);
 	}
 }

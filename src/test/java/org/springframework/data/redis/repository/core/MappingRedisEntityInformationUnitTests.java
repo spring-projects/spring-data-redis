@@ -35,10 +35,7 @@ public class MappingRedisEntityInformationUnitTests<T, ID extends Serializable> 
 
 	@Mock RedisPersistentEntity<T> entity;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = MappingException.class)
+	@Test(expected = MappingException.class) // DATAREDIS-425
 	@SuppressWarnings("unchecked")
 	public void throwsMappingExceptionWhenNoIdPropertyPresent() {
 
