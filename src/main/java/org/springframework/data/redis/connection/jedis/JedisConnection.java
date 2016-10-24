@@ -818,15 +818,10 @@ public class JedisConnection extends AbstractRedisConnection {
 
 	public Boolean expire(byte[] key, long seconds) {
 
-		/*
-		 *  @see DATAREDIS-286 to avoid overflow in Jedis
-		 *  
-		 *  TODO Remove this workaround when we upgrade to a Jedis version that contains a 
-		 *  fix for: https://github.com/xetorthio/jedis/pull/575
-		 */
-		if (seconds > Integer.MAX_VALUE) {
+		Assert.notNull(key, "Key must not be null!");
 
-			return pExpireAt(key, time() + TimeUnit.SECONDS.toMillis(seconds));
+		if (seconds > Integer.MAX_VALUE) {
+			return pExpire(key, TimeUnit.SECONDS.toMillis(seconds));
 		}
 
 		try {
@@ -845,6 +840,9 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Boolean expireAt(byte[] key, long unixTime) {
+
+		Assert.notNull(key, "Key must not be null!");
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.expireAt(key, unixTime), JedisConverters.longToBoolean()));
@@ -1038,6 +1036,8 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Boolean pExpire(byte[] key, long millis) {
+		
+		Assert.notNull(key, "Key must not be null!");
 
 		try {
 			if (isPipelined()) {
@@ -1055,6 +1055,9 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
+		
+		Assert.notNull(key, "Key must not be null!");
+		
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.pexpireAt(key, unixTimeInMillis), JedisConverters.longToBoolean()));
