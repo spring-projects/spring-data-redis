@@ -52,15 +52,6 @@ public class AuthenticatingRedisClient extends RedisClient {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.lambdaworks.redis.RedisClient#connectAsync(com.lambdaworks.redis.codec.RedisCodec)
-	 */
-	@Override
-	public <K, V> RedisAsyncCommands<K, V> connectAsync(RedisCodec<K, V> codec) {
-		return super.connectAsync(codec);
-	}
-
-	/*
-	 * (non-Javadoc)
 	 * @see com.lambdaworks.redis.RedisClient#connectPubSub(com.lambdaworks.redis.codec.RedisCodec)
 	 */
 	@Override

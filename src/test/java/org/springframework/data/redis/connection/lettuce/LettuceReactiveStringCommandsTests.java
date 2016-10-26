@@ -309,7 +309,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 
 		assertThat(connection.stringCommands().mSetNX(map).block(), is(false));
 
-		assertThat(nativeCommands.exists(KEY_1), is(false));
+		assertThat(nativeCommands.exists(KEY_1), is(0L));
 		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
 	}
 

@@ -16,20 +16,23 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import java.nio.ByteBuffer;
+
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.lambdaworks.redis.api.rx.RedisReactiveCommands;
+import com.lambdaworks.redis.api.reactive.RedisReactiveCommands;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
 import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.rx.RedisClusterReactiveCommands;
+import com.lambdaworks.redis.cluster.api.reactive.RedisClusterReactiveCommands;
 
 import reactor.core.publisher.Flux;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisConnection
@@ -101,7 +104,7 @@ public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisC
 	}
 
 	@Override
-	protected StatefulRedisClusterConnection<byte[], byte[]> getConnection() {
+	protected StatefulRedisClusterConnection<ByteBuffer, ByteBuffer> getConnection() {
 
 		Assert.isInstanceOf(StatefulRedisClusterConnection.class, super.getConnection(),
 				"Connection needs to be instance of StatefulRedisClusterConnection");
@@ -109,11 +112,11 @@ public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisC
 		return (StatefulRedisClusterConnection) super.getConnection();
 	}
 
-	protected RedisClusterReactiveCommands<byte[], byte[]> getCommands() {
+	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {
 		return getConnection().reactive();
 	}
 
-	protected RedisReactiveCommands<byte[], byte[]> getCommands(RedisNode node) {
+	protected RedisReactiveCommands<ByteBuffer, ByteBuffer> getCommands(RedisNode node) {
 
 		if (!(getConnection() instanceof StatefulRedisClusterConnection)) {
 			throw new IllegalArgumentException("o.O connection needs to be cluster compatible " + getConnection());

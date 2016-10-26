@@ -19,6 +19,7 @@ import org.junit.rules.ExternalResource;
 
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisURI;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 
 /**
  * @author Christoph Strobl
@@ -39,7 +40,7 @@ public class LettuceRedisClientProvider extends ExternalResource {
 			throwable.printStackTrace();
 		}
 
-		client = RedisClient.create(RedisURI.builder().withHost(host).withPort(port).build());
+		client = RedisClient.create(LettuceTestClientResources.getSharedClientResources(), RedisURI.builder().withHost(host).withPort(port).build());
 	}
 
 	@Override
