@@ -23,10 +23,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 
 import reactor.core.publisher.Flux;
-import rx.Observable;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
@@ -55,8 +56,7 @@ public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter().convert(cmd.incr(command.getKey().array()))
-					.map(value -> new NumericResponse<>(command, value));
+			return cmd.incr(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
@@ -74,16 +74,15 @@ public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 			T incrBy = command.getValue();
 
-			Observable<? extends Number> result = null;
+			Mono<? extends Number> result = null;
 			if (incrBy instanceof Double || incrBy instanceof Float) {
-				result = cmd.incrbyfloat(command.getKey().array(), incrBy.doubleValue());
+				result = cmd.incrbyfloat(command.getKey(), incrBy.doubleValue());
 			} else {
-				result = cmd.incrby(command.getKey().array(), incrBy.longValue());
+				result = cmd.incrby(command.getKey(), incrBy.longValue());
 			}
 
-			return LettuceReactiveRedisConnection.<T> monoConverter()
-					.convert(result.map(val -> NumberUtils.convertNumberToTargetClass(val, incrBy.getClass())))
-					.map(res -> new NumericResponse<>(command, res));
+			return result.map(val -> NumberUtils.convertNumberToTargetClass(val, incrBy.getClass()))
+					.map(res -> new NumericResponse<>(command, (T) res));
 		}));
 	}
 
@@ -98,8 +97,7 @@ public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter().convert(cmd.decr(command.getKey().array()))
-					.map(value -> new NumericResponse<>(command, value));
+			return cmd.decr(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
@@ -117,16 +115,15 @@ public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 			T decrBy = command.getValue();
 
-			Observable<? extends Number> result = null;
+			Mono<? extends Number> result = null;
 			if (decrBy instanceof Double || decrBy instanceof Float) {
-				result = cmd.incrbyfloat(command.getKey().array(), decrBy.doubleValue() * (-1.0D));
+				result = cmd.incrbyfloat(command.getKey(), decrBy.doubleValue() * (-1.0D));
 			} else {
-				result = cmd.decrby(command.getKey().array(), decrBy.longValue());
+				result = cmd.decrby(command.getKey(), decrBy.longValue());
 			}
 
-			return LettuceReactiveRedisConnection.<T> monoConverter()
-					.convert(result.map(val -> NumberUtils.convertNumberToTargetClass(val, decrBy.getClass())))
-					.map(res -> new NumericResponse<>(command, res));
+			return result.map(val -> NumberUtils.convertNumberToTargetClass(val, decrBy.getClass()))
+					.map(res -> new NumericResponse<>(command, (T) res));
 		}));
 	}
 
@@ -144,17 +141,16 @@ public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 			T incrBy = command.getValue();
 
-			Observable<? extends Number> result = null;
+			Mono<? extends Number> result = null;
 
 			if (incrBy instanceof Double || incrBy instanceof Float) {
-				result = cmd.hincrbyfloat(command.getKey().array(), command.getField().array(), incrBy.doubleValue());
+				result = cmd.hincrbyfloat(command.getKey(), command.getField(), incrBy.doubleValue());
 			} else {
-				result = cmd.hincrby(command.getKey().array(), command.getField().array(), incrBy.longValue());
+				result = cmd.hincrby(command.getKey(), command.getField(), incrBy.longValue());
 			}
 
-			return LettuceReactiveRedisConnection.<T> monoConverter()
-					.convert(result.map(val -> NumberUtils.convertNumberToTargetClass(val, incrBy.getClass())))
-					.map(value -> new NumericResponse<>(command, value));
+			return result.map(val -> NumberUtils.convertNumberToTargetClass(val, incrBy.getClass()))
+					.map(value -> new NumericResponse<>(command, (T) value));
 		}));
 	}
 

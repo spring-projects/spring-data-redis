@@ -28,13 +28,14 @@ import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisException;
+import com.lambdaworks.redis.api.reactive.RedisKeyReactiveCommands;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import rx.Observable;
 
 /**
- * @author Christoph Strobl.
+ * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommands
@@ -60,19 +61,14 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 
 			Assert.notNull(pattern, "Pattern must not be null!");
 
-			Observable<List<ByteBuffer>> result = cmd.keys(pattern.array()).map(ByteBuffer::wrap).toList();
-			return Flux.from(LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result));
+			return cmd.keys(pattern).collectList();
 		}).next();
 	}
 
 	@Override
 	public Mono<ByteBuffer> randomKey(RedisClusterNode node) {
 
-		return connection.execute(node, cmd -> {
-
-			Observable<ByteBuffer> result = cmd.randomkey().map(ByteBuffer::wrap);
-			return Flux.from(LettuceReactiveRedisConnection.<ByteBuffer> monoConverter().convert(result));
-		}).next();
+		return connection.execute(node, RedisKeyReactiveCommands::randomkey).next();
 	}
 
 	/*
@@ -91,15 +87,13 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 				return super.rename(Mono.just(command));
 			}
 
-			Observable<Boolean> result = cmd.dump(command.getKey().array())
-					.switchIfEmpty(Observable.error(new RedisSystemException("Cannot rename key that does not exist",
+			Flux<Boolean> result = cmd.dump(command.getKey())
+					.otherwiseIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
 							new RedisException("ERR no such key."))))
-					.concatMap(value -> cmd.restore(command.getNewName().array(), 0, value)
-							.concatMap(res -> cmd.del(command.getKey().array())))
+					.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
 					.map(LettuceConverters.longToBooleanConverter()::convert);
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter().convert(result)
-					.map(val -> new ReactiveRedisConnection.BooleanResponse<>(command, val));
+			return result.map(val -> new ReactiveRedisConnection.BooleanResponse<>(command, val));
 		}));
 	}
 
@@ -119,25 +113,20 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 				return super.renameNX(Mono.just(command));
 			}
 
-			Observable<Boolean> result =
+			Flux<Boolean> result = cmd.exists(command.getNewName()).flatMap(exists -> {
 
-					cmd.exists(command.getNewName().array()).concatMap(exists -> {
+				if (exists == 1) {
+					return Mono.just(Boolean.FALSE);
+				}
 
-						if (exists == 1) {
-							return Observable.just(Boolean.FALSE);
-						}
+				return cmd.dump(command.getKey())
+						.otherwiseIfEmpty(Mono.error(new RedisSystemException("Cannot rename key that does not exist",
+								new RedisException("ERR no such key."))))
+						.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
+						.map(LettuceConverters.longToBooleanConverter()::convert);
+			});
 
-						return cmd.dump(command.getKey().array())
-								.switchIfEmpty(Observable.error(new RedisSystemException("Cannot rename key that does not exist",
-										new RedisException("ERR no such key."))))
-								.concatMap(value -> cmd.restore(command.getNewName().array(), 0, value)
-										.concatMap(res -> cmd.del(command.getKey().array())))
-								.map(LettuceConverters.longToBooleanConverter()::convert);
-
-					});
-
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter().convert(result)
-					.map(val -> new ReactiveRedisConnection.BooleanResponse<>(command, val));
+			return result.map(val -> new ReactiveRedisConnection.BooleanResponse<>(command, val));
 		}));
 	}
 }

@@ -15,35 +15,33 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.assumeThat;
+import static org.hamcrest.core.Is.*;
+import static org.junit.Assume.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
-import com.lambdaworks.redis.AbstractRedisClient;
-import com.lambdaworks.redis.cluster.RedisClusterClient;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
-import org.hamcrest.core.Is;
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
+import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
 
+import com.lambdaworks.redis.AbstractRedisClient;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.api.sync.RedisCommands;
-import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
+import com.lambdaworks.redis.cluster.RedisClusterClient;
+import com.lambdaworks.redis.cluster.api.sync.RedisAdvancedClusterCommands;
+import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 
 /**
  * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
-public class LettuceReactiveCommandsTestsBase {
+public abstract class LettuceReactiveCommandsTestsBase {
 
 	static final String KEY_1 = "key-1";
 	static final String KEY_2 = "key-2";
@@ -78,13 +76,15 @@ public class LettuceReactiveCommandsTestsBase {
 	static final ByteBuffer VALUE_3_BBUFFER = ByteBuffer.wrap(VALUE_3_BYTES);
 
 	@Parameterized.Parameter(value = 0) public Object clientProvider;
+	@Parameterized.Parameter(value = 1) public Object displayName;
 
 	LettuceReactiveRedisConnection connection;
 	RedisClusterCommands<String, String> nativeCommands;
 
-	@Parameterized.Parameters
-	public static List<Object> parameters() {
-		return Arrays.asList(LettuceRedisClientProvider.local(), LettuceRedisClusterClientProvider.local());
+	@Parameterized.Parameters(name = "{1}")
+	public static List<Object[]> parameters() {
+		return Arrays.asList(new Object[] { LettuceRedisClientProvider.local(), "Standalone" },
+				new Object[] { LettuceRedisClusterClientProvider.local(), "Cluster" });
 	}
 
 	@Before
@@ -114,7 +114,14 @@ public class LettuceReactiveCommandsTestsBase {
 
 		if (nativeCommands != null) {
 			flushAll();
-			nativeCommands.close();
+
+			if (nativeCommands instanceof RedisCommands) {
+				((RedisCommands) nativeCommands).getStatefulConnection().close();
+			}
+
+			if (nativeCommands instanceof RedisAdvancedClusterCommands) {
+				((RedisAdvancedClusterCommands) nativeCommands).getStatefulConnection().close();
+			}
 		}
 
 		if (connection != null) {

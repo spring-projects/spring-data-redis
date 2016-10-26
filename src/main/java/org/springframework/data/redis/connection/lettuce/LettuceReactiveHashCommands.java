@@ -32,11 +32,14 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import com.lambdaworks.redis.KeyValue;
+
 import reactor.core.publisher.Flux;
-import rx.Observable;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveHashCommands implements ReactiveHashCommands {
@@ -66,25 +69,23 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFieldValueMap(), "FieldValueMap must not be null!");
 
-			Observable<Boolean> result = Observable.empty();
+			Mono<Boolean> result;
 
 			if (command.getFieldValueMap().size() == 1) {
 
 				Entry<ByteBuffer, ByteBuffer> entry = command.getFieldValueMap().entrySet().iterator().next();
 
 				result = ObjectUtils.nullSafeEquals(command.isUpsert(), Boolean.TRUE)
-						? cmd.hset(command.getKey().array(), entry.getKey().array(), entry.getValue().array())
-						: cmd.hsetnx(command.getKey().array(), entry.getKey().array(), entry.getValue().array());
+						? cmd.hset(command.getKey(), entry.getKey(), entry.getValue())
+						: cmd.hsetnx(command.getKey(), entry.getKey(), entry.getValue());
 			} else {
 
-				Map<byte[], byte[]> entries = command.getFieldValueMap().entrySet().stream()
-						.collect(Collectors.toMap(e -> e.getKey().array(), e -> e.getValue().array()));
+				Map<ByteBuffer, ByteBuffer> entries = command.getFieldValueMap();
 
-				result = cmd.hmset(command.getKey().array(), entries).map(LettuceConverters::stringToBoolean);
+				result = cmd.hmset(command.getKey(), entries).map(LettuceConverters::stringToBoolean);
 			}
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter().convert(result)
-					.map(value -> new BooleanResponse<>(command, value));
+			return result.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -100,20 +101,18 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFields(), "Fields must not be null!");
 
-			Observable<List<ByteBuffer>> result = null;
+			Mono<List<KeyValue<ByteBuffer, ByteBuffer>>> result;
 
 			if (command.getFields().size() == 1) {
-				result = cmd.hget(command.getKey().array(), command.getFields().iterator().next().array()).map(ByteBuffer::wrap)
-						.map(val -> val != null ? Collections.singletonList(val) : Collections.emptyList());
+				ByteBuffer key = command.getFields().iterator().next();
+				result = cmd.hget(command.getKey(), key.duplicate()).map(value -> KeyValue.fromNullable(key, value))
+						.map(Collections::singletonList).otherwiseReturn(Collections.emptyList());
 			} else {
-				result = cmd
-						.hmget(command.getKey().array(),
-								command.getFields().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]))
-						.map(val -> val != null ? ByteBuffer.wrap(val) : null).toList();
+				result = cmd.hmget(command.getKey(), command.getFields().stream().toArray(ByteBuffer[]::new)).collectList();
 			}
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command,
+					value.stream().map(keyValue -> keyValue.getValueOrElse(null)).collect(Collectors.toList())));
 		}));
 	}
 
@@ -129,9 +128,7 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getName(), "Name must not be null!");
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter()
-					.convert(cmd.hexists(command.getKey().array(), command.getField().array()))
-					.map(value -> new BooleanResponse<>(command, value));
+			return cmd.hexists(command.getKey(), command.getField()).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -147,9 +144,7 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getFields(), "Fields must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.hdel(command.getKey().array(),
-							command.getFields().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.hdel(command.getKey(), command.getFields().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -165,8 +160,7 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Command.getKey() must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter().convert(cmd.hlen(command.getKey().array()))
-					.map(value -> new NumericResponse<>(command, value));
+			return cmd.hlen(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
@@ -181,10 +175,9 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			Observable<List<ByteBuffer>> result = cmd.hkeys(command.getKey().array()).map(ByteBuffer::wrap).toList();
+			Mono<List<ByteBuffer>> result = cmd.hkeys(command.getKey()).collectList();
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 
@@ -199,10 +192,9 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			Observable<List<ByteBuffer>> result = cmd.hvals(command.getKey().array()).map(ByteBuffer::wrap).toList();
+			Mono<List<ByteBuffer>> result = cmd.hvals(command.getKey()).collectList();
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 
@@ -217,11 +209,9 @@ public class LettuceReactiveHashCommands implements ReactiveHashCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			Observable<Map<ByteBuffer, ByteBuffer>> result = cmd.hgetall(command.getKey().array()).map(val -> val.entrySet()
-					.stream().collect(Collectors.toMap(e -> ByteBuffer.wrap(e.getKey()), e -> ByteBuffer.wrap(e.getValue()))));
+			Mono<Map<ByteBuffer, ByteBuffer>> result = cmd.hgetall(command.getKey());
 
-			return LettuceReactiveRedisConnection.<Map<ByteBuffer, ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new CommandResponse<>(command, value));
+			return result.map(value -> new CommandResponse<>(command, value));
 		}));
 	}
 }

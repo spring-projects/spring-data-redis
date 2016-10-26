@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.lambdaworks.redis.Range.Boundary;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
@@ -37,71 +38,10 @@ import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveZSetCommands {
-
-	/**
-	 * @author Christoph Strobl
-	 */
-	class AgrumentConverters {
-
-		public static Object lowerBoundArgOf(Range<?> range) {
-			return rangeToLowerBoundArgumentConverter(false).convert(range);
-		}
-
-		public static Object upperBoundArgOf(Range<?> range) {
-			return rangeToLowerBoundArgumentConverter(true).convert(range);
-		}
-
-		public static Converter<Range<?>, Object> rangeToLowerBoundArgumentConverter(Boolean upper) {
-
-			return (source) -> {
-
-				// TODO: fix range exclusion pattern when DATACMNS-920 is resolved
-				DirectFieldAccessFallbackBeanWrapper bw = new DirectFieldAccessFallbackBeanWrapper(source);
-
-				Boolean inclusive = upper ? Boolean.valueOf(bw.getPropertyValue("upperInclusive").toString())
-						: Boolean.valueOf(bw.getPropertyValue("lowerInclusive").toString());
-				Object value = upper ? source.getUpperBound() : source.getLowerBound();
-
-				if (value instanceof Double) {
-
-					Object converted = doubleToRangeConverter().convert((Double) value);
-					if (!(converted instanceof String) && !inclusive) {
-						return "(" + converted.toString();
-					}
-					return converted;
-				}
-
-				if (value instanceof String) {
-					if (!StringUtils.hasText((String) value)) {
-						return upper ? "+" : "-";
-					}
-					if (ObjectUtils.nullSafeEquals(value, "+") || ObjectUtils.nullSafeEquals(value, "-")) {
-						return value;
-					}
-					return (inclusive ? "[" : "(") + value.toString();
-				}
-
-				return inclusive ? value : "(" + value;
-			};
-		}
-
-		public static Converter<Double, Object> doubleToRangeConverter() {
-
-			return (source) -> {
-				if (source.equals(Double.NEGATIVE_INFINITY)) {
-					return "-inf";
-				}
-				if (source.equals(Double.POSITIVE_INFINITY)) {
-					return "+inf";
-				}
-				return source;
-			};
-		}
-
-	}
 
 	/**
 	 * @author Christoph Strobl

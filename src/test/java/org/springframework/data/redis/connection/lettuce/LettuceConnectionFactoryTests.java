@@ -20,6 +20,7 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
+import com.lambdaworks.redis.api.reactive.BaseRedisReactiveCommands;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -339,7 +340,7 @@ public class LettuceConnectionFactoryTests {
 		ConnectionFactoryTracker.add(factory);
 
 		assertThat(factory.getReactiveConnection()
-				.execute(cmd -> QueryExecutionConverters.RxJava1ObservableToMonoConverter.INSTANCE.convert(cmd.ping()))
+				.execute(BaseRedisReactiveCommands::ping)
 				.blockFirst(), is("PONG"));
 	}
 }

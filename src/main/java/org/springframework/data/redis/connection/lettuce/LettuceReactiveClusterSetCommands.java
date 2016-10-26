@@ -29,10 +29,10 @@ import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import rx.Observable;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommands
@@ -59,12 +59,10 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return super.sUnion(Mono.just(command));
 			}
 
-			Observable<List<ByteBuffer>> result = Observable
-					.merge(command.getKeys().stream().map(key -> cmd.smembers(key.array())).collect(Collectors.toList()))
-					.map(ByteBuffer::wrap).distinct().toList();
+			Mono<List<ByteBuffer>> result = Flux
+					.merge(command.getKeys().stream().map(cmd::smembers).collect(Collectors.toList())).distinct().collectList();
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
+			return result.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
 		}));
 	}
 
@@ -85,10 +83,8 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 			}
 
 			return sUnion(Mono.just(SUnionCommand.keys(command.getKeys()))).next().flatMap(values -> {
-				Observable<Long> result = cmd.sadd(command.getKey().array(),
-						values.getOutput().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]));
-				return LettuceReactiveRedisConnection.<Long> monoConverter().convert(result)
-						.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
+				Mono<Long> result = cmd.sadd(command.getKey(), values.getOutput().stream().toArray(ByteBuffer[]::new));
+				return result.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
 			});
 		}));
 	}
@@ -105,24 +101,21 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return super.sInter(Mono.just(command));
 			}
 
-			Observable<List<ByteBuffer>> sourceSet = cmd.smembers(command.getKeys().get(0).array()).map(ByteBuffer::wrap)
-					.distinct().toList();
+			Mono<List<ByteBuffer>> sourceSet = cmd.smembers(command.getKeys().get(0)).distinct().collectList();
 
-			List<Observable<List<ByteBuffer>>> intersectingSets = new ArrayList<>();
+			List<Mono<List<ByteBuffer>>> intersectingSets = new ArrayList<>();
 
 			for (int i = 1; i < command.getKeys().size(); i++) {
-				intersectingSets.add(cmd.smembers(command.getKeys().get(i).array()).map(ByteBuffer::wrap).distinct().toList());
+				intersectingSets.add(cmd.smembers(command.getKeys().get(i)).distinct().collectList());
 			}
 
-			Observable<List<ByteBuffer>> result = Observable.zip(sourceSet, Observable.merge(intersectingSets),
-					(source, intersecting) -> {
+			Flux<List<ByteBuffer>> result = Flux.zip(sourceSet, Flux.merge(intersectingSets), (source, intersecting) -> {
 
-						source.retainAll(intersecting);
-						return source;
-					});
+				source.retainAll(intersecting);
+				return source;
+			});
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
+			return result.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
 		}));
 	}
 
@@ -143,10 +136,8 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 			}
 
 			return sInter(Mono.just(SInterCommand.keys(command.getKeys()))).next().flatMap(values -> {
-				Observable<Long> result = cmd.sadd(command.getKey().array(),
-						values.getOutput().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]));
-				return LettuceReactiveRedisConnection.<Long> monoConverter().convert(result)
-						.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
+				Mono<Long> result = cmd.sadd(command.getKey(), values.getOutput().stream().toArray(ByteBuffer[]::new));
+				return result.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
 			});
 		}));
 	}
@@ -163,24 +154,21 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return super.sDiff(Mono.just(command));
 			}
 
-			Observable<List<ByteBuffer>> sourceSet = cmd.smembers(command.getKeys().get(0).array()).map(ByteBuffer::wrap)
-					.distinct().toList();
+			Mono<List<ByteBuffer>> sourceSet = cmd.smembers(command.getKeys().get(0)).distinct().collectList();
 
-			List<Observable<List<ByteBuffer>>> intersectingSets = new ArrayList<>();
+			List<Mono<List<ByteBuffer>>> intersectingSets = new ArrayList<>();
 
 			for (int i = 1; i < command.getKeys().size(); i++) {
-				intersectingSets.add(cmd.smembers(command.getKeys().get(i).array()).map(ByteBuffer::wrap).distinct().toList());
+				intersectingSets.add(cmd.smembers(command.getKeys().get(i)).distinct().collectList());
 			}
 
-			Observable<List<ByteBuffer>> result = Observable.zip(sourceSet, Observable.merge(intersectingSets),
-					(source, intersecting) -> {
+			Flux<List<ByteBuffer>> result = Flux.zip(sourceSet, Flux.merge(intersectingSets), (source, intersecting) -> {
 
-						source.removeAll(intersecting);
-						return source;
-					});
+				source.removeAll(intersecting);
+				return source;
+			});
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
+			return result.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
 
 		}));
 	}
@@ -202,10 +190,8 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 			}
 
 			return sDiff(Mono.just(SDiffCommand.keys(command.getKeys()))).next().flatMap(values -> {
-				Observable<Long> result = cmd.sadd(command.getKey().array(),
-						values.getOutput().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]));
-				return LettuceReactiveRedisConnection.<Long> monoConverter().convert(result)
-						.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
+				Mono<Long> result = cmd.sadd(command.getKey(), values.getOutput().stream().toArray(ByteBuffer[]::new));
+				return result.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
 			});
 		}));
 	}
@@ -222,28 +208,26 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return super.sMove(Mono.just(command));
 			}
 
-			Observable<Boolean> result = cmd.exists(command.getKey().array()).flatMap(nrKeys -> nrKeys == 0
-					? Observable.empty() : cmd.sismember(command.getKey().array(), command.getValue().array()))
+			Flux<Boolean> result = cmd.exists(command.getKey())
+					.flatMap(nrKeys -> nrKeys == 0 ? Mono.empty() : cmd.sismember(command.getKey(), command.getValue()))
 					.flatMap(exists -> {
 
 						if (!exists) {
-							return Observable.just(Boolean.FALSE);
+							return Mono.just(Boolean.FALSE);
 						}
-						return cmd.sismember(command.getDestination().array(), command.getValue().array())
-								.flatMap(existsInTarget -> {
+						return cmd.sismember(command.getDestination(), command.getValue()).flatMap(existsInTarget -> {
 
-									Observable<Boolean> tmp = cmd.srem(command.getKey().array(), command.getValue().array())
-											.map(nrRemoved -> nrRemoved > 0);
-									if (!existsInTarget) {
-										return tmp.flatMap(removed -> cmd.sadd(command.getDestination().array(), command.getValue().array())
-												.map(LettuceConverters::toBoolean));
-									}
-									return tmp;
-								});
+							Mono<Boolean> tmp = cmd.srem(command.getKey(), command.getValue()).map(nrRemoved -> nrRemoved > 0);
+							if (!existsInTarget) {
+								return tmp.flatMap(removed -> cmd.sadd(command.getDestination(), command.getValue())
+										.map(LettuceConverters::toBoolean));
+							}
+							return tmp;
+						});
 
 					});
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter().convert(result.defaultIfEmpty(Boolean.FALSE))
+			return result.defaultIfEmpty(Boolean.FALSE)
 					.map(value -> new ReactiveRedisConnection.BooleanResponse<>(command, value));
 		}));
 	}

@@ -31,16 +31,16 @@
  */
 package org.springframework.data.redis.test.util;
 
+import org.junit.rules.ExternalResource;
+import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
+
+import com.lambdaworks.redis.RedisURI;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
 import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
-import org.junit.rules.ExternalResource;
-
-import com.lambdaworks.redis.RedisClient;
-import com.lambdaworks.redis.RedisURI;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceRedisClusterClientProvider extends ExternalResource {
 
@@ -50,7 +50,7 @@ public class LettuceRedisClusterClientProvider extends ExternalResource {
 	RedisClusterClient client;
 
 	@Override
-	protected void before()  {
+	protected void before() {
 
 		try {
 			super.before();
@@ -58,7 +58,8 @@ public class LettuceRedisClusterClientProvider extends ExternalResource {
 			throwable.printStackTrace();
 		}
 
-		client = RedisClusterClient.create(RedisURI.builder().withHost(host).withPort(port).build());
+		client = RedisClusterClient.create(LettuceTestClientResources.getSharedClientResources(),
+				RedisURI.builder().withHost(host).withPort(port).build());
 	}
 
 	@Override
@@ -70,7 +71,7 @@ public class LettuceRedisClusterClientProvider extends ExternalResource {
 
 	public RedisClusterClient getClient() {
 
-		if(client == null) {
+		if (client == null) {
 			before();
 		}
 		return client;
@@ -78,7 +79,7 @@ public class LettuceRedisClusterClientProvider extends ExternalResource {
 
 	public void destroy() {
 
-		if(client != null) {
+		if (client != null) {
 			after();
 		}
 	}

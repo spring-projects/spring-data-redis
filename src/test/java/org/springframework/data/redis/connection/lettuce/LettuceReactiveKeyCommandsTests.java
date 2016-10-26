@@ -119,8 +119,8 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.set(KEY_1, VALUE_2);
 
 		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
-		assertThat(nativeCommands.exists(KEY_2), is(true));
-		assertThat(nativeCommands.exists(KEY_1), is(false));
+		assertThat(nativeCommands.exists(KEY_2), is(1L));
+		assertThat(nativeCommands.exists(KEY_1), is(0L));
 	}
 
 	/**
@@ -141,8 +141,8 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 
 		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
 
-		assertThat(nativeCommands.exists(KEY_2), is(true));
-		assertThat(nativeCommands.exists(KEY_1), is(false));
+		assertThat(nativeCommands.exists(KEY_2), is(1L));
+		assertThat(nativeCommands.exists(KEY_1), is(0L));
 	}
 
 	/**

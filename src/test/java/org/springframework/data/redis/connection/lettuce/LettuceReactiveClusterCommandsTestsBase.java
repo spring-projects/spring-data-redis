@@ -16,14 +16,17 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.assumeThat;
+import static org.hamcrest.core.Is.*;
+import static org.junit.Assume.*;
 
-import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.springframework.data.redis.test.util.LettuceRedisClusterClientProvider;
+
+import com.lambdaworks.redis.api.sync.RedisCommands;
+import com.lambdaworks.redis.cluster.api.sync.RedisAdvancedClusterCommands;
+import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 
 /**
  * @author Christoph Strobl
@@ -45,12 +48,19 @@ public abstract class LettuceReactiveClusterCommandsTestsBase {
 	@After
 	public void tearDown() {
 
-		if(nativeCommands != null) {
+		if (nativeCommands != null) {
 			nativeCommands.flushall();
-			nativeCommands.close();
+
+			if (nativeCommands instanceof RedisCommands) {
+				((RedisCommands) nativeCommands).getStatefulConnection().close();
+			}
+
+			if (nativeCommands instanceof RedisAdvancedClusterCommands) {
+				((RedisAdvancedClusterCommands) nativeCommands).getStatefulConnection().close();
+			}
 		}
 
-		if(connection != null) {
+		if (connection != null) {
 			connection.close();
 		}
 	}

@@ -65,7 +65,7 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 
 		assertThat(connection.stringCommands().mSetNX(map).block(), is(false));
 
-		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1), is(false));
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1), is(0L));
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_2), is(equalTo(VALUE_2)));
 	}
 

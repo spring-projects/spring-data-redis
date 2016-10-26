@@ -30,6 +30,7 @@ import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -568,7 +569,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 	/**
 	 * @see DATAREDIS-525
 	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void zRevRangeByLex() {
 
 		nativeCommands.zadd(KEY_1, 0D, "a");
@@ -584,7 +585,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 						ByteBuffer.wrap("a".getBytes())));
 
 		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("c", "", false, true)).block(),
-				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes())));
+				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("a".getBytes())));
 
 		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("g", "aaa", false, true)).block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),

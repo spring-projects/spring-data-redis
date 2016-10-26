@@ -27,13 +27,13 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveSetCommands;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 import reactor.core.publisher.Flux;
-import rx.Observable;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveSetCommands implements ReactiveSetCommands {
@@ -63,9 +63,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValues(), "Values must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.sadd(command.getKey().array(),
-							command.getValues().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.sadd(command.getKey(), command.getValues().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -82,9 +80,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValues(), "Values must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.srem(command.getKey().array(),
-							command.getValues().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.srem(command.getKey(), command.getValues().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -100,9 +96,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return LettuceReactiveRedisConnection.<ByteBuffer> monoConverter()
-					.convert(cmd.spop(command.getKey().array()).map(ByteBuffer::wrap))
-					.map(value -> new ByteBufferResponse<>(command, value));
+			return cmd.spop(command.getKey()).map(value -> new ByteBufferResponse<>(command, value));
 		}));
 	}
 
@@ -119,8 +113,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getDestination(), "Destination key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter()
-					.convert(cmd.smove(command.getKey().array(), command.getDestination().array(), command.getValue().array()))
+			return cmd.smove(command.getKey(), command.getDestination(), command.getValue())
 					.map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
@@ -136,8 +129,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter().convert(cmd.scard(command.getKey().array()))
-					.map(value -> new NumericResponse<>(command, value));
+			return cmd.scard(command.getKey()).map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
@@ -153,9 +145,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getValue(), "Value must not be null!");
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter()
-					.convert(cmd.sismember(command.getKey().array(), command.getValue().array()))
-					.map(value -> new BooleanResponse<>(command, value));
+			return cmd.sismember(command.getKey(), command.getValue()).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 
@@ -170,9 +160,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter()
-					.convert(cmd.sinter(command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]))
-							.map(ByteBuffer::wrap).toList())
+			return cmd.sinter(command.getKeys().stream().toArray(ByteBuffer[]::new)).collectList()
 					.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
@@ -189,9 +177,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.sinterstore(command.getKey().array(),
-							command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.sinterstore(command.getKey(), command.getKeys().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -207,9 +193,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter()
-					.convert(cmd.sunion(command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]))
-							.map(ByteBuffer::wrap).toList())
+			return cmd.sunion(command.getKeys().stream().toArray(ByteBuffer[]::new)).collectList()
 					.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
@@ -226,9 +210,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.sunionstore(command.getKey().array(),
-							command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.sunionstore(command.getKey(), command.getKeys().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -244,9 +226,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter()
-					.convert(cmd.sdiff(command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]))
-							.map(ByteBuffer::wrap).toList())
+			return cmd.sdiff(command.getKeys().stream().toArray(ByteBuffer[]::new)).collectList()
 					.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
@@ -263,9 +243,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 			Assert.notNull(command.getKey(), "Destination key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.sdiffstore(command.getKey().array(),
-							command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.sdiffstore(command.getKey(), command.getKeys().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -281,9 +259,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter()
-					.convert(cmd.smembers(command.getKey().array()).map(ByteBuffer::wrap).toList())
-					.map(value -> new MultiValueResponse<>(command, value));
+			return cmd.smembers(command.getKey()).collectList().map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 
@@ -301,12 +277,10 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			boolean singleElement = !command.getCount().isPresent() || command.getCount().get().equals(1L);
 
-			Observable<List<ByteBuffer>> result = singleElement
-					? cmd.srandmember(command.getKey().array()).map(ByteBuffer::wrap).map(Collections::singletonList)
-					: cmd.srandmember(command.getKey().array(), command.getCount().get()).map(ByteBuffer::wrap).toList();
+			Mono<List<ByteBuffer>> result = singleElement ? cmd.srandmember(command.getKey()).map(Collections::singletonList)
+					: cmd.srandmember(command.getKey(), command.getCount().get()).collectList();
 
-			return LettuceReactiveRedisConnection.<List<ByteBuffer>> monoConverter().convert(result)
-					.map(value -> new MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -30,8 +31,7 @@ import com.lambdaworks.redis.api.StatefulConnection;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.cluster.RedisClusterClient;
 import com.lambdaworks.redis.cluster.api.StatefulRedisClusterConnection;
-import com.lambdaworks.redis.cluster.api.rx.RedisClusterReactiveCommands;
-import com.lambdaworks.redis.codec.ByteArrayCodec;
+import com.lambdaworks.redis.cluster.api.reactive.RedisClusterReactiveCommands;
 import com.lambdaworks.redis.codec.RedisCodec;
 
 import reactor.core.publisher.Flux;
@@ -46,7 +46,7 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 
 	private StatefulConnection<ByteBuffer, ByteBuffer> connection;
 
-	private static final RedisCodec<byte[], byte[]> CODEC = new ByteArrayCodec();
+	private static final RedisCodec<ByteBuffer, ByteBuffer> CODEC = ByteBufferCodec.INSTANCE;
 
 	public LettuceReactiveRedisConnection(AbstractRedisClient client) {
 
@@ -124,16 +124,16 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		connection.close();
 	}
 
-	protected StatefulConnection<byte[], byte[]> getConnection() {
+	protected StatefulConnection<ByteBuffer, ByteBuffer> getConnection() {
 		return connection;
 	}
 
-	protected RedisClusterReactiveCommands<byte[], byte[]> getCommands() {
+	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {
 
 		if (connection instanceof StatefulRedisConnection) {
-			return ((StatefulRedisConnection<byte[], byte[]>) connection).reactive();
+			return ((StatefulRedisConnection<ByteBuffer, ByteBuffer>) connection).reactive();
 		} else if (connection instanceof StatefulRedisClusterConnection) {
-			return ((StatefulRedisClusterConnection<byte[], byte[]>) connection).reactive();
+			return ((StatefulRedisClusterConnection<ByteBuffer, ByteBuffer>) connection).reactive();
 		}
 
 		throw new RuntimeException("o.O unknown connection type " + connection);
@@ -157,6 +157,35 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 	}
 
 	interface LettuceReactiveCallback<T> {
-		Publisher<T> doWithCommands(RedisClusterReactiveCommands<byte[], byte[]> cmd);
+		Publisher<T> doWithCommands(RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> cmd);
+	}
+
+	static enum ByteBufferCodec implements RedisCodec<ByteBuffer, ByteBuffer> {
+
+		INSTANCE;
+
+		@Override
+		public ByteBuffer decodeKey(ByteBuffer bytes) {
+
+			ByteBuffer buffer = ByteBuffer.allocate(bytes.remaining());
+			buffer.put(bytes);
+			buffer.flip();
+			return buffer;
+		}
+
+		@Override
+		public ByteBuffer decodeValue(ByteBuffer bytes) {
+			return decodeKey(bytes);
+		}
+
+		@Override
+		public ByteBuffer encodeKey(ByteBuffer key) {
+			return key.duplicate();
+		}
+
+		@Override
+		public ByteBuffer encodeValue(ByteBuffer value) {
+			return value.duplicate();
+		}
 	}
 }

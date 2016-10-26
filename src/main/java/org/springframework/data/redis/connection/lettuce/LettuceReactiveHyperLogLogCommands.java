@@ -55,9 +55,7 @@ public class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCo
 
 			Assert.notNull(command.getKey(), "key must not be null!");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.pfadd(command.getKey().array(),
-							command.getValues().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.pfadd(command.getKey(), command.getValues().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 
 		}));
@@ -74,8 +72,7 @@ public class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCo
 
 			Assert.notEmpty(command.getKeys(), "Keys must not be empty for PFCOUNT.");
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.pfcount(command.getKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])))
+			return cmd.pfcount(command.getKeys().stream().toArray(ByteBuffer[]::new))
 					.map(value -> new NumericResponse<>(command, value));
 		}));
 	}
@@ -92,12 +89,8 @@ public class LettuceReactiveHyperLogLogCommands implements ReactiveHyperLogLogCo
 			Assert.notNull(command.getKey(), "Destination key must not be null for PFMERGE.");
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null for PFMERGE.");
 
-			return LettuceReactiveRedisConnection.<Boolean> monoConverter()
-					.convert(cmd
-							.pfmerge(command.getKey().array(),
-									command.getSourceKeys().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]))
-							.map(LettuceConverters::stringToBoolean))
-					.map(value -> new BooleanResponse<>(command, value));
+			return cmd.pfmerge(command.getKey(), command.getSourceKeys().stream().toArray(ByteBuffer[]::new))
+					.map(LettuceConverters::stringToBoolean).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 

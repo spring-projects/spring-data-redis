@@ -18,6 +18,7 @@ package org.springframework.data.redis.connection.lettuce;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.springframework.core.convert.converter.Converter;
@@ -35,10 +36,12 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.GeoArgs;
+import com.lambdaworks.redis.GeoCoordinates;
 import com.lambdaworks.redis.GeoWithin;
+import com.lambdaworks.redis.Value;
 
 import reactor.core.publisher.Flux;
-import rx.Observable;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
@@ -79,12 +82,10 @@ public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 
 				values.add(location.getPoint().getX());
 				values.add(location.getPoint().getY());
-				values.add(location.getName().array());
+				values.add(location.getName());
 			}
 
-			return LettuceReactiveRedisConnection.<Long> monoConverter()
-					.convert(cmd.geoadd(command.getKey().array(), values.toArray()))
-					.map(value -> new NumericResponse<>(command, value));
+			return cmd.geoadd(command.getKey(), values.toArray()).map(value -> new NumericResponse<>(command, value));
 		}));
 	}
 
@@ -101,17 +102,16 @@ public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 			Assert.notNull(command.getFrom(), "From member must not be null!");
 			Assert.notNull(command.getTo(), "To member must not be null!");
 
-			Metric metric = command.getMetric().isPresent() ? command.getMetric().get() : RedisGeoCommands.DistanceUnit.METERS;
+			Metric metric = command.getMetric().isPresent() ? command.getMetric().get()
+					: RedisGeoCommands.DistanceUnit.METERS;
 
 			GeoArgs.Unit geoUnit = LettuceConverters.toGeoArgsUnit(metric);
 			Converter<Double, Distance> distanceConverter = LettuceConverters.distanceConverterForMetric(metric);
 
-			Observable<Distance> result = cmd
-					.geodist(command.getKey().array(), command.getFrom().array(), command.getTo().array(), geoUnit)
+			Mono<Distance> result = cmd.geodist(command.getKey(), command.getFrom(), command.getTo(), geoUnit)
 					.map(distanceConverter::convert);
 
-			return LettuceReactiveRedisConnection.<Distance> monoConverter().convert(result)
-					.map(value -> new CommandResponse<>(command, value));
+			return result.map(value -> new CommandResponse<>(command, value));
 		}));
 	}
 
@@ -127,10 +127,9 @@ public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getMembers(), "Members must not be null!");
 
-			return LettuceReactiveRedisConnection.<List<String>> monoConverter()
-					.convert(cmd.geohash(command.getKey().array(),
-							command.getMembers().stream().map(ByteBuffer::array).toArray(size -> new byte[size][])).toList())
-					.map(value -> new MultiValueResponse<>(command, value));
+			return cmd.geohash(command.getKey(), command.getMembers().stream().toArray(ByteBuffer[]::new)).collectList()
+					.map(value -> new MultiValueResponse<>(command,
+							value.stream().map(v -> v.getValueOrElse(null)).collect(Collectors.toList())));
 		}));
 	}
 
@@ -146,13 +145,11 @@ public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getMembers(), "Members must not be null!");
 
-			Observable<List<Point>> result = cmd
-					.geopos(command.getKey().array(),
-							command.getMembers().stream().map(ByteBuffer::array).toArray(size -> new byte[size][]))
-					.map(LettuceConverters::geoCoordinatesToPoint).toList();
+			Mono<List<Value<GeoCoordinates>>> result = cmd
+					.geopos(command.getKey(), command.getMembers().stream().toArray(ByteBuffer[]::new)).collectList();
 
-			return LettuceReactiveRedisConnection.<List<Point>> monoConverter().convert(result)
-					.map(value -> new MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value.stream().map(v -> v.getValueOrElse(null))
+					.map(LettuceConverters::geoCoordinatesToPoint).collect(Collectors.toList())));
 		}));
 	}
 
@@ -170,16 +167,15 @@ public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 			Assert.notNull(command.getPoint(), "Point must not be null!");
 			Assert.notNull(command.getDistance(), "Distance must not be null!");
 
-			GeoArgs geoArgs = command.getArgs().isPresent() ? LettuceConverters.toGeoArgs(command.getArgs().get()) : new GeoArgs();
+			GeoArgs geoArgs = command.getArgs().isPresent() ? LettuceConverters.toGeoArgs(command.getArgs().get())
+					: new GeoArgs();
 
-			Observable<GeoResults<GeoLocation<ByteBuffer>>> result = cmd
-					.georadius(command.getKey().array(), command.getPoint().getX(), command.getPoint().getY(),
-							command.getDistance().getValue(), LettuceConverters.toGeoArgsUnit(command.getDistance().getMetric()),
-							geoArgs)
-					.map(converter(command.getDistance().getMetric())::convert).toList().map(vals -> new GeoResults<>(vals));
+			Mono<GeoResults<GeoLocation<ByteBuffer>>> result = cmd.georadius(command.getKey(), command.getPoint().getX(),
+					command.getPoint().getY(), command.getDistance().getValue(),
+					LettuceConverters.toGeoArgsUnit(command.getDistance().getMetric()), geoArgs)
+					.map(converter(command.getDistance().getMetric())::convert).collectList().map(GeoResults::new);
 
-			return LettuceReactiveRedisConnection.<GeoResults<GeoLocation<ByteBuffer>>> monoConverter().convert(result)
-					.map(value -> new CommandResponse<>(command, value));
+			return result.map(value -> new CommandResponse<>(command, value));
 		}));
 	}
 
@@ -197,28 +193,26 @@ public class LettuceReactiveGeoCommands implements ReactiveGeoCommands {
 			Assert.notNull(command.getMember(), "Member must not be null!");
 			Assert.notNull(command.getDistance(), "Distance must not be null!");
 
-			GeoArgs geoArgs = command.getArgs().isPresent() ? LettuceConverters.toGeoArgs(command.getArgs().get()) : new GeoArgs();
+			GeoArgs geoArgs = command.getArgs().isPresent() ? LettuceConverters.toGeoArgs(command.getArgs().get())
+					: new GeoArgs();
 
-			Observable<GeoResults<GeoLocation<ByteBuffer>>> result = cmd
-					.georadiusbymember(command.getKey().array(), command.getMember().array(), command.getDistance().getValue(),
+			Mono<GeoResults<GeoLocation<ByteBuffer>>> result = cmd
+					.georadiusbymember(command.getKey(), command.getMember(), command.getDistance().getValue(),
 							LettuceConverters.toGeoArgsUnit(command.getDistance().getMetric()), geoArgs)
-					.map(converter(command.getDistance().getMetric())::convert).toList().map(vals -> new GeoResults<>(vals));
+					.map(converter(command.getDistance().getMetric())::convert).collectList().map(GeoResults::new);
 
-			return LettuceReactiveRedisConnection.<GeoResults<GeoLocation<ByteBuffer>>> monoConverter().convert(result)
-					.map(value -> new CommandResponse<>(command, value));
+			return result.map(value -> new CommandResponse<>(command, value));
 		}));
 	}
 
-	private Converter<GeoWithin<byte[]>, GeoResult<GeoLocation<ByteBuffer>>> converter(Metric metric) {
+	private Converter<GeoWithin<ByteBuffer>, GeoResult<GeoLocation<ByteBuffer>>> converter(Metric metric) {
 
 		return (source) -> {
 
-			Point point = LettuceConverters.geoCoordinatesToPoint(source.coordinates);
+			Point point = LettuceConverters.geoCoordinatesToPoint(source.getCoordinates());
 
-			return new GeoResult<>(new GeoLocation<>(ByteBuffer.wrap(source.member), point),
-					new Distance(source.distance != null ? source.distance : 0D, metric));
+			return new GeoResult<>(new GeoLocation<>(source.getMember(), point),
+					new Distance(source.getDistance() != null ? source.getDistance() : 0D, metric));
 		};
-
 	}
-
 }

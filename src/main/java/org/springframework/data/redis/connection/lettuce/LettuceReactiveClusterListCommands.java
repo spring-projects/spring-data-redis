@@ -27,10 +27,10 @@ import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import rx.Observable;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public class LettuceReactiveClusterListCommands extends LettuceReactiveListCommands
@@ -74,12 +74,10 @@ public class LettuceReactiveClusterListCommands extends LettuceReactiveListComma
 				return super.rPopLPush(Mono.just(command));
 			}
 
-			Observable<ByteBuffer> result = cmd.rpop(command.getKey().array())
-					.concatMap(value -> cmd.lpush(command.getDestination().array(), value).map(x -> value)).map(ByteBuffer::wrap);
+			Flux<ByteBuffer> result = cmd.rpop(command.getKey())
+					.flatMap(value -> cmd.lpush(command.getDestination(), value).map(x -> value));
 
-			return LettuceReactiveRedisConnection.<ByteBuffer> monoConverter().convert(result)
-					.map(value -> new ReactiveRedisConnection.ByteBufferResponse<>(command, value));
+			return result.map(value -> new ReactiveRedisConnection.ByteBufferResponse<>(command, value));
 		}));
 	}
-
 }
