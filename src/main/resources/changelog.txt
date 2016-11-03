@@ -6,6 +6,13 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.5.RELEASE (2016-11-03)
+---------------------------------------------
+* DATAREDIS-558 - spring-data-redis - Cannot install in OSGi due import range of slf4j is locked down to 1.7.12 version.
+* DATAREDIS-557 - Release 1.7.5 (Hopper SR5).
+* DATAREDIS-542 - RedisCache.putIfAbsent does not set the TTL on the element.
+
+
 Changes in version 1.7.4.RELEASE (2016-09-29)
 ---------------------------------------------
 * DATAREDIS-555 - Release 1.7.4 (Hopper SR4).
