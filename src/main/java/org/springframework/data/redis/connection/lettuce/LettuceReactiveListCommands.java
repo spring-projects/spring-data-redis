@@ -52,6 +52,7 @@ public class LettuceReactiveListCommands implements ReactiveListCommands {
 	public LettuceReactiveListCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 

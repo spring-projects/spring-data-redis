@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.nio.ByteBuffer;
@@ -45,6 +44,9 @@ public class LettuceReactiveClusterStringCommands extends LettuceReactiveStringC
 		super(connection);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveStringCommands#bitOp(org.reactivestreams.Publisher)
+	 */
 	@Override
 	public Flux<ReactiveRedisConnection.NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands) {
 
@@ -62,6 +64,9 @@ public class LettuceReactiveClusterStringCommands extends LettuceReactiveStringC
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveStringCommands#mSetNX(org.reactivestreams.Publisher)
+	 */
 	@Override
 	public Flux<ReactiveRedisConnection.BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> commands) {
 

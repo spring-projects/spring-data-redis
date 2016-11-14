@@ -3,6 +3,14 @@
 
 New and noteworthy in the latest releases.
 
+[[new-in-2.0.0]]
+== New in Spring Data Redis 2.0
+
+* Upgrade to Java 8.
+* Removed support for SRP and JRedis drivers.
+* Upgrade to `Lettuce` 5.0.
+* Reactive connection support using https://github.com/mp911de/lettuce[mp911de/lettuce]
+
 [[new-in-1.8.0]]
 == New in Spring Data Redis 1.8
 

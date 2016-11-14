@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.lambdaworks.redis.api.reactive.RedisKeyReactiveCommands;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveKeyCommands;
@@ -32,6 +31,8 @@ import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import com.lambdaworks.redis.api.reactive.RedisKeyReactiveCommands;
 
 /**
  * @author Christoph Strobl
@@ -49,6 +50,7 @@ public class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	public LettuceReactiveKeyCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 

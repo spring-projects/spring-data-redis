@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.connection.*;
@@ -35,8 +34,6 @@ import com.lambdaworks.redis.cluster.api.reactive.RedisClusterReactiveCommands;
 import com.lambdaworks.redis.codec.RedisCodec;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import rx.Observable;
 
 /**
  * @author Christoph Strobl
@@ -71,41 +68,65 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return new LettuceReactiveKeyCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#stringCommands()
+	 */
 	@Override
 	public ReactiveStringCommands stringCommands() {
 		return new LettuceReactiveStringCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#numberCommands()
+	 */
 	@Override
 	public ReactiveNumberCommands numberCommands() {
 		return new LettuceReactiveNumberCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#listCommands()
+	 */
 	@Override
 	public ReactiveListCommands listCommands() {
 		return new LettuceReactiveListCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#setCommands()
+	 */
 	@Override
 	public ReactiveSetCommands setCommands() {
 		return new LettuceReactiveSetCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#zSetCommands()
+	 */
 	@Override
 	public ReactiveZSetCommands zSetCommands() {
 		return new LettuceReactiveZSetCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hashCommands()
+	 */
 	@Override
 	public ReactiveHashCommands hashCommands() {
 		return new LettuceReactiveHashCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#geoCommands()
+	 */
 	@Override
 	public ReactiveGeoCommands geoCommands() {
 		return new LettuceReactiveGeoCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection#hyperLogLogCommands()
+	 */
 	@Override
 	public ReactiveHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceReactiveHyperLogLogCommands(this);
@@ -119,6 +140,9 @@ public class LettuceReactiveRedisConnection implements ReactiveRedisConnection {
 		return Flux.defer(() -> callback.doWithCommands(getCommands())).onErrorResumeWith(translateExeception());
 	}
 
+	/* (non-Javadoc)
+	 * @see java.io.Closeable#close()
+	 */
 	@Override
 	public void close() {
 		connection.close();

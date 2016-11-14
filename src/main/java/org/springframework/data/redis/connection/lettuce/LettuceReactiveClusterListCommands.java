@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.nio.ByteBuffer;
@@ -22,7 +21,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterListCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -45,6 +44,9 @@ public class LettuceReactiveClusterListCommands extends LettuceReactiveListComma
 		super(connection);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveListCommands#bPop(org.reactivestreams.Publisher)
+	 */
 	@Override
 	public Flux<PopResponse> bPop(Publisher<BPopCommand> commands) {
 
@@ -61,9 +63,11 @@ public class LettuceReactiveClusterListCommands extends LettuceReactiveListComma
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveListCommands#rPopLPush(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.ByteBufferResponse<RPopLPushCommand>> rPopLPush(
-			Publisher<RPopLPushCommand> commands) {
+	public Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -77,7 +81,7 @@ public class LettuceReactiveClusterListCommands extends LettuceReactiveListComma
 			Flux<ByteBuffer> result = cmd.rpop(command.getKey())
 					.flatMap(value -> cmd.lpush(command.getDestination(), value).map(x -> value));
 
-			return result.map(value -> new ReactiveRedisConnection.ByteBufferResponse<>(command, value));
+			return result.map(value -> new ByteBufferResponse<>(command, value));
 		}));
 	}
 }

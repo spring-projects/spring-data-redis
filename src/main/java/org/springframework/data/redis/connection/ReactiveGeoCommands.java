@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
@@ -44,40 +46,72 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis Geo commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveGeoCommands {
 
 	/**
+	 * {@code GEOADD} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class GeoAddCommand extends KeyCommand {
 
 		private final List<GeoLocation<ByteBuffer>> geoLocations;
 
-		public GeoAddCommand(ByteBuffer key, List<GeoLocation<ByteBuffer>> geoLocations) {
+		private GeoAddCommand(ByteBuffer key, List<GeoLocation<ByteBuffer>> geoLocations) {
 
 			super(key);
+
 			this.geoLocations = geoLocations;
 		}
 
+		/**
+		 * Creates a new {@link GeoAddCommand} given {@link GeoLocation}.
+		 *
+		 * @param geoLocation must not be {@literal null}.
+		 * @return a new {@link GeoAddCommand} for {@link GeoLocation}.
+		 */
 		public static GeoAddCommand location(GeoLocation<ByteBuffer> geoLocation) {
+
+			Assert.notNull(geoLocation, "GeoLocation must not be null!");
+
 			return new GeoAddCommand(null, Collections.singletonList(geoLocation));
 		}
 
-		public static GeoAddCommand locations(List<GeoLocation<ByteBuffer>> geoLocations) {
+		/**
+		 * Creates a new {@link GeoAddCommand} given an {@literal index}.
+		 *
+		 * @param geoLocations must not be {@literal null}.
+		 * @return a new {@link GeoAddCommand} for {@literal index}.
+		 */
+		public static GeoAddCommand locations(Collection<GeoLocation<ByteBuffer>> geoLocations) {
+
+			Assert.notNull(geoLocations, "GeoLocations must not be null!");
+
 			return new GeoAddCommand(null, new ArrayList<>(geoLocations));
 		}
 
+		/**
+		 * Applies the Geo set {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GeoAddCommand} with {@literal key} applied.
+		 */
 		public GeoAddCommand to(ByteBuffer key) {
 			return new GeoAddCommand(key, geoLocations);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<GeoLocation<ByteBuffer>> getGeoLocations() {
 			return geoLocations;
 		}
-
 	}
 
 	/**
@@ -90,9 +124,9 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Long> geoAdd(ByteBuffer key, Point point, ByteBuffer member) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(point, "point must not be null");
-		Assert.notNull(member, "member must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(point, "Point must not be null!");
+		Assert.notNull(member, "Member must not be null!");
 
 		return geoAdd(key, new GeoLocation<>(member, point));
 	}
@@ -106,8 +140,8 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Long> geoAdd(ByteBuffer key, GeoLocation<ByteBuffer> location) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(location, "location must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(location, "Location must not be null!");
 
 		return geoAdd(key, Collections.singletonList(location));
 	}
@@ -119,10 +153,10 @@ public interface ReactiveGeoCommands {
 	 * @param locations must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Long> geoAdd(ByteBuffer key, List<GeoLocation<ByteBuffer>> locations) {
+	default Mono<Long> geoAdd(ByteBuffer key, Collection<GeoLocation<ByteBuffer>> locations) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(locations, "locations must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(locations, "Locations must not be null!");
 
 		return geoAdd(Mono.just(GeoAddCommand.locations(locations).to(key))).next().map(NumericResponse::getOutput);
 	}
@@ -136,6 +170,8 @@ public interface ReactiveGeoCommands {
 	Flux<NumericResponse<GeoAddCommand, Long>> geoAdd(Publisher<GeoAddCommand> commands);
 
 	/**
+	 * {@code GEODIST} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class GeoDistCommand extends KeyCommand {
@@ -145,7 +181,9 @@ public interface ReactiveGeoCommands {
 		private final Metric metric;
 
 		private GeoDistCommand(ByteBuffer key, ByteBuffer from, ByteBuffer to, Metric metric) {
+
 			super(key);
+
 			this.from = from;
 			this.to = to;
 			this.metric = metric;
@@ -155,42 +193,99 @@ public interface ReactiveGeoCommands {
 			return new GeoDistCommand(null, null, null, unit);
 		}
 
+		/**
+		 * Creates a new {@link GeoDistCommand} for {@link DistanceUnit#METERS}.
+		 *
+		 * @return a new {@link GeoDistCommand} for {@link DistanceUnit#METERS}.
+		 */
 		public static GeoDistCommand meters() {
 			return units(DistanceUnit.METERS);
 		}
 
-		public static GeoDistCommand kiometers() {
+		/**
+		 * Creates a new {@link GeoDistCommand} for {@link DistanceUnit#KILOMETERS}.
+		 *
+		 * @return a new {@link GeoDistCommand} for {@link DistanceUnit#KILOMETERS}.
+		 */
+		public static GeoDistCommand kilometers() {
 			return units(DistanceUnit.KILOMETERS);
 		}
 
+		/**
+		 * Creates a new {@link GeoDistCommand} for {@link DistanceUnit#MILES}.
+		 *
+		 * @return a new {@link GeoDistCommand} for {@link DistanceUnit#MILES}.
+		 */
 		public static GeoDistCommand miles() {
 			return units(DistanceUnit.MILES);
 		}
 
+		/**
+		 * Creates a new {@link GeoDistCommand} for {@link DistanceUnit#FEET}.
+		 *
+		 * @return a new {@link GeoDistCommand} for {@link DistanceUnit#FEET}.
+		 */
 		public static GeoDistCommand feet() {
 			return units(DistanceUnit.FEET);
 		}
 
+		/**
+		 * Applies the {@literal from} member. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param from must not be {@literal null}.
+		 * @return a new {@link GeoDistCommand} with {@literal from} applied.
+		 */
 		public GeoDistCommand between(ByteBuffer from) {
+
+			Assert.notNull(from, "From member must not be null!");
+
 			return new GeoDistCommand(getKey(), from, to, metric);
 		}
 
+		/**
+		 * Applies the {@literal to} member. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param to must not be {@literal null}.
+		 * @return a new {@link GeoDistCommand} with {@literal to} applied.
+		 */
 		public GeoDistCommand and(ByteBuffer to) {
+
+			Assert.notNull(to, "To member must not be null");
+
 			return new GeoDistCommand(getKey(), from, to, metric);
 		}
 
+		/**
+		 * Applies the Geo set {@literal key} member. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GeoDistCommand} with {@literal key} applied.
+		 */
 		public GeoDistCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new GeoDistCommand(key, from, to, metric);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getFrom() {
 			return from;
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getTo() {
 			return to;
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Metric> getMetric() {
 			return Optional.ofNullable(metric);
 		}
@@ -219,11 +314,12 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Distance> geoDist(ByteBuffer key, ByteBuffer from, ByteBuffer to, Metric metric) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(from, "from must not be null");
-		Assert.notNull(to, "to must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(from, "From must not be null!");
+		Assert.notNull(to, "To must not be null!");
 
-		return geoDist(Mono.just(GeoDistCommand.units(metric).between(from).and(to).forKey(key))).next()
+		return geoDist(Mono.just(GeoDistCommand.units(metric).between(from).and(to).forKey(key))) //
+				.next() //
 				.map(CommandResponse::getOutput);
 	}
 
@@ -236,6 +332,8 @@ public interface ReactiveGeoCommands {
 	Flux<CommandResponse<GeoDistCommand, Distance>> geoDist(Publisher<GeoDistCommand> commands);
 
 	/**
+	 * {@code GEOHASH} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class GeoHashCommand extends KeyCommand {
@@ -245,21 +343,52 @@ public interface ReactiveGeoCommands {
 		private GeoHashCommand(ByteBuffer key, List<ByteBuffer> members) {
 
 			super(key);
+
 			this.members = members;
 		}
 
+		/**
+		 * Creates a new {@link GeoHashCommand} given a {@literal member}.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoHashCommand} for a {@literal member}.
+		 */
 		public static GeoHashCommand member(ByteBuffer member) {
+
+			Assert.notNull(member, "Member must not be null!");
+
 			return new GeoHashCommand(null, Collections.singletonList(member));
 		}
 
-		public static GeoHashCommand members(List<ByteBuffer> members) {
+		/**
+		 * Creates a new {@link GeoHashCommand} given a {@link Collection} of values.
+		 *
+		 * @param members must not be {@literal null}.
+		 * @return a new {@link GeoHashCommand} for a {@link Collection} of values.
+		 */
+		public static GeoHashCommand members(Collection<ByteBuffer> members) {
+
+			Assert.notNull(members, "Members must not be null!");
+
 			return new GeoHashCommand(null, new ArrayList<>(members));
 		}
 
+		/**
+		 * Applies the Geo set {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GeoHashCommand} with {@literal key} applied.
+		 */
 		public GeoHashCommand of(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new GeoHashCommand(key, members);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getMembers() {
 			return members;
 		}
@@ -274,9 +403,10 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<String> geoHash(ByteBuffer key, ByteBuffer member) {
 
-		Assert.notNull(member, "member must not be null");
+		Assert.notNull(member, "Member must not be null!");
 
-		return geoHash(key, Collections.singletonList(member)).map(vals -> vals.isEmpty() ? null : vals.iterator().next());
+		return geoHash(key, Collections.singletonList(member)) //
+				.map(vals -> vals.isEmpty() ? null : vals.iterator().next());
 	}
 
 	/**
@@ -286,12 +416,14 @@ public interface ReactiveGeoCommands {
 	 * @param members must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<List<String>> geoHash(ByteBuffer key, List<ByteBuffer> members) {
+	default Mono<List<String>> geoHash(ByteBuffer key, Collection<ByteBuffer> members) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(members, "members must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(members, "Members must not be null!");
 
-		return geoHash(Mono.just(GeoHashCommand.members(members).of(key))).next().map(MultiValueResponse::getOutput);
+		return geoHash(Mono.just(GeoHashCommand.members(members).of(key))) //
+				.next() //
+				.map(MultiValueResponse::getOutput);
 	}
 
 	/**
@@ -303,6 +435,8 @@ public interface ReactiveGeoCommands {
 	Flux<MultiValueResponse<GeoHashCommand, String>> geoHash(Publisher<GeoHashCommand> commands);
 
 	/**
+	 * {@code GEOPOS} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class GeoPosCommand extends KeyCommand {
@@ -312,21 +446,52 @@ public interface ReactiveGeoCommands {
 		private GeoPosCommand(ByteBuffer key, List<ByteBuffer> members) {
 
 			super(key);
+
 			this.members = members;
 		}
 
+		/**
+		 * Creates a new {@link GeoPosCommand} given a {@literal member}.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoPosCommand} for a {@literal member}.
+		 */
 		public static GeoPosCommand member(ByteBuffer member) {
+
+			Assert.notNull(member, "Member must not be null!");
+
 			return new GeoPosCommand(null, Collections.singletonList(member));
 		}
 
-		public static GeoPosCommand members(List<ByteBuffer> members) {
+		/**
+		 * Creates a new {@link GeoPosCommand} given a {@link Collection} of values.
+		 *
+		 * @param members must not be {@literal null}.
+		 * @return a new {@link GeoPosCommand} for a {@link Collection} of values.
+		 */
+		public static GeoPosCommand members(Collection<ByteBuffer> members) {
+
+			Assert.notNull(members, "Members must not be null!");
+
 			return new GeoPosCommand(null, new ArrayList<>(members));
 		}
 
+		/**
+		 * Applies the Geo set {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GeoPosCommand} with {@literal key} applied.
+		 */
 		public GeoPosCommand of(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new GeoPosCommand(key, members);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getMembers() {
 			return members;
 		}
@@ -341,7 +506,7 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<Point> geoPos(ByteBuffer key, ByteBuffer member) {
 
-		Assert.notNull(member, "member must not be null");
+		Assert.notNull(member, "Member must not be null!");
 
 		return geoPos(key, Collections.singletonList(member)).map(vals -> vals.isEmpty() ? null : vals.iterator().next());
 	}
@@ -353,10 +518,10 @@ public interface ReactiveGeoCommands {
 	 * @param members must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<List<Point>> geoPos(ByteBuffer key, List<ByteBuffer> members) {
+	default Mono<List<Point>> geoPos(ByteBuffer key, Collection<ByteBuffer> members) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(members, "members must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(members, "Members must not be null!");
 
 		return geoPos(Mono.just(GeoPosCommand.members(members).of(key))).next().map(MultiValueResponse::getOutput);
 	}
@@ -370,6 +535,8 @@ public interface ReactiveGeoCommands {
 	Flux<MultiValueResponse<GeoPosCommand, Point>> geoPos(Publisher<GeoPosCommand> commands);
 
 	/**
+	 * {@code GEORADIUS} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class GeoRadiusCommand extends KeyCommand {
@@ -382,7 +549,9 @@ public interface ReactiveGeoCommands {
 
 		private GeoRadiusCommand(ByteBuffer key, Point point, Distance distance, GeoRadiusCommandArgs args,
 				ByteBuffer store, ByteBuffer storeDist) {
+
 			super(key);
+
 			this.distance = distance;
 			this.point = point;
 			this.args = args == null ? GeoRadiusCommandArgs.newGeoRadiusArgs() : args;
@@ -390,35 +559,95 @@ public interface ReactiveGeoCommands {
 			this.storeDist = storeDist;
 		}
 
+		/**
+		 * Creates a new {@link GeoRadiusCommand} given a {@link Distance}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} for a {@link Distance}.
+		 */
 		public static GeoRadiusCommand within(Distance distance) {
+
+			Assert.notNull(distance, "Distance must not be null!");
+
 			return new GeoRadiusCommand(null, null, distance, null, null, null);
 		}
 
-		public static GeoRadiusCommand withinMeters(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#METERS}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#METERS}.
+		 */
+		public static GeoRadiusCommand withinMeters(double distance) {
 			return within(new Distance(distance, DistanceUnit.METERS));
 		}
 
-		public static GeoRadiusCommand withinKiometers(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
+		 */
+		public static GeoRadiusCommand withinKilometers(double distance) {
 			return within(new Distance(distance, DistanceUnit.KILOMETERS));
 		}
 
-		public static GeoRadiusCommand withinMiles(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#MILES}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#MILES}.
+		 */
+		public static GeoRadiusCommand withinMiles(double distance) {
 			return within(new Distance(distance, DistanceUnit.MILES));
 		}
 
-		public static GeoRadiusCommand withinFeet(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusCommand} given a {@literal distance} in {@link DistanceUnit#FEET}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} for a {@literal distance} in {@link DistanceUnit#FEET}.
+		 */
+		public static GeoRadiusCommand withinFeet(double distance) {
 			return within(new Distance(distance, DistanceUnit.FEET));
 		}
 
+		/**
+		 * Creates a new {@link GeoRadiusCommand} given a {@link Circle}.
+		 *
+		 * @param circle must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} for a {@link Circle}.
+		 */
 		public static GeoRadiusCommand within(Circle circle) {
+
+			Assert.notNull(circle, "Circle must not be null!");
+
 			return within(circle.getRadius()).from(circle.getCenter());
 		}
 
+		/**
+		 * Sets the {@literal center} {@link Point}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param center must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} with {@link Point} applied.
+		 */
 		public GeoRadiusCommand from(Point center) {
+
+			Assert.notNull(center, "Center point must not be null!");
+
 			return new GeoRadiusCommand(getKey(), center, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Applies command {@link Flag flags}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param flag must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} with {@link Flag} applied.
+		 */
 		public GeoRadiusCommand withFlag(Flag flag) {
+
+			Assert.notNull(flag, "Flag must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.flags.add(flag);
@@ -426,29 +655,59 @@ public interface ReactiveGeoCommands {
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Enables coordinate retrieval. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusCommand} with {@link Flag#WITHCOORD} applied.
+		 */
 		public GeoRadiusCommand withCoord() {
 			return withFlag(Flag.WITHCOORD);
 		}
 
+		/**
+		 * Enables distance retrieval. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusCommand} with {@link Flag#WITHDIST} applied.
+		 */
 		public GeoRadiusCommand withDist() {
 			return withFlag(Flag.WITHDIST);
 		}
 
+		/**
+		 * Applies command {@link GeoRadiusCommandArgs}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param args can be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} with {@link GeoRadiusCommandArgs} applied.
+		 */
 		public GeoRadiusCommand withArgs(GeoRadiusCommandArgs args) {
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
 
-		public GeoRadiusCommand limitTo(Long limit) {
+		/**
+		 * Applies the {@literal limit}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param limit
+		 * @return a new {@link GeoRadiusCommand} with {@literal limit} applied.
+		 */
+		public GeoRadiusCommand limitTo(long limit) {
 
 			GeoRadiusCommandArgs args = cloneArgs();
-			if (limit != null) {
-				args = args.limit(limit);
-			}
+			args = args.limit(limit);
 
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Applies the distance sort {@link Direction}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param direction must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} with sort {@link Direction} applied.
+		 */
 		public GeoRadiusCommand sort(Direction direction) {
+
+			Assert.notNull(direction, "Direction must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.sortDirection = direction;
@@ -456,15 +715,34 @@ public interface ReactiveGeoCommands {
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Applies ascending sort by distance. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusCommand} with sort {@link Direction#ASC} applied.
+		 */
 		public GeoRadiusCommand orderByDistanceAsc() {
 			return sort(Direction.ASC);
 		}
 
+		/**
+		 * Applies descending sort by distance. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusCommand} with sort {@link Direction#DESC} applied.
+		 */
 		public GeoRadiusCommand orderByDistanceDesc() {
 			return sort(Direction.DESC);
 		}
 
+		/**
+		 * Applies the Geo set {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GeoRadiusCommand} with {@literal key} applied.
+		 */
 		public GeoRadiusCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new GeoRadiusCommand(key, point, distance, args, store, storeDist);
 		}
 
@@ -488,34 +766,58 @@ public interface ReactiveGeoCommands {
 			return new GeoRadiusCommand(getKey(), point, distance, args, store, key);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Direction> getDirection() {
 			return Optional.ofNullable(args.getSortDirection());
 		}
 
+		/**
+		 * @return
+		 */
 		public Distance getDistance() {
 			return distance;
 		}
 
+		/**
+		 * @return
+		 */
 		public Set<Flag> getFlags() {
 			return args.getFlags();
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Long> getLimit() {
 			return Optional.ofNullable(args.getLimit());
 		}
 
+		/**
+		 * @return
+		 */
 		public Point getPoint() {
 			return point;
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<ByteBuffer> getStore() {
 			return Optional.ofNullable(store);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<ByteBuffer> getStoreDist() {
 			return Optional.ofNullable(storeDist);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<GeoRadiusCommandArgs> getArgs() {
 			return Optional.ofNullable(args);
 		}
@@ -539,7 +841,7 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<List<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle) {
 		return geoRadius(key, circle, null)
-				.map(res -> res.getContent().stream().map(val -> val.getContent()).collect(Collectors.toList()));
+				.map(res -> res.getContent().stream().map(GeoResult::getContent).collect(Collectors.toList()));
 	}
 
 	/**
@@ -553,8 +855,8 @@ public interface ReactiveGeoCommands {
 	default Mono<GeoResults<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle,
 			GeoRadiusCommandArgs geoRadiusArgs) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(circle, "circle must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(circle, "Circle must not be null!");
 
 		return geoRadius(Mono.just(GeoRadiusCommand.within(circle).withArgs(geoRadiusArgs).forKey(key))).next()
 				.map(CommandResponse::getOutput);
@@ -570,6 +872,8 @@ public interface ReactiveGeoCommands {
 			Publisher<GeoRadiusCommand> commands);
 
 	/**
+	 * {@code GEORADIUSBYMEMBER} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class GeoRadiusByMemberCommand extends KeyCommand {
@@ -584,6 +888,7 @@ public interface ReactiveGeoCommands {
 				ByteBuffer store, ByteBuffer storeDist) {
 
 			super(key);
+
 			this.distance = distance;
 			this.member = member;
 			this.args = args == null ? GeoRadiusCommandArgs.newGeoRadiusArgs() : args;
@@ -591,35 +896,81 @@ public interface ReactiveGeoCommands {
 			this.storeDist = storeDist;
 		}
 
+		/**
+		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@link Distance}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} for a {@link Distance}.
+		 */
 		public static GeoRadiusByMemberCommand within(Distance distance) {
+
+			Assert.notNull(distance, "Distance must not be null!");
+
 			return new GeoRadiusByMemberCommand(null, null, distance, GeoRadiusCommandArgs.newGeoRadiusArgs(), null, null);
 		}
 
-		public static GeoRadiusByMemberCommand withinMeters(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#METERS}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#METERS}.
+		 */
+		public static GeoRadiusByMemberCommand withinMeters(double distance) {
 			return within(new Distance(distance, DistanceUnit.METERS));
 		}
 
-		public static GeoRadiusByMemberCommand withinKiometers(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#KILOMETERS}.
+		 */
+		public static GeoRadiusByMemberCommand withinKiometers(double distance) {
 			return within(new Distance(distance, DistanceUnit.KILOMETERS));
 		}
 
-		public static GeoRadiusByMemberCommand withinMiles(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#MILES}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#MILES}.
+		 */
+		public static GeoRadiusByMemberCommand withinMiles(double distance) {
 			return within(new Distance(distance, DistanceUnit.MILES));
 		}
 
-		public static GeoRadiusByMemberCommand withinFeet(Double distance) {
+		/**
+		 * Creates a new {@link GeoRadiusByMemberCommand} given a {@literal distance} in {@link DistanceUnit#FEET}.
+		 *
+		 * @param distance must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} for a {@literal distance} in {@link DistanceUnit#FEET}.
+		 */
+		public static GeoRadiusByMemberCommand withinFeet(double distance) {
 			return within(new Distance(distance, DistanceUnit.FEET));
 		}
 
+		/**
+		 * Sets the {@literal member}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param member must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@literal member} applied.
+		 */
 		public GeoRadiusByMemberCommand from(ByteBuffer member) {
+
+			Assert.notNull(member, "Member must not be null!");
+
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
 
-		public GeoRadiusByMemberCommand withArgs(GeoRadiusCommandArgs args) {
-			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
-		}
-
+		/**
+		 * Applies command {@link Flag flags}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param flag must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@literal key} applied.
+		 */
 		public GeoRadiusByMemberCommand withFlag(Flag flag) {
+
+			Assert.notNull(flag, "Flag must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.flags.add(flag);
@@ -627,25 +978,60 @@ public interface ReactiveGeoCommands {
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Enables coordinate retrieval. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@link Flag#WITHCOORD} applied.
+		 */
 		public GeoRadiusByMemberCommand withCoord() {
 			return withFlag(Flag.WITHCOORD);
 		}
 
+		/**
+		 * Enables distance retrieval. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@link Flag#WITHDIST} applied.
+		 */
 		public GeoRadiusByMemberCommand withDist() {
 			return withFlag(Flag.WITHDIST);
 		}
 
-		public GeoRadiusByMemberCommand limitTo(Long limit) {
-
-			GeoRadiusCommandArgs args = cloneArgs();
-			if (limit != null) {
-				args = args.limit(limit);
-			}
+		/**
+		 * Applies command {@link GeoRadiusCommandArgs}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param args can be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@link GeoRadiusCommandArgs} applied.
+		 */
+		public GeoRadiusByMemberCommand withArgs(GeoRadiusCommandArgs args) {
 
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Applies the {@literal limit}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param limit
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@literal limit} applied.
+		 */
+		public GeoRadiusByMemberCommand limitTo(long limit) {
+
+			GeoRadiusCommandArgs args = cloneArgs();
+			args.limit(limit);
+
+			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
+		}
+
+		/**
+		 * Applies the distance sort {@link Direction}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param direction must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} with sort {@link Direction} applied.
+		 */
 		public GeoRadiusByMemberCommand sort(Direction direction) {
+
+			Assert.notNull(direction, "Direction must not be null!");
 
 			GeoRadiusCommandArgs args = cloneArgs();
 			args.sortDirection = direction;
@@ -653,14 +1039,30 @@ public interface ReactiveGeoCommands {
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, storeDist);
 		}
 
+		/**
+		 * Applies ascending sort by distance. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusByMemberCommand} with sort {@link Direction#ASC} applied.
+		 */
 		public GeoRadiusByMemberCommand orderByDistanceAsc() {
 			return sort(Direction.ASC);
 		}
 
+		/**
+		 * Applies descending sort by distance. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link GeoRadiusByMemberCommand} with sort {@link Direction#DESC} applied.
+		 */
 		public GeoRadiusByMemberCommand orderByDistanceDesc() {
 			return sort(Direction.DESC);
 		}
 
+		/**
+		 * Applies the Geo set {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GeoRadiusByMemberCommand} with {@literal key} applied.
+		 */
 		public GeoRadiusByMemberCommand forKey(ByteBuffer key) {
 			return new GeoRadiusByMemberCommand(key, member, distance, args, store, storeDist);
 		}
@@ -685,34 +1087,58 @@ public interface ReactiveGeoCommands {
 			return new GeoRadiusByMemberCommand(getKey(), member, distance, args, store, key);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Direction> getDirection() {
 			return Optional.ofNullable(args.getSortDirection());
 		}
 
+		/**
+		 * @return
+		 */
 		public Distance getDistance() {
 			return distance;
 		}
 
+		/**
+		 * @return
+		 */
 		public Set<Flag> getFlags() {
 			return args.getFlags();
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Long> getLimit() {
 			return Optional.ofNullable(args.getLimit());
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getMember() {
 			return member;
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<ByteBuffer> getStore() {
 			return Optional.ofNullable(store);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<ByteBuffer> getStoreDist() {
 			return Optional.ofNullable(storeDist);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<GeoRadiusCommandArgs> getArgs() {
 			return Optional.ofNullable(args);
 		}
@@ -725,7 +1151,6 @@ public interface ReactiveGeoCommands {
 
 			return args.clone();
 		}
-
 	}
 
 	/**
@@ -737,7 +1162,7 @@ public interface ReactiveGeoCommands {
 	 */
 	default Mono<List<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member, Distance distance) {
 		return geoRadiusByMember(key, member, distance, null)
-				.map(res -> res.getContent().stream().map(val -> val.getContent()).collect(Collectors.toList()));
+				.map(res -> res.getContent().stream().map(GeoResult::getContent).collect(Collectors.toList()));
 	}
 
 	/**
@@ -751,9 +1176,9 @@ public interface ReactiveGeoCommands {
 	default Mono<GeoResults<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member,
 			Distance distance, GeoRadiusCommandArgs geoRadiusArgs) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(member, "member must not be null");
-		Assert.notNull(distance, "distance must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(member, "Member must not be null!");
+		Assert.notNull(distance, "Distance must not be null!");
 
 		return geoRadiusByMember(
 				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs))).next()
@@ -763,7 +1188,7 @@ public interface ReactiveGeoCommands {
 	/**
 	 * Get the {@literal member}s within given {@link Distance} from {@literal member} applying given parameters.
 	 *
-	 * @param commands
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
 	Flux<CommandResponse<GeoRadiusByMemberCommand, GeoResults<GeoLocation<ByteBuffer>>>> geoRadiusByMember(

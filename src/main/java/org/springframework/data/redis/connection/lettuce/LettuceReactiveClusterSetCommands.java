@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.nio.ByteBuffer;
@@ -24,7 +23,9 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterSetCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -47,9 +48,11 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 		super(connection);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sUnion(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.MultiValueResponse<SUnionCommand, ByteBuffer>> sUnion(
-			Publisher<SUnionCommand> commands) {
+	public Flux<MultiValueResponse<SUnionCommand, ByteBuffer>> sUnion(Publisher<SUnionCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -62,13 +65,15 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 			Mono<List<ByteBuffer>> result = Flux
 					.merge(command.getKeys().stream().map(cmd::smembers).collect(Collectors.toList())).distinct().collectList();
 
-			return result.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sUnionStore(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.NumericResponse<SUnionStoreCommand, Long>> sUnionStore(
-			Publisher<SUnionStoreCommand> commands) {
+	public Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -84,14 +89,16 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 
 			return sUnion(Mono.just(SUnionCommand.keys(command.getKeys()))).next().flatMap(values -> {
 				Mono<Long> result = cmd.sadd(command.getKey(), values.getOutput().stream().toArray(ByteBuffer[]::new));
-				return result.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
+				return result.map(value -> new NumericResponse<>(command, value));
 			});
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sInter(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.MultiValueResponse<SInterCommand, ByteBuffer>> sInter(
-			Publisher<SInterCommand> commands) {
+	public Flux<MultiValueResponse<SInterCommand, ByteBuffer>> sInter(Publisher<SInterCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -115,13 +122,15 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return source;
 			});
 
-			return result.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value));
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sInterStore(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.NumericResponse<SInterStoreCommand, Long>> sInterStore(
-			Publisher<SInterStoreCommand> commands) {
+	public Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -137,14 +146,16 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 
 			return sInter(Mono.just(SInterCommand.keys(command.getKeys()))).next().flatMap(values -> {
 				Mono<Long> result = cmd.sadd(command.getKey(), values.getOutput().stream().toArray(ByteBuffer[]::new));
-				return result.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
+				return result.map(value -> new NumericResponse<>(command, value));
 			});
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sDiff(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.MultiValueResponse<SDiffCommand, ByteBuffer>> sDiff(
-			Publisher<SDiffCommand> commands) {
+	public Flux<MultiValueResponse<SDiffCommand, ByteBuffer>> sDiff(Publisher<SDiffCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -168,14 +179,16 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 				return source;
 			});
 
-			return result.map(value -> new ReactiveRedisConnection.MultiValueResponse<>(command, value));
+			return result.map(value -> new MultiValueResponse<>(command, value));
 
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sDiffStore(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.NumericResponse<SDiffStoreCommand, Long>> sDiffStore(
-			Publisher<SDiffStoreCommand> commands) {
+	public Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -191,13 +204,16 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 
 			return sDiff(Mono.just(SDiffCommand.keys(command.getKeys()))).next().flatMap(values -> {
 				Mono<Long> result = cmd.sadd(command.getKey(), values.getOutput().stream().toArray(ByteBuffer[]::new));
-				return result.map(value -> new ReactiveRedisConnection.NumericResponse<>(command, value));
+				return result.map(value -> new NumericResponse<>(command, value));
 			});
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveSetCommands#sMove(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands) {
+	public Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -227,8 +243,7 @@ public class LettuceReactiveClusterSetCommands extends LettuceReactiveSetCommand
 
 					});
 
-			return result.defaultIfEmpty(Boolean.FALSE)
-					.map(value -> new ReactiveRedisConnection.BooleanResponse<>(command, value));
+			return result.defaultIfEmpty(Boolean.FALSE).map(value -> new BooleanResponse<>(command, value));
 		}));
 	}
 }

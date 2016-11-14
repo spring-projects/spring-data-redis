@@ -16,6 +16,8 @@
 package org.springframework.data.redis.connection;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -33,12 +35,17 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis Set commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveSetCommands {
 
 	/**
+	 * {@code SADD} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SAddCommand extends KeyCommand {
@@ -48,28 +55,59 @@ public interface ReactiveSetCommands {
 		private SAddCommand(ByteBuffer key, List<ByteBuffer> values) {
 
 			super(key);
+
 			this.values = values;
 		}
 
-		public static SAddCommand value(ByteBuffer values) {
-			return values(Collections.singletonList(values));
+		/**
+		 * Creates a new {@link SAddCommand} given a {@literal value}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SAddCommand} for a {@literal value}.
+		 */
+		public static SAddCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
+			return values(Collections.singletonList(value));
 		}
 
-		public static SAddCommand values(List<ByteBuffer> values) {
-			return new SAddCommand(null, values);
+		/**
+		 * Creates a new {@link SAddCommand} given a {@link Collection} of values.
+		 *
+		 * @param values must not be {@literal null}.
+		 * @return a new {@link SAddCommand} for a {@link Collection} of values.
+		 */
+		public static SAddCommand values(Collection<ByteBuffer> values) {
+
+			Assert.notNull(values, "Values must not be null!");
+
+			return new SAddCommand(null, new ArrayList<>(values));
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SAddCommand} with {@literal key} applied.
+		 */
 		public SAddCommand to(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SAddCommand(key, values);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getValues() {
 			return values;
 		}
 	}
 
 	/**
-	 * Add given {@code value} to set at {@code key}.
+	 * Add given {@literal value} to set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -77,22 +115,22 @@ public interface ReactiveSetCommands {
 	 */
 	default Mono<Long> sAdd(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(value, "Value must not be null!");
 
 		return sAdd(key, Collections.singletonList(value));
 	}
 
 	/**
-	 * Add given {@code values} to set at {@code key}.
+	 * Add given {@literal values} to set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Long> sAdd(ByteBuffer key, List<ByteBuffer> values) {
+	default Mono<Long> sAdd(ByteBuffer key, Collection<ByteBuffer> values) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(values, "values must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
 
 		return sAdd(Mono.just(SAddCommand.values(values).to(key))).next().map(NumericResponse::getOutput);
 	}
@@ -106,37 +144,70 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<SAddCommand, Long>> sAdd(Publisher<SAddCommand> commands);
 
 	/**
+	 * {@code SREM} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SRemCommand extends KeyCommand {
 
 		private final List<ByteBuffer> values;
 
-		public SRemCommand(ByteBuffer key, List<ByteBuffer> values) {
+		private SRemCommand(ByteBuffer key, List<ByteBuffer> values) {
 
 			super(key);
+
 			this.values = values;
 		}
 
-		public static SRemCommand value(ByteBuffer values) {
-			return values(Collections.singletonList(values));
+		/**
+		 * Creates a new {@link SRemCommand} given a {@literal value}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SRemCommand} for a {@literal value}.
+		 */
+		public static SRemCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
+			return values(Collections.singletonList(value));
 		}
 
-		public static SRemCommand values(List<ByteBuffer> values) {
-			return new SRemCommand(null, values);
+		/**
+		 * Creates a new {@link SRemCommand} given a {@link Collection} of values.
+		 *
+		 * @param values must not be {@literal null}.
+		 * @return a new {@link SRemCommand} for a {@link Collection} of values.
+		 */
+		public static SRemCommand values(Collection<ByteBuffer> values) {
+
+			Assert.notNull(values, "Values must not be null!");
+
+			return new SRemCommand(null, new ArrayList<>(values));
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SRemCommand} with {@literal key} applied.
+		 */
 		public SRemCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SRemCommand(key, values);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getValues() {
 			return values;
 		}
 	}
 
 	/**
-	 * Remove given {@code value} from set at {@code key} and return the number of removed elements.
+	 * Remove given {@literal value} from set at {@literal key} and return the number of removed elements.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -144,22 +215,22 @@ public interface ReactiveSetCommands {
 	 */
 	default Mono<Long> sRem(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(value, "Value must not be null!");
 
 		return sRem(key, Collections.singletonList(value));
 	}
 
 	/**
-	 * Remove given {@code values} from set at {@code key} and return the number of removed elements.
+	 * Remove given {@literal values} from set at {@literal key} and return the number of removed elements.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Long> sRem(ByteBuffer key, List<ByteBuffer> values) {
+	default Mono<Long> sRem(ByteBuffer key, Collection<ByteBuffer> values) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(values, "values must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
 
 		return sRem(Mono.just(SRemCommand.values(values).from(key))).next().map(NumericResponse::getOutput);
 	}
@@ -173,14 +244,14 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<SRemCommand, Long>> sRem(Publisher<SRemCommand> commands);
 
 	/**
-	 * Remove and return a random member from set at {@code key}.
+	 * Remove and return a random member from set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<ByteBuffer> sPop(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return sPop(Mono.just(new KeyCommand(key))).next().map(ByteBufferResponse::getOutput);
 	}
@@ -194,6 +265,8 @@ public interface ReactiveSetCommands {
 	Flux<ByteBufferResponse<KeyCommand>> sPop(Publisher<KeyCommand> commands);
 
 	/**
+	 * {@code SMOVE} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SMoveCommand extends KeyCommand {
@@ -208,29 +281,63 @@ public interface ReactiveSetCommands {
 			this.value = value;
 		}
 
+		/**
+		 * Creates a new {@link SMoveCommand} given a {@literal value}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SMoveCommand} for a {@literal value}.
+		 */
 		public static SMoveCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new SMoveCommand(null, null, value);
 		}
 
+		/**
+		 * Applies the {@literal source} key. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param source must not be {@literal null}.
+		 * @return a new {@link SMoveCommand} with {@literal source} applied.
+		 */
 		public SMoveCommand from(ByteBuffer source) {
+
+			Assert.notNull(source, "Source key must not be null!");
+
 			return new SMoveCommand(source, destination, value);
 		}
 
+		/**
+		 * Applies the {@literal destination} key. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param destination must not be {@literal null}.
+		 * @return a new {@link SMoveCommand} with {@literal destination} applied.
+		 */
 		public SMoveCommand to(ByteBuffer destination) {
+
+			Assert.notNull(destination, "Destination key must not be null!");
+
 			return new SMoveCommand(getKey(), destination, value);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getDestination() {
 			return destination;
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 	}
 
 	/**
-	 * Move {@code value} from {@code sourceKey} to {@code destinationKey}
+	 * Move {@literal value} from {@literal sourceKey} to {@literal destinationKey}
 	 *
 	 * @param sourceKey must not be {@literal null}.
 	 * @param destinationKey must not be {@literal null}.
@@ -239,9 +346,9 @@ public interface ReactiveSetCommands {
 	 */
 	default Mono<Boolean> sMove(ByteBuffer sourceKey, ByteBuffer destinationKey, ByteBuffer value) {
 
-		Assert.notNull(sourceKey, "sourceKey must not be null");
-		Assert.notNull(destinationKey, "destinationKey must not be null");
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(sourceKey, "SourceKey must not be null!");
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return sMove(Mono.just(SMoveCommand.value(value).from(sourceKey).to(destinationKey))).next()
 				.map(BooleanResponse::getOutput);
@@ -256,14 +363,14 @@ public interface ReactiveSetCommands {
 	Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands);
 
 	/**
-	 * Get size of set at {@code key}.
+	 * Get size of set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> sCard(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return sCard(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -277,6 +384,8 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<KeyCommand, Long>> sCard(Publisher<KeyCommand> commands);
 
 	/**
+	 * {@code SISMEMBER} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SIsMemberCommand extends KeyCommand {
@@ -286,24 +395,46 @@ public interface ReactiveSetCommands {
 		private SIsMemberCommand(ByteBuffer key, ByteBuffer value) {
 
 			super(key);
+
 			this.value = value;
 		}
 
+		/**
+		 * Creates a new {@link SIsMemberCommand} given a {@literal value}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SIsMemberCommand} for a {@literal value}.
+		 */
 		public static SIsMemberCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new SIsMemberCommand(null, value);
 		}
 
+		/**
+		 * Applies the {@literal set} key. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param set must not be {@literal null}.
+		 * @return a new {@link SIsMemberCommand} with {@literal set} applied.
+		 */
 		public SIsMemberCommand of(ByteBuffer set) {
+
+			Assert.notNull(set, "Set key must not be null!");
+
 			return new SIsMemberCommand(set, value);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 	}
 
 	/**
-	 * Check if set at {@code key} contains {@code value}.
+	 * Check if set at {@literal key} contains {@literal value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -311,8 +442,8 @@ public interface ReactiveSetCommands {
 	 */
 	default Mono<Boolean> sIsMember(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return sIsMember(Mono.just(SIsMemberCommand.value(value).of(key))).next().map(BooleanResponse::getOutput);
 	}
@@ -326,6 +457,8 @@ public interface ReactiveSetCommands {
 	Flux<BooleanResponse<SIsMemberCommand>> sIsMember(Publisher<SIsMemberCommand> commands);
 
 	/**
+	 * {@code SINTER} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SInterCommand implements Command {
@@ -336,29 +469,44 @@ public interface ReactiveSetCommands {
 			this.keys = keys;
 		}
 
-		public static SInterCommand keys(List<ByteBuffer> keys) {
-			return new SInterCommand(keys);
+		/**
+		 * Creates a new {@link SInterCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SInterCommand} for a {@link Collection} of values.
+		 */
+		public static SInterCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new SInterCommand(new ArrayList<>(keys));
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 	}
 
 	/**
-	 * Returns the members intersecting all given sets at {@code keys}.
+	 * Returns the members intersecting all given sets at {@literal keys}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<List<ByteBuffer>> sInter(List<ByteBuffer> keys) {
+	default Mono<List<ByteBuffer>> sInter(Collection<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return sInter(Mono.just(SInterCommand.keys(keys))).next().map(MultiValueResponse::getOutput);
 	}
@@ -372,6 +520,8 @@ public interface ReactiveSetCommands {
 	Flux<MultiValueResponse<SInterCommand, ByteBuffer>> sInter(Publisher<SInterCommand> commands);
 
 	/**
+	 * {@code SINTERSTORE} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SInterStoreCommand extends KeyCommand {
@@ -381,40 +531,63 @@ public interface ReactiveSetCommands {
 		private SInterStoreCommand(ByteBuffer key, List<ByteBuffer> keys) {
 
 			super(key);
+
 			this.keys = keys;
 		}
 
-		public static SInterStoreCommand keys(List<ByteBuffer> keys) {
-			return new SInterStoreCommand(null, keys);
+		/**
+		 * Creates a new {@link SInterStoreCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SInterStoreCommand} for a {@link Collection} of values.
+		 */
+		public static SInterStoreCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new SInterStoreCommand(null, new ArrayList<>(keys));
 		}
 
+		/**
+		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SInterStoreCommand} with {@literal key} applied.
+		 */
 		public SInterStoreCommand storeAt(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SInterStoreCommand(key, keys);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 	}
 
 	/**
-	 * Intersect all given sets at {@code keys} and store result in {@code destinationKey}.
+	 * Intersect all given sets at {@literal keys} and store result in {@literal destinationKey}.
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
-	 * @return size of set stored a {@code destinationKey}.
+	 * @return size of set stored a {@literal destinationKey}.
 	 */
-	default Mono<Long> sInterStore(ByteBuffer destinationKey, List<ByteBuffer> keys) {
+	default Mono<Long> sInterStore(ByteBuffer destinationKey, Collection<ByteBuffer> keys) {
 
-		Assert.notNull(destinationKey, "destinationKey must not be null");
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return sInterStore(Mono.just(SInterStoreCommand.keys(keys).storeAt(destinationKey))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Intersect all given sets at {@code keys} and store result in {@code destinationKey}.
+	 * Intersect all given sets at {@literal keys} and store result in {@literal destinationKey}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
@@ -422,6 +595,8 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands);
 
 	/**
+	 * {@code SUNION} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SUnionCommand implements Command {
@@ -432,29 +607,44 @@ public interface ReactiveSetCommands {
 			this.keys = keys;
 		}
 
-		public static SUnionCommand keys(List<ByteBuffer> keys) {
-			return new SUnionCommand(keys);
+		/**
+		 * Creates a new {@link SUnionCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SUnionCommand} for a {@link Collection} of values.
+		 */
+		public static SUnionCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new SUnionCommand(new ArrayList<>(keys));
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 	}
 
 	/**
-	 * Returns the members intersecting all given sets at {@code keys}.
+	 * Returns the members intersecting all given sets at {@literal keys}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<List<ByteBuffer>> sUnion(List<ByteBuffer> keys) {
+	default Mono<List<ByteBuffer>> sUnion(Collection<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return sUnion(Mono.just(SUnionCommand.keys(keys))).next().map(MultiValueResponse::getOutput);
 	}
@@ -477,40 +667,63 @@ public interface ReactiveSetCommands {
 		private SUnionStoreCommand(ByteBuffer key, List<ByteBuffer> keys) {
 
 			super(key);
+
 			this.keys = keys;
 		}
 
-		public static SUnionStoreCommand keys(List<ByteBuffer> keys) {
-			return new SUnionStoreCommand(null, keys);
+		/**
+		 * Creates a new {@link SUnionStoreCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SUnionStoreCommand} for a {@link Collection} of values.
+		 */
+		public static SUnionStoreCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new SUnionStoreCommand(null, new ArrayList<>(keys));
 		}
 
+		/**
+		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SUnionStoreCommand} with {@literal key} applied.
+		 */
 		public SUnionStoreCommand storeAt(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SUnionStoreCommand(key, keys);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 	}
 
 	/**
-	 * Union all given sets at {@code keys} and store result in {@code destinationKey}.
+	 * Union all given sets at {@literal keys} and store result in {@literal destinationKey}.
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
-	 * @return size of set stored a {@code destinationKey}.
+	 * @return size of set stored a {@literal destinationKey}.
 	 */
-	default Mono<Long> sUnionStore(ByteBuffer destinationKey, List<ByteBuffer> keys) {
+	default Mono<Long> sUnionStore(ByteBuffer destinationKey, Collection<ByteBuffer> keys) {
 
-		Assert.notNull(destinationKey, "destinationKey must not be null");
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return sUnionStore(Mono.just(SUnionStoreCommand.keys(keys).storeAt(destinationKey))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Union all given sets at {@code keys} and store result in {@code destinationKey}.
+	 * Union all given sets at {@literal keys} and store result in {@literal destinationKey}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
@@ -518,6 +731,8 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands);
 
 	/**
+	 * {@code SDIFF} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SDiffCommand implements Command {
@@ -528,29 +743,44 @@ public interface ReactiveSetCommands {
 			this.keys = keys;
 		}
 
-		public static SDiffCommand keys(List<ByteBuffer> keys) {
-			return new SDiffCommand(keys);
+		/**
+		 * Creates a new {@link SDiffCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SDiffCommand} for a {@link Collection} of values.
+		 */
+		public static SDiffCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new SDiffCommand(new ArrayList<>(keys));
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 	}
 
 	/**
-	 * Returns the diff of the members of all given sets at {@code keys}.
+	 * Returns the diff of the members of all given sets at {@literal keys}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<List<ByteBuffer>> sDiff(List<ByteBuffer> keys) {
+	default Mono<List<ByteBuffer>> sDiff(Collection<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return sDiff(Mono.just(SDiffCommand.keys(keys))).next().map(MultiValueResponse::getOutput);
 	}
@@ -564,6 +794,8 @@ public interface ReactiveSetCommands {
 	Flux<MultiValueResponse<SDiffCommand, ByteBuffer>> sDiff(Publisher<SDiffCommand> commands);
 
 	/**
+	 * {@code SDIFFSTORE} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SDiffStoreCommand extends KeyCommand {
@@ -573,40 +805,63 @@ public interface ReactiveSetCommands {
 		private SDiffStoreCommand(ByteBuffer key, List<ByteBuffer> keys) {
 
 			super(key);
+
 			this.keys = keys;
 		}
 
-		public static SDiffStoreCommand keys(List<ByteBuffer> keys) {
-			return new SDiffStoreCommand(null, keys);
+		/**
+		 * Creates a new {@link SDiffStoreCommand} given a {@link Collection} of keys.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link SDiffStoreCommand} for a {@link Collection} of values.
+		 */
+		public static SDiffStoreCommand keys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new SDiffStoreCommand(null, new ArrayList<>(keys));
 		}
 
+		/**
+		 * Applies the {@literal key} at which the result is stored. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SDiffStoreCommand} with {@literal key} applied.
+		 */
 		public SDiffStoreCommand storeAt(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SDiffStoreCommand(key, keys);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 	}
 
 	/**
-	 * Diff all given sets at {@code keys} and store result in {@code destinationKey}.
+	 * Diff all given sets at {@literal keys} and store result in {@literal destinationKey}.
 	 *
 	 * @param destinationKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
-	 * @return size of set stored a {@code destinationKey}.
+	 * @return size of set stored a {@literal destinationKey}.
 	 */
-	default Mono<Long> sDiffStore(ByteBuffer destinationKey, List<ByteBuffer> keys) {
+	default Mono<Long> sDiffStore(ByteBuffer destinationKey, Collection<ByteBuffer> keys) {
 
-		Assert.notNull(destinationKey, "destinationKey must not be null");
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return sDiffStore(Mono.just(SDiffStoreCommand.keys(keys).storeAt(destinationKey))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Diff all given sets at {@code keys} and store result in {@code destinationKey}.
+	 * Diff all given sets at {@literal keys} and store result in {@literal destinationKey}.
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
@@ -614,14 +869,14 @@ public interface ReactiveSetCommands {
 	Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands);
 
 	/**
-	 * Get all elements of set at {@code key}.
+	 * Get all elements of set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<List<ByteBuffer>> sMembers(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return sMembers(Mono.just(new KeyCommand(key))).next().map(MultiValueResponse::getOutput);
 	}
@@ -635,6 +890,8 @@ public interface ReactiveSetCommands {
 	Flux<MultiValueResponse<KeyCommand, ByteBuffer>> sMembers(Publisher<KeyCommand> commands);
 
 	/**
+	 * {@code SRANDMEMBER} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SRandMembersCommand extends KeyCommand {
@@ -647,25 +904,48 @@ public interface ReactiveSetCommands {
 			this.count = count;
 		}
 
-		public static SRandMembersCommand valueCount(Long nrValuesToRetrieve) {
+		/**
+		 * Creates a new {@link SRandMembersCommand} given the number of values to retrieve.
+		 *
+		 * @param nrValuesToRetrieve
+		 * @return a new {@link SRandMembersCommand} for a number of values to retrieve.
+		 */
+		public static SRandMembersCommand valueCount(long nrValuesToRetrieve) {
 			return new SRandMembersCommand(null, nrValuesToRetrieve);
 		}
 
+		/**
+		 * Creates a new {@link SRandMembersCommand} to retrieve one random member.
+		 *
+		 * @return a new {@link SRandMembersCommand} to retrieve one random member.
+		 */
 		public static SRandMembersCommand singleValue() {
 			return new SRandMembersCommand(null, null);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SRandMembersCommand} with {@literal key} applied.
+		 */
 		public SRandMembersCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SRandMembersCommand(key, count);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Long> getCount() {
 			return Optional.ofNullable(count);
 		}
 	}
 
 	/**
-	 * Get random element from set at {@code key}.
+	 * Get random element from set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
@@ -675,7 +955,7 @@ public interface ReactiveSetCommands {
 	}
 
 	/**
-	 * Get {@code count} random elements from set at {@code key}.
+	 * Get {@literal count} random elements from set at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count must not be {@literal null}.
@@ -683,8 +963,8 @@ public interface ReactiveSetCommands {
 	 */
 	default Mono<List<ByteBuffer>> sRandMember(ByteBuffer key, Long count) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(count, "count must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(count, "Count must not be null!");
 
 		return sRandMember(Mono.just(SRandMembersCommand.valueCount(count).from(key))).next()
 				.map(MultiValueResponse::getOutput);

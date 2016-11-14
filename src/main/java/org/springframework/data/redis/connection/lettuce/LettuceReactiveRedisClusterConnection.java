@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.nio.ByteBuffer;
@@ -42,46 +41,73 @@ public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisC
 		super(client);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#keyCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterKeyCommands keyCommands() {
 		return new LettuceReactiveClusterKeyCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#listCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterListCommands listCommands() {
 		return new LettuceReactiveClusterListCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#setCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterSetCommands setCommands() {
 		return new LettuceReactiveClusterSetCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#zSetCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterZSetCommands zSetCommands() {
 		return new LettuceReactiveClusterZSetCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#hyperLogLogCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterHyperLogLogCommands hyperLogLogCommands() {
 		return new LettuceReactiveClusterHyperLogLogCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#stringCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterStringCommands stringCommands() {
 		return new LettuceReactiveClusterStringCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#geoCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterGeoCommands geoCommands() {
 		return new LettuceReactiveClusterGeoCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#hashCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterHashCommands hashCommands() {
 		return new LettuceReactiveClusterHashCommands(this);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#numberCommands()
+	 */
 	@Override
 	public LettuceReactiveClusterNumberCommands numberCommands() {
 		return new LettuceReactiveClusterNumberCommands(this);
@@ -103,6 +129,10 @@ public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisC
 		return Flux.defer(() -> callback.doWithCommands(getCommands(node))).onErrorResumeWith(translateExeception());
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getConnection()
+	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	protected StatefulRedisClusterConnection<ByteBuffer, ByteBuffer> getConnection() {
 
@@ -112,10 +142,14 @@ public class LettuceReactiveRedisClusterConnection extends LettuceReactiveRedisC
 		return (StatefulRedisClusterConnection) super.getConnection();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveRedisConnection#getCommands()
+	 */
 	protected RedisClusterReactiveCommands<ByteBuffer, ByteBuffer> getCommands() {
 		return getConnection().reactive();
 	}
 
+	@SuppressWarnings("unchecked")
 	protected RedisReactiveCommands<ByteBuffer, ByteBuffer> getCommands(RedisNode node) {
 
 		if (!(getConnection() instanceof StatefulRedisClusterConnection)) {

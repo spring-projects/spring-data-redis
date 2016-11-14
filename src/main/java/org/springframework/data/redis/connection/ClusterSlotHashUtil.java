@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -69,7 +70,10 @@ public final class ClusterSlotHashUtil {
 			return true;
 		}
 
-		return isSameSlotForAllKeys((byte[][]) keys.stream().map(ByteBuffer::array).toArray(size -> new byte[size][]));
+		return isSameSlotForAllKeys((byte[][]) keys.stream() //
+				.map(ByteBuffer::duplicate) //
+				.map(ByteUtils::getBytes) //
+				.toArray(byte[][]::new));
 	}
 
 	/**
@@ -164,5 +168,4 @@ public final class ClusterSlotHashUtil {
 		}
 		return crc & 0xFFFF;
 	}
-
 }

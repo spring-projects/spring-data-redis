@@ -168,7 +168,7 @@ public class ClusterTopology {
 	 */
 	public RedisClusterNode lookup(String nodeId) {
 
-		Assert.notNull(nodeId, "NodeId must not be null");
+		Assert.notNull(nodeId, "NodeId must not be null!");
 
 		for (RedisClusterNode node : nodes) {
 			if (nodeId.equals(node.getId())) {
@@ -189,7 +189,7 @@ public class ClusterTopology {
 	 */
 	public RedisClusterNode lookup(RedisClusterNode node) {
 
-		Assert.notNull(node, "RedisClusterNode must not be null");
+		Assert.notNull(node, "RedisClusterNode must not be null!");
 
 		if(nodes.contains(node) && StringUtils.hasText(node.getHost()) && StringUtils.hasText(node.getId())){
 			return node;

@@ -25,6 +25,7 @@ import static org.junit.Assert.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -232,13 +234,17 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 	 * @see DATAREDIS-525
 	 */
 	@Test
-	public void hGetAlllShouldReturnEntriesCorrectly() {
+	public void hGetAllShouldReturnEntriesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		System.out.println(connection.hashCommands().hGetAll(KEY_1_BBUFFER).block());
-	}
+		Map<ByteBuffer, ByteBuffer> expected = new HashMap<>();
+		expected.put(FIELD_1_BBUFFER, VALUE_1_BBUFFER);
+		expected.put(FIELD_2_BBUFFER, VALUE_2_BBUFFER);
+		expected.put(FIELD_3_BBUFFER, VALUE_3_BBUFFER);
 
+		assertThat(connection.hashCommands().hGetAll(KEY_1_BBUFFER).block(), is(equalTo(expected)));
+	}
 }
