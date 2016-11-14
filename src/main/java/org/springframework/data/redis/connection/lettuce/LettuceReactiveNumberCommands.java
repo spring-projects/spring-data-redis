@@ -36,12 +36,13 @@ public class LettuceReactiveNumberCommands implements ReactiveNumberCommands {
 
 	/**
 	 * Create new {@link LettuceReactiveStringCommands}.
-	 * 
+	 *
 	 * @param connection must not be {@literal null}.
 	 */
 	public LettuceReactiveNumberCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 

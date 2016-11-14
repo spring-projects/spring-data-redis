@@ -58,7 +58,7 @@ public class RedisClusterNode extends RedisNode {
 	public RedisClusterNode(String id) {
 
 		this(new SlotRange(Collections.<Integer> emptySet()));
-		Assert.notNull(id, "Id must not be null");
+		Assert.notNull(id, "Id must not be null!");
 		this.id = id;
 	}
 

@@ -54,6 +54,7 @@ import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -739,7 +740,7 @@ abstract public class LettuceConverters extends Converters {
 		ByteBuffer buffer = ByteBuffer.allocate(prefix.length + value.length);
 		buffer.put(prefix);
 		buffer.put(value);
-		return toString(buffer.array());
+		return toString(ByteUtils.getBytes(buffer));
 	}
 
 	public static List<RedisClusterNode> partitionsToClusterNodes(Partitions partitions) {

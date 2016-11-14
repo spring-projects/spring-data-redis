@@ -116,7 +116,7 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_1);
 
- 		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block(), is(false));
+		assertThat(connection.setCommands().sMove(KEY_1_BBUFFER, KEY_2_BBUFFER, VALUE_3_BBUFFER).block(), is(false));
 		assertThat(nativeCommands.sismember(KEY_2, VALUE_3), is(false));
 	}
 

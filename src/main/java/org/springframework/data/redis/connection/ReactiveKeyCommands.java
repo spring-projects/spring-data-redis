@@ -30,13 +30,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis Key commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveKeyCommands {
 
 	/**
-	 * Determine if given {@code key} exists.
+	 * Determine if given {@literal key} exists.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
@@ -49,7 +52,7 @@ public interface ReactiveKeyCommands {
 	}
 
 	/**
-	 * Determine if given {@code key} exists.
+	 * Determine if given {@literal key} exists.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
@@ -57,20 +60,20 @@ public interface ReactiveKeyCommands {
 	Flux<BooleanResponse<KeyCommand>> exists(Publisher<KeyCommand> keys);
 
 	/**
-	 * Determine the type stored at {@code key}.
+	 * Determine the type stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<DataType> type(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return type(Mono.just(new KeyCommand(key))).next().map(CommandResponse::getOutput);
 	}
 
 	/**
-	 * Determine the type stored at {@code key}.
+	 * Determine the type stored at {@literal key}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
@@ -78,14 +81,14 @@ public interface ReactiveKeyCommands {
 	Flux<CommandResponse<KeyCommand, DataType>> type(Publisher<KeyCommand> keys);
 
 	/**
-	 * Find all keys matching the given {@code pattern}.
+	 * Find all keys matching the given {@literal pattern}.
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<List<ByteBuffer>> keys(ByteBuffer pattern) {
 
-		Assert.notNull(pattern, "pattern must not be null");
+		Assert.notNull(pattern, "Pattern must not be null!");
 
 		return keys(Mono.just(pattern)).next().map(MultiValueResponse::getOutput);
 	}
@@ -98,7 +101,7 @@ public interface ReactiveKeyCommands {
 	Mono<ByteBuffer> randomKey();
 
 	/**
-	 * Find all keys matching the given {@code pattern}.
+	 * Find all keys matching the given {@literal pattern}.
 	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return
@@ -106,6 +109,8 @@ public interface ReactiveKeyCommands {
 	Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns);
 
 	/**
+	 * {@code RENAME} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class RenameCommand extends KeyCommand {
@@ -115,24 +120,46 @@ public interface ReactiveKeyCommands {
 		private RenameCommand(ByteBuffer key, ByteBuffer newName) {
 
 			super(key);
+
 			this.newName = newName;
 		}
 
-		public static ReactiveKeyCommands.RenameCommand key(ByteBuffer key) {
+		/**
+		 * Creates a new {@link RenameCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link RenameCommand} for {@link ByteBuffer key}.
+		 */
+		public static RenameCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new RenameCommand(key, null);
 		}
 
-		public ReactiveKeyCommands.RenameCommand to(ByteBuffer newName) {
+		/**
+		 * Applies the {@literal newName}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param newName must not be {@literal null}.
+		 * @return a new {@link RenameCommand} with {@literal newName} applied.
+		 */
+		public RenameCommand to(ByteBuffer newName) {
+
+			Assert.notNull(newName, "New name must not be null!");
+
 			return new RenameCommand(getKey(), newName);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getNewName() {
 			return newName;
 		}
 	}
 
 	/**
-	 * Rename key {@code oleName} to {@code newName}.
+	 * Rename key {@literal oleName} to {@literal newName}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
@@ -140,15 +167,15 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> rename(ByteBuffer key, ByteBuffer newName) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return rename(Mono.just(RenameCommand.key(key).to(newName))).next().map(BooleanResponse::getOutput);
 	}
 
-	Flux<BooleanResponse<ReactiveKeyCommands.RenameCommand>> rename(Publisher<ReactiveKeyCommands.RenameCommand> cmd);
+	Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> cmd);
 
 	/**
-	 * Rename key {@code oleName} to {@code newName} only if {@code newName} does not exist.
+	 * Rename key {@literal oleName} to {@literal newName} only if {@literal newName} does not exist.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
@@ -156,20 +183,18 @@ public interface ReactiveKeyCommands {
 	 */
 	default Mono<Boolean> renameNX(ByteBuffer key, ByteBuffer newName) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return renameNX(Mono.just(RenameCommand.key(key).to(newName))).next().map(BooleanResponse::getOutput);
 	}
 
 	/**
-	 * Rename key {@code oleName} to {@code newName} only if {@code newName} does not exist.
+	 * Rename key {@literal oleName} to {@literal newName} only if {@literal newName} does not exist.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param newName must not be {@literal null}.
+	 * @param command must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveKeyCommands.RenameCommand>> renameNX(
-			Publisher<ReactiveKeyCommands.RenameCommand> command);
+	Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> command);
 
 	/**
 	 * Delete {@literal key}.
@@ -188,7 +213,7 @@ public interface ReactiveKeyCommands {
 	 * Delete {@literal keys} one by one.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return {@link Flux} of {@link DelResponse} holding the {@literal key} removed along with the deletion result.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> keys);
 
@@ -209,7 +234,7 @@ public interface ReactiveKeyCommands {
 	 * Delete multiple {@literal keys} in batches.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return {@link Flux} of {@link MDelResponse} holding the {@literal keys} removed along with the deletion result.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal keys} removed along with the deletion result.
 	 */
 	Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keys);
 }

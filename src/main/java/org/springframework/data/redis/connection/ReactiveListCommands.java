@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +38,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis List commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveListCommands {
@@ -50,6 +54,8 @@ public interface ReactiveListCommands {
 	}
 
 	/**
+	 * {@code LPUSH}/{@literal RPUSH} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PushCommand extends KeyCommand {
@@ -61,50 +67,102 @@ public interface ReactiveListCommands {
 		private PushCommand(ByteBuffer key, List<ByteBuffer> values, Direction direction, boolean upsert) {
 
 			super(key);
+
 			this.values = values;
 			this.upsert = upsert;
 			this.direction = direction;
 		}
 
+		/**
+		 * Creates a new {@link PushCommand} for right push ({@literal RPUSH}).
+		 *
+		 * @return a new {@link PushCommand} for right push ({@literal RPUSH}).
+		 */
 		public static PushCommand right() {
 			return new PushCommand(null, null, Direction.RIGHT, true);
 		}
 
+		/**
+		 * Creates a new {@link PushCommand} for left push ({@literal LPUSH}).
+		 *
+		 * @return a new {@link PushCommand} for left push ({@literal LPUSH}).
+		 */
 		public static PushCommand left() {
 			return new PushCommand(null, null, Direction.LEFT, true);
 		}
 
+		/**
+		 * Applies the {@literal value}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link PushCommand} with {@literal value} applied.
+		 */
 		public PushCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new PushCommand(null, Collections.singletonList(value), direction, upsert);
 		}
 
+		/**
+		 * Applies a {@link List} of {@literal values}.
+		 *
+		 * @param values must not be {@literal null}.
+		 * @return a new {@link PushCommand} with {@literal values} applied.
+		 */
 		public PushCommand values(List<ByteBuffer> values) {
-			return new PushCommand(null, values, direction, upsert);
+
+			Assert.notNull(values, "Values must not be null!");
+
+			return new PushCommand(null, new ArrayList<>(values), direction, upsert);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link PushCommand} with {@literal key} applied.
+		 */
 		public PushCommand to(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new PushCommand(key, values, direction, upsert);
 		}
 
+		/**
+		 * Disable upsert. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @return a new {@link PushCommand} with upsert disabled.
+		 */
 		public PushCommand ifExists() {
 			return new PushCommand(getKey(), values, direction, false);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getValues() {
 			return values;
 		}
 
+		/**
+		 * @return
+		 */
 		public boolean getUpsert() {
 			return upsert;
 		}
 
+		/**
+		 * @return
+		 */
 		public Direction getDirection() {
 			return direction;
 		}
 	}
 
 	/**
-	 * Append {@code values} to {@code key}.
+	 * Append {@literal values} to {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
@@ -112,29 +170,29 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<Long> rPush(ByteBuffer key, List<ByteBuffer> values) {
 
-		Assert.notNull(key, "command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(values, "Values must not be null!");
 
 		return push(Mono.just(PushCommand.right().values(values).to(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Append {@code values} to {@code key} only if {@code key} already exists.
+	 * Append {@literal values} to {@literal key} only if {@literal key} already exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param values must not be {@literal null}.
+	 * @param value must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> rPushX(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(key, "command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		return push(Mono.just(PushCommand.right().value(value).to(key).ifExists())).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Prepend {@code values} to {@code key}.
+	 * Prepend {@literal values} to {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
@@ -142,22 +200,22 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<Long> lPush(ByteBuffer key, List<ByteBuffer> values) {
 
-		Assert.notNull(key, "command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(values, "Values must not be null!");
 
 		return push(Mono.just(PushCommand.left().values(values).to(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Prepend {@code value} to {@code key} if {@code key} already exists.
+	 * Prepend {@literal value} to {@literal key} if {@literal key} already exists.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param values must not be {@literal null}.
+	 * @param value must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> lPushX(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(key, "command must not be null!");
+		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		return push(Mono.just(PushCommand.left().value(value).to(key).ifExists())).next().map(NumericResponse::getOutput);
@@ -172,14 +230,14 @@ public interface ReactiveListCommands {
 	Flux<NumericResponse<PushCommand, Long>> push(Publisher<PushCommand> commands);
 
 	/**
-	 * Get the size of list stored at {@code key}.
+	 * Get the size of list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> lLen(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return lLen(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
@@ -193,7 +251,7 @@ public interface ReactiveListCommands {
 	Flux<NumericResponse<KeyCommand, Long>> lLen(Publisher<KeyCommand> commands);
 
 	/**
-	 * Get elements between {@code begin} and {@code end} from list at {@code key}.
+	 * Get elements between {@literal begin} and {@literal end} from list at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
@@ -202,7 +260,7 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<List<ByteBuffer>> lRange(ByteBuffer key, long start, long end) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return lRange(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))).next()
 				.map(MultiValueResponse::getOutput);
@@ -217,7 +275,7 @@ public interface ReactiveListCommands {
 	Flux<MultiValueResponse<RangeCommand, ByteBuffer>> lRange(Publisher<RangeCommand> commands);
 
 	/**
-	 * Trim list at {@code key} to elements between {@code begin} and {@code end}.
+	 * Trim list at {@literal key} to elements between {@literal begin} and {@literal end}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param start
@@ -226,9 +284,11 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<Boolean> lTrim(ByteBuffer key, long start, long end) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
-		return lTrim(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))).next().map(BooleanResponse::getOutput);
+		return lTrim(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))) //
+				.next() //
+				.map(BooleanResponse::getOutput);
 	}
 
 	/**
@@ -240,6 +300,8 @@ public interface ReactiveListCommands {
 	Flux<BooleanResponse<RangeCommand>> lTrim(Publisher<RangeCommand> commands);
 
 	/**
+	 * {@code LINDEX} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class LIndexCommand extends KeyCommand {
@@ -252,21 +314,39 @@ public interface ReactiveListCommands {
 			this.index = index;
 		}
 
-		public static LIndexCommand elementAt(Long index) {
+		/**
+		 * Creates a new {@link LIndexCommand} given an {@literal index}.
+		 *
+		 * @param index
+		 * @return a new {@link LIndexCommand} for {@literal index}.
+		 */
+		public static LIndexCommand elementAt(long index) {
 			return new LIndexCommand(null, index);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link LIndexCommand} with {@literal key} applied.
+		 */
 		public LIndexCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new LIndexCommand(key, index);
 		}
 
+		/**
+		 * @return
+		 */
 		public Long getIndex() {
 			return index;
 		}
 	}
 
 	/**
-	 * Get element at {@code index} form list at {@code key}.
+	 * Get element at {@literal index} form list at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param index
@@ -274,7 +354,7 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<ByteBuffer> lIndex(ByteBuffer key, long index) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return lIndex(Mono.just(LIndexCommand.elementAt(index).from(key))).next().map(ByteBufferResponse::getOutput);
 	}
@@ -288,6 +368,8 @@ public interface ReactiveListCommands {
 	Flux<ByteBufferResponse<LIndexCommand>> lIndex(Publisher<LIndexCommand> commands);
 
 	/**
+	 * {@code LINSERT} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class LInsertCommand extends KeyCommand {
@@ -296,55 +378,104 @@ public interface ReactiveListCommands {
 		private final ByteBuffer pivot;
 		private final ByteBuffer value;
 
-		public LInsertCommand(ByteBuffer key, Position position, ByteBuffer pivot, ByteBuffer value) {
+		private LInsertCommand(ByteBuffer key, Position position, ByteBuffer pivot, ByteBuffer value) {
 
 			super(key);
+
 			this.position = position;
 			this.pivot = pivot;
 			this.value = value;
 		}
 
+		/**
+		 * Creates a new {@link LInsertCommand} given a {@link ByteBuffer value}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link LInsertCommand} for {@link ByteBuffer value}.
+		 */
 		public static LInsertCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new LInsertCommand(null, null, null, value);
 		}
 
+		/**
+		 * Applies the before {@literal pivot}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param pivot must not be {@literal null}.
+		 * @return a new {@link LInsertCommand} with {@literal pivot} applied.
+		 */
 		public LInsertCommand before(ByteBuffer pivot) {
+
+			Assert.notNull(pivot, "Before pivot must not be null!");
+
 			return new LInsertCommand(getKey(), Position.BEFORE, pivot, value);
 		}
 
+		/**
+		 * Applies the after {@literal pivot}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param pivot must not be {@literal null}.
+		 * @return a new {@link LInsertCommand} with {@literal pivot} applied.
+		 */
 		public LInsertCommand after(ByteBuffer pivot) {
+
+			Assert.notNull(pivot, "After pivot must not be null!");
+
 			return new LInsertCommand(getKey(), Position.AFTER, pivot, value);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link LInsertCommand} with {@literal key} applied.
+		 */
 		public LInsertCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new LInsertCommand(key, position, pivot, value);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 
+		/**
+		 * @return
+		 */
 		public Position getPosition() {
 			return position;
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getPivot() {
 			return pivot;
 		}
 	}
 
 	/**
-	 * Insert {@code value} {@link Position#BEFORE} or {@link Position#AFTER} existing {@code pivot} for {@code key}.
+	 * Insert {@literal value} {@link Position#BEFORE} or {@link Position#AFTER} existing {@literal pivot} for
+	 * {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param values must not be {@literal null}.
+	 * @param position must not be {@literal null}.
+	 * @param pivot must not be {@literal null}.
+	 * @param value must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> lInsert(ByteBuffer key, Position position, ByteBuffer pivot, ByteBuffer value) {
 
-		Assert.notNull(key, "key must not be null!");
-		Assert.notNull(position, "position must not be null!");
-		Assert.notNull(pivot, "pivot must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(position, "Position must not be null!");
+		Assert.notNull(pivot, "Pivot must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
 		LInsertCommand command = LInsertCommand.value(value);
@@ -363,6 +494,8 @@ public interface ReactiveListCommands {
 	Flux<NumericResponse<LInsertCommand, Long>> lInsert(Publisher<LInsertCommand> commands);
 
 	/**
+	 * {@code LSET} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class LSetCommand extends KeyCommand {
@@ -377,29 +510,59 @@ public interface ReactiveListCommands {
 			this.value = value;
 		}
 
-		public static LSetCommand elementAt(Long index) {
+		/**
+		 * Creates a new {@link LSetCommand} given an {@literal index}.
+		 *
+		 * @param index
+		 * @return a new {@link LSetCommand} for {@literal index}.
+		 */
+		public static LSetCommand elementAt(long index) {
 			return new LSetCommand(null, index, null);
 		}
 
+		/**
+		 * Applies the {@literal value}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link LSetCommand} with {@literal value} applied.
+		 */
 		public LSetCommand to(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new LSetCommand(getKey(), index, value);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link LSetCommand} with {@literal value} applied.
+		 */
 		public LSetCommand forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new LSetCommand(key, index, value);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 
+		/**
+		 * @return
+		 */
 		public Long getIndex() {
 			return index;
 		}
 	}
 
 	/**
-	 * Set the {@code value} list element at {@code index}.
+	 * Set the {@literal value} list element at {@literal index}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param index
@@ -408,8 +571,8 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<Boolean> lSet(ByteBuffer key, long index, ByteBuffer value) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return lSet(Mono.just(LSetCommand.elementAt(index).to(value).forKey(key))).next().map(BooleanResponse::getOutput);
 	}
@@ -423,6 +586,8 @@ public interface ReactiveListCommands {
 	Flux<BooleanResponse<LSetCommand>> lSet(Publisher<LSetCommand> commands);
 
 	/**
+	 * {@code LREM} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class LRemCommand extends KeyCommand {
@@ -431,44 +596,85 @@ public interface ReactiveListCommands {
 		private final ByteBuffer value;
 
 		private LRemCommand(ByteBuffer key, Long count, ByteBuffer value) {
+
 			super(key);
+
 			this.count = count;
 			this.value = value;
 		}
 
+		/**
+		 * Creates a new {@link LRemCommand} to delete all values.
+		 *
+		 * @return a new {@link LRemCommand} for {@link ByteBuffer value}.
+		 */
 		public static LRemCommand all() {
 			return new LRemCommand(null, 0L, null);
 		}
 
-		public static LRemCommand first(Long count) {
+		/**
+		 * Creates a new {@link LRemCommand} to first {@literal count} values.
+		 *
+		 * @return a new {@link LRemCommand} to delete first {@literal count} values.
+		 */
+		public static LRemCommand first(long count) {
 			return new LRemCommand(null, count, null);
 		}
 
-		public static LRemCommand last(Long count) {
+		/**
+		 * Creates a new {@link LRemCommand} to last {@literal count} values.
+		 *
+		 * @return a new {@link LRemCommand} to delete last {@literal count} values.
+		 */
+		public static LRemCommand last(long count) {
 
 			Long value = count < 0L ? count : Math.negateExact(count);
 			return new LRemCommand(null, value, null);
 		}
 
-		public LRemCommand occurancesOf(ByteBuffer value) {
+		/**
+		 * Applies the {@literal value}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link LRemCommand} with {@literal value} applied.
+		 */
+		public LRemCommand occurrencesOf(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new LRemCommand(getKey(), count, value);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link LRemCommand} with {@literal key} applied.
+		 */
 		public LRemCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new LRemCommand(key, count, value);
 		}
 
+		/**
+		 * @return
+		 */
 		public Long getCount() {
 			return count;
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 	}
 
 	/**
-	 * Removes all occurrences of {@code value} from the list stored at {@code key}.
+	 * Removes all occurrences of {@literal value} from the list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -476,14 +682,14 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<Long> lRem(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
-		return lRem(Mono.just(LRemCommand.all().occurancesOf(value).from(key))).next().map(NumericResponse::getOutput);
+		return lRem(Mono.just(LRemCommand.all().occurrencesOf(value).from(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Removes the first {@code count} occurrences of {@code value} from the list stored at {@code key}.
+	 * Removes the first {@literal count} occurrences of {@literal value} from the list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param count must not be {@literal null}.
@@ -492,11 +698,11 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<Long> lRem(ByteBuffer key, Long count, ByteBuffer value) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(count, "count must not be null");
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(count, "Count must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
-		return lRem(Mono.just(LRemCommand.first(count).occurancesOf(value).from(key))).next()
+		return lRem(Mono.just(LRemCommand.first(count).occurrencesOf(value).from(key))).next()
 				.map(NumericResponse::getOutput);
 	}
 
@@ -510,6 +716,8 @@ public interface ReactiveListCommands {
 	Flux<NumericResponse<LRemCommand, Long>> lRem(Publisher<LRemCommand> commands);
 
 	/**
+	 * {@code LPOP}/{@literal RPOP} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PopCommand extends KeyCommand {
@@ -519,49 +727,71 @@ public interface ReactiveListCommands {
 		private PopCommand(ByteBuffer key, Direction direction) {
 
 			super(key);
+
 			this.direction = direction;
 		}
 
+		/**
+		 * Creates a new {@link PopCommand} for right push ({@literal RPOP}).
+		 *
+		 * @return a new {@link PopCommand} for right push ({@literal RPOP}).
+		 */
 		public static PopCommand right() {
 			return new PopCommand(null, Direction.RIGHT);
 		}
 
+		/**
+		 * Creates a new {@link PopCommand} for right push ({@literal LPOP}).
+		 *
+		 * @return a new {@link PopCommand} for right push ({@literal LPOP}).
+		 */
 		public static PopCommand left() {
 			return new PopCommand(null, Direction.LEFT);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link LSetCommand} with {@literal value} applied.
+		 */
 		public PopCommand from(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new PopCommand(key, direction);
 		}
 
+		/**
+		 * @return
+		 */
 		public Direction getDirection() {
 			return direction;
 		}
-
 	}
 
 	/**
-	 * Removes and returns first element in list stored at {@code key}.
+	 * Removes and returns first element in list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<ByteBuffer> lPop(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return pop(Mono.just(PopCommand.left().from(key))).next().map(ByteBufferResponse::getOutput);
 	}
 
 	/**
-	 * Removes and returns last element in list stored at {@code key}.
+	 * Removes and returns last element in list stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<ByteBuffer> rPop(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return pop(Mono.just(PopCommand.right().from(key))).next().map(ByteBufferResponse::getOutput);
 	}
@@ -584,47 +814,89 @@ public interface ReactiveListCommands {
 		private final Direction direction;
 
 		private BPopCommand(List<ByteBuffer> keys, Duration timeout, Direction direction) {
+
 			this.keys = keys;
 			this.timeout = timeout;
 			this.direction = direction;
 		}
 
+		/**
+		 * Creates a new {@link BPopCommand} for right push ({@literal BRPOP}).
+		 *
+		 * @return a new {@link BPopCommand} for right push ({@literal BRPOP}).
+		 */
 		public static BPopCommand right() {
 			return new BPopCommand(null, Duration.ZERO, Direction.RIGHT);
 		}
 
+		/**
+		 * Creates a new {@link BPopCommand} for right push ({@literal BLPOP}).
+		 *
+		 * @return a new {@link BPopCommand} for right push ({@literal BLPOP}).
+		 */
 		public static BPopCommand left() {
 			return new BPopCommand(null, Duration.ZERO, Direction.LEFT);
 		}
 
+		/**
+		 * Applies the {@literal value}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link BPopCommand} with {@literal value} applied.
+		 */
 		public BPopCommand from(List<ByteBuffer> keys) {
-			return new BPopCommand(keys, Duration.ZERO, direction);
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new BPopCommand(new ArrayList<>(keys), Duration.ZERO, direction);
 		}
 
+		/**
+		 * Applies a {@link Duration timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link BPopCommand} with {@link Duration timeout} applied.
+		 */
 		public BPopCommand blockingFor(Duration timeout) {
+
+			Assert.notNull(timeout, "Timeout must not be null!");
+
 			return new BPopCommand(keys, timeout, direction);
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 
+		/**
+		 * @return
+		 */
 		public Duration getTimeout() {
 			return timeout;
 		}
 
+		/**
+		 * @return
+		 */
 		public Direction getDirection() {
 			return direction;
 		}
-
 	}
 
 	/**
+	 * Result for {@link PopCommand}/{@link BPopCommand}.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PopResult {
@@ -649,6 +921,8 @@ public interface ReactiveListCommands {
 	}
 
 	/**
+	 * Result for {@link PopCommand}/{@link BPopCommand}.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PopResponse extends CommandResponse<BPopCommand, PopResult> {
@@ -656,12 +930,11 @@ public interface ReactiveListCommands {
 		public PopResponse(BPopCommand input, PopResult output) {
 			super(input, output);
 		}
-
 	}
 
 	/**
-	 * Removes and returns first element from lists stored at {@code keys}. <br>
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 * Removes and returns first element from lists stored at {@literal keys}. <br>
+	 * <b>Blocks connection</b> until element available or {@literal timeout} reached.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
@@ -669,15 +942,15 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<PopResult> blPop(List<ByteBuffer> keys, Duration timeout) {
 
-		Assert.notNull(keys, "keys must not be null.");
-		Assert.notNull(timeout, "timeout must not be null.");
+		Assert.notNull(keys, "Keys must not be null.");
+		Assert.notNull(timeout, "Timeout must not be null.");
 
 		return bPop(Mono.just(BPopCommand.left().from(keys).blockingFor(timeout))).next().map(PopResponse::getOutput);
 	}
 
 	/**
-	 * Removes and returns last element from lists stored at {@code keys}. <br>
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached.
+	 * Removes and returns last element from lists stored at {@literal keys}. <br>
+	 * <b>Blocks connection</b> until element available or {@literal timeout} reached.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
@@ -685,8 +958,8 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<PopResult> brPop(List<ByteBuffer> keys, Duration timeout) {
 
-		Assert.notNull(keys, "keys must not be null.");
-		Assert.notNull(timeout, "timeout must not be null.");
+		Assert.notNull(keys, "Keys must not be null.");
+		Assert.notNull(timeout, "Timeout must not be null.");
 
 		return bPop(Mono.just(BPopCommand.right().from(keys).blockingFor(timeout))).next().map(PopResponse::getOutput);
 	}
@@ -702,6 +975,8 @@ public interface ReactiveListCommands {
 	Flux<PopResponse> bPop(Publisher<BPopCommand> commands);
 
 	/**
+	 * {@code RPOPLPUSH} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class RPopLPushCommand extends KeyCommand {
@@ -714,22 +989,43 @@ public interface ReactiveListCommands {
 			this.destination = destination;
 		}
 
+		/**
+		 * Creates a new {@link RPopLPushCommand} given a {@literal sourceKey}.
+		 *
+		 * @param sourceKey must not be {@literal null}.
+		 * @return a new {@link RPopLPushCommand} for a {@literal sourceKey}.
+		 */
 		public static RPopLPushCommand from(ByteBuffer sourceKey) {
+
+			Assert.notNull(sourceKey, "Source key must not be null!");
+
 			return new RPopLPushCommand(sourceKey, null);
 		}
 
+		/**
+		 * Applies the {@literal destinationKey}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param destinationKey must not be {@literal null}.
+		 * @return a new {@link BPopCommand} with {@literal value} applied.
+		 */
 		public RPopLPushCommand to(ByteBuffer destinationKey) {
+
+			Assert.notNull(destinationKey, "Destination key must not be null!");
+
 			return new RPopLPushCommand(getKey(), destinationKey);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getDestination() {
 			return destination;
 		}
-
 	}
 
 	/**
-	 * Remove the last element from list at {@code source}, append it to {@code destination} and return its value.
+	 * Remove the last element from list at {@literal source}, append it to {@literal destination} and return its value.
 	 *
 	 * @param source must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
@@ -737,10 +1033,11 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<ByteBuffer> rPopLPush(ByteBuffer source, ByteBuffer destination) {
 
-		Assert.notNull(source, "source must not be null");
-		Assert.notNull(destination, "destination must not be null");
+		Assert.notNull(source, "Source must not be null!");
+		Assert.notNull(destination, "Destination must not be null!");
 
-		return rPopLPush(Mono.just(RPopLPushCommand.from(source).to(destination))).next()
+		return rPopLPush(Mono.just(RPopLPushCommand.from(source).to(destination))) //
+				.next() //
 				.map(ByteBufferResponse::getOutput);
 	}
 
@@ -748,13 +1045,14 @@ public interface ReactiveListCommands {
 	 * Remove the last element from list at {@link RPopLPushCommand#getKey()}, append it to
 	 * {@link RPopLPushCommand#getDestination()} and return its value.
 	 *
-	 * @param source must not be {@literal null}.
-	 * @param destination must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
 	Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands);
 
 	/**
+	 * {@code BRPOPLPUSH} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class BRPopLPushCommand extends KeyCommand {
@@ -765,34 +1063,69 @@ public interface ReactiveListCommands {
 		private BRPopLPushCommand(ByteBuffer key, ByteBuffer destination, Duration timeout) {
 
 			super(key);
+
 			this.destination = destination;
 			this.timeout = timeout;
 		}
 
+		/**
+		 * Creates a new {@link BRPopLPushCommand} given a {@literal sourceKey}.
+		 *
+		 * @param sourceKey must not be {@literal null}.
+		 * @return a new {@link BRPopLPushCommand} for a {@literal sourceKey}.
+		 */
 		public static BRPopLPushCommand from(ByteBuffer sourceKey) {
+
+			Assert.notNull(sourceKey, "Source key must not be null!");
+
 			return new BRPopLPushCommand(sourceKey, null, null);
 		}
 
+		/**
+		 * Applies the {@literal destinationKey}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param destinationKey must not be {@literal null}.
+		 * @return a new {@link BRPopLPushCommand} with {@literal value} applied.
+		 */
 		public BRPopLPushCommand to(ByteBuffer destinationKey) {
+
+			Assert.notNull(destinationKey, "Destination key must not be null!");
+
 			return new BRPopLPushCommand(getKey(), destinationKey, timeout);
 		}
 
+		/**
+		 * Applies a {@link Duration timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link BRPopLPushCommand} with {@link Duration timeout} applied.
+		 */
 		public BRPopLPushCommand blockingFor(Duration timeout) {
+
+			Assert.notNull(timeout, "Timeout must not be null!");
+
 			return new BRPopLPushCommand(getKey(), destination, timeout);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getDestination() {
 			return destination;
 		}
 
+		/**
+		 * @return
+		 */
 		public Duration getTimeout() {
 			return timeout;
 		}
 	}
 
 	/**
-	 * Remove the last element from list at {@code source}, append it to {@code destination} and return its value.
-	 * <b>Blocks connection</b> until element available or {@code timeout} reached. <br />
+	 * Remove the last element from list at {@literal source}, append it to {@literal destination} and return its value.
+	 * <b>Blocks connection</b> until element available or {@literal timeout} reached. <br />
 	 *
 	 * @param source must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
@@ -800,8 +1133,8 @@ public interface ReactiveListCommands {
 	 */
 	default Mono<ByteBuffer> bRPopLPush(ByteBuffer source, ByteBuffer destination, Duration timeout) {
 
-		Assert.notNull(source, "source must not be null");
-		Assert.notNull(destination, "destination must not be null");
+		Assert.notNull(source, "Source must not be null!");
+		Assert.notNull(destination, "Destination must not be null!");
 
 		return bRPopLPush(Mono.just(BRPopLPushCommand.from(source).to(destination).blockingFor(timeout))).next()
 				.map(ByteBufferResponse::getOutput);
@@ -812,8 +1145,7 @@ public interface ReactiveListCommands {
 	 * {@link BRPopLPushCommand#getDestination()} and return its value. <br />
 	 * <b>Blocks connection</b> until element available or {@link BRPopLPushCommand#getTimeout()} reached.
 	 *
-	 * @param source must not be {@literal null}.
-	 * @param destination must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
 	Flux<ByteBufferResponse<BRPopLPushCommand>> bRPopLPush(Publisher<BRPopLPushCommand> commands);

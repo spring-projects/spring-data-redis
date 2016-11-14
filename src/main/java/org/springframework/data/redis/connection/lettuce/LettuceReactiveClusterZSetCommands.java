@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterZSetCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -42,9 +41,11 @@ public class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetComma
 		super(connection);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveZSetCommands#zUnionStore(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(
-			Publisher<ZUnionStoreCommand> commands) {
+	public Flux<NumericResponse<ZUnionStoreCommand, Long>> zUnionStore(Publisher<ZUnionStoreCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -59,9 +60,11 @@ public class LettuceReactiveClusterZSetCommands extends LettuceReactiveZSetComma
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveZSetCommands#zInterStore(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.NumericResponse<ZInterStoreCommand, Long>> zInterStore(
-			Publisher<ZInterStoreCommand> commands) {
+	public Flux<NumericResponse<ZInterStoreCommand, Long>> zInterStore(Publisher<ZInterStoreCommand> commands) {
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notEmpty(command.getSourceKeys(), "Source keys must not be null or empty.");

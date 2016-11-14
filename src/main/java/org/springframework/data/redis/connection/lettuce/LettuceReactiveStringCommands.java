@@ -52,6 +52,7 @@ public class LettuceReactiveStringCommands implements ReactiveStringCommands {
 	public LettuceReactiveStringCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 

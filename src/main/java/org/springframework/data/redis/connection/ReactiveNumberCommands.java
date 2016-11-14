@@ -26,27 +26,29 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis numeric commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveNumberCommands {
 
 	/**
-	 * Increment value of {@code key} by 1.
+	 * Increment value of {@literal key} by 1.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> incr(ByteBuffer key) {
 
-
-			Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return incr(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Increment value of {@code key} by 1.
+	 * Increment value of {@literal key} by 1.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
@@ -54,6 +56,8 @@ public interface ReactiveNumberCommands {
 	Flux<NumericResponse<KeyCommand, Long>> incr(Publisher<KeyCommand> keys);
 
 	/**
+	 * {@code INCRBY} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class IncrByCommand<T extends Number> extends KeyCommand {
@@ -65,22 +69,43 @@ public interface ReactiveNumberCommands {
 			this.value = value;
 		}
 
+		/**
+		 * Creates a new {@link IncrByCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link IncrByCommand} for {@link ByteBuffer key}.
+		 */
 		public static <T extends Number> IncrByCommand<T> incr(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new IncrByCommand<T>(key, null);
 		}
 
+		/**
+		 * Applies the numeric {@literal value}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link IncrByCommand} with {@literal value} applied.
+		 */
 		public IncrByCommand<T> by(T value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new IncrByCommand<T>(getKey(), value);
 		}
 
+		/**
+		 * @return
+		 */
 		public T getValue() {
 			return value;
 		}
-
 	}
 
 	/**
-	 * Increment value of {@code key} by {@code value}.
+	 * Increment value of {@literal key} by {@literal value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -88,25 +113,24 @@ public interface ReactiveNumberCommands {
 	 */
 	default <T extends Number> Mono<T> incrBy(ByteBuffer key, T value) {
 
-
-			Assert.notNull(key, "key must not be null");
-			Assert.notNull(value, "value must not be null");
-
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return incrBy(Mono.just(IncrByCommand.<T> incr(key).by(value))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Increment value of {@code key} by {@code value}.
+	 * Increment value of {@literal key} by {@literal value}.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param value must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
 	<T extends Number> Flux<NumericResponse<ReactiveNumberCommands.IncrByCommand<T>, T>> incrBy(
 			Publisher<ReactiveNumberCommands.IncrByCommand<T>> commands);
 
 	/**
+	 * {@code DECRBY} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class DecrByCommand<T extends Number> extends KeyCommand {
@@ -118,37 +142,56 @@ public interface ReactiveNumberCommands {
 			this.value = value;
 		}
 
-		public static <T extends Number> ReactiveNumberCommands.DecrByCommand<T> decr(ByteBuffer key) {
+		/**
+		 * Creates a new {@link DecrByCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link DecrByCommand} for {@link ByteBuffer key}.
+		 */
+		public static <T extends Number> DecrByCommand<T> decr(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new DecrByCommand<T>(key, null);
 		}
 
-		public ReactiveNumberCommands.DecrByCommand<T> by(T value) {
+		/**
+		 * Applies the numeric {@literal value}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link DecrByCommand} with {@literal value} applied.
+		 */
+		public DecrByCommand<T> by(T value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new DecrByCommand<T>(getKey(), value);
 		}
 
+		/**
+		 * @return
+		 */
 		public T getValue() {
 			return value;
 		}
-
 	}
 
 	/**
-	 * Decrement value of {@code key} by 1.
+	 * Decrement value of {@literal key} by 1.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> decr(ByteBuffer key) {
 
-
-			Assert.notNull(key, "key must not be null");
-
+		Assert.notNull(key, "Key must not be null!");
 
 		return decr(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Decrement value of {@code key} by 1.
+	 * Decrement value of {@literal key} by 1.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
@@ -156,7 +199,7 @@ public interface ReactiveNumberCommands {
 	Flux<NumericResponse<KeyCommand, Long>> decr(Publisher<KeyCommand> keys);
 
 	/**
-	 * Decrement value of {@code key} by {@code value}.
+	 * Decrement value of {@literal key} by {@literal value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -164,25 +207,23 @@ public interface ReactiveNumberCommands {
 	 */
 	default <T extends Number> Mono<T> decrBy(ByteBuffer key, T value) {
 
-
-			Assert.notNull(key, "key must not be null");
-			Assert.notNull(value, "value must not be null");
-
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return decrBy(Mono.just(DecrByCommand.<T> decr(key).by(value))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Decrement value of {@code key} by {@code value}.
+	 * Decrement value of {@literal key} by {@literal value}.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param value must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	<T extends Number> Flux<NumericResponse<ReactiveNumberCommands.DecrByCommand<T>, T>> decrBy(
-			Publisher<ReactiveNumberCommands.DecrByCommand<T>> commands);
+	<T extends Number> Flux<NumericResponse<DecrByCommand<T>, T>> decrBy(Publisher<DecrByCommand<T>> commands);
 
 	/**
+	 * {@code HINCRBY} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class HIncrByCommand<T extends Number> extends KeyCommand {
@@ -193,33 +234,68 @@ public interface ReactiveNumberCommands {
 		private HIncrByCommand(ByteBuffer key, ByteBuffer field, T value) {
 
 			super(key);
+
 			this.field = field;
 			this.value = value;
 		}
 
+		/**
+		 * Creates a new {@link HIncrByCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param field must not be {@literal null}.
+		 * @return a new {@link HIncrByCommand} for {@link ByteBuffer key}.
+		 */
 		public static <T extends Number> HIncrByCommand<T> incr(ByteBuffer field) {
+
+			Assert.notNull(field, "Field must not be null!");
+
 			return new HIncrByCommand<T>(null, field, null);
 		}
 
+		/**
+		 * Applies the numeric {@literal value}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link HIncrByCommand} with {@literal value} applied.
+		 */
 		public HIncrByCommand<T> by(T value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new HIncrByCommand<T>(getKey(), field, value);
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link HIncrByCommand} with {@literal key} applied.
+		 */
 		public HIncrByCommand<T> forKey(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new HIncrByCommand<T>(key, field, value);
 		}
 
+		/**
+		 * @return
+		 */
 		public T getValue() {
 			return value;
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getField() {
 			return field;
 		}
 	}
 
 	/**
-	 * Increment {@code value} of a hash {@code field} by the given {@code value}.
+	 * Increment {@literal value} of a hash {@literal field} by the given {@literal value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param field must not be {@literal null}.
@@ -228,18 +304,16 @@ public interface ReactiveNumberCommands {
 	 */
 	default <T extends Number> Mono<T> hIncrBy(ByteBuffer key, ByteBuffer field, T value) {
 
-
-			Assert.notNull(key, "key must not be null");
-			Assert.notNull(field, "field must not be null");
-			Assert.notNull(value, "value must not be null");
-
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(field, "Field must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return hIncrBy(Mono.just(HIncrByCommand.<T> incr(field).by(value).forKey(key))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Increment {@code value} of a hash {@code field} by the given {@code value}.
+	 * Increment {@literal value} of a hash {@literal field} by the given {@literal value}.
 	 *
 	 * @return
 	 */

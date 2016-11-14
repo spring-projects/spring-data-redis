@@ -23,7 +23,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterKeyCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.util.Assert;
 
@@ -51,6 +51,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 	public LettuceReactiveClusterKeyCommands(LettuceReactiveRedisClusterConnection connection) {
 
 		super(connection);
+
 		this.connection = connection;
 	}
 
@@ -76,12 +77,12 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#rename(org.reactivestreams.Publisher, java.util.function.Supplier)
 	 */
 	@Override
-	public Flux<ReactiveRedisConnection.BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> commands) {
+	public Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKey(), "key must not be null.");
-			Assert.notNull(command.getNewName(), "NewName must not be null");
+			Assert.notNull(command.getNewName(), "NewName must not be null!");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getNewName())) {
 				return super.rename(Mono.just(command));
@@ -93,7 +94,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 					.flatMap(value -> cmd.restore(command.getNewName(), 0, value).flatMap(res -> cmd.del(command.getKey())))
 					.map(LettuceConverters.longToBooleanConverter()::convert);
 
-			return result.map(val -> new ReactiveRedisConnection.BooleanResponse<>(command, val));
+			return result.map(val -> new BooleanResponse<>(command, val));
 		}));
 	}
 
@@ -102,12 +103,12 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 	 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.ReactiveKeyCommands#renameNX(org.reactivestreams.Publisher, java.util.function.Supplier)
 	 */
 	@Override
-	public Flux<ReactiveRedisConnection.BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> commands) {
+	public Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null.");
-			Assert.notNull(command.getNewName(), "NewName must not be null");
+			Assert.notNull(command.getNewName(), "NewName must not be null!");
 
 			if (ClusterSlotHashUtil.isSameSlotForAllKeys(command.getKey(), command.getNewName())) {
 				return super.renameNX(Mono.just(command));
@@ -126,7 +127,7 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 						.map(LettuceConverters.longToBooleanConverter()::convert);
 			});
 
-			return result.map(val -> new ReactiveRedisConnection.BooleanResponse<>(command, val));
+			return result.map(val -> new BooleanResponse<>(command, val));
 		}));
 	}
 }

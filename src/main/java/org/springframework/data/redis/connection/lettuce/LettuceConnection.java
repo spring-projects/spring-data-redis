@@ -1219,14 +1219,14 @@ public class LettuceConnection extends AbstractRedisConnection {
 		}
 		try {
 			if (isPipelined()) {
-				pipeline(new LettuceStatusResult(((RedisAsyncCommands) getAsyncDedicatedConnection()).watch(keys)));
+				pipeline(new LettuceStatusResult(((RedisAsyncCommands) getAsyncDedicatedConnection()).watch((Object[]) keys)));
 				return;
 			}
 			if (isQueueing()) {
-				transaction(new LettuceTxStatusResult(((RedisAsyncCommands) getDedicatedConnection()).watch()));
+				transaction(new LettuceTxStatusResult(((RedisAsyncCommands) getDedicatedConnection()).watch((Object[]) keys)));
 				return;
 			}
-			((RedisCommands) getDedicatedConnection()).watch(keys);
+			((RedisCommands) getDedicatedConnection()).watch((Object[]) keys);
 		} catch (Exception ex) {
 			throw convertLettuceAccessException(ex);
 		}

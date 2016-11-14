@@ -16,6 +16,8 @@
 package org.springframework.data.redis.connection;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +27,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.Command;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
@@ -38,12 +41,17 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis String commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveStringCommands {
 
 	/**
+	 * {@code SET} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SetCommand extends KeyCommand {
@@ -55,35 +63,81 @@ public interface ReactiveStringCommands {
 		private SetCommand(ByteBuffer key, ByteBuffer value, Expiration expiration, SetOption option) {
 
 			super(key);
+
 			this.value = value;
 			this.expiration = expiration;
 			this.option = option;
 		}
 
-		public static ReactiveStringCommands.SetCommand set(ByteBuffer key) {
+		/**
+		 * Creates a new {@link SetCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SetCommand} for a {@literal key}.
+		 */
+		public static SetCommand set(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SetCommand(key, null, null, null);
 		}
 
-		public ReactiveStringCommands.SetCommand value(ByteBuffer value) {
+		/**
+		 * Applies the {@literal value}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SetCommand} with {@literal value} applied.
+		 */
+		public SetCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new SetCommand(getKey(), value, expiration, option);
 		}
 
-		public ReactiveStringCommands.SetCommand expiring(Expiration expiration) {
+		/**
+		 * Applies {@link Expiration}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param expiration must not be {@literal null}.
+		 * @return a new {@link SetCommand} with {@link Expiration} applied.
+		 */
+		public SetCommand expiring(Expiration expiration) {
+
+			Assert.notNull(expiration, "Expiration must not be null!");
+
 			return new SetCommand(getKey(), value, expiration, option);
 		}
 
-		public ReactiveStringCommands.SetCommand withSetOption(SetOption option) {
+		/**
+		 * Applies {@link SetOption}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param option must not be {@literal null}.
+		 * @return a new {@link SetCommand} with {@link SetOption} applied.
+		 */
+		public SetCommand withSetOption(SetOption option) {
+
+			Assert.notNull(option, "SetOption must not be null!");
+
 			return new SetCommand(getKey(), value, expiration, option);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<Expiration> getExpiration() {
 			return Optional.ofNullable(expiration);
 		}
 
+		/**
+		 * @return
+		 */
 		public Optional<SetOption> getOption() {
 			return Optional.ofNullable(option);
 		}
@@ -123,12 +177,12 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Set each and every {@link KeyValue} item separately.
+	 * Set each and every item separately by invoking {@link SetCommand}.
 	 *
-	 * @param values must not be {@literal null}.
-	 * @return {@link Flux} of {@link SetResponse} holding the {@link KeyValue} pair to set along with the command result.
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@link SetCommand} along with the command result.
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.SetCommand>> set(Publisher<ReactiveStringCommands.SetCommand> commands);
+	Flux<BooleanResponse<SetCommand>> set(Publisher<SetCommand> commands);
 
 	/**
 	 * Get single element stored at {@literal key}.
@@ -140,14 +194,15 @@ public interface ReactiveStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return get(Mono.just(new KeyCommand(key))).next().map((result) -> result.getOutput());
+		return get(Mono.just(new KeyCommand(key))).next().map(CommandResponse::getOutput);
 	}
 
 	/**
 	 * Get elements one by one.
 	 *
 	 * @param keys must not be {@literal null}.
-	 * @return {@link Flux} of {@link GetResponse} holding the {@literal key} to get along with the value retrieved.
+	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@literal key} to get along with the value
+	 *         retrieved.
 	 */
 	Flux<ByteBufferResponse<KeyCommand>> get(Publisher<KeyCommand> keys);
 
@@ -169,13 +224,11 @@ public interface ReactiveStringCommands {
 	/**
 	 * Set {@literal value} for {@literal key} and return the existing value one by one.
 	 *
-	 * @param key must not be {@literal null}.
-	 * @param value must not be {@literal null}.
-	 * @return {@link Flux} of {@link GetSetResponse} holding the {@link KeyValue} pair to set along with the previously
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link ByteBufferResponse} holding the {@link SetCommand} along with the previously
 	 *         existing value.
 	 */
-	Flux<ByteBufferResponse<ReactiveStringCommands.SetCommand>> getSet(
-			Publisher<ReactiveStringCommands.SetCommand> command);
+	Flux<ByteBufferResponse<SetCommand>> getSet(Publisher<SetCommand> commands);
 
 	/**
 	 * Get multiple values in one batch.
@@ -191,15 +244,15 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Get multiple values at in batches.
+	 * Get multiple values at for {@literal keysets} in batches.
 	 *
-	 * @param keys must not be {@literal null}.
+	 * @param keysets must not be {@literal null}.
 	 * @return
 	 */
 	Flux<MultiValueResponse<List<ByteBuffer>, ByteBuffer>> mGet(Publisher<List<ByteBuffer>> keysets);
 
 	/**
-	 * Set {@code value} for {@code key}, only if {@code key} does not exist.
+	 * Set {@literal value} for {@literal key}, only if {@literal key} does not exist.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -207,22 +260,22 @@ public interface ReactiveStringCommands {
 	 */
 	default Mono<Boolean> setNX(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(key, "Keys must not be null!");
-		Assert.notNull(value, "Keys must not be null!");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(value, "Value must not be null!");
 
 		return setNX(Mono.just(SetCommand.set(key).value(value))).next().map(BooleanResponse::getOutput);
 	}
 
 	/**
-	 * Set {@code key value} pairs, only if {@code key} does not exist.
+	 * Set {@literal key value} pairs, only if {@literal key} does not exist.
 	 *
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.SetCommand>> setNX(Publisher<ReactiveStringCommands.SetCommand> values);
+	Flux<BooleanResponse<SetCommand>> setNX(Publisher<SetCommand> values);
 
 	/**
-	 * Set {@code key value} pair and {@link Expiration}.
+	 * Set {@literal key value} pair and {@link Expiration}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -233,23 +286,22 @@ public interface ReactiveStringCommands {
 
 		Assert.notNull(key, "Keys must not be null!");
 		Assert.notNull(value, "Keys must not be null!");
-		Assert.notNull(key, "ExpireTimeout must not be null!");
+		Assert.notNull(expireTimeout, "ExpireTimeout must not be null!");
 
 		return setEX(Mono.just(SetCommand.set(key).value(value).expiring(expireTimeout))).next()
 				.map(BooleanResponse::getOutput);
 	}
 
 	/**
-	 * Set {@code key value} pairs and {@link Expiration}.
+	 * Set {@literal key value} pairs and {@link Expiration}.
 	 *
-	 * @param source must not be {@literal null}.
-	 * @param expireTimeout must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.SetCommand>> setEX(Publisher<ReactiveStringCommands.SetCommand> command);
+	Flux<BooleanResponse<SetCommand>> setEX(Publisher<SetCommand> commands);
 
 	/**
-	 * Set {@code key value} pair and {@link Expiration}.
+	 * Set {@literal key value} pair and {@link Expiration}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -267,15 +319,16 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Set {@code key value} pairs and {@link Expiration}.
+	 * Set {@literal key value} pairs and {@link Expiration}.
 	 *
-	 * @param source must not be {@literal null}.
-	 * @param expireTimeout must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.SetCommand>> pSetEX(Publisher<ReactiveStringCommands.SetCommand> command);
+	Flux<BooleanResponse<SetCommand>> pSetEX(Publisher<SetCommand> commands);
 
 	/**
+	 * {@code MSET} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class MSetCommand implements Command {
@@ -286,66 +339,82 @@ public interface ReactiveStringCommands {
 			this.keyValuePairs = keyValuePairs;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;
 		}
 
-		public static ReactiveStringCommands.MSetCommand mset(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
+		/**
+		 * Creates a new {@link MSetCommand} given a {@link Map} of key-value tuples.
+		 *
+		 * @param keyValuePairs must not be {@literal null}.
+		 * @return a new {@link MSetCommand} for a {@link Map} of key-value tuples.
+		 */
+		public static MSetCommand mset(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
+
+			Assert.notNull(keyValuePairs, "Key-value pairs must not be null!");
+
 			return new MSetCommand(keyValuePairs);
 		}
 
+		/**
+		 * @return
+		 */
 		public Map<ByteBuffer, ByteBuffer> getKeyValuePairs() {
 			return keyValuePairs;
 		}
 	}
 
 	/**
-	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
+	 * Set multiple keys to multiple values using key-value pairs provided in {@literal tuple}.
 	 *
-	 * @param tuples must not be {@literal null}.
+	 * @param keyValuePairs must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Boolean> mSet(Map<ByteBuffer, ByteBuffer> tuples) {
+	default Mono<Boolean> mSet(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
 
-		Assert.notNull(tuples, "Tuples must not be null!");
+		Assert.notNull(keyValuePairs, "Key-value pairs must not be null!");
 
-		return mSet(Mono.just(MSetCommand.mset(tuples))).next().map(BooleanResponse::getOutput);
+		return mSet(Mono.just(MSetCommand.mset(keyValuePairs))).next().map(BooleanResponse::getOutput);
 	}
 
 	/**
-	 * Set multiple keys to multiple values using key-value pairs provided in {@code source}.
+	 * Set multiple keys to multiple values using key-value pairs provided in {@literal commands}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return
+	 */
+	Flux<BooleanResponse<MSetCommand>> mSet(Publisher<MSetCommand> commands);
+
+	/**
+	 * Set multiple keys to multiple values using key-value pairs provided in {@literal keyValuePairs} only if the
+	 * provided key does not exist.
+	 *
+	 * @param keyValuePairs must not be {@literal null}.
+	 * @return
+	 */
+	default Mono<Boolean> mSetNX(Map<ByteBuffer, ByteBuffer> keyValuePairs) {
+
+		Assert.notNull(keyValuePairs, "Key-value pairs must not be null!");
+
+		return mSetNX(Mono.just(MSetCommand.mset(keyValuePairs))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Set multiple keys to multiple values using key-value pairs provided in {@literal tuples} only if the provided key
+	 * does not exist.
 	 *
 	 * @param source must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.MSetCommand>> mSet(Publisher<ReactiveStringCommands.MSetCommand> source);
+	Flux<BooleanResponse<MSetCommand>> mSetNX(Publisher<MSetCommand> source);
 
 	/**
-	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuples} only if the provided key does
-	 * not exist.
+	 * {@code APPEND} command parameters.
 	 *
-	 * @param tuples must not be {@literal null}.
-	 * @return
-	 */
-	default Mono<Boolean> mSetNX(Map<ByteBuffer, ByteBuffer> tuples) {
-
-		Assert.notNull(tuples, "Tuples must not be null!");
-
-		return mSetNX(Mono.just(MSetCommand.mset(tuples))).next().map(BooleanResponse::getOutput);
-	}
-
-	/**
-	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuples} only if the provided key does
-	 * not exist.
-	 *
-	 * @param source must not be {@literal null}.
-	 * @return
-	 */
-	Flux<BooleanResponse<ReactiveStringCommands.MSetCommand>> mSetNX(
-			Publisher<ReactiveStringCommands.MSetCommand> source);
-
-	/**
 	 * @author Christoph Strobl
 	 */
 	class AppendCommand extends KeyCommand {
@@ -358,22 +427,43 @@ public interface ReactiveStringCommands {
 			this.value = value;
 		}
 
-		public static ReactiveStringCommands.AppendCommand key(ByteBuffer key) {
+		/**
+		 * Creates a new {@link AppendCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link AppendCommand} for a {@literal key}.
+		 */
+		public static AppendCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new AppendCommand(key, null);
 		}
 
-		public ReactiveStringCommands.AppendCommand append(ByteBuffer value) {
+		/**
+		 * Applies the {@literal value} to append. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link AppendCommand} with {@literal value} applied.
+		 */
+		public AppendCommand append(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new AppendCommand(getKey(), value);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
-
 	}
 
 	/**
-	 * Append a {@code value} to {@code key}.
+	 * Append a {@literal value} to {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -388,16 +478,15 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Append a {@link KeyValue#value} to {@link KeyValue#key}
+	 * Append a {@link AppendCommand#getValue()} to the {@link AppendCommand#getKey()}.
 	 *
-	 * @param source must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<NumericResponse<ReactiveStringCommands.AppendCommand, Long>> append(
-			Publisher<ReactiveStringCommands.AppendCommand> source);
+	Flux<NumericResponse<AppendCommand, Long>> append(Publisher<AppendCommand> commands);
 
 	/**
-	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * Get a substring of value of {@literal key} between {@literal begin} and {@literal end}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param begin
@@ -408,21 +497,22 @@ public interface ReactiveStringCommands {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return getRange(Mono.just(RangeCommand.key(key).fromIndex(begin).toIndex(end))).next()
+		return getRange(Mono.just(RangeCommand.key(key).fromIndex(begin).toIndex(end))) //
+				.next() //
 				.map(ByteBufferResponse::getOutput);
 	}
 
 	/**
-	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 * Get a substring of value of {@literal key} between {@literal begin} and {@literal end}.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param begin
-	 * @param end
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
 	Flux<ByteBufferResponse<RangeCommand>> getRange(Publisher<RangeCommand> commands);
 
 	/**
+	 * {@code SETRANGE} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class SetRangeCommand extends KeyCommand {
@@ -437,29 +527,59 @@ public interface ReactiveStringCommands {
 			this.offset = offset;
 		}
 
-		public static ReactiveStringCommands.SetRangeCommand overwrite(ByteBuffer key) {
+		/**
+		 * Creates a new {@link SetRangeCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SetRangeCommand} for a {@literal key}.
+		 */
+		public static SetRangeCommand overwrite(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new SetRangeCommand(key, null, null);
 		}
 
-		public ReactiveStringCommands.SetRangeCommand withValue(ByteBuffer value) {
+		/**
+		 * Applies the {@literal value}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link SetCommand} with {@literal value} applied.
+		 */
+		public SetRangeCommand withValue(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return new SetRangeCommand(getKey(), value, offset);
 		}
 
-		public ReactiveStringCommands.SetRangeCommand atPosition(Long index) {
+		/**
+		 * Applies the {@literal index}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param index
+		 * @return a new {@link SetRangeCommand} with {@literal key} applied.
+		 */
+		public SetRangeCommand atPosition(long index) {
 			return new SetRangeCommand(getKey(), value, index);
 		}
 
+		/**
+		 * @return
+		 */
 		public ByteBuffer getValue() {
 			return value;
 		}
 
+		/**
+		 * @return
+		 */
 		public Long getOffset() {
 			return offset;
 		}
 	}
 
 	/**
-	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
+	 * Overwrite parts of {@literal key} starting at the specified {@literal offset} with given {@literal value}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
@@ -476,40 +596,63 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Overwrite parts of {@link KeyValue#key} starting at the specified {@code offset} with given {@link KeyValue#value}.
+	 * Overwrite parts of {@link SetRangeCommand#key} starting at the specified {@literal offset} with given
+	 * {@link SetRangeCommand#value}.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param offset must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<NumericResponse<ReactiveStringCommands.SetRangeCommand, Long>> setRange(
-			Publisher<ReactiveStringCommands.SetRangeCommand> commands);
+	Flux<NumericResponse<SetRangeCommand, Long>> setRange(Publisher<SetRangeCommand> commands);
 
+	/**
+	 * {@code GETBIT} command parameters.
+	 *
+	 * @author Christoph Strobl
+	 */
 	class GetBitCommand extends KeyCommand {
 
-		public Long offset;
+		private Long offset;
 
-		public GetBitCommand(ByteBuffer key, Long offset) {
+		private GetBitCommand(ByteBuffer key, Long offset) {
 
 			super(key);
+
 			this.offset = offset;
 		}
 
-		public static ReactiveStringCommands.GetBitCommand bit(ByteBuffer key) {
+		/**
+		 * Creates a new {@link GetBitCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link GetBitCommand} for a {@literal key}.
+		 */
+		public static GetBitCommand bit(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new GetBitCommand(key, null);
 		}
 
-		public ReactiveStringCommands.GetBitCommand atOffset(Long offset) {
+		/**
+		 * Applies the offset {@literal index}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param offset
+		 * @return a new {@link GetBitCommand} with {@literal offset} applied.
+		 */
+		public GetBitCommand atOffset(long offset) {
 			return new GetBitCommand(getKey(), offset);
 		}
 
+		/**
+		 * @return
+		 */
 		public Long getOffset() {
 			return offset;
 		}
 	}
 
 	/**
-	 * Get the bit value at {@code offset} of value at {@code key}.
+	 * Get the bit value at {@literal offset} of value at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset
@@ -523,50 +666,81 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Get the bit value at {@code offset} of value at {@code key}.
+	 * Get the bit value at {@literal offset} of value at {@literal key}.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param offset must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.GetBitCommand>> getBit(
-			Publisher<ReactiveStringCommands.GetBitCommand> commands);
+	Flux<BooleanResponse<GetBitCommand>> getBit(Publisher<GetBitCommand> commands);
 
+	/**
+	 * {@code SETBIT} command parameters.
+	 *
+	 * @author Christoph Strobl
+	 */
 	class SetBitCommand extends KeyCommand {
 
 		private Long offset;
-		private Boolean value;
+		private boolean value;
 
-		private SetBitCommand(ByteBuffer key, Long offset, Boolean value) {
+		private SetBitCommand(ByteBuffer key, Long offset, boolean value) {
 
 			super(key);
+
 			this.offset = offset;
 			this.value = value;
 		}
 
-		public static ReactiveStringCommands.SetBitCommand bit(ByteBuffer key) {
-			return new SetBitCommand(key, null, null);
+		/**
+		 * Creates a new {@link SetBitCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link SetBitCommand} for a {@literal key}.
+		 */
+		public static SetBitCommand bit(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new SetBitCommand(key, null, false);
 		}
 
-		public ReactiveStringCommands.SetBitCommand atOffset(Long index) {
-			return new ReactiveStringCommands.SetBitCommand(getKey(), index, value);
+		/**
+		 * Applies the offset {@literal index}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param index
+		 * @return a new {@link SetBitCommand} with {@literal offset} applied.
+		 */
+		public SetBitCommand atOffset(long index) {
+			return new SetBitCommand(getKey(), index, value);
 		}
 
-		public ReactiveStringCommands.SetBitCommand to(Boolean bit) {
-			return new ReactiveStringCommands.SetBitCommand(getKey(), offset, bit);
+		/**
+		 * Applies the {@literal bit}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param bit
+		 * @return a new {@link SetBitCommand} with {@literal offset} applied.
+		 */
+		public SetBitCommand to(boolean bit) {
+			return new SetBitCommand(getKey(), offset, bit);
 		}
 
+		/**
+		 * @return
+		 */
 		public Long getOffset() {
 			return offset;
 		}
 
-		public Boolean getValue() {
+		/**
+		 * @return
+		 */
+		public boolean getValue() {
 			return value;
 		}
 	}
 
 	/**
-	 * Sets the bit at {@code offset} in value stored at {@code key} and return the original value.
+	 * Sets the bit at {@literal offset} in value stored at {@literal key} and return the original value.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param offset
@@ -581,59 +755,79 @@ public interface ReactiveStringCommands {
 	}
 
 	/**
-	 * Sets the bit at {@code offset} in value stored at {@code key} and return the original value.
+	 * Sets the bit at {@literal offset} in value stored at {@literal key} and return the original value.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param offset must not be {@literal null}.
-	 * @param value must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<BooleanResponse<ReactiveStringCommands.SetBitCommand>> setBit(
-			Publisher<ReactiveStringCommands.SetBitCommand> commands);
+	Flux<BooleanResponse<SetBitCommand>> setBit(Publisher<SetBitCommand> commands);
 
 	/**
+	 * {@code BITCOUNT} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class BitCountCommand extends KeyCommand {
 
 		private Range<Long> range;
 
-		public BitCountCommand(ByteBuffer key, Range<Long> range) {
+		private BitCountCommand(ByteBuffer key, Range<Long> range) {
 
 			super(key);
+
 			this.range = range;
 		}
 
-		public static ReactiveStringCommands.BitCountCommand bitCount(ByteBuffer key) {
-			return new ReactiveStringCommands.BitCountCommand(key, null);
+		/**
+		 * Creates a new {@link BitCountCommand} given a {@literal key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link BitCountCommand} for a {@literal key}.
+		 */
+		public static BitCountCommand bitCount(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new BitCountCommand(key, null);
 		}
 
-		public ReactiveStringCommands.BitCountCommand within(Range<Long> range) {
-			return new ReactiveStringCommands.BitCountCommand(getKey(), range);
+		/**
+		 * Applies the {@link Range}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param range must not be {@literal null}.
+		 * @return a new {@link BitCountCommand} with {@link Range} applied.
+		 */
+		public BitCountCommand within(Range<Long> range) {
+
+			Assert.notNull(range, "Range must not be null!");
+
+			return new BitCountCommand(getKey(), range);
 		}
 
+		/**
+		 * @return
+		 */
 		public Range<Long> getRange() {
 			return range;
 		}
-
 	}
 
 	/**
-	 * Count the number of set bits (population counting) in value stored at {@code key}.
+	 * Count the number of set bits (population counting) in value stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> bitCount(ByteBuffer key) {
 
-		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return bitCount(Mono.just(BitCountCommand.bitCount(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code begin} and
-	 * {@code end}.
+	 * Count the number of set bits (population counting) of value stored at {@literal key} between {@literal begin} and
+	 * {@literal end}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param begin
@@ -642,25 +836,24 @@ public interface ReactiveStringCommands {
 	 */
 	default Mono<Long> bitCount(ByteBuffer key, long begin, long end) {
 
-		Assert.notNull(key, "Key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return bitCount(Mono.just(BitCountCommand.bitCount(key).within(new Range<>(begin, end)))).next()
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Count the number of set bits (population counting) of value stored at {@code key} between {@code begin} and
-	 * {@code end}.
+	 * Count the number of set bits (population counting) of value stored at {@literal key} between {@literal begin} and
+	 * {@literal end}.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param begin must not be {@literal null}.
-	 * @param end must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<NumericResponse<ReactiveStringCommands.BitCountCommand, Long>> bitCount(
-			Publisher<ReactiveStringCommands.BitCountCommand> commands);
+	Flux<NumericResponse<BitCountCommand, Long>> bitCount(Publisher<BitCountCommand> commands);
 
 	/**
+	 * {@code BITOP} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class BitOpCommand {
@@ -676,30 +869,67 @@ public interface ReactiveStringCommands {
 			this.destinationKey = destinationKey;
 		}
 
-		public static ReactiveStringCommands.BitOpCommand perform(BitOperation bitOp) {
-			return new ReactiveStringCommands.BitOpCommand(null, bitOp, null);
+		/**
+		 * Creates a new {@link BitOpCommand} given a {@link BitOperation}.
+		 *
+		 * @param bitOp must not be {@literal null}.
+		 * @return a new {@link BitCountCommand} for a {@link BitOperation}.
+		 */
+		public static BitOpCommand perform(BitOperation bitOp) {
+
+			Assert.notNull(bitOp, "BitOperation must not be null!");
+
+			return new BitOpCommand(null, bitOp, null);
 		}
 
+		/**
+		 * Applies the operation to {@literal keys}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link BitOpCommand} with {@link Range} applied.
+		 */
+		public BitOpCommand onKeys(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new BitOpCommand(new ArrayList<>(keys), bitOp, destinationKey);
+		}
+
+		/**
+		 * Applies the {@literal key} to store the result at. Constructs a new command instance with all previously
+		 * configured properties.
+		 *
+		 * @param destinationKey must not be {@literal null}.
+		 * @return a new {@link BitOpCommand} with {@link Range} applied.
+		 */
+		public BitOpCommand andSaveAs(ByteBuffer destinationKey) {
+
+			Assert.notNull(destinationKey, "Destination key must not be null!");
+
+			return new BitOpCommand(keys, bitOp, destinationKey);
+		}
+
+		/**
+		 * @return
+		 */
 		public BitOperation getBitOp() {
 			return bitOp;
 		}
 
-		public ReactiveStringCommands.BitOpCommand onKeys(List<ByteBuffer> keys) {
-			return new ReactiveStringCommands.BitOpCommand(keys, bitOp, destinationKey);
-		}
-
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 
-		public ReactiveStringCommands.BitOpCommand andSaveAs(ByteBuffer destinationKey) {
-			return new ReactiveStringCommands.BitOpCommand(keys, bitOp, destinationKey);
-		}
-
+		/**
+		 * @return
+		 */
 		public ByteBuffer getDestinationKey() {
 			return destinationKey;
 		}
-
 	}
 
 	/**
@@ -710,40 +940,40 @@ public interface ReactiveStringCommands {
 	 * @param destination must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Long> bitOp(List<ByteBuffer> keys, BitOperation bitOp, ByteBuffer destination) {
+	default Mono<Long> bitOp(Collection<ByteBuffer> keys, BitOperation bitOp, ByteBuffer destination) {
 
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(keys, "Keys must not be null!");
+		Assert.notNull(bitOp, "BitOperation must not be null!");
+		Assert.notNull(destination, "Destination must not be null!");
 
-		return bitOp(Mono.just(BitOpCommand.perform(bitOp).onKeys(keys).andSaveAs(destination))).next()
+		return bitOp(Mono.just(BitOpCommand.perform(bitOp).onKeys(keys).andSaveAs(destination))) //
+				.next() //
 				.map(NumericResponse::getOutput);
 	}
 
 	/**
 	 * Perform bitwise operations between strings.
 	 *
-	 * @param keys must not be {@literal null}.
-	 * @param bitOp must not be {@literal null}.
-	 * @param destination must not be {@literal null}.
+	 * @param commands must not be {@literal null}.
 	 * @return
 	 */
-	Flux<NumericResponse<ReactiveStringCommands.BitOpCommand, Long>> bitOp(
-			Publisher<ReactiveStringCommands.BitOpCommand> commands);
+	Flux<NumericResponse<BitOpCommand, Long>> bitOp(Publisher<BitOpCommand> commands);
 
 	/**
-	 * Get the length of the value stored at {@code key}.
+	 * Get the length of the value stored at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
 	default Mono<Long> strLen(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return strLen(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
 	}
 
 	/**
-	 * Get the length of the value stored at {@code key}.
+	 * Get the length of the value stored at {@literal key}.
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return

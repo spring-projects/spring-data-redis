@@ -17,6 +17,7 @@ package org.springframework.data.redis.connection;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,12 +32,17 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * Redis HyperLogLog commands executed using reactive infrastructure.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 2.0
  */
 public interface ReactiveHyperLogLogCommands {
 
 	/**
+	 * {@code PFADD} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PfAddCommand extends KeyCommand {
@@ -49,18 +55,48 @@ public interface ReactiveHyperLogLogCommands {
 			this.values = values;
 		}
 
+		/**
+		 * Creates a new {@link PfAddCommand} given a {@link ByteBuffer value}.
+		 *
+		 * @param value must not be {@literal null}.
+		 * @return a new {@link PfAddCommand} for {@link ByteBuffer value}.
+		 */
 		public static PfAddCommand value(ByteBuffer value) {
+
+			Assert.notNull(value, "Value must not be null!");
+
 			return values(Collections.singletonList(value));
 		}
 
-		public static PfAddCommand values(List<ByteBuffer> values) {
+		/**
+		 * Creates a new {@link PfAddCommand} given a {@link Collection} of {@link ByteBuffer values}.
+		 *
+		 * @param values must not be {@literal null}.
+		 * @return a new {@link PfAddCommand} for {@link ByteBuffer key}.
+		 */
+		public static PfAddCommand values(Collection<ByteBuffer> values) {
+
+			Assert.notNull(values, "Values must not be null!");
+
 			return new PfAddCommand(null, new ArrayList<>(values));
 		}
 
+		/**
+		 * Applies the {@literal key}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link PfAddCommand} with {@literal key} applied.
+		 */
 		public PfAddCommand to(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return new PfAddCommand(key, values);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getValues() {
 			return values;
 		}
@@ -75,7 +111,7 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Long> pfAdd(ByteBuffer key, ByteBuffer value) {
 
-		Assert.notNull(value, "value must not be null");
+		Assert.notNull(value, "Value must not be null!");
 
 		return pfAdd(key, Collections.singletonList(value));
 	}
@@ -87,10 +123,10 @@ public interface ReactiveHyperLogLogCommands {
 	 * @param values must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Long> pfAdd(ByteBuffer key, List<ByteBuffer> values) {
+	default Mono<Long> pfAdd(ByteBuffer key, Collection<ByteBuffer> values) {
 
-		Assert.notNull(key, "key must not be null");
-		Assert.notNull(values, "values must not be null");
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(values, "Values must not be null!");
 
 		return pfAdd(Mono.just(PfAddCommand.values(values).to(key))).next().map(NumericResponse::getOutput);
 	}
@@ -104,6 +140,8 @@ public interface ReactiveHyperLogLogCommands {
 	Flux<NumericResponse<PfAddCommand, Long>> pfAdd(Publisher<PfAddCommand> commands);
 
 	/**
+	 * {@code PFCOUNT} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PfCountCommand implements Command {
@@ -116,23 +154,46 @@ public interface ReactiveHyperLogLogCommands {
 			this.keys = keys;
 		}
 
+		/**
+		 * Creates a new {@link PfCountCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link PfCountCommand} for {@link ByteBuffer key}.
+		 */
 		public static PfCountCommand valueIn(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
 			return valuesIn(Collections.singletonList(key));
 		}
 
-		public static PfCountCommand valuesIn(List<ByteBuffer> keys) {
-			return new PfCountCommand(keys);
+		/**
+		 * Creates a new {@link PfCountCommand} given a {@link Collection} of {@literal keys}.
+		 *
+		 * @param keys must not be {@literal null}.
+		 * @return a new {@link PfCountCommand} for {@literal keys}.
+		 */
+		public static PfCountCommand valuesIn(Collection<ByteBuffer> keys) {
+
+			Assert.notNull(keys, "Keys must not be null!");
+
+			return new PfCountCommand(new ArrayList<>(keys));
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getKeys() {
 			return keys;
 		}
 
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.ReactiveRedisConnection.Command#getKey()
+		 */
 		@Override
 		public ByteBuffer getKey() {
 			return null;
 		}
-
 	}
 
 	/**
@@ -143,7 +204,7 @@ public interface ReactiveHyperLogLogCommands {
 	 */
 	default Mono<Long> pfCount(ByteBuffer key) {
 
-		Assert.notNull(key, "key must not be null");
+		Assert.notNull(key, "Key must not be null!");
 
 		return pfCount(Collections.singletonList(key));
 	}
@@ -154,9 +215,9 @@ public interface ReactiveHyperLogLogCommands {
 	 * @param keys must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Long> pfCount(List<ByteBuffer> keys) {
+	default Mono<Long> pfCount(Collection<ByteBuffer> keys) {
 
-		Assert.notNull(keys, "keys must not be null");
+		Assert.notNull(keys, "Keys must not be null!");
 
 		return pfCount(Mono.just(PfCountCommand.valuesIn(keys))).next().map(NumericResponse::getOutput);
 	}
@@ -170,6 +231,8 @@ public interface ReactiveHyperLogLogCommands {
 	Flux<NumericResponse<PfCountCommand, Long>> pfCount(Publisher<PfCountCommand> commands);
 
 	/**
+	 * {@code PFMERGE} command parameters.
+	 *
 	 * @author Christoph Strobl
 	 */
 	class PfMergeCommand extends KeyCommand {
@@ -182,14 +245,36 @@ public interface ReactiveHyperLogLogCommands {
 			this.sourceKeys = sourceKeys;
 		}
 
-		public static PfMergeCommand valuesIn(List<ByteBuffer> sourceKeys) {
-			return new PfMergeCommand(null, sourceKeys);
+		/**
+		 * Creates a new {@link PfMergeCommand} given a {@link Collection} of {@literal sourceKeys}.
+		 *
+		 * @param sourceKeys must not be {@literal null}.
+		 * @return a new {@link PfMergeCommand} for {@literal sourceKeys}.
+		 */
+		public static PfMergeCommand valuesIn(Collection<ByteBuffer> sourceKeys) {
+
+			Assert.notNull(sourceKeys, "Source keys must not be null!");
+
+			return new PfMergeCommand(null, new ArrayList<>(sourceKeys));
 		}
 
+		/**
+		 * Applies the {@literal destinationKey}. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param destinationKey must not be {@literal null}.
+		 * @return a new {@link PfMergeCommand} with {@literal destinationKey} applied.
+		 */
 		public PfMergeCommand into(ByteBuffer destinationKey) {
+
+			Assert.notNull(destinationKey, "Destination key must not be null!");
+
 			return new PfMergeCommand(destinationKey, sourceKeys);
 		}
 
+		/**
+		 * @return
+		 */
 		public List<ByteBuffer> getSourceKeys() {
 			return sourceKeys;
 		}
@@ -202,10 +287,10 @@ public interface ReactiveHyperLogLogCommands {
 	 * @param sourceKeys must not be {@literal null}.
 	 * @return
 	 */
-	default Mono<Boolean> pfMerge(ByteBuffer destinationKey, List<ByteBuffer> sourceKeys) {
+	default Mono<Boolean> pfMerge(ByteBuffer destinationKey, Collection<ByteBuffer> sourceKeys) {
 
-		Assert.notNull(destinationKey, "destinationKey must not be null");
-		Assert.notNull(sourceKeys, "sourceKeys must not be null");
+		Assert.notNull(destinationKey, "DestinationKey must not be null!");
+		Assert.notNull(sourceKeys, "SourceKeys must not be null!");
 
 		return pfMerge(Mono.just(PfMergeCommand.valuesIn(sourceKeys).into(destinationKey))).next()
 				.map(BooleanResponse::getOutput);
@@ -218,5 +303,4 @@ public interface ReactiveHyperLogLogCommands {
 	 * @return
 	 */
 	Flux<BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands);
-
 }

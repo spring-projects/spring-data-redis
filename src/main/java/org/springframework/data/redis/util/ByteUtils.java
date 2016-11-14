@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.util;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -97,5 +98,22 @@ public final class ByteUtils {
 		System.arraycopy(additionalArrays, 0, result, 1, additionalArrays.length);
 
 		return result;
+	}
+
+	/**
+	 * Extract a byte array from {@link ByteBuffer} without consuming it.
+	 *
+	 * @param byteBuffer must not be {@literal null}.
+	 * @return
+	 * @since 2.0
+	 */
+	public static byte[] getBytes(ByteBuffer byteBuffer) {
+
+		Assert.notNull(byteBuffer, "ByteBuffer must not be null!");
+
+		ByteBuffer duplicate = byteBuffer.duplicate();
+		byte[] bytes = new byte[duplicate.remaining()];
+		duplicate.get(bytes);
+		return bytes;
 	}
 }

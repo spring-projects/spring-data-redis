@@ -28,6 +28,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Numeric
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -61,6 +62,7 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	public LettuceReactiveZSetCommands(LettuceReactiveRedisConnection connection) {
 
 		Assert.notNull(connection, "Connection must not be null!");
+
 		this.connection = connection;
 	}
 
@@ -75,17 +77,16 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
-			Assert.notEmpty(command.getTuples(), "Tuples must not be empty or null.");
+			Assert.notEmpty(command.getTuples(), "Tuples must not be empty or null!");
 
 			ZAddArgs args = null;
 
-			if (command.getIncr().isPresent() || command.getUpsert().isPresent()
-					|| command.getReturnTotalChanged().isPresent()) {
+			if (command.isIncr() || command.isUpsert() || command.isReturnTotalChanged()) {
 
-				if (command.getIncr().isPresent() && ObjectUtils.nullSafeEquals(command.getIncr().get(), Boolean.TRUE)) {
+				if (command.isIncr()) {
 
 					if (command.getTuples().size() > 1) {
-						throw new IllegalArgumentException("ZADD INCR must not contain more than one tuple.");
+						throw new IllegalArgumentException("ZADD INCR must not contain more than one tuple!");
 					}
 
 					Tuple tuple = command.getTuples().iterator().next();
@@ -94,18 +95,14 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 							.map(value -> new NumericResponse<>(command, value));
 				}
 
-				if (command.getReturnTotalChanged().isPresent()
-						&& ObjectUtils.nullSafeEquals(command.getReturnTotalChanged().get(), Boolean.TRUE)) {
+				if (command.isReturnTotalChanged()) {
 					args = ZAddArgs.Builder.ch();
 				}
 
-				if (command.getUpsert().isPresent()) {
-
-					if (command.getUpsert().get().equals(Boolean.TRUE)) {
-						args = ZAddArgs.Builder.nx();
-					} else {
-						args = ZAddArgs.Builder.xx();
-					}
+				if (command.isUpsert()) {
+					args = ZAddArgs.Builder.nx();
+				} else {
+					args = ZAddArgs.Builder.xx();
 				}
 			}
 
@@ -188,8 +185,7 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Mono<List<Tuple>> result;
 
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
-				if (command.getWithScores().isPresent()
-						&& ObjectUtils.nullSafeEquals(command.getWithScores().get(), Boolean.TRUE)) {
+				if (command.isWithScores()) {
 
 					result = cmd
 							.zrangeWithScores(command.getKey(), command.getRange().getLowerBound(),
@@ -198,11 +194,10 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				} else {
 
 					result = cmd.zrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
-							.map(value -> (Tuple) new DefaultTuple(getBytes(value), Double.NaN)).collectList();
+							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN)).collectList();
 				}
 			} else {
-				if (command.getWithScores().isPresent()
-						&& ObjectUtils.nullSafeEquals(command.getWithScores().get(), Boolean.TRUE)) {
+				if (command.isWithScores()) {
 
 					result = cmd
 							.zrevrangeWithScores(command.getKey(), command.getRange().getLowerBound(),
@@ -212,7 +207,7 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 					result = cmd
 							.zrevrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
-							.map(value -> (Tuple) new DefaultTuple(getBytes(value), Double.NaN)).collectList();
+							.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN)).collectList();
 				}
 			}
 
@@ -237,60 +232,55 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 			Mono<List<Tuple>> result;
 
 			if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
-				
+
 				Range<Number> range = ArgumentConverters.toRange(command.getRange());
-				
-				if (command.getWithScores().isPresent()
-						&& ObjectUtils.nullSafeEquals(command.getWithScores().get(), Boolean.TRUE)) {
+
+				if (command.isWithScores()) {
 
 					if (!isLimited) {
 						result = cmd.zrangebyscoreWithScores(command.getKey(), range)
-								.map(sc -> (Tuple) new DefaultTuple(getBytes(sc.getValue()), sc.getScore())).collectList();
+								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore())).collectList();
 					} else {
 						result = cmd
-								.zrangebyscoreWithScores(command.getKey(), range,
-										LettuceConverters.toLimit(command.getLimit().get()))
-								.map(sc -> (Tuple) new DefaultTuple(getBytes(sc.getValue()), sc.getScore())).collectList();
+								.zrangebyscoreWithScores(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
+								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore())).collectList();
 					}
 				} else {
 
 					if (!isLimited) {
 						result = cmd.zrangebyscore(command.getKey(), range)
-								.map(value -> (Tuple) new DefaultTuple(getBytes(value), Double.NaN)).collectList();
+								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN)).collectList();
 					} else {
 
-						result = cmd
-								.zrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(value -> (Tuple) new DefaultTuple(getBytes(value), Double.NaN)).collectList();
+						result = cmd.zrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
+								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN)).collectList();
 					}
 				}
 			} else {
-				
+
 				Range<Number> range = ArgumentConverters.toRevRange(command.getRange());
-				
-				if (command.getWithScores().isPresent()
-						&& ObjectUtils.nullSafeEquals(command.getWithScores().get(), Boolean.TRUE)) {
+
+				if (command.isWithScores()) {
 
 					if (!isLimited) {
 						result = cmd.zrevrangebyscoreWithScores(command.getKey(), range)
-								.map(sc -> (Tuple) new DefaultTuple(getBytes(sc.getValue()), sc.getScore())).collectList();
+								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore())).collectList();
 					} else {
 
 						result = cmd
 								.zrevrangebyscoreWithScores(command.getKey(), range,
 										LettuceConverters.toLimit(command.getLimit().get()))
-								.map(sc -> (Tuple) new DefaultTuple(getBytes(sc.getValue()), sc.getScore())).collectList();
+								.map(sc -> (Tuple) new DefaultTuple(ByteUtils.getBytes(sc.getValue()), sc.getScore())).collectList();
 					}
 				} else {
 
 					if (!isLimited) {
 						result = cmd.zrevrangebyscore(command.getKey(), range)
-								.map(value -> (Tuple) new DefaultTuple(getBytes(value), Double.NaN)).collectList();
+								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN)).collectList();
 					} else {
 
-						result = cmd
-								.zrevrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
-								.map(value -> (Tuple) new DefaultTuple(getBytes(value), Double.NaN)).collectList();
+						result = cmd.zrevrangebyscore(command.getKey(), range, LettuceConverters.toLimit(command.getLimit().get()))
+								.map(value -> (Tuple) new DefaultTuple(ByteUtils.getBytes(value), Double.NaN)).collectList();
 					}
 				}
 			}
@@ -451,13 +441,14 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 			Flux<ByteBuffer> result;
 
-
 			if (command.getLimit() != null) {
 
 				if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
-					result = cmd.zrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()), LettuceConverters.toLimit(command.getLimit()));
+					result = cmd.zrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()),
+							LettuceConverters.toLimit(command.getLimit()));
 				} else {
-					result = cmd.zrevrangebylex(command.getKey(), ArgumentConverters.toRevRange(command.getRange()), LettuceConverters.toLimit(command.getLimit()));
+					result = cmd.zrevrangebylex(command.getKey(), ArgumentConverters.toRevRange(command.getRange()),
+							LettuceConverters.toLimit(command.getLimit()));
 				}
 			} else {
 				if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
@@ -499,14 +490,7 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	}
 
 	private static byte[] getBytes(ScoredValue<ByteBuffer> scoredValue) {
-		return scoredValue.optional().map(LettuceReactiveZSetCommands::getBytes).orElse(new byte[0]);
-	}
-
-	private static byte[] getBytes(ByteBuffer byteBuffer) {
-
-		byte[] bytes = new byte[byteBuffer.remaining()];
-		byteBuffer.get(bytes);
-		return bytes;
+		return scoredValue.optional().map(ByteUtils::getBytes).orElse(new byte[0]);
 	}
 
 	protected LettuceReactiveRedisConnection getConnection() {
@@ -517,23 +501,23 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
 	 */
-	static class ArgumentConverters {
+	private static class ArgumentConverters {
 
-		public static <T> Range<T> toRange(org.springframework.data.domain.Range<?> range) {
+		static <T> Range<T> toRange(org.springframework.data.domain.Range<?> range) {
 			return Range.from(lowerBoundArgOf(range), upperBoundArgOf(range));
 		}
-		
-		public static <T> Range<T> toRevRange(org.springframework.data.domain.Range<?> range) {
+
+		static <T> Range<T> toRevRange(org.springframework.data.domain.Range<?> range) {
 			return Range.from(upperBoundArgOf(range), lowerBoundArgOf(range));
 		}
 
 		@SuppressWarnings("unchecked")
-		public static <T> Boundary<T> lowerBoundArgOf(org.springframework.data.domain.Range<?> range) {
+		static <T> Boundary<T> lowerBoundArgOf(org.springframework.data.domain.Range<?> range) {
 			return (Boundary<T>) rangeToBoundArgumentConverter(false).convert(range);
 		}
 
 		@SuppressWarnings("unchecked")
-		public static <T> Boundary<T> upperBoundArgOf(org.springframework.data.domain.Range<?> range) {
+		static <T> Boundary<T> upperBoundArgOf(org.springframework.data.domain.Range<?> range) {
 			return (Boundary<T>) rangeToBoundArgumentConverter(true).convert(range);
 		}
 

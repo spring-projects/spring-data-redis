@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.nio.ByteBuffer;
@@ -24,7 +23,8 @@ import org.reactivestreams.Publisher;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ClusterSlotHashUtil;
 import org.springframework.data.redis.connection.ReactiveClusterHyperLogLogCommands;
-import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -46,8 +46,11 @@ public class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHy
 		super(connection);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveHyperLogLogCommands#pfMerge(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands) {
+	public Flux<BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
@@ -66,9 +69,11 @@ public class LettuceReactiveClusterHyperLogLogCommands extends LettuceReactiveHy
 		}));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveHyperLogLogCommands#pfCount(org.reactivestreams.Publisher)
+	 */
 	@Override
-	public Flux<ReactiveRedisConnection.NumericResponse<PfCountCommand, Long>> pfCount(
-			Publisher<PfCountCommand> commands) {
+	public Flux<NumericResponse<PfCountCommand, Long>> pfCount(Publisher<PfCountCommand> commands) {
 
 		return getConnection().execute(cmd -> Flux.from(commands).flatMap(command -> {
 
