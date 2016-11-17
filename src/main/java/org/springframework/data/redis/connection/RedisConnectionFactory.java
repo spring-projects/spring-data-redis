@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,22 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 	 * Provides a suitable connection for interacting with Redis Cluster.
 	 * 
 	 * @return
-	 * @throws
 	 * @since 1.7
 	 */
 	RedisClusterConnection getClusterConnection();
+
+	/**
+	 * @return
+	 * @since 2.0.
+	 */
+	ReactiveRedisConnection getReactiveConnection();
+
+	/**
+	 *
+	 * @return
+	 * @since 2.0
+	 */
+	ReactiveRedisClusterConnection getReactiveClusterConnection();
 
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of

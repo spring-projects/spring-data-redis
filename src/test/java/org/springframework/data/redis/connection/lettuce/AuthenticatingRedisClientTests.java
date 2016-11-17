@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.lambdaworks.redis.RedisAsyncConnection;
 import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
@@ -77,15 +76,15 @@ public class AuthenticatingRedisClientTests {
 
 	@Test
 	public void connectAsync() {
-		RedisAsyncConnection<String, String> conn = client.connectAsync();
-		conn.ping();
+		StatefulRedisConnection<String, String> conn = client.connect();
+		conn.sync().ping();
 		conn.close();
 	}
 
 	@Test
 	public void codecConnectAsync() {
-		RedisAsyncConnection<byte[], byte[]> conn = client.connectAsync(LettuceConnection.CODEC);
-		conn.ping();
+		StatefulRedisConnection<byte[], byte[]> conn = client.connect(LettuceConnection.CODEC);
+		conn.sync().ping();
 		conn.close();
 	}
 

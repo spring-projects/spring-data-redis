@@ -260,7 +260,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.rename(KEY_1_BYTES, KEY_2_BYTES);
 
-		assertThat(nativeConnection.exists(KEY_1), is(false));
+		assertThat(nativeConnection.exists(KEY_1), is(0L));
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_1));
 	}
 
@@ -274,7 +274,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.rename(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES);
 
-		assertThat(nativeConnection.exists(SAME_SLOT_KEY_1), is(false));
+		assertThat(nativeConnection.exists(SAME_SLOT_KEY_1), is(0L));
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), is(VALUE_1));
 	}
 
@@ -288,7 +288,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.renameNX(KEY_1_BYTES, KEY_2_BYTES), is(Boolean.TRUE));
 
-		assertThat(nativeConnection.exists(KEY_1), is(false));
+		assertThat(nativeConnection.exists(KEY_1), is(0L));
 		assertThat(nativeConnection.get(KEY_2), is(VALUE_1));
 	}
 
@@ -317,7 +317,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		assertThat(clusterConnection.renameNX(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), is(Boolean.TRUE));
 
-		assertThat(nativeConnection.exists(SAME_SLOT_KEY_1), is(false));
+		assertThat(nativeConnection.exists(SAME_SLOT_KEY_1), is(0L));
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2), is(VALUE_1));
 	}
 
@@ -529,7 +529,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
 
 		assertThat(clusterConnection.sort(KEY_1_BYTES, new DefaultSortParameters().alpha(), KEY_2_BYTES), is(1L));
-		assertThat(nativeConnection.exists(KEY_2), is(true));
+		assertThat(nativeConnection.exists(KEY_2), is(1L));
 	}
 
 	/**
@@ -951,7 +951,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.rPushX(KEY_1_BYTES, VALUE_1_BYTES);
 
-		assertThat(nativeConnection.exists(KEY_1), is(false));
+		assertThat(nativeConnection.exists(KEY_1), is(0L));
 	}
 
 	/**
@@ -962,7 +962,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.lPushX(KEY_1_BYTES, VALUE_1_BYTES);
 
-		assertThat(nativeConnection.exists(KEY_1), is(false));
+		assertThat(nativeConnection.exists(KEY_1), is(0L));
 	}
 
 	/**
@@ -1141,7 +1141,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(clusterConnection.bRPopLPush(0, KEY_1_BYTES, KEY_2_BYTES), is(VALUE_1_BYTES));
-		assertThat(nativeConnection.exists(KEY_2), is(true));
+		assertThat(nativeConnection.exists(KEY_2), is(1L));
 	}
 
 	/**
@@ -1153,7 +1153,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(clusterConnection.bRPopLPush(0, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), is(VALUE_1_BYTES));
-		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(true));
+		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(1L));
 	}
 
 	/**
@@ -1165,7 +1165,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 		nativeConnection.lpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
 
 		assertThat(clusterConnection.rPopLPush(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES), is(VALUE_1_BYTES));
-		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(true));
+		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2), is(1L));
 	}
 
 	/**
@@ -1911,7 +1911,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.hMSet(KEY_1_BYTES, hashes);
 
-		assertThat(nativeConnection.hmget(KEY_1, KEY_2, KEY_3), hasItems(VALUE_1, VALUE_2));
+		assertThat(clusterConnection.hMGet(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES), hasItems(VALUE_1_BYTES, VALUE_2_BYTES));
 	}
 
 	/**
@@ -2407,7 +2407,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.upsert());
 
-		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.exists(KEY_1), is(1L));
 		assertThat(nativeConnection.ttl(KEY_1), is(1L));
 	}
 
@@ -2419,7 +2419,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.milliseconds(500), SetOption.upsert());
 
-		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.exists(KEY_1), is(1L));
 		assertThat(nativeConnection.pttl(KEY_1).doubleValue(), is(closeTo(500d, 499d)));
 	}
 
@@ -2441,7 +2441,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifAbsent());
 
-		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.exists(KEY_1), is(1L));
 		assertThat(nativeConnection.ttl(KEY_1), is(-1L));
 	}
 
@@ -2453,7 +2453,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifAbsent());
 
-		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.exists(KEY_1), is(1L));
 		assertThat(nativeConnection.ttl(KEY_1), is(1L));
 	}
 
@@ -2467,7 +2467,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(1), SetOption.ifAbsent());
 
-		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.exists(KEY_1), is(1L));
 		assertThat(nativeConnection.ttl(KEY_1), is(-1L));
 		assertThat(nativeConnection.get(KEY_1), is(equalTo(VALUE_1)));
 
@@ -2483,7 +2483,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_2_BYTES, Expiration.seconds(1), SetOption.ifPresent());
 
-		assertThat(nativeConnection.exists(KEY_1), is(true));
+		assertThat(nativeConnection.exists(KEY_1), is(1L));
 		assertThat(nativeConnection.ttl(KEY_1), is(1L));
 		assertThat(nativeConnection.get(KEY_1), is(equalTo(VALUE_2)));
 
@@ -2497,7 +2497,7 @@ public class LettuceClusterConnectionTests implements ClusterConnectionTests {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifPresent());
 
-		assertThat(nativeConnection.exists(KEY_1), is(false));
+		assertThat(nativeConnection.exists(KEY_1), is(0L));
 	}
 
 	/**

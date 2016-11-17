@@ -55,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(transactionManager = "transactionManager")
 public class TransactionalRedisCacheManagerWithCommitUnitTests {
 
-	@SuppressWarnings("rawtypes")//
+	@SuppressWarnings("rawtypes") //
 	protected @Autowired RedisTemplate redisTemplate;
 	protected @Autowired FooService transactionalService;
 

@@ -35,6 +35,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
 import org.junit.Before;
@@ -254,7 +255,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		cache.put(key, value);
 
 		RedisCache redisCache = (RedisCache) cache;
-		assertThat(redisCache.get(key, value.getClass()), instanceOf(value.getClass()));
+		assertThat(redisCache.get(key, value.getClass()), IsInstanceOf.<Object>instanceOf(value.getClass()));
 	}
 
 	/**

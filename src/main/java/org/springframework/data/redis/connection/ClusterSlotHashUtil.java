@@ -15,6 +15,11 @@
  */
 package org.springframework.data.redis.connection;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -50,6 +55,36 @@ public final class ClusterSlotHashUtil {
 
 	private ClusterSlotHashUtil() {
 
+	}
+
+	/**
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @since 2.0
+	 */
+	public static boolean isSameSlotForAllKeys(Collection<ByteBuffer> keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+
+		if (keys.size() <= 1) {
+			return true;
+		}
+
+		return isSameSlotForAllKeys((byte[][]) keys.stream() //
+				.map(ByteBuffer::duplicate) //
+				.map(ByteUtils::getBytes) //
+				.toArray(byte[][]::new));
+	}
+
+	/**
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 * @since 2.0
+	 */
+	public static boolean isSameSlotForAllKeys(ByteBuffer... keys) {
+
+		Assert.notNull(keys, "Keys must not be null!");
+		return isSameSlotForAllKeys(Arrays.asList(keys));
 	}
 
 	/**
@@ -133,5 +168,4 @@ public final class ClusterSlotHashUtil {
 		}
 		return crc & 0xFFFF;
 	}
-
 }

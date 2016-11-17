@@ -199,7 +199,7 @@ public interface RedisGeoCommands {
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
-	public class GeoRadiusCommandArgs {
+	public class GeoRadiusCommandArgs implements Cloneable {
 
 		Set<Flag> flags = new LinkedHashSet<Flag>(2, 1);
 		Long limit;
@@ -308,6 +308,16 @@ public interface RedisGeoCommands {
 
 		public static enum Flag {
 			WITHCOORD, WITHDIST
+		}
+
+		@Override
+		protected GeoRadiusCommandArgs clone() {
+
+			GeoRadiusCommandArgs tmp = new GeoRadiusCommandArgs();
+			tmp.flags = this.flags != null ? new LinkedHashSet<>(this.flags) : new LinkedHashSet<>(2);
+			tmp.limit = this.limit;
+			tmp.sortDirection = this.sortDirection;
+			return tmp;
 		}
 	}
 

@@ -16,18 +16,9 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.DataAccessException;
@@ -51,6 +42,7 @@ import org.springframework.data.redis.connection.RedisNode.NodeType;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisServer;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Range.Boundary;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.connection.ReturnType;
@@ -62,20 +54,13 @@ import org.springframework.data.redis.connection.convert.LongToBooleanConverter;
 import org.springframework.data.redis.connection.convert.StringToRedisClientInfoConverter;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.core.types.RedisClientInfo;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import com.lambdaworks.redis.GeoArgs;
-import com.lambdaworks.redis.GeoCoordinates;
-import com.lambdaworks.redis.GeoWithin;
-import com.lambdaworks.redis.KeyValue;
-import com.lambdaworks.redis.RedisURI;
-import com.lambdaworks.redis.ScoredValue;
-import com.lambdaworks.redis.ScriptOutputType;
-import com.lambdaworks.redis.SetArgs;
-import com.lambdaworks.redis.SortArgs;
+import com.lambdaworks.redis.*;
 import com.lambdaworks.redis.cluster.models.partitions.Partitions;
 import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
@@ -111,6 +96,9 @@ abstract public class LettuceConverters extends Converters {
 	private static final Converter<List<byte[]>, Long> BYTES_LIST_TO_TIME_CONVERTER;
 	private static final Converter<GeoCoordinates, Point> GEO_COORDINATE_TO_POINT_CONVERTER;
 	private static final ListConverter<GeoCoordinates, Point> GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER;
+	private static final Converter<KeyValue<Object, Object>, Object> KEY_VALUE_UNWRAPPER;
+	private static final ListConverter<KeyValue<Object, Object>, Object> KEY_VALUE_LIST_UNWRAPPER;
+	private static final Converter<TransactionResult, List<Object>> TRANSACTION_RESULT_UNWRAPPER;
 
 	public static final byte[] PLUS_BYTES;
 	public static final byte[] MINUS_BYTES;
@@ -167,8 +155,8 @@ abstract public class LettuceConverters extends Converters {
 					return null;
 				}
 				List<byte[]> list = new ArrayList<byte[]>(2);
-				list.add(source.key);
-				list.add(source.value);
+				list.add(source.getKey());
+				list.add(source.getValue());
 				return list;
 			}
 		};
@@ -218,7 +206,7 @@ abstract public class LettuceConverters extends Converters {
 		};
 		SCORED_VALUE_TO_TUPLE = new Converter<ScoredValue<byte[]>, Tuple>() {
 			public Tuple convert(ScoredValue<byte[]> source) {
-				return source != null ? new DefaultTuple(source.value, Double.valueOf(source.score)) : null;
+				return source != null ? new DefaultTuple(source.getValue(), Double.valueOf(source.getScore())) : null;
 			}
 		};
 		BYTES_LIST_TO_TUPLE_LIST_CONVERTER = new Converter<List<byte[]>, List<Tuple>>() {
@@ -329,12 +317,29 @@ abstract public class LettuceConverters extends Converters {
 		GEO_COORDINATE_TO_POINT_CONVERTER = new Converter<com.lambdaworks.redis.GeoCoordinates, Point>() {
 			@Override
 			public Point convert(com.lambdaworks.redis.GeoCoordinates geoCoordinate) {
-				return geoCoordinate != null ? new Point(geoCoordinate.x.doubleValue(), geoCoordinate.y.doubleValue()) : null;
+				return geoCoordinate != null ? new Point(geoCoordinate.getX().doubleValue(), geoCoordinate.getY().doubleValue()) : null;
 			}
 		};
 		GEO_COORDINATE_LIST_TO_POINT_LIST_CONVERTER = new ListConverter<GeoCoordinates, Point>(
 				GEO_COORDINATE_TO_POINT_CONVERTER);
 
+		KEY_VALUE_UNWRAPPER = new Converter<KeyValue<Object, Object>, Object>() {
+
+			@Override
+			public Object convert(KeyValue<Object, Object> source) {
+				return source.getValueOrElse(null);
+			}
+		};
+
+		KEY_VALUE_LIST_UNWRAPPER = new ListConverter<>(KEY_VALUE_UNWRAPPER);
+
+		TRANSACTION_RESULT_UNWRAPPER = new Converter<TransactionResult, List<Object>>() {
+
+			@Override
+			public List<Object> convert(TransactionResult transactionResult) {
+				return transactionResult.stream().collect(Collectors.toList());
+			}
+		};
 	}
 
 	public static List<Tuple> toTuple(List<byte[]> list) {
@@ -343,6 +348,10 @@ abstract public class LettuceConverters extends Converters {
 
 	public static Converter<List<byte[]>, List<Tuple>> bytesListToTupleListConverter() {
 		return BYTES_LIST_TO_TUPLE_LIST_CONVERTER;
+	}
+
+	public static Point geoCoordinatesToPoint(GeoCoordinates geoCoordinates) {
+		return GEO_COORDINATE_TO_POINT_CONVERTER.convert(geoCoordinates);
 	}
 
 	public static Converter<String, List<RedisClientInfo>> stringToRedisClientListConverter() {
@@ -538,6 +547,81 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
+	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Limit} to a lettuce {@link com.lambdaworks.redis.Limit}.
+	 *
+	 * @param limit
+	 * @return a lettuce {@link com.lambdaworks.redis.Limit}.
+	 * @since 2.0
+	 */
+	public static com.lambdaworks.redis.Limit toLimit(RedisZSetCommands.Limit limit){
+		return Limit.create(limit.getOffset(), limit.getCount());
+	}
+
+	/**
+	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Range} to a lettuce {@link Range}.
+	 *
+	 * @param range
+	 * @return
+	 * @since 2.0
+	 */
+	public static <T> Range<T> toRange(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+			return Range.from(lowerBoundaryOf(range), upperBoundaryOf(range));
+	}
+
+	/**
+	 * Convert a {@link org.springframework.data.redis.connection.RedisZSetCommands.Range} to a lettuce {@link Range} and
+	 * reverse boundaries.
+	 *
+	 * @param range
+	 * @return
+	 * @since 2.0
+	 */
+	public static <T> Range<T> toRevRange(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return Range.from(upperBoundaryOf(range), lowerBoundaryOf(range));
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> Range.Boundary<T> lowerBoundaryOf(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return (Range.Boundary<T>) rangeToBoundaryArgumentConverter(false).convert(range);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> Range.Boundary<T> upperBoundaryOf(org.springframework.data.redis.connection.RedisZSetCommands.Range range) {
+		return (Range.Boundary<T>) rangeToBoundaryArgumentConverter(true).convert(range);
+	}
+
+	private static Converter<org.springframework.data.redis.connection.RedisZSetCommands.Range, Range.Boundary<?>> rangeToBoundaryArgumentConverter(
+			boolean upper) {
+
+		return (source) -> {
+
+			Boundary sourceBoundary = upper ? source.getMax() : source.getMin();
+			if (sourceBoundary == null || sourceBoundary.getValue() == null) {
+				return Range.Boundary.unbounded();
+			}
+
+			boolean inclusive = sourceBoundary.isIncluding();
+			Object value = sourceBoundary.getValue();
+
+			if (value instanceof Number) {
+				return inclusive ? Range.Boundary.including((Number) value) : Range.Boundary.excluding((Number) value);
+			}
+
+			if (value instanceof String) {
+
+				if (!StringUtils.hasText((String) value) || ObjectUtils.nullSafeEquals(value, "+")
+						|| ObjectUtils.nullSafeEquals(value, "-")) {
+					return Range.Boundary.unbounded();
+				}
+				return inclusive ? Range.Boundary.including(value.toString().getBytes(LettuceCharsets.UTF8))
+						: Range.Boundary.excluding(value.toString().getBytes(LettuceCharsets.UTF8));
+			}
+
+			return inclusive ? Range.Boundary.including((byte[]) value) : Range.Boundary.excluding((byte[]) value);
+		};
+	}
+
+	/**
 	 * @param source List of Maps containing node details from SENTINEL SLAVES or SENTINEL MASTERS. May be empty or
 	 *          {@literal null}.
 	 * @return List of {@link RedisServer}'s. List is empty if List of Maps is empty.
@@ -656,7 +740,7 @@ abstract public class LettuceConverters extends Converters {
 		ByteBuffer buffer = ByteBuffer.allocate(prefix.length + value.length);
 		buffer.put(prefix);
 		buffer.put(value);
-		return toString(buffer.array());
+		return toString(ByteUtils.getBytes(buffer));
 	}
 
 	public static List<RedisClusterNode> partitionsToClusterNodes(Partitions partitions) {
@@ -817,6 +901,19 @@ abstract public class LettuceConverters extends Converters {
 	}
 
 	/**
+	 * @return
+	 * @since 2.0
+	 */
+	@SuppressWarnings("unchecked")
+	public static <K, V> ListConverter<KeyValue<K, V>, V> keyValueListUnwrapper() {
+		return (ListConverter) KEY_VALUE_LIST_UNWRAPPER;
+	}
+
+	public static Converter<TransactionResult, List<Object>> transactionResultUnwrapper() {
+		return TRANSACTION_RESULT_UNWRAPPER;
+	}
+
+	/**
 	 * @author Christoph Strobl
 	 * @since 1.8
 	 */
@@ -877,10 +974,10 @@ abstract public class LettuceConverters extends Converters {
 			@Override
 			public GeoResult<GeoLocation<byte[]>> convert(GeoWithin<byte[]> source) {
 
-				Point point = GEO_COORDINATE_TO_POINT_CONVERTER.convert(source.coordinates);
+				Point point = GEO_COORDINATE_TO_POINT_CONVERTER.convert(source.getCoordinates());
 
-				return new GeoResult<GeoLocation<byte[]>>(new GeoLocation<byte[]>(source.member, point),
-						new Distance(source.distance != null ? source.distance : 0D, metric));
+				return new GeoResult<GeoLocation<byte[]>>(new GeoLocation<byte[]>(source.getMember(), point),
+						new Distance(source.getDistance() != null ? source.getDistance() : 0D, metric));
 			}
 		}
 	}
