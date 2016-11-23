@@ -6,6 +6,14 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.0.M1 (2016-11-23)
+----------------------------------------
+* DATAREDIS-569 - Set up 2.0 development.
+* DATAREDIS-568 - Release 2.0 M1 (Kay).
+* DATAREDIS-567 - Remove Support for SRP and JRedis.
+* DATAREDIS-525 - Add support for reactive RedisConnection and RedisOperations.
+
+
 Changes in version 1.7.5.RELEASE (2016-11-03)
 ---------------------------------------------
 * DATAREDIS-558 - spring-data-redis - Cannot install in OSGi due import range of slf4j is locked down to 1.7.12 version.
