@@ -68,6 +68,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 import redis.clients.jedis.BinaryJedis;
 import redis.clients.jedis.BinaryJedisPubSub;
@@ -149,6 +150,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	private volatile JedisSubscription subscription;
 	private volatile Pipeline pipeline;
 	private final int dbIndex;
+	private final String clientName;
 	private boolean convertPipelineAndTxResults = true;
 	private List<FutureResult<Response<?>>> pipelinedResults = new ArrayList<FutureResult<Response<?>>>();
 	private Queue<FutureResult<Response<?>>> txResults = new LinkedList<FutureResult<Response<?>>>();
@@ -192,15 +194,30 @@ public class JedisConnection extends AbstractRedisConnection {
 	 *
 	 * @param jedis
 	 * @param pool can be null, if no pool is used
+	 * @param dbIndex
 	 */
 	public JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex) {
-		this.jedis = jedis;
+		this(jedis, pool, dbIndex, null);
+	}
+
+	/**
+	 * Constructs a new <code>JedisConnection</code> instance backed by a jedis pool.
+	 *
+	 * @param jedis
+	 * @param pool can be null, if no pool is used
+	 * @param dbIndex
+	 * @param clientName the client name, can be {@literal null}.
+	 * @since 1.8
+	 */
+	protected JedisConnection(Jedis jedis, Pool<Jedis> pool, int dbIndex, String clientName) {
+
 		// extract underlying connection for batch operations
 		client = (Client) ReflectionUtils.getField(CLIENT_FIELD, jedis);
 
+		this.jedis = jedis;
 		this.pool = pool;
-
 		this.dbIndex = dbIndex;
+		this.clientName = clientName;
 
 		// select the db
 		// if this fail, do manual clean-up before propagating the exception
@@ -3988,7 +4005,14 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	protected Jedis getJedis(RedisNode node) {
-		return new Jedis(node.getHost(), node.getPort());
+
+		Jedis jedis = new Jedis(node.getHost(), node.getPort());
+
+		if (StringUtils.hasText(clientName)) {
+			jedis.clientSetname(clientName);
+		}
+
+		return jedis;
 	}
 
 	@Override
