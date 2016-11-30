@@ -186,9 +186,12 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			if (usePool && pool != null) {
 				return pool.getResource();
 			}
+
 			Jedis jedis = new Jedis(getShardInfo());
 			// force initialization (see Jedis issue #82)
 			jedis.connect();
+
+			potentiallySetClientName(jedis);
 			return jedis;
 		} catch (Exception ex) {
 			throw new RedisConnectionFailureException("Cannot get Jedis connection", ex);
@@ -336,8 +339,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		}
 
 		Jedis jedis = fetchJedisConnector();
-		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex)
-				: new JedisConnection(jedis, null, dbIndex));
+		JedisConnection connection = (usePool ? new JedisConnection(jedis, pool, dbIndex, clientName)
+				: new JedisConnection(jedis, null, dbIndex, clientName));
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return postProcessConnection(connection);
 	}
@@ -380,7 +383,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the Redis hostName.
 	 * 
-	 * @return Returns the hostName
+	 * @return the hostName.
 	 */
 	public String getHostName() {
 		return hostName;
@@ -389,7 +392,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Sets the Redis hostName.
 	 * 
-	 * @param hostName The hostName to set.
+	 * @param hostName the hostName to set.
 	 */
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
@@ -408,7 +411,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns whether to use SSL.
 	 *
-	 * @return use of SSL
+	 * @return use of SSL.
 	 * @since 1.8
 	 */
 	public boolean isUseSsl() {
@@ -418,7 +421,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 * 
-	 * @return password for authentication
+	 * @return password for authentication.
 	 */
 	public String getPassword() {
 		return password;
@@ -427,7 +430,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Sets the password used for authenticating with the Redis server.
 	 * 
-	 * @param password the password to set
+	 * @param password the password to set.
 	 */
 	public void setPassword(String password) {
 		this.password = password;
@@ -436,7 +439,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the port used to connect to the Redis instance.
 	 * 
-	 * @return Redis port.
+	 * @return the Redis port.
 	 */
 	public int getPort() {
 		return port;
@@ -445,7 +448,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Sets the port used to connect to the Redis instance.
 	 * 
-	 * @param port Redis port
+	 * @param port the Redis port.
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -454,7 +457,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the shardInfo.
 	 * 
-	 * @return Returns the shardInfo
+	 * @return the shardInfo.
 	 */
 	public JedisShardInfo getShardInfo() {
 		return shardInfo;
@@ -463,7 +466,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Sets the shard info for this factory.
 	 * 
-	 * @param shardInfo The shardInfo to set.
+	 * @param shardInfo the shardInfo to set.
 	 */
 	public void setShardInfo(JedisShardInfo shardInfo) {
 		this.shardInfo = shardInfo;
@@ -472,14 +475,16 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the timeout.
 	 * 
-	 * @return Returns the timeout
+	 * @return the timeout.
 	 */
 	public int getTimeout() {
 		return timeout;
 	}
 
 	/**
-	 * @param timeout The timeout to set.
+	 * Sets the timeout.
+	 *
+	 * @param timeout the timeout to set.
 	 */
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
@@ -488,7 +493,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Indicates the use of a connection pool.
 	 * 
-	 * @return Returns the use of connection pooling.
+	 * @return the use of connection pooling.
 	 */
 	public boolean getUsePool() {
 		return usePool;
@@ -497,7 +502,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Turns on or off the use of connection pooling.
 	 * 
-	 * @param usePool The usePool to set.
+	 * @param usePool the usePool to set.
 	 */
 	public void setUsePool(boolean usePool) {
 		this.usePool = usePool;
@@ -506,7 +511,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the poolConfig.
 	 * 
-	 * @return Returns the poolConfig
+	 * @return the poolConfig
 	 */
 	public JedisPoolConfig getPoolConfig() {
 		return poolConfig;
@@ -515,7 +520,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Sets the pool configuration for this factory.
 	 * 
-	 * @param poolConfig The poolConfig to set.
+	 * @param poolConfig the poolConfig to set.
 	 */
 	public void setPoolConfig(JedisPoolConfig poolConfig) {
 		this.poolConfig = poolConfig;
@@ -524,7 +529,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Returns the index of the database.
 	 * 
-	 * @return Returns the database index
+	 * @return the database index.
 	 */
 	public int getDatabase() {
 		return dbIndex;
@@ -533,26 +538,28 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Sets the index of the database used by this connection factory. Default is 0.
 	 * 
-	 * @param index database index
+	 * @param index database index.
 	 */
 	public void setDatabase(int index) {
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
 		this.dbIndex = index;
 	}
-	
+
 	/**
 	 * Returns the client name.
-	 * 
-	 * @return Returns the client name
+	 *
+	 * @return the client name.
+	 * @since 1.8
 	 */
 	public String getClientName() {
 		return clientName;
 	}
 
 	/**
-	 * Sets the client name used by this connection factory. Default is empty.
-	 * 
-	 * @param clientName client name
+	 * Sets the client name used by this connection factory. Defaults to none which does not set a client name.
+	 *
+	 * @param clientName the client name.
+	 * @since 1.8
 	 */
 	public void setClientName(String clientName) {
 		this.clientName = clientName;
@@ -561,9 +568,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
-	 * Jedis driver
+	 * Jedis driver.
 	 * 
-	 * @return Whether or not to convert pipeline and tx results
+	 * @return Whether or not to convert pipeline and tx results.
 	 */
 	public boolean getConvertPipelineAndTxResults() {
 		return convertPipelineAndTxResults;
@@ -572,9 +579,9 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link JedisConnection#closePipeline()} and {@link JedisConnection#exec()} will be of the type returned by the
-	 * Jedis driver
+	 * Jedis driver.
 	 * 
-	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results.
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
@@ -604,14 +611,19 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	private Jedis getActiveSentinel() {
 
 		Assert.notNull(this.sentinelConfig);
+
 		for (RedisNode node : this.sentinelConfig.getSentinels()) {
+
 			Jedis jedis = new Jedis(node.getHost(), node.getPort());
+
 			if (jedis.ping().equalsIgnoreCase("pong")) {
+
+				potentiallySetClientName(jedis);
 				return jedis;
 			}
 		}
 
-		throw new InvalidDataAccessResourceUsageException("no sentinel found");
+		throw new InvalidDataAccessResourceUsageException("No Sentinel found");
 	}
 
 	private Set<String> convertToJedisSentinelSet(Collection<RedisNode> nodes) {
@@ -627,6 +639,13 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 			}
 		}
 		return convertedNodes;
+	}
+
+	private void potentiallySetClientName(Jedis jedis) {
+
+		if (StringUtils.hasText(clientName)) {
+			jedis.clientSetname(clientName);
+		}
 	}
 
 	private void setTimeoutOn(JedisShardInfo shardInfo, int timeout) {

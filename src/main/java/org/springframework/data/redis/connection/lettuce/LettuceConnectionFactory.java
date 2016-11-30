@@ -275,7 +275,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns the current host.
 	 *
-	 * @return the host
+	 * @return the host.
 	 */
 	public String getHostName() {
 		return hostName;
@@ -284,7 +284,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Sets the host.
 	 *
-	 * @param host the host to set
+	 * @param host the host to set.
 	 */
 	public void setHostName(String host) {
 		this.hostName = host;
@@ -293,7 +293,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns the current port.
 	 *
-	 * @return the port
+	 * @return the port.
 	 */
 	public int getPort() {
 		return port;
@@ -302,7 +302,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Sets the port.
 	 *
-	 * @param port the port to set
+	 * @param port the port to set.
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -311,7 +311,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns the connection timeout (in milliseconds).
 	 *
-	 * @return connection timeout
+	 * @return connection timeout.
 	 */
 	public long getTimeout() {
 		return timeout;
@@ -320,14 +320,14 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Sets the connection timeout (in milliseconds).
 	 *
-	 * @param timeout connection timeout
+	 * @param timeout connection timeout.
 	 */
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
 	}
 
 	/**
-	 * Sets to use SSL connection
+	 * Sets to use SSL connection.
 	 *
 	 * @param useSsl {@literal true} to use SSL.
 	 */
@@ -338,7 +338,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns whether to use SSL.
 	 *
-	 * @return use of SSL
+	 * @return use of SSL.
 	 */
 	public boolean isUseSsl() {
 		return useSsl;
@@ -356,7 +356,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns whether to verify certificate validity/hostname check when SSL is used.
 	 *
-	 * @return verify peers when using SSL
+	 * @return verify peers when using SSL.
 	 */
 	public boolean isVerifyPeer() {
 		return verifyPeer;
@@ -365,7 +365,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns whether to issue a StartTLS.
 	 *
-	 * @return use of StartTLS
+	 * @return use of StartTLS.
 	 */
 	public boolean isStartTls() {
 		return startTls;
@@ -383,7 +383,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Indicates if validation of the native Lettuce connection is enabled.
 	 *
-	 * @return connection validation enabled
+	 * @return connection validation enabled.
 	 */
 	public boolean getValidateConnection() {
 		return validateConnection;
@@ -400,7 +400,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * only be used if connection sharing is enabled and there is code that is actively closing the native Lettuce
 	 * connection.
 	 *
-	 * @param validateConnection enable connection validation
+	 * @param validateConnection enable connection validation.
 	 */
 	public void setValidateConnection(boolean validateConnection) {
 		this.validateConnection = validateConnection;
@@ -409,7 +409,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Indicates if multiple {@link LettuceConnection}s should share a single native connection.
 	 *
-	 * @return native connection shared
+	 * @return native connection shared.
 	 */
 	public boolean getShareNativeConnection() {
 		return shareNativeConnection;
@@ -419,7 +419,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	 * Enables multiple {@link LettuceConnection}s to share a single native connection. If set to false, every operation
 	 * on {@link LettuceConnection} will open and close a socket.
 	 *
-	 * @param shareNativeConnection enable connection sharing
+	 * @param shareNativeConnection enable connection sharing.
 	 */
 	public void setShareNativeConnection(boolean shareNativeConnection) {
 		this.shareNativeConnection = shareNativeConnection;
@@ -428,7 +428,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns the index of the database.
 	 *
-	 * @return Returns the database index
+	 * @return the database index.
 	 */
 	public int getDatabase() {
 		return dbIndex;
@@ -447,7 +447,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns the password used for authenticating with the Redis server.
 	 *
-	 * @return password for authentication
+	 * @return password for authentication.
 	 */
 	public String getPassword() {
 		return password;
@@ -465,7 +465,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Returns the shutdown timeout for shutting down the RedisClient (in milliseconds).
 	 *
-	 * @return shutdown timeout
+	 * @return shutdown timeout.
 	 * @since 1.6
 	 */
 	public long getShutdownTimeout() {
@@ -475,7 +475,7 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Sets the shutdown timeout for shutting down the RedisClient (in milliseconds).
 	 *
-	 * @param shutdownTimeout the shutdown timeout
+	 * @param shutdownTimeout the shutdown timeout.
 	 * @since 1.6
 	 */
 	public void setShutdownTimeout(long shutdownTimeout) {
@@ -506,9 +506,9 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Specifies if pipelined results should be converted to the expected data type. If false, results of
 	 * {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()} will be of the type returned by the
-	 * Lettuce driver
+	 * Lettuce driver.
 	 *
-	 * @return Whether or not to convert pipeline and tx results
+	 * @return Whether or not to convert pipeline and tx results.
 	 */
 	public boolean getConvertPipelineAndTxResults() {
 		return convertPipelineAndTxResults;
@@ -517,12 +517,28 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 	/**
 	 * Specifies if pipelined and transaction results should be converted to the expected data type. If false, results of
 	 * {@link LettuceConnection#closePipeline()} and {LettuceConnection#exec()} will be of the type returned by the
-	 * Lettuce driver
+	 * Lettuce driver.
 	 *
-	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results
+	 * @param convertPipelineAndTxResults Whether or not to convert pipeline and tx results.
 	 */
 	public void setConvertPipelineAndTxResults(boolean convertPipelineAndTxResults) {
 		this.convertPipelineAndTxResults = convertPipelineAndTxResults;
+	}
+
+	/**
+	 * @return true when {@link RedisSentinelConfiguration} is present.
+	 * @since 1.5
+	 */
+	public boolean isRedisSentinelAware() {
+		return sentinelConfiguration != null;
+	}
+
+	/**
+	 * @return true when {@link RedisClusterConfiguration} is present.
+	 * @since 1.7
+	 */
+	public boolean isClusterAware() {
+		return clusterConfiguration != null;
 	}
 
 	protected StatefulRedisConnection<byte[], byte[]> getSharedConnection() {
@@ -620,21 +636,6 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
 
 		return builder.build();
-	}
-
-	/**
-	 * @return true when {@link RedisSentinelConfiguration} is present.
-	 * @since 1.5
-	 */
-	public boolean isRedisSentinelAware() {
-		return sentinelConfiguration != null;
-	}
-
-	/**
-	 * @return since 1.7
-	 */
-	public boolean isClusterAware() {
-		return clusterConfiguration != null;
 	}
 
 	@Override

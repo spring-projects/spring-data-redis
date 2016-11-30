@@ -14,6 +14,7 @@
 			<bean class="org.springframework.data.redis.SettingsUtils"
 				factory-method="getPort" />
 		</property>
+		<property name="clientName" value="jedis-client" />
 	</bean>
 
 </beans>

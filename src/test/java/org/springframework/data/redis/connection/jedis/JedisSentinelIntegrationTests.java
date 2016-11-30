@@ -18,6 +18,8 @@ package org.springframework.data.redis.connection.jedis;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import redis.clients.jedis.Jedis;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -36,10 +38,12 @@ import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public class JedisSentinelIntegrationTests extends AbstractConnectionIntegrationTests {
 
@@ -59,6 +63,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 	@Before
 	public void setUp() {
 		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		jedisConnectionFactory.setClientName("jedis-client");
 		jedisConnectionFactory.afterPropertiesSet();
 		connectionFactory = jedisConnectionFactory;
 		super.setUp();
@@ -147,6 +152,18 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		Collection<RedisServer> slaves = sentinelConnection.slaves(servers.get(0));
 		assertThat(slaves.size(), is(2));
 		assertThat(slaves, hasItems(SLAVE_0, SLAVE_1));
+	}
+
+	/**
+	 * @see DATAREDIS-552
+	 */
+	@Test
+	public void shouldSetClientName() {
+
+		RedisSentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
+		Jedis jedis = (Jedis) ReflectionTestUtils.getField(sentinelConnection, "jedis");
+
+		assertThat(jedis.clientGetname(), is(equalTo("jedis-client")));
 	}
 
 }
