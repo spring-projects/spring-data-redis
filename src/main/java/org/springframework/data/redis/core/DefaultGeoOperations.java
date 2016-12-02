@@ -39,11 +39,11 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
 public class DefaultGeoOperations<K, M> extends AbstractOperations<K, M> implements GeoOperations<K, M> {
 
 	/**
-	 * Creates new {@link DefaultGeoOperations}.
+	 * Constructs a new {@link DefaultGeoOperations} instance .
 	 * 
 	 * @param template must not be {@literal null}.
 	 */
-	DefaultGeoOperations(RedisTemplate<K, M> template) {
+	public DefaultGeoOperations(RedisTemplate<K, M> template) {
 		super(template);
 	}
 

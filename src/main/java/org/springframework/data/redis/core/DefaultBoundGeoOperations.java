@@ -32,14 +32,15 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  * 
  * @author Ninad Divadkar
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.8
  */
-class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> implements BoundGeoOperations<K, M> {
+public class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> implements BoundGeoOperations<K, M> {
 
 	private final GeoOperations<K, M> ops;
 
 	/**
-	 * Constructs a new {@code DefaultBoundGeoOperations}.
+	 * Constructs a new {@code DefaultBoundGeoOperations} instance.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param operations must not be {@literal null}.
@@ -184,5 +185,4 @@ class DefaultBoundGeoOperations<K, M> extends DefaultBoundKeyOperations<K> imple
 	public DataType getType() {
 		return DataType.ZSET;
 	}
-
 }

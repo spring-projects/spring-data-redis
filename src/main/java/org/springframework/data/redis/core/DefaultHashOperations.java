@@ -33,14 +33,24 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Ninad Divadkar
+ * @author Mark Paluch
  */
-public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object> implements HashOperations<K, HK, HV> {
+public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Object>
+		implements HashOperations<K, HK, HV> {
 
+	/**
+	 * Constructs a new {@link DefaultHashOperations} instance .
+	 * 
+	 * @param template must not be {@literal null}.
+	 */
 	@SuppressWarnings("unchecked")
-	DefaultHashOperations(RedisTemplate<K, ?> template) {
+	public DefaultHashOperations(RedisTemplate<K, ?> template) {
 		super((RedisTemplate<K, Object>) template);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#get(java.lang.Object, java.lang.Object)
+	 */
 	@SuppressWarnings("unchecked")
 	public HV get(K key, Object hashKey) {
 		final byte[] rawKey = rawKey(key);
@@ -56,6 +66,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		return (HV) deserializeHashValue(rawHashValue);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#hasKey(java.lang.Object, java.lang.Object)
+	 */
 	public Boolean hasKey(K key, Object hashKey) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
@@ -68,6 +81,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#increment(java.lang.Object, java.lang.Object, long)
+	 */
 	public Long increment(K key, HK hashKey, final long delta) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
@@ -81,6 +97,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#increment(java.lang.Object, java.lang.Object, double)
+	 */
 	public Double increment(K key, HK hashKey, final double delta) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
@@ -92,6 +111,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#keys(java.lang.Object)
+	 */
 	public Set<HK> keys(K key) {
 		final byte[] rawKey = rawKey(key);
 
@@ -105,6 +127,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		return deserializeHashKeys(rawValues);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#size(java.lang.Object)
+	 */
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 
@@ -116,6 +141,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#putAll(java.lang.Object, java.util.Map)
+	 */
 	public void putAll(K key, Map<? extends HK, ? extends HV> m) {
 		if (m.isEmpty()) {
 			return;
@@ -138,6 +166,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#multiGet(java.lang.Object, java.util.Collection)
+	 */
 	public List<HV> multiGet(K key, Collection<HK> fields) {
 		if (fields.isEmpty()) {
 			return Collections.emptyList();
@@ -162,6 +193,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		return deserializeHashValues(rawValues);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#put(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	public void put(K key, HK hashKey, HV value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
@@ -176,6 +210,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#putIfAbsent(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	public Boolean putIfAbsent(K key, HK hashKey, HV value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawHashKey = rawHashKey(hashKey);
@@ -189,6 +226,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#values(java.lang.Object)
+	 */
 	public List<HV> values(K key) {
 		final byte[] rawKey = rawKey(key);
 
@@ -202,6 +242,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		return deserializeHashValues(rawValues);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#delete(java.lang.Object, java.lang.Object[])
+	 */
 	public Long delete(K key, Object... hashKeys) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawHashKeys = rawHashKeys(hashKeys);
@@ -214,6 +257,9 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#entries(java.lang.Object)
+	 */
 	public Map<HK, HV> entries(K key) {
 		final byte[] rawKey = rawKey(key);
 
@@ -227,9 +273,8 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 		return deserializeHashMap(entries);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.core.HashOperations#hscan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.HashOperations#scan(java.lang.Object, org.springframework.data.redis.core.ScanOptions)
 	 */
 	@Override
 	public Cursor<Entry<HK, HV>> scan(K key, final ScanOptions options) {
@@ -267,8 +312,6 @@ public class DefaultHashOperations<K, HK, HV> extends AbstractOperations<K, Obje
 							}
 						});
 			}
-
 		});
-
 	}
 }

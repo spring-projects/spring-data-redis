@@ -42,8 +42,9 @@ import org.springframework.util.CollectionUtils;
  * @author Jennifer Hickey
  * @author Christoph Strobl
  * @author David Liu
+ * @author Mark Paluch
  */
-abstract class AbstractOperations<K, V> {
+public abstract class AbstractOperations<K, V> {
 
 	// utility methods for the template internal methods
 	abstract class ValueDeserializingRedisCallback implements RedisCallback<V> {
@@ -63,7 +64,15 @@ abstract class AbstractOperations<K, V> {
 
 	RedisTemplate<K, V> template;
 
+	/**
+	 * Creates a new {@link AbstractOperations} instance.
+	 *
+	 * @param template must not be {@literal null}.
+	 */
 	AbstractOperations(RedisTemplate<K, V> template) {
+
+		Assert.notNull(template, "RedisTemplate must not be null!");
+
 		this.template = template;
 	}
 

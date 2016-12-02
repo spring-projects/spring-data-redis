@@ -31,13 +31,22 @@ import org.springframework.data.redis.connection.RedisConnection;
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> implements ValueOperations<K, V> {
 
-	DefaultValueOperations(RedisTemplate<K, V> template) {
+	/**
+	 * Constructs a new {@link DefaultValueOperations} instance.
+	 * 
+	 * @param template must not be {@literal null}.
+	 */
+	public DefaultValueOperations(RedisTemplate<K, V> template) {
 		super(template);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#get(java.lang.Object)
+	 */
 	public V get(final Object key) {
 
 		return execute(new ValueDeserializingRedisCallback(key) {
@@ -48,6 +57,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#getAndSet(java.lang.Object, java.lang.Object)
+	 */
 	public V getAndSet(K key, V newValue) {
 		final byte[] rawValue = rawValue(newValue);
 		return execute(new ValueDeserializingRedisCallback(key) {
@@ -58,6 +70,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, long)
+	 */
 	public Long increment(K key, final long delta) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {
@@ -68,6 +83,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#increment(java.lang.Object, double)
+	 */
 	public Double increment(K key, final double delta) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Double>() {
@@ -77,6 +95,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#append(java.lang.Object, java.lang.String)
+	 */
 	public Integer append(K key, String value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawString = rawString(value);
@@ -84,12 +105,15 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		return execute(new RedisCallback<Integer>() {
 
 			public Integer doInRedis(RedisConnection connection) {
-				final Long result = connection.append(rawKey, rawString); 				
-				return ( result != null ) ? result.intValue() : null; 
+				final Long result = connection.append(rawKey, rawString);
+				return (result != null) ? result.intValue() : null;
 			}
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#get(java.lang.Object, long, long)
+	 */
 	public String get(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 
@@ -103,6 +127,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		return deserializeString(rawReturn);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#multiGet(java.util.Collection)
+	 */
 	public List<V> multiGet(Collection<K> keys) {
 		if (keys.isEmpty()) {
 			return Collections.emptyList();
@@ -125,6 +152,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		return deserializeValues(rawValues);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#multiSet(java.util.Map)
+	 */
 	public void multiSet(Map<? extends K, ? extends V> m) {
 		if (m.isEmpty()) {
 			return;
@@ -145,6 +175,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#multiSetIfAbsent(java.util.Map)
+	 */
 	public Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m) {
 		if (m.isEmpty()) {
 			return true;
@@ -164,6 +197,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object)
+	 */
 	public void set(K key, V value) {
 		final byte[] rawValue = rawValue(value);
 		execute(new ValueDeserializingRedisCallback(key) {
@@ -175,6 +211,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	public void set(K key, V value, final long timeout, final TimeUnit unit) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -209,6 +248,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#setIfAbsent(java.lang.Object, java.lang.Object)
+	 */
 	public Boolean setIfAbsent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -221,6 +263,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#set(java.lang.Object, java.lang.Object, long)
+	 */
 	public void set(K key, final V value, final long offset) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -234,6 +279,9 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#size(java.lang.Object)
+	 */
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 
@@ -244,10 +292,13 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 			}
 		}, true);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#setBit(java.lang.Object, long, boolean)
+	 */
 	@Override
 	public Boolean setBit(K key, final long offset, final boolean value) {
-		
+
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Boolean>() {
 
@@ -257,9 +308,12 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ValueOperations#getBit(java.lang.Object, long)
+	 */
 	@Override
 	public Boolean getBit(K key, final long offset) {
-		
+
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Boolean>() {
 
@@ -268,5 +322,4 @@ public class DefaultValueOperations<K, V> extends AbstractOperations<K, V> imple
 			}
 		}, true);
 	}
-	
 }

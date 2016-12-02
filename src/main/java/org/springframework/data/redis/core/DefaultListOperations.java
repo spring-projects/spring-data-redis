@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,22 @@ import org.springframework.util.CollectionUtils;
  * @author David Liu
  * @author Thomas Darimont
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implements ListOperations<K, V> {
 
-	DefaultListOperations(RedisTemplate<K, V> template) {
+	/**
+	 * Constructs a new {@link DefaultListOperations} instance.
+	 * 
+	 * @param template must not be {@literal null}.
+	 */
+	public DefaultListOperations(RedisTemplate<K, V> template) {
 		super(template);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#index(java.lang.Object, long)
+	 */
 	public V index(K key, final long index) {
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -46,6 +55,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object)
+	 */
 	public V leftPop(K key) {
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -55,6 +67,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPop(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	public V leftPop(K key, long timeout, TimeUnit unit) {
 		final int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 		return execute(new ValueDeserializingRedisCallback(key) {
@@ -66,6 +81,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPush(java.lang.Object, java.lang.Object)
+	 */
 	public Long leftPush(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -77,6 +95,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPushAll(java.lang.Object, java.lang.Object[])
+	 */
 	public Long leftPushAll(K key, V... values) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawValues = rawValues(values);
@@ -89,6 +110,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPushAll(java.lang.Object, java.util.Collection)
+	 */
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ListOperations#leftPushAll(java.lang.Object, java.util.Collection)
 	 */
 	@Override
@@ -104,6 +128,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPushIfPresent(java.lang.Object, java.lang.Object)
+	 */
 	public Long leftPushIfPresent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -115,6 +142,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#leftPush(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	public Long leftPush(K key, V pivot, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawPivot = rawValue(pivot);
@@ -127,6 +157,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#size(java.lang.Object)
+	 */
 	public Long size(K key) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<Long>() {
@@ -137,6 +170,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#range(java.lang.Object, long, long)
+	 */
 	public List<V> range(K key, final long start, final long end) {
 		final byte[] rawKey = rawKey(key);
 		return execute(new RedisCallback<List<V>>() {
@@ -146,6 +182,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#remove(java.lang.Object, long, java.lang.Object)
+	 */
 	public Long remove(K key, final long count, Object value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -157,6 +196,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPop(java.lang.Object)
+	 */
 	public V rightPop(K key) {
 		return execute(new ValueDeserializingRedisCallback(key) {
 
@@ -166,6 +208,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPop(java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	public V rightPop(K key, long timeout, TimeUnit unit) {
 		final int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 
@@ -178,6 +223,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPush(java.lang.Object, java.lang.Object)
+	 */
 	public Long rightPush(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -189,6 +237,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPushAll(java.lang.Object, java.lang.Object[])
+	 */
 	public Long rightPushAll(K key, V... values) {
 		final byte[] rawKey = rawKey(key);
 		final byte[][] rawValues = rawValues(values);
@@ -201,6 +252,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPushAll(java.lang.Object, java.util.Collection)
+	 */
+	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ListOperations#rightPushAll(java.lang.Object, java.util.Collection)
 	 */
 	@Override
@@ -216,6 +270,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPushIfPresent(java.lang.Object, java.lang.Object)
+	 */
 	public Long rightPushIfPresent(K key, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawValue = rawValue(value);
@@ -227,6 +284,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPush(java.lang.Object, java.lang.Object, java.lang.Object)
+	 */
 	public Long rightPush(K key, V pivot, V value) {
 		final byte[] rawKey = rawKey(key);
 		final byte[] rawPivot = rawValue(pivot);
@@ -240,6 +300,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPopAndLeftPush(java.lang.Object, java.lang.Object)
+	 */
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey) {
 		final byte[] rawDestKey = rawKey(destinationKey);
 
@@ -251,6 +314,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#rightPopAndLeftPush(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
+	 */
 	public V rightPopAndLeftPush(K sourceKey, K destinationKey, long timeout, TimeUnit unit) {
 		final int tm = (int) TimeoutUtils.toSeconds(timeout, unit);
 		final byte[] rawDestKey = rawKey(destinationKey);
@@ -263,6 +329,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#set(java.lang.Object, long, java.lang.Object)
+	 */
 	public void set(K key, final long index, V value) {
 		final byte[] rawValue = rawValue(value);
 		execute(new ValueDeserializingRedisCallback(key) {
@@ -274,6 +343,9 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 		}, true);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ListOperations#trim(java.lang.Object, long, long)
+	 */
 	public void trim(K key, final long start, final long end) {
 		execute(new ValueDeserializingRedisCallback(key) {
 
@@ -283,5 +355,4 @@ public class DefaultListOperations<K, V> extends AbstractOperations<K, V> implem
 			}
 		}, true);
 	}
-
 }
