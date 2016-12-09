@@ -55,6 +55,7 @@ public class RedisCacheUnitTests {
 	private static final String PREFIX = "prefix:";
 	private static final byte[] PREFIX_BYTES = "prefix:".getBytes();
 	private static final byte[] KNOWN_KEYS_SET_NAME_BYTES = (CACHE_NAME + "~keys").getBytes();
+	private static final byte[] LOCK_NAME_BYTES = (CACHE_NAME + "~lock").getBytes();
 
 	private static final String KEY = "key";
 	private static final byte[] KEY_BYTES = KEY.getBytes();
@@ -365,6 +366,30 @@ public class RedisCacheUnitTests {
 		verify(clusterConnectionMock, never()).multi();
 		verify(clusterConnectionMock, never()).exec();
 		verifyZeroInteractions(connectionMock);
+	}
+
+	/**
+	 * @see DATAREDIS-581
+	 */
+	@Test
+	public void waitForLockCanBeInterrupted() throws InterruptedException {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
+		when(connectionMock.exists(LOCK_NAME_BYTES)).thenReturn(true);
+
+		Thread threadUsingCache = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				cache.putIfAbsent(KEY, VALUE);
+			}
+		});
+
+		threadUsingCache.start();
+		threadUsingCache.interrupt();
+		threadUsingCache.join(100);
+		assertThat(threadUsingCache.isAlive(), is(false));
+
+		verify(connectionMock, never()).setNX(KEY.getBytes(), VALUE.getBytes());
 	}
 
 }
