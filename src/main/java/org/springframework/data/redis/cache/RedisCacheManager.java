@@ -53,6 +53,7 @@ import org.springframework.util.CollectionUtils;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Louis Morgan
  */
 public class RedisCacheManager extends AbstractTransactionSupportingCacheManager {
 
@@ -65,6 +66,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	private RedisCachePrefix cachePrefix = new DefaultRedisCachePrefix();
 	private boolean loadRemoteCachesOnStartup = false;
 	private boolean dynamic = true;
+	private boolean useLocks = true;
 
 	// 0 - never expire
 	private long defaultExpiration = 0;
@@ -133,6 +135,10 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	public void setUsePrefix(boolean usePrefix) {
 		this.usePrefix = usePrefix;
+	}
+
+	public void setUseLocks(boolean useLocks) {
+		this.useLocks = useLocks;
 	}
 
 	/**
@@ -258,7 +264,7 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 	protected RedisCache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
 		return new RedisCache(cacheName, (usePrefix ? cachePrefix.prefix(cacheName) : null), redisOperations, expiration,
-				cacheNullValues);
+				cacheNullValues, useLocks);
 	}
 
 	protected long computeExpiration(String name) {
@@ -324,6 +330,10 @@ public class RedisCacheManager extends AbstractTransactionSupportingCacheManager
 
 	protected boolean isUsePrefix() {
 		return usePrefix;
+	}
+
+	protected boolean isUseLocks() {
+		return useLocks;
 	}
 
 	/* (non-Javadoc)

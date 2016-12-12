@@ -50,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Louis Morgan
  */
 @SuppressWarnings("unchecked")
 public class RedisCache extends AbstractValueAdaptingCache {
@@ -69,7 +70,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	public RedisCache(String name, byte[] prefix, RedisOperations<? extends Object, ? extends Object> redisOperations,
 			long expiration) {
-		this(name, prefix, redisOperations, expiration, false);
+		this(name, prefix, redisOperations, expiration, false, true);
 	}
 
 	/**
@@ -83,7 +84,23 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @since 1.8
 	 */
 	public RedisCache(String name, byte[] prefix, RedisOperations<? extends Object, ? extends Object> redisOperations,
-			long expiration, boolean allowNullValues) {
+					  long expiration, boolean allowNullValues) {
+		this(name, prefix, redisOperations, expiration, allowNullValues, true);
+	}
+
+	/**
+	 * Constructs a new {@link RedisCache} instance.
+	 *
+	 * @param name cache name
+	 * @param prefix must not be {@literal null} or empty.
+	 * @param redisOperations
+	 * @param expiration
+	 * @param allowNullValues
+	 * @param useLocks
+	 * @since 1.8
+	 */
+	public RedisCache(String name, byte[] prefix, RedisOperations<? extends Object, ? extends Object> redisOperations,
+			long expiration, boolean allowNullValues, boolean useLocks) {
 
 		super(allowNullValues);
 
@@ -92,7 +109,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		RedisSerializer<?> serializer = redisOperations.getValueSerializer() != null ? redisOperations.getValueSerializer()
 				: (RedisSerializer<?>) new JdkSerializationRedisSerializer();
 
-		this.cacheMetadata = new RedisCacheMetadata(name, prefix);
+		this.cacheMetadata = new RedisCacheMetadata(name, prefix, useLocks);
 		this.cacheMetadata.setDefaultExpiration(expiration);
 		this.redisOperations = redisOperations;
 		this.cacheValueAccessor = new CacheValueAccessor(serializer);
@@ -370,7 +387,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		 * @param cacheName must not be {@literal null} or empty.
 		 * @param keyPrefix can be {@literal null}.
 		 */
-		public RedisCacheMetadata(String cacheName, byte[] keyPrefix) {
+		public RedisCacheMetadata(String cacheName, byte[] keyPrefix, boolean useLocks) {
 
 			Assert.hasText(cacheName, "CacheName must not be null or empty!");
 			this.cacheName = cacheName;
@@ -380,7 +397,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 			// name of the set holding the keys
 			this.setOfKnownKeys = usesKeyPrefix() ? new byte[] {} : stringSerializer.serialize(cacheName + "~keys");
-			this.cacheLockName = stringSerializer.serialize(cacheName + "~lock");
+			this.cacheLockName = useLocks ? stringSerializer.serialize(cacheName + "~lock") : new byte[] {};
 		}
 
 		/**
@@ -406,6 +423,13 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		 */
 		public byte[] getSetOfKnownKeysKey() {
 			return setOfKnownKeys;
+		}
+
+		/**
+		 * @return true if the {@link RedisCache} uses a lock.
+		 */
+		public boolean usesCacheLock() {
+			return cacheLockName.length != 0;
 		}
 
 		/**
@@ -543,6 +567,7 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Louis Morgan
 	 * @since 1.5
 	 * @param <T>
 	 */
@@ -596,6 +621,10 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 		protected boolean waitForLock(RedisConnection connection) {
 
+			if (!cacheMetadata.usesCacheLock()) {
+				return false;
+			}
+
 			boolean retry;
 			boolean foundLock = false;
 			do {
@@ -615,17 +644,22 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		}
 
 		protected void lock(RedisConnection connection) {
-			waitForLock(connection);
-			connection.set(cacheMetadata.getCacheLockKey(), "locked".getBytes());
+			if (cacheMetadata.usesCacheLock()) {
+				waitForLock(connection);
+				connection.set(cacheMetadata.getCacheLockKey(), "locked".getBytes());
+			}
 		}
 
 		protected void unlock(RedisConnection connection) {
-			connection.del(cacheMetadata.getCacheLockKey());
+			if (cacheMetadata.usesCacheLock()) {
+				connection.del(cacheMetadata.getCacheLockKey());
+			}
 		}
 	}
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Louis Morgan
 	 * @param <T>
 	 * @since 1.5
 	 */
@@ -644,13 +678,32 @@ public class RedisCache extends AbstractValueAdaptingCache {
 		@Override
 		public T doInRedis(RedisConnection connection) throws DataAccessException {
 
-			if (connection.exists(metadata.getCacheLockKey())) {
+			if (hasLock(connection)) {
 				return null;
 			}
 			try {
-				connection.set(metadata.getCacheLockKey(), metadata.getCacheLockKey());
+				lock(connection);
 				return doInLock(connection);
 			} finally {
+				unlock(connection);
+			}
+		}
+
+		protected boolean hasLock(RedisConnection connection) {
+			if (!metadata.usesCacheLock()) {
+				return false;
+			}
+			return connection.exists(metadata.getCacheLockKey());
+		}
+
+		protected void lock(RedisConnection connection) {
+			if (metadata.usesCacheLock()) {
+				connection.set(metadata.getCacheLockKey(), metadata.getCacheLockKey());
+			}
+		}
+
+		protected void unlock(RedisConnection connection) {
+			if (metadata.usesCacheLock()) {
 				connection.del(metadata.getCacheLockKey());
 			}
 		}
