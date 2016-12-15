@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
  * configuration.
  * 
  * @author Christoph Strobl
+ * @author Oliver Gierke
  * @param <T> The repository type.
  * @param <S> The repository domain type.
  * @param <ID> The repository id type.
@@ -36,6 +37,15 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
  */
 public class RedisRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 		extends KeyValueRepositoryFactoryBean<T, S, ID> {
+
+	/**
+	 * Creates a new {@link RedisRepositoryFactoryBean} for the given repository interface.
+	 * 
+	 * @param repositoryInterface must not be {@literal null}.
+	 */
+	public RedisRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+		super(repositoryInterface);
+	}
 
 	/*
 	 * (non-Javadoc)
