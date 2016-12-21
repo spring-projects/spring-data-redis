@@ -6,6 +6,25 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.0.RC1 (2016-12-21)
+-----------------------------------------
+* DATAREDIS-584 - Upgrade to a newer JDK version on TravisCI.
+* DATAREDIS-583 - Adapt API in RepositoryFactoryBeanSupport implementation.
+* DATAREDIS-579 - Register repository factory in spring.factories for multi-store support.
+* DATAREDIS-558 - spring-data-redis - Cannot install in OSGi due import range of slf4j is locked down to 1.7.12 version.
+* DATAREDIS-553 - Support caching null values via RedisCache.
+* DATAREDIS-552 - Set client name on Jedis connection factory.
+* DATAREDIS-551 - NPE when counting keys while invoking findBy(Pageable).
+* DATAREDIS-548 - Connection should be released when used with read-only transactions.
+* DATAREDIS-547 - Getting NPE when writing valid Query Method without any criteria.
+* DATAREDIS-542 - RedisCache.putIfAbsent does not set the TTL on the element.
+* DATAREDIS-541 - Release 1.8 RC1 (Ingalls).
+* DATAREDIS-539 - replace call to deprecated addCache.
+* DATAREDIS-533 - Add support for geoindex query methods.
+* DATAREDIS-531 - ScanCursor holds reference to closed/released Jedis connection.
+* DATAREDIS-528 - Upgrade to Lettuce 4.2.
+
+
 Changes in version 2.0.0.M1 (2016-11-23)
 ----------------------------------------
 * DATAREDIS-569 - Set up 2.0 development.
