@@ -6,6 +6,11 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.7.6.RELEASE (2016-12-21)
+---------------------------------------------
+* DATAREDIS-566 - Release 1.7.6 (Hopper SR6).
+
+
 Changes in version 1.8.0.RC1 (2016-12-21)
 -----------------------------------------
 * DATAREDIS-584 - Upgrade to a newer JDK version on TravisCI.
