@@ -25,13 +25,28 @@ import org.springframework.context.ApplicationEvent;
  */
 public class RedisKeyspaceEvent extends ApplicationEvent {
 
+	private final String channel;
+
 	/**
 	 * Creates new {@link RedisKeyspaceEvent}.
-	 * 
+	 *
 	 * @param key The key that expired. Must not be {@literal null}.
 	 */
 	public RedisKeyspaceEvent(byte[] key) {
+		this(null, key);
+	}
+
+	/**
+	 * Creates new {@link RedisKeyspaceEvent}.
+	 *
+	 * @param channel The source channel aka subscription topic. Can be {@literal null}.
+	 * @param key The key that expired. Must not be {@literal null}.
+	 * @since 1.8
+	 */
+	public RedisKeyspaceEvent(String channel, byte[] key) {
+
 		super(key);
+		this.channel = channel;
 	}
 
 	/*
@@ -40,6 +55,15 @@ public class RedisKeyspaceEvent extends ApplicationEvent {
 	 */
 	public byte[] getSource() {
 		return (byte[]) super.getSource();
+	}
+
+	/**
+	 *
+	 * @return can be {@literal null}.
+	 * @since 1.8
+	 */
+	public String getChannel() {
+		return this.channel;
 	}
 
 }
