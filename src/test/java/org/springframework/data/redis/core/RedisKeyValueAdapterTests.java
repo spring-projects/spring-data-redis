@@ -289,6 +289,28 @@ public class RedisKeyValueAdapterTests {
 	}
 
 	/**
+	 * @see DATAREDIS-589
+	 */
+	@Test
+	public void keyExpiredEventWithoutKeyspaceShouldBeIgnored() {
+
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		map.put("_class", Person.class.getName());
+		map.put("firstname", "rand");
+		map.put("address.country", "Andor");
+
+		template.opsForSet().add("persons", "1");
+		template.opsForSet().add("persons:firstname:rand", "1");
+		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
+
+		adapter.onApplicationEvent(new RedisKeyExpiredEvent("1".getBytes(Bucket.CHARSET)));
+
+		assertThat(template.hasKey("persons:firstname:rand"), is(true));
+		assertThat(template.hasKey("persons:1:idx"), is(true));
+		assertThat(template.opsForSet().members("persons"), hasItem("1"));
+	}
+
+	/**
 	 * @see DATAREDIS-512
 	 */
 	@Test

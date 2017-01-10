@@ -64,6 +64,7 @@ import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Redis specific {@link KeyValueAdapter} implementation. Uses binary codec to read/write data from/to Redis. Objects
@@ -708,20 +709,22 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 			final RedisKeyExpiredEvent expiredEvent = (RedisKeyExpiredEvent) event;
 
-			redisOps.execute(new RedisCallback<Void>() {
+			if(StringUtils.hasText(expiredEvent.getKeyspace()) && !ObjectUtils.isEmpty(expiredEvent.getId())) {
 
-				@Override
-				public Void doInRedis(RedisConnection connection) throws DataAccessException {
+				redisOps.execute(new RedisCallback<Void>() {
 
-					LOGGER.debug("Cleaning up expired key '%s' data structures in keyspace '%s'.", expiredEvent.getSource(),
-							expiredEvent.getKeyspace());
+					@Override
+					public Void doInRedis(RedisConnection connection) throws DataAccessException {
 
-					connection.sRem(toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
-					new IndexWriter(connection, converter).removeKeyFromIndexes(expiredEvent.getKeyspace(), expiredEvent.getId());
-					return null;
-				}
-			});
+						LOGGER.debug("Cleaning up expired key '%s' data structures in keyspace '%s'.", expiredEvent.getSource(),
+								expiredEvent.getKeyspace());
 
+						connection.sRem(toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
+						new IndexWriter(connection, converter).removeKeyFromIndexes(expiredEvent.getKeyspace(), expiredEvent.getId());
+						return null;
+					}
+				});
+			}
 		}
 	}
 
