@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -43,6 +44,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
 import org.springframework.data.redis.core.convert.Bucket;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
@@ -92,6 +94,7 @@ public class RedisKeyValueAdapterTests {
 		mappingContext.afterPropertiesSet();
 
 		adapter = new RedisKeyValueAdapter(template, mappingContext);
+		adapter.setEnableKeyspaceEvents(EnableKeyspaceEvents.ON_STARTUP);
 		adapter.afterPropertiesSet();
 
 		template.execute(new RedisCallback<Void>() {
@@ -270,19 +273,26 @@ public class RedisKeyValueAdapterTests {
 	 * @see DATAREDIS-425
 	 */
 	@Test
-	public void keyExpiredEventShouldRemoveHelperStructures() {
+	public void keyExpiredEventShouldRemoveHelperStructures() throws InterruptedException {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
 		map.put("firstname", "rand");
 		map.put("address.country", "Andor");
 
+		template.opsForHash().putAll("persons:1", map);
+		template.expire("persons:1", 1, TimeUnit.SECONDS);
+
 		template.opsForSet().add("persons", "1");
 		template.opsForSet().add("persons:firstname:rand", "1");
 		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
 
-		adapter.onApplicationEvent(new RedisKeyExpiredEvent("persons:1".getBytes(Bucket.CHARSET)));
+		int iterationCount = 0;
+		while (template.hasKey("persons:1") && iterationCount++ < 3) { // ci might be a little slow
+			Thread.sleep(2000);
+		}
 
+		assertThat(template.hasKey("persons:1"), is(false));
 		assertThat(template.hasKey("persons:firstname:rand"), is(false));
 		assertThat(template.hasKey("persons:1:idx"), is(false));
 		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
@@ -292,19 +302,25 @@ public class RedisKeyValueAdapterTests {
 	 * @see DATAREDIS-589
 	 */
 	@Test
-	public void keyExpiredEventWithoutKeyspaceShouldBeIgnored() {
+	public void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws InterruptedException {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
 		map.put("firstname", "rand");
 		map.put("address.country", "Andor");
 
+		template.opsForHash().putAll("persons:1", map);
+		template.opsForHash().putAll("1", map);
+
+		template.expire("1", 1, TimeUnit.SECONDS);
+
 		template.opsForSet().add("persons", "1");
 		template.opsForSet().add("persons:firstname:rand", "1");
 		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
 
-		adapter.onApplicationEvent(new RedisKeyExpiredEvent("1".getBytes(Bucket.CHARSET)));
+		Thread.sleep(2000);
 
+		assertThat(template.hasKey("persons:1"), is(true));
 		assertThat(template.hasKey("persons:firstname:rand"), is(true));
 		assertThat(template.hasKey("persons:1:idx"), is(true));
 		assertThat(template.opsForSet().members("persons"), hasItem("1"));

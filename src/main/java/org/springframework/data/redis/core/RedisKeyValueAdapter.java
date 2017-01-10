@@ -368,7 +368,6 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		List<byte[]> keys = new ArrayList<byte[]>(ids);
 
-
 		if (keys.isEmpty() || keys.size() < offset) {
 			return Collections.emptyList();
 		}
@@ -702,30 +701,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 */
 	@Override
 	public void onApplicationEvent(RedisKeyspaceEvent event) {
-
-		LOGGER.debug("Received %s .", event);
-
-		if (event instanceof RedisKeyExpiredEvent) {
-
-			final RedisKeyExpiredEvent expiredEvent = (RedisKeyExpiredEvent) event;
-
-			if(StringUtils.hasText(expiredEvent.getKeyspace()) && !ObjectUtils.isEmpty(expiredEvent.getId())) {
-
-				redisOps.execute(new RedisCallback<Void>() {
-
-					@Override
-					public Void doInRedis(RedisConnection connection) throws DataAccessException {
-
-						LOGGER.debug("Cleaning up expired key '%s' data structures in keyspace '%s'.", expiredEvent.getSource(),
-								expiredEvent.getKeyspace());
-
-						connection.sRem(toBytes(expiredEvent.getKeyspace()), expiredEvent.getId());
-						new IndexWriter(connection, converter).removeKeyFromIndexes(expiredEvent.getKeyspace(), expiredEvent.getId());
-						return null;
-					}
-				});
-			}
-		}
+		// just a customization hook
 	}
 
 	/*
@@ -817,12 +793,29 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 					if (!org.springframework.util.CollectionUtils.isEmpty(hash)) {
 						connection.del(phantomKey);
 					}
+
 					return hash;
 				}
 			});
 
 			Object value = converter.read(Object.class, new RedisData(hash));
-			publishEvent(new RedisKeyExpiredEvent(key, value));
+
+			String channel = !ObjectUtils.isEmpty(message.getChannel())
+					? converter.getConversionService().convert(message.getChannel(), String.class) : null;
+
+			final RedisKeyExpiredEvent event = new RedisKeyExpiredEvent(channel, key, value);
+
+			ops.execute(new RedisCallback<Void>() {
+				@Override
+				public Void doInRedis(RedisConnection connection) throws DataAccessException {
+
+					connection.sRem(converter.getConversionService().convert(event.getKeyspace(), byte[].class), event.getId());
+					new IndexWriter(connection, converter).removeKeyFromIndexes(event.getKeyspace(), event.getId());
+					return null;
+				}
+			});
+
+			publishEvent(event);
 		}
 
 		private boolean isKeyExpirationMessage(Message message) {

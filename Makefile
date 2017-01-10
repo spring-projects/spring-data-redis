@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REDIS_VERSION:=3.2.0
+REDIS_VERSION:=3.2.6
 SPRING_PROFILE?=ci
 
 #######
@@ -25,6 +25,8 @@ work/redis-%.conf:
 
 	echo port $* >> $@
 	echo daemonize yes >> $@
+	echo protected-mode no >> $@
+	echo notify-keyspace-events Ex >> $@
 	echo pidfile $(shell pwd)/work/redis-$*.pid >> $@
 	echo logfile $(shell pwd)/work/redis-$*.log >> $@
 	echo save \"\" >> $@
@@ -36,6 +38,8 @@ work/redis-6379.conf:
 
 	echo port 6379 >> $@
 	echo daemonize yes >> $@
+	echo protected-mode no >> $@
+	echo notify-keyspace-events Ex >> $@
 	echo pidfile $(shell pwd)/work/redis-6379.pid >> $@
 	echo logfile $(shell pwd)/work/redis-6379.log >> $@
 	echo save \"\" >> $@
@@ -57,6 +61,7 @@ work/sentinel-%.conf:
 
 	echo port $* >> $@
 	echo daemonize yes >> $@
+	echo protected-mode no >> $@
 	echo bind 0.0.0.0 >> $@
 	echo pidfile $(shell pwd)/work/sentinel-$*.pid >> $@
 	echo logfile $(shell pwd)/work/sentinel-$*.log >> $@
@@ -80,6 +85,7 @@ work/cluster-%.conf:
 	@mkdir -p $(@D)
 
 	echo port $* >> $@
+	echo protected-mode no >> $@
 	echo cluster-enabled yes  >> $@
 	echo cluster-config-file $(shell pwd)/work/nodes-$*.conf  >> $@
 	echo cluster-node-timeout 5  >> $@
