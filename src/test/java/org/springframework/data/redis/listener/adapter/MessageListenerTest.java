@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,10 +139,7 @@ public class MessageListenerTest {
 		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);
 	}
 
-	/**
-	 * @see DATAREDIS-92
-	 */
-	@Test
+	@Test // DATAREDIS-92
 	public void triggersListenerImplementingInterfaceCorrectly() {
 
 		SampleListener listener = new SampleListener();
@@ -158,10 +155,7 @@ public class MessageListenerTest {
 		assertEquals(1, listener.count);
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void defaultConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -174,10 +168,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessage(anyString(), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void defaultConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -191,10 +182,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessage(any(byte[].class), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void defaultConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -208,10 +196,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessage(any(Pojo.class), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -225,10 +210,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handle(anyString(), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteMessageOnlyHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -242,10 +224,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handleMessageOnly(anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -260,10 +239,7 @@ public class MessageListenerTest {
 		verify(listener, times(1)).handle(any(byte[].class), anyString());
 	}
 
-	/**
-	 * @see DATAREDIS-337
-	 */
-	@Test
+	@Test // DATAREDIS-337
 	public void customConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -289,7 +265,6 @@ public class MessageListenerTest {
 
 	/**
 	 * @author Thomas Darimont
-	 * @see DATAREDIS-337
 	 */
 	static class AbstractMessageHandler {
 
@@ -310,7 +285,6 @@ public class MessageListenerTest {
 
 	/**
 	 * @author Thomas Darimont
-	 * @see DATAREDIS-337
 	 */
 	static class ConcreteMessageHandler extends AbstractMessageHandler {
 

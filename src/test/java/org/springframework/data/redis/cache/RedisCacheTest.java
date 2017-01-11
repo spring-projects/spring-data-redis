@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,10 +228,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertFalse(monitorStateException.get());
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test
+	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnCachedInstance() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -242,10 +239,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(value, isEqual(((RedisCache) cache).get(key, Object.class)));
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test
+	@Test // DATAREDIS-243
 	public void testCacheGetShouldRetunInstanceOfCorrectType() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -257,10 +251,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(redisCache.get(key, value.getClass()), instanceOf(value.getClass()));
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test(expected = ClassCastException.class)
+	@Test(expected = ClassCastException.class) // DATAREDIS-243
 	public void testCacheGetShouldThrowExceptionOnInvalidType() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -273,10 +264,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		Cache retrievedObject = redisCache.get(key, Cache.class);
 	}
 
-	/**
-	 * @see DATAREDIS-243
-	 */
-	@Test
+	@Test // DATAREDIS-243
 	public void testCacheGetShouldReturnNullIfNoCachedValueFound() {
 		assumeThat(cache, instanceOf(RedisCache.class));
 
@@ -290,11 +278,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(redisCache.get(invalidKey, value.getClass()), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-344
-	 * @see DATAREDIS-416
-	 */
-	@Test
+	@Test // DATAREDIS-344, DATAREDIS-416
 	public void putIfAbsentShouldSetValueOnlyIfNotPresent() {
 
 		assumeThat(cache, instanceOf(RedisCache.class));
@@ -317,10 +301,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(wrapper.get(), equalTo(value));
 	}
 
-	/**
-	 * @see DATAREDIS-510
-	 */
-	@Test
+	@Test // DATAREDIS-510
 	public void cachePutWithNullShouldNotAddStuffToRedis() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
@@ -333,10 +314,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-510
-	 */
-	@Test
+	@Test // DATAREDIS-510
 	public void cachePutWithNullShouldRemoveKeyIfExists() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
@@ -353,11 +331,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-443
-	 * @see DATAREDIS-452
-	 */
-	@Test
+	@Test // DATAREDIS-443, DATAREDIS-452
 	public void testCacheGetSynchronized() throws Throwable {
 
 		assumeThat(cache, instanceOf(RedisCache.class));
@@ -366,10 +340,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		runOnce(new CacheGetWithValueLoaderIsThreadSafe((RedisCache) cache));
 	}
 
-	/**
-	 * @see DATAREDIS-553
-	 */
-	@Test
+	@Test // DATAREDIS-553
 	public void cachePutWithNullShouldAddStuffToRedisWhenCachingNullIsEnabled() {
 
 		assumeThat(getAllowCacheNullValues(), is(true));
@@ -382,10 +353,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key, String.class), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-553
-	 */
-	@Test
+	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullAllowingNull() {
 
 		assumeThat(getAllowCacheNullValues(), is(true));
@@ -403,10 +371,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key).get(), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-553
-	 */
-	@Test
+	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullNotAllowingNull() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
@@ -425,10 +390,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-553
-	 */
-	@Test
+	@Test // DATAREDIS-553
 	public void testCacheGetSynchronizedNullWithStoredNull() {
 
 		assumeThat(getAllowCacheNullValues(), is(true));

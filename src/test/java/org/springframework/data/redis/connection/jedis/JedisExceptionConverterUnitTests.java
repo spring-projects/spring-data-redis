@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,7 @@ public class JedisExceptionConverterUnitTests {
 		converter = new JedisExceptionConverter();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldConvertMovedDataException() {
 
 		DataAccessException converted = converter.convert(new JedisMovedDataException("MOVED 3999 127.0.0.1:6381",
@@ -57,10 +54,7 @@ public class JedisExceptionConverterUnitTests {
 		assertThat(((ClusterRedirectException) converted).getTargetPort(), is(6381));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldConvertAskDataException() {
 
 		DataAccessException converted = converter.convert(new JedisAskDataException("ASK 3999 127.0.0.1:6381",
@@ -72,10 +66,7 @@ public class JedisExceptionConverterUnitTests {
 		assertThat(((ClusterRedirectException) converted).getTargetPort(), is(6381));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldConvertMaxRedirectException() {
 
 		DataAccessException converted = converter

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,9 +303,7 @@ public abstract class AbstractRedisSetTests<T> extends AbstractRedisCollectionTe
 		assertEquals(0, result.size());
 	}
 
-	/**
-	 * @see DATAREDIS-314
-	 */
+	// DATAREDIS-314
 	@SuppressWarnings("unchecked")
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	@Test

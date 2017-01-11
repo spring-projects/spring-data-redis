@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,10 +113,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void testGeoAdd() {
 
 		Long numAdded = geoOperations.geoAdd(keyFactory.instance(), POINT_PALERMO, valueFactory.instance());
@@ -124,10 +121,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(numAdded, is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void testGeoAddWithLocationMap() {
 
 		Map<M, Point> memberCoordinateMap = new HashMap<M, Point>();
@@ -139,10 +133,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(numAdded, is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoDistShouldReturnDistanceInMetersByDefault() {
 
 		K key = keyFactory.instance();
@@ -157,10 +148,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(dist.getUnit(), is(equalTo("m")));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoDistShouldReturnDistanceInKilometersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -175,10 +163,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(dist.getUnit(), is(equalTo("km")));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoDistShouldReturnDistanceInMilesCorrectly() {
 
 		K key = keyFactory.instance();
@@ -193,10 +178,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(dist.getUnit(), is(equalTo("mi")));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoDistShouldReturnDistanceInFeeCorrectly() {
 
 		K key = keyFactory.instance();
@@ -211,10 +193,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(dist.getUnit(), is(equalTo("ft")));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void testGeoHash() {
 
 		K key = keyFactory.instance();
@@ -233,10 +212,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.get(1), is(equalTo("sqdtr74hyu0")));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void testGeoPos() {
 
 		K key = keyFactory.instance();
@@ -259,10 +235,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.get(2), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldReturnMembersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -278,10 +251,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent(), hasSize(2));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldReturnLocationsWithDistance() {
 
 		K key = keyFactory.instance();
@@ -305,10 +275,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName(), is(member2));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldReturnLocationsWithCoordinates() {
 
 		K key = keyFactory.instance();
@@ -332,10 +299,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldReturnLocationsWithCoordinatesAndDistance() {
 
 		K key = keyFactory.instance();
@@ -363,10 +327,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -382,10 +343,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent(), hasSize(3));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldReturnDistanceCorrectly() {
 
 		K key = keyFactory.instance();
@@ -407,10 +365,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName(), is(member3));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldReturnCoordinates() {
 
 		K key = keyFactory.instance();
@@ -435,10 +390,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName(), is(member1));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldReturnCoordinatesAndDistance() {
 
 		K key = keyFactory.instance();
@@ -466,10 +418,7 @@ public class DefaultGeoOperationsTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName(), is(member3));
 	}
 
-	/**
-	 * @see DATAREDIS-438
-	 */
-	@Test
+	@Test // DATAREDIS-438
 	public void testGeoRemove() {
 
 		K key = keyFactory.instance();

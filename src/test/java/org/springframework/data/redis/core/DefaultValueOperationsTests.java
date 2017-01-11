@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,10 +108,7 @@ public class DefaultValueOperationsTests<K, V> {
 		assertEquals(Long.valueOf((Long) v1 - 20), (Long) valueOps.get(key));
 	}
 
-	/**
-	 * @see DATAREDIS-247
-	 */
-	@Test
+	@Test // DATAREDIS-247
 	public void testIncrementDouble() {
 
 		assumeTrue(RedisTestProfileValueSource.matches("redisVersion", "2.6"));
@@ -197,10 +194,7 @@ public class DefaultValueOperationsTests<K, V> {
 		}, 1000);
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test
+	@Test // DATAREDIS-271
 	public void testSetWithExpirationWithTimeUnitMilliseconds() {
 
 		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
@@ -287,10 +281,7 @@ public class DefaultValueOperationsTests<K, V> {
 		assertNotNull(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key1));
 	}
 
-	/**
-	 * @see DATAREDIS-197
-	 */
-	@Test
+	@Test // DATAREDIS-197
 	public void testSetAndGetBit() {
 
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);

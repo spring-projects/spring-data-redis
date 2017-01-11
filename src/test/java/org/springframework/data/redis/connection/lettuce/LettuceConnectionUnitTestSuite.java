@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,40 +70,28 @@ public class LettuceConnectionUnitTestSuite {
 			connection = new LettuceConnection(0, clientMock);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
 			verify(syncCommandsMock, times(1)).shutdown(true);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verify(syncCommandsMock, times(1)).shutdown(false);
 		}
 
-		/**
-		 * @see DATAREDIS-184
-		 */
-		@Test
+		@Test // DATAREDIS-184
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
 			verify(syncCommandsMock, times(1)).shutdown(true);
 		}
 
-		/**
-		 * @see DATAREDIS-267
-		 */
-		@Test
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 
 			String ipPort = "127.0.0.1:1001";
@@ -111,56 +99,38 @@ public class LettuceConnectionUnitTestSuite {
 			verify(syncCommandsMock, times(1)).clientKill(eq(ipPort));
 		}
 
-		/**
-		 * @see DATAREDIS-270
-		 */
-		@Test
+		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
 			verify(syncCommandsMock, times(1)).clientGetname();
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test(expected = IllegalArgumentException.class)
+		@Test(expected = IllegalArgumentException.class) // DATAREDIS-277
 		public void slaveOfShouldThrowExectpionWhenCalledForNullHost() {
 			connection.slaveOf(null, 0);
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test
+		@Test // DATAREDIS-277
 		public void slaveOfShouldBeSentCorrectly() {
 
 			connection.slaveOf("127.0.0.1", 1001);
 			verify(syncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
-		/**
-		 * @see DATAREDIS-277
-		 */
-		@Test
+		@Test // DATAREDIS-277
 		public void slaveOfNoOneShouldBeSentCorrectly() {
 
 			connection.slaveOfNoOne();
 			verify(syncCommandsMock, times(1)).slaveofNoOne();
 		}
 
-		/**
-		 * @see DATAREDIS-348
-		 */
-		@Test(expected = InvalidDataAccessResourceUsageException.class)
+		@Test(expected = InvalidDataAccessResourceUsageException.class) // DATAREDIS-348
 		public void shouldThrowExceptionWhenAccessingRedisSentinelsCommandsWhenNoSentinelsConfigured() {
 			connection.getSentinelConnection();
 		}
 
-		/**
-		 * @see DATAREDIS-431
-		 */
-		@Test
+		@Test // DATAREDIS-431
 		public void dbIndexShouldBeSetWhenObtainingConnection() {
 
 			connection = new LettuceConnection(null, 0, clientMock, null, 1);
@@ -179,50 +149,35 @@ public class LettuceConnectionUnitTestSuite {
 			this.connection.openPipeline();
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
 			verify(asyncCommandsMock, times(1)).shutdown(true);
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verify(asyncCommandsMock, times(1)).shutdown(false);
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void slaveOfShouldBeSentCorrectly() {
 
 			connection.slaveOf("127.0.0.1", 1001);
 			verify(asyncCommandsMock, times(1)).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
 			verify(asyncCommandsMock, times(1)).shutdown(true);
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void killClientShouldDelegateCallCorrectly() {
 
 			String ipPort = "127.0.0.1:1001";
@@ -230,20 +185,14 @@ public class LettuceConnectionUnitTestSuite {
 			verify(asyncCommandsMock, times(1)).clientKill(eq(ipPort));
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void slaveOfNoOneShouldBeSentCorrectly() {
 
 			connection.slaveOfNoOne();
 			verify(asyncCommandsMock, times(1)).slaveofNoOne();
 		}
 
-		/**
-		 * @see DATAREDIS-528
-		 */
-		@Test
+		@Test // DATAREDIS-528
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();

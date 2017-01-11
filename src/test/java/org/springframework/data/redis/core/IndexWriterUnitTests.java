@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,10 +70,7 @@ public class IndexWriterUnitTests {
 		writer = new IndexWriter(connectionMock, converter);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void addKeyToIndexShouldInvokeSaddCorrectly() {
 
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"));
@@ -83,18 +80,12 @@ public class IndexWriterUnitTests {
 				eq("persons:firstname:Rand".getBytes(CHARSET)));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void addKeyToIndexShouldThrowErrorWhenIndexedDataIsNull() {
 		writer.addKeyToIndex(KEY_BIN, null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void removeKeyFromExistingIndexesShouldCheckForExistingIndexesForPath() {
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
@@ -103,10 +94,7 @@ public class IndexWriterUnitTests {
 		verifyNoMoreInteractions(connectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void removeKeyFromExistingIndexesShouldRemoveKeyFromAllExistingIndexesForPath() {
 
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
@@ -121,18 +109,12 @@ public class IndexWriterUnitTests {
 		verify(connectionMock).sRem(indexKey2, KEY_BIN);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void removeKeyFromExistingIndexesShouldThrowExecptionForNullIndexedData() {
 		writer.removeKeyFromExistingIndexes(KEY_BIN, null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void removeAllIndexesShouldDeleteAllIndexKeys() {
 
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
@@ -149,19 +131,13 @@ public class IndexWriterUnitTests {
 		assertThat(captor.getAllValues(), hasItems(indexKey1, indexKey2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-425
 	public void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject()));
 
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void addToIndexShouldUseRegisteredConverterWhenAddingData() {
 
 		DummyObject value = new DummyObject();
@@ -180,10 +156,7 @@ public class IndexWriterUnitTests {
 		verify(connectionMock).sAdd(eq(("persons:firstname:" + identityHexString).getBytes(CHARSET)), eq(KEY_BIN));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void createIndexShouldNotTryToRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
@@ -198,10 +171,7 @@ public class IndexWriterUnitTests {
 		verify(connectionMock, never()).sRem(any(byte[].class), eq(KEY_BIN));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void updateIndexShouldRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
@@ -216,10 +186,7 @@ public class IndexWriterUnitTests {
 		verify(connectionMock, times(1)).sRem(any(byte[].class), eq(KEY_BIN));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void removeGeoIndexShouldCallGeoRemove() {
 
 		byte[] indexKey1 = "persons:location".getBytes(CHARSET);

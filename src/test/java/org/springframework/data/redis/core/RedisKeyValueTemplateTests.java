@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,10 +115,7 @@ public class RedisKeyValueTemplateTests {
 		adapter.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void savesObjectCorrectly() {
 
 		final Person rand = new Person();
@@ -137,10 +134,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningSingleIdCorrectly() {
 
 		Person rand = new Person();
@@ -164,10 +158,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result, hasItems(mat));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningMultipleIdsCorrectly() {
 
 		final Person rand = new Person();
@@ -191,10 +182,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result, hasItems(rand, mat));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findProcessesCallbackReturningNullCorrectly() {
 
 		Person rand = new Person();
@@ -217,10 +205,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(result.size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdate() {
 
 		final Person rand = new Person();
@@ -313,10 +298,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateSimpleType() {
 
 		final VariousTypes source = new VariousTypes();
@@ -343,10 +325,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateComplexType() {
 
 		Item callandor = new Item();
@@ -390,10 +369,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateObjectType() {
 
 		Item callandor = new Item();
@@ -440,10 +416,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateSimpleTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
@@ -477,10 +450,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateComplexTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
@@ -543,10 +513,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateObjectTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
@@ -626,10 +593,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateSimpleTypedList() {
 
 		final VariousTypes source = new VariousTypes();
@@ -664,10 +628,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateComplexTypedList() {
 
 		final VariousTypes source = new VariousTypes();
@@ -723,10 +684,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void partialUpdateObjectTypedList() {
 
 		final VariousTypes source = new VariousTypes();
@@ -795,10 +753,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-530
-	 */
-	@Test
+	@Test // DATAREDIS-530
 	public void partialUpdateShouldLeaveIndexesNotInvolvedInUpdateUntouched() {
 
 		final Person rand = new Person();
@@ -830,10 +785,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-530
-	 */
-	@Test
+	@Test // DATAREDIS-530
 	public void updateShouldAlterIndexesCorrectlyWhenValuesGetRemovedFromHash() {
 
 		final Person rand = new Person();
@@ -870,10 +822,7 @@ public class RedisKeyValueTemplateTests {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS-523
-	 */
-	@Test
+	@Test // DATAREDIS-523
 	public void shouldReadBackExplicitTimeToLive() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
@@ -890,10 +839,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(target.ttl.doubleValue(), is(closeTo(3D, 1D)));
 	}
 
-	/**
-	 * @see DATAREDIS-523
-	 */
-	@Test
+	@Test // DATAREDIS-523
 	public void shouldReadBackExplicitTimeToLiveToPrimitiveField() throws InterruptedException {
 
 		WithPrimitiveTtl source = new WithPrimitiveTtl();
@@ -909,10 +855,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat((double) target.ttl, is(closeTo(3D, 1D)));
 	}
 
-	/**
-	 * @see DATAREDIS-523
-	 */
-	@Test
+	@Test // DATAREDIS-523
 	public void shouldReadBackExplicitTimeToLiveWhenFetchingList() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
@@ -930,10 +873,7 @@ public class RedisKeyValueTemplateTests {
 		assertThat(target.ttl.doubleValue(), is(closeTo(3D, 1D)));
 	}
 
-	/**
-	 * @see DATAREDIS-523
-	 */
-	@Test
+	@Test // DATAREDIS-523
 	public void shouldReadBackExplicitTimeToLiveAndSetItToMinusOnelIfPersisted() throws InterruptedException {
 
 		WithTtl source = new WithTtl();

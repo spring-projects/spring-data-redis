@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,34 +33,22 @@ public class JRedisConnectionUnitTests extends AbstractConnectionUnitTestBase<JR
 		connection = new JredisConnection(getNativeRedisConnectionMock());
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
 	public void shutdownSaveShouldThrowUnsupportedOperationException() {
 		connection.shutdown(ShutdownOption.SAVE);
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
 	public void shutdownNosaveShouldThrowUnsupportedOperationException() {
 		connection.shutdown(ShutdownOption.NOSAVE);
 	}
 
-	/**
-	 * @see DATAREDIS-184
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-184
 	public void shutdownWithNullShouldThrowUnsupportedOperationException() {
 		connection.shutdown(null);
 	}
 
-	/**
-	 * @see DATAREDIS-270
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-270
 	public void getClientNameShouldSendRequestCorrectly() {
 		connection.getClientName();
 	}

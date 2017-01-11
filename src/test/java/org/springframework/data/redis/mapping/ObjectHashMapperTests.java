@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,12 @@ public class ObjectHashMapperTests extends AbstractHashMapperTest {
 		return new ObjectHashMapper();
 	}
 
-	/**
-	 * @see DATAREDIS-503
-	 */
-	@Test
+	@Test // DATAREDIS-503
 	public void testSimpleType() {
 		assertBackAndForwardMapping(new Integer(100));
 	}
 
-	/**
-	 * @see DATAREDIS-503
-	 */
-	@Test
+	@Test // DATAREDIS-503
 	public void fromHashShouldCastToType() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
@@ -55,10 +49,7 @@ public class ObjectHashMapperTests extends AbstractHashMapperTest {
 		assertThat(result, is(equalTo(new Integer(100))));
 	}
 
-	/**
-	 * @see DATAREDIS-503
-	 */
-	@Test(expected = ClassCastException.class)
+	@Test(expected = ClassCastException.class) // DATAREDIS-503
 	public void fromHashShouldFailIfTypeDoesNotMatch() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();

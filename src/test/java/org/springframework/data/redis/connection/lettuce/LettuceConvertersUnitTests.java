@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,27 +48,18 @@ public class LettuceConvertersUnitTests {
 
 	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingEmptyStringToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfRedisClientInformation(""), equalTo(Collections.<RedisClientInfo>emptyList()));
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfRedisClientInformation(null),
 				equalTo(Collections.<RedisClientInfo>emptyList()));
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingMultipleLiesToListOfRedisClientInfoReturnsListCorrectly() {
 
 		StringBuilder sb = new StringBuilder();
@@ -79,18 +70,12 @@ public class LettuceConvertersUnitTests {
 		assertThat(LettuceConverters.toListOfRedisClientInformation(sb.toString()).size(), equalTo(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartionsDoesNotContainElements() {
 		assertThat(LettuceConverters.partitionsToClusterNodes(new Partitions()), notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void partitionsToClusterNodesShouldConvertPartitionCorrctly() {
 
 		Partitions partitions = new Partitions();
@@ -116,10 +101,7 @@ public class LettuceConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots(), hasItems(1, 2, 3, 4, 5));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldReturnEmptyArgsForNullValues() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, null);
@@ -130,10 +112,7 @@ public class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldNotSetExOrPxForPersistent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), null);
@@ -144,10 +123,7 @@ public class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldSetExForSeconds() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), null);
@@ -158,10 +134,7 @@ public class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldSetPxForMilliseconds() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), null);
@@ -172,10 +145,7 @@ public class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldSetNxForAbsent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifAbsent());
@@ -186,10 +156,7 @@ public class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.FALSE));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldSetXxForPresent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifPresent());
@@ -200,10 +167,7 @@ public class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx"), is(Boolean.TRUE));
 	}
 
-	/**
-	 * @see DATAREDIS-316
-	 */
-	@Test
+	@Test // DATAREDIS-316
 	public void toSetArgsShouldNotSetNxOrXxForUpsert() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.upsert());
