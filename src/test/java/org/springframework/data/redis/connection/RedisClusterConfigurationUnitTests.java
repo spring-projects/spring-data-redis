@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,7 @@ public class RedisClusterConfigurationUnitTests {
 	static final String HOST_AND_PORT_3 = "localhost:789";
 	static final String HOST_AND_NO_PORT = "localhost";
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldCreateRedisClusterConfigurationCorrectly() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.singleton(HOST_AND_PORT_1));
@@ -53,10 +50,7 @@ public class RedisClusterConfigurationUnitTests {
 		assertThat(config.getMaxRedirects(), nullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldCreateRedisClusterConfigurationCorrectlyGivenMultipleHostAndPortStrings() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(new HashSet<String>(Arrays.asList(HOST_AND_PORT_1,
@@ -67,26 +61,17 @@ public class RedisClusterConfigurationUnitTests {
 				hasItems(new RedisNode("127.0.0.1", 123), new RedisNode("localhost", 456), new RedisNode("localhost", 789)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void shouldThrowExecptionOnInvalidHostAndPortString() {
 		new RedisClusterConfiguration(Collections.singleton(HOST_AND_NO_PORT));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		new RedisClusterConfiguration(Collections.<String> singleton(null));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(Collections.<String> emptySet());
@@ -94,18 +79,12 @@ public class RedisClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes().size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void shouldThrowExceptionGivenNullPropertySource() {
 		new RedisClusterConfiguration((PropertySource<?>) null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
 
 		RedisClusterConfiguration config = new RedisClusterConfiguration(new MockPropertySource());
@@ -114,10 +93,7 @@ public class RedisClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes().size(), is(0));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
@@ -130,10 +106,7 @@ public class RedisClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes(), hasItems(new RedisNode("127.0.0.1", 123)));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void shouldBeCreatedCorrecltyGivenValidPropertySourceWithMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();

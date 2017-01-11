@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,10 +84,7 @@ public class RedisKeyValueAdapterUnitTests {
 		adapter.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-507
-	 */
-	@Test
+	@Test // DATAREDIS-507
 	public void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
 		adapter.destroy();
@@ -95,11 +92,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(jedisConnectionFactoryMock, never()).destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 * @see DATAREDIS-530
-	 */
-	@Test
+	@Test // DATAREDIS-512, DATAREDIS-530
 	public void putShouldRemoveExistingIndexValuesWhenUpdating() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -115,10 +108,7 @@ public class RedisKeyValueAdapterUnitTests {
 				org.mockito.Matchers.any(byte[].class));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
 
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -133,10 +123,7 @@ public class RedisKeyValueAdapterUnitTests {
 		verify(redisConnectionMock, never()).sRem(org.mockito.Matchers.any(byte[].class), (byte[][]) anyVararg());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldInitKeyExpirationListenerOnStartup() throws Exception {
 
 		adapter.destroy();
@@ -150,10 +137,7 @@ public class RedisKeyValueAdapterUnitTests {
 		assertThat(listener, notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
 
 		adapter.destroy();
@@ -177,10 +161,7 @@ public class RedisKeyValueAdapterUnitTests {
 		assertThat(listener, notNullValue());
 	}
 
-	/**
-	 * @see DATAREDIS-491
-	 */
-	@Test
+	@Test // DATAREDIS-491
 	public void shouldNeverInitKeyExpirationListener() throws Exception {
 
 		adapter.destroy();

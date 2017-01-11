@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,26 +49,17 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 	static final ByteBuffer FIELD_2_BBUFFER = ByteBuffer.wrap(FIELD_2_BYTES);
 	static final ByteBuffer FIELD_3_BBUFFER = ByteBuffer.wrap(FIELD_3_BYTES);
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hSetShouldOperateCorrectly() {
 		assertThat(connection.hashCommands().hSet(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hSetNxShouldOperateCorrectly() {
 		assertThat(connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hSetNxShouldReturnFalseIfFieldAlreadyExists() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -76,10 +67,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).block(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hGetShouldReturnValueForExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -89,10 +77,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_1_BBUFFER).block(), is(equalTo(VALUE_1_BBUFFER)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hGetShouldReturnNullForNotExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -100,10 +85,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_2_BBUFFER).block(), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hMGetShouldReturnValueForFields() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -114,10 +96,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 				contains(VALUE_1_BBUFFER, VALUE_3_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hMGetShouldReturnNullValueForFieldsThatHaveNoValue() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -128,10 +107,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 				contains(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hMSetSouldSetValuesCorrectly() {
 
 		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
@@ -143,10 +119,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(nativeCommands.hget(KEY_1, FIELD_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hExistsShouldReturnTrueForExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -154,18 +127,12 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hExistsShouldReturnFalseForNonExistingField() {
 		assertThat(connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER).block(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hDelShouldRemoveSingleFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -175,10 +142,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(connection.hashCommands().hDel(KEY_1_BBUFFER, FIELD_2_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hDelShouldRemoveMultipleFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -189,10 +153,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 				is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hLenShouldReturnSizeCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -202,10 +163,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		assertThat(connection.hashCommands().hLen(KEY_1_BBUFFER).block(), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hKeysShouldReturnFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -216,10 +174,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 				containsInAnyOrder(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hValsShouldReturnValuesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -230,10 +185,7 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 				containsInAnyOrder(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hGetAllShouldReturnEntriesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);

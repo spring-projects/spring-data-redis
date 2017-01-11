@@ -1,6 +1,5 @@
-package org.springframework.data.redis.repository.configuration;
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +13,7 @@ package org.springframework.data.redis.repository.configuration;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.redis.repository.configuration;
 
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
@@ -86,10 +86,7 @@ public class RedisRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldPickUpReferenceResolver() {
 
 			RedisKeyValueAdapter adapter = (RedisKeyValueAdapter) ctx.getBean("redisKeyValueAdapter");
@@ -118,18 +115,12 @@ public class RedisRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldInitWithDefaults() {
 			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));
 		}
 
-		/**
-		 * @see DATAREDIS-425
-		 */
-		@Test
+		@Test // DATAREDIS-425
 		public void shouldRegisterDefaultBeans() {
 
 			assertThat(ctx.getBean(ContextSampleRepository.class), is(notNullValue()));

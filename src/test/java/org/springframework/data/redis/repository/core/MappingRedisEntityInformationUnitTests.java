@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,7 @@ public class MappingRedisEntityInformationUnitTests<T, ID extends Serializable> 
 
 	@Mock RedisPersistentEntity<T> entity;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = MappingException.class)
+	@Test(expected = MappingException.class) // DATAREDIS-425
 	@SuppressWarnings("unchecked")
 	public void throwsMappingExceptionWhenNoIdPropertyPresent() {
 

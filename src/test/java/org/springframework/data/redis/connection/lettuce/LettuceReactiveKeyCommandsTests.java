@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,7 @@ import reactor.test.TestSubscriber;
  */
 public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTestsBase {
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void existsShouldReturnTrueForExistingKeys() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -48,18 +45,12 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.keyCommands().exists(KEY_1_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void existsShouldReturnFalseForNonExistingKeys() {
 		assertThat(connection.keyCommands().exists(KEY_1_BBUFFER).block(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void typeShouldReturnTypeCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_2);
@@ -71,10 +62,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.keyCommands().type(KEY_3_BBUFFER).block(), is(DataType.HASH));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void keysShouldReturnCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_2);
@@ -89,10 +77,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.keyCommands().keys(ByteBuffer.wrap("key*".getBytes())).block(), hasSize(3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void randomKeyShouldReturnAnyKey() {
 
 		nativeCommands.set(KEY_1, VALUE_2);
@@ -102,18 +87,12 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.keyCommands().randomKey().block(), is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void randomKeyShouldReturnNullWhenNoKeyExists() {
 		assertThat(connection.keyCommands().randomKey().block(), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void renameShouldAlterKeyNameCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_2);
@@ -123,18 +102,12 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.exists(KEY_1), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test(expected = RedisSystemException.class)
+	@Test(expected = RedisSystemException.class) // DATAREDIS-525
 	public void renameShouldThrowErrorWhenKeyDoesNotExit() {
 		assertThat(connection.keyCommands().rename(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void renameNXShouldAlterKeyNameCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_2);
@@ -145,10 +118,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.exists(KEY_1), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void renameNXShouldNotAlterExistingKeyName() {
 
 		nativeCommands.set(KEY_1, VALUE_2);
@@ -157,10 +127,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(connection.keyCommands().renameNX(KEY_1_BBUFFER, KEY_2_BBUFFER).block(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void shouldDeleteKeyCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -169,10 +136,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(result.block(), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void shouldDeleteKeysCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -188,10 +152,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		subscriber.assertValueCount(2);
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void shouldDeleteKeysInBatchCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -202,10 +163,7 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		assertThat(result.block(), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void shouldDeleteKeysInMultipleBatchesCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);

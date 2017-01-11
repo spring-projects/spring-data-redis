@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,7 @@ import org.junit.Test;
  */
 public class IndexConfigurationUnitTests {
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameDefaulted() {
 
 		String path = "path";
@@ -37,10 +34,7 @@ public class IndexConfigurationUnitTests {
 		assertThat(setting.getIndexName(), equalTo(path));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameExplicit() {
 
 		String indexName = "indexName";
@@ -48,10 +42,7 @@ public class IndexConfigurationUnitTests {
 		assertThat(setting.getIndexName(), equalTo(indexName));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameUsedInEquals() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
@@ -61,10 +52,7 @@ public class IndexConfigurationUnitTests {
 		assertThat(setting1, not(equalTo(setting2)));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void redisIndexSettingIndexNameUsedInHashCode() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");

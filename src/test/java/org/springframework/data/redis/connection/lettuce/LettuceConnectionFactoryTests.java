@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -280,10 +280,7 @@ public class LettuceConnectionFactoryTests {
 		conn.close();
 	}
 
-	/**
-	 * @see DATAREDIS-431
-	 */
-	@Test
+	@Test // DATAREDIS-431
 	public void dbIndexShouldBePropagatedCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
@@ -307,10 +304,7 @@ public class LettuceConnectionFactoryTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-462
-	 */
-	@Test
+	@Test // DATAREDIS-462
 	public void factoryWorksWithoutClientResources() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
@@ -328,10 +322,7 @@ public class LettuceConnectionFactoryTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void factoryShouldReturnReactiveConnectionWhenCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();

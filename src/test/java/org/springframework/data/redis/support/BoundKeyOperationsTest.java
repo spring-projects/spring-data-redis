@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,10 +106,7 @@ public class BoundKeyOperationsTest {
 		assertEquals(key, keyOps.getKey());
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
-	@Test
+	@Test // DATAREDIS-251
 	public void testExpire() throws Exception {
 
 		assertEquals(keyOps.getClass().getName() + " -> " + keyOps.getKey(), Long.valueOf(-1), keyOps.getExpire());
@@ -120,10 +117,7 @@ public class BoundKeyOperationsTest {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
-	@Test
+	@Test // DATAREDIS-251
 	public void testPersist() throws Exception {
 
 		keyOps.persist();

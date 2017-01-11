@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -327,10 +327,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(tuple2.getScore(), isEqual(Double.valueOf(1)));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexUnbounded() {
 
 		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -350,10 +347,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(tuple, isEqual(t1));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexBounded() {
 
 		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -373,10 +367,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(tuple, isEqual(t2));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexUnboundedWithLimit() {
 
 		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -397,10 +388,7 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertThat(tuple, isEqual(t2));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexBoundedWithLimit() {
 
 		assumeThat(factory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -632,11 +620,8 @@ public abstract class AbstractRedisZSetTest<T> extends AbstractRedisCollectionTe
 		assertArrayEquals(new Object[] { t1, t2, t3, t4 }, array);
 	}
 
-	/**
-	 * @see DATAREDIS-314
-	 */
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
-	@Test
+	@Test // DATAREDIS-314
 	@WithRedisDriver({ RedisDriver.JEDIS, RedisDriver.LETTUCE })
 	public void testScanWorksCorrectly() throws IOException {
 

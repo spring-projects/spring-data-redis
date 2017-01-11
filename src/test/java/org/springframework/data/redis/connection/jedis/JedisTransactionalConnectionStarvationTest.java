@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,37 +50,25 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-332
-	 */
-	@Test
+	@Test // DATAREDIS-332
 	@Rollback
 	public void testNumberOfOperationsIsOne() {
 		tryOperations(1);
 	}
 
-	/**
-	 * @see DATAREDIS-332
-	 */
-	@Test
+	@Test // DATAREDIS-332
 	@Rollback
 	public void testNumberOfOperationsEqualToNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS);
 	}
 
-	/**
-	 * @see DATAREDIS-332
-	 */
-	@Test
+	@Test // DATAREDIS-332
 	@Rollback
 	public void testNumberOfOperationsGreaterThanNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);
 	}
 
-	/**
-	 * @see DATAREDIS-548
-	 */
-	@Test
+	@Test // DATAREDIS-548
 	@Transactional(readOnly = true)
 	public void readonlyTransactionSyncShouldNotExcceedMaxConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);

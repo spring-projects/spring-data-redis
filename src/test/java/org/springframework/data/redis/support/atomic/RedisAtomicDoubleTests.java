@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,10 +176,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		assertNull(factory.getConnection().get((getClass().getSimpleName() + ":double").getBytes()));
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -188,10 +185,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicDouble("foo", new RedisTemplate<String, Double>());
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicDoubleIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -202,10 +196,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicDouble("foo", template);
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldBeAbleToUseRedisAtomicDoubleWithProperlyConfiguredRedisTemplate() {
 
 		RedisAtomicDouble ral = new RedisAtomicDouble("DATAREDIS-317.atomicDouble", template);
@@ -214,10 +205,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		assertThat(ral.get(), is(32.23));
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		expectedException.expect(DataRetrievalFailureException.class);
@@ -232,10 +220,7 @@ public class RedisAtomicDoubleTests extends AbstractRedisAtomicsTests {
 		test.get();
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup double

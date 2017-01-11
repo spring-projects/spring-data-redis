@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,42 +26,27 @@ import org.junit.Test;
  */
 public class LettuceReactiveNumberCommandsTests extends LettuceReactiveCommandsTestsBase {
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void incrByDoubleShouldIncreaseValueCorrectly() {
 		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 1.5D).block(), is(closeTo(1.5D, 0D)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void incrByIntegerShouldIncreaseValueCorrectly() {
 		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 3).block(), is(3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void decrByDoubleShouldDecreaseValueCorrectly() {
 		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 1.5D).block(), is(closeTo(-1.5D, 0D)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void decrByIntegerShouldDecreaseValueCorrectly() {
 		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 3).block(), is(-3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hIncrByDoubleShouldIncreaseValueCorrectly() {
 
 		nativeCommands.hset(KEY_1, KEY_1, "2");
@@ -69,10 +54,7 @@ public class LettuceReactiveNumberCommandsTests extends LettuceReactiveCommandsT
 		assertThat(connection.numberCommands().hIncrBy(KEY_1_BBUFFER, KEY_1_BBUFFER, 1.5D).block(), is(closeTo(3.5D, 0D)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void hIncrByIntegerShouldIncreaseValueCorrectly() {
 
 		nativeCommands.hset(KEY_1, KEY_1, "2");

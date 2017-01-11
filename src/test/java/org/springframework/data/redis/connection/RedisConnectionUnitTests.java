@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,10 +62,7 @@ public class RedisConnectionUnitTests {
 		connection.setSentinelConnection(sentinelConnectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldCloseSentinelConnectionAlongWithRedisConnection() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true).thenReturn(false);
@@ -77,10 +74,7 @@ public class RedisConnectionUnitTests {
 		verify(sentinelConnectionMock, times(1)).close();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldNotTryToCloseSentinelConnectionsWhenAlreadyClosed() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true);

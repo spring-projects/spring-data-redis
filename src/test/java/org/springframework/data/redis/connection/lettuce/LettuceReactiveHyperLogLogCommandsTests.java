@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,20 +29,14 @@ import org.springframework.data.redis.test.util.LettuceRedisClientProvider;
  */
 public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveCommandsTestsBase {
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void pfAddShouldAddToNonExistingKeyCorrectly() {
 
 		assertThat(connection.hyperLogLogCommands()
 				.pfAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER)).block(), is(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void pfAddShouldReturnZeroWhenValueAlreadyExists() {
 
 		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
@@ -51,10 +45,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 		assertThat(connection.hyperLogLogCommands().pfAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER)).block(), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void pfCountShouldReturnCorrectly() {
 
 		nativeCommands.pfadd(KEY_1, new String[] { VALUE_1, VALUE_2 });
@@ -62,10 +53,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 		assertThat(connection.hyperLogLogCommands().pfCount(KEY_1_BBUFFER).block(), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -76,10 +64,7 @@ public class LettuceReactiveHyperLogLogCommandsTests extends LettuceReactiveComm
 		assertThat(connection.hyperLogLogCommands().pfCount(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block(), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void pfMergeShouldWorkCorrectly() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));

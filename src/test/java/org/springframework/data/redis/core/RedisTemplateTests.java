@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -326,10 +326,7 @@ public class RedisTemplateTests<K, V> {
 		assertEquals(Arrays.asList(new Object[] { 5l, 1l, 2l, Arrays.asList(new Long[] { 10l, 11l }) }), results);
 	}
 
-	/**
-	 * @see DATAREDIS-500
-	 */
-	@Test
+	@Test // DATAREDIS-500
 	public void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
 
 		assumeTrue(redisTemplate instanceof StringRedisTemplate);
@@ -512,20 +509,14 @@ public class RedisTemplateTests<K, V> {
 		assertEquals(Long.valueOf(1), redisTemplate.getExpire(key1, TimeUnit.SECONDS));
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	public void testGetExpireSecondsForKeyDoesNotExist() {
 
 		Long expire = redisTemplate.getExpire(keyFactory.instance(), TimeUnit.SECONDS);
 		assertTrue(expire < 0L);
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	public void testGetExpireSecondsForKeyExistButHasNoAssociatedExpire() {
 
 		K key = keyFactory.instance();
@@ -534,10 +525,7 @@ public class RedisTemplateTests<K, V> {
 		assertTrue(expire < 0L);
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	public void testGetExpireMillisForKeyDoesNotExist() {
 
 		Long expire = redisTemplate.getExpire(keyFactory.instance(), TimeUnit.MILLISECONDS);
@@ -545,10 +533,7 @@ public class RedisTemplateTests<K, V> {
 		assertTrue(expire < 0L);
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	public void testGetExpireMillisForKeyExistButHasNoAssociatedExpire() {
 
 		K key = keyFactory.instance();
@@ -559,10 +544,7 @@ public class RedisTemplateTests<K, V> {
 		assertTrue(expire < 0L);
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	public void testGetExpireMillis() {
 
 		assumeTrue(redisTemplate.getConnectionFactory() instanceof JedisConnectionFactory
@@ -578,10 +560,7 @@ public class RedisTemplateTests<K, V> {
 		assertThat(ttl, lessThan(25L));
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testGetExpireMillisUsingTransactions() {
 
@@ -608,10 +587,7 @@ public class RedisTemplateTests<K, V> {
 		assertThat(((Long) result.get(1)), lessThan(25L));
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test
+	@Test // DATAREDIS-526
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testGetExpireMillisUsingPipelining() {
 
@@ -739,10 +715,7 @@ public class RedisTemplateTests<K, V> {
 		assertEquals(DataType.STRING, redisTemplate.type(key1));
 	}
 
-	/**
-	 * @see DATAREDIS-506
-	 */
-	@Test
+	@Test // DATAREDIS-506
 	public void testWatch() {
 		final K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -818,10 +791,7 @@ public class RedisTemplateTests<K, V> {
 		assertThat(redisTemplate.opsForValue().get(key1), isEqual(value3));
 	}
 
-	/**
-	 * @see DATAREDIS-506
-	 */
-	@Test
+	@Test // DATAREDIS-506
 	public void testWatchMultipleKeys() {
 
 		final K key1 = keyFactory.instance();

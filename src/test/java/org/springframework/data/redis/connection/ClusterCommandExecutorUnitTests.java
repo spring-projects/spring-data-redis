@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,10 +131,7 @@ public class ClusterCommandExecutorUnitTests {
 		this.executor.destroy();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, CLUSTER_NODE_2);
@@ -142,10 +139,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK,
@@ -154,10 +148,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeByNodeIdShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, new RedisClusterNode(CLUSTER_NODE_2.id));
@@ -165,34 +156,22 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenCommandCallbackIsNull() {
 		executor.executeCommandOnSingleNode(null, CLUSTER_NODE_1);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsUnknown() {
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, UNKNOWN_CLUSTER_NODE);
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodes() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -206,10 +185,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByHostAndPort() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -225,10 +201,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByNodeId() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -243,10 +216,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldFailOnGivenUnknownNodes() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -257,10 +227,7 @@ public class ClusterCommandExecutorUnitTests {
 				Arrays.asList(new RedisClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnownClusterNode() {
 
 		ClusterCommandExecutor executor = new ClusterCommandExecutor(new MockClusterNodeProvider(),
@@ -274,10 +241,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldCompleteAndCollectErrorsOfAllNodes() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
@@ -297,10 +261,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con3, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandAsyncOnNodesShouldCollectResultsCorrectly() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
@@ -312,11 +273,7 @@ public class ClusterCommandExecutorUnitTests {
 		assertThat(result.resultsAsList(), hasItems("rand", "mat", "perrin"));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 * @see DATAREDIS-467
-	 */
-	@Test
+	@Test // DATAREDIS-315, DATAREDIS-467
 	public void executeMultikeyCommandShouldRunCommandAcrossCluster() {
 
 		// key-1 and key-9 map both to node1
@@ -335,10 +292,7 @@ public class ClusterCommandExecutorUnitTests {
 		assertThat(captor.getAllValues().size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeAndFollowRedirect() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT));
@@ -350,10 +304,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnSingleNodeAndFollowRedirectButStopsAfterMaxRedirects() {
 
 		when(con1.theWheelWeavesAsTheWheelWills()).thenThrow(new MovedException(CLUSTER_NODE_3_HOST, CLUSTER_NODE_3_PORT));
@@ -372,10 +323,7 @@ public class ClusterCommandExecutorUnitTests {
 		verify(con2, times(1)).theWheelWeavesAsTheWheelWills();
 	}
 
-	/**
-	 * @see DATAREDIS-315
-	 */
-	@Test
+	@Test // DATAREDIS-315
 	public void executeCommandOnArbitraryNodeShouldPickARandomNode() {
 
 		executor.executeCommandOnArbitraryNode(COMMAND_CALLBACK);

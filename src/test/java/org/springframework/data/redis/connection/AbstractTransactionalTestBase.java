@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,11 +112,8 @@ public abstract class AbstractTransactionalTestBase {
 		connection.close();
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
 	@Rollback(true)
-	@Test
+	@Test // DATAREDIS-73
 	public void valueOperationSetShouldBeRolledBackCorrectly() {
 
 		for (String key : KEYS) {
@@ -124,11 +121,8 @@ public abstract class AbstractTransactionalTestBase {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
 	@Rollback(false)
-	@Test
+	@Test // DATAREDIS-73
 	public void valueOperationSetShouldBeCommittedCorrectly() {
 
 		this.valuesShouldHaveBeenPersisted = true;
@@ -137,10 +131,7 @@ public abstract class AbstractTransactionalTestBase {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-548
-	 */
-	@Test
+	@Test // DATAREDIS-548
 	@Transactional(readOnly = true)
 	public void valueOperationShouldWorkWithReadOnlyTransactions() {
 
@@ -150,11 +141,8 @@ public abstract class AbstractTransactionalTestBase {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
 	@Rollback(true)
-	@Test
+	@Test // DATAREDIS-73
 	public void listOperationLPushShoudBeRolledBackCorrectly() {
 
 		for (String key : KEYS) {
@@ -162,11 +150,8 @@ public abstract class AbstractTransactionalTestBase {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
 	@Rollback(false)
-	@Test
+	@Test // DATAREDIS-73
 	public void listOperationLPushShouldBeCommittedCorrectly() {
 
 		this.valuesShouldHaveBeenPersisted = true;

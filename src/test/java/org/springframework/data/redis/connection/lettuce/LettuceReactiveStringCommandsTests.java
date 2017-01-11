@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,10 +48,7 @@ import reactor.test.TestSubscriber;
  */
 public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsTestsBase {
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getSetShouldReturnPreviousValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -62,10 +59,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getSetShouldReturnPreviousValueCorrectlyWhenNoExists() {
 
 		Mono<ByteBuffer> result = connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER);
@@ -76,10 +70,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setShouldAddValueCorrectly() {
 
 		Mono<Boolean> result = connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER);
@@ -88,10 +79,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_1), is(equalTo(VALUE_1)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setShouldAddValuesCorrectly() {
 
 		Flux<BooleanResponse<SetCommand>> result = connection.stringCommands()
@@ -107,10 +95,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getShouldRetriveValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -119,20 +104,14 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(result.block(), is(equalTo(VALUE_1_BBUFFER)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getShouldRetriveNullValueCorrectly() {
 
 		Mono<ByteBuffer> result = connection.stringCommands().get(KEY_1_BBUFFER);
 		assertThat(result.block(), is(equalTo(ByteBuffer.allocate(0))));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getShouldRetriveValuesCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -148,10 +127,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		subscriber.assertValueCount(2);
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getShouldRetriveValuesWithNullCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -167,10 +143,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		subscriber.assertValueCount(3);
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mGetShouldRetriveValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -180,10 +153,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(result.block(), contains(VALUE_1_BBUFFER, VALUE_2_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mGetShouldRetriveNullValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -195,10 +165,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(result.block(), contains(VALUE_1_BBUFFER, ByteBuffer.allocate(0), VALUE_3_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mGetShouldRetriveValuesCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -218,18 +185,12 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				new HashSet<>(Arrays.asList(Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER), Arrays.asList(VALUE_2_BBUFFER))));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setNXshouldOnlySetValueWhenNotPresent() {
 		assertThat(connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_1_BBUFFER).block(), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setNXshouldNotSetValueWhenAlreadyPresent() {
 
 		nativeCommands.setnx(KEY_1, VALUE_1);
@@ -237,10 +198,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_2_BBUFFER).block(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setEXshouldSetKeyAndExpirationTime() {
 
 		connection.stringCommands().setEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.seconds(3)).block();
@@ -248,10 +206,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.ttl(KEY_1) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void pSetEXshouldSetKeyAndExpirationTime() {
 
 		connection.stringCommands().pSetEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.milliseconds(600)).block();
@@ -259,10 +214,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.pttl(KEY_1) > 1, is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mSetShouldAddMultipleKeyValueParis() {
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
@@ -275,10 +227,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mSetNXShouldAddMultipleKeyValueParis() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -293,10 +242,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mSetNXShouldNotAddMultipleKeyValueParisWhenAlreadyExit() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -313,20 +259,14 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void appendShouldDoItsThing() {
 
 		assertThat(connection.stringCommands().append(KEY_1_BBUFFER, VALUE_1_BBUFFER).block(), is(7L));
 		assertThat(connection.stringCommands().append(KEY_1_BBUFFER, VALUE_2_BBUFFER).block(), is(14L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getRangeShouldReturnSubstringCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -335,10 +275,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				is(equalTo(ByteBuffer.wrap("lu".getBytes()))));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setRangeShouldReturnNewStringLengthCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -346,10 +283,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(connection.stringCommands().setRange(KEY_1_BBUFFER, VALUE_2_BBUFFER, 3).block(), is(10L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void getBitShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -358,10 +292,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(connection.stringCommands().getBit(KEY_1_BBUFFER, 7).block(), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void setBitShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -370,10 +301,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.getbit(KEY_1, 1), is(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void bitCountShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -381,10 +309,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(connection.stringCommands().bitCount(KEY_1_BBUFFER).block(), is(28L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void bitCountShouldCountInRangeCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -392,10 +317,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(connection.stringCommands().bitCount(KEY_1_BBUFFER, 2, 4).block(), is(13L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void bitOpAndShouldWorkAsExpected() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -408,10 +330,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_3), is(equalTo("value-0")));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void bitOpOrShouldWorkAsExpected() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -424,10 +343,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 		assertThat(nativeCommands.get(KEY_3), is(equalTo(VALUE_3)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-525
 	public void bitNotShouldThrowExceptionWhenMoreThanOnSourceKey() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -436,10 +352,7 @@ public class LettuceReactiveStringCommandsTests extends LettuceReactiveCommandsT
 				.block();
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void strLenShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);

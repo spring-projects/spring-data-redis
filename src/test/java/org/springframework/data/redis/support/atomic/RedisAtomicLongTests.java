@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,10 +108,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(0, longCounter.decrementAndGet());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndIncrement() {
 
 		longCounter.set(1);
@@ -119,10 +116,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(2, longCounter.get());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndAdd() {
 
 		longCounter.set(1);
@@ -130,10 +124,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(6, longCounter.get());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndDecrement() {
 
 		longCounter.set(1);
@@ -141,10 +132,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(0, longCounter.get());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndSet() {
 
 		longCounter.set(1);
@@ -160,10 +148,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertEquals(longCounter.get(), keyCopy.get());
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfAtomicLongIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -173,10 +158,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicLong("foo", template);
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfAtomicLongIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -187,10 +169,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicLong("foo", template);
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldBeAbleToUseRedisAtomicLongWithProperlyConfiguredRedisTemplate() {
 
 		RedisTemplate<String, Long> template = new RedisTemplate<String, Long>();
@@ -205,10 +184,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		assertThat(ral.get(), is(32L));
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		expectedException.expect(DataRetrievalFailureException.class);
@@ -223,10 +199,7 @@ public class RedisAtomicLongTests extends AbstractRedisAtomicsTests {
 		test.get();
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup long

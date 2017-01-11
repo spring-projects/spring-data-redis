@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		return this.mapper;
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapTypedListOfSimpleType() {
 
 		WithList source = new WithList();
@@ -69,10 +66,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapTypedListOfComplexType() {
 
 		WithList source = new WithList();
@@ -81,10 +75,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapTypedListOfComplexObjectWihtNestedElements() {
 
 		WithList source = new WithList();
@@ -99,10 +90,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapNestedObject() {
 
 		Person jon = new Person("jon", "snow", 19);
@@ -114,10 +102,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(jon);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapUntypedList() {
 
 		WithList source = new WithList();
@@ -125,10 +110,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapTypedMapOfSimpleTypes() {
 
 		WithMap source = new WithMap();
@@ -139,10 +121,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapTypedMapOfComplexTypes() {
 
 		WithMap source = new WithMap();
@@ -152,10 +131,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void shouldMapUntypedMap() {
 
 		WithMap source = new WithMap();
@@ -166,10 +142,7 @@ public class Jackson2HashMapperUnitTests extends AbstractHashMapperTest {
 		assertBackAndForwardMapping(source);
 	}
 
-	/**
-	 * @see DATAREDIS-423
-	 */
-	@Test
+	@Test // DATAREDIS-423
 	public void nestedStuff() {
 
 		WithList nestedList = new WithList();

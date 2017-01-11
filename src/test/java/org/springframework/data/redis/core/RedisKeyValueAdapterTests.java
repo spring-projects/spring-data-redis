@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,10 +114,7 @@ public class RedisKeyValueAdapterTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesDataCorrectly() {
 
 		Person rand = new Person();
@@ -131,10 +128,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesSimpleIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -146,10 +140,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), hasItems("1"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesNestedDataCorrectly() {
 
 		Person rand = new Person();
@@ -162,10 +153,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size(), is(2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void putWritesSimpleNestedIndexValuesCorrectly() {
 
 		Person rand = new Person();
@@ -178,10 +166,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:address.country:Andor"), hasItems("1"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getShouldReadSimpleObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -195,10 +180,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(((Person) loaded).age, is(24));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void getShouldReadNestedObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -212,10 +194,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(((Person) loaded).address.country, is("Andor"));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void couldReadsKeyspaceSizeCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -228,10 +207,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(adapter.count("persons"), is(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void deleteRemovesEntriesCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -246,10 +222,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:1"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void deleteCleansIndexedDataCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -266,10 +239,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void keyExpiredEventShouldRemoveHelperStructures() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -288,10 +258,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putWritesIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -327,10 +294,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat"), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldAlterIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -349,10 +313,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:firstname:mat"), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldAlterIndexDataOnNestedObjectCorrectly() {
 
 		Person rand = new Person();
@@ -375,10 +336,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:address.country:tear"), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldAlterIndexDataOnNestedObjectPathCorrectly() {
 
 		Person rand = new Person();
@@ -398,10 +356,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:address.country:tear"), is(true));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldRemoveComplexObjectCorrectly() {
 
 		Person rand = new Person();
@@ -421,10 +376,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().isMember("persons:address.country:andor", "1"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldRemoveSimpleListValuesCorrectly() {
 
 		Person rand = new Person();
@@ -441,10 +393,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "nicknames.[1]"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldRemoveComplexListValuesCorrectly() {
 
 		Person mat = new Person();
@@ -471,10 +420,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "coworkers.[1].nicknames.[0]"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldRemoveSimpleMapValuesCorrectly() {
 
 		Person rand = new Person();
@@ -490,10 +436,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "physicalAttributes.[eye-color]"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-471
-	 */
-	@Test
+	@Test // DATAREDIS-471
 	public void updateShouldRemoveComplexMapValuesCorrectly() {
 
 		Person tam = new Person();
@@ -512,10 +455,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "relatives.[stepfather].firstname"), is(false));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void putShouldCreateGeoIndexCorrectly() {
 
 		Person tam = new Person();
@@ -529,10 +469,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(notNullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void deleteShouldRemoveGeoIndexCorrectly() {
 
 		Person tam = new Person();
@@ -548,10 +485,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void updateShouldAlterGeoIndexCorrectlyOnDelete() {
 
 		Person tam = new Person();
@@ -570,10 +504,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1"), is(nullValue()));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void updateShouldAlterGeoIndexCorrectlyOnUpdate() {
 
 		Person tam = new Person();

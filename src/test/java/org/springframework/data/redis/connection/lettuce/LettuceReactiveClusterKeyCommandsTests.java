@@ -1,5 +1,5 @@
 /*
- * Copyright 2016. the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.collection.IsCollectionWithSize.*;
@@ -39,10 +38,7 @@ public class LettuceReactiveClusterKeyCommandsTests extends LettuceReactiveClust
 
 	static final RedisClusterNode NODE_1 = newRedisClusterNode().listeningAt("127.0.0.1", 7379).build();
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void keysShouldReturnOnlyKeysFromSelectedNode() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -53,10 +49,7 @@ public class LettuceReactiveClusterKeyCommandsTests extends LettuceReactiveClust
 		assertThat(result, contains(KEY_1_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void randomkeyShouldReturnOnlyKeysFromSelectedNode() {
 
 		nativeCommands.set(KEY_1, VALUE_1);

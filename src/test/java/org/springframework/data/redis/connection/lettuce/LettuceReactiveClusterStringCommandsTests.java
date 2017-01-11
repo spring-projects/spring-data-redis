@@ -1,5 +1,5 @@
 /*
- * Copyright 2016. the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.core.Is.*;
@@ -35,10 +34,7 @@ import org.springframework.data.redis.connection.RedisStringCommands;
  */
 public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveClusterCommandsTestsBase {
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mSetNXShouldAddMultipleKeyValueParisWhenMappedToSameSlot() {
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
@@ -51,10 +47,7 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void mSetNXShouldNotAddMultipleKeyValueParisWhenAlreadyExitAndMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
@@ -69,10 +62,7 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_2), is(equalTo(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void bitOpAndShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -83,10 +73,7 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3), is(equalTo("value-0")));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void bitOpOrShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -97,10 +84,7 @@ public class LettuceReactiveClusterStringCommandsTests extends LettuceReactiveCl
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3), is(equalTo(VALUE_3)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-525
 	public void bitNotShouldThrowExceptionWhenMoreThanOnSourceKeyAndKeysMapToSameSlot() {
 
 		connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),

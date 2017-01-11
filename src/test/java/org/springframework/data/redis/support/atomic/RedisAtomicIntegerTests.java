@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,10 +112,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		assertEquals(0, intCounter.decrementAndGet());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndIncrement() {
 
 		intCounter.set(1);
@@ -123,10 +120,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		assertEquals(2, intCounter.get());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndAdd() {
 
 		intCounter.set(1);
@@ -134,10 +128,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		assertEquals(6, intCounter.get());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndDecrement() {
 
 		intCounter.set(1);
@@ -145,10 +136,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		assertEquals(0, intCounter.get());
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void testGetAndSet() {
 
 		intCounter.set(1);
@@ -189,10 +177,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		assertFalse("counter already modified", failed.get());
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoKeySerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -201,10 +186,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicInteger("foo", new RedisTemplate<String, Integer>());
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldThrowExceptionIfRedisAtomicIntegerIsUsedWithRedisTemplateAndNoValueSerializer() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -215,10 +197,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		new RedisAtomicInteger("foo", template);
 	}
 
-	/**
-	 * @see DATAREDIS-317
-	 */
-	@Test
+	@Test // DATAREDIS-317
 	public void testShouldBeAbleToUseRedisAtomicIntegerWithProperlyConfiguredRedisTemplate() {
 
 		RedisAtomicInteger ral = new RedisAtomicInteger("DATAREDIS-317.atomicInteger", template);
@@ -227,10 +206,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		assertThat(ral.get(), is(32));
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		expectedException.expect(DataRetrievalFailureException.class);
@@ -245,10 +221,7 @@ public class RedisAtomicIntegerTests extends AbstractRedisAtomicsTests {
 		test.get();
 	}
 
-	/**
-	 * @see DATAREDIS-469
-	 */
-	@Test
+	@Test // DATAREDIS-469
 	public void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup integer

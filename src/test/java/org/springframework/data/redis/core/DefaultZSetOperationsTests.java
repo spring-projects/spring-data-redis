@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,10 +183,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(new DefaultTypedTuple<V>(value2, 3.7)));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexUnbounded() {
 
 		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -207,10 +204,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(value1));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexBounded() {
 
 		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -231,10 +225,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(value2));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexUnboundedWithLimit() {
 
 		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -256,10 +247,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(tuple, isEqual(value2));
 	}
 
-	/**
-	 * @see DATAREDIS-407
-	 */
-	@Test
+	@Test // DATAREDIS-407
 	public void testRangeByLexBoundedWithLimit() {
 
 		assumeThat(valueFactory, anyOf(instanceOf(DoubleObjectFactory.class), instanceOf(DoubleAsStringObjectFactory.class),
@@ -350,10 +338,7 @@ public class DefaultZSetOperationsTests<K, V> {
 		assertThat(zSetOps.size(key), equalTo(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-306
-	 */
-	@Test
+	@Test // DATAREDIS-306
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testZScanShouldReadEntireValueRange() throws IOException {
 

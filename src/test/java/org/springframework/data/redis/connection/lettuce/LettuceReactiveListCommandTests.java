@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,7 @@ import reactor.core.publisher.Mono;
  */
 public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTestsBase {
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void rPushShouldAppendValuesCorrectly() {
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
@@ -54,10 +51,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lPushShouldPrependValuesCorrectly() {
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
@@ -67,10 +61,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_3, VALUE_2, VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void rPushXShouldAppendValuesCorrectly() {
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
@@ -79,10 +70,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lPushXShouldPrependValuesCorrectly() {
 
 		nativeCommands.lpush(KEY_1, VALUE_1);
@@ -91,10 +79,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_1));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-525
 	public void pushShouldThrowErrorForMoreThanOneValueWhenUsingExistsOption() {
 
 		connection.listCommands()
@@ -103,10 +88,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 				.blockFirst();
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lLenShouldReturnSizeCorrectly() {
 
 		nativeCommands.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -114,10 +96,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(connection.listCommands().lLen(KEY_1_BBUFFER).block(), is(2L));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lRangeShouldReturnValuesCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -126,10 +105,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 				contains(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lTrimShouldReturnValuesCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -138,10 +114,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_1_BBUFFER)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lIndexShouldReturnValueCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -149,10 +122,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(connection.listCommands().lIndex(KEY_1_BBUFFER, 1).block(), is(equalTo(VALUE_2_BBUFFER)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lInsertShouldAddValueCorrectlyBeforeExisting() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -163,10 +133,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_3, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lInsertShouldAddValueCorrectlyAfterExisting() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -177,10 +144,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lSetSouldSetValueCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -190,10 +154,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_2)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lRemSouldRemoveAllValuesCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_1, VALUE_3);
@@ -203,10 +164,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), not(contains(VALUE_1)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lRemSouldRemoveFirstValuesCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_1, VALUE_3);
@@ -215,10 +173,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_1, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lRemSouldRemoveLastValuesCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_1, VALUE_3);
@@ -227,10 +182,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void lPopSouldRemoveFirstValueCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -239,10 +191,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_2, VALUE_3));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void rPopSouldRemoveFirstValueCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -251,10 +200,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lrange(KEY_1, 0, -1), contains(VALUE_1, VALUE_2));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void blPopShouldReturnFirstAvailable() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -267,10 +213,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(result.getValue(), is(equalTo(VALUE_1_BBUFFER)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void brPopShouldReturnLastAvailable() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));
@@ -283,10 +226,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(result.getValue(), is(equalTo(VALUE_3_BBUFFER)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void rPopLPushShouldWorkCorrectly() {
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -299,10 +239,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 		assertThat(nativeCommands.lindex(KEY_2, 0), is(equalTo(VALUE_3)));
 	}
 
-	/**
-	 * @see DATAREDIS-525
-	 */
-	@Test
+	@Test // DATAREDIS-525
 	public void brPopLPushShouldWorkCorrectly() {
 
 		assumeThat(clientProvider instanceof LettuceRedisClientProvider, is(true));

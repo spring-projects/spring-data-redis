@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,10 +86,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		});
 	}
 
-	/**
-	 * @see DATAREDIS
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void addShouldAddDistinctValuesCorrectly() {
 
@@ -101,10 +98,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v1, v2, v3), equalTo(1L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void addShouldNotAddExistingValuesCorrectly() {
 
@@ -117,10 +111,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v2), equalTo(0L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void sizeShouldCountValuesCorrectly() {
 
@@ -133,10 +124,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.size(key), equalTo(3L));
 	}
 
-	/**
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void sizeShouldCountValuesOfMultipleKeysCorrectly() {
 
@@ -153,11 +141,7 @@ public class DefaultHyperLogLogOperationsTests<K, V> {
 		assertThat(hyperLogLogOps.size(key, key2), equalTo(4L));
 	}
 
-	/**
-	 * @throws InterruptedException
-	 * @see DATAREDIS-308
-	 */
-	@Test
+	@Test // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	public void unionShouldMergeValuesOfMultipleKeysCorrectly() throws InterruptedException {
 

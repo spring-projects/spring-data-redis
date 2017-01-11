@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,10 +149,7 @@ public class DefaultHashOperationsTests<K, HK, HV> {
 		assertEquals(2L, numDeleted.longValue());
 	}
 
-	/**
-	 * @see DATAREDIS-305
-	 */
-	@Test
+	@Test // DATAREDIS-305
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testHScanReadsValuesFully() throws IOException {
 

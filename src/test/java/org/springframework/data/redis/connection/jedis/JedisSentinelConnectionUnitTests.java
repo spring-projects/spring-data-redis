@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,19 +44,13 @@ public class JedisSentinelConnectionUnitTests {
 		this.connection = new JedisSentinelConnection(jedisMock);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldConnectAfterCreation() {
 		verify(jedisMock, times(1)).connect();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
 	@SuppressWarnings("resource")
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldNotConnectIfAlreadyConnected() {
 
 		Jedis yetAnotherJedisMock = mock(Jedis.class);
@@ -67,124 +61,82 @@ public class JedisSentinelConnectionUnitTests {
 		verify(yetAnotherJedisMock, never()).connect();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void failoverShouldBeSentCorrectly() {
 
 		connection.failover(new RedisNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelFailover(eq("mymaster"));
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void failoverShouldThrowExceptionIfMasterNodeIsNull() {
 		connection.failover(null);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void failoverShouldThrowExceptionIfMasterNodeNameIsEmpty() {
 		connection.failover(new RedisNodeBuilder().build());
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void mastersShouldReadMastersCorrectly() {
 
 		connection.masters();
 		verify(jedisMock, times(1)).sentinelMasters();
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldReadSlavesCorrectly() {
 
 		connection.slaves("mymaster");
 		verify(jedisMock, times(1)).sentinelSlaves(eq("mymaster"));
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldReadSlavesCorrectlyWhenGivenNamedNode() {
 
 		connection.slaves(new RedisNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelSlaves(eq("mymaster"));
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void readSlavesShouldThrowExceptionWhenGivenEmptyMasterName() {
 		connection.slaves("");
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void readSlavesShouldThrowExceptionWhenGivenNull() {
 		connection.slaves((RedisNode) null);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void readSlavesShouldThrowExceptionWhenNodeWithoutName() {
 		connection.slaves(new RedisNodeBuilder().build());
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void shouldRemoveMasterCorrectlyWhenGivenNamedNode() {
 
 		connection.remove(new RedisNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelRemove(eq("mymaster"));
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void removeShouldThrowExceptionWhenGivenEmptyMasterName() {
 		connection.remove("");
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void removeShouldThrowExceptionWhenGivenNull() {
 		connection.remove((RedisNode) null);
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-330
 	public void removeShouldThrowExceptionWhenNodeWithoutName() {
 		connection.remove(new RedisNodeBuilder().build());
 	}
 
-	/**
-	 * @see DATAREDIS-330
-	 */
-	@Test
+	@Test // DATAREDIS-330
 	public void monitorShouldBeSentCorrectly() {
 
 		RedisServer server = new RedisServer("127.0.0.1", 6382);
