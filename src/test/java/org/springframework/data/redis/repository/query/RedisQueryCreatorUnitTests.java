@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,7 @@ public class RedisQueryCreatorUnitTests {
 
 	private @Mock RepositoryMetadata metadataMock;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findBySingleSimpleProperty() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -67,10 +64,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("firstname", "eddard")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findByMultipleSimpleProperties() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -84,10 +78,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getSismember(), hasItem(new PathAndValue("age", 43)));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void findByMultipleSimplePropertiesUsingOr() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -101,10 +92,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getOrSismember(), hasItem(new PathAndValue("firstname", "eddard")));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void findWithinCircle() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -118,10 +106,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void findNearWithPointAndDistance() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -135,10 +120,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void findNearWithPointAndNumericValueDefaultsToKilometers() throws SecurityException, NoSuchMethodException {
 
 		RedisQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -152,10 +134,7 @@ public class RedisQueryCreatorUnitTests {
 		assertThat(query.getCritieria().getNear().getDistance(), is(new Distance(200, Metrics.KILOMETERS)));
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void findNearWithInvalidShapeParameter() throws SecurityException, NoSuchMethodException {
 
 		exception.expect(InvalidDataAccessApiUsageException.class);
@@ -168,10 +147,7 @@ public class RedisQueryCreatorUnitTests {
 		creator.createQuery();
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void findNearWithInvalidDistanceParameter() throws SecurityException, NoSuchMethodException {
 
 		exception.expect(InvalidDataAccessApiUsageException.class);
@@ -184,10 +160,7 @@ public class RedisQueryCreatorUnitTests {
 		creator.createQuery();
 	}
 
-	/**
-	 * @see DATAREDIS-533
-	 */
-	@Test
+	@Test // DATAREDIS-533
 	public void findNearWithMissingDistanceParameter() throws SecurityException, NoSuchMethodException {
 
 		exception.expect(InvalidDataAccessApiUsageException.class);

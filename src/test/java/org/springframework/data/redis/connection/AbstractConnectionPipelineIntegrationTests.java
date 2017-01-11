@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,10 +120,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		assertTrue(results.isEmpty());
 	}
 
-	/**
-	 * @see DATAREDIS-417
-	 */
-	@Test
+	@Test // DATAREDIS-417
 	@Ignore
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIdividualScanIterationsReturnEmptyCollection() {

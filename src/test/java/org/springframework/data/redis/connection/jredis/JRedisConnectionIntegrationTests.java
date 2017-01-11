@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -349,10 +349,7 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		super.testPTtlNoExpire();
 	}
 
-	/**
-	 * @see DATAREDIS-526
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-526
 	public void testPTtlWithTimeUnit() {
 		super.testPTtlWithTimeUnit();
 	}
@@ -788,18 +785,12 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-206
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-206
 	public void testGetTimeShouldRequestServerTime() {
 		super.testGetTimeShouldRequestServerTime();
 	}
 
-	/**
-	 * @see DATAREDIS-285
-	 */
-	@Test
+	@Test // DATAREDIS-285
 	public void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
@@ -816,28 +807,19 @@ public class JRedisConnectionIntegrationTests extends AbstractConnectionIntegrat
 						"supercalifragilisticexpialidocious".getBytes()));
 	}
 
-	/**
-	 * @see DATAREDIS-271
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-271
 	public void testPsetEx() throws Exception {
 		super.testPsetEx();
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		super.clientSetNameWorksCorrectly();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}

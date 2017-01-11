@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,10 +53,7 @@ public class KeyExpirationEventMessageListenerUnitTests {
 		listener.setApplicationEventPublisher(publisherMock);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void handleMessageShouldPublishKeyExpiredEvent() {
 
 		listener.onMessage(MESSAGE, "*".getBytes());
@@ -68,10 +65,7 @@ public class KeyExpirationEventMessageListenerUnitTests {
 		assertThat((byte[]) captor.getValue().getSource(), is(MESSAGE_BODY.getBytes()));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void handleMessageShouldNotRespondToNullMessage() {
 
 		listener.onMessage(null, "*".getBytes());
@@ -79,10 +73,7 @@ public class KeyExpirationEventMessageListenerUnitTests {
 		verifyZeroInteractions(publisherMock);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void handleMessageShouldNotRespondToEmptyMessage() {
 
 		listener.onMessage(new DefaultMessage(null, null), "*".getBytes());

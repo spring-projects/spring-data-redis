@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,10 +81,7 @@ public class KeyExpirationEventMessageListenerTests {
 		}
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void listenerShouldPublishEventCorrectly() throws InterruptedException {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
@@ -110,10 +107,7 @@ public class KeyExpirationEventMessageListenerTests {
 		assertThat((byte[]) captor.getValue().getSource(), is(key));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();

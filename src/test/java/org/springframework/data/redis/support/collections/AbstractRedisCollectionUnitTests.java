@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,22 +92,16 @@ public class AbstractRedisCollectionUnitTests {
 		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
 	}
 
-	/**
-	 * @see DATAREDIS-188
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-188
 	public void testRenameOfEmptyCollectionShouldNotTriggerRedisOperation() {
 
 		collection.rename("new-key");
 		verify(redisTemplateSpy, never()).rename(eq("key"), eq("new-key"));
 	}
 
-	/**
-	 * @see DATAREDIS-188
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-188
 	public void testRenameCollectionShouldTriggerRedisOperation() {
 
 		when(redisTemplateSpy.hasKey(anyObject())).thenReturn(Boolean.TRUE);

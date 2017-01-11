@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,36 +35,24 @@ public class SrpConvertersUnitTests {
 
 	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingNullReplyToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(null)),
 				equalTo(Collections.<RedisClientInfo> emptyList()));
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingEmptyReplyToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(new byte[0])),
 				equalTo(Collections.<RedisClientInfo> emptyList()));
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingNullToListOfRedisClientInfoShouldReturnEmptyList() {
 		assertThat(SrpConverters.toListOfRedisClientInformation(null), equalTo(Collections.<RedisClientInfo> emptyList()));
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test
+	@Test // DATAREDIS-268
 	public void convertingMultipleLiesToListOfRedisClientInfoReturnsListCorrectly() {
 
 		StringBuilder sb = new StringBuilder();
@@ -75,10 +63,7 @@ public class SrpConvertersUnitTests {
 		assertThat(SrpConverters.toListOfRedisClientInformation(new BulkReply(sb.toString().getBytes())).size(), equalTo(2));
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-268
 	public void expectExcptionWhenProvidingInvalidDataInReply() {
 		SrpConverters.toListOfRedisClientInformation(new Reply<String>() {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 - 2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,10 +210,7 @@ public class DefaultSetOperationsTests<K, V> {
 		assertThat(setOps.members(key), isEqual(Collections.singleton(v3)));
 	}
 
-	/**
-	 * @see DATAREDIS-304
-	 */
-	@Test
+	@Test // DATAREDIS-304
 	@SuppressWarnings("unchecked")
 	@IfProfileValue(name = "redisVersion", value = "2.8+")
 	public void testSSCanReadsValuesFully() throws IOException {
@@ -234,10 +231,7 @@ public class DefaultSetOperationsTests<K, V> {
 		assertThat(count, is(setOps.size(key)));
 	}
 
-	/**
-	 * @see DATAREDIS-448
-	 */
-	@Test
+	@Test // DATAREDIS-448
 	public void intersectAndStoreShouldReturnNumberOfElementsInDestination() {
 
 		K sourceKey1 = keyFactory.instance();

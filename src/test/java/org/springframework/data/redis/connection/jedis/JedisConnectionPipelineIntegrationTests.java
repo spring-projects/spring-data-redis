@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -255,27 +255,18 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 		super.testZAddMultiple();
 	}
 
-	/**
-	 * @see DATAREDIS-269
-	 */
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		super.clientSetNameWorksCorrectly();
 	}
 
-	/**
-	 * @see DATAREDIS-268
-	 */
 	@Override
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = UnsupportedOperationException.class) // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		super.testListClientsContainsAtLeastOneElement();
 	}
 
-	/**
-	 * @see DATAREDIS-296
-	 */
-	@Test(expected = InvalidDataAccessApiUsageException.class)
+	@Test(expected = InvalidDataAccessApiUsageException.class) // DATAREDIS-296
 	public void testExecWithoutMulti() {
 		super.testExecWithoutMulti();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,26 +39,17 @@ public class CompositeIndexResolverUnitTests {
 	@Mock IndexResolver resolver2;
 	@Mock TypeInformation<?> typeInfoMock;
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void shouldRejectNull() {
 		new CompositeIndexResolver(null);
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-425
 	public void shouldRejectCollectionWithNullValues() {
 		new CompositeIndexResolver(Arrays.asList(resolver1, null, resolver2));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
+	@Test // DATAREDIS-425
 	public void shouldCollectionIndexesFromResolvers() {
 
 		when(resolver1.resolveIndexesFor(any(TypeInformation.class), anyObject())).thenReturn(

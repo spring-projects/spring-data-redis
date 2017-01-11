@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,36 +39,24 @@ public class Jackson2JsonRedisSerializerTests {
 		this.serializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 	}
 
-	/**
-	 * @see DATAREDIS-241
-	 */
-	@Test
+	@Test // DATAREDIS-241
 	public void testJackson2JsonSerializer() throws Exception {
 
 		Person person = new PersonObjectFactory().instance();
 		assertEquals(person, serializer.deserialize(serializer.serialize(person)));
 	}
 
-	/**
-	 * @see DATAREDIS-241
-	 */
-	@Test
+	@Test // DATAREDIS-241
 	public void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
 		assertThat(serializer.serialize(null), Is.is(new byte[0]));
 	}
 
-	/**
-	 * @see DTATREDIS-241
-	 */
-	@Test
+	@Test // DTATREDIS-241
 	public void testJackson2JsonSerializerShouldReturnNullWhenDerserializingEmtyByteArray() {
 		assertThat(serializer.deserialize(new byte[0]), IsNull.nullValue());
 	}
 
-	/**
-	 * @see DTATREDIS-241
-	 */
-	@Test(expected = SerializationException.class)
+	@Test(expected = SerializationException.class) // DTATREDIS-241
 	public void testJackson2JsonSerilizerShouldThrowExceptionWhenDeserializingInvalidByteArray() {
 
 		Person person = new PersonObjectFactory().instance();
@@ -78,10 +66,7 @@ public class Jackson2JsonRedisSerializerTests {
 		serializer.deserialize(serializedValue);
 	}
 
-	/**
-	 * @see DTATREDIS-241
-	 */
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class) // DTATREDIS-241
 	public void testJackson2JsonSerilizerThrowsExceptionWhenSettingNullObjectMapper() {
 		serializer.setObjectMapper(null);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -175,11 +175,8 @@ public class PubSubTests<T> {
 		container.start();
 	}
 
-	/**
-	 * @see DATAREDIS-251
-	 */
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test // DATAREDIS-251
 	public void testStartListenersToNoSpecificChannelTest() throws InterruptedException {
 		container.removeMessageListener(adapter, new ChannelTopic(CHANNEL));
 		container.addMessageListener(adapter, Arrays.asList(new PatternTopic("*")));

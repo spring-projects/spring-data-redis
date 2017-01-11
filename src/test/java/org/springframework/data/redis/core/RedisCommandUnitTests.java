@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,66 +30,42 @@ public class RedisCommandUnitTests {
 
 	public @Rule ExpectedException expectedException = ExpectedException.none();
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectly() {
 		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("setconfig"), equalTo(true));
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCase() {
 		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy("SetConfig"), equalTo(true));
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldNotThrowExceptionWhenUsingNullKeyForRepresentationCheck() {
 		assertThat(RedisCommand.CONFIG_SET.isRepresentedBy(null), equalTo(false));
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyViaLookup() {
 		assertThat(RedisCommand.failsafeCommandLookup("setconfig"), is(RedisCommand.CONFIG_SET));
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCaseViaLookup() {
 		assertThat(RedisCommand.failsafeCommandLookup("SetConfig"), is(RedisCommand.CONFIG_SET));
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldReturnUnknownCommandForUnknownCommandString() {
 		assertThat(RedisCommand.failsafeCommandLookup("strangecommand"), is(RedisCommand.UNKNOWN));
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldNotThrowExceptionOnValidArgumentCount() {
 		RedisCommand.AUTH.validateArgumentCount(1);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExcatMatch() {
 
 		expectedException.expect(IllegalArgumentException.class);
@@ -97,10 +73,7 @@ public class RedisCommandUnitTests {
 		RedisCommand.AUTH.validateArgumentCount(2);
 	}
 
-	/**
-	 * @see DATAREDIS-73
-	 */
-	@Test
+	@Test // DATAREDIS-73
 	public void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedMinimalMatch() {
 
 		expectedException.expect(IllegalArgumentException.class);
