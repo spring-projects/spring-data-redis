@@ -48,12 +48,24 @@ public class RedisKeyExpiredEvent<T> extends RedisKeyspaceEvent {
 
 	/**
 	 * Creates new {@link RedisKeyExpiredEvent}
-	 * 
+	 *
 	 * @param key
 	 * @param value
 	 */
 	public RedisKeyExpiredEvent(byte[] key, Object value) {
-		super(key);
+		this(null, key, value);
+	}
+
+	/**
+	 * Creates new {@link RedisKeyExpiredEvent}
+	 *
+	 * @pamam channel
+	 * @param key
+	 * @param value
+	 * @since 1.8
+	 */
+	public RedisKeyExpiredEvent(String channel, byte[] key, Object value) {
+		super(channel, key);
 
 		args = ByteUtils.split(key, ':');
 		this.value = value;
