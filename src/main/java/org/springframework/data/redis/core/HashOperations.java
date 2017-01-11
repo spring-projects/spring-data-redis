@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,18 +145,18 @@ public interface HashOperations<H, HK, HV> {
 	Map<HK, HV> entries(H key);
 
 	/**
-	 * @return
-	 */
-	RedisOperations<H, ?> getOperations();
-
-	/**
 	 * Use a {@link Cursor} to iterate over entries in hash at {@code key}. <br />
 	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leak.
 	 *
-	 * @since 1.4
 	 * @param key must not be {@literal null}.
 	 * @param options
 	 * @return
+	 * @since 1.4
 	 */
 	Cursor<Map.Entry<HK, HV>> scan(H key, ScanOptions options);
+
+	/**
+	 * @return
+	 */
+	RedisOperations<H, ?> getOperations();
 }

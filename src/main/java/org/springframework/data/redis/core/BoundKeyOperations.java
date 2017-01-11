@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,12 @@ import org.springframework.data.redis.connection.DataType;
  * Operations over a Redis key. Useful for executing common key-'bound' operations to all implementations.
  * <p>
  * As the rest of the APIs, if the underlying connection is pipelined or queued/in multi mode, all methods will return
- * null.
+ * {@literal null}.
  * <p>
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface BoundKeyOperations<K> {
 

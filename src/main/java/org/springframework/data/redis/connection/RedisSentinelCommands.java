@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,12 @@ package org.springframework.data.redis.connection;
 import java.util.Collection;
 
 /**
+ * Redis Sentinel-specific commands.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.4
+ * @see <a href="https://redis.io/topics/sentinel">Redis Sentinel Documentation</a>
  */
 public interface RedisSentinelCommands {
 

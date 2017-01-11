@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  *
  * @author Ninad Divadkar
  * @author Christoph Strobl
- * @see <a href="http://redis.io/commands#geo">http://redis.io/commands#geo</a>
+ * @author Mark Paluch
+ * @see <a href="http://redis.io/commands#geo">Redis Documentation: Geo Commands</a>
  * @since 1.8
  */
 public interface GeoOperations<K, M> {
@@ -43,7 +44,7 @@ public interface GeoOperations<K, M> {
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(K key, Point point, M member);
 
@@ -53,7 +54,7 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(K key, GeoLocation<M> location);
 
@@ -63,7 +64,7 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(K key, Map<M, Point> memberCoordinateMap);
 
@@ -73,7 +74,7 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(K key, Iterable<GeoLocation<M>> locations);
 
@@ -84,7 +85,7 @@ public interface GeoOperations<K, M> {
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Distance geoDist(K key, M member1, M member2);
 
@@ -96,7 +97,7 @@ public interface GeoOperations<K, M> {
 	 * @param member2 must not be {@literal null}.
 	 * @param metric must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Distance geoDist(K key, M member1, M member2, Metric metric);
 
@@ -106,7 +107,7 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geohash">http://redis.io/commands/geohash</a>
+	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
 	List<String> geoHash(K key, M... members);
 
@@ -116,7 +117,7 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geopos">http://redis.io/commands/geopos</a>
+	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
 	List<Point> geoPos(K key, M... members);
 
@@ -126,7 +127,7 @@ public interface GeoOperations<K, M> {
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadius(K key, Circle within);
 
@@ -137,7 +138,7 @@ public interface GeoOperations<K, M> {
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args);
 
@@ -149,7 +150,7 @@ public interface GeoOperations<K, M> {
 	 * @param member must not be {@literal null}.
 	 * @param radius
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius);
 
@@ -161,7 +162,7 @@ public interface GeoOperations<K, M> {
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, Distance distance);
 
@@ -174,7 +175,7 @@ public interface GeoOperations<K, M> {
 	 * @param distance must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, Distance distance, GeoRadiusCommandArgs args);
 
