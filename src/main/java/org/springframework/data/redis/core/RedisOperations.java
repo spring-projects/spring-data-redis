@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Ninad Divadkar
+ * @author Mark Paluch
  */
 public interface RedisOperations<K, V> {
 
@@ -141,52 +142,271 @@ public interface RedisOperations<K, V> {
 	 */
 	<T extends Closeable> T executeWithStickyConnection(RedisCallback<T> callback);
 
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Keys
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Determine if given {@code key} exists.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
+	 */
 	Boolean hasKey(K key);
 
+	/**
+	 * Delete given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return The number of keys that were removed.
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 */
 	void delete(K key);
 
-	void delete(Collection<K> key);
+	/**
+	 * Delete given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return The number of keys that were removed.
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
+	 */
+	void delete(Collection<K> keys);
 
+	/**
+	 * Determine the type stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
+	 */
 	DataType type(K key);
 
+	/**
+	 * Find all keys matching the given {@code pattern}.
+	 *
+	 * @param pattern must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
+	 */
 	Set<K> keys(K pattern);
 
+	/**
+	 * Return a random key from the keyspace.
+	 *
+	 * @return
+	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
+	 */
 	K randomKey();
 
+	/**
+	 * Rename key {@code oldKey} to {@code newKey}.
+	 *
+	 * @param oldKey must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 */
 	void rename(K oldKey, K newKey);
 
+	/**
+	 * Rename key {@code oleName} to {@code newKey} only if {@code newKey} does not exist.
+	 *
+	 * @param oldKey must not be {@literal null}.
+	 * @param newKey must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
+	 */
 	Boolean renameIfAbsent(K oldKey, K newKey);
 
+	/**
+	 * Set time to live for given {@code key}..
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param unit must not be {@literal null}.
+	 * @return
+	 */
 	Boolean expire(K key, long timeout, TimeUnit unit);
 
+	/**
+	 * Set the expiration for given {@code key} as a {@literal date} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param date must not be {@literal null}.
+	 * @return
+	 */
 	Boolean expireAt(K key, Date date);
 
+	/**
+	 * Remove the expiration from given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 */
 	Boolean persist(K key);
 
+	/**
+	 * Move given {@code key} to database with {@code index}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param dbIndex
+	 * @return
+	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 */
 	Boolean move(K key, int dbIndex);
 
+	/**
+	 * Retrieve serialized version of the value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/dump">Redis Documentation: DUMP</a>
+	 */
 	byte[] dump(K key);
 
+	/**
+	 * Create {@code key} using the {@code serializedValue}, previously obtained using {@link #dump(Object)}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value must not be {@literal null}.
+	 * @param timeToLive
+	 * @param unit must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/restore">Redis Documentation: RESTORE</a>
+	 */
 	void restore(K key, byte[] value, long timeToLive, TimeUnit unit);
 
+	/**
+	 * Get the time to live for {@code key} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 */
 	Long getExpire(K key);
 
+	/**
+	 * Get the time to live for {@code key} in and convert it to the given {@link TimeUnit}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeUnit must not be {@literal null}.
+	 * @return
+	 * @since 1.8
+	 */
 	Long getExpire(K key, TimeUnit timeUnit);
 
-	void watch(K keys);
+	/**
+	 * Sort the elements for {@code query}.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @return the results of sort.
+	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 */
+	List<V> sort(SortQuery<K> query);
 
+	/**
+	 * Sort the elements for {@code query} applying {@link RedisSerializer}.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @return the deserialized results of sort.
+	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 */
+	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
+
+	/**
+	 * Sort the elements for {@code query} applying {@link BulkMapper}.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @return the deserialized results of sort.
+	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 */
+	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
+
+	/**
+	 * Sort the elements for {@code query} applying {@link BulkMapper} and {@link RedisSerializer}.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @return the deserialized results of sort.
+	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 */
+	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
+
+	/**
+	 * Sort the elements for {@code query} and store result in {@code storeKey}.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @param storeKey must not be {@literal null}.
+	 * @return number of values.
+	 * @see <a href="http://redis.io/commands/sort">Redis Documentation: SORT</a>
+	 */
+	Long sort(SortQuery<K> query, K storeKey);
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Transactions
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Watch given {@code key} for modifications during transaction started with {@link #multi()}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/watch">Redis Documentation: WATCH</a>
+	 */
+	void watch(K key);
+
+	/**
+	 * Watch given {@code keys} for modifications during transaction started with {@link #multi()}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/watch">Redis Documentation: WATCH</a>
+	 */
 	void watch(Collection<K> keys);
 
+	/**
+	 * Flushes all the previously {@link #watch(Object)} keys.
+	 *
+	 * @see <a href="http://redis.io/commands/unwatch">Redis Documentation: UNWATCH</a>
+	 */
 	void unwatch();
 
 	/**
-	 * '
+	 * Mark the start of a transaction block. <br>
+	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
+	 * <p>
+	 *
+	 * @see <a href="http://redis.io/commands/multi">Redis Documentation: MULTI</a>
 	 */
 	void multi();
 
+	/**
+	 * Discard all commands issued after {@link #multi()}.
+	 *
+	 * @see <a href="http://redis.io/commands/discard">Redis Documentation: DISCARD</a>
+	 */
 	void discard();
 
+	/**
+	 * Executes all queued commands in a transaction started with {@link #multi()}. <br>
+	 * If used along with {@link #watch(Object)} the operation will fail if any of watched keys has been modified.
+	 *
+	 * @return List of replies for each executed command.
+	 * @see <a href="http://redis.io/commands/exec">Redis Documentation: EXEC</a>
+	 */
 	List<Object> exec();
+
+	/**
+	 * Execute a transaction, using the provided {@link RedisSerializer} to deserialize any results that are byte[]s or
+	 * Collections of byte[]s. If a result is a Map, the provided {@link RedisSerializer} will be used for both the keys
+	 * and values. Other result types (Long, Boolean, etc) are left as-is in the converted results. Tuple results are
+	 * automatically converted to TypedTuples.
+	 *
+	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results of transaction exec
+	 * @return The deserialized results of transaction exec
+	 */
+	List<Object> exec(RedisSerializer<?> valueSerializer);
+
+	// -------------------------------------------------------------------------
+	// Methods dealing with Redis Server Commands
+	// -------------------------------------------------------------------------
 
 	/**
 	 * /** Request information and statistics about connected clients.
@@ -197,18 +417,45 @@ public interface RedisOperations<K, V> {
 	List<RedisClientInfo> getClientList();
 
 	/**
-	 * Execute a transaction, using the provided {@link RedisSerializer} to deserialize any results that are byte[]s or
-	 * Collections of byte[]s. If a result is a Map, the provided {@link RedisSerializer} will be used for both the keys
-	 * and values. Other result types (Long, Boolean, etc) are left as-is in the converted results. Tuple results are
-	 * automatically converted to TypedTuples.
-	 * 
-	 * @param valueSerializer The {@link RedisSerializer} to use for deserializing the results of transaction exec
-	 * @return The deserialized results of transaction exec
+	 * Closes a given client connection identified by {@literal ip:port} given in {@code client}.
+	 *
+	 * @param host of connection to close.
+	 * @param port of connection to close
+	 * @since 1.3
 	 */
-	List<Object> exec(RedisSerializer<?> valueSerializer);
+	void killClient(String host, int port);
 
-	// pubsub functionality on the template
+	/**
+	 * Change redis replication setting to new master.
+	 *
+	 * @param host must not be {@literal null}.
+	 * @param port
+	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 */
+	void slaveOf(String host, int port);
+
+	/**
+	 * Change server into master.
+	 *
+	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
+	 */
+	void slaveOfNoOne();
+
+	/**
+	 * Publishes the given message to the given channel.
+	 *
+	 * @param destination the channel to publish to, must not be {@literal null}.
+	 * @param message message to publish
+	 * @return the number of clients that received the message
+	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
+	 */
 	void convertAndSend(String destination, Object message);
+
+	// -------------------------------------------------------------------------
+	// Methods to obtain specific operations interface objects.
+	// -------------------------------------------------------------------------
 
 	// operation types
 	/**
@@ -321,46 +568,24 @@ public interface RedisOperations<K, V> {
 	 */
 	ClusterOperations<K, V> opsForCluster();
 
-	List<V> sort(SortQuery<K> query);
-
-	<T> List<T> sort(SortQuery<K> query, RedisSerializer<T> resultSerializer);
-
-	<T> List<T> sort(SortQuery<K> query, BulkMapper<T, V> bulkMapper);
-
-	<T, S> List<T> sort(SortQuery<K> query, BulkMapper<T, S> bulkMapper, RedisSerializer<S> resultSerializer);
-
-	Long sort(SortQuery<K> query, K storeKey);
-
-	RedisSerializer<?> getValueSerializer();
-
+	/**
+	 * @return the key {@link RedisSerializer}.
+	 */
 	RedisSerializer<?> getKeySerializer();
 
+	/**
+	 * @return the value {@link RedisSerializer}.
+	 */
+	RedisSerializer<?> getValueSerializer();
+
+	/**
+	 * @return the hash key {@link RedisSerializer}.
+	 */
 	RedisSerializer<?> getHashKeySerializer();
 
+	/**
+	 * @return the hash value {@link RedisSerializer}.
+	 */
 	RedisSerializer<?> getHashValueSerializer();
 
-	/**
-	 * Closes a given client connection identified by {@literal ip:port} given in {@code client}.
-	 * 
-	 * @param host of connection to close.
-	 * @param port of connection to close
-	 * @since 1.3
-	 */
-	void killClient(String host, int port);
-
-	/**
-	 * Change redis replication setting to new master.
-	 * 
-	 * @param host
-	 * @param port
-	 * @since 1.3
-	 */
-	void slaveOf(String host, int port);
-
-	/**
-	 * Change server into master.
-	 * 
-	 * @since 1.3
-	 */
-	void slaveOfNoOne();
 }

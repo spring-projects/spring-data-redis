@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,14 +31,12 @@ import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.util.Assert;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 /**
  * Geo-specific Redis commands.
  *
  * @author Ninad Divadkar
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.8
  */
 public interface RedisGeoCommands {
@@ -47,7 +48,7 @@ public interface RedisGeoCommands {
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(byte[] key, Point point, byte[] member);
 
@@ -57,7 +58,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(byte[] key, GeoLocation<byte[]> location);
 
@@ -67,7 +68,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap);
 
@@ -77,7 +78,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(byte[] key, Iterable<GeoLocation<byte[]>> locations);
 
@@ -88,7 +89,7 @@ public interface RedisGeoCommands {
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Distance geoDist(byte[] key, byte[] member1, byte[] member2);
 
@@ -100,7 +101,7 @@ public interface RedisGeoCommands {
 	 * @param member2 must not be {@literal null}.
 	 * @param metric must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Distance geoDist(byte[] key, byte[] member1, byte[] member2, Metric metric);
 
@@ -110,7 +111,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geohash">http://redis.io/commands/geohash</a>
+	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
 	List<String> geoHash(byte[] key, byte[]... members);
 
@@ -120,7 +121,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geopos">http://redis.io/commands/geopos</a>
+	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
 	List<Point> geoPos(byte[] key, byte[]... members);
 
@@ -130,7 +131,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within);
 
@@ -141,7 +142,7 @@ public interface RedisGeoCommands {
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within, GeoRadiusCommandArgs args);
 
@@ -153,7 +154,7 @@ public interface RedisGeoCommands {
 	 * @param member must not be {@literal null}.
 	 * @param radius
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, double radius);
 
@@ -165,7 +166,7 @@ public interface RedisGeoCommands {
 	 * @param member must not be {@literal null}.
 	 * @param radius must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius);
 
@@ -178,7 +179,7 @@ public interface RedisGeoCommands {
 	 * @param radius must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius,
 			GeoRadiusCommandArgs args);
@@ -189,6 +190,7 @@ public interface RedisGeoCommands {
 	 * @param key must not be {@literal null}.
 	 * @param members must not be {@literal null}.
 	 * @return Number of elements removed.
+	 * @see <a href="http://redis.io/commands/zrem">Redis Documentation: ZREM</a>
 	 */
 	Long geoRemove(byte[] key, byte[]... members);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,9 +30,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.Command
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Redis HyperLogLog commands executed using reactive infrastructure.
@@ -44,6 +44,7 @@ public interface ReactiveHyperLogLogCommands {
 	 * {@code PFADD} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
 	class PfAddCommand extends KeyCommand {
 
@@ -108,6 +109,7 @@ public interface ReactiveHyperLogLogCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
 	default Mono<Long> pfAdd(ByteBuffer key, ByteBuffer value) {
 
@@ -122,6 +124,7 @@ public interface ReactiveHyperLogLogCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
 	default Mono<Long> pfAdd(ByteBuffer key, Collection<ByteBuffer> values) {
 
@@ -136,6 +139,7 @@ public interface ReactiveHyperLogLogCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfadd">Redis Documentation: PFADD</a>
 	 */
 	Flux<NumericResponse<PfAddCommand, Long>> pfAdd(Publisher<PfAddCommand> commands);
 
@@ -143,6 +147,7 @@ public interface ReactiveHyperLogLogCommands {
 	 * {@code PFCOUNT} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
 	class PfCountCommand implements Command {
 
@@ -201,6 +206,7 @@ public interface ReactiveHyperLogLogCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
 	default Mono<Long> pfCount(ByteBuffer key) {
 
@@ -214,6 +220,7 @@ public interface ReactiveHyperLogLogCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
 	default Mono<Long> pfCount(Collection<ByteBuffer> keys) {
 
@@ -227,6 +234,7 @@ public interface ReactiveHyperLogLogCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfcount">Redis Documentation: PFCOUNT</a>
 	 */
 	Flux<NumericResponse<PfCountCommand, Long>> pfCount(Publisher<PfCountCommand> commands);
 
@@ -234,6 +242,7 @@ public interface ReactiveHyperLogLogCommands {
 	 * {@code PFMERGE} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 */
 	class PfMergeCommand extends KeyCommand {
 
@@ -286,6 +295,7 @@ public interface ReactiveHyperLogLogCommands {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param sourceKeys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 */
 	default Mono<Boolean> pfMerge(ByteBuffer destinationKey, Collection<ByteBuffer> sourceKeys) {
 
@@ -301,6 +311,7 @@ public interface ReactiveHyperLogLogCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/pfmerge">Redis Documentation: PFMERGE</a>
 	 */
 	Flux<BooleanResponse<PfMergeCommand>> pfMerge(Publisher<PfMergeCommand> commands);
 }

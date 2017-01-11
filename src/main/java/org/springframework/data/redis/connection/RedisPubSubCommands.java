@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.data.redis.connection;
  * PubSub-specific Redis commands.
  * 
  * @author Costin Leau
+ * @author Mark Paluch
  */
 public interface RedisPubSubCommands {
 
@@ -39,9 +40,10 @@ public interface RedisPubSubCommands {
 	/**
 	 * Publishes the given message to the given channel.
 	 * 
-	 * @param channel the channel to publish to
+	 * @param channel the channel to publish to, must not be {@literal null}.
 	 * @param message message to publish
 	 * @return the number of clients that received the message
+	 * @see <a href="http://redis.io/commands/publish">Redis Documentation: PUBLISH</a>
 	 */
 	Long publish(byte[] channel, byte[] message);
 
@@ -51,8 +53,9 @@ public interface RedisPubSubCommands {
 	 * <p>
 	 * Note that this operation is blocking and the current thread starts waiting for new messages immediately.
 	 * 
-	 * @param listener message listener
-	 * @param channels channel names
+	 * @param listener message listener, must not be {@literal null}.
+	 * @param channels channel names, must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/subscribe">Redis Documentation: SUBSCRIBE</a>
 	 */
 	void subscribe(MessageListener listener, byte[]... channels);
 
@@ -63,8 +66,9 @@ public interface RedisPubSubCommands {
 	 * <p>
 	 * Note that this operation is blocking and the current thread starts waiting for new messages immediately.
 	 * 
-	 * @param listener message listener
-	 * @param patterns channel name patterns
+	 * @param listener message listener, must not be {@literal null}.
+	 * @param patterns channel name patterns, must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/psubscribe">Redis Documentation: PSUBSCRIBE</a>
 	 */
 	void pSubscribe(MessageListener listener, byte[]... patterns);
 }

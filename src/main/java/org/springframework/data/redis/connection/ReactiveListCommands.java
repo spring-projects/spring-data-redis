@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.connection;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -33,9 +36,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCo
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Redis List commands executed using reactive infrastructure.
@@ -57,6 +57,8 @@ public interface ReactiveListCommands {
 	 * {@code LPUSH}/{@literal RPUSH} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	class PushCommand extends KeyCommand {
 
@@ -167,6 +169,7 @@ public interface ReactiveListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	default Mono<Long> rPush(ByteBuffer key, List<ByteBuffer> values) {
 
@@ -182,6 +185,7 @@ public interface ReactiveListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/rpushx">Redis Documentation: RPUSHX</a>
 	 */
 	default Mono<Long> rPushX(ByteBuffer key, ByteBuffer value) {
 
@@ -197,6 +201,7 @@ public interface ReactiveListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
 	 */
 	default Mono<Long> lPush(ByteBuffer key, List<ByteBuffer> values) {
 
@@ -212,6 +217,7 @@ public interface ReactiveListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lpushx">Redis Documentation: LPUSHX</a>
 	 */
 	default Mono<Long> lPushX(ByteBuffer key, ByteBuffer value) {
 
@@ -226,6 +232,8 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lpush">Redis Documentation: LPUSH</a>
+	 * @see <a href="http://redis.io/commands/rpush">Redis Documentation: RPUSH</a>
 	 */
 	Flux<NumericResponse<PushCommand, Long>> push(Publisher<PushCommand> commands);
 
@@ -234,6 +242,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
 	default Mono<Long> lLen(ByteBuffer key) {
 
@@ -247,6 +256,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/llen">Redis Documentation: LLEN</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> lLen(Publisher<KeyCommand> commands);
 
@@ -257,6 +267,7 @@ public interface ReactiveListCommands {
 	 * @param start
 	 * @param end
 	 * @return
+	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
 	default Mono<List<ByteBuffer>> lRange(ByteBuffer key, long start, long end) {
 
@@ -271,6 +282,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
 	Flux<MultiValueResponse<RangeCommand, ByteBuffer>> lRange(Publisher<RangeCommand> commands);
 
@@ -281,6 +293,7 @@ public interface ReactiveListCommands {
 	 * @param start
 	 * @param end
 	 * @return
+	 * @see <a href="http://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	default Mono<Boolean> lTrim(ByteBuffer key, long start, long end) {
 
@@ -296,6 +309,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/ltrim">Redis Documentation: LTRIM</a>
 	 */
 	Flux<BooleanResponse<RangeCommand>> lTrim(Publisher<RangeCommand> commands);
 
@@ -303,6 +317,7 @@ public interface ReactiveListCommands {
 	 * {@code LINDEX} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	class LIndexCommand extends KeyCommand {
 
@@ -351,6 +366,7 @@ public interface ReactiveListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param index
 	 * @return
+	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	default Mono<ByteBuffer> lIndex(ByteBuffer key, long index) {
 
@@ -364,6 +380,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lindex">Redis Documentation: LINDEX</a>
 	 */
 	Flux<ByteBufferResponse<LIndexCommand>> lIndex(Publisher<LIndexCommand> commands);
 
@@ -371,6 +388,7 @@ public interface ReactiveListCommands {
 	 * {@code LINSERT} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	class LInsertCommand extends KeyCommand {
 
@@ -470,6 +488,7 @@ public interface ReactiveListCommands {
 	 * @param pivot must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	default Mono<Long> lInsert(ByteBuffer key, Position position, ByteBuffer pivot, ByteBuffer value) {
 
@@ -490,6 +509,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/linsert">Redis Documentation: LINSERT</a>
 	 */
 	Flux<NumericResponse<LInsertCommand, Long>> lInsert(Publisher<LInsertCommand> commands);
 
@@ -497,6 +517,7 @@ public interface ReactiveListCommands {
 	 * {@code LSET} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
 	class LSetCommand extends KeyCommand {
 
@@ -568,6 +589,7 @@ public interface ReactiveListCommands {
 	 * @param index
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
 	default Mono<Boolean> lSet(ByteBuffer key, long index, ByteBuffer value) {
 
@@ -582,6 +604,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands
 	 * @return
+	 * @see <a href="http://redis.io/commands/lset">Redis Documentation: LSET</a>
 	 */
 	Flux<BooleanResponse<LSetCommand>> lSet(Publisher<LSetCommand> commands);
 
@@ -589,6 +612,7 @@ public interface ReactiveListCommands {
 	 * {@code LREM} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	class LRemCommand extends KeyCommand {
 
@@ -679,6 +703,7 @@ public interface ReactiveListCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	default Mono<Long> lRem(ByteBuffer key, ByteBuffer value) {
 
@@ -695,6 +720,7 @@ public interface ReactiveListCommands {
 	 * @param count must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	default Mono<Long> lRem(ByteBuffer key, Long count, ByteBuffer value) {
 
@@ -712,6 +738,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lrem">Redis Documentation: LREM</a>
 	 */
 	Flux<NumericResponse<LRemCommand, Long>> lRem(Publisher<LRemCommand> commands);
 
@@ -719,6 +746,8 @@ public interface ReactiveListCommands {
 	 * {@code LPOP}/{@literal RPOP} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	class PopCommand extends KeyCommand {
 
@@ -775,6 +804,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
 	 */
 	default Mono<ByteBuffer> lPop(ByteBuffer key) {
 
@@ -788,6 +818,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	default Mono<ByteBuffer> rPop(ByteBuffer key) {
 
@@ -801,11 +832,15 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/lpop">Redis Documentation: LPOP</a>
+	 * @see <a href="http://redis.io/commands/rpop">Redis Documentation: RPOP</a>
 	 */
 	Flux<ByteBufferResponse<PopCommand>> pop(Publisher<PopCommand> commands);
 
 	/**
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	class BPopCommand implements Command {
 
@@ -939,6 +974,7 @@ public interface ReactiveListCommands {
 	 * @param keys must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
 	default Mono<PopResult> blPop(List<ByteBuffer> keys, Duration timeout) {
 
@@ -955,6 +991,7 @@ public interface ReactiveListCommands {
 	 * @param keys must not be {@literal null}.
 	 * @param timeout must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	default Mono<PopResult> brPop(List<ByteBuffer> keys, Duration timeout) {
 
@@ -971,6 +1008,8 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands
 	 * @return
+	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
+	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
 	Flux<PopResponse> bPop(Publisher<BPopCommand> commands);
 
@@ -978,6 +1017,7 @@ public interface ReactiveListCommands {
 	 * {@code RPOPLPUSH} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
 	class RPopLPushCommand extends KeyCommand {
 
@@ -1030,6 +1070,7 @@ public interface ReactiveListCommands {
 	 * @param source must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
 	default Mono<ByteBuffer> rPopLPush(ByteBuffer source, ByteBuffer destination) {
 
@@ -1047,6 +1088,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/rpoplpush">Redis Documentation: RPOPLPUSH</a>
 	 */
 	Flux<ByteBufferResponse<RPopLPushCommand>> rPopLPush(Publisher<RPopLPushCommand> commands);
 
@@ -1054,6 +1096,7 @@ public interface ReactiveListCommands {
 	 * {@code BRPOPLPUSH} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
 	class BRPopLPushCommand extends KeyCommand {
 
@@ -1130,6 +1173,7 @@ public interface ReactiveListCommands {
 	 * @param source must not be {@literal null}.
 	 * @param destination must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
 	default Mono<ByteBuffer> bRPopLPush(ByteBuffer source, ByteBuffer destination, Duration timeout) {
 
@@ -1147,6 +1191,7 @@ public interface ReactiveListCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
 	Flux<ByteBufferResponse<BRPopLPushCommand>> bRPopLPush(Publisher<BRPopLPushCommand> commands);
 }

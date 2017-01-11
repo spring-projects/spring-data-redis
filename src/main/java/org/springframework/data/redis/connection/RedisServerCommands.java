@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  */
 public interface RedisServerCommands {
 
@@ -42,133 +43,125 @@ public interface RedisServerCommands {
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
-	 * <p>
-	 * See http://redis.io/commands/bgrewriteaof
 	 * 
 	 * @deprecated As of 1.3, use {@link #bgReWriteAof}.
+	 * @see <a href="http://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */
 	@Deprecated
 	void bgWriteAof();
 
 	/**
 	 * Start an {@literal Append Only File} rewrite process on server.
-	 * <p>
-	 * See http://redis.io/commands/bgrewriteaof
-	 * 
+	 *
 	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/bgrewriteaof">Redis Documentation: BGREWRITEAOF</a>
 	 */
 	void bgReWriteAof();
 
 	/**
 	 * Start background saving of db on server.
-	 * <p>
-	 * See http://redis.io/commands/bgsave
+	 *
+	 * @see <a href="http://redis.io/commands/bgsave">Redis Documentation: BGSAVE</a>
 	 */
 	void bgSave();
 
 	/**
 	 * Get time of last {@link #bgSave()} operation in seconds.
-	 * <p>
-	 * See http://redis.io/commands/lastsave
-	 * 
+	 *
 	 * @return
+	 * @see <a href="http://redis.io/commands/lastsave">Redis Documentation: LASTSAVE</a>
 	 */
 	Long lastSave();
 
 	/**
 	 * Synchronous save current db snapshot on server.
-	 * <p>
-	 * See http://redis.io/commands/save
+	 *
+	 * @see <a href="http://redis.io/commands/save">Redis Documentation: SAVE</a>
 	 */
 	void save();
 
 	/**
 	 * Get the total number of available keys in currently selected database.
-	 * <p>
-	 * See http://redis.io/commands/dbsize
-	 * 
+	 *
 	 * @return
+	 * @see <a href="http://redis.io/commands/dbsize">Redis Documentation: DBSIZE</a>
 	 */
 	Long dbSize();
 
 	/**
 	 * Delete all keys of the currently selected database.
-	 * <p>
-	 * See http://redis.io/commands/flushdb
+	 *
+	 * @see <a href="http://redis.io/commands/flushdb">Redis Documentation: FLUSHDB</a>
 	 */
 	void flushDb();
 
 	/**
 	 * Delete all <b>all keys</b> from <b>all databases</b>.
-	 * <p>
-	 * See http://redis.io/commands/flushall
+	 *
+	 * @see <a href="http://redis.io/commands/flushall">Redis Documentation: FLUSHALL</a>
 	 */
 	void flushAll();
 
 	/**
 	 * Load {@literal default} server information like
 	 * <ul>
-	 * <li>mempory</li>
+	 * <li>memory</li>
 	 * <li>cpu utilization</li>
 	 * <li>replication</li>
 	 * </ul>
 	 * <p>
-	 * See http://redis.io/commands/info
 	 * 
 	 * @return
+	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
 	Properties info();
 
 	/**
 	 * Load server information for given {@code selection}.
-	 * <p>
-	 * See http://redis.io/commands/info
-	 * 
+	 *
 	 * @return
+	 * @see <a href="http://redis.io/commands/info">Redis Documentation: INFO</a>
 	 */
 	Properties info(String section);
 
 	/**
 	 * Shutdown server.
-	 * <p>
-	 * See http://redis.io/commands/shutdown
+	 *
+	 * @see <a href="http://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
 	 */
 	void shutdown();
 
 	/**
 	 * Shutdown server.
-	 * <p>
-	 * See http://redis.io/commands/shutdown
-	 * 
+	 *
+	 * @see <a href="http://redis.io/commands/shutdown">Redis Documentation: SHUTDOWN</a>
 	 * @since 1.3
 	 */
 	void shutdown(ShutdownOption option);
 
 	/**
 	 * Load configuration parameters for given {@code pattern} from server.
-	 * <p>
-	 * See http://redis.io/commands/config-get
-	 * 
+	 *
 	 * @param pattern
 	 * @return
+	 * @see <a href="http://redis.io/commands/config-get">Redis Documentation: CONFIG GET</a>
 	 */
 	List<String> getConfig(String pattern);
 
 	/**
 	 * Set server configuration for {@code param} to {@code value}.
-	 * <p>
-	 * See http://redis.io/commands/config-set
-	 * 
+	 *
 	 * @param param
 	 * @param value
+	 * @see <a href="http://redis.io/commands/config-set">Redis Documentation: CONFIG SET</a>
 	 */
 	void setConfig(String param, String value);
 
 	/**
 	 * Reset statistic counters on server. <br>
 	 * Counters can be retrieved using {@link #info()}.
-	 * <p>
-	 * See http://redis.io/commands/config-resetstat
+	 *
+	 * @see <a href="http://redis.io/commands/config-resetstat">Redis Documentation: CONFIG RESETSTAT</a>
 	 */
 	void resetConfigStats();
 
@@ -177,6 +170,7 @@ public interface RedisServerCommands {
 	 * 
 	 * @return current server time in milliseconds.
 	 * @since 1.1
+	 * @see <a href="http://redis.io/commands/time">Redis Documentation: TIME</a>
 	 */
 	Long time();
 
@@ -186,6 +180,7 @@ public interface RedisServerCommands {
 	 * @param host of connection to close.
 	 * @param port of connection to close
 	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/client-kill">Redis Documentation: CLIENT KILL</a>
 	 */
 	void killClient(String host, int port);
 
@@ -194,14 +189,14 @@ public interface RedisServerCommands {
 	 * 
 	 * @param name
 	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/client-setname">Redis Documentation: CLIENT SETNAME</a>
 	 */
 	void setClientName(byte[] name);
 
 	/**
 	 * Returns the name of the current connection.
-	 * <p>
-	 * See http://redis.io/commands/client-getname
-	 * 
+	 *
+	 * @see <a href="http://redis.io/commands/client-getname">Redis Documentation: CLIENT GETNAME</a>
 	 * @return
 	 * @since 1.3
 	 */
@@ -209,50 +204,55 @@ public interface RedisServerCommands {
 
 	/**
 	 * Request information and statistics about connected clients.
-	 * <p>
-	 * See http://redis.io/commands/client-list
-	 * 
+	 *
 	 * @return {@link List} of {@link RedisClientInfo} objects.
 	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/client-list">Redis Documentation: CLIENT LIST</a>
 	 */
 	List<RedisClientInfo> getClientList();
 
 	/**
 	 * Change redis replication setting to new master.
-	 * <p>
-	 * See http://redis.io/commands/slaveof
-	 * 
-	 * @param host
+	 *
+	 * @param host must not be {@literal null}.
 	 * @param port
 	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
 	 */
 	void slaveOf(String host, int port);
 
 	/**
 	 * Change server into master.
-	 * <p>
-	 * See http://redis.io/commands/slaveof
-	 * 
+	 *
 	 * @since 1.3
+	 * @see <a href="http://redis.io/commands/slaveof">Redis Documentation: SLAVEOF</a>
 	 */
 	void slaveOfNoOne();
 
 	/**
+	 * Atomically transfer a key from a source Redis instance to a destination Redis instance. On success the key is
+	 * deleted from the original instance and is guaranteed to exist in the target instance.
+	 * 
 	 * @param key must not be {@literal null}.
 	 * @param target must not be {@literal null}.
 	 * @param dbIndex
 	 * @param option can be {@literal null}. Defaulted to {@link MigrateOption#COPY}.
 	 * @since 1.7
+	 * @see <a href="http://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
 	void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option);
 
 	/**
+	 * Atomically transfer a key from a source Redis instance to a destination Redis instance. On success the key is
+	 * deleted from the original instance and is guaranteed to exist in the target instance.
+	 *
 	 * @param key must not be {@literal null}.
 	 * @param target must not be {@literal null}.
 	 * @param dbIndex
 	 * @param option can be {@literal null}. Defaulted to {@link MigrateOption#COPY}.
 	 * @param timeout
 	 * @since 1.7
+	 * @see <a href="http://redis.io/commands/migrate">Redis Documentation: MIGRATE</a>
 	 */
 	void migrate(byte[] key, RedisNode target, int dbIndex, MigrateOption option, long timeout);
 }

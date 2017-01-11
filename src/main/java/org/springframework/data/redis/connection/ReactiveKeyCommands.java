@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package org.springframework.data.redis.connection;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -25,9 +28,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Redis Key commands executed using reactive infrastructure.
@@ -43,6 +43,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	default Mono<Boolean> exists(ByteBuffer key) {
 
@@ -56,6 +57,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/exists">Redis Documentation: EXISTS</a>
 	 */
 	Flux<BooleanResponse<KeyCommand>> exists(Publisher<KeyCommand> keys);
 
@@ -64,6 +66,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	default Mono<DataType> type(ByteBuffer key) {
 
@@ -77,6 +80,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/type">Redis Documentation: TYPE</a>
 	 */
 	Flux<CommandResponse<KeyCommand, DataType>> type(Publisher<KeyCommand> keys);
 
@@ -85,6 +89,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param pattern must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	default Mono<List<ByteBuffer>> keys(ByteBuffer pattern) {
 
@@ -94,24 +99,27 @@ public interface ReactiveKeyCommands {
 	}
 
 	/**
-	 * Return a random key from the keyspace.
-	 *
-	 * @return
-	 */
-	Mono<ByteBuffer> randomKey();
-
-	/**
 	 * Find all keys matching the given {@literal pattern}.
 	 *
 	 * @param patterns must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/keys">Redis Documentation: KEYS</a>
 	 */
 	Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns);
+
+	/**
+	 * Return a random key from the keyspace.
+	 *
+	 * @return
+	 * @see <a href="http://redis.io/commands/randomkey">Redis Documentation: RANDOMKEY</a>
+	 */
+	Mono<ByteBuffer> randomKey();
 
 	/**
 	 * {@code RENAME} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	class RenameCommand extends KeyCommand {
 
@@ -164,6 +172,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
 	 */
 	default Mono<Boolean> rename(ByteBuffer key, ByteBuffer newName) {
 
@@ -172,7 +181,14 @@ public interface ReactiveKeyCommands {
 		return rename(Mono.just(RenameCommand.key(key).to(newName))).next().map(BooleanResponse::getOutput);
 	}
 
-	Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> cmd);
+	/**
+	 * Rename key {@literal oleName} to {@literal newName}.
+	 *
+	 * @param command must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/rename">Redis Documentation: RENAME</a>
+	 */
+	Flux<BooleanResponse<RenameCommand>> rename(Publisher<RenameCommand> command);
 
 	/**
 	 * Rename key {@literal oleName} to {@literal newName} only if {@literal newName} does not exist.
@@ -180,6 +196,7 @@ public interface ReactiveKeyCommands {
 	 * @param key must not be {@literal null}.
 	 * @param newName must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	default Mono<Boolean> renameNX(ByteBuffer key, ByteBuffer newName) {
 
@@ -193,6 +210,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param command must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/renamenx">Redis Documentation: RENAMENX</a>
 	 */
 	Flux<BooleanResponse<RenameCommand>> renameNX(Publisher<RenameCommand> command);
 
@@ -201,6 +219,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	default Mono<Long> del(ByteBuffer key) {
 
@@ -214,6 +233,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} removed along with the deletion result.
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> del(Publisher<KeyCommand> keys);
 
@@ -222,6 +242,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	default Mono<Long> mDel(List<ByteBuffer> keys) {
 
@@ -235,6 +256,7 @@ public interface ReactiveKeyCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal keys} removed along with the deletion result.
+	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keys);
 }

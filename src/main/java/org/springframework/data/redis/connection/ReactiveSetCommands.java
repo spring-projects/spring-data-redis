@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.connection;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -31,9 +34,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiVa
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
  * Redis Set commands executed using reactive infrastructure.
  *
@@ -47,6 +47,7 @@ public interface ReactiveSetCommands {
 	 * {@code SADD} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
 	class SAddCommand extends KeyCommand {
 
@@ -112,6 +113,7 @@ public interface ReactiveSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
 	default Mono<Long> sAdd(ByteBuffer key, ByteBuffer value) {
 
@@ -126,6 +128,7 @@ public interface ReactiveSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
 	default Mono<Long> sAdd(ByteBuffer key, Collection<ByteBuffer> values) {
 
@@ -140,6 +143,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sadd">Redis Documentation: SADD</a>
 	 */
 	Flux<NumericResponse<SAddCommand, Long>> sAdd(Publisher<SAddCommand> commands);
 
@@ -147,6 +151,7 @@ public interface ReactiveSetCommands {
 	 * {@code SREM} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
 	class SRemCommand extends KeyCommand {
 
@@ -212,6 +217,7 @@ public interface ReactiveSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
 	default Mono<Long> sRem(ByteBuffer key, ByteBuffer value) {
 
@@ -226,6 +232,7 @@ public interface ReactiveSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
 	default Mono<Long> sRem(ByteBuffer key, Collection<ByteBuffer> values) {
 
@@ -240,6 +247,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/srem">Redis Documentation: SREM</a>
 	 */
 	Flux<NumericResponse<SRemCommand, Long>> sRem(Publisher<SRemCommand> commands);
 
@@ -248,6 +256,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
 	default Mono<ByteBuffer> sPop(ByteBuffer key) {
 
@@ -261,6 +270,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands
 	 * @return
+	 * @see <a href="http://redis.io/commands/spop">Redis Documentation: SPOP</a>
 	 */
 	Flux<ByteBufferResponse<KeyCommand>> sPop(Publisher<KeyCommand> commands);
 
@@ -268,6 +278,7 @@ public interface ReactiveSetCommands {
 	 * {@code SMOVE} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
 	class SMoveCommand extends KeyCommand {
 
@@ -343,6 +354,7 @@ public interface ReactiveSetCommands {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
 	default Mono<Boolean> sMove(ByteBuffer sourceKey, ByteBuffer destinationKey, ByteBuffer value) {
 
@@ -359,6 +371,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/smove">Redis Documentation: SMOVE</a>
 	 */
 	Flux<BooleanResponse<SMoveCommand>> sMove(Publisher<SMoveCommand> commands);
 
@@ -367,6 +380,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
 	default Mono<Long> sCard(ByteBuffer key) {
 
@@ -380,6 +394,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/scard">Redis Documentation: SCARD</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> sCard(Publisher<KeyCommand> commands);
 
@@ -387,6 +402,7 @@ public interface ReactiveSetCommands {
 	 * {@code SISMEMBER} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	class SIsMemberCommand extends KeyCommand {
 
@@ -439,6 +455,7 @@ public interface ReactiveSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	default Mono<Boolean> sIsMember(ByteBuffer key, ByteBuffer value) {
 
@@ -453,6 +470,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
 	 */
 	Flux<BooleanResponse<SIsMemberCommand>> sIsMember(Publisher<SIsMemberCommand> commands);
 
@@ -460,6 +478,7 @@ public interface ReactiveSetCommands {
 	 * {@code SINTER} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	class SInterCommand implements Command {
 
@@ -503,6 +522,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	default Mono<List<ByteBuffer>> sInter(Collection<ByteBuffer> keys) {
 
@@ -516,6 +536,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
 	Flux<MultiValueResponse<SInterCommand, ByteBuffer>> sInter(Publisher<SInterCommand> commands);
 
@@ -523,6 +544,7 @@ public interface ReactiveSetCommands {
 	 * {@code SINTERSTORE} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	class SInterStoreCommand extends KeyCommand {
 
@@ -576,6 +598,7 @@ public interface ReactiveSetCommands {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return size of set stored a {@literal destinationKey}.
+	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	default Mono<Long> sInterStore(ByteBuffer destinationKey, Collection<ByteBuffer> keys) {
 
@@ -591,6 +614,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
 	 */
 	Flux<NumericResponse<SInterStoreCommand, Long>> sInterStore(Publisher<SInterStoreCommand> commands);
 
@@ -598,6 +622,7 @@ public interface ReactiveSetCommands {
 	 * {@code SUNION} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	class SUnionCommand implements Command {
 
@@ -641,6 +666,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	default Mono<List<ByteBuffer>> sUnion(Collection<ByteBuffer> keys) {
 
@@ -654,11 +680,15 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
 	Flux<MultiValueResponse<SUnionCommand, ByteBuffer>> sUnion(Publisher<SUnionCommand> commands);
 
 	/**
+	 * {@code SUNIONSTORE} command parameters.
+	 * 
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	class SUnionStoreCommand extends KeyCommand {
 
@@ -712,6 +742,7 @@ public interface ReactiveSetCommands {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return size of set stored a {@literal destinationKey}.
+	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	default Mono<Long> sUnionStore(ByteBuffer destinationKey, Collection<ByteBuffer> keys) {
 
@@ -727,6 +758,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
 	 */
 	Flux<NumericResponse<SUnionStoreCommand, Long>> sUnionStore(Publisher<SUnionStoreCommand> commands);
 
@@ -734,6 +766,7 @@ public interface ReactiveSetCommands {
 	 * {@code SDIFF} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	class SDiffCommand implements Command {
 
@@ -777,6 +810,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	default Mono<List<ByteBuffer>> sDiff(Collection<ByteBuffer> keys) {
 
@@ -790,6 +824,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
 	Flux<MultiValueResponse<SDiffCommand, ByteBuffer>> sDiff(Publisher<SDiffCommand> commands);
 
@@ -797,6 +832,7 @@ public interface ReactiveSetCommands {
 	 * {@code SDIFFSTORE} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	class SDiffStoreCommand extends KeyCommand {
 
@@ -850,6 +886,7 @@ public interface ReactiveSetCommands {
 	 * @param destinationKey must not be {@literal null}.
 	 * @param keys must not be {@literal null}.
 	 * @return size of set stored a {@literal destinationKey}.
+	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	default Mono<Long> sDiffStore(ByteBuffer destinationKey, Collection<ByteBuffer> keys) {
 
@@ -865,6 +902,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
 	 */
 	Flux<NumericResponse<SDiffStoreCommand, Long>> sDiffStore(Publisher<SDiffStoreCommand> commands);
 
@@ -873,6 +911,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
 	default Mono<List<ByteBuffer>> sMembers(ByteBuffer key) {
 
@@ -886,6 +925,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
 	Flux<MultiValueResponse<KeyCommand, ByteBuffer>> sMembers(Publisher<KeyCommand> commands);
 
@@ -893,6 +933,7 @@ public interface ReactiveSetCommands {
 	 * {@code SRANDMEMBER} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	class SRandMembersCommand extends KeyCommand {
 
@@ -949,6 +990,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	default Mono<ByteBuffer> sRandMember(ByteBuffer key) {
 		return sRandMember(key, 1L).map(vals -> vals.isEmpty() ? null : vals.iterator().next());
@@ -960,6 +1002,7 @@ public interface ReactiveSetCommands {
 	 * @param key must not be {@literal null}.
 	 * @param count must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	default Mono<List<ByteBuffer>> sRandMember(ByteBuffer key, Long count) {
 
@@ -975,6 +1018,7 @@ public interface ReactiveSetCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	Flux<MultiValueResponse<SRandMembersCommand, ByteBuffer>> sRandMember(Publisher<SRandMembersCommand> commands);
 }

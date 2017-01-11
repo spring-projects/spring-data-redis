@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 package org.springframework.data.redis.connection;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Redis numeric commands executed using reactive infrastructure.
@@ -39,6 +39,7 @@ public interface ReactiveNumberCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
 	default Mono<Long> incr(ByteBuffer key) {
 
@@ -52,6 +53,7 @@ public interface ReactiveNumberCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> incr(Publisher<KeyCommand> keys);
 
@@ -59,6 +61,7 @@ public interface ReactiveNumberCommands {
 	 * {@code INCRBY} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	class IncrByCommand<T extends Number> extends KeyCommand {
 
@@ -110,6 +113,7 @@ public interface ReactiveNumberCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	default <T extends Number> Mono<T> incrBy(ByteBuffer key, T value) {
 
@@ -124,6 +128,7 @@ public interface ReactiveNumberCommands {
 	 *
 	 * @param commands must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/incrby">Redis Documentation: INCRBY</a>
 	 */
 	<T extends Number> Flux<NumericResponse<ReactiveNumberCommands.IncrByCommand<T>, T>> incrBy(
 			Publisher<ReactiveNumberCommands.IncrByCommand<T>> commands);
@@ -132,6 +137,7 @@ public interface ReactiveNumberCommands {
 	 * {@code DECRBY} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
 	class DecrByCommand<T extends Number> extends KeyCommand {
 
@@ -182,6 +188,7 @@ public interface ReactiveNumberCommands {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
 	default Mono<Long> decr(ByteBuffer key) {
 
@@ -195,6 +202,7 @@ public interface ReactiveNumberCommands {
 	 *
 	 * @param keys must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/decr">Redis Documentation: DECR</a>
 	 */
 	Flux<NumericResponse<KeyCommand, Long>> decr(Publisher<KeyCommand> keys);
 
@@ -204,6 +212,7 @@ public interface ReactiveNumberCommands {
 	 * @param key must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/decrby">Redis Documentation: DECRBY</a>
 	 */
 	default <T extends Number> Mono<T> decrBy(ByteBuffer key, T value) {
 
@@ -225,6 +234,7 @@ public interface ReactiveNumberCommands {
 	 * {@code HINCRBY} command parameters.
 	 *
 	 * @author Christoph Strobl
+	 * @see <a href="http://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 */
 	class HIncrByCommand<T extends Number> extends KeyCommand {
 
@@ -301,6 +311,7 @@ public interface ReactiveNumberCommands {
 	 * @param field must not be {@literal null}.
 	 * @param value must not be {@literal null}.
 	 * @return
+	 * @see <a href="http://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 */
 	default <T extends Number> Mono<T> hIncrBy(ByteBuffer key, ByteBuffer field, T value) {
 
@@ -316,6 +327,7 @@ public interface ReactiveNumberCommands {
 	 * Increment {@literal value} of a hash {@literal field} by the given {@literal value}.
 	 *
 	 * @return
+	 * @see <a href="http://redis.io/commands/hincrby">Redis Documentation: HINCRBY</a>
 	 */
 	<T extends Number> Flux<NumericResponse<HIncrByCommand<T>, T>> hIncrBy(Publisher<HIncrByCommand<T>> commands);
 
