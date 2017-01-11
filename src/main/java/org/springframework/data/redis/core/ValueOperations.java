@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,63 +25,156 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface ValueOperations<K, V> {
 
+	/**
+	 * Set {@code value} for {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @see <a href="http://redis.io/commands/set">Redis Documentation: SET</a>
+	 */
 	void set(K key, V value);
 
 	/**
-	 * Set {@code key} to hold the string {@code value} until {@code timeout}.
-	 * 
-	 * @param key
+	 * Set the {@code value} and expiration {@code timeout} for {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 * @param value
 	 * @param timeout
-	 * @param units
-	 * @see http://redis.io/commands/set
+	 * @param unit must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
 	void set(K key, V value, long timeout, TimeUnit unit);
 
+	/**
+	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @see <a href="http://redis.io/commands/setnx">Redis Documentation: SETNX</a>
+	 */
 	Boolean setIfAbsent(K key, V value);
 
-	void multiSet(Map<? extends K, ? extends V> m);
+	/**
+	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple}.
+	 *
+	 * @param map must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 */
+	void multiSet(Map<? extends K, ? extends V> map);
 
-	Boolean multiSetIfAbsent(Map<? extends K, ? extends V> m);
+	/**
+	 * Set multiple keys to multiple values using key-value pairs provided in {@code tuple} only if the provided key does
+	 * not exist.
+	 *
+	 * @param map must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/mset">Redis Documentation: MSET</a>
+	 */
+	Boolean multiSetIfAbsent(Map<? extends K, ? extends V> map);
 
+	/**
+	 * Get the value of {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/get">Redis Documentation: GET</a>
+	 */
 	V get(Object key);
 
+	/**
+	 * Set {@code value} of {@code key} and return its old value.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/getset">Redis Documentation: GETSET</a>
+	 */
 	V getAndSet(K key, V value);
 
+	/**
+	 * Get multiple {@code keys}. Values are returned in the order of the requested keys.
+	 * 
+	 * @param keys must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/mget">Redis Documentation: MGET</a>
+	 */
 	List<V> multiGet(Collection<K> keys);
 
+	/**
+	 * Increment an integer value stored as string value under {@code key} by {@code delta}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @see <a href="http://redis.io/commands/incr">Redis Documentation: INCR</a>
+	 */
 	Long increment(K key, long delta);
 
+	/**
+	 * Increment a floating point number value stored as string value under {@code key} by {@code delta}.
+	 * 
+	 * @param key must not be {@literal null}.
+	 * @param delta
+	 * @see <a href="http://redis.io/commands/incrbyfloar">Redis Documentation: INCRBYFLOAT</a>
+	 */
 	Double increment(K key, double delta);
 
+	/**
+	 * Append a {@code value} to {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @see <a href="http://redis.io/commands/append">Redis Documentation: APPEND</a>
+	 */
 	Integer append(K key, String value);
 
+	/**
+	 * Get a substring of value of {@code key} between {@code begin} and {@code end}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param start
+	 * @param end
+	 * @see <a href="http://redis.io/commands/getrange">Redis Documentation: GETRANGE</a>
+	 */
 	String get(K key, long start, long end);
 
+	/**
+	 * Overwrite parts of {@code key} starting at the specified {@code offset} with given {@code value}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param offset
+	 * @see <a href="http://redis.io/commands/setrange">Redis Documentation: SETRANGE</a>
+	 */
 	void set(K key, V value, long offset);
 
+	/**
+	 * Get the length of the value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/strlen">Redis Documentation: STRLEN</a>
+	 */
 	Long size(K key);
 
-	RedisOperations<K, V> getOperations();
-	
 	/**
-	 * @since 1.5
-	 * @param key
+	 * Sets the bit at {@code offset} in value stored at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 * @param offset
 	 * @param value
-	 * @return
+	 * @since 1.5
+	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: SETBIT</a>
 	 */
 	Boolean setBit(K key, long offset, boolean value);
-	
+
 	/**
-	 * @since 1.5
-	 * @param key
+	 * Get the bit value at {@code offset} of value at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 * @param offset
-	 * @return
+	 * @since 1.5
+	 * @see <a href="http://redis.io/commands/setbit">Redis Documentation: GETBIT</a>
 	 */
 	Boolean getBit(K key, long offset);
-	
+
+	RedisOperations<K, V> getOperations();
+
 }

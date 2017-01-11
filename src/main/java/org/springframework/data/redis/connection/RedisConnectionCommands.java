@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,34 +20,32 @@ package org.springframework.data.redis.connection;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisConnectionCommands {
 
 	/**
 	 * Select the DB with given positive {@code dbIndex}.
-	 * <p>
-	 * See http://redis.io/commands/select
-	 * 
-	 * @param dbIndex
+	 *
+	 * @param dbIndex the database index.
+	 * @see <a href="http://redis.io/commands/select">Redis Documentation: SELECT</a>
 	 */
 	void select(int dbIndex);
 
 	/**
 	 * Returns {@code message} via server roundtrip.
-	 * <p>
-	 * See http://redis.io/commands/echo
-	 * 
-	 * @param message
+	 *
+	 * @param message the message to echo.
 	 * @return
+	 * @see <a href="http://redis.io/commands/echo">Redis Documentation: ECHO</a>
 	 */
 	byte[] echo(byte[] message);
 
 	/**
 	 * Test connection.
-	 * <p>
-	 * See http://redis.io/commands/ping
-	 * 
+	 *
 	 * @return Server response message - usually {@literal PONG}.
+	 * @see <a href="http://redis.io/commands/ping">Redis Documentation: PING</a>
 	 */
 	String ping();
 }

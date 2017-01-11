@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param point must not be {@literal null}.
 	 * @param member must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(Point point, M member);
 
@@ -50,7 +50,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * 
 	 * @param location must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(GeoLocation<M> location);
 
@@ -59,7 +59,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * 
 	 * @param memberCoordinateMap must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(Map<M, Point> memberCoordinateMap);
 
@@ -68,7 +68,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * 
 	 * @param locations must not be {@literal null}.
 	 * @return Number of elements added.
-	 * @see <a href="http://redis.io/commands/geoadd">http://redis.io/commands/geoadd</a>
+	 * @see <a href="http://redis.io/commands/geoadd">Redis Documentation: GEOADD</a>
 	 */
 	Long geoAdd(Iterable<GeoLocation<M>> locations);
 
@@ -78,7 +78,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param member1 must not be {@literal null}.
 	 * @param member2 must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Distance geoDist(M member1, M member2);
 
@@ -89,7 +89,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param member2 must not be {@literal null}.
 	 * @param metric must not be {@literal null}.
 	 * @return can be {@literal null}.
-	 * @see <a href="http://redis.io/commands/geodist">http://redis.io/commands/geodist</a>
+	 * @see <a href="http://redis.io/commands/geodist">Redis Documentation: GEODIST</a>
 	 */
 	Distance geoDist(M member1, M member2, Metric metric);
 
@@ -98,7 +98,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * 
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geohash">http://redis.io/commands/geohash</a>
+	 * @see <a href="http://redis.io/commands/geohash">Redis Documentation: GEOHASH</a>
 	 */
 	List<String> geoHash(M... members);
 
@@ -107,7 +107,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * 
 	 * @param members must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/geopos">http://redis.io/commands/geopos</a>
+	 * @see <a href="http://redis.io/commands/geopos">Redis Documentation: GEOPOS</a>
 	 */
 	List<Point> geoPos(M... members);
 
@@ -116,7 +116,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * 
 	 * @param within must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadius(Circle within);
 
@@ -126,7 +126,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param within must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadius">http://redis.io/commands/georadius</a>
+	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadius(Circle within, GeoRadiusCommandArgs args);
 
@@ -137,7 +137,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param member must not be {@literal null}.
 	 * @param radius
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadiusByMember(K key, M member, double radius);
 
@@ -148,7 +148,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param member must not be {@literal null}.
 	 * @param distance must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance);
 
@@ -160,7 +160,7 @@ public interface BoundGeoOperations<K, M> extends BoundKeyOperations<K> {
 	 * @param distance must not be {@literal null}.
 	 * @param args must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see <a href="http://redis.io/commands/georadiusbymember">http://redis.io/commands/georadiusbymember</a>
+	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
 	GeoResults<GeoLocation<M>> geoRadiusByMember(M member, Distance distance, GeoRadiusCommandArgs args);
 

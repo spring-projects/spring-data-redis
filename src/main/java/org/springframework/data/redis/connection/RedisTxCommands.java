@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public interface RedisTxCommands {
 
@@ -29,40 +30,39 @@ public interface RedisTxCommands {
 	 * Mark the start of a transaction block. <br>
 	 * Commands will be queued and can then be executed by calling {@link #exec()} or rolled back using {@link #discard()}
 	 * <p>
-	 * See http://redis.io/commands/multi
+	 * 
+	 * @see <a href="http://redis.io/commands/multi">Redis Documentation: MULTI</a>
 	 */
 	void multi();
 
 	/**
 	 * Executes all queued commands in a transaction started with {@link #multi()}. <br>
-	 * If used along with {@link #watch(byte[])} the operation will fail if any of watched keys has been modified.
-	 * <p>
-	 * See http://redis.io/commands/exec
-	 * 
+	 * If used along with {@link #watch(byte[]...)} the operation will fail if any of watched keys has been modified.
+	 *
 	 * @return List of replies for each executed command.
+	 * @see <a href="http://redis.io/commands/exec">Redis Documentation: EXEC</a>
 	 */
 	List<Object> exec();
 
 	/**
 	 * Discard all commands issued after {@link #multi()}.
-	 * <p>
-	 * See http://redis.io/commands/discard
+	 * 
+	 * @see <a href="http://redis.io/commands/discard">Redis Documentation: DISCARD</a>
 	 */
 	void discard();
 
 	/**
 	 * Watch given {@code keys} for modifications during transaction started with {@link #multi()}.
-	 * <p>
-	 * See http://redis.io/commands/watch
-	 * 
-	 * @param keys
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/watch">Redis Documentation: WATCH</a>
 	 */
 	void watch(byte[]... keys);
 
 	/**
-	 * Flushes all the previously {@link #watch(byte[])} keys.
-	 * <p>
-	 * See http://redis.io/commands/unwatch
+	 * Flushes all the previously {@link #watch(byte[]...)} keys.
+	 * 
+	 * @see <a href="http://redis.io/commands/unwatch">Redis Documentation: UNWATCH</a>
 	 */
 	void unwatch();
 }

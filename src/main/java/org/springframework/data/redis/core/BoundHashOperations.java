@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,20 @@ import java.util.Set;
  * @author Costin Leau
  * @author Christoph Strobl
  * @author Ninad Divadkar
+ * @author Mark Paluch
  */
 public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 
 	/**
+	 * Delete given hash {@code keys} at the bound key.
+	 *
+	 * @param keys must not be {@literal null}.
 	 * @return
 	 */
-	RedisOperations<H, ?> getOperations();
+	Long delete(Object... keys);
 
 	/**
-	 * Determine if given hash {@code key} exists.
+	 * Determine if given hash {@code key} exists at the bound key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @return
@@ -43,7 +47,23 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Boolean hasKey(Object key);
 
 	/**
-	 * Increment {@code value} of a hash {@code key} by the given {@code delta}.
+	 * Get value for given {@code key} from the hash at the bound key.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 */
+	HV get(Object key);
+
+	/**
+	 * Get values for given {@code keys} from the hash at the bound key.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return
+	 */
+	List<HV> multiGet(Collection<HK> keys);
+
+	/**
+	 * Increment {@code value} of a hash {@code key} by the given {@code delta} at the bound key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
@@ -52,7 +72,7 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Long increment(HK key, long delta);
 
 	/**
-	 * Increment {@code value} of a hash {@code key} by the given {@code delta}.
+	 * Increment {@code value} of a hash {@code key} by the given {@code delta} at the bound key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param delta
@@ -61,15 +81,28 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Double increment(HK key, double delta);
 
 	/**
-	 * Get value for given {@code key} from the hash.
+	 * Get key set (fields) of hash at the bound key.
 	 *
-	 * @param key must not be {@literal null}.
 	 * @return
 	 */
-	HV get(Object key);
+	Set<HK> keys();
 
 	/**
-	 * Set the {@code value} of a hash {@code key}.
+	 * Get size of hash at the bound key.
+	 *
+	 * @return
+	 */
+	Long size();
+
+	/**
+	 * Set multiple hash fields to multiple values using data provided in {@code m} at the bound key.
+	 *
+	 * @param m must not be {@literal null}.
+	 */
+	void putAll(Map<? extends HK, ? extends HV> m);
+
+	/**
+	 * Set the {@code value} of a hash {@code key} at the bound key.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
@@ -86,51 +119,14 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	Boolean putIfAbsent(HK key, HV value);
 
 	/**
-	 * Get values for given {@code keys} from the hash.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return
-	 */
-	List<HV> multiGet(Collection<HK> keys);
-
-	/**
-	 * Set multiple hash fields to multiple values using data provided in {@code m}.
-	 *
-	 * @param m must not be {@literal null}.
-	 */
-	void putAll(Map<? extends HK, ? extends HV> m);
-
-	/**
-	 * Get key set (fields) of the hash.
-	 *
-	 * @return
-	 */
-	Set<HK> keys();
-
-	/**
-	 * Get entry set (values) of hash.
+	 * Get entry set (values) of hash at the bound key.
 	 *
 	 * @return
 	 */
 	List<HV> values();
 
 	/**
-	 * Get size of the hash.
-	 *
-	 * @return
-	 */
-	Long size();
-
-	/**
-	 * Delete given hash {@code keys}.
-	 *
-	 * @param keys must not be {@literal null}.
-	 * @return
-	 */
-	Long delete(Object... keys);
-
-	/**
-	 * Get entire hash.
+	 * Get entire hash at the bound key.
 	 *
 	 * @return
 	 */
@@ -144,4 +140,9 @@ public interface BoundHashOperations<H, HK, HV> extends BoundKeyOperations<H> {
 	 * @since 1.4
 	 */
 	Cursor<Map.Entry<HK, HV>> scan(ScanOptions options);
+
+	/**
+	 * @return
+	 */
+	RedisOperations<H, ?> getOperations();
 }
