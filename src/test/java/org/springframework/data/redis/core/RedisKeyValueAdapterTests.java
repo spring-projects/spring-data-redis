@@ -17,14 +17,18 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -40,12 +44,12 @@ import org.springframework.data.annotation.Reference;
 import org.springframework.data.geo.Point;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.redis.ConnectionFactoryTracker;
+import org.springframework.data.redis.RedisTestProfileValueSource;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter.EnableKeyspaceEvents;
-import org.springframework.data.redis.core.convert.Bucket;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.core.convert.MappingConfiguration;
 import org.springframework.data.redis.core.index.GeoIndexed;
@@ -60,15 +64,18 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
 @RunWith(Parameterized.class)
 public class RedisKeyValueAdapterTests {
 
+	private static Set<RedisConnectionFactory> initializedFactories = new HashSet<RedisConnectionFactory>();
+
 	RedisKeyValueAdapter adapter;
 	StringRedisTemplate template;
 	RedisConnectionFactory connectionFactory;
 
 	public RedisKeyValueAdapterTests(RedisConnectionFactory connectionFactory) throws Exception {
 
-		if (connectionFactory instanceof InitializingBean) {
+		if (connectionFactory instanceof InitializingBean && initializedFactories.add(connectionFactory)) {
 			((InitializingBean) connectionFactory).afterPropertiesSet();
 		}
+
 		this.connectionFactory = connectionFactory;
 		ConnectionFactoryTracker.add(connectionFactory);
 	}
@@ -80,6 +87,7 @@ public class RedisKeyValueAdapterTests {
 
 	@AfterClass
 	public static void cleanUp() {
+		initializedFactories.clear();
 		ConnectionFactoryTracker.cleanUp();
 	}
 
@@ -242,11 +250,10 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand"), not(hasItem("1")));
 	}
 
-	/**
-	 * @see DATAREDIS-425
-	 */
-	@Test
-	public void keyExpiredEventShouldRemoveHelperStructures() throws InterruptedException {
+	@Test // DATAREDIS-425
+	public void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
+
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
@@ -254,16 +261,16 @@ public class RedisKeyValueAdapterTests {
 		map.put("address.country", "Andor");
 
 		template.opsForHash().putAll("persons:1", map);
-		template.expire("persons:1", 1, TimeUnit.SECONDS);
 
 		template.opsForSet().add("persons", "1");
 		template.opsForSet().add("persons:firstname:rand", "1");
 		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
 
-		int iterationCount = 0;
-		while (template.hasKey("persons:1") && iterationCount++ < 3) { // ci might be a little slow
-			Thread.sleep(2000);
-		}
+		template.expire("persons:1", 100, TimeUnit.MILLISECONDS);
+
+		waitUntilKeyIsGone(template, "persons:1");
+		waitUntilKeyIsGone(template, "persons:1:phantom");
+		waitUntilKeyIsGone(template, "persons:firstname:rand");
 
 		assertThat(template.hasKey("persons:1"), is(false));
 		assertThat(template.hasKey("persons:firstname:rand"), is(false));
@@ -271,11 +278,10 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons"), not(hasItem("1")));
 	}
 
-	/**
-	 * @see DATAREDIS-589
-	 */
-	@Test
-	public void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws InterruptedException {
+	@Test // DATAREDIS-589
+	public void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws Exception {
+
+		assumeTrue(RedisTestProfileValueSource.matches("runLongTests", "true"));
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		map.put("_class", Person.class.getName());
@@ -285,13 +291,13 @@ public class RedisKeyValueAdapterTests {
 		template.opsForHash().putAll("persons:1", map);
 		template.opsForHash().putAll("1", map);
 
-		template.expire("1", 1, TimeUnit.SECONDS);
-
 		template.opsForSet().add("persons", "1");
 		template.opsForSet().add("persons:firstname:rand", "1");
 		template.opsForSet().add("persons:1:idx", "persons:firstname:rand");
 
-		Thread.sleep(2000);
+		template.expire("1", 100, TimeUnit.MILLISECONDS);
+
+		waitUntilKeyIsGone(template, "1");
 
 		assertThat(template.hasKey("persons:1"), is(true));
 		assertThat(template.hasKey("persons:firstname:rand"), is(true));
@@ -299,10 +305,7 @@ public class RedisKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons"), hasItem("1"));
 	}
 
-	/**
-	 * @see DATAREDIS-512
-	 */
-	@Test
+	@Test // DATAREDIS-512
 	public void putWritesIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -569,6 +572,47 @@ public class RedisKeyValueAdapterTests {
 
 		assertThat(updatedLocation.getX(), is(closeTo(17D, 0.005)));
 		assertThat(updatedLocation.getY(), is(closeTo(18D, 0.005)));
+	}
+
+	/**
+	 * Wait up to 5 seconds until {@code key} is no longer available in Redis.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param key must not be {@literal null}.
+	 * @throws TimeoutException
+	 * @throws InterruptedException
+	 */
+	private static void waitUntilKeyIsGone(RedisTemplate<String, ?> template, String key)
+			throws TimeoutException, InterruptedException {
+		waitUntilKeyIsGone(template, key, 5, TimeUnit.SECONDS);
+	}
+
+	/**
+	 * Wait up to {@code timeout} until {@code key} is no longer available in Redis.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param key must not be {@literal null}.
+	 * @param timeout
+	 * @param timeUnit must not be {@literal null}.
+	 * @throws InterruptedException
+	 * @throws TimeoutException
+	 */
+	private static void waitUntilKeyIsGone(RedisTemplate<String, ?> template, String key, long timeout, TimeUnit timeUnit)
+			throws InterruptedException, TimeoutException {
+
+		long limitMs = TimeUnit.MILLISECONDS.convert(timeout, timeUnit);
+		long sleepMs = 100;
+		long waitedMs = 0;
+
+		while (template.hasKey(key)) {
+
+			if (waitedMs > limitMs) {
+				throw new TimeoutException(String.format("Key '%s' after %d %s still present", key, timeout, timeUnit));
+			}
+
+			Thread.sleep(sleepMs);
+			waitedMs += sleepMs;
+		}
 	}
 
 	@KeySpace("persons")
