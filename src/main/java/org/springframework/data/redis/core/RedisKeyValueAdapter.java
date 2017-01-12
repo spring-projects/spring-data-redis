@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,8 +103,6 @@ import org.springframework.util.StringUtils;
 public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		implements InitializingBean, ApplicationContextAware, ApplicationListener<RedisKeyspaceEvent> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RedisKeyValueAdapter.class);
-
 	private RedisOperations<?, ?> redisOps;
 	private RedisConverter converter;
 	private RedisMessageListenerContainer messageListenerContainer;
@@ -164,7 +162,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 	 * Creates new {@link RedisKeyValueAdapter} with specific {@link RedisConverter}.
 	 *
 	 * @param redisOps must not be {@literal null}.
-	 * @param mappingContext must not be {@literal null}.
+	 * @param redisConverter must not be {@literal null}.
 	 */
 	public RedisKeyValueAdapter(RedisOperations<?, ?> redisOps, RedisConverter redisConverter) {
 
