@@ -356,7 +356,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 						"cool".getBytes(), "supercalifragilisticexpialidocious".getBytes())));
 	}
 
-	@Test // DATAREDIS-286
+	@Test // DATAREDIS-286, DATAREDIS-564
 	public void expireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("expireKey", "foo");
