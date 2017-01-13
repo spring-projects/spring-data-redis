@@ -117,6 +117,8 @@ Here are some ways for you to get involved in the community:
 * Create [JIRA](https://jira.spring.io/browse/DATAREDIS) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
 * Watch for upcoming articles on Spring by [subscribing](https://spring.io/blog) to spring.io.
 
+Before we accept a non-trivial patch or pull request we will need you to [sign the Contributor License Agreement](https://cla.pivotal.io/sign/spring). Signing the contributor’s agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. If you forget to do so, you'll be reminded when you submit a pull request.
+
 Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/). If you want to contribute code this way, read the Spring Framework [contributor guidelines] (https://github.com/spring-projects/spring-framework/blob/master/CONTRIBUTING.md).
 
 # Staying in touch
