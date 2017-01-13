@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1036,7 +1036,7 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Boolean pExpire(byte[] key, long millis) {
-		
+
 		Assert.notNull(key, "Key must not be null!");
 
 		try {
@@ -1055,9 +1055,9 @@ public class JedisConnection extends AbstractRedisConnection {
 	}
 
 	public Boolean pExpireAt(byte[] key, long unixTimeInMillis) {
-		
+
 		Assert.notNull(key, "Key must not be null!");
-		
+
 		try {
 			if (isPipelined()) {
 				pipeline(new JedisResult(pipeline.pexpireAt(key, unixTimeInMillis), JedisConverters.longToBoolean()));
