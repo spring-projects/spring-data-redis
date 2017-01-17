@@ -248,7 +248,7 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, times(1)).exec();
 	}
 
-	@Test // DATAREDIS-443
+	@Test // DATAREDIS-443, DATAREDIS-592
 	public void getWithCallableShouldReadValueFromCallableAddToCache() {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L);
@@ -263,7 +263,27 @@ public class RedisCacheUnitTests {
 		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
 		verify(connectionMock, times(1)).multi();
 		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock, never()).expire(any(byte[].class), anyLong());
 		verify(connectionMock, times(1)).exec();
+	}
+
+	@Test // DATAREDIS-592
+	public void getWithCallableShouldReadValueFromCallableAddToCacheWithTtl() {
+
+		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 100L);
+
+		cache.get(KEY, new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return VALUE;
+			}
+		});
+
+		verify(connectionMock).get(eq(KEY_BYTES));
+		verify(connectionMock).multi();
+		verify(connectionMock).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock).expire(eq(KEY_BYTES), eq(100L));
+		verify(connectionMock).exec();
 	}
 
 	@Test // DATAREDIS-443
