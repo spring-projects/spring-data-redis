@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.cache;
-
-import static org.springframework.util.Assert.*;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
@@ -41,7 +39,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Cache implementation on top of Redis.
@@ -142,8 +139,9 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 */
 	public <T> T get(final Object key, final Callable<T> valueLoader) {
 
-		BinaryRedisCacheElement rce = new BinaryRedisCacheElement(
-				new RedisCacheElement(getRedisCacheKey(key), new StoreTranslatingCallable(valueLoader)), cacheValueAccessor);
+		RedisCacheElement cacheElement = new RedisCacheElement(getRedisCacheKey(key),
+				new StoreTranslatingCallable(valueLoader)).expireAfter(cacheMetadata.getDefaultExpiration());
+		BinaryRedisCacheElement rce = new BinaryRedisCacheElement(cacheElement, cacheValueAccessor);
 
 		ValueWrapper val = get(key);
 		if (val != null) {
