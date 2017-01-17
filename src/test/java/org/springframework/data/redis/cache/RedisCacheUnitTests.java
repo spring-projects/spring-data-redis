@@ -101,8 +101,8 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, PREFIX_BYTES, templateSpy, EXPIRATION);
 		cache.put(KEY, VALUE);
 
-		verify(connectionMock, times(1)).set(eq(KEY_WITH_PREFIX_BYTES), eq(VALUE_BYTES));
-		verify(connectionMock, times(1)).expire(eq(KEY_WITH_PREFIX_BYTES), eq(EXPIRATION));
+		verify(connectionMock).set(eq(KEY_WITH_PREFIX_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock).expire(eq(KEY_WITH_PREFIX_BYTES), eq(EXPIRATION));
 		verify(connectionMock, never()).zAdd(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0D), any(byte[].class));
 	}
 
@@ -112,9 +112,9 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, EXPIRATION);
 		cache.put(KEY, VALUE);
 
-		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
-		verify(connectionMock, times(1)).expire(eq(KEY_BYTES), eq(EXPIRATION));
-		verify(connectionMock, times(1)).zAdd(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0D), eq(KEY_BYTES));
+		verify(connectionMock).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock).expire(eq(KEY_BYTES), eq(EXPIRATION));
+		verify(connectionMock).zAdd(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0D), eq(KEY_BYTES));
 	}
 
 	@Test // DATAREDIS-369
@@ -123,7 +123,7 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, EXPIRATION);
 		cache.clear();
 
-		verify(connectionMock, times(1)).zRange(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0L), eq(127L));
+		verify(connectionMock).zRange(eq(KNOWN_KEYS_SET_NAME_BYTES), eq(0L), eq(127L));
 	}
 
 	@Test // DATAREDIS-369
@@ -132,7 +132,7 @@ public class RedisCacheUnitTests {
 		cache = new RedisCache(CACHE_NAME, PREFIX_BYTES, templateSpy, EXPIRATION);
 		cache.clear();
 
-		verify(connectionMock, times(1)).eval(any(byte[].class), eq(ReturnType.INTEGER), eq(0),
+		verify(connectionMock).eval(any(byte[].class), eq(ReturnType.INTEGER), eq(0),
 				eq((PREFIX + "*").getBytes()));
 	}
 
@@ -222,10 +222,10 @@ public class RedisCacheUnitTests {
 			}
 		});
 
-		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
-		verify(connectionMock, times(1)).multi();
-		verify(connectionMock, times(1)).del(eq(KEY_BYTES));
-		verify(connectionMock, times(1)).exec();
+		verify(connectionMock).get(eq(KEY_BYTES));
+		verify(connectionMock).multi();
+		verify(connectionMock).del(eq(KEY_BYTES));
+		verify(connectionMock).exec();
 	}
 
 	@Test // DATAREDIS-553
@@ -242,10 +242,10 @@ public class RedisCacheUnitTests {
 		});
 
 		verify(valueSerializerMock).serialize(isA(NullValue.class));
-		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
-		verify(connectionMock, times(1)).multi();
-		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
-		verify(connectionMock, times(1)).exec();
+		verify(connectionMock).get(eq(KEY_BYTES));
+		verify(connectionMock).multi();
+		verify(connectionMock).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock).exec();
 	}
 
 	@Test // DATAREDIS-443, DATAREDIS-592
@@ -260,11 +260,11 @@ public class RedisCacheUnitTests {
 			}
 		});
 
-		verify(connectionMock, times(1)).get(eq(KEY_BYTES));
-		verify(connectionMock, times(1)).multi();
-		verify(connectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(connectionMock).get(eq(KEY_BYTES));
+		verify(connectionMock).multi();
+		verify(connectionMock).set(eq(KEY_BYTES), eq(VALUE_BYTES));
 		verify(connectionMock, never()).expire(any(byte[].class), anyLong());
-		verify(connectionMock, times(1)).exec();
+		verify(connectionMock).exec();
 	}
 
 	@Test // DATAREDIS-592
@@ -313,7 +313,7 @@ public class RedisCacheUnitTests {
 
 		cache.put(KEY, VALUE);
 
-		verify(clusterConnectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(clusterConnectionMock).set(eq(KEY_BYTES), eq(VALUE_BYTES));
 		verify(clusterConnectionMock, never()).multi();
 		verify(clusterConnectionMock, never()).exec();
 		verifyZeroInteractions(connectionMock);
@@ -334,8 +334,8 @@ public class RedisCacheUnitTests {
 			}
 		});
 
-		verify(clusterConnectionMock, times(1)).get(eq(KEY_BYTES));
-		verify(clusterConnectionMock, times(1)).set(eq(KEY_BYTES), eq(VALUE_BYTES));
+		verify(clusterConnectionMock).get(eq(KEY_BYTES));
+		verify(clusterConnectionMock).set(eq(KEY_BYTES), eq(VALUE_BYTES));
 
 		verify(clusterConnectionMock, never()).multi();
 		verify(clusterConnectionMock, never()).exec();
