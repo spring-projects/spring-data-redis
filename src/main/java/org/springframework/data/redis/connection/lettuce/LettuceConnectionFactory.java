@@ -16,15 +16,19 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import io.lettuce.core.AbstractRedisClient;
+import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.resource.ClientResources;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -37,16 +41,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.Pool;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -62,6 +57,14 @@ import org.springframework.util.StringUtils;
  * a {@link Pool} to pool dedicated connections. If shareNativeConnection is true, the pool will be used to select a
  * connection for blocking and tx operations only, which should not share a connection. If native connection sharing is
  * disabled, the selected connection will be used for all operations.
+ * <p>
+ * {@link LettuceConnectionFactory} should be configured using an environmental configuration and the
+ * {@link LettuceConnectionFactory client configuration}. Lettuce supports the following environmental configurations:
+ * <ul>
+ * <li>{@link RedisStandaloneConfiguration}</li>
+ * <li>{@link RedisSentinelConfiguration}</li>
+ * <li>{@link RedisClusterConfiguration}</li>
+ * </ul>
  *
  * @author Costin Leau
  * @author Jennifer Hickey
@@ -79,65 +82,126 @@ public class LettuceConnectionFactory
 			LettuceConverters.exceptionConverter());
 
 	private final Log log = LogFactory.getLog(getClass());
+	private final LettuceClientConfiguration clientConfiguration;
 
-	private String hostName = "localhost";
-	private int port = 6379;
 	private AbstractRedisClient client;
-	private long timeout = TimeUnit.MILLISECONDS.convert(60, TimeUnit.SECONDS);
-	private long shutdownTimeout = TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS);
 	private boolean validateConnection = false;
 	private boolean shareNativeConnection = true;
 	private StatefulRedisConnection<byte[], byte[]> connection;
 	private LettucePool pool;
-	private int dbIndex = 0;
 	/** Synchronization monitor for the shared Connection */
 	private final Object connectionMonitor = new Object();
-	private String password;
 	private boolean convertPipelineAndTxResults = true;
+	private RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration("localhost", 6379);
 	private RedisSentinelConfiguration sentinelConfiguration;
 	private RedisClusterConfiguration clusterConfiguration;
 	private ClusterCommandExecutor clusterCommandExecutor;
-	private ClientResources clientResources;
-	private boolean useSsl = false;
-	private boolean verifyPeer = true;
-	private boolean startTls = false;
 
 	/**
-	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
+	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
 	 */
-	public LettuceConnectionFactory() {}
+	public LettuceConnectionFactory() {
+		this(new MutableLettuceClientConfiguration());
+	}
 
 	/**
-	 * Constructs a new <code>LettuceConnectionFactory</code> instance with default settings.
+	 * Constructs a new {@link LettuceConnectionFactory} instance given {@link LettuceClientConfiguration}.
+	 *
+	 * @param clientConfig must not be {@literal null}
+	 * @since 2.0
+	 */
+	private LettuceConnectionFactory(LettuceClientConfiguration clientConfig) {
+
+		Assert.notNull(clientConfig, "LettuceClientConfiguration must not be null!");
+
+		this.clientConfiguration = clientConfig;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance with default settings.
 	 */
 	public LettuceConnectionFactory(String host, int port) {
-		this.hostName = host;
-		this.port = port;
+		this(new RedisStandaloneConfiguration(host, port), new MutableLettuceClientConfiguration());
 	}
 
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration}
 	 *
-	 * @param sentinelConfiguration
+	 * @param sentinelConfiguration must not be {@literal null}.
 	 * @since 1.6
 	 */
 	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration) {
-		this.sentinelConfiguration = sentinelConfiguration;
+		this(sentinelConfiguration, new MutableLettuceClientConfiguration());
 	}
 
 	/**
 	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration}
 	 * applied to create a {@link RedisClusterClient}.
 	 *
-	 * @param clusterConfig
+	 * @param clusterConfiguration must not be {@literal null}.
 	 * @since 1.7
 	 */
-	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfig) {
-		this.clusterConfiguration = clusterConfig;
+	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration) {
+		this(clusterConfiguration, new MutableLettuceClientConfiguration());
 	}
 
 	public LettuceConnectionFactory(LettucePool pool) {
+		this(new MutableLettuceClientConfiguration());
 		this.pool = pool;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisStandaloneConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param standaloneConfig must not be {@literal null}.
+	 * @param clientConfig must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceConnectionFactory(RedisStandaloneConfiguration standaloneConfig,
+			LettuceClientConfiguration clientConfig) {
+
+		this(clientConfig);
+
+		Assert.notNull(standaloneConfig, "RedisStandaloneConfiguration must not be null!");
+
+		this.standaloneConfig = standaloneConfig;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisSentinelConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param sentinelConfiguration must not be {@literal null}.
+	 * @param clientConfig must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceConnectionFactory(RedisSentinelConfiguration sentinelConfiguration,
+			LettuceClientConfiguration clientConfig) {
+
+		this(clientConfig);
+
+		Assert.notNull(sentinelConfiguration, "RedisSentinelConfiguration must not be null!");
+
+		this.sentinelConfiguration = sentinelConfiguration;
+	}
+
+	/**
+	 * Constructs a new {@link LettuceConnectionFactory} instance using the given {@link RedisClusterConfiguration} and
+	 * {@link LettuceClientConfiguration}.
+	 *
+	 * @param clusterConfiguration must not be {@literal null}.
+	 * @param clientConfig must not be {@literal null}.
+	 * @since 2.0
+	 */
+	public LettuceConnectionFactory(RedisClusterConfiguration clusterConfiguration,
+			LettuceClientConfiguration clientConfig) {
+
+		this(clientConfig);
+
+		Assert.notNull(clusterConfiguration, "RedisClusterConfiguration must not be null!");
+
+		this.clusterConfiguration = clusterConfiguration;
 	}
 
 	/*
@@ -157,7 +221,8 @@ public class LettuceConnectionFactory
 		resetConnection();
 
 		try {
-			client.shutdown(shutdownTimeout, shutdownTimeout, TimeUnit.MILLISECONDS);
+			Duration timeout = clientConfiguration.getShutdownTimeout();
+			client.shutdown(timeout.toMillis(), timeout.toMillis(), TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
 
 			if (log.isWarnEnabled()) {
@@ -186,7 +251,8 @@ public class LettuceConnectionFactory
 			return getClusterConnection();
 		}
 
-		LettuceConnection connection = new LettuceConnection(getSharedConnection(), timeout, client, pool, dbIndex);
+		LettuceConnection connection = new LettuceConnection(getSharedConnection(), getTimeout(), client, pool,
+				getDatabase());
 		connection.setConvertPipelineAndTxResults(convertPipelineAndTxResults);
 		return connection;
 	}
@@ -283,16 +349,18 @@ public class LettuceConnectionFactory
 	 * @return the host.
 	 */
 	public String getHostName() {
-		return hostName;
+		return standaloneConfig.getHostName();
 	}
 
 	/**
-	 * Sets the host.
+	 * Sets the hostname.
 	 *
-	 * @param host the host to set.
+	 * @param hostName the hostname to set.
+	 * @deprecated since 2.0, configure the hostname using {@link RedisStandaloneConfiguration}.
 	 */
-	public void setHostName(String host) {
-		this.hostName = host;
+	@Deprecated
+	public void setHostName(String hostName) {
+		standaloneConfig.setHostName(hostName);
 	}
 
 	/**
@@ -301,16 +369,18 @@ public class LettuceConnectionFactory
 	 * @return the port.
 	 */
 	public int getPort() {
-		return port;
+		return standaloneConfig.getPort();
 	}
 
 	/**
 	 * Sets the port.
 	 *
 	 * @param port the port to set.
+	 * @deprecated since 2.0, configure the port using {@link RedisStandaloneConfiguration}.
 	 */
+	@Deprecated
 	public void setPort(int port) {
-		this.port = port;
+		standaloneConfig.setPort(port);
 	}
 
 	/**
@@ -319,25 +389,19 @@ public class LettuceConnectionFactory
 	 * @return connection timeout.
 	 */
 	public long getTimeout() {
-		return timeout;
+		return getClientTimeout();
 	}
 
 	/**
 	 * Sets the connection timeout (in milliseconds).
 	 *
-	 * @param timeout connection timeout.
+	 * @param timeout the timeout.
+	 * @deprecated since 2.0, configure the timeout using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link LettuceClientConfiguration} is immutable.
 	 */
+	@Deprecated
 	public void setTimeout(long timeout) {
-		this.timeout = timeout;
-	}
-
-	/**
-	 * Sets to use SSL connection.
-	 *
-	 * @param useSsl {@literal true} to use SSL.
-	 */
-	public void setUseSsl(boolean useSsl) {
-		this.useSsl = useSsl;
+		getMutableConfiguration().setTimeout(Duration.ofMillis(timeout));
 	}
 
 	/**
@@ -346,25 +410,40 @@ public class LettuceConnectionFactory
 	 * @return use of SSL.
 	 */
 	public boolean isUseSsl() {
-		return useSsl;
+		return clientConfiguration.useSsl();
+	}
+
+	/**
+	 * Sets to use SSL connection.
+	 *
+	 * @param useSsl {@literal true} to use SSL.
+	 * @deprecated since 2.0, configure SSL usage using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link LettuceClientConfiguration} is immutable.
+	 */
+	@Deprecated
+	public void setUseSsl(boolean useSsl) {
+		getMutableConfiguration().setUseSsl(useSsl);
+	}
+
+	/**
+	 * Returns whether to verify certificate validity/hostname check when SSL is used.
+	 *
+	 * @return whether to verify peers when using SSL.
+	 */
+	public boolean isVerifyPeer() {
+		return clientConfiguration.isVerifyPeer();
 	}
 
 	/**
 	 * Sets to use verify certificate validity/hostname check when SSL is used.
 	 *
 	 * @param verifyPeer {@literal false} not to verify hostname.
+	 * @deprecated since 2.0, configure peer verification using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link LettuceClientConfiguration} is immutable.
 	 */
+	@Deprecated
 	public void setVerifyPeer(boolean verifyPeer) {
-		this.verifyPeer = verifyPeer;
-	}
-
-	/**
-	 * Returns whether to verify certificate validity/hostname check when SSL is used.
-	 *
-	 * @return verify peers when using SSL.
-	 */
-	public boolean isVerifyPeer() {
-		return verifyPeer;
+		getMutableConfiguration().setVerifyPeer(verifyPeer);
 	}
 
 	/**
@@ -373,16 +452,19 @@ public class LettuceConnectionFactory
 	 * @return use of StartTLS.
 	 */
 	public boolean isStartTls() {
-		return startTls;
+		return clientConfiguration.isStartTls();
 	}
 
 	/**
 	 * Sets to issue StartTLS.
 	 *
 	 * @param startTls {@literal true} to issue StartTLS.
+	 * @deprecated since 2.0, configure StartTLS using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link LettuceClientConfiguration} is immutable.
 	 */
+	@Deprecated
 	public void setStartTls(boolean startTls) {
-		this.startTls = startTls;
+		getMutableConfiguration().setStartTls(startTls);
 	}
 
 	/**
@@ -436,7 +518,12 @@ public class LettuceConnectionFactory
 	 * @return the database index.
 	 */
 	public int getDatabase() {
-		return dbIndex;
+
+		if (isRedisSentinelAware()) {
+			return sentinelConfiguration.getDatabase();
+		}
+
+		return standaloneConfig.getDatabase();
 	}
 
 	/**
@@ -445,8 +532,15 @@ public class LettuceConnectionFactory
 	 * @param index database index
 	 */
 	public void setDatabase(int index) {
+
 		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
-		this.dbIndex = index;
+
+		if (isRedisSentinelAware()) {
+			sentinelConfiguration.setDatabase(index);
+			return;
+		}
+
+		standaloneConfig.setDatabase(index);
 	}
 
 	/**
@@ -455,16 +549,39 @@ public class LettuceConnectionFactory
 	 * @return password for authentication.
 	 */
 	public String getPassword() {
-		return password;
+
+		if (isRedisSentinelAware()) {
+			return sentinelConfiguration.getPassword();
+		}
+
+		if (isClusterAware()) {
+			return clusterConfiguration.getPassword();
+		}
+
+		return standaloneConfig.getPassword();
 	}
 
 	/**
 	 * Sets the password used for authenticating with the Redis server.
 	 *
 	 * @param password the password to set
+	 * @deprecated since 2.0, configure the password using {@link RedisStandaloneConfiguration},
+	 *             {@link RedisSentinelConfiguration} or {@link RedisClusterConfiguration}.
 	 */
+	@Deprecated
 	public void setPassword(String password) {
-		this.password = password;
+
+		if (isRedisSentinelAware()) {
+			sentinelConfiguration.setPassword(password);
+			return;
+		}
+
+		if (isClusterAware()) {
+			clusterConfiguration.setPassword(password);
+			return;
+		}
+
+		standaloneConfig.setPassword(password);
 	}
 
 	/**
@@ -474,7 +591,7 @@ public class LettuceConnectionFactory
 	 * @since 1.6
 	 */
 	public long getShutdownTimeout() {
-		return shutdownTimeout;
+		return clientConfiguration.getShutdownTimeout().toMillis();
 	}
 
 	/**
@@ -482,9 +599,12 @@ public class LettuceConnectionFactory
 	 *
 	 * @param shutdownTimeout the shutdown timeout.
 	 * @since 1.6
+	 * @deprecated since 2.0, configure the shutdown timeout using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link LettuceClientConfiguration} is immutable.
 	 */
+	@Deprecated
 	public void setShutdownTimeout(long shutdownTimeout) {
-		this.shutdownTimeout = shutdownTimeout;
+		getMutableConfiguration().setShutdownTimeout(Duration.ofMillis(shutdownTimeout));
 	}
 
 	/**
@@ -494,7 +614,7 @@ public class LettuceConnectionFactory
 	 * @since 1.7
 	 */
 	public ClientResources getClientResources() {
-		return clientResources;
+		return clientConfiguration.getClientResources().orElse(null);
 	}
 
 	/**
@@ -503,9 +623,44 @@ public class LettuceConnectionFactory
 	 *
 	 * @param clientResources can be {@literal null}.
 	 * @since 1.7
+	 * @deprecated since 2.0, configure {@link ClientResources} using {@link LettuceClientConfiguration}.
+	 * @throws IllegalStateException if {@link LettuceClientConfiguration} is immutable.
 	 */
+	@Deprecated
 	public void setClientResources(ClientResources clientResources) {
-		this.clientResources = clientResources;
+		getMutableConfiguration().setClientResources(clientResources);
+	}
+
+	/**
+	 * @return the {@link LettuceClientConfiguration}.
+	 * @since 2.0
+	 */
+	public LettuceClientConfiguration getClientConfiguration() {
+		return clientConfiguration;
+	}
+
+	/**
+	 * @return the {@link RedisStandaloneConfiguration}.
+	 * @since 2.0
+	 */
+	public RedisStandaloneConfiguration getStandaloneConfiguration() {
+		return standaloneConfig;
+	}
+
+	/**
+	 * @return the {@link RedisStandaloneConfiguration}, may be {@literal null}.
+	 * @since 2.0
+	 */
+	public RedisSentinelConfiguration getSentinelConfiguration() {
+		return sentinelConfiguration;
+	}
+
+	/**
+	 * @return the {@link RedisClusterConfiguration}, may be {@literal null}.
+	 * @since 2.0
+	 */
+	public RedisClusterConfiguration getClusterConfiguration() {
+		return clusterConfiguration;
 	}
 
 	/**
@@ -568,8 +723,8 @@ public class LettuceConnectionFactory
 			StatefulRedisConnection<byte[], byte[]> connection = null;
 			if (client instanceof RedisClient) {
 				connection = ((RedisClient) client).connect(LettuceConnection.CODEC);
-				if (dbIndex > 0) {
-					connection.sync().select(dbIndex);
+				if (getDatabase() > 0) {
+					connection.sync().select(getDatabase());
 				}
 			} else {
 				connection = null;
@@ -585,11 +740,12 @@ public class LettuceConnectionFactory
 		if (isRedisSentinelAware()) {
 
 			RedisURI redisURI = getSentinelRedisURI();
-			if (clientResources == null) {
-				return RedisClient.create(redisURI);
-			}
+			RedisClient redisClient = clientConfiguration.getClientResources() //
+					.map(clientResources -> RedisClient.create(clientResources, redisURI)) //
+					.orElseGet(() -> RedisClient.create(redisURI));
 
-			return RedisClient.create(clientResources, redisURI);
+			clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+			return redisClient;
 		}
 
 		if (isClusterAware()) {
@@ -599,12 +755,17 @@ public class LettuceConnectionFactory
 				initialUris.add(createRedisURIAndApplySettings(node.getHost(), node.getPort()));
 			}
 
-			RedisClusterClient clusterClient = clientResources != null
-					? RedisClusterClient.create(clientResources, initialUris) : RedisClusterClient.create(initialUris);
+			RedisClusterClient clusterClient = clientConfiguration.getClientResources() //
+					.map(clientResources -> RedisClusterClient.create(clientResources, initialUris)) //
+					.orElseGet(() -> RedisClusterClient.create(initialUris));
 
 			this.clusterCommandExecutor = new ClusterCommandExecutor(
 					new LettuceClusterConnection.LettuceClusterTopologyProvider(clusterClient),
 					new LettuceClusterConnection.LettuceClusterNodeResourceProvider(clusterClient), EXCEPTION_TRANSLATION);
+
+			clientConfiguration.getClientOptions() //
+					.filter(clientOptions -> clientOptions instanceof ClusterClientOptions) //
+					.ifPresent(clientOptions -> clusterClient.setOptions((ClusterClientOptions) clientOptions));
 
 			return clusterClient;
 		}
@@ -613,16 +774,20 @@ public class LettuceConnectionFactory
 			return pool.getClient();
 		}
 
-		RedisURI uri = createRedisURIAndApplySettings(hostName, port);
-		return clientResources != null ? RedisClient.create(clientResources, uri) : RedisClient.create(uri);
+		RedisURI uri = createRedisURIAndApplySettings(getHostName(), getPort());
+		RedisClient redisClient = clientConfiguration.getClientResources() //
+				.map(clientResources -> RedisClient.create(clientResources, uri)) //
+				.orElseGet(() -> RedisClient.create(uri));
+		clientConfiguration.getClientOptions().ifPresent(redisClient::setOptions);
+		return redisClient;
 	}
 
 	private RedisURI getSentinelRedisURI() {
 
 		RedisURI redisUri = LettuceConverters.sentinelConfigurationToRedisURI(sentinelConfiguration);
 
-		if (StringUtils.hasText(password)) {
-			redisUri.setPassword(password);
+		if (StringUtils.hasText(getPassword())) {
+			redisUri.setPassword(getPassword());
 		}
 
 		return redisUri;
@@ -631,14 +796,14 @@ public class LettuceConnectionFactory
 	private RedisURI createRedisURIAndApplySettings(String host, int port) {
 
 		RedisURI.Builder builder = RedisURI.Builder.redis(host, port);
-		if (StringUtils.hasText(password)) {
-			builder.withPassword(password);
+		if (StringUtils.hasText(getPassword())) {
+			builder.withPassword(getPassword());
 		}
 
-		builder.withSsl(useSsl);
-		builder.withVerifyPeer(verifyPeer);
-		builder.withStartTls(startTls);
-		builder.withTimeout(timeout, TimeUnit.MILLISECONDS);
+		builder.withSsl(clientConfiguration.useSsl());
+		builder.withVerifyPeer(clientConfiguration.isVerifyPeer());
+		builder.withStartTls(clientConfiguration.isStartTls());
+		builder.withTimeout(clientConfiguration.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
 
 		return builder.build();
 	}
@@ -650,5 +815,108 @@ public class LettuceConnectionFactory
 			throw new InvalidDataAccessResourceUsageException("Unable to connect to sentinels using " + client.getClass());
 		}
 		return new LettuceSentinelConnection(((RedisClient) client).connectSentinel());
+	}
+
+	private MutableLettuceClientConfiguration getMutableConfiguration() {
+
+		Assert.state(clientConfiguration instanceof MutableLettuceClientConfiguration,
+				() -> String.format("Client configuration must be instance of MutableLettuceClientConfiguration but is %s",
+						ClassUtils.getShortName(clientConfiguration.getClass())));
+
+		return (MutableLettuceClientConfiguration) clientConfiguration;
+	}
+
+	private long getClientTimeout() {
+		return clientConfiguration.getTimeout().toMillis();
+	}
+
+	static class MutableLettuceClientConfiguration implements LettuceClientConfiguration {
+
+		private boolean useSsl;
+		private boolean verifyPeer = true;
+		private boolean startTls;
+		private ClientResources clientResources;
+		private Duration timeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
+		private Duration shutdownTimeout = Duration.ofSeconds(RedisURI.DEFAULT_TIMEOUT);
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#useSsl()
+		 */
+		@Override
+		public boolean useSsl() {
+			return useSsl;
+		}
+
+		public void setUseSsl(boolean useSsl) {
+			this.useSsl = useSsl;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isVerifyPeer()
+		 */
+		@Override
+		public boolean isVerifyPeer() {
+			return verifyPeer;
+		}
+
+		public void setVerifyPeer(boolean verifyPeer) {
+			this.verifyPeer = verifyPeer;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#isStartTls()
+		 */
+		@Override
+		public boolean isStartTls() {
+			return startTls;
+		}
+
+		public void setStartTls(boolean startTls) {
+			this.startTls = startTls;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientResources()
+		 */
+		@Override
+		public Optional<ClientResources> getClientResources() {
+			return Optional.ofNullable(clientResources);
+		}
+
+		public void setClientResources(ClientResources clientResources) {
+			this.clientResources = clientResources;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getClientOptions()
+		 */
+		@Override
+		public Optional<ClientOptions> getClientOptions() {
+			return Optional.empty();
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getTimeout()
+		 */
+		@Override
+		public Duration getTimeout() {
+			return timeout;
+		}
+
+		public void setTimeout(Duration timeout) {
+			this.timeout = timeout;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration#getShutdownTimeout()
+		 */
+		@Override
+		public Duration getShutdownTimeout() {
+			return shutdownTimeout;
+		}
+
+		public void setShutdownTimeout(Duration shutdownTimeout) {
+			this.shutdownTimeout = shutdownTimeout;
+		}
 	}
 }

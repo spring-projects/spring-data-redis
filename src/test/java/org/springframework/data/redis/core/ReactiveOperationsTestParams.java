@@ -18,6 +18,7 @@ package org.springframework.data.redis.core;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,6 +36,8 @@ import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisClusterNode;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceTestClientResources;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -57,6 +60,14 @@ abstract public class ReactiveOperationsTestParams {
 
 	public static Collection<Object[]> testParams() {
 
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder() //
+				.shutdownTimeout(Duration.ZERO) //
+				.clientResources(LettuceTestClientResources.getSharedClientResources()) //
+				.build();
+
+		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<String> clusterKeyStringFactory = new PrefixStringObjectFactory("{u1}.", stringFactory);
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
@@ -72,10 +83,8 @@ abstract public class ReactiveOperationsTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory();
-		lettuceConnectionFactory.setClientResources(LettuceTestClientResources.getSharedClientResources());
-		lettuceConnectionFactory.setPort(SettingsUtils.getPort());
-		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
+		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(standaloneConfiguration,
+				clientConfiguration);
 		lettuceConnectionFactory.afterPropertiesSet();
 
 		JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
@@ -137,9 +146,8 @@ abstract public class ReactiveOperationsTestParams {
 
 			ReactiveRedisTemplate<String, String> clusterStringTemplate = null;
 
-			LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
-			lettuceClusterConnectionFactory.setPort(SettingsUtils.getPort());
-			lettuceClusterConnectionFactory.setHostName(SettingsUtils.getHost());
+			LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration,
+					clientConfiguration);
 			lettuceClusterConnectionFactory.afterPropertiesSet();
 
 			clusterStringTemplate = new ReactiveRedisTemplate<>(lettuceClusterConnectionFactory,

@@ -208,10 +208,6 @@
 						<include>**/*Tests.java</include>
 						<include>**/*Test.java</include>
 					</includes>
-					<systemProperties>
-						<gemfire.disableShutdownHook>true</gemfire.disableShutdownHook>
-						<javax.net.ssl.keyStore>${basedir}/src/test/resources/trusted.keystore</javax.net.ssl.keyStore>
-					</systemProperties>
 				</configuration>
 			</plugin>
 

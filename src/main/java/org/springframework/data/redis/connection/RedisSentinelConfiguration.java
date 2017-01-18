@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import static org.springframework.util.Assert.*;
+import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.StringUtils.*;
 
 import java.util.Collections;
@@ -26,6 +27,7 @@ import java.util.Set;
 
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,6 +37,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Christoph Strobl
  * @author Thomas Darimont
+ * @author Mark Paluch
  * @since 1.4
  */
 public class RedisSentinelConfiguration {
@@ -44,6 +47,8 @@ public class RedisSentinelConfiguration {
 
 	private NamedNode master;
 	private Set<RedisNode> sentinels;
+	private int database;
+	private String password;
 
 	/**
 	 * Creates new {@link RedisSentinelConfiguration}.
@@ -56,9 +61,7 @@ public class RedisSentinelConfiguration {
 	 * Creates {@link RedisSentinelConfiguration} for given hostPort combinations.
 	 * 
 	 * <pre>
-	 * sentinelHostAndPorts[0] = 127.0.0.1:23679
-	 * sentinelHostAndPorts[1] = 127.0.0.1:23680
-	 * ...
+	 * sentinelHostAndPorts[0] = 127.0.0.1:23679 sentinelHostAndPorts[1] = 127.0.0.1:23680 ...
 	 * 
 	 * <pre>
 	 * 
@@ -93,8 +96,8 @@ public class RedisSentinelConfiguration {
 		}
 
 		if (propertySource.containsProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)) {
-			appendSentinels(commaDelimitedListToSet(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY)
-					.toString()));
+			appendSentinels(
+					commaDelimitedListToSet(propertySource.getProperty(REDIS_SENTINEL_NODES_CONFIG_PROPERTY).toString()));
 		}
 	}
 
@@ -216,6 +219,43 @@ public class RedisSentinelConfiguration {
 		for (String hostAndPort : hostAndPorts) {
 			addSentinel(readHostAndPortFromString(hostAndPort));
 		}
+	}
+
+	/**
+	 * @return
+	 * @since 2.0
+	 */
+	public int getDatabase() {
+		return database;
+	}
+
+	/**
+	 * Sets the index of the database used by this connection factory. Default is 0.
+	 *
+	 * @param index database index.
+	 * @since 2.0
+	 */
+	public void setDatabase(int index) {
+
+		Assert.isTrue(index >= 0, "invalid DB index (a positive index required)");
+
+		this.database = index;
+	}
+
+	/**
+	 * @return
+	 * @since 2.0
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password
+	 * @since 2.0
+	 */
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	private RedisNode readHostAndPortFromString(String hostAndPort) {
