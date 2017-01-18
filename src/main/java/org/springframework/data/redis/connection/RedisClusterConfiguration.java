@@ -35,7 +35,7 @@ import org.springframework.util.StringUtils;
  * Configuration class used for setting up {@link RedisConnection} via {@link RedisConnectionFactory} using connecting
  * to <a href="http://redis.io/topics/cluster-spec">Redis Cluster</a>. Useful when setting up a high availability Redis
  * environment.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -47,6 +47,7 @@ public class RedisClusterConfiguration {
 
 	private Set<RedisNode> clusterNodes;
 	private Integer maxRedirects;
+	private String password;
 
 	/**
 	 * Creates new {@link RedisClusterConfiguration}.
@@ -57,16 +58,15 @@ public class RedisClusterConfiguration {
 
 	/**
 	 * Creates {@link RedisClusterConfiguration} for given hostPort combinations.
-	 * 
+	 *
 	 * <pre>
+	 * <code>
 	 * clusterHostAndPorts[0] = 127.0.0.1:23679
-	 * clusterHostAndPorts[1] = 127.0.0.1:23680
-	 * ...
-	 * 
+	 * clusterHostAndPorts[1] = 127.0.0.1:23680 ...
+	 * </code>
 	 * <pre>
-	 * 
-	 * @param cluster must not be
-	 * {@literal null}.
+	 *
+	 * @param clusterNodes must not be {@literal null}.
 	 */
 	public RedisClusterConfiguration(Collection<String> clusterNodes) {
 		this(new MapPropertySource("RedisClusterConfiguration", asMap(clusterNodes, -1, -1, null)));
@@ -74,7 +74,7 @@ public class RedisClusterConfiguration {
 
 	/**
 	 * Creates {@link RedisClusterConfiguration} looking up values in given {@link PropertySource}.
-	 * 
+	 *
 	 * <pre>
 	 * <code>
 	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
@@ -83,7 +83,7 @@ public class RedisClusterConfiguration {
 	 * spring.redis.cluster.password=foobar
 	 * </code>
 	 * </pre>
-	 * 
+	 *
 	 * @param propertySource must not be {@literal null}.
 	 */
 	public RedisClusterConfiguration(PropertySource<?> propertySource) {
@@ -104,7 +104,7 @@ public class RedisClusterConfiguration {
 
 	/**
 	 * Set {@literal cluster nodes} to connect to.
-	 * 
+	 *
 	 * @param nodes must not be {@literal null}.
 	 */
 	public void setClusterNodes(Iterable<RedisNode> nodes) {
@@ -120,7 +120,7 @@ public class RedisClusterConfiguration {
 
 	/**
 	 * Returns an {@link Collections#unmodifiableSet(Set)} of {@literal cluster nodes}.
-	 * 
+	 *
 	 * @return {@link Set} of nodes. Never {@literal null}.
 	 */
 	public Set<RedisNode> getClusterNodes() {
@@ -129,7 +129,7 @@ public class RedisClusterConfiguration {
 
 	/**
 	 * Add a cluster node to configuration.
-	 * 
+	 *
 	 * @param node must not be {@literal null}.
 	 */
 	public void addClusterNode(RedisNode node) {
@@ -177,6 +177,22 @@ public class RedisClusterConfiguration {
 		for (String hostAndPort : hostAndPorts) {
 			addClusterNode(readHostAndPortFromString(hostAndPort));
 		}
+	}
+
+	/**
+	 * @return
+	 * @since 2.0
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password
+	 * @since 2.0
+	 */
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	private RedisNode readHostAndPortFromString(String hostAndPort) {

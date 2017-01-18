@@ -19,17 +19,19 @@ import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.test.util.RedisSentinelRule;
 
 /**
+ * Sentinel integration tests for {@link JedisConnectionFactory}.
+ *
  * @author Christoph Strobl
  * @author Fu Jian
+ * @author Mark Paluch
  */
-public class JedisConnectionFactoryTests {
+public class JedisConnectionFactorySentinelIntegrationTests {
 
 	private static final RedisSentinelConfiguration SENTINEL_CONFIG = new RedisSentinelConfiguration().master("mymaster")
 			.sentinel("127.0.0.1", 26379).sentinel("127.0.0.1", 26380);
@@ -37,25 +39,43 @@ public class JedisConnectionFactoryTests {
 
 	public @Rule RedisSentinelRule sentinelRule = RedisSentinelRule.forConfig(SENTINEL_CONFIG).oneActive();
 
-	@Before
-	public void setUp() {
-		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
-		factory.setClientName("clientName");
-		factory.afterPropertiesSet();
-	}
-
 	@After
 	public void tearDown() {
-		factory.destroy();
+
+		if (factory != null) {
+			factory.destroy();
+		}
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldInitiaizeWithSentinelConfiguration() {
+
+		JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder() //
+				.clientName("clientName") //
+				.build();
+
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG, clientConfiguration);
+		factory.afterPropertiesSet();
+
+		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
 	}
 
 	@Test // DATAREDIS-324
 	public void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
+
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory.afterPropertiesSet();
+
 		assertThat(factory.getConnection().ping(), equalTo("PONG"));
 	}
 
 	@Test // DATAREDIS-552
 	public void getClientNameShouldEqualWithFactorySetting() {
+
+		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
+		factory.setClientName("clientName");
+		factory.afterPropertiesSet();
+
 		assertThat(factory.getConnection().getClientName(), equalTo("clientName"));
 	}
 }

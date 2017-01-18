@@ -15,31 +15,44 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPoolConfig;
+import sun.net.www.protocol.https.DefaultHostnameVerifier;
+
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPoolConfig;
-
 /**
+ * Unit tests for {@link JedisConnectionFactory}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class JedisConnectionFactoryUnitTests {
 
 	private JedisConnectionFactory connectionFactory;
 
-	private static final RedisSentinelConfiguration SINGLE_SENTINEL_CONFIG = new RedisSentinelConfiguration().master(
-			"mymaster").sentinel("127.0.0.1", 26379);
+	private static final RedisSentinelConfiguration SINGLE_SENTINEL_CONFIG = new RedisSentinelConfiguration()
+			.master("mymaster").sentinel("127.0.0.1", 26379);
 
-	private static final RedisClusterConfiguration CLUSTER_CONFIG = new RedisClusterConfiguration().clusterNode(
-			"127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
+	private static final RedisClusterConfiguration CLUSTER_CONFIG = new RedisClusterConfiguration()
+			.clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
 
 	@Test // DATAREDIS-324
 	public void shouldInitSentinelPoolWhenSentinelConfigPresent() {
@@ -73,7 +86,7 @@ public class JedisConnectionFactoryUnitTests {
 	}
 
 	@Test // DATAREDIS-315
-	public void shouldClostClusterCorrectlyOnFactoryDestruction() throws IOException {
+	public void shouldCloseClusterCorrectlyOnFactoryDestruction() throws IOException {
 
 		JedisCluster clusterMock = mock(JedisCluster.class);
 		JedisConnectionFactory factory = new JedisConnectionFactory();
@@ -82,6 +95,196 @@ public class JedisConnectionFactoryUnitTests {
 		factory.destroy();
 
 		verify(clusterMock, times(1)).close();
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReadStandalonePassword() {
+
+		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
+		envConfig.setPassword("foo");
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldWriteStandalonePassword() {
+
+		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
+		envConfig.setPassword("foo");
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory.setPassword("bar");
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo("bar");
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReadSentinelPassword() {
+
+		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
+		envConfig.setPassword("foo");
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldWriteSentinelPassword() {
+
+		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
+		envConfig.setPassword("foo");
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory.setPassword("bar");
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo("bar");
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReadClusterPassword() {
+
+		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
+		envConfig.setPassword("foo");
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldWriteClusterPassword() {
+
+		RedisClusterConfiguration envConfig = new RedisClusterConfiguration();
+		envConfig.setPassword("foo");
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory.setPassword("bar");
+
+		assertThat(connectionFactory.getPassword()).isEqualTo("bar");
+		assertThat(envConfig.getPassword()).isEqualTo("bar");
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReadStandaloneDatabaseIndex() {
+
+		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
+		envConfig.setDatabase(2);
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldWriteStandaloneDatabaseIndex() {
+
+		RedisStandaloneConfiguration envConfig = new RedisStandaloneConfiguration();
+		envConfig.setDatabase(2);
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory.setDatabase(3);
+
+		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
+		assertThat(envConfig.getDatabase()).isEqualTo(3);
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReadSentinelDatabaseIndex() {
+
+		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
+		envConfig.setDatabase(2);
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldWriteSentinelDatabaseIndex() {
+
+		RedisSentinelConfiguration envConfig = new RedisSentinelConfiguration();
+		envConfig.setDatabase(2);
+
+		connectionFactory = new JedisConnectionFactory(envConfig, JedisClientConfiguration.create());
+		connectionFactory.setDatabase(3);
+
+		assertThat(connectionFactory.getDatabase()).isEqualTo(3);
+		assertThat(envConfig.getDatabase()).isEqualTo(3);
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldApplyClientConfiguration() throws NoSuchAlgorithmException {
+
+		SSLParameters sslParameters = new SSLParameters();
+		SSLContext context = SSLContext.getDefault();
+		SSLSocketFactory socketFactory = context.getSocketFactory();
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+
+		JedisClientConfiguration configuration = JedisClientConfiguration.builder().useSsl() //
+				.hostnameVerifier(new DefaultHostnameVerifier()) //
+				.sslParameters(sslParameters) //
+				.sslSocketFactory(socketFactory).and() //
+				.clientName("my-client") //
+				.connectTimeout(Duration.of(10, ChronoUnit.MINUTES)) //
+				.readTimeout(Duration.of(5, ChronoUnit.DAYS)) //
+				.usePooling().poolConfig(poolConfig) //
+				.build();
+
+		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(), configuration);
+
+		assertThat(connectionFactory.getClientConfiguration()).isSameAs(configuration);
+		assertThat(connectionFactory.isUseSsl()).isTrue();
+		assertThat(connectionFactory.getClientName()).isEqualTo("my-client");
+		assertThat(connectionFactory.getTimeout()).isEqualTo((int) Duration.of(5, ChronoUnit.DAYS).toMillis());
+		assertThat(connectionFactory.getUsePool()).isTrue();
+		assertThat(connectionFactory.getPoolConfig()).isSameAs(poolConfig);
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReturnStandaloneConfiguration() {
+
+		RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getStandaloneConfiguration()).isSameAs(configuration);
+		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
+		assertThat(connectionFactory.getClusterConfiguration()).isNull();
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReturnSentinelConfiguration() {
+
+		RedisSentinelConfiguration configuration = new RedisSentinelConfiguration();
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
+		assertThat(connectionFactory.getSentinelConfiguration()).isSameAs(configuration);
+		assertThat(connectionFactory.getClusterConfiguration()).isNull();
+	}
+
+	@Test // DATAREDIS-574
+	public void shouldReturnClusterConfiguration() {
+
+		RedisClusterConfiguration configuration = new RedisClusterConfiguration();
+		connectionFactory = new JedisConnectionFactory(configuration, JedisClientConfiguration.create());
+
+		assertThat(connectionFactory.getStandaloneConfiguration()).isNotNull();
+		assertThat(connectionFactory.getSentinelConfiguration()).isNull();
+		assertThat(connectionFactory.getClusterConfiguration()).isSameAs(configuration);
+	}
+
+	@Test(expected = IllegalStateException.class) // DATAREDIS-574
+	public void shouldDenyChangesToImmutableClientConfiguration() throws NoSuchAlgorithmException {
+
+		connectionFactory = new JedisConnectionFactory(new RedisStandaloneConfiguration(),
+				JedisClientConfiguration.create());
+
+		connectionFactory.setClientName("foo");
 	}
 
 	private JedisConnectionFactory initSpyedConnectionFactory(RedisSentinelConfiguration sentinelConfig,
