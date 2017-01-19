@@ -17,7 +17,7 @@ package org.springframework.data.redis.core.convert;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import static org.springframework.data.redis.test.util.IsBucketMatcher.*;
@@ -56,20 +56,8 @@ import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.redis.core.PartialUpdate;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithId;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.AddressWithPostcode;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.ExipringPersonWithExplicitProperty;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.ExpiringPerson;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Gender;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Location;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Person;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.Species;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TaVeren;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TheWheelOfTime;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.TypeWithObjectValueTypes;
-import org.springframework.data.redis.core.convert.ConversionTestEntities.WithArrays;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
+import org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.util.StringUtils;
@@ -78,8 +66,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * Unit tests for {@link MappingRedisConverter}.
+ *
  * @author Christoph Strobl
  * @author Greg Turnquist
+ * @author Mark Paluch
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MappingRedisConverterUnitTests {
@@ -621,21 +612,21 @@ public class MappingRedisConverterUnitTests {
 		assertThat(target.period, is(Period.parse("P1Y2M25D")));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-593
 	public void writesEnumValuesCorrectly() {
 
-		rand.gender = Gender.MALE;
+		rand.gender = Gender.FEMALE;
 
-		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("gender", "MALE"));
+		assertThat(write(rand).getBucket(), isBucket().containingUtf8String("gender", "FEMALE"));
 	}
 
-	@Test // DATAREDIS-425
+	@Test // DATAREDIS-425, DATAREDIS-593
 	public void readsEnumValuesCorrectly() {
 
 		Person target = converter.read(Person.class,
-				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("gender", "MALE"))));
+				new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("gender", "FEMALE"))));
 
-		assertThat(target.gender, is(Gender.MALE));
+		assertThat(target.gender, is(Gender.FEMALE));
 	}
 
 	@Test // DATAREDIS-425

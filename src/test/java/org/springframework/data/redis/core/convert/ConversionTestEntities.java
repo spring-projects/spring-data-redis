@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.core.convert;
+
+import lombok.EqualsAndHashCode;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -36,10 +38,9 @@ import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
-import lombok.EqualsAndHashCode;
-
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class ConversionTestEntities {
 
@@ -97,7 +98,13 @@ public class ConversionTestEntities {
 	}
 
 	public static enum Gender {
-		MALE, FEMALE
+		MALE, FEMALE {
+
+			@Override
+			public String toString() {
+				return "Superwoman";
+			}
+		}
 	}
 
 	public static class AddressWithPostcode extends Address {
