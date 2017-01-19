@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ import org.springframework.util.NumberUtils;
 
 /**
  * Set of {@link ReadingConverter} and {@link WritingConverter} used to convert Objects into binary format.
- * 
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 1.7
  */
 final class BinaryConverters {
@@ -108,6 +109,7 @@ final class BinaryConverters {
 
 	/**
 	 * @author Christoph Strobl
+	 * @author Mark Paluch
 	 * @since 1.7
 	 */
 	@WritingConverter
@@ -120,9 +122,8 @@ final class BinaryConverters {
 				return new byte[] {};
 			}
 
-			return fromString(source.toString());
+			return fromString(source.name());
 		}
-
 	}
 
 	/**
