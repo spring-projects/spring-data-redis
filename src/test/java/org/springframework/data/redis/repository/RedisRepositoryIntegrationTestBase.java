@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.hamcrest.core.IsNull;
 import org.junit.Before;
@@ -80,8 +81,8 @@ public abstract class RedisRepositoryIntegrationTestBase {
 
 		assertThat(repo.count(), is(2L));
 
-		assertThat(repo.findOne(rand.id), is(rand));
-		assertThat(repo.findOne(egwene.id), is(egwene));
+		assertThat(repo.findOne(rand.id), is(Optional.of(rand)));
+		assertThat(repo.findOne(egwene.id), is(Optional.of(egwene)));
 
 		assertThat(repo.findByFirstname("rand").size(), is(1));
 		assertThat(repo.findByFirstname("rand"), hasItem(rand));
@@ -130,15 +131,15 @@ public abstract class RedisRepositoryIntegrationTestBase {
 		repo.save(moiraine);
 
 		// find and assert current location set correctly
-		Person loaded = repo.findOne(moiraine.getId());
-		assertThat(loaded.city, is(tarValon));
+		Optional<Person> loaded = repo.findOne(moiraine.getId());
+		assertThat(loaded.get().city, is(tarValon));
 
 		// remove reference location data
 		kvTemplate.delete("1", City.class);
 
 		// find and assert the location is gone
-		Person reLoaded = repo.findOne(moiraine.getId());
-		assertThat(reLoaded.city, IsNull.nullValue());
+		Optional<Person> reLoaded = repo.findOne(moiraine.getId());
+		assertThat(reLoaded.get().city, IsNull.nullValue());
 	}
 
 	@Test // DATAREDIS-425

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hamcrest.core.IsCollectionContaining;
@@ -253,7 +254,7 @@ public class PathIndexResolverUnitTests {
 	public void resolveIndexShouldReturnDataWhenNoIndexConfiguredButPropertyAnnotated() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
 
 		assertThat(resolve("foo", "rand"), notNullValue());
 	}
@@ -263,7 +264,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isCollectionLike()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
 
 		IndexedData index = resolve("list.[0].name", "rand");
 
@@ -275,7 +276,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
 
 		IndexedData index = resolve("map.[foo].name", "rand");
 
@@ -287,7 +288,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(createIndexedInstance());
+		when(propertyMock.findAnnotation(eq(Indexed.class))).thenReturn(Optional.of(createIndexedInstance()));
 
 		IndexedData index = resolve("map.[0].name", "rand");
 
@@ -449,7 +450,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(GeoIndexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(createGeoIndexedInstance());
+		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(Optional.of(createGeoIndexedInstance()));
 
 		IndexedData index = resolve("location", new Point(1D, 2D));
 
@@ -461,7 +462,7 @@ public class PathIndexResolverUnitTests {
 
 		when(propertyMock.isMap()).thenReturn(true);
 		when(propertyMock.isAnnotationPresent(eq(GeoIndexed.class))).thenReturn(true);
-		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(createGeoIndexedInstance());
+		when(propertyMock.findAnnotation(eq(GeoIndexed.class))).thenReturn(Optional.of(createGeoIndexedInstance()));
 
 		IndexedData index = resolve("property.location", new Point(1D, 2D));
 

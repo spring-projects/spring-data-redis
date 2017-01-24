@@ -24,11 +24,11 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration.KeyspaceSettings;
 import org.springframework.data.redis.core.index.IndexConfiguration;
 import org.springframework.data.redis.core.index.SpelIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.BeanResolver;
@@ -57,7 +57,7 @@ public class SpelIndexResolverUnitTests {
 
 	RedisMappingContext mappingContext;
 
-	KeyValuePersistentEntity<?> entity;
+	RedisPersistentEntity<?> entity;
 
 	@Before
 	public void setup() {

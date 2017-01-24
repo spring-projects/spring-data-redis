@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueCallback;
@@ -100,9 +101,9 @@ public class RedisKeyValueTemplate extends KeyValueTemplate {
 					String idToUse = adapter.getConverter().getConversionService().canConvert(id.getClass(), String.class)
 							? adapter.getConverter().getConversionService().convert(id, String.class) : id.toString();
 
-					T candidate = findById(idToUse, type);
-					if (candidate != null) {
-						result.add(candidate);
+					Optional<T> candidate = findById(idToUse, type);
+					if (candidate.isPresent()) {
+						result.add(candidate.get());
 					}
 				}
 

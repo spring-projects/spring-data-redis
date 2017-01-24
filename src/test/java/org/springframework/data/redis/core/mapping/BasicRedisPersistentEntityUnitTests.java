@@ -22,6 +22,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,7 +32,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
 import org.springframework.data.redis.core.convert.ConversionTestEntities;
@@ -68,10 +68,10 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		expectedException.expectMessage("Attempt to add id property");
 		expectedException.expectMessage("but already have an property");
 
-		KeyValuePersistentProperty property1 = mock(RedisPersistentProperty.class);
+		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);
 
-		KeyValuePersistentProperty property2 = mock(RedisPersistentProperty.class);
+		RedisPersistentProperty property2 = mock(RedisPersistentProperty.class);
 		when(property2.isIdProperty()).thenReturn(true);
 
 		entity.addPersistentProperty(property1);
@@ -86,11 +86,11 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 		expectedException.expectMessage("Attempt to add explicit id property");
 		expectedException.expectMessage("but already have an property");
 
-		KeyValuePersistentProperty property1 = mock(RedisPersistentProperty.class);
+		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);
 		when(property1.isAnnotationPresent(any(Class.class))).thenReturn(true);
 
-		KeyValuePersistentProperty property2 = mock(RedisPersistentProperty.class);
+		RedisPersistentProperty property2 = mock(RedisPersistentProperty.class);
 		when(property2.isIdProperty()).thenReturn(true);
 		when(property2.isAnnotationPresent(any(Class.class))).thenReturn(true);
 
@@ -102,16 +102,16 @@ public class BasicRedisPersistentEntityUnitTests<T, ID extends Serializable> {
 	@SuppressWarnings("unchecked")
 	public void explicitIdPropertiyShouldBeFavoredOverNonExplicit() {
 
-		KeyValuePersistentProperty property1 = mock(RedisPersistentProperty.class);
+		RedisPersistentProperty property1 = mock(RedisPersistentProperty.class);
 		when(property1.isIdProperty()).thenReturn(true);
 
-		KeyValuePersistentProperty property2 = mock(RedisPersistentProperty.class);
+		RedisPersistentProperty property2 = mock(RedisPersistentProperty.class);
 		when(property2.isIdProperty()).thenReturn(true);
 		when(property2.isAnnotationPresent(any(Class.class))).thenReturn(true);
 
 		entity.addPersistentProperty(property1);
 		entity.addPersistentProperty(property2);
 
-		assertThat(entity.getIdProperty(), is(equalTo(property2)));
+		assertThat(entity.getIdProperty(), is(equalTo(Optional.of(property2))));
 	}
 }

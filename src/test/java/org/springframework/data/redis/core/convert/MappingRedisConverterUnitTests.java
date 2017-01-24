@@ -1237,6 +1237,7 @@ public class MappingRedisConverterUnitTests {
 		di.object = "foo";
 
 		RedisData rd = write(di);
+		System.out.println(rd.getBucket().toString());
 
 		TypeWithObjectValueTypes result = converter.read(TypeWithObjectValueTypes.class, rd);
 		assertThat(result.object, instanceOf(String.class));

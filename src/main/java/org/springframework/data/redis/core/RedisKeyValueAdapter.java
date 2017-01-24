@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,6 +59,7 @@ import org.springframework.data.redis.core.convert.RedisData;
 import org.springframework.data.redis.core.convert.ReferenceResolverImpl;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
+import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.util.ByteUtils;
@@ -204,10 +206,10 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			rdo.setId(converter.getConversionService().convert(id, String.class));
 
 			if (!(item instanceof RedisData)) {
-				KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass())
-						.getIdProperty();
-				converter.getMappingContext().getPersistentEntity(item.getClass()).getPropertyAccessor(item)
-						.setProperty(idProperty, id);
+				KeyValuePersistentProperty idProperty = converter.getMappingContext().getPersistentEntity(item.getClass()).get()
+						.getIdProperty().get();
+				converter.getMappingContext().getPersistentEntity(item.getClass()).get().getPropertyAccessor(item)
+						.setProperty(idProperty, Optional.ofNullable(id));
 			}
 		}
 
@@ -350,7 +352,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 		return getAllOf(keyspace, -1, -1);
 	}
 
-	public List<?> getAllOf(final Serializable keyspace, int offset, int rows) {
+	public List<?> getAllOf(final Serializable keyspace, long offset, int rows) {
 
 		final byte[] binKeyspace = toBytes(keyspace);
 
@@ -372,7 +374,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 		offset = Math.max(0, offset);
 		if (offset >= 0 && rows > 0) {
-			keys = keys.subList(offset, Math.min(offset + rows, keys.size()));
+			keys = keys.subList((int)offset, Math.min((int)offset + rows, keys.size()));
 		}
 
 		for (byte[] key : keys) {
@@ -426,7 +428,7 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 
 	public void update(final PartialUpdate<?> update) {
 
-		final RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(update.getTarget());
+		final RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(update.getTarget()).get();
 
 		final String keyspace = entity.getKeySpace();
 		final Object id = update.getId();
@@ -616,29 +618,33 @@ public class RedisKeyValueAdapter extends AbstractKeyValueAdapter
 			return target;
 		}
 
-		RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(target.getClass());
+		RedisPersistentEntity<?> entity = this.converter.getMappingContext().getPersistentEntity(target.getClass()).get();
 		if (entity.hasExplictTimeToLiveProperty()) {
 
-			PersistentProperty<?> ttlProperty = entity.getExplicitTimeToLiveProperty();
+			Optional<RedisPersistentProperty> ttlProperty = entity.getExplicitTimeToLiveProperty();
+			if(!ttlProperty.isPresent()) {
+				return target;
+			}
 
-			final TimeToLive ttl = ttlProperty.findAnnotation(TimeToLive.class);
+
+			final Optional<TimeToLive> ttl = ttlProperty.get().findAnnotation(TimeToLive.class);
 
 			Long timeout = redisOps.execute(new RedisCallback<Long>() {
 
 				@Override
 				public Long doInRedis(RedisConnection connection) throws DataAccessException {
 
-					if (ObjectUtils.nullSafeEquals(TimeUnit.SECONDS, ttl.unit())) {
+					if (ObjectUtils.nullSafeEquals(TimeUnit.SECONDS, ttl.get().unit())) {
 						return connection.ttl(key);
 					}
 
-					return connection.pTtl(key, ttl.unit());
+					return connection.pTtl(key, ttl.get().unit());
 				}
 			});
 
-			if (timeout != null || !ttlProperty.getType().isPrimitive()) {
-				entity.getPropertyAccessor(target).setProperty(ttlProperty,
-						converter.getConversionService().convert(timeout, ttlProperty.getType()));
+			if (timeout != null || !ttlProperty.get().getType().isPrimitive()) {
+				entity.getPropertyAccessor(target).setProperty(ttlProperty.get(),
+						Optional.ofNullable(converter.getConversionService().convert(timeout, ttlProperty.get().getType())));
 			}
 		}
 

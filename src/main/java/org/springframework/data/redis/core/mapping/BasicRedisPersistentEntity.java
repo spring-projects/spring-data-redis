@@ -15,10 +15,11 @@
  */
 package org.springframework.data.redis.core.mapping;
 
+import java.util.Optional;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.keyvalue.core.mapping.BasicKeyValuePersistentEntity;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.TimeToLiveAccessor;
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @param <T>
  */
-public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity<T>
+public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity<T, RedisPersistentProperty>
 		implements RedisPersistentEntity<T> {
 
 	private TimeToLiveAccessor timeToLiveAccessor;
@@ -74,17 +75,16 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	 * @see org.springframework.data.redis.core.mapping.RedisPersistentEntity#getExplicitTimeToLiveProperty()
 	 */
 	@Override
-	public RedisPersistentProperty getExplicitTimeToLiveProperty() {
-		return (RedisPersistentProperty) this.getPersistentProperty(TimeToLive.class);
+	public Optional<RedisPersistentProperty> getExplicitTimeToLiveProperty() {
+		return this.getPersistentProperty(TimeToLive.class);
 	}
 
 	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
-	 */
+		 * (non-Javadoc)
+		 * @see org.springframework.data.mapping.model.BasicPersistentEntity#returnPropertyIfBetterIdPropertyCandidateOrNull(org.springframework.data.mapping.PersistentProperty)
+		 */
 	@Override
-	protected KeyValuePersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(
-			KeyValuePersistentProperty property) {
+	protected RedisPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(RedisPersistentProperty property) {
 
 		Assert.notNull(property, "Property must not be null!");
 
@@ -92,27 +92,29 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 			return null;
 		}
 
-		KeyValuePersistentProperty currentIdProperty = getIdProperty();
-		boolean currentIdPropertyIsSet = currentIdProperty != null;
+		Optional<RedisPersistentProperty> currentIdProperty = getIdProperty();
+		boolean currentIdPropertyIsSet = currentIdProperty.isPresent();
 
 		if (!currentIdPropertyIsSet) {
 			return property;
 		}
 
-		boolean currentIdPropertyIsExplicit = currentIdProperty.isAnnotationPresent(Id.class);
+		boolean currentIdPropertyIsExplicit = currentIdProperty.get().isAnnotationPresent(Id.class);
 		boolean newIdPropertyIsExplicit = property.isAnnotationPresent(Id.class);
 
 		if (currentIdPropertyIsExplicit && newIdPropertyIsExplicit) {
 			throw new MappingException(String.format(
 					"Attempt to add explicit id property %s but already have an property %s registered "
 							+ "as explicit id. Check your mapping configuration!",
-					property.getField(), currentIdProperty.getField()));
+					property.getField(), currentIdProperty.get().getField()));
 		}
 
 		if (!currentIdPropertyIsExplicit && !newIdPropertyIsExplicit) {
 			throw new MappingException(
-					String.format("Attempt to add id property %s but already have an property %s registered "
-							+ "as id. Check your mapping configuration!", property.getField(), currentIdProperty.getField()));
+					String.format(
+							"Attempt to add id property %s but already have an property %s registered "
+									+ "as id. Check your mapping configuration!",
+							property.getField(), currentIdProperty.get().getField()));
 		}
 
 		if (newIdPropertyIsExplicit) {

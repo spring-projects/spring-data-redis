@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -221,7 +222,7 @@ public class RedisKeyValueTemplateTests {
 
 		template.insert(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(new Person(rand.id, "rand", "al-thor"))));
+		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, "rand", "al-thor")))));
 		nativeTemplate.execute(new RedisCallback<Void>() {
 
 			@Override
@@ -243,7 +244,7 @@ public class RedisKeyValueTemplateTests {
 
 		template.update(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(new Person(rand.id, "frodo", "al-thor"))));
+		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, "frodo", "al-thor")))));
 		nativeTemplate.execute(new RedisCallback<Void>() {
 
 			@Override
@@ -264,7 +265,7 @@ public class RedisKeyValueTemplateTests {
 
 		template.doPartialUpdate(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(new Person(rand.id, null, "baggins"))));
+		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, null, "baggins")))));
 		nativeTemplate.execute(new RedisCallback<Void>() {
 
 			@Override
@@ -286,7 +287,7 @@ public class RedisKeyValueTemplateTests {
 
 		template.doPartialUpdate(update);
 
-		assertThat(template.findById(rand.id, Person.class), is(equalTo(new Person(rand.id, null, null))));
+		assertThat(template.findById(rand.id, Person.class), is(equalTo(Optional.of(new Person(rand.id, null, null)))));
 		nativeTemplate.execute(new RedisCallback<Void>() {
 
 			@Override
@@ -834,9 +835,9 @@ public class RedisKeyValueTemplateTests {
 
 		Thread.sleep(1100);
 
-		WithTtl target = template.findById(source.id, WithTtl.class);
-		assertThat(target.ttl, is(notNullValue()));
-		assertThat(target.ttl.doubleValue(), is(closeTo(3D, 1D)));
+		Optional<WithTtl> target = template.findById(source.id, WithTtl.class);
+		assertThat(target.get().ttl, is(notNullValue()));
+		assertThat(target.get().ttl.doubleValue(), is(closeTo(3D, 1D)));
 	}
 
 	@Test // DATAREDIS-523
@@ -851,8 +852,8 @@ public class RedisKeyValueTemplateTests {
 
 		Thread.sleep(1100);
 
-		WithPrimitiveTtl target = template.findById(source.id, WithPrimitiveTtl.class);
-		assertThat((double) target.ttl, is(closeTo(3D, 1D)));
+		Optional<WithPrimitiveTtl> target = template.findById(source.id, WithPrimitiveTtl.class);
+		assertThat((double) target.get().ttl, is(closeTo(3D, 1D)));
 	}
 
 	@Test // DATAREDIS-523
@@ -891,8 +892,8 @@ public class RedisKeyValueTemplateTests {
 			}
 		});
 
-		WithTtl target = template.findById(source.id, WithTtl.class);
-		assertThat(target.ttl, is(-1L));
+		Optional<WithTtl> target = template.findById(source.id, WithTtl.class);
+		assertThat(target.get().ttl, is(-1L));
 	}
 
 	@EqualsAndHashCode

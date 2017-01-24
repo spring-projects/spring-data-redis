@@ -17,6 +17,7 @@
 package org.springframework.data.redis.repository.cdi;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.enterprise.context.spi.CreationalContext;
@@ -53,22 +54,18 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 	public RedisRepositoryBean(Bean<KeyValueOperations> keyValueTemplate, Set<Annotation> qualifiers,
 			Class<T> repositoryType, BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
 
-		super(qualifiers, repositoryType, beanManager, detector);
+		super(qualifiers, repositoryType, beanManager, Optional.ofNullable(detector));
 		Assert.notNull(keyValueTemplate, "Bean holding keyvalue template must not be null!");
 		this.keyValueTemplate = keyValueTemplate;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.cdi.CdiRepositoryBean#create(javax.enterprise.context.spi.CreationalContext, java.lang.Class)
-	 */
-	@Override
-	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType, Object customImplementation) {
+	protected T create(CreationalContext<T> creationalContext, Class<T> repositoryType,
+			Optional<Object> customImplementation) {
 
 		KeyValueOperations keyValueTemplate = getDependencyInstance(this.keyValueTemplate, KeyValueOperations.class);
 		RedisRepositoryFactory factory = new RedisRepositoryFactory(keyValueTemplate, RedisQueryCreator.class);
 
-		return factory.getRepository(repositoryType, customImplementation);
+		return customImplementation.isPresent() ? factory.getRepository(repositoryType, customImplementation.get()) : factory.getRepository(repositoryType);
 	}
 
 }

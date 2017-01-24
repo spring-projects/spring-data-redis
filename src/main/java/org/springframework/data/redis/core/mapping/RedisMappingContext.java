@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,20 @@
  */
 package org.springframework.data.redis.core.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.keyvalue.annotation.KeySpace;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingContext;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.redis.core.PartialUpdate;
 import org.springframework.data.redis.core.PartialUpdate.PropertyUpdate;
@@ -58,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @since 1.7
  */
-public class RedisMappingContext extends KeyValueMappingContext {
+public class RedisMappingContext extends KeyValueMappingContext<RedisPersistentEntity<?>, RedisPersistentProperty> {
 
 	private final MappingConfiguration mappingConfiguration;
 	private final TimeToLiveAccessor timeToLiveAccessor;
@@ -96,50 +94,15 @@ public class RedisMappingContext extends KeyValueMappingContext {
 		this.fallbackKeySpaceResolver = fallbackKeySpaceResolver;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
-	 */
 	@Override
 	protected <T> RedisPersistentEntity<T> createPersistentEntity(TypeInformation<T> typeInformation) {
 		return new BasicRedisPersistentEntity<T>(typeInformation, fallbackKeySpaceResolver, timeToLiveAccessor);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#getPersistentEntity(java.lang.Class)
-	 */
 	@Override
-	public RedisPersistentEntity<?> getPersistentEntity(Class<?> type) {
-		return (RedisPersistentEntity<?>) super.getPersistentEntity(type);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#getPersistentEntity(org.springframework.data.mapping.PersistentProperty)
-	 */
-	@Override
-	public RedisPersistentEntity<?> getPersistentEntity(KeyValuePersistentProperty persistentProperty) {
-		return (RedisPersistentEntity<?>) super.getPersistentEntity(persistentProperty);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#getPersistentEntity(org.springframework.data.util.TypeInformation)
-	 */
-	@Override
-	public RedisPersistentEntity<?> getPersistentEntity(TypeInformation<?> type) {
-		return (RedisPersistentEntity<?>) super.getPersistentEntity(type);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.keyvalue.core.mapping.context.KeyValueMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
-	 */
-	@Override
-	protected KeyValuePersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
-			KeyValuePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
-		return new RedisPersistentProperty(field, descriptor, owner, simpleTypeHolder);
+	protected RedisPersistentProperty createPersistentProperty(Property property, RedisPersistentEntity<?> owner,
+			SimpleTypeHolder simpleTypeHolder) {
+		return new RedisPersistentProperty(property, owner, simpleTypeHolder);
 	}
 
 	/**
@@ -259,8 +222,8 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 			if (ttlProperty != null) {
 
-				if (ttlProperty.findAnnotation(TimeToLive.class) != null) {
-					unit = ttlProperty.findAnnotation(TimeToLive.class).unit();
+				if (ttlProperty.findAnnotation(TimeToLive.class).isPresent()) {
+					unit = ttlProperty.findAnnotation(TimeToLive.class).get().unit();
 				}
 			}
 
@@ -281,10 +244,11 @@ public class RedisMappingContext extends KeyValueMappingContext {
 
 			} else if (ttlProperty != null) {
 
-				RedisPersistentEntity entity = mappingContext.getPersistentEntity(type);
-				Number timeout = (Number) entity.getPropertyAccessor(source).getProperty(ttlProperty);
-				if (timeout != null) {
-					return TimeUnit.SECONDS.convert(timeout.longValue(), unit);
+				RedisPersistentEntity entity = mappingContext.getPersistentEntity(type).get();
+
+				Optional<Object> ttlPropertyValue = entity.getPropertyAccessor(source).getProperty(ttlProperty);
+				if (ttlPropertyValue.isPresent()) {
+					return TimeUnit.SECONDS.convert(((Number) ttlPropertyValue.get()).longValue(), unit);
 				}
 
 			} else {
@@ -326,9 +290,9 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				defaultTimeout = keyspaceConfig.getKeyspaceSettings(type).getTimeToLive();
 			}
 
-			RedisHash hash = mappingContext.getPersistentEntity(type).findAnnotation(RedisHash.class);
-			if (hash != null && hash.timeToLive() > 0) {
-				defaultTimeout = hash.timeToLive();
+			Optional<RedisHash> hash = mappingContext.getPersistentEntity(type).get().findAnnotation(RedisHash.class);
+			if (hash.isPresent() && hash.get().timeToLive() > 0) {
+				defaultTimeout = hash.get().timeToLive();
 			}
 
 			defaultTimeouts.put(type, defaultTimeout);
@@ -342,13 +306,13 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				return timeoutProperties.get(type);
 			}
 
-			RedisPersistentEntity entity = mappingContext.getPersistentEntity(type);
-			PersistentProperty<?> ttlProperty = entity.getPersistentProperty(TimeToLive.class);
+			RedisPersistentEntity entity = mappingContext.getPersistentEntity(type).get();
+			Optional<PersistentProperty<?>> ttlProperty = entity.getPersistentProperty(TimeToLive.class);
 
-			if (ttlProperty != null) {
+			if (ttlProperty.isPresent()) {
 
-				timeoutProperties.put(type, ttlProperty);
-				return ttlProperty;
+				timeoutProperties.put(type, ttlProperty.get());
+				return ttlProperty.get();
 			}
 
 			if (keyspaceConfig.hasSettingsFor(type)) {
@@ -357,8 +321,10 @@ public class RedisMappingContext extends KeyValueMappingContext {
 				if (StringUtils.hasText(settings.getTimeToLivePropertyName())) {
 
 					ttlProperty = entity.getPersistentProperty(settings.getTimeToLivePropertyName());
-					timeoutProperties.put(type, ttlProperty);
-					return ttlProperty;
+					if (ttlProperty.isPresent()) {
+						timeoutProperties.put(type, ttlProperty.get());
+						return ttlProperty.get();
+					}
 				}
 			}
 

@@ -76,7 +76,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final int offset,
+	public <T> Collection<T> execute(final RedisOperationChain criteria, final Comparator<?> sort, final long offset,
 			final int rows, final Serializable keyspace, Class<T> type) {
 
 		if (criteria == null
@@ -116,7 +116,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 					return Collections.emptyMap();
 				}
 
-				int offsetToUse = Math.max(0, offset);
+				int offsetToUse = Math.max(0, (int) offset);
 				if (rows > 0) {
 					allKeys = allKeys.subList(Math.max(0, offsetToUse), Math.min(offsetToUse + rows, allKeys.size()));
 				}
@@ -154,7 +154,7 @@ class RedisQueryEngine extends QueryEngine<RedisKeyValueAdapter, RedisOperationC
 	 * @see org.springframework.data.keyvalue.core.QueryEngine#execute(java.lang.Object, java.lang.Object, int, int, java.io.Serializable)
 	 */
 	@Override
-	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, int offset, int rows,
+	public Collection<?> execute(final RedisOperationChain criteria, Comparator<?> sort, long offset, int rows,
 			final Serializable keyspace) {
 		return execute(criteria, sort, offset, rows, keyspace, Object.class);
 	}

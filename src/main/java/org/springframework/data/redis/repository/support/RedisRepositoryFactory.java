@@ -80,7 +80,7 @@ public class RedisRepositoryFactory extends KeyValueRepositoryFactory {
 	public <T, ID extends Serializable> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
 		RedisPersistentEntity<T> entity = (RedisPersistentEntity<T>) operations.getMappingContext()
-				.getPersistentEntity(domainClass);
+				.getPersistentEntity(domainClass).get();
 		EntityInformation<T, ID> entityInformation = (EntityInformation<T, ID>) new MappingRedisEntityInformation<T, ID>(
 				entity);
 

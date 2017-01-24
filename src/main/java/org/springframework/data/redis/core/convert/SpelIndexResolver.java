@@ -19,14 +19,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
 import org.springframework.data.redis.core.index.ConfigurableIndexDefinitionProvider;
 import org.springframework.data.redis.core.index.IndexDefinition;
 import org.springframework.data.redis.core.index.SpelIndexDefinition;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.Expression;
@@ -85,13 +86,13 @@ public class SpelIndexResolver implements IndexResolver {
 			return Collections.emptySet();
 		}
 
-		KeyValuePersistentEntity<?> entity = mappingContext.getPersistentEntity(typeInformation);
+		Optional<RedisPersistentEntity<?>> entity = mappingContext.getPersistentEntity(typeInformation);
 
-		if (entity == null) {
+		if (!entity.isPresent()) {
 			return Collections.emptySet();
 		}
 
-		String keyspace = entity.getKeySpace();
+		String keyspace = entity.get().getKeySpace();
 
 		Set<IndexedData> indexes = new HashSet<IndexedData>();
 

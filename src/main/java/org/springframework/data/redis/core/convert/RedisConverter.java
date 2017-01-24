@@ -16,9 +16,9 @@
 package org.springframework.data.redis.core.convert;
 
 import org.springframework.data.convert.EntityConverter;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentEntity;
-import org.springframework.data.keyvalue.core.mapping.KeyValuePersistentProperty;
 import org.springframework.data.redis.core.mapping.RedisMappingContext;
+import org.springframework.data.redis.core.mapping.RedisPersistentEntity;
+import org.springframework.data.redis.core.mapping.RedisPersistentProperty;
 
 /**
  * Redis specific {@link EntityConverter}.
@@ -27,7 +27,7 @@ import org.springframework.data.redis.core.mapping.RedisMappingContext;
  * @since 1.7
  */
 public interface RedisConverter
-		extends EntityConverter<KeyValuePersistentEntity<?>, KeyValuePersistentProperty, Object, RedisData> {
+		extends EntityConverter<RedisPersistentEntity<?>, RedisPersistentProperty, Object, RedisData> {
 
 	/*
 	 * (non-Javadoc)

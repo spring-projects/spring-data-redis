@@ -84,7 +84,7 @@ public class RedisRepositoryConfigurationExtension extends KeyValueRepositoryCon
 	@Override
 	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource configurationSource) {
 
-		String redisTemplateRef = configurationSource.getAttribute("redisTemplateRef");
+		String redisTemplateRef = configurationSource.getAttribute("redisTemplateRef").get();
 
 		RootBeanDefinition mappingContextDefinition = createRedisMappingContext(configurationSource);
 		mappingContextDefinition.setSource(configurationSource.getSource());
