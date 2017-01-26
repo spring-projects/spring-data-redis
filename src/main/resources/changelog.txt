@@ -6,6 +6,19 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.0.RELEASE (2017-01-26)
+---------------------------------------------
+* DATAREDIS-594 - Update "what’s new" section in reference documentation.
+* DATAREDIS-593 - Enums with a customized toString method cannot be deserialized from byte[].
+* DATAREDIS-592 - RedisCache.get(Object, Callable) does not set the TTL on the element.
+* DATAREDIS-591 - Update project documentation with the CLA tool integration.
+* DATAREDIS-589 - Publishing RedisKeyExpiredEvent from other than Repository support causes NullPointerException in RedisKeyValueAdapter.
+* DATAREDIS-587 - Release 1.8 GA (Ingalls).
+* DATAREDIS-564 - Invoking JedisConnection.expire during transaction/pipelining can cause NPE.
+* DATAREDIS-563 - Migrate Jira ticket reference format in tests.
+* DATAREDIS-532 - Convert all see http:// links to valid @see links.
+
+
 Changes in version 1.7.6.RELEASE (2016-12-21)
 ---------------------------------------------
 * DATAREDIS-566 - Release 1.7.6 (Hopper SR6).
