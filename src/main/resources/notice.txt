@@ -1,4 +1,4 @@
-Spring Data Redis 1.7.6
+Spring Data Redis 1.7.7
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
