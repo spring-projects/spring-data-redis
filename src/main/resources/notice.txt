@@ -1,4 +1,4 @@
-Spring Data Redis 1.8 RC1
+Spring Data Redis 1.8 GA
    Copyright (c) [$copyright] Pivotal Software, Inc.
 
    ========================================================================
