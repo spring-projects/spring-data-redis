@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -334,7 +334,7 @@ abstract public class JedisConverters extends Converters {
 	}
 
 	public static LIST_POSITION toListPosition(Position source) {
-		Assert.notNull("list positions are mandatory");
+		Assert.notNull(source, "list positions are mandatory");
 		return (Position.AFTER.equals(source) ? LIST_POSITION.AFTER : LIST_POSITION.BEFORE);
 	}
 
