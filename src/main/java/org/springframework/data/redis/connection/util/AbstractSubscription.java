@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public abstract class AbstractSubscription implements Subscription {
 	 * @param patterns
 	 */
 	protected AbstractSubscription(MessageListener listener, byte[][] channels, byte[][] patterns) {
-		Assert.notNull(listener);
+		Assert.notNull(listener, "MessageListener must not be null!");
 		this.listener = listener;
 
 		synchronized (this.channels) {

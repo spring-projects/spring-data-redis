@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * {@link CdiBean} to create {@link RedisKeyValueAdapter} instances.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 
@@ -45,14 +46,13 @@ public class RedisKeyValueAdapterBean extends CdiBean<RedisKeyValueAdapter> {
 	 *
 	 * @param redisOperations must not be {@literal null}.
 	 * @param qualifiers must not be {@literal null}.
-	 * @param repositoryType must not be {@literal null}.
 	 * @param beanManager must not be {@literal null}.
 	 */
 	public RedisKeyValueAdapterBean(Bean<RedisOperations<?, ?>> redisOperations, Set<Annotation> qualifiers,
 			BeanManager beanManager) {
 
 		super(qualifiers, RedisKeyValueAdapter.class, beanManager);
-		Assert.notNull(redisOperations);
+		Assert.notNull(redisOperations, "RedisOperations Bean must not be null!");
 		this.redisOperations = redisOperations;
 	}
 
