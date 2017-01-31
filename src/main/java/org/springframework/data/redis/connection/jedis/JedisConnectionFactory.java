@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -286,7 +286,7 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 	 */
 	protected JedisCluster createCluster(RedisClusterConfiguration clusterConfig, GenericObjectPoolConfig poolConfig) {
 
-		Assert.notNull("Cluster configuration must not be null!");
+		Assert.notNull(clusterConfig, "Cluster configuration must not be null!");
 
 		Set<HostAndPort> hostAndPort = new HashSet<HostAndPort>();
 		for (RedisNode node : clusterConfig.getClusterNodes()) {
@@ -559,7 +559,8 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 
 	private Jedis getActiveSentinel() {
 
-		Assert.notNull(this.sentinelConfig);
+		Assert.notNull(this.sentinelConfig, "SentinelConfig must not be null!");
+
 		for (RedisNode node : this.sentinelConfig.getSentinels()) {
 			Jedis jedis = new Jedis(node.getHost(), node.getPort());
 			if (jedis.ping().equalsIgnoreCase("pong")) {

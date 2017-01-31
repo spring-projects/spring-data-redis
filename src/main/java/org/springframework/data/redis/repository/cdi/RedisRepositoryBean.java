@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * {@link CdiRepositoryBean} to create Redis repository instances.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 
@@ -53,7 +54,7 @@ public class RedisRepositoryBean<T> extends CdiRepositoryBean<T> {
 			Class<T> repositoryType, BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
 
 		super(qualifiers, repositoryType, beanManager, detector);
-		Assert.notNull(keyValueTemplate);
+		Assert.notNull(keyValueTemplate, "Bean holding keyvalue template must not be null!");
 		this.keyValueTemplate = keyValueTemplate;
 	}
 

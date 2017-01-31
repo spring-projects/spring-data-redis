@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * Base class for {@link Bean} wrappers.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 
@@ -76,10 +77,10 @@ public abstract class CdiBean<T> implements Bean<T>, PassivationCapable {
 	 */
 	public CdiBean(Set<Annotation> qualifiers, Set<Type> types, Class<T> beanClass, BeanManager beanManager) {
 
-		Assert.notNull(qualifiers);
-		Assert.notNull(beanManager);
-		Assert.notNull(types);
-		Assert.notNull(beanClass);
+		Assert.notNull(qualifiers, "Qualifier annotations must not be null!");
+		Assert.notNull(beanManager, "BeanManager must not be null!");
+		Assert.notNull(types, "Types must not be null!");
+		Assert.notNull(beanClass, "Bean class mast not be null!");
 
 		this.qualifiers = qualifiers;
 		this.types = types;

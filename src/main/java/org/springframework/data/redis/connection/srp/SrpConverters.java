@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -387,7 +387,7 @@ abstract public class SrpConverters extends Converters {
 	}
 
 	public static byte[] toBytes(Position source) {
-		Assert.notNull("list positions are mandatory");
+		Assert.notNull(source, "list positions are mandatory");
 		return (Position.AFTER.equals(source) ? AFTER : BEFORE);
 	}
 

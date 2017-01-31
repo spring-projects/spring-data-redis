@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * bean. <b>Note:</b> Does not handle nulls in any special way delegating everything to the container.
  * 
  * @author Costin Leau
+ * @author Christoph Strobl
  */
 public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFactoryAware {
 
@@ -45,7 +46,7 @@ public class GenericToStringSerializer<T> implements RedisSerializer<T>, BeanFac
 	}
 
 	public GenericToStringSerializer(Class<T> type, Charset charset) {
-		Assert.notNull(type);
+		Assert.notNull(type, "tyoe must not be null!");
 		this.type = type;
 		this.charset = charset;
 	}

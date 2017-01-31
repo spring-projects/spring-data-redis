@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class CustomConversions {
 	 */
 	public CustomConversions(List<?> converters) {
 
-		Assert.notNull(converters);
+		Assert.notNull(converters,"Converters must not be null!");
 
 		this.readingPairs = new LinkedHashSet<ConvertiblePair>();
 		this.writingPairs = new LinkedHashSet<ConvertiblePair>();
@@ -344,8 +344,8 @@ public class CustomConversions {
 	private static Class<?> getCustomTarget(Class<?> sourceType, Class<?> requestedTargetType,
 			Collection<ConvertiblePair> pairs) {
 
-		Assert.notNull(sourceType);
-		Assert.notNull(pairs);
+		Assert.notNull(sourceType, "SourceType must not be null!");
+		Assert.notNull(pairs, "Convertible pairs must not be null!");
 
 		if (requestedTargetType != null && pairs.contains(new ConvertiblePair(sourceType, requestedTargetType))) {
 			return requestedTargetType;
@@ -411,7 +411,7 @@ public class CustomConversions {
 		 */
 		public ConverterRegistration(ConvertiblePair convertiblePair, boolean isReading, boolean isWriting) {
 
-			Assert.notNull(convertiblePair);
+			Assert.notNull(convertiblePair, "Convertible pair must not be null!");
 
 			this.convertiblePair = convertiblePair;
 			this.reading = isReading;
