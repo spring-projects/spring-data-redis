@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Mark Pollack
  * @author Costin Leau
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class JdkSerializationRedisSerializer implements RedisSerializer<Object> {
 
@@ -63,8 +64,8 @@ public class JdkSerializationRedisSerializer implements RedisSerializer<Object> 
 	 */
 	public JdkSerializationRedisSerializer(Converter<Object, byte[]> serializer, Converter<byte[], Object> deserializer) {
 
-		Assert.notNull("Serializer must not be null!");
-		Assert.notNull("Deserializer must not be null!");
+		Assert.notNull(serializer, "Serializer must not be null!");
+		Assert.notNull(deserializer, "Deserializer must not be null!");
 
 		this.serializer = serializer;
 		this.deserializer = deserializer;

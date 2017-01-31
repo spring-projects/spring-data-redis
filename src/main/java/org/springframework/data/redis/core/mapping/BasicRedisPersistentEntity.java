@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class BasicRedisPersistentEntity<T> extends BasicKeyValuePersistentEntity
 	protected KeyValuePersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(
 			KeyValuePersistentProperty property) {
 
-		Assert.notNull(property);
+		Assert.notNull(property, "Property must not be null!");
 
 		if (!property.isIdProperty()) {
 			return null;
