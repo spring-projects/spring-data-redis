@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -46,6 +47,9 @@ import lombok.Data;
  * @see KeyCommand
  */
 public interface ReactiveRedisConnection extends Closeable {
+
+	@Override
+	void close();
 
 	/**
 	 * Get {@link ReactiveKeyCommands}.

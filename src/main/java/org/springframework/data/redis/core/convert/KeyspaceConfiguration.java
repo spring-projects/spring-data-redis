@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -28,7 +29,7 @@ import org.springframework.util.ClassUtils;
  * {@link KeyspaceConfiguration} allows programmatic setup of keyspaces and time to live options for certain types. This
  * is suitable for cases where there is no option to use the equivalent {@link RedisHash} or {@link TimeToLive}
  * annotations.
- * 
+ *
  * @author Christoph Strobl
  * @since 1.7
  */
@@ -44,9 +45,36 @@ public class KeyspaceConfiguration {
 		}
 	}
 
+	@EnableRedisRepositories(keyspaceConfiguration = MyKeyspaceConfiguration.class)
+	static class MyConfig {
+
+	}
+
+	static class MyKeyspaceConfiguration extends KeyspaceConfiguration {
+
+		@Override
+		protected Iterable<KeyspaceSettings> initialConfiguration() {
+			return super.initialConfiguration();
+		}
+
+		@Override
+		public boolean hasSettingsFor(Class<?> type) {
+			return true;
+		}
+
+		@Override
+		public KeyspaceSettings getKeyspaceSettings(Class<?> type) {
+
+			KeyspaceSettings keyspaceSettings = new KeyspaceSettings(type, "my-keyspace");
+			keyspaceSettings.setTimeToLive(3600L);
+
+			return keyspaceSettings;
+		}
+	}
+
 	/**
 	 * Check if specific {@link KeyspaceSettings} are available for given type.
-	 * 
+	 *
 	 * @param type must not be {@literal null}.
 	 * @return true if settings exist.
 	 */
@@ -78,7 +106,7 @@ public class KeyspaceConfiguration {
 
 	/**
 	 * Get the {@link KeyspaceSettings} for given type.
-	 * 
+	 *
 	 * @param type must not be {@literal null}
 	 * @return {@literal null} if no settings configured.
 	 */
@@ -98,7 +126,7 @@ public class KeyspaceConfiguration {
 
 	/**
 	 * Customization hook.
-	 * 
+	 *
 	 * @return must not return {@literal null}.
 	 */
 	protected Iterable<KeyspaceSettings> initialConfiguration() {
@@ -107,7 +135,7 @@ public class KeyspaceConfiguration {
 
 	/**
 	 * Add {@link KeyspaceSettings} for type.
-	 * 
+	 *
 	 * @param keyspaceSettings must not be {@literal null}.
 	 */
 	public void addKeyspaceSettings(KeyspaceSettings keyspaceSettings) {
@@ -171,7 +199,7 @@ public class KeyspaceConfiguration {
 
 	/**
 	 * Marker class indicating no settings defined.
-	 * 
+	 *
 	 * @author Christoph Strobl
 	 * @since 1.7
 	 */

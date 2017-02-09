@@ -15,11 +15,18 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsCollectionWithSize.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.*;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+import reactor.test.TestSubscriber;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 
 import org.junit.Test;
@@ -28,12 +35,13 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.TestSubscriber;
+import com.lambdaworks.redis.SetArgs;
 
 /**
+ * Integration tests for {@link LettuceReactiveKeyCommands}.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTestsBase {
 
@@ -181,4 +189,112 @@ public class LettuceReactiveKeyCommandsTests extends LettuceReactiveCommandsTest
 		subscriber.assertValueCount(2);
 	}
 
+	@Test // DATAREDIS-602
+	public void shouldExpireKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		StepVerifier.create(connection.keyCommands().expire(KEY_1_BBUFFER, Duration.ofSeconds(10))) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldPreciseExpireKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		StepVerifier.create(connection.keyCommands().pExpire(KEY_1_BBUFFER, Duration.ofSeconds(10))) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldExpireAtKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		Instant expireAt = Instant.now().plus(Duration.ofSeconds(10));
+
+		StepVerifier.create(connection.keyCommands().expireAt(KEY_1_BBUFFER, expireAt)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldPreciseExpireAtKeysCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1);
+		Instant expireAt = Instant.now().plus(Duration.ofSeconds(10));
+
+		StepVerifier.create(connection.keyCommands().pExpireAt(KEY_1_BBUFFER, expireAt)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldReportTimeToLiveCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1, SetArgs.Builder.ex(10));
+
+		StepVerifier.create(connection.keyCommands().ttl(KEY_1_BBUFFER)) //
+				.expectNextMatches(actual -> {
+					assertThat(nativeCommands.ttl(KEY_1), is(greaterThan(8L)));
+					return true;
+				}) //
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldReportPreciseTimeToLiveCorrectly() {
+
+		nativeCommands.set(KEY_1, VALUE_1, SetArgs.Builder.ex(10));
+
+		StepVerifier.create(connection.keyCommands().pTtl(KEY_1_BBUFFER)) //
+				.expectNextMatches(actual -> {
+					assertThat(actual, is(greaterThan(8000L)));
+					return true;
+				}) //
+				.expectComplete() //
+				.verify();
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldPersist() {
+
+		nativeCommands.set(KEY_1, VALUE_1, SetArgs.Builder.ex(10));
+
+		StepVerifier.create(connection.keyCommands().persist(KEY_1_BBUFFER)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+
+		assertThat(nativeCommands.ttl(KEY_1), is(-1L));
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldMoveToDatabase() {
+
+		assumeThat(connection, is(not(instanceOf(LettuceReactiveRedisClusterConnection.class))));
+
+		nativeCommands.set(KEY_1, VALUE_1);
+
+		StepVerifier.create(connection.keyCommands().move(KEY_1_BBUFFER, 5)) //
+				.expectNext(true) //
+				.expectComplete() //
+				.verify();
+		assertThat(nativeCommands.exists(KEY_1), is(0L));
+	}
 }

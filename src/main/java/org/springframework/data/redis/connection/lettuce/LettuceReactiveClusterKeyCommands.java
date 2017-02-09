@@ -16,6 +16,9 @@
 
 package org.springframework.data.redis.connection.lettuce;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -29,9 +32,6 @@ import org.springframework.util.Assert;
 
 import com.lambdaworks.redis.RedisException;
 import com.lambdaworks.redis.api.reactive.RedisKeyReactiveCommands;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
@@ -129,5 +129,13 @@ public class LettuceReactiveClusterKeyCommands extends LettuceReactiveKeyCommand
 
 			return result.map(val -> new BooleanResponse<>(command, val));
 		}));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.lettuce.LettuceReactiveKeyCommands#move(org.reactivestreams.Publisher)
+	 */
+	@Override
+	public Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands) {
+		throw new UnsupportedOperationException("MOVE not supported in CLUSTER mode!");
 	}
 }
