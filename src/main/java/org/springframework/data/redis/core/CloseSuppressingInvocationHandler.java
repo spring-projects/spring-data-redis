@@ -33,9 +33,9 @@ class CloseSuppressingInvocationHandler implements InvocationHandler {
 	private static final String HASH_CODE = "hashCode";
 	private static final String EQUALS = "equals";
 
-	private final RedisConnection target;
+	private final Object target;
 
-	public CloseSuppressingInvocationHandler(RedisConnection target) {
+	public CloseSuppressingInvocationHandler(Object target) {
 		this.target = target;
 	}
 

@@ -17,7 +17,7 @@ package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
+import static org.junit.Assume.*;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -200,7 +200,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(3D, 2D)).block(),
+		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(),
 				IsIterableContainingInOrder.contains(VALUE_3_BBUFFER, VALUE_2_BBUFFER));
 	}
 
@@ -211,7 +211,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(3D, 2D, true, false)).block(),
+		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
 				IsIterableContainingInOrder.contains(VALUE_3_BBUFFER));
 	}
 
@@ -222,7 +222,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(3D, 2D, false, true)).block(),
+		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
 				IsIterableContainingInOrder.contains(VALUE_2_BBUFFER));
 	}
 
@@ -233,7 +233,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(3D, 2D)).block(),
+		assertThat(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(),
 				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D),
 						new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)));
 	}
@@ -246,7 +246,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
 		assertThat(
-				connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(3D, 2D, true, false)).block(),
+				connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
 				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)));
 	}
 
@@ -258,7 +258,7 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
 		assertThat(
-				connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(3D, 2D, false, true)).block(),
+				connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
 				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)));
 	}
 
@@ -466,14 +466,14 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 0D, "f");
 		nativeCommands.zadd(KEY_1, 0D, "g");
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("c", "")).block(),
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()),
 						ByteBuffer.wrap("a".getBytes())));
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("c", "", false, true)).block(),
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("a".getBytes())));
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("g", "aaa", false, true)).block(),
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
 						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes())));
 	}

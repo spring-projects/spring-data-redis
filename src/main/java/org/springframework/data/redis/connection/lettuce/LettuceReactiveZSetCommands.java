@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package org.springframework.data.redis.connection.lettuce;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -41,9 +44,6 @@ import com.lambdaworks.redis.ZAddArgs;
 import com.lambdaworks.redis.ZStoreArgs;
 import com.lambdaworks.redis.codec.StringCodec;
 import com.lambdaworks.redis.protocol.LettuceCharsets;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
@@ -258,7 +258,7 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 				}
 			} else {
 
-				Range<Number> range = ArgumentConverters.toRevRange(command.getRange());
+				Range<Number> range = ArgumentConverters.toRange(command.getRange());
 
 				if (command.isWithScores()) {
 
@@ -447,14 +447,14 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 					result = cmd.zrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()),
 							LettuceConverters.toLimit(command.getLimit()));
 				} else {
-					result = cmd.zrevrangebylex(command.getKey(), ArgumentConverters.toRevRange(command.getRange()),
+					result = cmd.zrevrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()),
 							LettuceConverters.toLimit(command.getLimit()));
 				}
 			} else {
 				if (ObjectUtils.nullSafeEquals(command.getDirection(), Direction.ASC)) {
 					result = cmd.zrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()));
 				} else {
-					result = cmd.zrevrangebylex(command.getKey(), ArgumentConverters.toRevRange(command.getRange()));
+					result = cmd.zrevrangebylex(command.getKey(), ArgumentConverters.toRange(command.getRange()));
 				}
 			}
 
@@ -505,10 +505,6 @@ public class LettuceReactiveZSetCommands implements ReactiveZSetCommands {
 
 		static <T> Range<T> toRange(org.springframework.data.domain.Range<?> range) {
 			return Range.from(lowerBoundArgOf(range), upperBoundArgOf(range));
-		}
-
-		static <T> Range<T> toRevRange(org.springframework.data.domain.Range<?> range) {
-			return Range.from(upperBoundArgOf(range), lowerBoundArgOf(range));
 		}
 
 		@SuppressWarnings("unchecked")

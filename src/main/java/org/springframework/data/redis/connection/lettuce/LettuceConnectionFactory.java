@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.redis.connection.lettuce;
 
 import java.util.ArrayList;
@@ -30,15 +29,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.ClusterCommandExecutor;
-import org.springframework.data.redis.connection.Pool;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
-import org.springframework.data.redis.connection.RedisSentinelConnection;
+import org.springframework.data.redis.connection.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -70,7 +61,8 @@ import com.lambdaworks.redis.resource.ClientResources;
  * @author Mark Paluch
  * @author Balázs Németh
  */
-public class LettuceConnectionFactory implements InitializingBean, DisposableBean, RedisConnectionFactory {
+public class LettuceConnectionFactory
+		implements InitializingBean, DisposableBean, RedisConnectionFactory, ReactiveRedisConnectionFactory {
 
 	public static final String PING_REPLY = "PONG";
 
@@ -206,13 +198,17 @@ public class LettuceConnectionFactory implements InitializingBean, DisposableBea
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getReactiveConnection()
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnectionFactory#getReactiveConnection()
 	 */
 	@Override
 	public LettuceReactiveRedisConnection getReactiveConnection() {
 		return new LettuceReactiveRedisConnection(client);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.redis.connection.ReactiveRedisConnectionFactory#getReactiveClusterConnection()
+	 */
 	@Override
 	public LettuceReactiveRedisClusterConnection getReactiveClusterConnection() {
 		if(!isClusterAware()) {

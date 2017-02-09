@@ -19,6 +19,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
@@ -259,4 +261,353 @@ public interface ReactiveKeyCommands {
 	 * @see <a href="http://redis.io/commands/del">Redis Documentation: DEL</a>
 	 */
 	Flux<NumericResponse<List<ByteBuffer>, Long>> mDel(Publisher<List<ByteBuffer>> keys);
+
+	/**
+	 * {@code EXPIRE}/{@code PEXPIRE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 */
+	class ExpireCommand extends KeyCommand {
+
+		private Duration timeout;
+
+		private ExpireCommand(ByteBuffer key, Duration timeout) {
+
+			super(key);
+
+			this.timeout = timeout;
+		}
+
+		/**
+		 * Creates a new {@link ExpireCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ExpireCommand} for {@link ByteBuffer key}.
+		 */
+		public static ExpireCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ExpireCommand(key, null);
+		}
+
+		/**
+		 * Applies the {@literal timeout}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param timeout must not be {@literal null}.
+		 * @return a new {@link ExpireCommand} with {@literal timeout} applied.
+		 */
+		public ExpireCommand timeout(Duration timeout) {
+
+			Assert.notNull(timeout, "Timeout must not be null!");
+
+			return new ExpireCommand(getKey(), timeout);
+		}
+
+		/**
+		 * @return
+		 */
+		public Duration getTimeout() {
+			return timeout;
+		}
+	}
+
+	/**
+	 * Set time to live for given {@code key} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 */
+	default Mono<Boolean> expire(ByteBuffer key, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		return expire(Mono.just(new ExpireCommand(key, timeout))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Expire {@literal keys} one by one.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
+	 *         result.
+	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIRE</a>
+	 */
+	Flux<BooleanResponse<ExpireCommand>> expire(Publisher<ExpireCommand> commands);
+
+	/**
+	 * Set time to live for given {@code key} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 */
+	default Mono<Boolean> pExpire(ByteBuffer key, Duration timeout) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(timeout, "Timeout must not be null!");
+
+		return expire(Mono.just(new ExpireCommand(key, timeout))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Expire {@literal keys} one by one.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
+	 *         result.
+	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIRE</a>
+	 */
+	Flux<BooleanResponse<ExpireCommand>> pExpire(Publisher<ExpireCommand> commands);
+
+	/**
+	 * {@code EXPIREAT}/{@code PEXPIREAT} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="http://redis.io/commands/expire">Redis Documentation: EXPIREAT</a>
+	 * @see <a href="http://redis.io/commands/pexpire">Redis Documentation: PEXPIREAT</a>
+	 */
+	class ExpireAtCommand extends KeyCommand {
+
+		private Instant expireAt;
+
+		private ExpireAtCommand(ByteBuffer key, Instant expireAt) {
+
+			super(key);
+
+			this.expireAt = expireAt;
+		}
+
+		/**
+		 * Creates a new {@link ExpireAtCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ExpireCommand} for {@link ByteBuffer key}.
+		 */
+		public static ExpireAtCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new ExpireAtCommand(key, null);
+		}
+
+		/**
+		 * Applies the {@literal expireAt}. Constructs a new command instance with all previously configured properties.
+		 *
+		 * @param expireAt must not be {@literal null}.
+		 * @return a new {@link ExpireAtCommand} with {@literal expireAt} applied.
+		 */
+		public ExpireAtCommand timeout(Instant expireAt) {
+
+			Assert.notNull(expireAt, "Expire at must not be null!");
+
+			return new ExpireAtCommand(getKey(), expireAt);
+		}
+
+		/**
+		 * @return
+		 */
+		public Instant getExpireAt() {
+			return expireAt;
+		}
+	}
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 */
+	default Mono<Boolean> expireAt(ByteBuffer key, Instant expireAt) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(expireAt, "Expire at must not be null!");
+
+		return expireAt(Mono.just(new ExpireAtCommand(key, expireAt))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Set one-by-one the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
+	 *         result.
+	 * @see <a href="http://redis.io/commands/expireat">Redis Documentation: EXPIREAT</a>
+	 */
+	Flux<BooleanResponse<ExpireAtCommand>> expireAt(Publisher<ExpireAtCommand> commands);
+
+	/**
+	 * Set the expiration for given {@code key} as a {@literal UNIX} timestamp.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param expireAt must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 */
+	default Mono<Boolean> pExpireAt(ByteBuffer key, Instant expireAt) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(expireAt, "Expire at must not be null!");
+
+		return pExpireAt(Mono.just(new ExpireAtCommand(key, expireAt))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Set one-by-one the expiration for given {@code key} as a {@literal UNIX} timestamp in milliseconds.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} removed along with the expiration
+	 *         result.
+	 * @see <a href="http://redis.io/commands/pexpireat">Redis Documentation: PEXPIREAT</a>
+	 */
+	Flux<BooleanResponse<ExpireAtCommand>> pExpireAt(Publisher<ExpireAtCommand> commands);
+
+	/**
+	 * Remove the expiration from given {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 */
+	default Mono<Boolean> persist(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return persist(Mono.just(new KeyCommand(key))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Remove one-by-one the expiration from given {@code key}.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} persisted along with the persist result.
+	 * @see <a href="http://redis.io/commands/persist">Redis Documentation: PERSIST</a>
+	 */
+	Flux<BooleanResponse<KeyCommand>> persist(Publisher<KeyCommand> commands);
+
+	/**
+	 * Get the time to live for {@code key} in seconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 */
+	default Mono<Long> ttl(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return ttl(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Get one-by-one the time to live for keys.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} along with the time to live result.
+	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 */
+	Flux<NumericResponse<KeyCommand, Long>> ttl(Publisher<KeyCommand> commands);
+
+	/**
+	 * Get the time to live for {@code key} in milliseconds.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/ttl">Redis Documentation: TTL</a>
+	 */
+	default Mono<Long> pTtl(ByteBuffer key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return pTtl(Mono.just(new KeyCommand(key))).next().map(NumericResponse::getOutput);
+	}
+
+	/**
+	 * Get one-by-one the time to live for keys.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link NumericResponse} holding the {@literal key} along with the time to live result.
+	 * @see <a href="http://redis.io/commands/pttl">Redis Documentation: PTTL</a>
+	 */
+	Flux<NumericResponse<KeyCommand, Long>> pTtl(Publisher<KeyCommand> commands);
+
+	/**
+	 * {@code MOVE} command parameters.
+	 *
+	 * @author Mark Paluch
+	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 */
+	class MoveCommand extends KeyCommand {
+
+		private Integer database;
+
+		private MoveCommand(ByteBuffer key, Integer database) {
+
+			super(key);
+
+			this.database = database;
+		}
+
+		/**
+		 * Creates a new {@link MoveCommand} given a {@link ByteBuffer key}.
+		 *
+		 * @param key must not be {@literal null}.
+		 * @return a new {@link ExpireCommand} for {@link ByteBuffer key}.
+		 */
+		public static MoveCommand key(ByteBuffer key) {
+
+			Assert.notNull(key, "Key must not be null!");
+
+			return new MoveCommand(key, null);
+		}
+
+		/**
+		 * Applies the {@literal database} index. Constructs a new command instance with all previously configured
+		 * properties.
+		 *
+		 * @param database
+		 * @return a new {@link MoveCommand} with {@literal database} applied.
+		 */
+		public MoveCommand timeout(int database) {
+			return new MoveCommand(getKey(), database);
+		}
+
+		/**
+		 * @return
+		 */
+		public Integer getDatabase() {
+			return database;
+		}
+	}
+
+	/**
+	 * Move given {@code key} to database with {@code index}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 */
+	default Mono<Boolean> move(ByteBuffer key, int database) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return move(Mono.just(new MoveCommand(key, database))).next().map(BooleanResponse::getOutput);
+	}
+
+	/**
+	 * Move keys one-by-one between databases.
+	 *
+	 * @param commands must not be {@literal null}.
+	 * @return {@link Flux} of {@link BooleanResponse} holding the {@literal key} to move along with the move result.
+	 * @see <a href="http://redis.io/commands/move">Redis Documentation: MOVE</a>
+	 */
+	Flux<BooleanResponse<MoveCommand>> move(Publisher<MoveCommand> commands);
 }
