@@ -26,6 +26,7 @@ import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -46,6 +47,9 @@ abstract public class AbstractOperationsTestParams {
 	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
 
+		RedisStandaloneConfiguration standaloneConfiguration = new RedisStandaloneConfiguration(SettingsUtils.getHost(),
+				SettingsUtils.getPort());
+
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
@@ -60,9 +64,7 @@ abstract public class AbstractOperationsTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 
-		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory();
-		jedisConnectionFactory.setPort(SettingsUtils.getPort());
-		jedisConnectionFactory.setHostName(SettingsUtils.getHost());
+		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(standaloneConfiguration);
 		jedisConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<String, String> stringTemplate = new StringRedisTemplate();
