@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.test.util.RelaxedJUnit4ClassRunner;
@@ -37,6 +38,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -47,10 +49,12 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  */
 @RunWith(RelaxedJUnit4ClassRunner.class)
-@Transactional(transactionManager = "transactionManager")
+//@Transactional(transactionManager = "transactionManager")
 public abstract class AbstractTransactionalTestBase {
 
 	@Configuration
+	@ComponentScan
+	@EnableTransactionManagement
 	public abstract static class RedisContextConfiguration {
 
 		@Bean
@@ -83,6 +87,8 @@ public abstract class AbstractTransactionalTestBase {
 	private @Autowired StringRedisTemplate template;
 
 	private @Autowired RedisConnectionFactory factory;
+
+	private @Autowired MyService myService;
 
 	private List<String> KEYS = Arrays.asList("spring", "data", "redis");
 	private boolean valuesShouldHaveBeenPersisted = false;
@@ -128,6 +134,23 @@ public abstract class AbstractTransactionalTestBase {
 		for (String key : KEYS) {
 			template.opsForValue().set(key, key + "-value");
 		}
+	}
+
+	@Test // DATAREDIS-600
+	public void valueOperationGetShouldWorkWithTransactions() {
+
+		// Here the connection binds to the current thread because of enableTransactionSupport (RedisConnectionUtils:140)
+		// and the connection proxy will NOT be created in this case (RedisConnectionUtils:135)
+		// Subsequent calls will use the bound connection
+		for (String key : KEYS) {
+			template.opsForValue().set(key, key + "-value");
+
+			// works outside transaction
+			Assert.assertNotNull("Could not fetch value for key!", template.opsForValue().get(key));
+		}
+
+		// ALL @Transactional operations will be queued
+		myService.valuesForKeys(KEYS);
 	}
 
 	@Test // DATAREDIS-548
