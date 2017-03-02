@@ -30,6 +30,12 @@ Changes in version 2.0.0.M2 (2017-04-04)
 * DATAREDIS-532 - Convert all see http:// links to valid @see links.
 
 
+Changes in version 1.7.8.RELEASE (2017-03-02)
+---------------------------------------------
+* DATAREDIS-599 - Remove references to single-argument assertion methods of Spring.
+* DATAREDIS-597 - Release 1.7.8 (Hopper SR8).
+
+
 Changes in version 1.8.1.RELEASE (2017-03-02)
 ---------------------------------------------
 * DATAREDIS-599 - Remove references to single-argument assertion methods of Spring.
