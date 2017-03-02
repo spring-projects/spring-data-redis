@@ -71,6 +71,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Costin Leau
  * @author Christoph Strobl
+ * @author myeongju.jung
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  * @see StringRedisTemplate
@@ -274,7 +275,7 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 					}
 					List<Object> closePipeline = connection.closePipeline();
 					pipelinedClosed = true;
-					return deserializeMixedResults(closePipeline, resultSerializer, resultSerializer, resultSerializer);
+					return deserializeMixedResults(closePipeline, resultSerializer, hashKeySerializer, hashValueSerializer);
 				} finally {
 					if (!pipelinedClosed) {
 						connection.closePipeline();
