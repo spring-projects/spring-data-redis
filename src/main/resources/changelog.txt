@@ -6,6 +6,12 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 1.8.1.RELEASE (2017-03-02)
+---------------------------------------------
+* DATAREDIS-599 - Remove references to single-argument assertion methods of Spring.
+* DATAREDIS-598 - Release 1.8.1 (Ingalls SR1).
+
+
 Changes in version 1.7.7.RELEASE (2017-01-26)
 ---------------------------------------------
 * DATAREDIS-593 - Enums with a customized toString method cannot be deserialized from byte[].
