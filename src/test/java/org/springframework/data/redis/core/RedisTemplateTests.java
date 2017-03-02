@@ -66,6 +66,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * 
  * @author Jennifer Hickey
  * @author Christoph Strobl
+ * @author myeongju.jung
  */
 @RunWith(Parameterized.class)
 public class RedisTemplateTests<K, V> {
