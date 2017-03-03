@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
@@ -302,21 +303,18 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(wrapper.get(), equalTo(value));
 	}
 
-	@Test // DATAREDIS-510
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-510, DATAREDIS-606
 	public void cachePutWithNullShouldNotAddStuffToRedis() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
 
 		Object key = getKey();
-		Object value = getValue();
 
 		cache.put(key, null);
-
-		assertThat(cache.get(key), is(nullValue()));
 	}
 
-	@Test // DATAREDIS-510
-	public void cachePutWithNullShouldRemoveKeyIfExists() {
+	@Test // DATAREDIS-510, DATAREDIS-606
+	public void cachePutWithNullShouldErrorAndLeaveExistingKeyUntouched() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
 
@@ -327,9 +325,13 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 
 		assertThat(cache.get(key).get(), is(equalTo(value)));
 
-		cache.put(key, null);
+		try {
+			cache.put(key, null);
+		} catch (IllegalArgumentException e) {
+			// forget this one.
+		}
 
-		assertThat(cache.get(key), is(nullValue()));
+		assertThat(cache.get(key).get(), is(equalTo(value)));
 	}
 
 	@Test // DATAREDIS-443, DATAREDIS-452
@@ -372,7 +374,7 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 		assertThat(cache.get(key).get(), is(nullValue()));
 	}
 
-	@Test // DATAREDIS-553
+	@Test(expected = ValueRetrievalException.class) // DATAREDIS-553, DATAREDIS-606
 	public void testCacheGetSynchronizedNullNotAllowingNull() {
 
 		assumeThat(getAllowCacheNullValues(), is(false));
@@ -386,9 +388,6 @@ public class RedisCacheTest extends AbstractNativeCacheTest<RedisTemplate> {
 				return null;
 			}
 		});
-
-		assertThat(value, is(nullValue()));
-		assertThat(cache.get(key), is(nullValue()));
 	}
 
 	@Test // DATAREDIS-553

@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -209,9 +210,9 @@ public class RedisCacheUnitTests {
 		});
 	}
 
-	@Test // DATAREDIS-553
+	@Test(expected = ValueRetrievalException.class) // DATAREDIS-553, DATAREDIS-606
 	@SuppressWarnings("unchecked")
-	public void getWithCallableShouldStoreNullNotAllowingNull() throws ClassNotFoundException {
+	public void getWithCallableShouldThrowExceptionSotringNullWhenNotAllowingNull() throws ClassNotFoundException {
 
 		cache = new RedisCache(CACHE_NAME, NO_PREFIX_BYTES, templateSpy, 0L, false);
 
@@ -221,11 +222,6 @@ public class RedisCacheUnitTests {
 				return null;
 			}
 		});
-
-		verify(connectionMock).get(eq(KEY_BYTES));
-		verify(connectionMock).multi();
-		verify(connectionMock).del(eq(KEY_BYTES));
-		verify(connectionMock).exec();
 	}
 
 	@Test // DATAREDIS-553
