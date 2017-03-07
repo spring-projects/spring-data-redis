@@ -316,11 +316,19 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPop(key, Duration.ofSeconds(1))).expectComplete().verify();
+		StepVerifier.create(listOperations.leftPop(key, Duration.ZERO)).expectComplete().verify();
 
 		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).expectComplete().verify();
 
 		StepVerifier.create(listOperations.leftPop(key, Duration.ZERO)).expectNext(value2).expectComplete().verify();
+	}
+
+	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
+	public void leftPopWithMillisecondTimeoutShouldFail() {
+
+		K key = keyFactory.instance();
+
+		listOperations.leftPop(key, Duration.ofMillis(1001));
 	}
 
 	@Test // DATAREDIS-602

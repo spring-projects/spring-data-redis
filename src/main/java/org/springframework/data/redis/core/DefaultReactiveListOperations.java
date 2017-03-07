@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -265,6 +266,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(timeout, "Duration must not be null!");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(connection -> connection.blPop(Collections.singletonList(rawKey(key)), timeout)
 				.map(popResult -> readValue(popResult.getValue())));
@@ -289,6 +291,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(timeout, "Duration must not be null!");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(connection -> connection.brPop(Collections.singletonList(rawKey(key)), timeout)
 				.map(popResult -> readValue(popResult.getValue())));
@@ -316,6 +319,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 		Assert.notNull(sourceKey, "Source key must not be null!");
 		Assert.notNull(destinationKey, "Destination key must not be null!");
 		Assert.notNull(timeout, "Duration must not be null!");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
 
 		return createMono(
 				connection -> connection.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
@@ -334,6 +338,10 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 		Assert.notNull(function, "Function must not be null!");
 
 		return template.createMono(connection -> function.apply(connection.listCommands()));
+	}
+
+	private boolean isZeroOrGreater1Second(Duration timeout) {
+		return timeout.isZero() || timeout.getNano() % TimeUnit.NANOSECONDS.convert(1, TimeUnit.SECONDS) == 0;
 	}
 
 	private ByteBuffer rawKey(K key) {

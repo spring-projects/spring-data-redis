@@ -202,11 +202,13 @@ public interface ReactiveListOperations<K, V> {
 	Mono<V> leftPop(K key);
 
 	/**
-	 * Removes and returns first element from lists stored at {@code key} . <br>
+	 * Removes and returns first element from lists stored at {@code key}. <br>
 	 * <b>Results return once an element available or {@code timeout} reached.</b>
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param timeout must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
+	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
+	 *          used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
 	 * @see <a href="http://redis.io/commands/blpop">Redis Documentation: BLPOP</a>
 	 */
@@ -226,7 +228,9 @@ public interface ReactiveListOperations<K, V> {
 	 * <b>Results return once an element available or {@code timeout} reached.</b>
 	 *
 	 * @param key must not be {@literal null}.
-	 * @param timeout must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code key} is available. Must be either
+	 *          {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero can be
+	 *          used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
 	 * @see <a href="http://redis.io/commands/brpop">Redis Documentation: BRPOP</a>
 	 */
@@ -248,7 +252,9 @@ public interface ReactiveListOperations<K, V> {
 	 *
 	 * @param sourceKey must not be {@literal null}.
 	 * @param destinationKey must not be {@literal null}.
-	 * @param timeout must not be {@literal null}.
+	 * @param timeout maximal duration to wait until an entry in the list at {@code sourceKey} is available. Must be
+	 *          either {@link Duration#ZERO} or greater {@link 1 second}, must not be {@literal null}. A timeout of zero
+	 *          can be used to wait indefinitely. Durations between zero and one second are not supported.
 	 * @return
 	 * @see <a href="http://redis.io/commands/brpoplpush">Redis Documentation: BRPOPLPUSH</a>
 	 */
