@@ -89,7 +89,7 @@ public interface ReactiveZSetCommands {
 		 * @param tuples must not be {@literal null}.
 		 * @return a new {@link ZAddCommand} for {@link Tuple}.
 		 */
-		public static ZAddCommand tuples(Collection<Tuple> tuples) {
+		public static ZAddCommand tuples(Collection<? extends Tuple> tuples) {
 
 			Assert.notNull(tuples, "Tuples must not be null!");
 
@@ -195,6 +195,22 @@ public interface ReactiveZSetCommands {
 
 		return zAdd(Mono.just(ZAddCommand.tuple(new DefaultTuple(ByteUtils.getBytes(value), score)).to(key))).next()
 				.map(resp -> resp.getOutput().longValue());
+	}
+
+	/**
+	 * Add a {@literal tuples} to a sorted set at {@literal key}, or update their score if it already exists.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param tuples must not be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
+	 */
+	default Mono<Long> zAdd(ByteBuffer key, Collection<? extends Tuple> tuples) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(tuples, "Tuples must not be null!");
+
+		return zAdd(Mono.just(ZAddCommand.tuples(tuples).to(key))).next().map(resp -> resp.getOutput().longValue());
 	}
 
 	/**

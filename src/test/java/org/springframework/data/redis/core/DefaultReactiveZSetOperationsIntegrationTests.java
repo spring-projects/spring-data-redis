@@ -20,7 +20,9 @@ import static org.junit.Assume.*;
 
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -95,6 +97,25 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		V value = valueFactory.instance();
 
 		StepVerifier.create(zSetOperations.add(key, value, 42.1)).expectNext(true).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void addAll() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+		V value2 = valueFactory.instance();
+
+		List<DefaultTypedTuple<V>> tuples = Arrays.asList(new DefaultTypedTuple<>(value1, 42.1d),
+				new DefaultTypedTuple<>(value2, 10d));
+
+		StepVerifier.create(zSetOperations.addAll(key, tuples)).expectNext(2L).verifyComplete();
+
+		List<DefaultTypedTuple<V>> updated = Arrays.asList(new DefaultTypedTuple<>(value1, 52.1d),
+				new DefaultTypedTuple<>(value2, 10d));
+
+		StepVerifier.create(zSetOperations.addAll(key, updated)).expectNext(0L).verifyComplete();
+		StepVerifier.create(zSetOperations.score(key, value1)).expectNext(52.1d).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

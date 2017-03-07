@@ -29,11 +29,13 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.DefaultTuple;
 import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -61,12 +63,22 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 		return createMono(connection -> connection.zAdd(rawKey(key), score, rawValue(value)).map(l -> l != 0));
 	}
 
-	// @Override // TODO
-	public Mono<Long> add(K key, Set<TypedTuple<V>> typedTuples) {
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#add(java.lang.Object, java.util.Collection)
+	 */
+	@Override
+	public Mono<Long> addAll(K key, Collection<? extends TypedTuple<V>> tuples) {
 
 		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(tuples, "Key must not be null!");
 
-		return null;
+		return createMono(connection -> {
+
+			return Flux.fromIterable(tuples) //
+					.map(t -> new DefaultTuple(ByteUtils.getBytes(rawValue(t.getValue())), t.getScore())) //
+					.collectList() //
+					.flatMap(serialized -> connection.zAdd(rawKey(key), serialized));
+		});
 	}
 
 	/* (non-Javadoc)
