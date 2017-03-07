@@ -27,11 +27,12 @@ import java.util.List;
 
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.ReactiveSerializationContext;
 import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple;
@@ -59,9 +60,10 @@ import org.springframework.util.ClassUtils;
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  */
-public class ReactiveRedisTemplate<K, V> extends RedisAccessor
-		implements BeanClassLoaderAware, ReactiveRedisOperations<K, V> {
+public class ReactiveRedisTemplate<K, V>
+		implements BeanClassLoaderAware, InitializingBean, ReactiveRedisOperations<K, V> {
 
+	private ReactiveRedisConnectionFactory connectionFactory;
 	private boolean exposeConnection = true;
 	private boolean initialized = false;
 	private boolean enableDefaultSerializer = true;
@@ -81,6 +83,24 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 	 * Construct a new {@link ReactiveRedisTemplate} instance.
 	 */
 	public ReactiveRedisTemplate() {}
+
+	/**
+	 * Returns the connectionFactory.
+	 *
+	 * @return Returns the connectionFactory
+	 */
+	public ReactiveRedisConnectionFactory getConnectionFactory() {
+		return connectionFactory;
+	}
+
+	/**
+	 * Sets the connection factory.
+	 *
+	 * @param connectionFactory The connectionFactory to set.
+	 */
+	public void setConnectionFactory(ReactiveRedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
 
 	/**
 	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not, any serializers not
@@ -219,8 +239,6 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 	@Override
 	public void afterPropertiesSet() {
 
-		super.afterPropertiesSet();
-
 		boolean defaultUsed = false;
 
 		if (defaultSerializer == null) {
@@ -344,7 +362,7 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
 
-		RedisConnectionFactory factory = getConnectionFactory();
+		ReactiveRedisConnectionFactory factory = getConnectionFactory();
 		ReactiveRedisConnection conn = factory.getReactiveConnection();
 
 		try {
@@ -402,7 +420,7 @@ public class ReactiveRedisTemplate<K, V> extends RedisAccessor
 		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
 
-		RedisConnectionFactory factory = getConnectionFactory();
+		ReactiveRedisConnectionFactory factory = getConnectionFactory();
 		ReactiveRedisConnection conn = factory.getReactiveConnection();
 
 		ReactiveRedisConnection connToUse = preProcessConnection(conn, false);

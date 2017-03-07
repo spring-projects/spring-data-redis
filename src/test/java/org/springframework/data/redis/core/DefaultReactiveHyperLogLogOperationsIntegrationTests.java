@@ -28,6 +28,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
  * Integration tests for {@link DefaultReactiveHyperLogLogOperations}.
@@ -74,7 +75,8 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 	@Before
 	public void before() {
 
-		RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+		RedisConnectionFactory connectionFactory = (RedisConnectionFactory) redisTemplate.getConnectionFactory();
+		RedisConnection connection = connectionFactory.getConnection();
 		connection.flushAll();
 		connection.close();
 	}

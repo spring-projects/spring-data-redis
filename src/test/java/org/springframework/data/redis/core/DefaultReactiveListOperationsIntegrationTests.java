@@ -33,6 +33,7 @@ import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 /**
  * Integration tests for {@link DefaultReactiveListOperations}.
@@ -79,7 +80,8 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 	@Before
 	public void before() {
 
-		RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+		RedisConnectionFactory connectionFactory = (RedisConnectionFactory) redisTemplate.getConnectionFactory();
+		RedisConnection connection = connectionFactory.getConnection();
 		connection.flushAll();
 		connection.close();
 	}

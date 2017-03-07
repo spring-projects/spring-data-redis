@@ -37,6 +37,7 @@ import org.springframework.data.redis.RawObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -103,7 +104,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	@Before
 	public void before() {
 
-		RedisConnection connection = redisTemplate.getConnectionFactory().getConnection();
+		RedisConnectionFactory connectionFactory = (RedisConnectionFactory) redisTemplate.getConnectionFactory();
+		RedisConnection connection = connectionFactory.getConnection();
 		connection.flushAll();
 		connection.close();
 	}

@@ -15,6 +15,16 @@
  */
 package org.springframework.data.redis.connection.jedis;
 
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.JedisShardInfo;
+import redis.clients.jedis.Protocol;
+import redis.clients.util.Pool;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,21 +43,18 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.redis.ExceptionTranslationStrategy;
 import org.springframework.data.redis.PassThroughExceptionTranslationStrategy;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.ClusterCommandExecutor;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.JedisSentinelPool;
-import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.Protocol;
-import redis.clients.util.Pool;
 
 /**
  * Connection factory creating <a href="http://github.com/xetorthio/jedis">Jedis</a> based connections.
@@ -358,24 +365,11 @@ public class JedisConnectionFactory implements InitializingBean, DisposableBean,
 		return new JedisClusterConnection(cluster, clusterCommandExecutor);
 	}
 
+
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.redis.connection.RedisConnectionFactory#getReactiveConnection()
+	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
 	 */
-	@Override
-	public ReactiveRedisConnection getReactiveConnection() {
-		throw new UnsupportedOperationException("Jedis does not support racative connections");
-	}
-
-	@Override
-	public ReactiveRedisClusterConnection getReactiveClusterConnection() {
-		throw new UnsupportedOperationException("Jedis does not support racative connections");
-	}
-
-	/*
-		 * (non-Javadoc)
-		 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
-		 */
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 		return EXCEPTION_TRANSLATION.translate(ex);
 	}
