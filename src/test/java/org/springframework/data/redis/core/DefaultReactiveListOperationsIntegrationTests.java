@@ -318,8 +318,6 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPop(key, Duration.ZERO)).verifyComplete();
-
 		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(listOperations.leftPop(key, Duration.ZERO)).expectNext(value2).verifyComplete();
