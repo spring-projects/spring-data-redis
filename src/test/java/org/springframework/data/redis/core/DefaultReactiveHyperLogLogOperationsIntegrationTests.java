@@ -88,9 +88,9 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(hyperLogLogOperations.add(key, value1, value2)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(hyperLogLogOperations.add(key, value1, value2)).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(hyperLogLogOperations.size(key)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(hyperLogLogOperations.size(key)).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -105,11 +105,11 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		K key2 = keyFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(hyperLogLogOperations.add(key1, value1, sharedValue)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(hyperLogLogOperations.add(key2, value2, sharedValue)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(hyperLogLogOperations.add(key1, value1, sharedValue)).expectNext(1L).verifyComplete();
+		StepVerifier.create(hyperLogLogOperations.add(key2, value2, sharedValue)).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(hyperLogLogOperations.union(mergedKey, key1, key2)).expectNext(true).expectComplete().verify();
-		StepVerifier.create(hyperLogLogOperations.size(mergedKey)).expectNext(3L).expectComplete().verify();
+		StepVerifier.create(hyperLogLogOperations.union(mergedKey, key1, key2)).expectNext(true).verifyComplete();
+		StepVerifier.create(hyperLogLogOperations.size(mergedKey)).expectNext(3L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -119,9 +119,9 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(hyperLogLogOperations.add(key, value1, value2)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(hyperLogLogOperations.delete(key)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(hyperLogLogOperations.add(key, value1, value2)).expectNext(1L).verifyComplete();
+		StepVerifier.create(hyperLogLogOperations.delete(key)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(hyperLogLogOperations.size(key)).expectNext(0L).expectComplete().verify();
+		StepVerifier.create(hyperLogLogOperations.size(key)).expectNext(0L).verifyComplete();
 	}
 }

@@ -113,7 +113,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(geoOperations.geoAdd(key, POINT_PALERMO, value)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(geoOperations.geoAdd(key, POINT_PALERMO, value)).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -137,7 +137,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		memberCoordinateMap.put(valueFactory.instance(), POINT_PALERMO);
 		memberCoordinateMap.put(valueFactory.instance(), POINT_CATANIA);
 
-		StepVerifier.create(geoOperations.geoAdd(key, memberCoordinateMap)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(geoOperations.geoAdd(key, memberCoordinateMap)).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -148,7 +148,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		List<GeoLocation<V>> geoLocations = Arrays.asList(new GeoLocation<>(valueFactory.instance(), POINT_ARIGENTO),
 				new GeoLocation<>(valueFactory.instance(), POINT_PALERMO));
 
-		StepVerifier.create(geoOperations.geoAdd(key, geoLocations)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(geoOperations.geoAdd(key, geoLocations)).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -181,7 +181,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 			assertThat(actual.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_METERS, offset(0.005));
 			assertThat(actual.getUnit()).isEqualTo("m");
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -198,7 +198,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 			assertThat(actual.getValue()).isCloseTo(DISTANCE_PALERMO_CATANIA_KILOMETERS, offset(0.005));
 			assertThat(actual.getUnit()).isEqualTo("km");
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -283,7 +283,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
 		StepVerifier.create(geoOperations.geoRadius(key, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS))))
-				.consumeNextWith(actual -> assertThat(actual).hasSize(2)).expectComplete().verify();
+				.consumeNextWith(actual -> assertThat(actual).hasSize(2)).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -305,7 +305,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 					assertThat(actual.getContent().get(1).getDistance().getValue()).isCloseTo(56.4413d, offset(0.005));
 					assertThat(actual.getContent().get(1).getContent().getName()).isEqualTo(member2);
-				}).expectComplete().verify();
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-438
@@ -367,7 +367,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 					assertThat(actual.get(0).getName()).isEqualTo(member3);
 					assertThat(actual.get(1).getName()).isEqualTo(member1);
-				}).expectComplete().verify();
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -392,7 +392,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 
 					assertThat(actual.getContent().get(1).getDistance().getValue()).isCloseTo(0.0, offset(0.005));
 					assertThat(actual.getContent().get(1).getContent().getName()).isEqualTo(member3);
-				}).expectComplete().verify();
+				}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -405,7 +405,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
-		StepVerifier.create(geoOperations.geoRemove(key, member1)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(geoOperations.geoPos(key, member1)).expectNextCount(0).expectComplete().verify();
+		StepVerifier.create(geoOperations.geoRemove(key, member1)).expectNext(1L).verifyComplete();
+		StepVerifier.create(geoOperations.geoPos(key, member1)).expectNextCount(0).verifyComplete();
 	}
 }

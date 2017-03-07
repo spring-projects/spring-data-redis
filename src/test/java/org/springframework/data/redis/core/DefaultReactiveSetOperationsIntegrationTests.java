@@ -94,8 +94,8 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1)).expectNext(1L).verifyComplete();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -107,11 +107,11 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.size(key)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.remove(key, value2)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(setOperations.size(key)).expectNext(1L).expectComplete().verify();
-		StepVerifier.create(setOperations.remove(key, value1, value2)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.size(key)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.remove(key, value2)).expectNext(1L).verifyComplete();
+		StepVerifier.create(setOperations.size(key)).expectNext(1L).verifyComplete();
+		StepVerifier.create(setOperations.remove(key, value1, value2)).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -123,10 +123,10 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 		StepVerifier.create(setOperations.pop(key)).consumeNextWith(actual -> {
 			assertThat(actual).isIn(value1, value2);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -137,10 +137,10 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.move(key, value1, otherKey)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.move(key, value1, otherKey)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(setOperations.size(otherKey)).expectNext(1L).expectComplete().verify();
+		StepVerifier.create(setOperations.size(otherKey)).expectNext(1L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -152,8 +152,8 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.isMember(key, value1)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.isMember(key, value1)).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -168,12 +168,12 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V shared = valueFactory.instance();
 		V onlyInOtherKey = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.intersect(key, otherKey)).consumeNextWith(actual -> {
 			assertThat(actual).contains(shared);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -187,13 +187,13 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V shared = valueFactory.instance();
 		V onlyInOtherKey = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.intersectAndStore(key, otherKey, destKey)).expectNext(1L).expectComplete()
 				.verify();
 
-		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -208,12 +208,12 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V shared = valueFactory.instance();
 		V onlyInOtherKey = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.difference(key, otherKey)).consumeNextWith(actual -> {
 			assertThat(actual).contains(onlyInKey);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -227,13 +227,13 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V shared = valueFactory.instance();
 		V onlyInOtherKey = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.differenceAndStore(key, otherKey, destKey)).expectNext(1L).expectComplete()
 				.verify();
 
-		StepVerifier.create(setOperations.isMember(destKey, onlyInKey)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(setOperations.isMember(destKey, onlyInKey)).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -248,12 +248,12 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V shared = valueFactory.instance();
 		V onlyInOtherKey = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.union(key, otherKey)).consumeNextWith(actual -> {
 			assertThat(actual).contains(onlyInKey, shared, onlyInOtherKey);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -267,14 +267,14 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V shared = valueFactory.instance();
 		V onlyInOtherKey = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).expectComplete().verify();
-		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
+		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(setOperations.unionAndStore(key, otherKey, destKey)).expectNext(3L).expectComplete().verify();
+		StepVerifier.create(setOperations.unionAndStore(key, otherKey, destKey)).expectNext(3L).verifyComplete();
 
-		StepVerifier.create(setOperations.isMember(destKey, onlyInKey)).expectNext(true).expectComplete().verify();
-		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).expectComplete().verify();
-		StepVerifier.create(setOperations.isMember(destKey, onlyInOtherKey)).expectNext(true).expectComplete().verify();
+		StepVerifier.create(setOperations.isMember(destKey, onlyInKey)).expectNext(true).verifyComplete();
+		StepVerifier.create(setOperations.isMember(destKey, shared)).expectNext(true).verifyComplete();
+		StepVerifier.create(setOperations.isMember(destKey, onlyInOtherKey)).expectNext(true).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -286,9 +286,9 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 		StepVerifier.create(setOperations.members(key)).expectNext(new HashSet<V>(Arrays.asList(value1, value2)))
-				.expectComplete().verify();
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -300,11 +300,11 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.randomMember(key)).consumeNextWith(actual -> {
 			assertThat(actual).isIn(value1, value2);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -316,11 +316,11 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.randomMembers(key, 3)).consumeNextWith(actual -> {
 			assertThat(actual).hasSize(3);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -332,10 +332,10 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).expectComplete().verify();
+		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(setOperations.distinctRandomMembers(key, 2)).consumeNextWith(actual -> {
 			assertThat(actual).hasSize(2);
-		}).expectComplete().verify();
+		}).verifyComplete();
 	}
 }
