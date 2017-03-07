@@ -19,11 +19,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -63,13 +63,13 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	 * @see org.springframework.data.redis.core.ReactiveValueOperations#set(java.lang.Object, java.lang.Object, long, java.util.concurrent.TimeUnit)
 	 */
 	@Override
-	public Mono<Boolean> set(K key, V value, long timeout, TimeUnit unit) {
+	public Mono<Boolean> set(K key, V value, Duration timeout) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(unit, "TimeUnit must not be null!");
+		Assert.notNull(timeout, "Duration must not be null!");
 
 		return createMono(
-				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout, unit), SetOption.UPSERT));
+				connection -> connection.set(rawKey(key), rawValue(value), Expiration.from(timeout), SetOption.UPSERT));
 	}
 
 	/* (non-Javadoc)

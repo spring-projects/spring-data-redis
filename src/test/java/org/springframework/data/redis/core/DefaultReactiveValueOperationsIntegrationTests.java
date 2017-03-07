@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -106,7 +105,7 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
 
-		StepVerifier.create(valueOperations.set(key, value, 10, TimeUnit.SECONDS)).expectNext(true).expectComplete()
+		StepVerifier.create(valueOperations.set(key, value, Duration.ofSeconds(10))).expectNext(true).expectComplete()
 				.verify();
 
 		StepVerifier.create(valueOperations.get(key)).expectNext(value).expectComplete().verify();

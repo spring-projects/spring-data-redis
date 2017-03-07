@@ -17,10 +17,10 @@ package org.springframework.data.redis.core;
 
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Reactive Redis operations for simple (or in Redis terminology 'string') values.
@@ -44,12 +44,10 @@ public interface ReactiveValueOperations<K, V> {
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param value
-	 * @param timeout
-	 * @param unit must not be {@literal null}.
+	 * @param timeout must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/setex">Redis Documentation: SETEX</a>
 	 */
-	// TODO: How about Duration?
-	Mono<Boolean> set(K key, V value, long timeout, TimeUnit unit);
+	Mono<Boolean> set(K key, V value, Duration timeout);
 
 	/**
 	 * Set {@code key} to hold the string {@code value} if {@code key} is absent.

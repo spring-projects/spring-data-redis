@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core.types;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.util.Assert;
@@ -22,7 +23,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * Expiration holds a value with its associated {@link TimeUnit}.
- * 
+ *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @since 1.7
@@ -34,7 +35,7 @@ public class Expiration {
 
 	/**
 	 * Creates new {@link Expiration}.
-	 * 
+	 *
 	 * @param expirationTime can be {@literal null}. Defaulted to {@link TimeUnit#SECONDS}
 	 * @param timeUnit
 	 */
@@ -46,7 +47,7 @@ public class Expiration {
 
 	/**
 	 * Get the expiration time converted into {@link TimeUnit#MILLISECONDS}.
-	 * 
+	 *
 	 * @return
 	 */
 	public long getExpirationTimeInMilliseconds() {
@@ -55,7 +56,7 @@ public class Expiration {
 
 	/**
 	 * Get the expiration time converted into {@link TimeUnit#SECONDS}.
-	 * 
+	 *
 	 * @return
 	 */
 	public long getExpirationTimeInSeconds() {
@@ -64,7 +65,7 @@ public class Expiration {
 
 	/**
 	 * Get the expiration time.
-	 * 
+	 *
 	 * @return
 	 */
 	public long getExpirationTime() {
@@ -73,7 +74,7 @@ public class Expiration {
 
 	/**
 	 * Get the time unit for the expiration time.
-	 * 
+	 *
 	 * @return
 	 */
 	public TimeUnit getTimeUnit() {
@@ -82,7 +83,7 @@ public class Expiration {
 
 	/**
 	 * Get the expiration time converted into the desired {@code targetTimeUnit}.
-	 * 
+	 *
 	 * @param targetTimeUnit must not {@literal null}.
 	 * @return
 	 * @throws IllegalArgumentException
@@ -95,7 +96,7 @@ public class Expiration {
 
 	/**
 	 * Creates new {@link Expiration} with {@link TimeUnit#SECONDS}.
-	 * 
+	 *
 	 * @param expirationTime
 	 * @return
 	 */
@@ -105,7 +106,7 @@ public class Expiration {
 
 	/**
 	 * Creates new {@link Expiration} with {@link TimeUnit#MILLISECONDS}.
-	 * 
+	 *
 	 * @param expirationTime
 	 * @return
 	 */
@@ -116,8 +117,8 @@ public class Expiration {
 	/**
 	 * Creates new {@link Expiration} with the provided {@link TimeUnit}. Greater units than {@link TimeUnit#SECONDS} are
 	 * converted to {@link TimeUnit#SECONDS}. Units smaller than {@link TimeUnit#MILLISECONDS} are converted to
-	 * {@link TimeUnit#MILLISECONDS} and can lose precision since {@link TimeUnit#MILLISECONDS} is the smallest granularity
-	 * supported by Redis.
+	 * {@link TimeUnit#MILLISECONDS} and can lose precision since {@link TimeUnit#MILLISECONDS} is the smallest
+	 * granularity supported by Redis.
 	 *
 	 * @param expirationTime
 	 * @param timeUnit can be {@literal null}. Defaulted to {@link TimeUnit#SECONDS}
@@ -139,8 +140,28 @@ public class Expiration {
 	}
 
 	/**
+	 * Creates new {@link Expiration} with the provided {@link java.time.Duration}. Durations with at least
+	 * {@link TimeUnit#SECONDS} resolution use seconds, durations using milliseconds use {@link TimeUnit#MILLISECONDS}
+	 * resolution.
+	 *
+	 * @param duration must not be {@literal null}.
+	 * @return
+	 * @since 2.0
+	 */
+	public static Expiration from(Duration duration) {
+
+		Assert.notNull(duration, "Duration must not be null!");
+
+		if (duration.toMillis() % 1000 == 0) {
+			return new Expiration(duration.getSeconds(), TimeUnit.SECONDS);
+		}
+
+		return new Expiration(duration.toMillis(), TimeUnit.MILLISECONDS);
+	}
+
+	/**
 	 * Creates new persistent {@link Expiration}.
-	 * 
+	 *
 	 * @return
 	 */
 	public static Expiration persistent() {
