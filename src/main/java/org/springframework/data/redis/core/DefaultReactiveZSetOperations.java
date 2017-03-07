@@ -430,8 +430,33 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByLex(java.lang.Object, org.springframework.data.domain.Range)
 	 */
+	@Override
+	public Mono<Set<V>> reverseRangeByLex(K key, Range<String> range) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+
+		return createMono(connection -> connection.zRevRangeByLex(rawKey(key), range).map(this::readValueSet));
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByLex(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
+	 */
+	@Override
+	public Mono<Set<V>> reverseRangeByLex(K key, Range<String> range, Limit limit) {
+
+		Assert.notNull(key, "Key must not be null!");
+		Assert.notNull(range, "Range must not be null!");
+		Assert.notNull(limit, "Limit must not be null!");
+
+		return createMono(connection -> connection.zRevRangeByLex(rawKey(key), range, limit).map(this::readValueSet));
+	}
+
+	/* (non-Javadoc)
+		 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
+		 */
 	@Override
 	public ReactiveRedisOperations<K, V> getOperations() {
 		return template;

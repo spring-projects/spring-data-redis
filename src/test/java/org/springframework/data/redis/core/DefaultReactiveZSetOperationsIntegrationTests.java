@@ -309,7 +309,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value1, 42.1)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.reverseRangeByScore(key, new Range<>(11d, 9d))) //
+		StepVerifier.create(zSetOperations.reverseRangeByScore(key, new Range<>(9d, 11d))) //
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(1).contains(value2);
 				}).verifyComplete();
@@ -327,7 +327,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value1, 42.1)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(11d, 9d))) //
+		StepVerifier.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(9d, 11d))) //
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<V>(value2, 10d));
 				}).verifyComplete();
@@ -346,7 +346,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier
-				.create(zSetOperations.reverseRangeByScore(key, new Range<>(100d, 0d), //
+				.create(zSetOperations.reverseRangeByScore(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(1).contains(value2);
@@ -366,7 +366,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier
-				.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(100d, 0d), //
+				.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<>(value2, 10d));
@@ -519,7 +519,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	}
 
 	@Test // DATAREDIS-602
-	public void rangeByLex1() {
+	public void rangeByLexWithLimit() {
 
 		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
 
@@ -538,6 +538,46 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(1).count(10)))
 				.consumeNextWith(actual -> {
 					assertThat(actual).hasSize(1).contains(b);
+				}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void reverseRangeByLex() {
+
+		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
+
+		K key = keyFactory.instance();
+		V a = (V) "a";
+		V b = (V) "b";
+
+		StepVerifier.create(zSetOperations.add(key, a, 10)).expectNext(true).verifyComplete();
+		StepVerifier.create(zSetOperations.add(key, b, 11)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "a"))).consumeNextWith(actual -> {
+			assertThat(actual).hasSize(1).contains(a);
+		}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void reverseRangeByLexLimit() {
+
+		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
+
+		K key = keyFactory.instance();
+		V a = (V) "a";
+		V b = (V) "b";
+
+		StepVerifier.create(zSetOperations.add(key, a, 10)).expectNext(true).verifyComplete();
+		StepVerifier.create(zSetOperations.add(key, b, 11)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(0).count(10)))
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(2).contains(b, a);
+				}).verifyComplete();
+
+		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(1).count(10)))
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(1).contains(a);
 				}).verifyComplete();
 	}
 }

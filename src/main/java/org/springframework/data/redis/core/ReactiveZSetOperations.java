@@ -342,6 +342,29 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Set<V>> rangeByLex(K key, Range<String> range, Limit limit);
 
 	/**
+	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
+	 * {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param range must not be {@literal null}.
+	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	Mono<Set<V>> reverseRangeByLex(K key, Range<String> range);
+
+	/**
+	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
+	 * {@link Limit#getOffset()} with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value
+	 * between {@link Range#getLowerBound()} and {@link Range#getUpperBound()}.
+	 *
+	 * @param key must not be {@literal null}
+	 * @param range must not be {@literal null}.
+	 * @param limit can be {@literal null}.
+	 * @return
+	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
+	 */
+	Mono<Set<V>> reverseRangeByLex(K key, Range<String> range, Limit limit);
+
+	/**
 	 * @return
 	 */
 	ReactiveRedisOperations<K, V> getOperations();
