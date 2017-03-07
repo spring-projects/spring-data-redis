@@ -116,7 +116,6 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(8))) //
 				.expectComplete() //
 				.verify();
-
 	}
 
 	@Test // DATAREDIS-602

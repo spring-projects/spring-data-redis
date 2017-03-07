@@ -15,6 +15,8 @@
  */
 package org.springframework.data.redis.core;
 
+import static org.springframework.data.redis.connection.ClusterTestVariables.*;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,8 +27,11 @@ import org.springframework.data.redis.LongObjectFactory;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.Person;
 import org.springframework.data.redis.PersonObjectFactory;
+import org.springframework.data.redis.PrefixStringObjectFactory;
 import org.springframework.data.redis.SettingsUtils;
 import org.springframework.data.redis.StringObjectFactory;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -45,6 +50,7 @@ abstract public class ReactiveOperationsTestParams {
 	public static Collection<Object[]> testParams() {
 
 		ObjectFactory<String> stringFactory = new StringObjectFactory();
+		ObjectFactory<String> clusterKeyStringFactory = new PrefixStringObjectFactory("{u1}.", stringFactory);
 		ObjectFactory<Long> longFactory = new LongObjectFactory();
 		ObjectFactory<Double> doubleFactory = new DoubleObjectFactory();
 		ObjectFactory<ByteBuffer> rawFactory = new ByteBufferObjectFactory();
@@ -63,9 +69,23 @@ abstract public class ReactiveOperationsTestParams {
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();
 
+		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+		clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
+
+		LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
+		lettuceClusterConnectionFactory.setPort(SettingsUtils.getPort());
+		lettuceClusterConnectionFactory.setHostName(SettingsUtils.getHost());
+		lettuceClusterConnectionFactory.afterPropertiesSet();
+
 		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>();
 		objectTemplate.setConnectionFactory(lettuceConnectionFactory);
 		objectTemplate.afterPropertiesSet();
+
+		ReactiveRedisTemplate<String, String> clusterStringTemplate = new ReactiveRedisTemplate<>();
+		clusterStringTemplate.setConnectionFactory(lettuceClusterConnectionFactory);
+		clusterStringTemplate.setDefaultSerializer(new StringRedisSerializer());
+		clusterStringTemplate.setEnableDefaultSerializer(true);
+		clusterStringTemplate.afterPropertiesSet();
 
 		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>();
 		stringTemplate.setDefaultSerializer(new StringRedisSerializer());
@@ -119,6 +139,7 @@ abstract public class ReactiveOperationsTestParams {
 
 		return Arrays.asList(new Object[][] { //
 				{ stringTemplate, stringFactory, stringFactory , "String"}, //
+				{ clusterStringTemplate, clusterKeyStringFactory, stringFactory, "Cluster String" }, //
 				{ objectTemplate, personFactory, personFactory , "Person/JDK"}, //
 				{ longTemplate, stringFactory, longFactory , "Long"}, //
 				{ doubleTemplate, stringFactory, doubleFactory , "Double"}, //

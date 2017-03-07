@@ -16,6 +16,7 @@
 package org.springframework.data.redis.core;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assume.*;
 
 import reactor.test.StepVerifier;
 
@@ -29,9 +30,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
@@ -233,6 +236,16 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 	@Test // DATAREDIS-602
 	public void move() {
+
+		ReactiveRedisClusterConnection connection = null;
+		try {
+			connection = redisTemplate.getConnectionFactory().getReactiveClusterConnection();
+			assumeTrue(connection == null);
+		} catch (InvalidDataAccessApiUsageException e) {} finally {
+			if (connection != null) {
+				connection.close();
+			}
+		}
 
 		K key = keyFactory.instance();
 		V value = valueFactory.instance();
