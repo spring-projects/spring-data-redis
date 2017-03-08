@@ -440,6 +440,6 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	}
 
 	private ReactiveSerializationContext<K, V> serialization() {
-		return template.serialization();
+		return template.getSerializationContext();
 	}
 }

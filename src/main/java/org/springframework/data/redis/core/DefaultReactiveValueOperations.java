@@ -287,6 +287,6 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	}
 
 	private ReactiveSerializationContext<K, V> serialization() {
-		return template.serialization();
+		return template.getSerializationContext();
 	}
 }

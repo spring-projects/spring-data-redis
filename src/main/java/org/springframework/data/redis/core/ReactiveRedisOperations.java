@@ -231,5 +231,5 @@ public interface ReactiveRedisOperations<K, V> {
 	/**
 	 * @return the {@link ReactiveSerializationContext}.
 	 */
-	ReactiveSerializationContext<K, V> serialization();
+	ReactiveSerializationContext<K, V> getSerializationContext();
 }

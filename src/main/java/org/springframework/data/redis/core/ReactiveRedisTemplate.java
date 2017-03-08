@@ -646,16 +646,16 @@ public class ReactiveRedisTemplate<K, V>
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#serialization()
 	 */
 	@Override
-	public ReactiveSerializationContext<K, V> serialization() {
+	public ReactiveSerializationContext<K, V> getSerializationContext() {
 		return serializationContext;
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serialization().key().writer().write(key);
+		return getSerializationContext().key().getWriter().write(key);
 	}
 
 	private K readKey(ByteBuffer buffer) {
-		return serialization().key().reader().read(buffer);
+		return getSerializationContext().key().getReader().read(buffer);
 	}
 
 	static class MutableReactiveSerializationContext<K, V> implements ReactiveSerializationContext<K, V> {
@@ -793,7 +793,7 @@ public class ReactiveRedisTemplate<K, V>
 		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple#reader()
 		 */
 		@Override
-		public RedisElementReader<T> reader() {
+		public RedisElementReader<T> getReader() {
 			return reader;
 		}
 
@@ -801,7 +801,7 @@ public class ReactiveRedisTemplate<K, V>
 		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple#writer()
 		 */
 		@Override
-		public RedisElementWriter<T> writer() {
+		public RedisElementWriter<T> getWriter() {
 			return writer;
 		}
 	}

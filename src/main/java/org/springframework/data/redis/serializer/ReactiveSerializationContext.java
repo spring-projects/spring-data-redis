@@ -65,7 +65,7 @@ public interface ReactiveSerializationContext<K, V> {
 		/**
 		 * @return the {@link RedisElementReader}.
 		 */
-		RedisElementReader<T> reader();
+		RedisElementReader<T> getReader();
 
 		/**
 		 * Deserialize a {@link ByteBuffer} into the according type.
@@ -74,13 +74,13 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @return the deserialized value.
 		 */
 		default T read(ByteBuffer buffer) {
-			return reader().read(buffer);
+			return getReader().read(buffer);
 		}
 
 		/**
 		 * @return the {@link RedisElementWriter}.
 		 */
-		RedisElementWriter<T> writer();
+		RedisElementWriter<T> getWriter();
 
 		/**
 		 * Serialize a {@code element} to its {@link ByteBuffer} representation.
@@ -89,7 +89,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @return the {@link ByteBuffer} representing {@code element} in its binary form.
 		 */
 		default ByteBuffer write(T element) {
-			return writer().write(element);
+			return getWriter().write(element);
 		}
 	}
 }

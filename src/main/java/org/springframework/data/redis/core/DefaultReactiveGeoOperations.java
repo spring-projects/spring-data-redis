@@ -385,6 +385,6 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	}
 
 	private ReactiveSerializationContext<K, V> serialization() {
-		return template.serialization();
+		return template.getSerializationContext();
 	}
 }

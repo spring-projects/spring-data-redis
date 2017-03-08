@@ -288,6 +288,6 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	}
 
 	private ReactiveSerializationContext<H, ?> serialization() {
-		return template.serialization();
+		return template.getSerializationContext();
 	}
 }

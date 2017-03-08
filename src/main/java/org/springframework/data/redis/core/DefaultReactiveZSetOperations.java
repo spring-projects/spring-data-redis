@@ -526,6 +526,6 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	}
 
 	private ReactiveSerializationContext<K, V> serialization() {
-		return template.serialization();
+		return template.getSerializationContext();
 	}
 }
