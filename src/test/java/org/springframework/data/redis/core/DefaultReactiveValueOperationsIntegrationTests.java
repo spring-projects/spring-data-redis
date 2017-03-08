@@ -317,4 +317,17 @@ public class DefaultReactiveValueOperationsIntegrationTests<K, V> {
 		StepVerifier.create(valueOperations.getBit(key, 0)).expectNext(true).expectComplete();
 		StepVerifier.create(valueOperations.getBit(key, 1)).expectNext(false).expectComplete();
 	}
+
+	@Test // DATAREDIS-602
+	public void delete() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(valueOperations.delete(key)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(valueOperations.size(key)).expectNext(0L).verifyComplete();
+	}
 }

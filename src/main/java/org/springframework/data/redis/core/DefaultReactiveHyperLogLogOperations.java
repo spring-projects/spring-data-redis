@@ -34,10 +34,17 @@ import org.springframework.util.Assert;
  */
 public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogOperations<K, V> {
 
-	private ReactiveRedisTemplate<K, V> template;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final ReactiveSerializationContext<K, V> serializationContext;
 
-	public DefaultReactiveHyperLogLogOperations(ReactiveRedisTemplate<K, V> template) {
+	public DefaultReactiveHyperLogLogOperations(ReactiveRedisTemplate<?, ?> template,
+			ReactiveSerializationContext<K, V> serializationContext) {
+
+		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
+		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+
 		this.template = template;
+		this.serializationContext = serializationContext;
 	}
 
 	/* (non-Javadoc)
@@ -107,15 +114,10 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	 */
 	@Override
 	public Mono<Boolean> delete(K key) {
-		return template.delete(key).map(l -> l != 0);
-	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
-	 */
-	@Override
-	public ReactiveRedisOperations<K, V> getOperations() {
-		return template;
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveHyperLogLogCommands, Publisher<T>> function) {
@@ -126,14 +128,10 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serialization().key().write(key);
+		return serializationContext.key().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serialization().value().write(value);
-	}
-
-	private ReactiveSerializationContext<K, V> serialization() {
-		return template.getSerializationContext();
+		return serializationContext.value().write(value);
 	}
 }

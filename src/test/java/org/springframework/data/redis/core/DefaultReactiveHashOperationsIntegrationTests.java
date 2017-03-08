@@ -111,7 +111,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 	}
 
 	@Test // DATAREDIS-602
-	public void delete() {
+	public void remove() {
 
 		K key = keyFactory.instance();
 		HK hashkey1 = hashKeyFactory.instance();
@@ -121,7 +121,7 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HV hashvalue2 = hashValueFactory.instance();
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
-		StepVerifier.create(hashOperations.delete(key, hashkey1, hashkey2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(hashOperations.remove(key, hashkey1, hashkey2)).expectNext(2L).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -307,6 +307,19 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		StepVerifier.create(hashOperations.entries(key)).consumeNextWith(actual -> {
 			assertThat(actual).hasSize(2).containsEntry(hashkey1, hashvalue1).containsEntry(hashkey2, hashvalue2);
 		}).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void delete() {
+
+		K key = keyFactory.instance();
+		HK hashkey = hashKeyFactory.instance();
+		HV hashvalue = hashValueFactory.instance();
+
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.delete(key)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(hashOperations.size(key)).expectNext(0L).verifyComplete();
 	}
 
 	private void putAll(K key, HK hashkey1, HV hashvalue1, HK hashkey2, HV hashvalue2) {

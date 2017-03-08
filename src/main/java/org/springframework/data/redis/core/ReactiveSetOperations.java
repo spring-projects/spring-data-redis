@@ -253,7 +253,9 @@ public interface ReactiveSetOperations<K, V> {
 	Mono<List<V>> randomMembers(K key, long count);
 
 	/**
-	 * @return
+	 * Removes the given {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 */
-	ReactiveRedisOperations<K, V> getOperations();
+	Mono<Boolean> delete(K key);
 }

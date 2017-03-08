@@ -40,10 +40,17 @@ import org.springframework.util.Assert;
  */
 public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> {
 
-	private final ReactiveRedisTemplate<K, V> template;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final ReactiveSerializationContext<K, V> serializationContext;
 
-	public DefaultReactiveSetOperations(ReactiveRedisTemplate<K, V> template) {
+	public DefaultReactiveSetOperations(ReactiveRedisTemplate<?, ?> template,
+			ReactiveSerializationContext<K, V> serializationContext) {
+
+		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
+		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+
 		this.template = template;
+		this.serializationContext = serializationContext;
 	}
 
 	/* (non-Javadoc)
@@ -381,11 +388,14 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
+	 * @see org.springframework.data.redis.core.ReactiveSetOperations#delete(java.lang.Object)
 	 */
 	@Override
-	public ReactiveRedisOperations<K, V> getOperations() {
-		return template;
+	public Mono<Boolean> delete(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveSetCommands, Publisher<T>> function) {
@@ -396,7 +406,7 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serialization().key().write(key);
+		return serializationContext.key().write(key);
 	}
 
 	private List<K> getKeys(K key, Collection<K> otherKeys) {
@@ -410,11 +420,11 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serialization().value().write(value);
+		return serializationContext.value().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serialization().value().read(buffer);
+		return serializationContext.value().read(buffer);
 	}
 
 	private Set<V> readValueSet(Collection<ByteBuffer> raw) {
@@ -437,9 +447,5 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		}
 
 		return result;
-	}
-
-	private ReactiveSerializationContext<K, V> serialization() {
-		return template.getSerializationContext();
 	}
 }

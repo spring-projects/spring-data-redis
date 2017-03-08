@@ -222,7 +222,9 @@ public interface ReactiveGeoOperations<K, M> {
 	Mono<Long> geoRemove(K key, M... members);
 
 	/**
-	 * @return
+	 * Removes the given {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 */
-	ReactiveRedisOperations<K, M> getOperations();
+	Mono<Boolean> delete(K key);
 }

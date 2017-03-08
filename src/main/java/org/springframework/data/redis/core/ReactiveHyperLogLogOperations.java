@@ -56,9 +56,4 @@ public interface ReactiveHyperLogLogOperations<K, V> {
 	 * @param key must not be {@literal null}.
 	 */
 	Mono<Boolean> delete(K key);
-
-	/**
-	 * @return
-	 */
-	ReactiveRedisOperations<K, V> getOperations();
 }

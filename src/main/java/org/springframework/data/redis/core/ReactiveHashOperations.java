@@ -30,13 +30,13 @@ import java.util.Map;
 public interface ReactiveHashOperations<H, HK, HV> {
 
 	/**
-	 * Delete given hash {@code hashKeys}.
+	 * Delete given hash {@code hashKeys} from the hash at {@literal key}.
 	 *
 	 * @param key must not be {@literal null}.
 	 * @param hashKeys must not be {@literal null}.
 	 * @return
 	 */
-	Mono<Long> delete(H key, Object... hashKeys);
+	Mono<Long> remove(H key, Object... hashKeys);
 
 	/**
 	 * Determine if given hash {@code hashKey} exists.
@@ -145,7 +145,9 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	Mono<Map<HK, HV>> entries(H key);
 
 	/**
-	 * @return
+	 * Removes the given {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 */
-	ReactiveRedisOperations<H, ?> getOperations();
+	Mono<Boolean> delete(H key);
 }

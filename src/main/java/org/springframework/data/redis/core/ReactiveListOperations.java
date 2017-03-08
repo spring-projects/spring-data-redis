@@ -261,7 +261,9 @@ public interface ReactiveListOperations<K, V> {
 	Mono<V> rightPopAndLeftPush(K sourceKey, K destinationKey, Duration timeout);
 
 	/**
-	 * @return
+	 * Removes the given {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 */
-	ReactiveRedisOperations<K, V> getOperations();
+	Mono<Boolean> delete(K key);
 }

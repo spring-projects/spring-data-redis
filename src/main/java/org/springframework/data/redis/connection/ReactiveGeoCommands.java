@@ -417,7 +417,7 @@ public interface ReactiveGeoCommands {
 		Assert.notNull(member, "Member must not be null!");
 
 		return geoHash(key, Collections.singletonList(member)) //
-				.map(vals -> vals.isEmpty() ? null : vals.iterator().next());
+				.then(vals -> vals.isEmpty() ? Mono.empty() : Mono.justOrEmpty(vals.iterator().next()));
 	}
 
 	/**
@@ -523,7 +523,8 @@ public interface ReactiveGeoCommands {
 
 		Assert.notNull(member, "Member must not be null!");
 
-		return geoPos(key, Collections.singletonList(member)).map(vals -> vals.isEmpty() ? null : vals.iterator().next());
+		return geoPos(key, Collections.singletonList(member))
+				.then(vals -> vals.isEmpty() ? Mono.empty() : Mono.justOrEmpty(vals.iterator().next()));
 	}
 
 	/**

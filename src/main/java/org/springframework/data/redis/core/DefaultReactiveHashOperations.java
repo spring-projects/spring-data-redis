@@ -39,10 +39,17 @@ import org.springframework.util.Assert;
  */
 public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
 
-	private final ReactiveRedisTemplate<H, ?> template;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final ReactiveSerializationContext<H, ?> serializationContext;
 
-	public DefaultReactiveHashOperations(ReactiveRedisTemplate<H, ?> template) {
+	public DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
+			ReactiveSerializationContext<H, ?> serializationContext) {
+
+		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
+		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+
 		this.template = template;
+		this.serializationContext = serializationContext;
 	}
 
 	/* (non-Javadoc)
@@ -50,7 +57,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Long> delete(H key, Object... hashKeys) {
+	public Mono<Long> remove(H key, Object... hashKeys) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(hashKeys, "Hash keys must not be null!");
@@ -251,11 +258,14 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveHashOperations#getOperations()
+	 * @see org.springframework.data.redis.core.ReactiveHashOperations#delete(java.lang.Object)
 	 */
 	@Override
-	public ReactiveRedisOperations<H, ?> getOperations() {
-		return template;
+	public Mono<Boolean> delete(H key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveHashCommands, Publisher<T>> function) {
@@ -266,28 +276,24 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	}
 
 	private ByteBuffer rawKey(H key) {
-		return serialization().key().write(key);
+		return serializationContext.key().write(key);
 	}
 
 	private ByteBuffer rawHashKey(HK key) {
-		return serialization().hashKey().write(key);
+		return serializationContext.hashKey().write(key);
 	}
 
 	private ByteBuffer rawHashValue(HV key) {
-		return serialization().hashValue().write(key);
+		return serializationContext.hashValue().write(key);
 	}
 
 	@SuppressWarnings("unchecked")
 	private HK readHashKey(ByteBuffer value) {
-		return (HK) serialization().hashKey().read(value);
+		return (HK) serializationContext.hashKey().read(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	private HV readHashValue(ByteBuffer value) {
-		return (HV) serialization().hashValue().read(value);
-	}
-
-	private ReactiveSerializationContext<H, ?> serialization() {
-		return template.getSerializationContext();
+		return (HV) serializationContext.hashValue().read(value);
 	}
 }

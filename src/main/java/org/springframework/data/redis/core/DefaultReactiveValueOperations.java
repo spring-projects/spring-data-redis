@@ -42,10 +42,17 @@ import org.springframework.util.Assert;
  */
 public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K, V> {
 
-	private ReactiveRedisTemplate<K, V> template;
+	private final ReactiveRedisTemplate<?, ?> template;
+	private final ReactiveSerializationContext<K, V> serializationContext;
 
-	public DefaultReactiveValueOperations(ReactiveRedisTemplate<K, V> template) {
+	public DefaultReactiveValueOperations(ReactiveRedisTemplate<?, ?> template,
+			ReactiveSerializationContext<K, V> serializationContext) {
+
+		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
+		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+
 		this.template = template;
+		this.serializationContext = serializationContext;
 	}
 
 	/* (non-Javadoc)
@@ -188,7 +195,7 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return createMono(connection -> connection.append(rawKey(key), serialization().string().write(value)));
+		return createMono(connection -> connection.append(rawKey(key), serializationContext.string().write(value)));
 	}
 
 	/* (non-Javadoc)
@@ -248,11 +255,14 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveValueOperations#getOperations()
+	 * @see org.springframework.data.redis.core.ReactiveValueOperations#delete(java.lang.Object)
 	 */
 	@Override
-	public ReactiveRedisOperations<K, V> getOperations() {
-		return template;
+	public Mono<Boolean> delete(K key) {
+
+		Assert.notNull(key, "Key must not be null!");
+
+		return template.createMono(connection -> connection.keyCommands().del(rawKey(key))).map(l -> l != 0);
 	}
 
 	private <T> Mono<T> createMono(Function<ReactiveStringCommands, Publisher<T>> function) {
@@ -263,30 +273,26 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serialization().key().write(key);
+		return serializationContext.key().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serialization().value().write(value);
+		return serializationContext.value().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serialization().value().read(buffer);
+		return serializationContext.value().read(buffer);
 	}
 
 	private SerializationTuple<String> string() {
-		return serialization().string();
+		return serializationContext.string();
 	}
 
 	private SerializationTuple<K> key() {
-		return serialization().key();
+		return serializationContext.key();
 	}
 
 	private SerializationTuple<V> value() {
-		return serialization().value();
-	}
-
-	private ReactiveSerializationContext<K, V> serialization() {
-		return template.getSerializationContext();
+		return serializationContext.value();
 	}
 }

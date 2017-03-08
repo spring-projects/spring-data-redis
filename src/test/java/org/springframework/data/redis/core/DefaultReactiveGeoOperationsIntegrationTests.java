@@ -406,6 +406,18 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		geoOperations.geoAdd(key, POINT_CATANIA, member2).block();
 
 		StepVerifier.create(geoOperations.geoRemove(key, member1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(geoOperations.geoPos(key, member1)).expectNextCount(0).verifyComplete();
+		StepVerifier.create(geoOperations.geoPos(key, member1)).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void delete() {
+
+		K key = keyFactory.instance();
+		V member1 = valueFactory.instance();
+
+		geoOperations.geoAdd(key, POINT_PALERMO, member1).block();
+
+		StepVerifier.create(geoOperations.delete(key)).expectNext(true).verifyComplete();
+		StepVerifier.create(geoOperations.geoPos(key, member1)).verifyComplete();
 	}
 }

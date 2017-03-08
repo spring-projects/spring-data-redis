@@ -382,4 +382,16 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		StepVerifier.create(listOperations.size(source)).expectNext(0L).verifyComplete();
 		StepVerifier.create(listOperations.size(target)).expectNext(1L).verifyComplete();
 	}
+
+	@Test // DATAREDIS-602
+	public void delete() {
+
+		K key = keyFactory.instance();
+		V value1 = valueFactory.instance();
+
+		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).verifyComplete();
+		StepVerifier.create(listOperations.delete(key)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(listOperations.size(key)).expectNext(0L).verifyComplete();
+	}
 }

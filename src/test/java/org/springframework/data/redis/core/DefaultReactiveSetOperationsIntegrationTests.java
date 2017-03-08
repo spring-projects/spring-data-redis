@@ -338,4 +338,17 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 			assertThat(actual).hasSize(2);
 		}).verifyComplete();
 	}
+
+	@Test // DATAREDIS-602
+	public void delete() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		StepVerifier.create(setOperations.add(key, value)).expectNext(1L).verifyComplete();
+
+		StepVerifier.create(setOperations.delete(key)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(setOperations.size(key)).expectNext(0L).verifyComplete();
+	}
 }

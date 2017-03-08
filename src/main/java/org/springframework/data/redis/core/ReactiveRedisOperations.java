@@ -177,6 +177,7 @@ public interface ReactiveRedisOperations<K, V> {
 	// -------------------------------------------------------------------------
 
 	// operation types
+
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology).
 	 *
@@ -185,25 +186,59 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveValueOperations<K, V> opsForValue();
 
 	/**
+	 * Returns the operations performed on simple values (or Strings in Redis terminology) given a
+	 * {@link ReactiveSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return value operations.
+	 */
+	<K, V> ReactiveValueOperations<K, V> opsForValue(ReactiveSerializationContext<K, V> serializationContext);
+
+	/**
 	 * Returns the operations performed on list values.
 	 *
-	 * @return list operations
+	 * @return list operations.
 	 */
 	ReactiveListOperations<K, V> opsForList();
 
 	/**
+	 * Returns the operations performed on list values given a {@link ReactiveSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return list operations.
+	 */
+	<K, V> ReactiveListOperations<K, V> opsForList(ReactiveSerializationContext<K, V> serializationContext);
+
+	/**
 	 * Returns the operations performed on set values.
 	 *
-	 * @return set operations
+	 * @return set operations.
 	 */
 	ReactiveSetOperations<K, V> opsForSet();
 
 	/**
+	 * Returns the operations performed on set values given a {@link ReactiveSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return set operations.
+	 */
+	<K, V> ReactiveSetOperations<K, V> opsForSet(ReactiveSerializationContext<K, V> serializationContext);
+
+	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
 	 *
-	 * @return zset operations
+	 * @return zset operations.
 	 */
 	ReactiveZSetOperations<K, V> opsForZSet();
+
+	/**
+	 * Returns the operations performed on zset values (also known as sorted sets) given a
+	 * {@link ReactiveSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return zset operations.
+	 */
+	<K, V> ReactiveZSetOperations<K, V> opsForZSet(ReactiveSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on multisets using HyperLogLog.
@@ -213,20 +248,46 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog();
 
 	/**
+	 * Returns the operations performed on multisets using HyperLogLog given a {@link ReactiveSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	<K, V> ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog(ReactiveSerializationContext<K, V> serializationContext);
+
+	/**
 	 * Returns the operations performed on hash values.
 	 *
-	 * @param <HK> hash key (or field) type
-	 * @param <HV> hash value type
-	 * @return hash operations
+	 * @param <HK> hash key (or field) type.
+	 * @param <HV> hash value type.
+	 * @return hash operations.
 	 */
 	<HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash();
 
 	/**
+	 * Returns the operations performed on hash values given a {@link ReactiveSerializationContext}.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @param <HK> hash key (or field) type.
+	 * @param <HV> hash value type.
+	 * @return hash operations.
+	 */
+	<K, HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash(ReactiveSerializationContext<K, ?> serializationContext);
+
+	/**
 	 * Returns geospatial specific operations interface.
 	 *
-	 * @return never {@literal null}.
+	 * @return geospatial specific operations.
 	 */
 	ReactiveGeoOperations<K, V> opsForGeo();
+
+	/**
+	 * Returns geospatial specific operations interface.
+	 *
+	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
+	 * @return geospatial specific operations.
+	 */
+	<K, V> ReactiveGeoOperations<K, V> opsForGeo(ReactiveSerializationContext<K, V> serializationContext);
 
 	/**
 	 * @return the {@link ReactiveSerializationContext}.

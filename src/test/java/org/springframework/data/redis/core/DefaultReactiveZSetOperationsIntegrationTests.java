@@ -601,4 +601,17 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 					assertThat(actual).hasSize(1).contains(a);
 				}).verifyComplete();
 	}
+
+	@Test // DATAREDIS-602
+	public void delete() {
+
+		K key = keyFactory.instance();
+		V value = valueFactory.instance();
+
+		StepVerifier.create(zSetOperations.add(key, value, 10)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.delete(key)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(zSetOperations.size(key)).expectNext(0L).verifyComplete();
+	}
 }

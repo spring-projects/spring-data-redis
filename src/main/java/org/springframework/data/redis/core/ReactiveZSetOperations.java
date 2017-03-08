@@ -375,7 +375,9 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Set<V>> reverseRangeByLex(K key, Range<String> range, Limit limit);
 
 	/**
-	 * @return
+	 * Removes the given {@literal key}.
+	 *
+	 * @param key must not be {@literal null}.
 	 */
-	ReactiveRedisOperations<K, V> getOperations();
+	Mono<Boolean> delete(K key);
 }
