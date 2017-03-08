@@ -15,10 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import reactor.core.publisher.Mono;
-
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * Strategy interface that specifies a serializer that can serialize an element to its binary representation to be used
@@ -36,16 +33,4 @@ public interface RedisElementWriter<T> {
 	 * @return the {@link ByteBuffer} representing {@code element} in its binary form.
 	 */
 	ByteBuffer write(T element);
-
-	/**
-	 * Deferred serialization wrapping the result in a {@link Mono}.
-	 * <p>
-	 * Implementing classes can implement their own deferred serialization. Defaults to scalar value serialization.
-	 *
-	 * @param element
-	 * @return the serialized value.
-	 */
-	default Mono<ByteBuffer> writeMono(T element) {
-		return Mono.justOrEmpty(Optional.ofNullable(element)).map(this::write);
-	}
 }

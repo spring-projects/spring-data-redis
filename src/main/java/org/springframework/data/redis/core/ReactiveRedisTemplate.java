@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,9 +34,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyComm
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.ReactiveSerializationContext;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple;
-import org.springframework.data.redis.serializer.RedisElementReader;
-import org.springframework.data.redis.serializer.RedisElementWriter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
@@ -753,6 +749,9 @@ public class ReactiveRedisTemplate<K, V>
 		return getSerializationContext().key().getReader().read(buffer);
 	}
 
+	/**
+	 * @author Mark Paluch
+	 */
 	static abstract class ReactiveSerializationContextSupport<K, V> implements ReactiveSerializationContext<K, V> {
 
 		@Override
@@ -765,11 +764,9 @@ public class ReactiveRedisTemplate<K, V>
 		public abstract SerializationTuple<String> string();
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public abstract <HK> SerializationTuple<HK> hashKey();
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public abstract <HV> SerializationTuple<HV> hashValue();
 
 		public abstract RedisSerializer<K> getKeySerializer();
@@ -783,16 +780,23 @@ public class ReactiveRedisTemplate<K, V>
 		public abstract RedisSerializer<String> getStringSerializer();
 	}
 
+	/**
+	 * @author Mark Paluch
+	 */
 	static class ImmutableReactiveSerializationContext<K, V> extends ReactiveSerializationContextSupport<K, V> {
 
 		private RedisSerializer<K> keySerializer;
 		private final SerializationTuple<K> keyTuple;
+
 		private RedisSerializer<V> valueSerializer;
 		private final SerializationTuple<V> valueTuple;
+
 		private RedisSerializer<?> hashKeySerializer;
 		private final SerializationTuple<?> hashKeyTuple;
+
 		private RedisSerializer<?> hashValueSerializer;
 		private final SerializationTuple<?> hashValueTuple;
+
 		private RedisSerializer<String> stringSerializer;
 		private final SerializationTuple<String> stringTuple;
 
@@ -858,26 +862,25 @@ public class ReactiveRedisTemplate<K, V>
 		}
 	}
 
+	/**
+	 * @author Mark Paluch
+	 */
 	static class MutableReactiveSerializationContext<K, V> extends ReactiveSerializationContextSupport<K, V> {
 
 		private RedisSerializer<K> keySerializer;
-		private SerializationTuple<K> keyTuple = RedisSerializerTupleAdapter.empty();
+		private SerializationTuple<K> keyTuple = SerializationTuple.raw();
 
 		private RedisSerializer<V> valueSerializer;
-		private SerializationTuple<V> valueTuple = RedisSerializerTupleAdapter.empty();
+		private SerializationTuple<V> valueTuple = SerializationTuple.raw();
 
 		private RedisSerializer<?> hashKeySerializer;
-		private SerializationTuple<?> hashKeyTuple = RedisSerializerTupleAdapter.empty();
+		private SerializationTuple<?> hashKeyTuple = SerializationTuple.raw();
 
 		private RedisSerializer<?> hashValueSerializer;
-		private SerializationTuple<?> hashValueTuple = RedisSerializerTupleAdapter.empty();
+		private SerializationTuple<?> hashValueTuple = SerializationTuple.raw();
 
 		private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
-		private SerializationTuple<String> stringTuple;
-
-		public MutableReactiveSerializationContext() {
-			stringTuple = new RedisSerializerTupleAdapter<>(stringSerializer);
-		}
+		private SerializationTuple<String> stringTuple = SerializationTuple.fromSerializer(stringSerializer);
 
 		@Override
 		public SerializationTuple<K> key() {
@@ -912,7 +915,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setKeySerializer(RedisSerializer<K> keySerializer) {
 			this.keySerializer = keySerializer;
-			this.keyTuple = RedisSerializerTupleAdapter.from(keySerializer);
+			this.keyTuple = SerializationTuple.fromSerializer(keySerializer);
 		}
 
 		public RedisSerializer<V> getValueSerializer() {
@@ -921,7 +924,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setValueSerializer(RedisSerializer<V> valueSerializer) {
 			this.valueSerializer = valueSerializer;
-			this.valueTuple = RedisSerializerTupleAdapter.from(valueSerializer);
+			this.valueTuple = SerializationTuple.fromSerializer(valueSerializer);
 		}
 
 		public RedisSerializer<?> getHashKeySerializer() {
@@ -930,7 +933,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
 			this.hashKeySerializer = hashKeySerializer;
-			this.hashKeyTuple = RedisSerializerTupleAdapter.from(hashKeySerializer);
+			this.hashKeyTuple = SerializationTuple.fromSerializer(hashKeySerializer);
 		}
 
 		public RedisSerializer<?> getHashValueSerializer() {
@@ -939,7 +942,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
 			this.hashValueSerializer = hashValueSerializer;
-			this.hashValueTuple = RedisSerializerTupleAdapter.from(hashValueSerializer);
+			this.hashValueTuple = SerializationTuple.fromSerializer(hashValueSerializer);
 		}
 
 		public RedisSerializer<String> getStringSerializer() {
@@ -948,97 +951,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setStringSerializer(RedisSerializer<String> stringSerializer) {
 			this.stringSerializer = stringSerializer;
-			this.stringTuple = RedisSerializerTupleAdapter.from(stringSerializer);
-		}
-	}
-
-	static class RedisSerializerTupleAdapter<T> implements SerializationTuple<T> {
-
-		private final static RedisSerializerTupleAdapter<?> EMPTY = new RedisSerializerTupleAdapter<>(null);
-
-		private final RedisElementReader<T> reader;
-		private final RedisElementWriter<T> writer;
-
-		private RedisSerializerTupleAdapter(RedisSerializer<T> serializer) {
-
-			reader = new DefaultRedisElementReader<>(serializer);
-			writer = new DefaultRedisElementWriter<>(serializer);
-		}
-
-		@SuppressWarnings("unchecked")
-		public static <T> SerializationTuple<T> empty() {
-			return (SerializationTuple) EMPTY;
-		}
-
-		public static <T> SerializationTuple<T> from(RedisSerializer<T> redisSerializer) {
-			return new RedisSerializerTupleAdapter<>(redisSerializer);
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple#reader()
-		 */
-		@Override
-		public RedisElementReader<T> getReader() {
-			return reader;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple#writer()
-		 */
-		@Override
-		public RedisElementWriter<T> getWriter() {
-			return writer;
-		}
-	}
-
-	@RequiredArgsConstructor
-	static class DefaultRedisElementReader<T> implements RedisElementReader<T> {
-
-		private final RedisSerializer<T> serializer;
-
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisElementReader#read(java.nio.ByteBuffer)
-		 */
-		@Override
-		@SuppressWarnings("unchecked")
-		public T read(ByteBuffer buffer) {
-
-			if (serializer == null) {
-				return (T) buffer;
-			}
-
-			byte[] bytes = new byte[buffer.remaining()];
-			buffer.get(bytes);
-
-			return serializer.deserialize(bytes);
-		}
-	}
-
-	@RequiredArgsConstructor
-	static class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
-
-		private final RedisSerializer<T> serializer;
-
-		/* (non-Javadoc)
-		 * @see org.springframework.data.redis.serializer.RedisElementWriter#write(java.lang.Object)
-		 */
-		@Override
-		public ByteBuffer write(T value) {
-
-			if (serializer == null) {
-
-				if (value instanceof byte[]) {
-					return ByteBuffer.wrap((byte[]) value);
-				}
-
-				if (value instanceof ByteBuffer) {
-					return (ByteBuffer) value;
-				}
-
-				throw new IllegalStateException("Cannot serialize value without a serializer");
-			}
-
-			return ByteBuffer.wrap(serializer.serialize((T) value));
+			this.stringTuple = SerializationTuple.fromSerializer(stringSerializer);
 		}
 	}
 }

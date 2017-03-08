@@ -15,23 +15,40 @@
  */
 package org.springframework.data.redis.serializer;
 
+import lombok.RequiredArgsConstructor;
+
 import java.nio.ByteBuffer;
 
 /**
- * Strategy interface that specifies a deserializer that can deserialize a binary element representation stored in Redis
- * into an object.
+ * Default implementation of {@link RedisElementWriter}.
  *
  * @author Mark Paluch
  * @since 2.0
  */
-@FunctionalInterface
-public interface RedisElementReader<T> {
+@RequiredArgsConstructor
+class DefaultRedisElementWriter<T> implements RedisElementWriter<T> {
 
-	/**
-	 * Deserialize a {@link ByteBuffer} into the according type.
-	 *
-	 * @param buffer must not be {@literal null}.
-	 * @return the deserialized value.
+	private final RedisSerializer<T> serializer;
+
+	/* (non-Javadoc)
+	 * @see org.springframework.data.redis.serializer.RedisElementWriter#write(java.lang.Object)
 	 */
-	T read(ByteBuffer buffer);
+	@Override
+	public ByteBuffer write(T value) {
+
+		if (serializer == null) {
+
+			if (value instanceof byte[]) {
+				return ByteBuffer.wrap((byte[]) value);
+			}
+
+			if (value instanceof ByteBuffer) {
+				return (ByteBuffer) value;
+			}
+
+			throw new IllegalStateException("Cannot serialize value without a serializer");
+		}
+
+		return ByteBuffer.wrap(serializer.serialize((T) value));
+	}
 }

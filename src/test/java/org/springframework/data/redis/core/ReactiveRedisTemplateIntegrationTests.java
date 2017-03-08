@@ -33,10 +33,15 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
+import org.springframework.data.redis.Person;
+import org.springframework.data.redis.PersonObjectFactory;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration tests for {@link ReactiveRedisTemplate}.
@@ -255,5 +260,50 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		StepVerifier.create(redisTemplate.move(key, 5)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(redisTemplate.hasKey(key)).expectNext(false).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldApplyCustomSerializationContextToValues() {
+
+		Person key = new PersonObjectFactory().instance();
+		Person value = new PersonObjectFactory().instance();
+
+		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
+		ReactiveSerializationContext<Object, Object> objectSerializers = ReactiveSerializationContext.builder()
+				.key(jdkSerializer) //
+				.value(jdkSerializer) //
+				.hashKey(jdkSerializer) //
+				.hashValue(jdkSerializer) //
+				.build();
+
+		ReactiveValueOperations<Object, Object> valueOperations = redisTemplate.opsForValue(objectSerializers);
+
+		StepVerifier.create(valueOperations.set(key, value)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(valueOperations.get(key)).expectNext(value).verifyComplete();
+	}
+
+	@Test // DATAREDIS-602
+	public void shouldApplyCustomSerializationContextToHash() {
+
+		ReactiveSerializationContext<K, V> serializationContext = redisTemplate.getSerializationContext();
+
+		K key = keyFactory.instance();
+		String hashField = "foo";
+		Person hashValue = new PersonObjectFactory().instance();
+
+		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
+		ReactiveSerializationContext<K, V> objectSerializers = ReactiveSerializationContext.<K, V> builder()
+				.key(serializationContext.key()) //
+				.value(serializationContext.value()) //
+				.hashKey(new StringRedisSerializer()) //
+				.hashValue(jdkSerializer) //
+				.build();
+
+		ReactiveHashOperations<K, String, Object> hashOperations = redisTemplate.opsForHash(objectSerializers);
+
+		StepVerifier.create(hashOperations.put(key, hashField, hashValue)).expectNext(true).verifyComplete();
+
+		StepVerifier.create(hashOperations.get(key, hashField)).expectNext(hashValue).verifyComplete();
 	}
 }

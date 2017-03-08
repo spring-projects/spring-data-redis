@@ -15,23 +15,34 @@
  */
 package org.springframework.data.redis.serializer;
 
-import java.nio.ByteBuffer;
+import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple;
 
 /**
- * Strategy interface that specifies a deserializer that can deserialize a binary element representation stored in Redis
- * into an object.
+ * Default implementation of {@link SerializationTuple}.
  *
  * @author Mark Paluch
  * @since 2.0
  */
-@FunctionalInterface
-public interface RedisElementReader<T> {
+class DefaultSerializationTuple<T> implements SerializationTuple<T> {
 
-	/**
-	 * Deserialize a {@link ByteBuffer} into the according type.
-	 *
-	 * @param buffer must not be {@literal null}.
-	 * @return the deserialized value.
-	 */
-	T read(ByteBuffer buffer);
+	private final RedisElementReader<T> reader;
+
+	private final RedisElementWriter<T> writer;
+
+	@SuppressWarnings("unchecked")
+	protected DefaultSerializationTuple(RedisElementReader<? extends T> reader, RedisElementWriter<? extends T> writer) {
+
+		this.reader = (RedisElementReader) reader;
+		this.writer = (RedisElementWriter) writer;
+	}
+
+	@Override
+	public RedisElementReader<T> getReader() {
+		return reader;
+	}
+
+	@Override
+	public RedisElementWriter<T> getWriter() {
+		return writer;
+	}
 }
