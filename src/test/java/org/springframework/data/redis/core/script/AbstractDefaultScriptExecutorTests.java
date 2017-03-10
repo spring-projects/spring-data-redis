@@ -34,7 +34,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.scripting.support.StaticScriptSource;
@@ -172,7 +172,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecuteCustomResultSerializer() {
-		JacksonJsonRedisSerializer<Person> personSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
+		Jackson2JsonRedisSerializer<Person> personSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		this.template = new RedisTemplate<String, Person>();
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setValueSerializer(personSerializer);

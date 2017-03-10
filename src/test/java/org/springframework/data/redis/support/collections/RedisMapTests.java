@@ -34,7 +34,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceTestClientResour
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -73,8 +72,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
-		JacksonJsonRedisSerializer<Person> jsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
-		JacksonJsonRedisSerializer<String> jsonStringSerializer = new JacksonJsonRedisSerializer<String>(String.class);
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		Jackson2JsonRedisSerializer<String> jackson2JsonStringSerializer = new Jackson2JsonRedisSerializer<String>(
 				String.class);
@@ -106,13 +103,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		xstreamGenericTemplate.setDefaultSerializer(serializer);
 		xstreamGenericTemplate.afterPropertiesSet();
 
-		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>();
-		jsonPersonTemplate.setConnectionFactory(jedisConnFactory);
-		jsonPersonTemplate.setDefaultSerializer(jsonSerializer);
-		jsonPersonTemplate.setHashKeySerializer(jsonSerializer);
-		jsonPersonTemplate.setHashValueSerializer(jsonStringSerializer);
-		jsonPersonTemplate.afterPropertiesSet();
-
 		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
 		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnFactory);
 		jackson2JsonPersonTemplate.setDefaultSerializer(jackson2JsonSerializer);
@@ -142,13 +132,6 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		xGenericTemplateLettuce.setDefaultSerializer(serializer);
 		xGenericTemplateLettuce.afterPropertiesSet();
 
-		RedisTemplate<String, Person> jsonPersonTemplateLettuce = new RedisTemplate<String, Person>();
-		jsonPersonTemplateLettuce.setConnectionFactory(lettuceConnFactory);
-		jsonPersonTemplateLettuce.setDefaultSerializer(jsonSerializer);
-		jsonPersonTemplateLettuce.setHashKeySerializer(jsonSerializer);
-		jsonPersonTemplateLettuce.setHashValueSerializer(jsonStringSerializer);
-		jsonPersonTemplateLettuce.afterPropertiesSet();
-
 		RedisTemplate<String, Person> jackson2JsonPersonTemplateLettuce = new RedisTemplate<String, Person>();
 		jackson2JsonPersonTemplateLettuce.setConnectionFactory(lettuceConnFactory);
 		jackson2JsonPersonTemplateLettuce.setDefaultSerializer(jackson2JsonSerializer);
@@ -169,14 +152,12 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
 				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
 				{ personFactory, stringFactory, genericTemplate }, { personFactory, stringFactory, xstreamGenericTemplate },
-				{ personFactory, stringFactory, jsonPersonTemplate },
 				{ personFactory, stringFactory, jackson2JsonPersonTemplate }, { rawFactory, rawFactory, rawTemplate },
 				{ stringFactory, stringFactory, genericTemplateLettuce },
 				{ personFactory, personFactory, genericTemplateLettuce },
 				{ stringFactory, personFactory, genericTemplateLettuce },
 				{ personFactory, stringFactory, genericTemplateLettuce },
 				{ personFactory, stringFactory, xGenericTemplateLettuce },
-				{ personFactory, stringFactory, jsonPersonTemplateLettuce },
 				{ personFactory, stringFactory, jackson2JsonPersonTemplateLettuce },
 				{ stringFactory, doubleFactory, stringTemplateLtc }, { stringFactory, longFactory, stringTemplateLtc },
 				{ rawFactory, rawFactory, rawTemplateLtc } });
