@@ -30,7 +30,6 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -102,12 +101,6 @@ abstract public class AbstractOperationsTestParams {
 		xstreamPersonTemplate.setValueSerializer(serializer);
 		xstreamPersonTemplate.afterPropertiesSet();
 
-		JacksonJsonRedisSerializer<Person> jacksonJsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
-		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>();
-		jsonPersonTemplate.setConnectionFactory(jedisConnectionFactory);
-		jsonPersonTemplate.setValueSerializer(jacksonJsonSerializer);
-		jsonPersonTemplate.afterPropertiesSet();
-
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
 		jackson2JsonPersonTemplate.setConnectionFactory(jedisConnectionFactory);
@@ -128,7 +121,6 @@ abstract public class AbstractOperationsTestParams {
 						{ personTemplate, stringFactory, personFactory }, //
 						{ xstreamStringTemplate, stringFactory, stringFactory }, //
 						{ xstreamPersonTemplate, stringFactory, personFactory }, //
-						{ jsonPersonTemplate, stringFactory, personFactory }, //
 						{ jackson2JsonPersonTemplate, stringFactory, personFactory }, //
 						{ genericJackson2JsonPersonTemplate, stringFactory, personFactory } });
 	}

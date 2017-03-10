@@ -32,6 +32,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 /**
  * @author Jennifer Hickey
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public class SimpleRedisSerializerTests {
 
@@ -169,7 +170,7 @@ public class SimpleRedisSerializerTests {
 
 	@Test
 	public void testJsonSerializer() throws Exception {
-		JacksonJsonRedisSerializer<Person> serializer = new JacksonJsonRedisSerializer<Person>(Person.class);
+		Jackson2JsonRedisSerializer<Person> serializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		String value = UUID.randomUUID().toString();
 		Person p1 = new Person(value, value, 1, new Address(value, 2));
 		assertEquals(p1, serializer.deserialize(serializer.serialize(p1)));
