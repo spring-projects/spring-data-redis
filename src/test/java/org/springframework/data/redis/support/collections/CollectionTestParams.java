@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceTestClientResour
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.oxm.xstream.XStreamMarshaller;
@@ -40,6 +39,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
  * @author Costin Leau
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 public abstract class CollectionTestParams {
 
@@ -52,7 +52,6 @@ public abstract class CollectionTestParams {
 			throw new RuntimeException("Cannot init XStream", ex);
 		}
 		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
-		JacksonJsonRedisSerializer<Person> jsonSerializer = new JacksonJsonRedisSerializer<Person>(Person.class);
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<Person>(Person.class);
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
@@ -84,12 +83,6 @@ public abstract class CollectionTestParams {
 		xstreamPersonTemplate.setConnectionFactory(jedisConnFactory);
 		xstreamPersonTemplate.setValueSerializer(serializer);
 		xstreamPersonTemplate.afterPropertiesSet();
-
-		// json
-		RedisTemplate<String, Person> jsonPersonTemplate = new RedisTemplate<String, Person>();
-		jsonPersonTemplate.setConnectionFactory(jedisConnFactory);
-		jsonPersonTemplate.setValueSerializer(jsonSerializer);
-		jsonPersonTemplate.afterPropertiesSet();
 
 		// jackson2
 		RedisTemplate<String, Person> jackson2JsonPersonTemplate = new RedisTemplate<String, Person>();
@@ -125,11 +118,6 @@ public abstract class CollectionTestParams {
 		xstreamPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
 		xstreamPersonTemplateLtc.afterPropertiesSet();
 
-		RedisTemplate<String, Person> jsonPersonTemplateLtc = new RedisTemplate<String, Person>();
-		jsonPersonTemplateLtc.setValueSerializer(jsonSerializer);
-		jsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
-		jsonPersonTemplateLtc.afterPropertiesSet();
-
 		RedisTemplate<String, Person> jackson2JsonPersonTemplateLtc = new RedisTemplate<String, Person>();
 		jackson2JsonPersonTemplateLtc.setValueSerializer(jackson2JsonSerializer);
 		jackson2JsonPersonTemplateLtc.setConnectionFactory(lettuceConnFactory);
@@ -144,14 +132,14 @@ public abstract class CollectionTestParams {
 		return Arrays
 				.asList(new Object[][] { { stringFactory, stringTemplate }, { doubleAsStringObjectFactory, stringTemplate },
 						{ personFactory, personTemplate }, { stringFactory, xstreamStringTemplate },
-						{ personFactory, xstreamPersonTemplate }, { personFactory, jsonPersonTemplate },
+						{ personFactory, xstreamPersonTemplate },
 						{ personFactory, jackson2JsonPersonTemplate }, { rawFactory, rawTemplate },
 
 						// lettuce
 						{ stringFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
 						{ doubleAsStringObjectFactory, stringTemplateLtc }, { personFactory, personTemplateLtc },
 						{ stringFactory, xstreamStringTemplateLtc }, { personFactory, xstreamPersonTemplateLtc },
-						{ personFactory, jsonPersonTemplateLtc }, { personFactory, jackson2JsonPersonTemplateLtc },
+						{ personFactory, jackson2JsonPersonTemplateLtc },
 						{ rawFactory, rawTemplateLtc } });
 	}
 }

@@ -33,7 +33,6 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -98,7 +97,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 
 			if (redisOperations.getValueSerializer() instanceof StringRedisSerializer
 					|| redisOperations.getValueSerializer() instanceof GenericToStringSerializer
-					|| redisOperations.getValueSerializer() instanceof JacksonJsonRedisSerializer
 					|| redisOperations.getValueSerializer() instanceof Jackson2JsonRedisSerializer) {
 				throw new IllegalArgumentException(String.format(
 						"Redis does not allow keys with null value ¯\\_(ツ)_/¯. "
@@ -116,7 +114,6 @@ public class RedisCache extends AbstractValueAdaptingCache {
 	 * @param key
 	 * @param type
 	 * @return
-	 * @see DATAREDIS-243
 	 */
 	public <T> T get(Object key, Class<T> type) {
 
