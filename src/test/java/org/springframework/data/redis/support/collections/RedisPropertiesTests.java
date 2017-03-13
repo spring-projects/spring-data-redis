@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -60,7 +60,7 @@ public class RedisPropertiesTests extends RedisMapTests {
 
 	/**
 	 * Constructs a new <code>RedisPropertiesTests</code> instance.
-	 * 
+	 *
 	 * @param keyFactory
 	 * @param valueFactory
 	 * @param template
@@ -289,15 +289,21 @@ public class RedisPropertiesTests extends RedisMapTests {
 		jackson2JsonPersonTemplateLtc.setHashValueSerializer(jackson2JsonStringSerializer);
 		jackson2JsonPersonTemplateLtc.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
-				{ stringFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, genericTemplate },
-				{ stringFactory, stringFactory, genericTemplate }, { stringFactory, stringFactory, xstreamGenericTemplate },
-				{ stringFactory, stringFactory, jackson2JsonPersonTemplate },
+		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate }, //
+				{ stringFactory, stringFactory, genericTemplate }, //
+				{ stringFactory, stringFactory, genericTemplate }, //
+				{ stringFactory, stringFactory, genericTemplate }, //
+				{ stringFactory, stringFactory, xstreamGenericTemplate }, //
+				{ stringFactory, stringFactory, jackson2JsonPersonTemplate }, //
 
-				{ stringFactory, stringFactory, genericTemplateLtc }, { stringFactory, stringFactory, genericTemplateLtc },
-				{ stringFactory, stringFactory, genericTemplateLtc }, { stringFactory, stringFactory, genericTemplateLtc },
-				{ stringFactory, doubleFactory, genericTemplateLtc }, { stringFactory, longFactory, genericTemplateLtc },
-				{ stringFactory, stringFactory, xGenericTemplateLtc },
+				// lettuce
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, doubleFactory, genericTemplateLtc }, //
+				{ stringFactory, longFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, xGenericTemplateLtc }, //
 				{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc } });
 	}
 

@@ -36,7 +36,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Parameters for testing implementations of {@link AbstractOperations}
- * 
+ *
  * @author Jennifer Hickey
  * @author Thomas Darimont
  * @author Christoph Strobl
@@ -115,13 +115,13 @@ abstract public class AbstractOperationsTestParams {
 
 		return Arrays.asList(new Object[][] { //
 				{ stringTemplate, stringFactory, stringFactory }, //
-						{ longTemplate, stringFactory, longFactory }, //
-						{ doubleTemplate, stringFactory, doubleFactory }, //
-						{ rawTemplate, rawFactory, rawFactory }, //
-						{ personTemplate, stringFactory, personFactory }, //
-						{ xstreamStringTemplate, stringFactory, stringFactory }, //
-						{ xstreamPersonTemplate, stringFactory, personFactory }, //
-						{ jackson2JsonPersonTemplate, stringFactory, personFactory }, //
-						{ genericJackson2JsonPersonTemplate, stringFactory, personFactory } });
+				{ longTemplate, stringFactory, longFactory }, //
+				{ doubleTemplate, stringFactory, doubleFactory }, //
+				{ rawTemplate, rawFactory, rawFactory }, //
+				{ personTemplate, stringFactory, personFactory }, //
+				{ xstreamStringTemplate, stringFactory, stringFactory }, //
+				{ xstreamPersonTemplate, stringFactory, personFactory }, //
+				{ jackson2JsonPersonTemplate, stringFactory, personFactory }, //
+				{ genericJackson2JsonPersonTemplate, stringFactory, personFactory } });
 	}
 }

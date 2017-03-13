@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2017 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,7 +40,7 @@ import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Integration test for RedisMap.
- * 
+ *
  * @author Costin Leau
  * @author Jennifer Hickey
  * @author Thomas Darimont
@@ -150,16 +150,22 @@ public class RedisMapTests extends AbstractRedisMapTests<Object, Object> {
 		rawTemplateLtc.afterPropertiesSet();
 
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
-				{ personFactory, personFactory, genericTemplate }, { stringFactory, personFactory, genericTemplate },
-				{ personFactory, stringFactory, genericTemplate }, { personFactory, stringFactory, xstreamGenericTemplate },
-				{ personFactory, stringFactory, jackson2JsonPersonTemplate }, { rawFactory, rawFactory, rawTemplate },
-				{ stringFactory, stringFactory, genericTemplateLettuce },
-				{ personFactory, personFactory, genericTemplateLettuce },
-				{ stringFactory, personFactory, genericTemplateLettuce },
-				{ personFactory, stringFactory, genericTemplateLettuce },
-				{ personFactory, stringFactory, xGenericTemplateLettuce },
-				{ personFactory, stringFactory, jackson2JsonPersonTemplateLettuce },
-				{ stringFactory, doubleFactory, stringTemplateLtc }, { stringFactory, longFactory, stringTemplateLtc },
+				{ personFactory, personFactory, genericTemplate }, //
+				{ stringFactory, personFactory, genericTemplate }, //
+				{ personFactory, stringFactory, genericTemplate }, //
+				{ personFactory, stringFactory, xstreamGenericTemplate }, //
+				{ personFactory, stringFactory, jackson2JsonPersonTemplate }, //
+				{ rawFactory, rawFactory, rawTemplate }, //
+
+				// lettuce
+				{ stringFactory, stringFactory, genericTemplateLettuce }, //
+				{ personFactory, personFactory, genericTemplateLettuce }, //
+				{ stringFactory, personFactory, genericTemplateLettuce }, //
+				{ personFactory, stringFactory, genericTemplateLettuce }, //
+				{ personFactory, stringFactory, xGenericTemplateLettuce }, //
+				{ personFactory, stringFactory, jackson2JsonPersonTemplateLettuce }, //
+				{ stringFactory, doubleFactory, stringTemplateLtc }, //
+				{ stringFactory, longFactory, stringTemplateLtc }, //
 				{ rawFactory, rawFactory, rawTemplateLtc } });
 	}
 }
