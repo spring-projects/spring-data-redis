@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import org.springframework.util.StringUtils;
 /**
  * @author Christoph Strobl
  * @author Thomas Darimont
- * 
+ * @author Franjo Zilic
+ *
  * @since 1.4
  */
 public class RedisServer extends RedisNode {
@@ -44,7 +45,7 @@ public class RedisServer extends RedisNode {
 		ROLE_REPORTED_TIME("role-reported-time"), //
 		CONFIG_EPOCH("config-epoch"), //
 		NUMBER_SLAVES("num-slaves"), //
-		NUMBER_OTHER_SENTINELS("multi"), //
+		NUMBER_OTHER_SENTINELS("num-other-sentinels"), //
 		BUFFER_LENGTH("qbuf"), //
 		BUFFER_FREE_SPACE("qbuf-free"), //
 		OUTPUT_BUFFER_LENGTH("obl"), //
