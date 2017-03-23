@@ -29,5 +29,4 @@ public interface PersonRepository extends CrudRepository<Person, String>, Person
 	List<Person> findAll();
 
 	List<Person> findByName(String name);
-
 }

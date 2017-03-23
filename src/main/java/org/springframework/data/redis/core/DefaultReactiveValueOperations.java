@@ -30,26 +30,33 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ReactiveValueOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
+	/**
+	 * Creates new {@link DefaultReactiveValueOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveValueOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;
@@ -170,20 +177,7 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 		Assert.notNull(keys, "Keys must not be null!");
 
 		return createMono(connection -> Flux.fromIterable(keys).map(key()::write).collectList().flatMap(connection::mGet)
-				.map(byteBuffers -> {
-					List<V> result = new ArrayList<>(byteBuffers.size());
-
-					for (ByteBuffer buffer : byteBuffers) {
-
-						if (buffer == null) {
-							result.add(null);
-						} else {
-							result.add(readValue(buffer));
-						}
-					}
-
-					return result;
-				}));
+				.map(this::deserializeValues));
 	}
 
 	/* (non-Javadoc)
@@ -195,7 +189,8 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(value, "Value must not be null!");
 
-		return createMono(connection -> connection.append(rawKey(key), serializationContext.string().write(value)));
+		return createMono(
+				connection -> connection.append(rawKey(key), serializationContext.getStringSerializationPair().write(value)));
 	}
 
 	/* (non-Javadoc)
@@ -207,7 +202,7 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.getRange(rawKey(key), start, end) //
-				.map(string()::read));
+				.map(stringSerializationPair()::read));
 	}
 
 	/* (non-Javadoc)
@@ -273,26 +268,42 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serializationContext.value().write(value);
+		return serializationContext.getValueSerializationPair().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serializationContext.value().read(buffer);
+		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 
-	private SerializationTuple<String> string() {
-		return serializationContext.string();
+	private SerializationPair<String> stringSerializationPair() {
+		return serializationContext.getStringSerializationPair();
 	}
 
-	private SerializationTuple<K> key() {
-		return serializationContext.key();
+	private SerializationPair<K> key() {
+		return serializationContext.getKeySerializationPair();
 	}
 
-	private SerializationTuple<V> value() {
-		return serializationContext.value();
+	private SerializationPair<V> value() {
+		return serializationContext.getValueSerializationPair();
+	}
+
+	private List<V> deserializeValues(List<ByteBuffer> source) {
+
+		List<V> result = new ArrayList<>(source.size());
+
+		for (ByteBuffer buffer : source) {
+
+			if (buffer == null) {
+				result.add(null);
+			} else {
+				result.add(readValue(buffer));
+			}
+		}
+
+		return result;
 	}
 }

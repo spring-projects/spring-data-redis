@@ -39,12 +39,14 @@ import org.springframework.data.redis.StringObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration tests for {@link DefaultReactiveHashOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
@@ -68,16 +70,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();
 
-		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>();
-		stringTemplate.setConnectionFactory(lettuceConnectionFactory);
-		stringTemplate.setEnableDefaultSerializer(true);
-		stringTemplate.setDefaultSerializer(new StringRedisSerializer());
-		stringTemplate.afterPropertiesSet();
+		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
+				.fromSerializer(new StringRedisSerializer());
+		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				serializationContext);
 
-		ReactiveRedisTemplate<byte[], byte[]> rawTemplate = new ReactiveRedisTemplate<>();
-		rawTemplate.setConnectionFactory(lettuceConnectionFactory);
-		rawTemplate.setEnableDefaultSerializer(false);
-		rawTemplate.afterPropertiesSet();
+		ReactiveRedisTemplate<byte[], byte[]> rawTemplate = new ReactiveRedisTemplate(lettuceConnectionFactory,
+				RedisSerializationContext.raw());
 
 		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory, "String" },
 				{ rawTemplate, rawFactory, rawFactory, rawFactory, "raw" } });

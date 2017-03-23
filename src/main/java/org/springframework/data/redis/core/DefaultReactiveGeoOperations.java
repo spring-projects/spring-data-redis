@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,25 +36,31 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ReactiveGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
 import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ReactiveGeoOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
+	/**
+	 * Create new instance of {@link DefaultReactiveGeoOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveGeoOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;
@@ -92,7 +99,7 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	public Mono<Long> geoAdd(K key, Map<V, Point> memberCoordinateMap) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(memberCoordinateMap, "Map must not be null!");
+		Assert.notNull(memberCoordinateMap, "MemberCoordinateMap must not be null!");
 
 		return createMono(connection -> {
 
@@ -129,16 +136,13 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	public Flux<Long> geoAdd(K key, Publisher<? extends Collection<GeoLocation<V>>> locations) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(locations, "GeoLocations must not be null!");
+		Assert.notNull(locations, "Locations must not be null!");
 
-		return createFlux(connection -> {
-
-			return Flux.from(locations)
-					.map(locationList -> locationList.stream()
-							.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint()))
-							.collect(Collectors.toList()))
-					.flatMap(list -> connection.geoAdd(rawKey(key), list));
-		});
+		return createFlux(connection -> Flux.from(locations)
+				.map(locationList -> locationList.stream()
+						.map(location -> new GeoLocation<>(rawValue(location.getName()), location.getPoint()))
+						.collect(Collectors.toList()))
+				.flatMap(list -> connection.geoAdd(rawKey(key), list)));
 	}
 
 	/* (non-Javadoc)
@@ -188,17 +192,13 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	public final Mono<List<String>> geoHash(K key, V... members) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Member must not be null!");
-		Assert.notEmpty(members, "Members must not be empty!");
+		Assert.notEmpty(members, "Members must not be null or empty!");
 		Assert.noNullElements(members, "Members must not contain null elements!");
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(members) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.geoHash(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromArray(members) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.geoHash(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -221,17 +221,13 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	public final Mono<List<Point>> geoPos(K key, V... members) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Member must not be null!");
-		Assert.notEmpty(members, "Members must not be empty!");
+		Assert.notEmpty(members, "Members must not be null or empty!");
 		Assert.noNullElements(members, "Members must not contain null elements!");
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(members) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.geoPos(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromArray(members) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.geoPos(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -243,13 +239,10 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(within, "Circle must not be null!");
 
-		return createMono(connection -> {
-
-			return connection.geoRadius(rawKey(key), within) //
-					.flatMap(Flux::fromIterable) //
-					.map(location -> new GeoLocation<>(readValue(location.getName()), location.getPoint())) //
-					.collectList();
-		});
+		return createMono(connection -> connection.geoRadius(rawKey(key), within) //
+				.flatMap(Flux::fromIterable) //
+				.map(location -> new GeoLocation<>(readValue(location.getName()), location.getPoint())) //
+				.collectList());
 	}
 
 	/* (non-Javadoc)
@@ -262,16 +255,13 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(within, "Circle must not be null!");
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
 
-		return createMono(connection -> {
-
-			return connection.geoRadius(rawKey(key), within, args) //
-					.flatMap(Flux::fromIterable) //
-					.map(geoResult -> new GeoResult<>(
-							new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
-							geoResult.getDistance())) //
-					.collectList() //
-					.map(GeoResults::new);
-		});
+		return createMono(connection -> connection.geoRadius(rawKey(key), within, args) //
+				.flatMap(Flux::fromIterable) //
+				.map(geoResult -> new GeoResult<>(
+						new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
+						geoResult.getDistance())) //
+				.collectList() //
+				.map(GeoResults::new));
 	}
 
 	/* (non-Javadoc)
@@ -283,13 +273,10 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(member, "Member must not be null!");
 
-		return createMono(connection -> {
-
-			return connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
-					.flatMap(Flux::fromIterable) //
-					.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
-					.collectList();
-		});
+		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
+				.flatMap(Flux::fromIterable) //
+				.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
+				.collectList());
 	}
 
 	/* (non-Javadoc)
@@ -302,13 +289,10 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(member, "Member must not be null!");
 		Assert.notNull(distance, "Distance must not be null!");
 
-		return createMono(connection -> {
-
-			return connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
-					.flatMap(Flux::fromIterable) //
-					.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
-					.collectList();
-		});
+		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
+				.flatMap(Flux::fromIterable) //
+				.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
+				.collectList());
 	}
 
 	/* (non-Javadoc)
@@ -323,16 +307,13 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(distance, "Distance must not be null!");
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
 
-		return createMono(connection -> {
-
-			return connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args) //
-					.flatMap(Flux::fromIterable) //
-					.map(geoResult -> new GeoResult<>(
-							new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
-							geoResult.getDistance())) //
-					.collectList() //
-					.map(GeoResults::new);
-		});
+		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args) //
+				.flatMap(Flux::fromIterable) //
+				.map(geoResult -> new GeoResult<>(
+						new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
+						geoResult.getDistance())) //
+				.collectList() //
+				.map(GeoResults::new));
 	}
 
 	/* (non-Javadoc)
@@ -343,17 +324,13 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	public final Mono<Long> geoRemove(K key, V... members) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(members, "Member must not be null!");
-		Assert.notEmpty(members, "Members must not be empty!");
+		Assert.notEmpty(members, "Members must not be null or empty!");
 		Assert.noNullElements(members, "Members must not contain null elements!");
 
-		return template.createMono(connection -> {
-
-			return Flux.fromArray(members) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.zSetCommands().zRem(rawKey(key), serialized));
-		});
+		return template.createMono(connection -> Flux.fromArray(members) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.zSetCommands().zRem(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -382,14 +359,14 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serializationContext.value().write(value);
+		return serializationContext.getValueSerializationPair().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serializationContext.value().read(buffer);
+		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 }

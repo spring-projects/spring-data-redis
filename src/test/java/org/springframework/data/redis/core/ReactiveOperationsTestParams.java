@@ -18,9 +18,12 @@ package org.springframework.data.redis.core;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
+import org.junit.runners.model.Statement;
 import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
@@ -36,14 +39,18 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
  * Parameters for testing implementations of {@link ReactiveRedisTemplate}
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 abstract public class ReactiveOperationsTestParams {
 
@@ -69,85 +76,94 @@ abstract public class ReactiveOperationsTestParams {
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();
 
-		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
-		clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
+		JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
+		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
 
-		LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
-		lettuceClusterConnectionFactory.setPort(SettingsUtils.getPort());
-		lettuceClusterConnectionFactory.setHostName(SettingsUtils.getHost());
-		lettuceClusterConnectionFactory.afterPropertiesSet();
+		StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				RedisSerializationContext.fromSerializer(stringRedisSerializer));
 
-		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>();
-		objectTemplate.setConnectionFactory(lettuceConnectionFactory);
-		objectTemplate.afterPropertiesSet();
+		GenericToStringSerializer<Long> longToStringSerializer = new GenericToStringSerializer(Long.class);
+		ReactiveRedisTemplate<String, Long> longTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				RedisSerializationContext.<String, Long> newSerializationContext(jdkSerializationRedisSerializer)
+						.key(stringRedisSerializer).value(longToStringSerializer).build());
 
-		ReactiveRedisTemplate<String, String> clusterStringTemplate = new ReactiveRedisTemplate<>();
-		clusterStringTemplate.setConnectionFactory(lettuceClusterConnectionFactory);
-		clusterStringTemplate.setDefaultSerializer(new StringRedisSerializer());
-		clusterStringTemplate.setEnableDefaultSerializer(true);
-		clusterStringTemplate.afterPropertiesSet();
+		GenericToStringSerializer<Double> doubleToStringSerializer = new GenericToStringSerializer(Double.class);
+		ReactiveRedisTemplate<String, Double> doubleTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				RedisSerializationContext.<String, Double> newSerializationContext(jdkSerializationRedisSerializer)
+						.key(stringRedisSerializer).value(doubleToStringSerializer).build());
 
-		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>();
-		stringTemplate.setDefaultSerializer(new StringRedisSerializer());
-		stringTemplate.setEnableDefaultSerializer(true);
-		stringTemplate.setConnectionFactory(lettuceConnectionFactory);
-		stringTemplate.afterPropertiesSet();
+		ReactiveRedisTemplate<byte[], byte[]> rawTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory,
+				RedisSerializationContext.raw());
 
-		ReactiveRedisTemplate<String, Long> longTemplate = new ReactiveRedisTemplate<>();
-		longTemplate.setKeySerializer(new StringRedisSerializer());
-		longTemplate.setValueSerializer(new GenericToStringSerializer<>(Long.class));
-		longTemplate.setConnectionFactory(lettuceConnectionFactory);
-		longTemplate.afterPropertiesSet();
+		ReactiveRedisTemplate<String, Person> personTemplate = new ReactiveRedisTemplate(lettuceConnectionFactory,
+				RedisSerializationContext.fromSerializer(jdkSerializationRedisSerializer));
 
-		ReactiveRedisTemplate<String, Double> doubleTemplate = new ReactiveRedisTemplate<>();
-		doubleTemplate.setKeySerializer(new StringRedisSerializer());
-		doubleTemplate.setValueSerializer(new GenericToStringSerializer<>(Double.class));
-		doubleTemplate.setConnectionFactory(lettuceConnectionFactory);
-		doubleTemplate.afterPropertiesSet();
+		OxmSerializer oxmSerializer = new OxmSerializer(xstream, xstream);
+		ReactiveRedisTemplate<String, String> xstreamStringTemplate = new ReactiveRedisTemplate(lettuceConnectionFactory,
+				RedisSerializationContext.fromSerializer(oxmSerializer));
 
-		ReactiveRedisTemplate<byte[], byte[]> rawTemplate = new ReactiveRedisTemplate<>();
-		rawTemplate.setEnableDefaultSerializer(false);
-		rawTemplate.setConnectionFactory(lettuceConnectionFactory);
-		rawTemplate.afterPropertiesSet();
-
-		ReactiveRedisTemplate<String, Person> personTemplate = new ReactiveRedisTemplate<>();
-		personTemplate.setConnectionFactory(lettuceConnectionFactory);
-		personTemplate.afterPropertiesSet();
-
-		OxmSerializer serializer = new OxmSerializer(xstream, xstream);
-		ReactiveRedisTemplate<String, String> xstreamStringTemplate = new ReactiveRedisTemplate<>();
-		xstreamStringTemplate.setConnectionFactory(lettuceConnectionFactory);
-		xstreamStringTemplate.setDefaultSerializer(serializer);
-		xstreamStringTemplate.afterPropertiesSet();
-
-		ReactiveRedisTemplate<String, Person> xstreamPersonTemplate = new ReactiveRedisTemplate<>();
-		xstreamPersonTemplate.setConnectionFactory(lettuceConnectionFactory);
-		xstreamPersonTemplate.setValueSerializer(serializer);
-		xstreamPersonTemplate.afterPropertiesSet();
+		ReactiveRedisTemplate<String, Person> xstreamPersonTemplate = new ReactiveRedisTemplate(lettuceConnectionFactory,
+				RedisSerializationContext.fromSerializer(oxmSerializer));
 
 		Jackson2JsonRedisSerializer<Person> jackson2JsonSerializer = new Jackson2JsonRedisSerializer<>(Person.class);
-		ReactiveRedisTemplate<String, Person> jackson2JsonPersonTemplate = new ReactiveRedisTemplate<>();
-		jackson2JsonPersonTemplate.setConnectionFactory(lettuceConnectionFactory);
-		jackson2JsonPersonTemplate.setValueSerializer(jackson2JsonSerializer);
-		jackson2JsonPersonTemplate.afterPropertiesSet();
+		ReactiveRedisTemplate<String, Person> jackson2JsonPersonTemplate = new ReactiveRedisTemplate(
+				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(jackson2JsonSerializer));
 
 		GenericJackson2JsonRedisSerializer genericJackson2JsonSerializer = new GenericJackson2JsonRedisSerializer();
-		ReactiveRedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new ReactiveRedisTemplate<>();
-		genericJackson2JsonPersonTemplate.setConnectionFactory(lettuceConnectionFactory);
-		genericJackson2JsonPersonTemplate.setValueSerializer(genericJackson2JsonSerializer);
-		genericJackson2JsonPersonTemplate.afterPropertiesSet();
+		ReactiveRedisTemplate<String, Person> genericJackson2JsonPersonTemplate = new ReactiveRedisTemplate(
+				lettuceConnectionFactory, RedisSerializationContext.fromSerializer(genericJackson2JsonSerializer));
 
-		return Arrays.asList(new Object[][] { //
-				{ stringTemplate, stringFactory, stringFactory , "String"}, //
-				{ clusterStringTemplate, clusterKeyStringFactory, stringFactory, "Cluster String" }, //
-				{ objectTemplate, personFactory, personFactory , "Person/JDK"}, //
-				{ longTemplate, stringFactory, longFactory , "Long"}, //
-				{ doubleTemplate, stringFactory, doubleFactory , "Double"}, //
-				{ rawTemplate, rawFactory, rawFactory , "raw"}, //
-				{ personTemplate, stringFactory, personFactory , "String/Person/JDK"}, //
-				{ xstreamStringTemplate, stringFactory, stringFactory , "String/OXM"}, //
-				{ xstreamPersonTemplate, stringFactory, personFactory, "String/Person/OXM"}, //
-				{ jackson2JsonPersonTemplate, stringFactory, personFactory, "Jackson2"}, //
-				{ genericJackson2JsonPersonTemplate, stringFactory, personFactory, "Generic Jackson 2" } });
+		List<Object[]> list = Arrays.asList(new Object[][] { //
+				{ stringTemplate, stringFactory, stringFactory, stringRedisSerializer, "String" }, //
+				{ objectTemplate, personFactory, personFactory, jdkSerializationRedisSerializer, "Person/JDK" }, //
+				{ longTemplate, stringFactory, longFactory, longToStringSerializer, "Long" }, //
+				{ doubleTemplate, stringFactory, doubleFactory, doubleToStringSerializer, "Double" }, //
+				{ rawTemplate, rawFactory, rawFactory, null, "raw" }, //
+				{ personTemplate, stringFactory, personFactory, jdkSerializationRedisSerializer, "String/Person/JDK" }, //
+				{ xstreamStringTemplate, stringFactory, stringFactory, oxmSerializer, "String/OXM" }, //
+				{ xstreamPersonTemplate, stringFactory, personFactory, oxmSerializer, "String/Person/OXM" }, //
+				{ jackson2JsonPersonTemplate, stringFactory, personFactory, jackson2JsonSerializer, "Jackson2" }, //
+				{ genericJackson2JsonPersonTemplate, stringFactory, personFactory, genericJackson2JsonSerializer,
+						"Generic Jackson 2" } });
+
+		if (clusterAvailable()) {
+
+			RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+			clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
+
+			ReactiveRedisTemplate<String, String> clusterStringTemplate = null;
+
+			LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
+			lettuceClusterConnectionFactory.setPort(SettingsUtils.getPort());
+			lettuceClusterConnectionFactory.setHostName(SettingsUtils.getHost());
+			lettuceClusterConnectionFactory.afterPropertiesSet();
+
+			clusterStringTemplate = new ReactiveRedisTemplate<>(lettuceClusterConnectionFactory,
+					RedisSerializationContext.string());
+
+			list = new ArrayList<>(list);
+			list.add(new Object[] { clusterStringTemplate, clusterKeyStringFactory, stringFactory, stringRedisSerializer,
+					"Cluster String" });
+		}
+
+		return list;
 	}
+
+	private static boolean clusterAvailable() {
+
+		try {
+			new RedisClusterRule().apply(new Statement() {
+				@Override
+				public void evaluate() throws Throwable {
+
+				}
+			}, null).evaluate();
+		} catch (Throwable throwable) {
+			return false;
+		}
+		return true;
+	}
+
 }

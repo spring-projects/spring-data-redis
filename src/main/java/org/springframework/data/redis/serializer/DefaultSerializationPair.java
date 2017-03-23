@@ -15,34 +15,26 @@
  */
 package org.springframework.data.redis.serializer;
 
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple;
+import lombok.Getter;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 /**
- * Default implementation of {@link SerializationTuple}.
+ * Default implementation of {@link SerializationPair}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
-class DefaultSerializationTuple<T> implements SerializationTuple<T> {
+@Getter
+class DefaultSerializationPair<T> implements SerializationPair<T> {
 
 	private final RedisElementReader<T> reader;
-
 	private final RedisElementWriter<T> writer;
 
 	@SuppressWarnings("unchecked")
-	protected DefaultSerializationTuple(RedisElementReader<? extends T> reader, RedisElementWriter<? extends T> writer) {
+	protected DefaultSerializationPair(RedisElementReader<? extends T> reader, RedisElementWriter<? extends T> writer) {
 
 		this.reader = (RedisElementReader) reader;
 		this.writer = (RedisElementWriter) writer;
-	}
-
-	@Override
-	public RedisElementReader<T> getReader() {
-		return reader;
-	}
-
-	@Override
-	public RedisElementWriter<T> getWriter() {
-		return writer;
 	}
 }

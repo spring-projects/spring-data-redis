@@ -29,25 +29,32 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveSetCommands;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ReactiveSetOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
+	/**
+	 * Creates new {@link DefaultReactiveSetOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveSetOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;
@@ -65,13 +72,10 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 			return createMono(connection -> connection.sAdd(rawKey(key), rawValue(values[0])));
 		}
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(values) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.sAdd(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromArray(values) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.sAdd(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -87,13 +91,10 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 			return createMono(connection -> connection.sRem(rawKey(key), rawValue((V) values[0])));
 		}
 
-		return createMono(connection -> {
-
-			return Flux.fromArray((V[]) values) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.sRem(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromArray((V[]) values) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.sRem(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -163,16 +164,11 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(connection::sInter) //
-					.map(this::readValueSet);
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(connection::sInter) //
+				.map(this::readValueSet));
 	}
 
 	/* (non-Javadoc)
@@ -198,15 +194,10 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(rawKeys -> connection.sInterStore(rawKey(destKey), rawKeys));
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(rawKeys -> connection.sInterStore(rawKey(destKey), rawKeys)));
 	}
 
 	/* (non-Javadoc)
@@ -230,16 +221,11 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(connection::sUnion) //
-					.map(this::readValueSet);
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(connection::sUnion) //
+				.map(this::readValueSet));
 	}
 
 	/* (non-Javadoc)
@@ -265,15 +251,10 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(rawKeys -> connection.sUnionStore(rawKey(destKey), rawKeys));
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(rawKeys -> connection.sUnionStore(rawKey(destKey), rawKeys)));
 	}
 
 	/* (non-Javadoc)
@@ -297,16 +278,11 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(connection::sDiff) //
-					.map(this::readValueSet);
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(connection::sDiff) //
+				.map(this::readValueSet));
 	}
 
 	/* (non-Javadoc)
@@ -332,15 +308,10 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(rawKeys -> connection.sDiffStore(rawKey(destKey), rawKeys));
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(rawKeys -> connection.sDiffStore(rawKey(destKey), rawKeys)));
 	}
 
 	/* (non-Javadoc)
@@ -406,7 +377,7 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private List<K> getKeys(K key, Collection<K> otherKeys) {
@@ -420,11 +391,11 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serializationContext.value().write(value);
+		return serializationContext.getValueSerializationPair().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serializationContext.value().read(buffer);
+		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 
 	private Set<V> readValueSet(Collection<ByteBuffer> raw) {

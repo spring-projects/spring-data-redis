@@ -35,11 +35,13 @@ import org.springframework.data.redis.ConnectionFactoryTracker;
 import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * Integration tests for {@link DefaultReactiveSetOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
@@ -51,7 +53,7 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 	private final ObjectFactory<K> keyFactory;
 	private final ObjectFactory<V> valueFactory;
 
-	@Parameters(name = "{3}")
+	@Parameters(name = "{4}")
 	public static Collection<Object[]> testParams() {
 		return ReactiveOperationsTestParams.testParams();
 	}
@@ -68,7 +70,7 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 	 * @param label parameterized test label, no further use besides that.
 	 */
 	public DefaultReactiveSetOperationsIntegrationTests(ReactiveRedisTemplate<K, V> redisTemplate,
-			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, String label) {
+			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
 
 		this.redisTemplate = redisTemplate;
 		this.setOperations = redisTemplate.opsForSet();

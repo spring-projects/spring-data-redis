@@ -34,7 +34,7 @@ import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
@@ -42,18 +42,25 @@ import org.springframework.util.Assert;
  * Default implementation of {@link ReactiveZSetOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
+	/**
+	 * Creates new {@link DefaultReactiveZSetOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveZSetOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;
@@ -79,13 +86,10 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(tuples, "Key must not be null!");
 
-		return createMono(connection -> {
-
-			return Flux.fromIterable(tuples) //
-					.map(t -> new DefaultTuple(ByteUtils.getBytes(rawValue(t.getValue())), t.getScore())) //
-					.collectList() //
-					.flatMap(serialized -> connection.zAdd(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromIterable(tuples) //
+				.map(t -> new DefaultTuple(ByteUtils.getBytes(rawValue(t.getValue())), t.getScore())) //
+				.collectList() //
+				.flatMap(serialized -> connection.zAdd(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -102,13 +106,10 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 			return createMono(connection -> connection.zRem(rawKey(key), rawValue((V) values[0])));
 		}
 
-		return createMono(connection -> {
-
-			return Flux.fromArray((V[]) values) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.zRem(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromArray((V[]) values) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.zRem(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -378,15 +379,10 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(serialized -> connection.zUnionStore(rawKey(destKey), serialized));
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(serialized -> connection.zUnionStore(rawKey(destKey), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -412,15 +408,10 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 		Assert.notNull(destKey, "Destination key must not be null!");
 
-		List<K> keys = getKeys(key, otherKeys);
-
-		return createMono(connection -> {
-
-			return Flux.fromIterable(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized));
-		});
+		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(serialized -> connection.zInterStore(rawKey(destKey), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -492,7 +483,7 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private List<K> getKeys(K key, Collection<K> otherKeys) {
@@ -506,11 +497,11 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serializationContext.value().write(value);
+		return serializationContext.getValueSerializationPair().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serializationContext.value().read(buffer);
+		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 
 	private Set<V> readValueSet(Collection<ByteBuffer> raw) {

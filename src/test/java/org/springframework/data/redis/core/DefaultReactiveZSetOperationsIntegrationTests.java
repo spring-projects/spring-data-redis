@@ -37,12 +37,14 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration tests for {@link DefaultReactiveZSetOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 @SuppressWarnings("unchecked")
@@ -54,7 +56,9 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	private final ObjectFactory<K> keyFactory;
 	private final ObjectFactory<V> valueFactory;
 
-	@Parameters(name = "{3}")
+	private final RedisSerializer serializer;
+
+	@Parameters(name = "{4}")
 	public static Collection<Object[]> testParams() {
 		return ReactiveOperationsTestParams.testParams();
 	}
@@ -71,12 +75,13 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	 * @param label parameterized test label, no further use besides that.
 	 */
 	public DefaultReactiveZSetOperationsIntegrationTests(ReactiveRedisTemplate<K, V> redisTemplate,
-			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, String label) {
+			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
 
 		this.redisTemplate = redisTemplate;
 		this.zSetOperations = redisTemplate.opsForZSet();
 		this.keyFactory = keyFactory;
 		this.valueFactory = valueFactory;
+		this.serializer = serializer;
 
 		ConnectionFactoryTracker.add(redisTemplate.getConnectionFactory());
 	}
@@ -524,7 +529,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	@Test // DATAREDIS-602
 	public void rangeByLex() {
 
-		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
+		assumeTrue(serializer instanceof StringRedisSerializer);
 
 		K key = keyFactory.instance();
 		V a = (V) "a";
@@ -542,7 +547,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	@Test // DATAREDIS-602
 	public void rangeByLexWithLimit() {
 
-		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
+		assumeTrue(serializer instanceof StringRedisSerializer);
 
 		K key = keyFactory.instance();
 		V a = (V) "a";
@@ -565,7 +570,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	@Test // DATAREDIS-602
 	public void reverseRangeByLex() {
 
-		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
+		assumeTrue(serializer instanceof StringRedisSerializer);
 
 		K key = keyFactory.instance();
 		V a = (V) "a";
@@ -582,7 +587,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 	@Test // DATAREDIS-602
 	public void reverseRangeByLexLimit() {
 
-		assumeTrue(redisTemplate.getValueSerializer() instanceof StringRedisSerializer);
+		assumeTrue(serializer instanceof StringRedisSerializer);
 
 		K key = keyFactory.instance();
 		V a = (V) "a";

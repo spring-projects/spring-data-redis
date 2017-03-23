@@ -40,13 +40,15 @@ import org.springframework.data.redis.connection.ReactiveRedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * Integration tests for {@link ReactiveRedisTemplate}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 public class ReactiveRedisTemplateIntegrationTests<K, V> {
@@ -57,7 +59,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 	private final ObjectFactory<V> valueFactory;
 
-	@Parameters(name = "{3}")
+	@Parameters(name = "{4}")
 	public static Collection<Object[]> testParams() {
 		return ReactiveOperationsTestParams.testParams();
 	}
@@ -74,7 +76,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	 * @param label parameterized test label, no further use besides that.
 	 */
 	public ReactiveRedisTemplateIntegrationTests(ReactiveRedisTemplate<K, V> redisTemplate, ObjectFactory<K> keyFactory,
-			ObjectFactory<V> valueFactory, String label) {
+			ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
 
 		this.redisTemplate = redisTemplate;
 		this.keyFactory = keyFactory;
@@ -269,7 +271,7 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 		Person value = new PersonObjectFactory().instance();
 
 		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
-		ReactiveSerializationContext<Object, Object> objectSerializers = ReactiveSerializationContext.builder()
+		RedisSerializationContext<Object, Object> objectSerializers = RedisSerializationContext.newSerializationContext()
 				.key(jdkSerializer) //
 				.value(jdkSerializer) //
 				.hashKey(jdkSerializer) //
@@ -286,18 +288,17 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 	@Test // DATAREDIS-602
 	public void shouldApplyCustomSerializationContextToHash() {
 
-		ReactiveSerializationContext<K, V> serializationContext = redisTemplate.getSerializationContext();
+		RedisSerializationContext<K, V> serializationContext = redisTemplate.getSerializationContext();
 
 		K key = keyFactory.instance();
 		String hashField = "foo";
 		Person hashValue = new PersonObjectFactory().instance();
 
-		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
-		ReactiveSerializationContext<K, V> objectSerializers = ReactiveSerializationContext.<K, V> builder()
-				.key(serializationContext.key()) //
-				.value(serializationContext.value()) //
+		RedisSerializationContext<K, V> objectSerializers = RedisSerializationContext.<K, V> newSerializationContext()
+				.key(serializationContext.getKeySerializationPair()) //
+				.value(serializationContext.getValueSerializationPair()) //
 				.hashKey(new StringRedisSerializer()) //
-				.hashValue(jdkSerializer) //
+				.hashValue(new JdkSerializationRedisSerializer()) //
 				.build();
 
 		ReactiveHashOperations<K, String, Object> hashOperations = redisTemplate.opsForHash(objectSerializers);
