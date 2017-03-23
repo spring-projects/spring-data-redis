@@ -232,13 +232,14 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				if (persistentProperty.isMap()) {
 
 					Map<?, ?> targetValue = null;
+					Class<?> mapValueType = persistentProperty.getMapValueType().orElseThrow(()-> new IllegalArgumentException("Unable to retrieve MapValueType!"));
 
-					if (conversionService.canConvert(byte[].class, persistentProperty.getMapValueType())) {
+					if (conversionService.canConvert(byte[].class, mapValueType)) {
 						targetValue = readMapOfSimpleTypes(currentPath, persistentProperty.getType(),
-								persistentProperty.getComponentType(), persistentProperty.getMapValueType(), source);
+								persistentProperty.getComponentType().get(), mapValueType, source);
 					} else {
 						targetValue = readMapOfComplexTypes(currentPath, persistentProperty.getType(),
-								persistentProperty.getComponentType(), persistentProperty.getMapValueType(), source);
+								persistentProperty.getComponentType().get(), mapValueType, source);
 					}
 
 					if (targetValue != null) {
@@ -313,7 +314,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 					Bucket bucket = source.getBucket().extract(currentPath + ".[");
 
 					Collection<Object> target = CollectionFactory.createCollection(association.getInverse().getType(),
-							association.getInverse().getComponentType(), bucket.size());
+							association.getInverse().getComponentType().orElse(Object.class), bucket.size());
 
 					for (Entry<String, byte[]> entry : bucket.entrySet()) {
 
@@ -501,7 +502,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 								pUpdate.getPropertyPath(), pUpdate.getValue()));
 			}
 
-			writeMap(entity.getKeySpace(), pUpdate.getPropertyPath(), targetProperty.getMapValueType(), map, sink);
+			writeMap(entity.getKeySpace(), pUpdate.getPropertyPath(), targetProperty.getMapValueType().orElse(Object.class), map, sink);
 		} else {
 
 			writeInternal(entity.getKeySpace(), pUpdate.getPropertyPath(), pUpdate.getValue(),
@@ -589,7 +590,7 @@ public class MappingRedisConverter implements RedisConverter, InitializingBean {
 				if (persistentProperty.isMap()) {
 
 					if (accessor.getProperty(persistentProperty).isPresent()) {
-						writeMap(keyspace, propertyStringPath, persistentProperty.getMapValueType(),
+						writeMap(keyspace, propertyStringPath, persistentProperty.getMapValueType().orElse(Object.class),
 								(Map<?, ?>) accessor.getProperty(persistentProperty).get(), sink);
 					}
 				} else if (persistentProperty.isCollectionLike()) {
