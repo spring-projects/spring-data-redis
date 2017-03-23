@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * Default implementation of {@link ReactiveHashOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
@@ -42,6 +43,12 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final ReactiveSerializationContext<H, ?> serializationContext;
 
+	/**
+	 * Creates new instance of {@link DefaultReactiveHashOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
 			ReactiveSerializationContext<H, ?> serializationContext) {
 
@@ -64,13 +71,10 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notEmpty(hashKeys, "Hash keys must not be empty!");
 		Assert.noNullElements(hashKeys, "Hash keys must not contain null elements!");
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(hashKeys) //
-					.map(o -> (HK) o).map(this::rawHashKey) //
-					.collectList() //
-					.then(hks -> connection.hDel(rawKey(key), hks));
-		});
+		return createMono(connection -> Flux.fromArray(hashKeys) //
+				.map(o -> (HK) o).map(this::rawHashKey) //
+				.collectList() //
+				.then(hks -> connection.hDel(rawKey(key), hks)));
 	}
 
 	/* (non-Javadoc)
@@ -109,20 +113,10 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notNull(hashKeys, "Hash keys must not be null!");
 		Assert.notEmpty(hashKeys, "Hash keys must not be empty!");
 
-		return createMono(connection -> {
-
-			return Flux.fromIterable(hashKeys) //
-					.map(this::rawHashKey) //
-					.collectList() //
-					.then(hks -> connection.hMGet(rawKey(key), hks)).map(byteBuffers -> {
-
-						List<HV> values = new ArrayList<HV>(byteBuffers.size());
-						for (ByteBuffer byteBuffer : byteBuffers) {
-							values.add(readHashValue(byteBuffer));
-						}
-						return values;
-					});
-		});
+		return createMono(connection -> Flux.fromIterable(hashKeys) //
+				.map(this::rawHashKey) //
+				.collectList() //
+				.then(hks -> connection.hMGet(rawKey(key), hks)).map(this::deserializeHashValues));
 	}
 
 	/* (non-Javadoc)
@@ -187,13 +181,9 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(map, "Map must not be null!");
 
-		return createMono(connection -> {
-
-			return Flux.fromIterable(() -> map.entrySet().iterator()) //
-					.collectMap(entry -> rawHashKey(entry.getKey()), entry -> rawHashValue(entry.getValue())) //
-					.flatMap(serialized -> connection.hMSet(rawKey(key), serialized));
-
-		});
+		return createMono(connection -> Flux.fromIterable(() -> map.entrySet().iterator()) //
+				.collectMap(entry -> rawHashKey(entry.getKey()), entry -> rawHashValue(entry.getValue())) //
+				.flatMap(serialized -> connection.hMSet(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -245,16 +235,7 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notNull(key, "Key must not be null!");
 
 		return createMono(connection -> connection.hGetAll(rawKey(key)) //
-				.map(map -> {
-
-					Map<HK, HV> deserialized = new LinkedHashMap<>(map.size());
-
-					map.forEach((k, v) -> {
-						deserialized.put(readHashKey(k), readHashValue(v));
-					});
-
-					return deserialized;
-				}));
+				.map(this::deserializeHashEntries));
 	}
 
 	/* (non-Javadoc)
@@ -276,24 +257,44 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	}
 
 	private ByteBuffer rawKey(H key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private ByteBuffer rawHashKey(HK key) {
-		return serializationContext.hashKey().write(key);
+		return serializationContext.getHashKeySerializationPair().write(key);
 	}
 
 	private ByteBuffer rawHashValue(HV key) {
-		return serializationContext.hashValue().write(key);
+		return serializationContext.getHashValueSerializationPair().write(key);
 	}
 
 	@SuppressWarnings("unchecked")
 	private HK readHashKey(ByteBuffer value) {
-		return (HK) serializationContext.hashKey().read(value);
+		return (HK) serializationContext.getHashKeySerializationPair().read(value);
 	}
 
 	@SuppressWarnings("unchecked")
 	private HV readHashValue(ByteBuffer value) {
-		return (HV) serializationContext.hashValue().read(value);
+		return (HV) serializationContext.getHashValueSerializationPair().read(value);
+	}
+
+	private Map<HK, HV> deserializeHashEntries(Map<ByteBuffer, ByteBuffer> source) {
+
+		Map<HK, HV> deserialized = new LinkedHashMap<>(source.size());
+
+		source.forEach((k, v) -> {
+			deserialized.put(readHashKey(k), readHashValue(v));
+		});
+
+		return deserialized;
+	}
+
+	private List<HV> deserializeHashValues(List<ByteBuffer> source) {
+
+		List<HV> values = new ArrayList<HV>(source.size());
+		for (ByteBuffer byteBuffer : source) {
+			values.add(readHashValue(byteBuffer));
+		}
+		return values;
 	}
 }

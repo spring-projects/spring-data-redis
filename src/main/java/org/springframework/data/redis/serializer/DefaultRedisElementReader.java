@@ -23,9 +23,10 @@ import java.nio.ByteBuffer;
  * Default implementation of {@link RedisElementReader}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor //TODO we need some tests for this one!
 class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
 	private final RedisSerializer<T> serializer;
@@ -41,7 +42,7 @@ class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 			return (T) buffer;
 		}
 
-		byte[] bytes = new byte[buffer.remaining()];
+		byte[] bytes = new byte[buffer.slice().remaining()];
 		buffer.get(bytes);
 
 		return serializer.deserialize(bytes);

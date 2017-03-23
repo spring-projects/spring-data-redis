@@ -45,7 +45,7 @@ public interface ReactiveRedisOperations<K, V> {
 	 *
 	 * @param <T> return type
 	 * @param action callback object that specifies the Redis action
-	 * @return a result object returned by the action or <tt>null</tt>
+	 * @return a result object returned by the action or {@link Flux#empty()}.
 	 */
 	<T> Flux<T> execute(ReactiveRedisCallback<T> action);
 

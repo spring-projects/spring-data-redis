@@ -93,6 +93,7 @@ public class LettuceReactiveKeyCommands implements ReactiveKeyCommands {
 	 */
 	@Override
 	public Flux<MultiValueResponse<ByteBuffer, ByteBuffer>> keys(Publisher<ByteBuffer> patterns) {
+
 		return connection.execute(cmd -> Flux.from(patterns).flatMap(pattern -> {
 
 			Assert.notNull(pattern, "Pattern must not be null!");

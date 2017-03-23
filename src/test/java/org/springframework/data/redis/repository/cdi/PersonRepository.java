@@ -17,6 +17,7 @@ package org.springframework.data.redis.repository.cdi;
 
 import java.util.List;
 
+import org.springframework.data.annotation.QueryAnnotation;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.cdi.Eager;
 
@@ -27,6 +28,7 @@ import org.springframework.data.repository.cdi.Eager;
 public interface PersonRepository extends CrudRepository<Person, String>, PersonRepositoryCustom {
 
 	List<Person> findAll();
+
 
 	List<Person> findByName(String name);
 

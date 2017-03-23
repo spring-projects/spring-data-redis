@@ -73,11 +73,11 @@ public class ReactiveSerializationContextUnitTests {
 
 		ReactiveSerializationContext<String, Long> serializationContext = createSerializationContext();
 
-		assertThat(serializationContext.key()).isNotNull();
-		assertThat(serializationContext.value()).isNotNull();
-		assertThat(serializationContext.hashKey()).isNotNull();
-		assertThat(serializationContext.hashValue()).isNotNull();
-		assertThat(serializationContext.string()).isNotNull();
+		assertThat(serializationContext.getKeySerializationPair()).isNotNull();
+		assertThat(serializationContext.getValueSerializationPair()).isNotNull();
+		assertThat(serializationContext.getHashKeySerializationPair()).isNotNull();
+		assertThat(serializationContext.getHashValueSerializationPair()).isNotNull();
+		assertThat(serializationContext.getStringSerializationPair()).isNotNull();
 	}
 
 	@Test // DATAREDIS-602
@@ -85,7 +85,7 @@ public class ReactiveSerializationContextUnitTests {
 
 		ReactiveSerializationContext<String, Long> serializationContext = createSerializationContext();
 
-		String deserialized = serializationContext.key().read(serializationContext.key().write("foo"));
+		String deserialized = serializationContext.getKeySerializationPair().read(serializationContext.getKeySerializationPair().write("foo"));
 
 		assertThat(deserialized).isEqualTo("foo");
 	}
@@ -95,7 +95,7 @@ public class ReactiveSerializationContextUnitTests {
 
 		ReactiveSerializationContext<String, Long> serializationContext = createSerializationContext();
 
-		long deserialized = serializationContext.value().read(serializationContext.value().write(42L));
+		long deserialized = serializationContext.getValueSerializationPair().read(serializationContext.getValueSerializationPair().write(42L));
 
 		assertThat(deserialized).isEqualTo(42);
 	}

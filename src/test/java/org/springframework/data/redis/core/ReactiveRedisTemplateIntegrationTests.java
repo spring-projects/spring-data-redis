@@ -294,8 +294,8 @@ public class ReactiveRedisTemplateIntegrationTests<K, V> {
 
 		JdkSerializationRedisSerializer jdkSerializer = new JdkSerializationRedisSerializer();
 		ReactiveSerializationContext<K, V> objectSerializers = ReactiveSerializationContext.<K, V> builder()
-				.key(serializationContext.key()) //
-				.value(serializationContext.value()) //
+				.key(serializationContext.getKeySerializationPair()) //
+				.value(serializationContext.getValueSerializationPair()) //
 				.hashKey(new StringRedisSerializer()) //
 				.hashValue(jdkSerializer) //
 				.build();

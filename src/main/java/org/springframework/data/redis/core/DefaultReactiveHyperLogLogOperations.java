@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * Default implementation of {@link ReactiveHyperLogLogOperations}.
  *
  * @author Mark Paluch
+ * @auhtor Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyperLogLogOperations<K, V> {
@@ -37,6 +38,12 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final ReactiveSerializationContext<K, V> serializationContext;
 
+	/**
+	 * Creates new instance of {@link DefaultReactiveHyperLogLogOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveHyperLogLogOperations(ReactiveRedisTemplate<?, ?> template,
 			ReactiveSerializationContext<K, V> serializationContext) {
 
@@ -55,17 +62,13 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	public final Mono<Long> add(K key, V... values) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.notEmpty(values, "Values must not be empty!");
+		Assert.notEmpty(values, "Values must not be null or empty!");
 		Assert.noNullElements(values, "Values must not contain null elements!");
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(values) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serializedValues -> connection.pfAdd(rawKey(key), serializedValues));
-		});
+		return createMono(connection -> Flux.fromArray(values) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serializedValues -> connection.pfAdd(rawKey(key), serializedValues)));
 	}
 
 	/* (non-Javadoc)
@@ -75,17 +78,13 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	@SafeVarargs
 	public final Mono<Long> size(K... keys) {
 
-		Assert.notNull(keys, "Keys must not be null!");
-		Assert.notEmpty(keys, "Keys must not be empty!");
+		Assert.notEmpty(keys, "Keys must not be null or empty!");
 		Assert.noNullElements(keys, "Keys must not contain null elements!");
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(keys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(connection::pfCount);
-		});
+		return createMono(connection -> Flux.fromArray(keys) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(connection::pfCount));
 	}
 
 	/* (non-Javadoc)
@@ -96,17 +95,13 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	public final Mono<Boolean> union(K destination, K... sourceKeys) {
 
 		Assert.notNull(destination, "Destination key must not be null!");
-		Assert.notNull(sourceKeys, "Source keys must not be null!");
-		Assert.notEmpty(sourceKeys, "Source keys must not be empty!");
+		Assert.notEmpty(sourceKeys, "Source keys must not be null or empty!");
 		Assert.noNullElements(sourceKeys, "Source keys must not contain null elements!");
 
-		return createMono(connection -> {
-
-			return Flux.fromArray(sourceKeys) //
-					.map(this::rawKey) //
-					.collectList() //
-					.flatMap(serialized -> connection.pfMerge(rawKey(destination), serialized));
-		});
+		return createMono(connection -> Flux.fromArray(sourceKeys) //
+				.map(this::rawKey) //
+				.collectList() //
+				.flatMap(serialized -> connection.pfMerge(rawKey(destination), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -128,10 +123,10 @@ public class DefaultReactiveHyperLogLogOperations<K, V> implements ReactiveHyper
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serializationContext.value().write(value);
+		return serializationContext.getValueSerializationPair().write(value);
 	}
 }

@@ -18,9 +18,12 @@ package org.springframework.data.redis.core;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
+import org.junit.runners.model.Statement;
 import org.springframework.data.redis.ByteBufferObjectFactory;
 import org.springframework.data.redis.DoubleObjectFactory;
 import org.springframework.data.redis.LongObjectFactory;
@@ -38,6 +41,7 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.test.util.RedisClusterRule;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 
 /**
@@ -69,23 +73,9 @@ abstract public class ReactiveOperationsTestParams {
 		lettuceConnectionFactory.setHostName(SettingsUtils.getHost());
 		lettuceConnectionFactory.afterPropertiesSet();
 
-		RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
-		clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
-
-		LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
-		lettuceClusterConnectionFactory.setPort(SettingsUtils.getPort());
-		lettuceClusterConnectionFactory.setHostName(SettingsUtils.getHost());
-		lettuceClusterConnectionFactory.afterPropertiesSet();
-
 		ReactiveRedisTemplate<Object, Object> objectTemplate = new ReactiveRedisTemplate<>();
 		objectTemplate.setConnectionFactory(lettuceConnectionFactory);
 		objectTemplate.afterPropertiesSet();
-
-		ReactiveRedisTemplate<String, String> clusterStringTemplate = new ReactiveRedisTemplate<>();
-		clusterStringTemplate.setConnectionFactory(lettuceClusterConnectionFactory);
-		clusterStringTemplate.setDefaultSerializer(new StringRedisSerializer());
-		clusterStringTemplate.setEnableDefaultSerializer(true);
-		clusterStringTemplate.afterPropertiesSet();
 
 		ReactiveRedisTemplate<String, String> stringTemplate = new ReactiveRedisTemplate<>();
 		stringTemplate.setDefaultSerializer(new StringRedisSerializer());
@@ -137,17 +127,56 @@ abstract public class ReactiveOperationsTestParams {
 		genericJackson2JsonPersonTemplate.setValueSerializer(genericJackson2JsonSerializer);
 		genericJackson2JsonPersonTemplate.afterPropertiesSet();
 
-		return Arrays.asList(new Object[][] { //
-				{ stringTemplate, stringFactory, stringFactory , "String"}, //
-				{ clusterStringTemplate, clusterKeyStringFactory, stringFactory, "Cluster String" }, //
-				{ objectTemplate, personFactory, personFactory , "Person/JDK"}, //
-				{ longTemplate, stringFactory, longFactory , "Long"}, //
-				{ doubleTemplate, stringFactory, doubleFactory , "Double"}, //
-				{ rawTemplate, rawFactory, rawFactory , "raw"}, //
-				{ personTemplate, stringFactory, personFactory , "String/Person/JDK"}, //
-				{ xstreamStringTemplate, stringFactory, stringFactory , "String/OXM"}, //
-				{ xstreamPersonTemplate, stringFactory, personFactory, "String/Person/OXM"}, //
-				{ jackson2JsonPersonTemplate, stringFactory, personFactory, "Jackson2"}, //
+		List<Object[]> list = Arrays.asList(new Object[][] { //
+				{ stringTemplate, stringFactory, stringFactory, "String" }, //
+				{ objectTemplate, personFactory, personFactory, "Person/JDK" }, //
+				{ longTemplate, stringFactory, longFactory, "Long" }, //
+				{ doubleTemplate, stringFactory, doubleFactory, "Double" }, //
+				{ rawTemplate, rawFactory, rawFactory, "raw" }, //
+				{ personTemplate, stringFactory, personFactory, "String/Person/JDK" }, //
+				{ xstreamStringTemplate, stringFactory, stringFactory, "String/OXM" }, //
+				{ xstreamPersonTemplate, stringFactory, personFactory, "String/Person/OXM" }, //
+				{ jackson2JsonPersonTemplate, stringFactory, personFactory, "Jackson2" }, //
 				{ genericJackson2JsonPersonTemplate, stringFactory, personFactory, "Generic Jackson 2" } });
+
+		if (clusterAvailable()) {
+
+			RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+			clusterConfiguration.addClusterNode(new RedisClusterNode(CLUSTER_HOST, MASTER_NODE_1_PORT));
+
+			ReactiveRedisTemplate<String, String> clusterStringTemplate = null;
+
+			LettuceConnectionFactory lettuceClusterConnectionFactory = new LettuceConnectionFactory(clusterConfiguration);
+			lettuceClusterConnectionFactory.setPort(SettingsUtils.getPort());
+			lettuceClusterConnectionFactory.setHostName(SettingsUtils.getHost());
+			lettuceClusterConnectionFactory.afterPropertiesSet();
+
+			clusterStringTemplate = new ReactiveRedisTemplate<>();
+			clusterStringTemplate.setConnectionFactory(lettuceClusterConnectionFactory);
+			clusterStringTemplate.setDefaultSerializer(new StringRedisSerializer());
+			clusterStringTemplate.setEnableDefaultSerializer(true);
+			clusterStringTemplate.afterPropertiesSet();
+
+			list = new ArrayList<>(list);
+			list.add(new Object[] { clusterStringTemplate, clusterKeyStringFactory, stringFactory, "Cluster String" });
+		}
+
+		return list;
 	}
+
+	private static boolean clusterAvailable() {
+
+		try {
+			new RedisClusterRule().apply(new Statement() {
+				@Override
+				public void evaluate() throws Throwable {
+
+				}
+			}, null).evaluate();
+		} catch (Throwable throwable) {
+			return false;
+		}
+		return true;
+	}
+
 }

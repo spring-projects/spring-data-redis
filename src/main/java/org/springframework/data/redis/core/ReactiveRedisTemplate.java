@@ -742,11 +742,11 @@ public class ReactiveRedisTemplate<K, V>
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return getSerializationContext().key().getWriter().write(key);
+		return getSerializationContext().getKeySerializationPair().getWriter().write(key);
 	}
 
 	private K readKey(ByteBuffer buffer) {
-		return getSerializationContext().key().getReader().read(buffer);
+		return getSerializationContext().getKeySerializationPair().getReader().read(buffer);
 	}
 
 	/**
@@ -755,19 +755,19 @@ public class ReactiveRedisTemplate<K, V>
 	static abstract class ReactiveSerializationContextSupport<K, V> implements ReactiveSerializationContext<K, V> {
 
 		@Override
-		public abstract SerializationTuple<K> key();
+		public abstract SerializationPair<K> getKeySerializationPair();
 
 		@Override
-		public abstract SerializationTuple<V> value();
+		public abstract SerializationPair<V> getValueSerializationPair();
 
 		@Override
-		public abstract SerializationTuple<String> string();
+		public abstract SerializationPair<String> getStringSerializationPair();
 
 		@Override
-		public abstract <HK> SerializationTuple<HK> hashKey();
+		public abstract <HK> SerializationPair<HK> getHashKeySerializationPair();
 
 		@Override
-		public abstract <HV> SerializationTuple<HV> hashValue();
+		public abstract <HV> SerializationPair<HV> getHashValueSerializationPair();
 
 		public abstract RedisSerializer<K> getKeySerializer();
 
@@ -786,59 +786,59 @@ public class ReactiveRedisTemplate<K, V>
 	static class ImmutableReactiveSerializationContext<K, V> extends ReactiveSerializationContextSupport<K, V> {
 
 		private RedisSerializer<K> keySerializer;
-		private final SerializationTuple<K> keyTuple;
+		private final SerializationPair<K> keyTuple;
 
 		private RedisSerializer<V> valueSerializer;
-		private final SerializationTuple<V> valueTuple;
+		private final SerializationPair<V> valueTuple;
 
 		private RedisSerializer<?> hashKeySerializer;
-		private final SerializationTuple<?> hashKeyTuple;
+		private final SerializationPair<?> hashKeyTuple;
 
 		private RedisSerializer<?> hashValueSerializer;
-		private final SerializationTuple<?> hashValueTuple;
+		private final SerializationPair<?> hashValueTuple;
 
 		private RedisSerializer<String> stringSerializer;
-		private final SerializationTuple<String> stringTuple;
+		private final SerializationPair<String> stringTuple;
 
 		public ImmutableReactiveSerializationContext(ReactiveSerializationContextSupport<K, V> context) {
 
 			keySerializer = context.getKeySerializer();
-			keyTuple = context.key();
+			keyTuple = context.getKeySerializationPair();
 			valueSerializer = context.getValueSerializer();
-			valueTuple = context.value();
+			valueTuple = context.getValueSerializationPair();
 			hashKeySerializer = context.getHashKeySerializer();
-			hashKeyTuple = context.hashKey();
+			hashKeyTuple = context.getHashKeySerializationPair();
 			hashValueSerializer = context.getHashValueSerializer();
-			hashValueTuple = context.hashValue();
+			hashValueTuple = context.getHashValueSerializationPair();
 			stringSerializer = context.getStringSerializer();
-			stringTuple = context.string();
+			stringTuple = context.getStringSerializationPair();
 		}
 
 		@Override
-		public SerializationTuple<K> key() {
+		public SerializationPair<K> getKeySerializationPair() {
 			return keyTuple;
 		}
 
 		@Override
-		public SerializationTuple<V> value() {
+		public SerializationPair<V> getValueSerializationPair() {
 			return valueTuple;
 		}
 
 		@Override
-		public SerializationTuple<String> string() {
+		public SerializationPair<String> getStringSerializationPair() {
 			return stringTuple;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <HK> SerializationTuple<HK> hashKey() {
-			return (SerializationTuple) hashKeyTuple;
+		public <HK> SerializationPair<HK> getHashKeySerializationPair() {
+			return (SerializationPair) hashKeyTuple;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <HV> SerializationTuple<HV> hashValue() {
-			return (SerializationTuple) hashValueTuple;
+		public <HV> SerializationPair<HV> getHashValueSerializationPair() {
+			return (SerializationPair) hashValueTuple;
 		}
 
 		public RedisSerializer<K> getKeySerializer() {
@@ -868,45 +868,45 @@ public class ReactiveRedisTemplate<K, V>
 	static class MutableReactiveSerializationContext<K, V> extends ReactiveSerializationContextSupport<K, V> {
 
 		private RedisSerializer<K> keySerializer;
-		private SerializationTuple<K> keyTuple = SerializationTuple.raw();
+		private SerializationPair<K> keyTuple = SerializationPair.raw();
 
 		private RedisSerializer<V> valueSerializer;
-		private SerializationTuple<V> valueTuple = SerializationTuple.raw();
+		private SerializationPair<V> valueTuple = SerializationPair.raw();
 
 		private RedisSerializer<?> hashKeySerializer;
-		private SerializationTuple<?> hashKeyTuple = SerializationTuple.raw();
+		private SerializationPair<?> hashKeyTuple = SerializationPair.raw();
 
 		private RedisSerializer<?> hashValueSerializer;
-		private SerializationTuple<?> hashValueTuple = SerializationTuple.raw();
+		private SerializationPair<?> hashValueTuple = SerializationPair.raw();
 
 		private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
-		private SerializationTuple<String> stringTuple = SerializationTuple.fromSerializer(stringSerializer);
+		private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(stringSerializer);
 
 		@Override
-		public SerializationTuple<K> key() {
+		public SerializationPair<K> getKeySerializationPair() {
 			return keyTuple;
 		}
 
 		@Override
-		public SerializationTuple<V> value() {
+		public SerializationPair<V> getValueSerializationPair() {
 			return valueTuple;
 		}
 
 		@Override
-		public SerializationTuple<String> string() {
+		public SerializationPair<String> getStringSerializationPair() {
 			return stringTuple;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <HK> SerializationTuple<HK> hashKey() {
-			return (SerializationTuple) hashKeyTuple;
+		public <HK> SerializationPair<HK> getHashKeySerializationPair() {
+			return (SerializationPair) hashKeyTuple;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <HV> SerializationTuple<HV> hashValue() {
-			return (SerializationTuple) hashValueTuple;
+		public <HV> SerializationPair<HV> getHashValueSerializationPair() {
+			return (SerializationPair) hashValueTuple;
 		}
 
 		public RedisSerializer<K> getKeySerializer() {
@@ -915,7 +915,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setKeySerializer(RedisSerializer<K> keySerializer) {
 			this.keySerializer = keySerializer;
-			this.keyTuple = SerializationTuple.fromSerializer(keySerializer);
+			this.keyTuple = SerializationPair.fromSerializer(keySerializer);
 		}
 
 		public RedisSerializer<V> getValueSerializer() {
@@ -924,7 +924,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setValueSerializer(RedisSerializer<V> valueSerializer) {
 			this.valueSerializer = valueSerializer;
-			this.valueTuple = SerializationTuple.fromSerializer(valueSerializer);
+			this.valueTuple = SerializationPair.fromSerializer(valueSerializer);
 		}
 
 		public RedisSerializer<?> getHashKeySerializer() {
@@ -933,7 +933,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
 			this.hashKeySerializer = hashKeySerializer;
-			this.hashKeyTuple = SerializationTuple.fromSerializer(hashKeySerializer);
+			this.hashKeyTuple = SerializationPair.fromSerializer(hashKeySerializer);
 		}
 
 		public RedisSerializer<?> getHashValueSerializer() {
@@ -942,7 +942,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
 			this.hashValueSerializer = hashValueSerializer;
-			this.hashValueTuple = SerializationTuple.fromSerializer(hashValueSerializer);
+			this.hashValueTuple = SerializationPair.fromSerializer(hashValueSerializer);
 		}
 
 		public RedisSerializer<String> getStringSerializer() {
@@ -951,7 +951,7 @@ public class ReactiveRedisTemplate<K, V>
 
 		public void setStringSerializer(RedisSerializer<String> stringSerializer) {
 			this.stringSerializer = stringSerializer;
-			this.stringTuple = SerializationTuple.fromSerializer(stringSerializer);
+			this.stringTuple = SerializationPair.fromSerializer(stringSerializer);
 		}
 	}
 }

@@ -16,136 +16,76 @@
 package org.springframework.data.redis.serializer;
 
 import org.springframework.data.redis.serializer.ReactiveSerializationContext.ReactiveSerializationContextBuilder;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationTuple;
+import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 
 /**
  * Default implementation of {@link ReactiveSerializationContextBuilder}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveSerializationContextBuilder<K, V> implements ReactiveSerializationContextBuilder<K, V> {
 
-	private SerializationTuple<K> keyTuple;
-
-	private SerializationTuple<V> valueTuple;
-
-	private SerializationTuple<?> hashKeyTuple;
-
-	private SerializationTuple<?> hashValueTuple;
-
-	private SerializationTuple<String> stringTuple = SerializationTuple.fromSerializer(new StringRedisSerializer());
+	private SerializationPair<K> keyTuple;
+	private SerializationPair<V> valueTuple;
+	private SerializationPair<?> hashKeyTuple;
+	private SerializationPair<?> hashValueTuple;
+	private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(new StringRedisSerializer());
 
 	@Override
-	public ReactiveSerializationContextBuilder<K, V> key(SerializationTuple<K> tuple) {
+	public ReactiveSerializationContextBuilder<K, V> key(SerializationPair<K> tuple) {
 
-		Assert.notNull(tuple, "SerializationTuple must not be null!");
+		Assert.notNull(tuple, "SerializationPair must not be null!");
 
 		this.keyTuple = tuple;
-
 		return this;
 	}
 
 	@Override
-	public ReactiveSerializationContextBuilder<K, V> key(RedisElementReader<K> reader, RedisElementWriter<K> writer) {
-		return key(SerializationTuple.just(reader, writer));
-	}
+	public ReactiveSerializationContextBuilder<K, V> value(SerializationPair<V> tuple) {
 
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> key(RedisSerializer<K> serializer) {
-		return key(SerializationTuple.fromSerializer(serializer));
-	}
-
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> value(SerializationTuple<V> tuple) {
-
-		Assert.notNull(tuple, "SerializationTuple must not be null!");
+		Assert.notNull(tuple, "SerializationPair must not be null!");
 
 		this.valueTuple = tuple;
-
 		return this;
 	}
 
 	@Override
-	public ReactiveSerializationContextBuilder<K, V> value(RedisElementReader<V> reader, RedisElementWriter<V> writer) {
-		return value(SerializationTuple.just(reader, writer));
-	}
+	public ReactiveSerializationContextBuilder<K, V> hashKey(SerializationPair<?> tuple) {
 
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> value(RedisSerializer<V> serializer) {
-		return value(SerializationTuple.fromSerializer(serializer));
-	}
-
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> hashKey(SerializationTuple<?> tuple) {
-
-		Assert.notNull(tuple, "SerializationTuple must not be null!");
+		Assert.notNull(tuple, "SerializationPair must not be null!");
 
 		this.hashKeyTuple = tuple;
-
 		return this;
 	}
 
 	@Override
-	public ReactiveSerializationContextBuilder<K, V> hashKey(RedisElementReader<?> reader, RedisElementWriter<?> writer) {
-		return hashKey(SerializationTuple.just(reader, writer));
-	}
+	public ReactiveSerializationContextBuilder<K, V> hashValue(SerializationPair<?> tuple) {
 
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> hashKey(RedisSerializer<?> serializer) {
-		return hashKey(SerializationTuple.fromSerializer(serializer));
-	}
-
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> hashValue(SerializationTuple<?> tuple) {
-
-		Assert.notNull(tuple, "SerializationTuple must not be null!");
+		Assert.notNull(tuple, "SerializationPair must not be null!");
 
 		this.hashValueTuple = tuple;
-
 		return this;
 	}
 
 	@Override
-	public ReactiveSerializationContextBuilder<K, V> hashValue(RedisElementReader<?> reader,
-			RedisElementWriter<?> writer) {
-		return hashValue(SerializationTuple.just(reader, writer));
-	}
+	public ReactiveSerializationContextBuilder<K, V> string(SerializationPair<String> tuple) {
 
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> hashValue(RedisSerializer<?> serializer) {
-		return hashValue(SerializationTuple.fromSerializer(serializer));
-	}
-
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> string(SerializationTuple<String> tuple) {
-
-		Assert.notNull(tuple, "SerializationTuple must not be null!");
+		Assert.notNull(tuple, "SerializationPair must not be null!");
 
 		this.hashValueTuple = tuple;
-
 		return this;
-	}
-
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> string(RedisElementReader<String> reader,
-			RedisElementWriter<String> writer) {
-		return string(SerializationTuple.just(reader, writer));
-	}
-
-	@Override
-	public ReactiveSerializationContextBuilder<K, V> string(RedisSerializer<String> serializer) {
-		return string(SerializationTuple.fromSerializer(serializer));
 	}
 
 	@Override
 	public ReactiveSerializationContext<K, V> build() {
 
-		Assert.notNull(keyTuple, "Key SerializationTuple must not be null!");
-		Assert.notNull(valueTuple, "Value SerializationTuple must not be null!");
-		Assert.notNull(hashKeyTuple, "HashKey SerializationTuple must not be null!");
-		Assert.notNull(hashValueTuple, "ValueKey SerializationTuple must not be null!");
+		Assert.notNull(keyTuple, "Key SerializationPair must not be null!");
+		Assert.notNull(valueTuple, "Value SerializationPair must not be null!");
+		Assert.notNull(hashKeyTuple, "HashKey SerializationPair must not be null!");
+		Assert.notNull(hashValueTuple, "ValueKey SerializationPair must not be null!");
 
 		return new DefaultReactiveSerializationContext<K, V>(keyTuple, valueTuple, hashKeyTuple, hashValueTuple,
 				stringTuple);
@@ -153,19 +93,14 @@ public class DefaultReactiveSerializationContextBuilder<K, V> implements Reactiv
 
 	static class DefaultReactiveSerializationContext<K, V> implements ReactiveSerializationContext<K, V> {
 
-		private final SerializationTuple<K> keyTuple;
+		private final SerializationPair<K> keyTuple;
+		private final SerializationPair<V> valueTuple;
+		private final SerializationPair<?> hashKeyTuple;
+		private final SerializationPair<?> hashValueTuple;
+		private final SerializationPair<String> stringTuple;
 
-		private final SerializationTuple<V> valueTuple;
-
-		private final SerializationTuple<?> hashKeyTuple;
-
-		private final SerializationTuple<?> hashValueTuple;
-
-		private final SerializationTuple<String> stringTuple;
-
-		public DefaultReactiveSerializationContext(SerializationTuple<K> keyTuple, SerializationTuple<V> valueTuple,
-				SerializationTuple<?> hashKeyTuple, SerializationTuple<?> hashValueTuple,
-				SerializationTuple<String> stringTuple) {
+		public DefaultReactiveSerializationContext(SerializationPair<K> keyTuple, SerializationPair<V> valueTuple,
+				SerializationPair<?> hashKeyTuple, SerializationPair<?> hashValueTuple, SerializationPair<String> stringTuple) {
 
 			this.keyTuple = keyTuple;
 			this.valueTuple = valueTuple;
@@ -175,29 +110,29 @@ public class DefaultReactiveSerializationContextBuilder<K, V> implements Reactiv
 		}
 
 		@Override
-		public SerializationTuple<K> key() {
+		public SerializationPair<K> getKeySerializationPair() {
 			return keyTuple;
 		}
 
 		@Override
-		public SerializationTuple<V> value() {
+		public SerializationPair<V> getValueSerializationPair() {
 			return valueTuple;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <HK> SerializationTuple<HK> hashKey() {
-			return (SerializationTuple) hashKeyTuple;
+		public <HK> SerializationPair<HK> getHashKeySerializationPair() {
+			return (SerializationPair) hashKeyTuple;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public <HV> SerializationTuple<HV> hashValue() {
-			return (SerializationTuple) hashValueTuple;
+		public <HV> SerializationPair<HV> getHashValueSerializationPair() {
+			return (SerializationPair) hashValueTuple;
 		}
 
 		@Override
-		public SerializationTuple<String> string() {
+		public SerializationPair<String> getStringSerializationPair() {
 			return stringTuple;
 		}
 	}

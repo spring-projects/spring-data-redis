@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * Default implementation of {@link ReactiveListOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V> {
@@ -45,6 +46,12 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	private final ReactiveRedisTemplate<?, ?> template;
 	private final ReactiveSerializationContext<K, V> serializationContext;
 
+	/**
+	 * Create new instance of {@link DefaultReactiveListOperations}.
+	 *
+	 * @param template must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 */
 	public DefaultReactiveListOperations(ReactiveRedisTemplate<?, ?> template,
 			ReactiveSerializationContext<K, V> serializationContext) {
 
@@ -63,16 +70,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.lRange(rawKey(key), start, end).map(raw -> {
-
-			List<V> result = new ArrayList<V>(raw.size());
-
-			for (ByteBuffer buffer : raw) {
-				result.add(readValue(buffer));
-			}
-
-			return result;
-		}));
+		return createMono(connection -> connection.lRange(rawKey(key), start, end).map(this::deserializeValues));
 	}
 
 	/* (non-Javadoc)
@@ -112,7 +110,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	@SafeVarargs
 	public final Mono<Long> leftPushAll(K key, V... values) {
 
-		Assert.notNull(values, "Values must not be null!");
+		Assert.notEmpty(values, "Values must not be null or empty!");
 
 		return leftPushAll(key, Arrays.asList(values));
 	}
@@ -124,16 +122,12 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	public Mono<Long> leftPushAll(K key, Collection<V> values) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.notEmpty(values, "Values must not be empty!");
+		Assert.notEmpty(values, "Values must not be null or empty!");
 
-		return createMono(connection -> {
-
-			return Flux.fromIterable(values) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.lPush(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromIterable(values) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.lPush(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -185,16 +179,12 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	public Mono<Long> rightPushAll(K key, Collection<V> values) {
 
 		Assert.notNull(key, "Key must not be null!");
-		Assert.notNull(values, "Values must not be null!");
-		Assert.notEmpty(values, "Values must not be empty!");
+		Assert.notEmpty(values, "Values must not be null or empty!");
 
-		return createMono(connection -> {
-
-			return Flux.fromIterable(values) //
-					.map(this::rawValue) //
-					.collectList() //
-					.flatMap(serialized -> connection.rPush(rawKey(key), serialized));
-		});
+		return createMono(connection -> Flux.fromIterable(values) //
+				.map(this::rawValue) //
+				.collectList() //
+				.flatMap(serialized -> connection.rPush(rawKey(key), serialized)));
 	}
 
 	/* (non-Javadoc)
@@ -273,7 +263,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(timeout, "Duration must not be null!");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second!");
 
 		return createMono(connection -> connection.blPop(Collections.singletonList(rawKey(key)), timeout)
 				.map(popResult -> readValue(popResult.getValue())));
@@ -298,7 +288,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(timeout, "Duration must not be null!");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second!");
 
 		return createMono(connection -> connection.brPop(Collections.singletonList(rawKey(key)), timeout)
 				.map(popResult -> readValue(popResult.getValue())));
@@ -326,7 +316,7 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 		Assert.notNull(sourceKey, "Source key must not be null!");
 		Assert.notNull(destinationKey, "Destination key must not be null!");
 		Assert.notNull(timeout, "Duration must not be null!");
-		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second");
+		Assert.isTrue(isZeroOrGreater1Second(timeout), "Duration must be either zero or greater or equal to 1 second!");
 
 		return createMono(
 				connection -> connection.bRPopLPush(rawKey(sourceKey), rawKey(destinationKey), timeout).map(this::readValue));
@@ -355,14 +345,25 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	}
 
 	private ByteBuffer rawKey(K key) {
-		return serializationContext.key().write(key);
+		return serializationContext.getKeySerializationPair().write(key);
 	}
 
 	private ByteBuffer rawValue(V value) {
-		return serializationContext.value().write(value);
+		return serializationContext.getValueSerializationPair().write(value);
 	}
 
 	private V readValue(ByteBuffer buffer) {
-		return serializationContext.value().read(buffer);
+		return serializationContext.getValueSerializationPair().read(buffer);
+	}
+
+	private List<V> deserializeValues(List<ByteBuffer> source) {
+
+		List<V> result = new ArrayList<V>(source.size());
+
+		for (ByteBuffer buffer : source) {
+			result.add(readValue(buffer));
+		}
+
+		return result;
 	}
 }
