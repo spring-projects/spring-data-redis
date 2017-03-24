@@ -20,7 +20,6 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.core.convert.ConversionTestEntities.*;
 
@@ -40,7 +39,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.redis.core.convert.ConversionTestEntities.Address;
@@ -63,7 +62,7 @@ import org.springframework.data.util.ClassTypeInformation;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PathIndexResolverUnitTests {
 
 	public @Rule ExpectedException exception = ExpectedException.none();

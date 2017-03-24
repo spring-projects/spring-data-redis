@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;

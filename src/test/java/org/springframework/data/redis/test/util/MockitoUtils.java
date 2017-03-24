@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hamcrest.Matcher;
 import org.mockito.internal.invocation.InvocationMatcher;
 import org.mockito.internal.verification.api.VerificationData;
 import org.mockito.invocation.Invocation;
+import org.mockito.invocation.MatchableInvocation;
 import org.mockito.verification.VerificationMode;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +45,7 @@ public class MockitoUtils {
 	public static void verifyInvocationsAcross(final String method, final VerificationMode mode, Object... mocks) {
 
 		mode.verify(new VerificationDataImpl(getInvocations(method, mocks), new InvocationMatcher(null, Collections
-				.<Matcher> singletonList(org.mockito.internal.matchers.Any.ANY)) {
+				.singletonList(org.mockito.internal.matchers.Any.ANY)) {
 
 			@Override
 			public boolean matches(Invocation actual) {
@@ -92,6 +92,11 @@ public class MockitoUtils {
 		@Override
 		public List<Invocation> getAllInvocations() {
 			return invocations;
+		}
+
+		@Override
+		public MatchableInvocation getTarget() {
+			return wanted;
 		}
 
 		@Override

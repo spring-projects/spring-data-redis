@@ -20,10 +20,9 @@ import java.lang.reflect.Method;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -73,7 +72,7 @@ public class ConnectionSplittingInterceptorUnitTests {
 	public void interceptorShouldUseBoundConnectionForWriteOperations() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L }, null);
-		Mockito.verify(boundConnectionMock, Mockito.times(1)).expire(Matchers.any(byte[].class), Matchers.anyLong());
+		Mockito.verify(boundConnectionMock, Mockito.times(1)).expire(Mockito.any(byte[].class), Mockito.anyLong());
 		Mockito.verifyZeroInteractions(connectionFactoryMock);
 	}
 

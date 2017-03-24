@@ -22,7 +22,7 @@ import java.io.Serializable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.redis.core.convert.ConversionTestEntities;
 import org.springframework.data.redis.core.mapping.RedisPersistentEntity;

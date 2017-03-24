@@ -18,7 +18,6 @@ package org.springframework.data.redis.core.mapping;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
@@ -30,7 +29,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.keyvalue.core.mapping.KeySpaceResolver;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.redis.core.TimeToLiveAccessor;

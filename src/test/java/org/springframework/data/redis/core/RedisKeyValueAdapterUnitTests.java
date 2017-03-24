@@ -18,7 +18,6 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 
@@ -32,7 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -52,7 +52,7 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class RedisKeyValueAdapterUnitTests {
 
 	RedisKeyValueAdapter adapter;
@@ -98,14 +98,14 @@ public class RedisKeyValueAdapterUnitTests {
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
 
-		when(redisConnectionMock.sMembers(org.mockito.Matchers.any(byte[].class)))
+		when(redisConnectionMock.sMembers(Mockito.any(byte[].class)))
 				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
-		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(1L);
+		when(redisConnectionMock.del((byte[][]) any())).thenReturn(1L);
 
 		adapter.put("1", rd, "persons");
 
-		verify(redisConnectionMock, times(1)).sRem(org.mockito.Matchers.any(byte[].class),
-				org.mockito.Matchers.any(byte[].class));
+		verify(redisConnectionMock, times(1)).sRem(Mockito.any(byte[].class),
+				Mockito.any(byte[].class));
 	}
 
 	@Test // DATAREDIS-512
@@ -114,13 +114,13 @@ public class RedisKeyValueAdapterUnitTests {
 		RedisData rd = new RedisData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
 		rd.addIndexedData(new SimpleIndexedPropertyValue("persons", "firstname", "rand"));
 
-		when(redisConnectionMock.sMembers(org.mockito.Matchers.any(byte[].class)))
+		when(redisConnectionMock.sMembers(Mockito.any(byte[].class)))
 				.thenReturn(new LinkedHashSet<byte[]>(Arrays.asList("persons:firstname:rand".getBytes())));
-		when(redisConnectionMock.del((byte[][]) anyVararg())).thenReturn(0L);
+		when(redisConnectionMock.del((byte[][]) any())).thenReturn(0L);
 
 		adapter.put("1", rd, "persons");
 
-		verify(redisConnectionMock, never()).sRem(org.mockito.Matchers.any(byte[].class), (byte[][]) anyVararg());
+		verify(redisConnectionMock, never()).sRem(Mockito.any(byte[].class), (byte[][]) any());
 	}
 
 	@Test // DATAREDIS-491

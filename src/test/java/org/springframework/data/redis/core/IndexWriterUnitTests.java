@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.Charset;
@@ -30,7 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -48,7 +47,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @auhtor Rob Winch
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class IndexWriterUnitTests {
 
 	private static final Charset CHARSET = Charset.forName("UTF-8");

@@ -18,7 +18,6 @@ package org.springframework.data.redis.listener;
 
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.Executor;

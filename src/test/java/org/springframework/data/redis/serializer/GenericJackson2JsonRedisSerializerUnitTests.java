@@ -19,8 +19,6 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsInstanceOf.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.*;
 import static org.springframework.util.ObjectUtils.*;
@@ -28,6 +26,7 @@ import static org.springframework.util.ObjectUtils.*;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.support.NullValue;
 
@@ -108,7 +107,7 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 	public void serializeShouldThrowSerializationExceptionProcessingError() throws JsonProcessingException {
 
 		ObjectMapper objectMapperMock = mock(ObjectMapper.class);
-		when(objectMapperMock.writeValueAsBytes(anyObject())).thenThrow(new JsonGenerationException("nightwielder"));
+		when(objectMapperMock.writeValueAsBytes(any())).thenThrow(new JsonGenerationException("nightwielder"));
 
 		new GenericJackson2JsonRedisSerializer(objectMapperMock).serialize(SIMPLE_OBJECT);
 	}
@@ -117,7 +116,7 @@ public class GenericJackson2JsonRedisSerializerUnitTests {
 	public void deserializeShouldThrowSerializationExceptionProcessingError() throws IOException {
 
 		ObjectMapper objectMapperMock = mock(ObjectMapper.class);
-		when(objectMapperMock.readValue(any(byte[].class), any(Class.class)))
+		when(objectMapperMock.readValue(Mockito.any(byte[].class), Mockito.any(Class.class)))
 				.thenThrow(new JsonMappingException("conflux"));
 
 		new GenericJackson2JsonRedisSerializer(objectMapperMock).deserialize(new byte[] { 1 });

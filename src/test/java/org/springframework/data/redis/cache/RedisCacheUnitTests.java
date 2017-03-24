@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.ClassUtils.*;
 
@@ -32,7 +31,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueRetrievalException;
 import org.springframework.cache.support.NullValue;
@@ -49,7 +48,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @author Mark Paluch
  */
 @SuppressWarnings("rawtypes")
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class RedisCacheUnitTests {
 
 	private static final String CACHE_NAME = "foo";
@@ -91,8 +90,8 @@ public class RedisCacheUnitTests {
 
 		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);
 
-		when(keySerializerMock.serialize(any(byte[].class))).thenReturn(KEY_BYTES);
-		when(valueSerializerMock.serialize(any(byte[].class))).thenReturn(VALUE_BYTES);
+		when(keySerializerMock.serialize(any())).thenReturn(KEY_BYTES);
+		when(valueSerializerMock.serialize(any())).thenReturn(VALUE_BYTES);
 		when(valueSerializerMock.deserialize(eq(VALUE_BYTES))).thenReturn(VALUE);
 	}
 

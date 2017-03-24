@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -1820,7 +1819,7 @@ public class DefaultStringRedisConnectionTests {
 	@Test // DATAREDIS-438
 	public void testGeoAddCoordinateMap() {
 
-		doReturn(1l).when(nativeConnection).geoAdd(any(byte[].class), anyMapOf(byte[].class, Point.class));
+		doReturn(1l).when(nativeConnection).geoAdd(any(byte[].class), anyMap());
 
 		actual.add(connection.geoAdd(foo, Collections.singletonMap(bar, new Point(1.23232, 34.2342434))));
 		verifyResults(Collections.singletonList(1L));
@@ -1839,7 +1838,7 @@ public class DefaultStringRedisConnectionTests {
 	@Test // DATAREDIS-438
 	public void testGeoAddWithIterableOfGeoLocation() {
 
-		doReturn(1l).when(nativeConnection).geoAdd(eq(fooBytes), anyMapOf(byte[].class, Point.class));
+		doReturn(1l).when(nativeConnection).geoAdd(eq(fooBytes), anyMap());
 
 		actual.add(connection.geoAdd(foo, Collections.singletonList(new GeoLocation<String>(bar, new Point(1, 2)))));
 		verifyResults(Collections.singletonList(1L));
@@ -1903,7 +1902,7 @@ public class DefaultStringRedisConnectionTests {
 	@Test // DATAREDIS-438
 	public void testGeoRadiusWithoutParamBytes() {
 
-		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any(Circle.class));
+		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any());
 
 		actual.add(connection.geoRadius(fooBytes, null));
 		verifyResults(Arrays.asList(geoResults));

@@ -19,7 +19,6 @@ import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -32,7 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
 import org.springframework.data.redis.connection.RedisClusterConnection;
@@ -46,7 +45,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 /**
  * @author Christoph Strobl
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DefaultClusterOperationsUnitTests {
 
 	static final RedisClusterNode NODE_1 = RedisClusterNode.newRedisClusterNode().listeningAt("127.0.0.1", 6379)
@@ -140,7 +139,7 @@ public class DefaultClusterOperationsUnitTests {
 
 		clusterOps.addSlots(NODE_1, 1, 2, 3);
 
-		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> anyVararg());
+		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> any());
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315
@@ -153,7 +152,7 @@ public class DefaultClusterOperationsUnitTests {
 
 		clusterOps.addSlots(NODE_1, new SlotRange(1, 3));
 
-		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> anyVararg());
+		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), Mockito.<int[]> any());
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315

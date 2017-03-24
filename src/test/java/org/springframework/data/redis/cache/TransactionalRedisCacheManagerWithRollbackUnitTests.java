@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.cache;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.sql.Connection;

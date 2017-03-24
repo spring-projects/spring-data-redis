@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
@@ -26,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisNode.RedisNodeBuilder;
 import org.springframework.data.redis.connection.RedisServer;

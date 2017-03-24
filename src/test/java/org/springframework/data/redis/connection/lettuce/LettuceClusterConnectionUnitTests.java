@@ -19,7 +19,6 @@ import static org.hamcrest.core.AnyOf.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
@@ -33,7 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.ClusterCommandExecutor;
 import org.springframework.data.redis.connection.ClusterNodeResourceProvider;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
@@ -50,7 +49,7 @@ import com.lambdaworks.redis.cluster.models.partitions.RedisClusterNode.NodeFlag
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class LettuceClusterConnectionUnitTests {
 
 	static final byte[] KEY_1_BYTES = KEY_1.getBytes();
@@ -295,7 +294,7 @@ public class LettuceClusterConnectionUnitTests {
 		int[] slots = new int[] { 9000, 10000 };
 		connection.clusterDeleteSlots(CLUSTER_NODE_2, slots);
 
-		verify(clusterConnection2Mock, times(1)).clusterDelSlots((int[]) anyVararg());
+		verify(clusterConnection2Mock, times(1)).clusterDelSlots((int[]) any());
 	}
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-315

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.support.collections;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -104,7 +103,7 @@ public class AbstractRedisCollectionUnitTests {
 	@Test // DATAREDIS-188
 	public void testRenameCollectionShouldTriggerRedisOperation() {
 
-		when(redisTemplateSpy.hasKey(anyObject())).thenReturn(Boolean.TRUE);
+		when(redisTemplateSpy.hasKey(any())).thenReturn(Boolean.TRUE);
 
 		collection.add("spring-data-redis");
 		collection.rename("new-key");

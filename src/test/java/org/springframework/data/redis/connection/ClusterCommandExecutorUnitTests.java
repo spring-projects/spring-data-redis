@@ -18,7 +18,6 @@ package org.springframework.data.redis.connection;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
 
@@ -33,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.dao.DataAccessException;

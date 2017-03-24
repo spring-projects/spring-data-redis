@@ -17,7 +17,6 @@ package org.springframework.data.redis.core.convert;
 
 import static org.hamcrest.core.IsEqual.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -26,7 +25,7 @@ import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -52,9 +51,9 @@ public class CompositeIndexResolverUnitTests {
 	@Test // DATAREDIS-425
 	public void shouldCollectionIndexesFromResolvers() {
 
-		when(resolver1.resolveIndexesFor(any(TypeInformation.class), anyObject())).thenReturn(
+		when(resolver1.resolveIndexesFor(any(TypeInformation.class), any())).thenReturn(
 				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("spring", "data", "redis")));
-		when(resolver2.resolveIndexesFor(any(TypeInformation.class), anyObject())).thenReturn(
+		when(resolver2.resolveIndexesFor(any(TypeInformation.class), any())).thenReturn(
 				Collections.<IndexedData> singleton(new SimpleIndexedPropertyValue("redis", "data", "spring")));
 
 		CompositeIndexResolver resolver = new CompositeIndexResolver(Arrays.asList(resolver1, resolver2));

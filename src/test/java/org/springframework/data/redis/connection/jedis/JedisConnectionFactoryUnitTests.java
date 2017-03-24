@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,7 +47,7 @@ public class JedisConnectionFactoryUnitTests {
 		connectionFactory = initSpyedConnectionFactory(SINGLE_SENTINEL_CONFIG, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
 
-		verify(connectionFactory, times(1)).createRedisSentinelPool(Matchers.eq(SINGLE_SENTINEL_CONFIG));
+		verify(connectionFactory, times(1)).createRedisSentinelPool(eq(SINGLE_SENTINEL_CONFIG));
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
@@ -59,7 +58,7 @@ public class JedisConnectionFactoryUnitTests {
 		connectionFactory.afterPropertiesSet();
 
 		verify(connectionFactory, times(1)).createRedisPool();
-		verify(connectionFactory, never()).createRedisSentinelPool(Matchers.any(RedisSentinelConfiguration.class));
+		verify(connectionFactory, never()).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
 	}
 
 	@Test // DATAREDIS-315
@@ -68,8 +67,8 @@ public class JedisConnectionFactoryUnitTests {
 		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
 		connectionFactory.afterPropertiesSet();
 
-		verify(connectionFactory, times(1)).createCluster(Matchers.eq(CLUSTER_CONFIG),
-				Matchers.any(GenericObjectPoolConfig.class));
+		verify(connectionFactory, times(1)).createCluster(eq(CLUSTER_CONFIG),
+				any(GenericObjectPoolConfig.class));
 		verify(connectionFactory, never()).createRedisPool();
 	}
 
@@ -90,7 +89,7 @@ public class JedisConnectionFactoryUnitTests {
 
 		// we have to use a spy here as jedis would start connecting to redis sentinels when the pool is created.
 		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(sentinelConfig, poolConfig));
-		doReturn(null).when(factorySpy).createRedisSentinelPool(Matchers.any(RedisSentinelConfiguration.class));
+		doReturn(null).when(factorySpy).createRedisSentinelPool(any(RedisSentinelConfiguration.class));
 		doReturn(null).when(factorySpy).createRedisPool();
 		return factorySpy;
 	}
@@ -99,8 +98,8 @@ public class JedisConnectionFactoryUnitTests {
 			JedisPoolConfig poolConfig) {
 
 		JedisConnectionFactory factorySpy = spy(new JedisConnectionFactory(clusterConfig));
-		doReturn(null).when(factorySpy).createCluster(Matchers.any(RedisClusterConfiguration.class),
-				Matchers.any(GenericObjectPoolConfig.class));
+		doReturn(null).when(factorySpy).createCluster(any(RedisClusterConfiguration.class),
+				any(GenericObjectPoolConfig.class));
 		doReturn(null).when(factorySpy).createRedisPool();
 		return factorySpy;
 	}

@@ -17,7 +17,6 @@ package org.springframework.data.redis.connection.jedis;
 
 import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.redis.connection.ClusterTestVariables.*;
 import static org.springframework.data.redis.test.util.MockitoUtils.*;
@@ -34,7 +33,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.ClusterStateFailureException;
 import org.springframework.data.redis.connection.ClusterInfo;
 import org.springframework.data.redis.connection.RedisClusterCommands.AddSlots;
@@ -50,7 +49,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JedisClusterConnectionUnitTests {
 
 	private static final String CLUSTER_NODES_RESPONSE = "" //
