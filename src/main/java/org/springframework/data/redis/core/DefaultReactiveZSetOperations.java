@@ -34,7 +34,7 @@ import org.springframework.data.redis.connection.ReactiveZSetCommands;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
 import org.springframework.data.redis.connection.RedisZSetCommands.Tuple;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.util.ByteUtils;
 import org.springframework.util.Assert;
 
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
 public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
 	/**
 	 * Creates new {@link DefaultReactiveZSetOperations}.
@@ -57,10 +57,10 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	 * @param serializationContext must not be {@literal null}.
 	 */
 	public DefaultReactiveZSetOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -35,7 +36,6 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ReactiveGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
 import org.springframework.util.Assert;
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
 public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
 	/**
 	 * Create new instance of {@link DefaultReactiveGeoOperations}.
@@ -57,10 +57,10 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	 * @param serializationContext must not be {@literal null}.
 	 */
 	public DefaultReactiveGeoOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;

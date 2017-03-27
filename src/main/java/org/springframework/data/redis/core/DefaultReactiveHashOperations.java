@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveHashCommands;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
 public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOperations<H, HK, HV> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<H, ?> serializationContext;
+	private final RedisSerializationContext<H, ?> serializationContext;
 
 	/**
 	 * Creates new instance of {@link DefaultReactiveHashOperations}.
@@ -50,10 +50,10 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	 * @param serializationContext must not be {@literal null}.
 	 */
 	public DefaultReactiveHashOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<H, ?> serializationContext) {
+			RedisSerializationContext<H, ?> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;

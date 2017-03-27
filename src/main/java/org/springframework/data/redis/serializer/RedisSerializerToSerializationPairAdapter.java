@@ -15,7 +15,7 @@
  */
 package org.springframework.data.redis.serializer;
 
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationPair;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 
 /**
@@ -57,7 +57,7 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationPair#reader()
+	 * @see org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair#reader()
 	 */
 	@Override
 	public RedisElementReader<T> getReader() {
@@ -65,7 +65,7 @@ class RedisSerializerToSerializationPairAdapter<T> implements SerializationPair<
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationPair#writer()
+	 * @see org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair#writer()
 	 */
 	@Override
 	public RedisElementWriter<T> getWriter() {

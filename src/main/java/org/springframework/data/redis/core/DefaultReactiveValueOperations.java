@@ -30,8 +30,8 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveStringCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationPair;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
 public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
 	/**
 	 * Creates new {@link DefaultReactiveValueOperations}.
@@ -53,10 +53,10 @@ public class DefaultReactiveValueOperations<K, V> implements ReactiveValueOperat
 	 * @param serializationContext must not be {@literal null}.
 	 */
 	public DefaultReactiveValueOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;

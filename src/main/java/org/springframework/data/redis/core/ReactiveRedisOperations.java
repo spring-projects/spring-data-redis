@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,13 +24,13 @@ import java.time.Instant;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
 
 /**
  * Interface that specified a basic set of Redis operations, implemented by {@link ReactiveRedisTemplate}. Not often
  * used but a useful option for extensibility and testability (as it can be easily mocked or stubbed).
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public interface ReactiveRedisOperations<K, V> {
@@ -187,12 +188,12 @@ public interface ReactiveRedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on simple values (or Strings in Redis terminology) given a
-	 * {@link ReactiveSerializationContext}.
+	 * {@link RedisSerializationContext}.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @return value operations.
 	 */
-	<K, V> ReactiveValueOperations<K, V> opsForValue(ReactiveSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveValueOperations<K, V> opsForValue(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on list values.
@@ -202,12 +203,12 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveListOperations<K, V> opsForList();
 
 	/**
-	 * Returns the operations performed on list values given a {@link ReactiveSerializationContext}.
+	 * Returns the operations performed on list values given a {@link RedisSerializationContext}.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @return list operations.
 	 */
-	<K, V> ReactiveListOperations<K, V> opsForList(ReactiveSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveListOperations<K, V> opsForList(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on set values.
@@ -217,12 +218,12 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveSetOperations<K, V> opsForSet();
 
 	/**
-	 * Returns the operations performed on set values given a {@link ReactiveSerializationContext}.
+	 * Returns the operations performed on set values given a {@link RedisSerializationContext}.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @return set operations.
 	 */
-	<K, V> ReactiveSetOperations<K, V> opsForSet(ReactiveSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveSetOperations<K, V> opsForSet(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets).
@@ -233,12 +234,12 @@ public interface ReactiveRedisOperations<K, V> {
 
 	/**
 	 * Returns the operations performed on zset values (also known as sorted sets) given a
-	 * {@link ReactiveSerializationContext}.
+	 * {@link RedisSerializationContext}.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @return zset operations.
 	 */
-	<K, V> ReactiveZSetOperations<K, V> opsForZSet(ReactiveSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveZSetOperations<K, V> opsForZSet(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on multisets using HyperLogLog.
@@ -248,12 +249,12 @@ public interface ReactiveRedisOperations<K, V> {
 	ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog();
 
 	/**
-	 * Returns the operations performed on multisets using HyperLogLog given a {@link ReactiveSerializationContext}.
+	 * Returns the operations performed on multisets using HyperLogLog given a {@link RedisSerializationContext}.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	<K, V> ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog(ReactiveSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog(RedisSerializationContext<K, V> serializationContext);
 
 	/**
 	 * Returns the operations performed on hash values.
@@ -265,14 +266,14 @@ public interface ReactiveRedisOperations<K, V> {
 	<HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash();
 
 	/**
-	 * Returns the operations performed on hash values given a {@link ReactiveSerializationContext}.
+	 * Returns the operations performed on hash values given a {@link RedisSerializationContext}.
 	 *
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @param <HK> hash key (or field) type.
 	 * @param <HV> hash value type.
 	 * @return hash operations.
 	 */
-	<K, HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash(ReactiveSerializationContext<K, ?> serializationContext);
+	<K, HK, HV> ReactiveHashOperations<K, HK, HV> opsForHash(RedisSerializationContext<K, ?> serializationContext);
 
 	/**
 	 * Returns geospatial specific operations interface.
@@ -287,10 +288,10 @@ public interface ReactiveRedisOperations<K, V> {
 	 * @param serializationContext serializers to be used with the returned operations, must not be {@literal null}.
 	 * @return geospatial specific operations.
 	 */
-	<K, V> ReactiveGeoOperations<K, V> opsForGeo(ReactiveSerializationContext<K, V> serializationContext);
+	<K, V> ReactiveGeoOperations<K, V> opsForGeo(RedisSerializationContext<K, V> serializationContext);
 
 	/**
-	 * @return the {@link ReactiveSerializationContext}.
+	 * @return the {@link RedisSerializationContext}.
 	 */
-	ReactiveSerializationContext<K, V> getSerializationContext();
+	RedisSerializationContext<K, V> getSerializationContext();
 }

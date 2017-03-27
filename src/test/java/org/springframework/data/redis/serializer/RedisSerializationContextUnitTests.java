@@ -22,16 +22,17 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link ReactiveSerializationContext}.
+ * Unit tests for {@link RedisSerializationContext}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
-public class ReactiveSerializationContextUnitTests {
+public class RedisSerializationContextUnitTests {
 
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
 	public void shouldRejectBuildIfKeySerializerIsNotSet() {
 
-		ReactiveSerializationContext.<String, String> builder() //
+		RedisSerializationContext.<String, String> newSerializationContext() //
 				.value(new StringRedisSerializer()) //
 				.hashKey(new StringRedisSerializer()) //
 				.hashValue(new StringRedisSerializer()) //
@@ -41,7 +42,7 @@ public class ReactiveSerializationContextUnitTests {
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
 	public void shouldRejectBuildIfValueSerializerIsNotSet() {
 
-		ReactiveSerializationContext.<String, String> builder() //
+		RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(new StringRedisSerializer()) //
 				.hashKey(new StringRedisSerializer()) //
 				.hashValue(new StringRedisSerializer()) //
@@ -51,7 +52,7 @@ public class ReactiveSerializationContextUnitTests {
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
 	public void shouldRejectBuildIfHashKeySerializerIsNotSet() {
 
-		ReactiveSerializationContext.<String, String> builder() //
+		RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(new StringRedisSerializer()) //
 				.value(new StringRedisSerializer()) //
 				.hashValue(new StringRedisSerializer()) //
@@ -61,7 +62,7 @@ public class ReactiveSerializationContextUnitTests {
 	@Test(expected = IllegalArgumentException.class) // DATAREDIS-602
 	public void shouldRejectBuildIfHashValueSerializerIsNotSet() {
 
-		ReactiveSerializationContext.<String, String> builder() //
+		RedisSerializationContext.<String, String> newSerializationContext() //
 				.key(new StringRedisSerializer()) //
 				.value(new StringRedisSerializer()) //
 				.hashKey(new StringRedisSerializer()) //
@@ -69,9 +70,17 @@ public class ReactiveSerializationContextUnitTests {
 	}
 
 	@Test // DATAREDIS-602
+	public void shouldUseDefaultIfSet() {
+
+		RedisSerializationContext.<String, String> newSerializationContext(new StringRedisSerializer())
+				.key(new GenericToStringSerializer(Long.class))//
+				.build();
+	}
+
+	@Test // DATAREDIS-602
 	public void shouldBuildSerializationContext() {
 
-		ReactiveSerializationContext<String, Long> serializationContext = createSerializationContext();
+		RedisSerializationContext<String, Long> serializationContext = createSerializationContext();
 
 		assertThat(serializationContext.getKeySerializationPair()).isNotNull();
 		assertThat(serializationContext.getValueSerializationPair()).isNotNull();
@@ -83,9 +92,10 @@ public class ReactiveSerializationContextUnitTests {
 	@Test // DATAREDIS-602
 	public void shouldEncodeAndDecodeKey() {
 
-		ReactiveSerializationContext<String, Long> serializationContext = createSerializationContext();
+		RedisSerializationContext<String, Long> serializationContext = createSerializationContext();
 
-		String deserialized = serializationContext.getKeySerializationPair().read(serializationContext.getKeySerializationPair().write("foo"));
+		String deserialized = serializationContext.getKeySerializationPair()
+				.read(serializationContext.getKeySerializationPair().write("foo"));
 
 		assertThat(deserialized).isEqualTo("foo");
 	}
@@ -93,16 +103,17 @@ public class ReactiveSerializationContextUnitTests {
 	@Test // DATAREDIS-602
 	public void shouldEncodeAndDecodeValue() {
 
-		ReactiveSerializationContext<String, Long> serializationContext = createSerializationContext();
+		RedisSerializationContext<String, Long> serializationContext = createSerializationContext();
 
-		long deserialized = serializationContext.getValueSerializationPair().read(serializationContext.getValueSerializationPair().write(42L));
+		long deserialized = serializationContext.getValueSerializationPair()
+				.read(serializationContext.getValueSerializationPair().write(42L));
 
 		assertThat(deserialized).isEqualTo(42);
 	}
 
-	private ReactiveSerializationContext<String, Long> createSerializationContext() {
+	private RedisSerializationContext<String, Long> createSerializationContext() {
 
-		return ReactiveSerializationContext.<String, Long> builder() //
+		return RedisSerializationContext.<String, Long> newSerializationContext() //
 				.key(new StringRedisSerializer()) //
 				.value(ByteBuffer::getLong, value -> (ByteBuffer) ByteBuffer.allocate(8).putLong(value).flip()) //
 				.hashKey(new StringRedisSerializer()) //

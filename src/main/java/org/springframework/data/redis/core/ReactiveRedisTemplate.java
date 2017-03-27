@@ -25,60 +25,66 @@ import java.time.Instant;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- * Central abstraction for reactive Redis data access.
+ * Central abstraction for reactive Redis data access implementing {@link ReactiveRedisOperations}.
  * <p/>
  * Performs automatic serialization/deserialization between the given objects and the underlying binary data in the
- * Redis store. By default, it uses Java serialization for its objects (through {@link JdkSerializationRedisSerializer}
- * ).
- * <p/>
- * Once configured, this class is thread-safe.
+ * Redis store.
  * <p/>
  * Note that while the template is generified, it is up to the serializers/deserializers to properly convert the given
  * Objects to and from binary data.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  * @param <K> the Redis key type against which the template works (usually a String)
  * @param <V> the Redis value type against which the template works
  */
-public class ReactiveRedisTemplate<K, V>
-		implements BeanClassLoaderAware, InitializingBean, ReactiveRedisOperations<K, V> {
+public class ReactiveRedisTemplate<K, V> implements ReactiveRedisOperations<K, V> {
 
-	private ReactiveRedisConnectionFactory connectionFactory;
-	private boolean exposeConnection = true;
-	private boolean initialized = false;
-	private boolean enableDefaultSerializer = true;
-	private RedisSerializer<?> defaultSerializer;
-	private ClassLoader classLoader;
-	private ReactiveSerializationContextSupport<K, V> serializationContext = new MutableReactiveSerializationContext<>();
-
-	// cache singleton objects (where possible)
-	private ReactiveValueOperations<K, V> valueOps;
-	private ReactiveListOperations<K, V> listOps;
-	private ReactiveSetOperations<K, V> setOps;
-	private ReactiveZSetOperations<K, V> zSetOps;
-	private ReactiveHyperLogLogOperations<K, V> hyperLogLogOps;
-	private ReactiveGeoOperations<K, V> geoOps;
+	private final ReactiveRedisConnectionFactory connectionFactory;
+	private final RedisSerializationContext<K, V> serializationContext;
+	private final boolean exposeConnection;
 
 	/**
-	 * Construct a new {@link ReactiveRedisTemplate} instance.
+	 * Creates new {@link ReactiveRedisTemplate} using given {@link ReactiveRedisConnectionFactory} and
+	 * {@link RedisSerializationContext}.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
 	 */
-	public ReactiveRedisTemplate() {}
+	public ReactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory,
+			RedisSerializationContext<K, V> serializationContext) {
+		this(connectionFactory, serializationContext, false);
+	}
+
+	/**
+	 * Creates new {@link ReactiveRedisTemplate} using given {@link ReactiveRedisConnectionFactory} and
+	 * {@link RedisSerializationContext}.
+	 *
+	 * @param connectionFactory must not be {@literal null}.
+	 * @param serializationContext must not be {@literal null}.
+	 * @param exposeConnection flag indicating to expose the connection used.
+	 */
+	public ReactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory,
+			RedisSerializationContext<K, V> serializationContext, boolean exposeConnection) {
+
+		Assert.notNull(connectionFactory, "ConnectionFactory must not be null!");
+		Assert.notNull(serializationContext, "SerializationContext must not be null!");
+
+		this.connectionFactory = connectionFactory;
+		this.serializationContext = serializationContext;
+		this.exposeConnection = exposeConnection;
+	}
 
 	/**
 	 * Returns the connectionFactory.
@@ -89,214 +95,19 @@ public class ReactiveRedisTemplate<K, V>
 		return connectionFactory;
 	}
 
-	/**
-	 * Sets the connection factory.
-	 *
-	 * @param connectionFactory The connectionFactory to set.
-	 */
-	public void setConnectionFactory(ReactiveRedisConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
-	}
-
-	/**
-	 * @param enableDefaultSerializer Whether or not the default serializer should be used. If not, any serializers not
-	 *          explicilty set will remain null and values will not be serialized or deserialized.
-	 */
-	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
-		this.enableDefaultSerializer = enableDefaultSerializer;
-	}
-
-	/**
-	 * Returns the default serializer used by this template.
-	 *
-	 * @return template default serializer
-	 */
-	public RedisSerializer<?> getDefaultSerializer() {
-		return defaultSerializer;
-	}
-
-	/**
-	 * Sets the default serializer to use for this template. All serializers (expect the
-	 * {@link #setStringSerializer(RedisSerializer)}) are initialized to this value unless explicitly set. Defaults to
-	 * {@link JdkSerializationRedisSerializer}.
-	 *
-	 * @param serializer default serializer to use
-	 */
-	public void setDefaultSerializer(RedisSerializer<?> serializer) {
-		this.defaultSerializer = serializer;
-	}
-
-	/**
-	 * Returns the key serializer used by this template.
-	 *
-	 * @return the key serializer used by this template.
-	 */
-	public RedisSerializer<K> getKeySerializer() {
-		return serializationContext.getKeySerializer();
-	}
-
-	/**
-	 * Sets the key serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param serializer the key serializer to be used by this template.
-	 */
-	@SuppressWarnings("unchecked")
-	public void setKeySerializer(RedisSerializer<?> serializer) {
-		getMutableSerializationContext().setKeySerializer((RedisSerializer) serializer);
-	}
-
-	/**
-	 * Returns the value serializer used by this template.
-	 *
-	 * @return the value serializer used by this template.
-	 */
-	public RedisSerializer<V> getValueSerializer() {
-		return serializationContext.getValueSerializer();
-	}
-
-	/**
-	 * Sets the value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param serializer the value serializer to be used by this template.
-	 */
-	@SuppressWarnings("unchecked")
-	public void setValueSerializer(RedisSerializer<?> serializer) {
-		getMutableSerializationContext().setValueSerializer((RedisSerializer) serializer);
-	}
-
-	/**
-	 * Returns the hashKeySerializer.
-	 *
-	 * @return Returns the hashKeySerializer
-	 */
-	public RedisSerializer<?> getHashKeySerializer() {
-		return serializationContext.getHashKeySerializer();
-	}
-
-	/**
-	 * Sets the hash key (or field) serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param hashKeySerializer The hashKeySerializer to set.
-	 */
-	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
-		getMutableSerializationContext().setHashKeySerializer(hashKeySerializer);
-	}
-
-	/**
-	 * Returns the hashValueSerializer.
-	 *
-	 * @return Returns the hashValueSerializer
-	 */
-	public RedisSerializer<?> getHashValueSerializer() {
-		return serializationContext.getHashValueSerializer();
-	}
-
-	/**
-	 * Sets the hash value serializer to be used by this template. Defaults to {@link #getDefaultSerializer()}.
-	 *
-	 * @param hashValueSerializer The hashValueSerializer to set.
-	 */
-	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
-		getMutableSerializationContext().setHashValueSerializer(hashValueSerializer);
-	}
-
-	/**
-	 * Returns the stringSerializer.
-	 *
-	 * @return Returns the stringSerializer
-	 */
-	public RedisSerializer<String> getStringSerializer() {
-		return serializationContext.getStringSerializer();
-	}
-
-	/**
-	 * Sets the string value serializer to be used by this template (when the arguments or return types are always
-	 * strings). Defaults to {@link StringRedisSerializer}.
-	 *
-	 * @param stringSerializer The stringValueSerializer to set.
-	 * @see ValueOperations#get(Object, long, long)
-	 */
-	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
-		getMutableSerializationContext().setStringSerializer(stringSerializer);
-	}
-
-	/**
-	 * Set the {@link ClassLoader} to be used for the default {@link JdkSerializationRedisSerializer} in case no other
-	 * {@link RedisSerializer} is explicitly set as the default one.
-	 *
-	 * @param classLoader can be {@literal null}.
-	 * @see org.springframework.beans.factory.BeanClassLoaderAware#setBeanClassLoader
-	 */
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
-	}
-
-	/**
-	 * Initializes the properties and creates and sets an immutable {@link ReactiveSerializationContext}. Serializers
-	 * cannot be changed after properties are initialized.
-	 */
-	@Override
-	public void afterPropertiesSet() {
-
-		boolean defaultUsed = false;
-
-		if (this.defaultSerializer == null) {
-
-			this.defaultSerializer = new JdkSerializationRedisSerializer(
-					this.classLoader != null ? this.classLoader : this.getClass().getClassLoader());
-		}
-
-		if (this.enableDefaultSerializer) {
-
-			if (this.serializationContext.getKeySerializer() == null) {
-				setKeySerializer(this.defaultSerializer);
-				defaultUsed = true;
-			}
-
-			if (this.serializationContext.getValueSerializer() == null) {
-				setValueSerializer(this.defaultSerializer);
-				defaultUsed = true;
-			}
-
-			if (this.serializationContext.getHashKeySerializer() == null) {
-				setHashKeySerializer(this.defaultSerializer);
-				defaultUsed = true;
-			}
-
-			if (this.serializationContext.getHashValueSerializer() == null) {
-				setHashValueSerializer(this.defaultSerializer);
-				defaultUsed = true;
-			}
-		}
-
-		if (this.enableDefaultSerializer && defaultUsed) {
-			Assert.notNull(this.defaultSerializer, "Default serializer is null and not all serializers initialized");
-		}
-
-		this.serializationContext = new ImmutableReactiveSerializationContext<K, V>(serializationContext);
-		this.initialized = true;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue()
 	 */
 	@Override
 	public ReactiveValueOperations<K, V> opsForValue() {
-
-		if (valueOps == null) {
-			valueOps = opsForValue(serializationContext);
-		}
-
-		return valueOps;
+		return opsForValue(serializationContext);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForValue(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
-	public <K1, V1> ReactiveValueOperations<K1, V1> opsForValue(
-			ReactiveSerializationContext<K1, V1> serializationContext) {
+	public <K1, V1> ReactiveValueOperations<K1, V1> opsForValue(RedisSerializationContext<K1, V1> serializationContext) {
 		return new DefaultReactiveValueOperations<>(this, serializationContext);
 	}
 
@@ -305,19 +116,14 @@ public class ReactiveRedisTemplate<K, V>
 	 */
 	@Override
 	public ReactiveListOperations<K, V> opsForList() {
-
-		if (listOps == null) {
-			listOps = opsForList(serializationContext);
-		}
-
-		return listOps;
+		return opsForList(serializationContext);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForList(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
-	public <K1, V1> ReactiveListOperations<K1, V1> opsForList(ReactiveSerializationContext<K1, V1> serializationContext) {
+	public <K1, V1> ReactiveListOperations<K1, V1> opsForList(RedisSerializationContext<K1, V1> serializationContext) {
 		return new DefaultReactiveListOperations<>(this, serializationContext);
 	}
 
@@ -325,19 +131,14 @@ public class ReactiveRedisTemplate<K, V>
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet()
 	 */
 	public ReactiveSetOperations<K, V> opsForSet() {
-
-		if (setOps == null) {
-			setOps = opsForSet(serializationContext);
-		}
-
-		return setOps;
+		return opsForSet(serializationContext);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForSet(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
-	public <K1, V1> ReactiveSetOperations<K1, V1> opsForSet(ReactiveSerializationContext<K1, V1> serializationContext) {
+	public <K1, V1> ReactiveSetOperations<K1, V1> opsForSet(RedisSerializationContext<K1, V1> serializationContext) {
 		return new DefaultReactiveSetOperations<>(this, serializationContext);
 	}
 
@@ -345,19 +146,14 @@ public class ReactiveRedisTemplate<K, V>
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet()
 	 */
 	public ReactiveZSetOperations<K, V> opsForZSet() {
-
-		if (zSetOps == null) {
-			zSetOps = opsForZSet(serializationContext);
-		}
-
-		return zSetOps;
+		return opsForZSet(serializationContext);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForZSet(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
-	public <K1, V1> ReactiveZSetOperations<K1, V1> opsForZSet(ReactiveSerializationContext<K1, V1> serializationContext) {
+	public <K1, V1> ReactiveZSetOperations<K1, V1> opsForZSet(RedisSerializationContext<K1, V1> serializationContext) {
 		return new DefaultReactiveZSetOperations<>(this, serializationContext);
 	}
 
@@ -366,20 +162,15 @@ public class ReactiveRedisTemplate<K, V>
 	 */
 	@Override
 	public ReactiveHyperLogLogOperations<K, V> opsForHyperLogLog() {
-
-		if (hyperLogLogOps == null) {
-			hyperLogLogOps = opsForHyperLogLog(serializationContext);
-		}
-
-		return hyperLogLogOps;
+		return opsForHyperLogLog(serializationContext);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHyperLogLog(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
 	public <K1, V1> ReactiveHyperLogLogOperations<K1, V1> opsForHyperLogLog(
-			ReactiveSerializationContext<K1, V1> serializationContext) {
+			RedisSerializationContext<K1, V1> serializationContext) {
 		return new DefaultReactiveHyperLogLogOperations<>(this, serializationContext);
 	}
 
@@ -392,11 +183,11 @@ public class ReactiveRedisTemplate<K, V>
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForHash(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
 	public <K1, HK, HV> ReactiveHashOperations<K1, HK, HV> opsForHash(
-			ReactiveSerializationContext<K1, ?> serializationContext) {
+			RedisSerializationContext<K1, ?> serializationContext) {
 		return new DefaultReactiveHashOperations<>(this, serializationContext);
 	}
 
@@ -405,19 +196,14 @@ public class ReactiveRedisTemplate<K, V>
 	 */
 	@Override
 	public ReactiveGeoOperations<K, V> opsForGeo() {
-
-		if (geoOps == null) {
-			geoOps = opsForGeo(serializationContext);
-		}
-
-		return geoOps;
+		return opsForGeo(serializationContext);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo(org.springframework.data.redis.serializer.ReactiveSerializationContext)
+	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#opsForGeo(org.springframework.data.redis.serializer.RedisSerializationContext)
 	 */
 	@Override
-	public <K1, V1> ReactiveGeoOperations<K1, V1> opsForGeo(ReactiveSerializationContext<K1, V1> serializationContext) {
+	public <K1, V1> ReactiveGeoOperations<K1, V1> opsForGeo(RedisSerializationContext<K1, V1> serializationContext) {
 		return new DefaultReactiveGeoOperations<>(this, serializationContext);
 	}
 
@@ -440,7 +226,6 @@ public class ReactiveRedisTemplate<K, V>
 	 */
 	public <T> Flux<T> execute(ReactiveRedisCallback<T> action, boolean exposeConnection) {
 
-		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
 
 		ReactiveRedisConnectionFactory factory = getConnectionFactory();
@@ -498,7 +283,6 @@ public class ReactiveRedisTemplate<K, V>
 	 */
 	private <T> Publisher<T> doInConnection(ReactiveRedisCallback<T> action, boolean exposeConnection) {
 
-		Assert.isTrue(initialized, "template not initialized; call afterPropertiesSet() before using it");
 		Assert.notNull(action, "Callback object must not be null");
 
 		ReactiveRedisConnectionFactory factory = getConnectionFactory();
@@ -727,18 +511,8 @@ public class ReactiveRedisTemplate<K, V>
 	 * @see org.springframework.data.redis.core.ReactiveRedisOperations#serialization()
 	 */
 	@Override
-	public ReactiveSerializationContext<K, V> getSerializationContext() {
+	public RedisSerializationContext<K, V> getSerializationContext() {
 		return serializationContext;
-	}
-
-	@SuppressWarnings("unchecked")
-	private MutableReactiveSerializationContext<K, V> getMutableSerializationContext() {
-
-		Assert.state(serializationContext instanceof MutableReactiveSerializationContext,
-				() -> String.format("Client configuration must be instance of MutableReactiveSerializationContext but is %s",
-						ClassUtils.getShortName(serializationContext.getClass())));
-
-		return (MutableReactiveSerializationContext) serializationContext;
 	}
 
 	private ByteBuffer rawKey(K key) {
@@ -747,211 +521,5 @@ public class ReactiveRedisTemplate<K, V>
 
 	private K readKey(ByteBuffer buffer) {
 		return getSerializationContext().getKeySerializationPair().getReader().read(buffer);
-	}
-
-	/**
-	 * @author Mark Paluch
-	 */
-	static abstract class ReactiveSerializationContextSupport<K, V> implements ReactiveSerializationContext<K, V> {
-
-		@Override
-		public abstract SerializationPair<K> getKeySerializationPair();
-
-		@Override
-		public abstract SerializationPair<V> getValueSerializationPair();
-
-		@Override
-		public abstract SerializationPair<String> getStringSerializationPair();
-
-		@Override
-		public abstract <HK> SerializationPair<HK> getHashKeySerializationPair();
-
-		@Override
-		public abstract <HV> SerializationPair<HV> getHashValueSerializationPair();
-
-		public abstract RedisSerializer<K> getKeySerializer();
-
-		public abstract RedisSerializer<V> getValueSerializer();
-
-		public abstract RedisSerializer<?> getHashKeySerializer();
-
-		public abstract RedisSerializer<?> getHashValueSerializer();
-
-		public abstract RedisSerializer<String> getStringSerializer();
-	}
-
-	/**
-	 * @author Mark Paluch
-	 */
-	static class ImmutableReactiveSerializationContext<K, V> extends ReactiveSerializationContextSupport<K, V> {
-
-		private RedisSerializer<K> keySerializer;
-		private final SerializationPair<K> keyTuple;
-
-		private RedisSerializer<V> valueSerializer;
-		private final SerializationPair<V> valueTuple;
-
-		private RedisSerializer<?> hashKeySerializer;
-		private final SerializationPair<?> hashKeyTuple;
-
-		private RedisSerializer<?> hashValueSerializer;
-		private final SerializationPair<?> hashValueTuple;
-
-		private RedisSerializer<String> stringSerializer;
-		private final SerializationPair<String> stringTuple;
-
-		public ImmutableReactiveSerializationContext(ReactiveSerializationContextSupport<K, V> context) {
-
-			keySerializer = context.getKeySerializer();
-			keyTuple = context.getKeySerializationPair();
-			valueSerializer = context.getValueSerializer();
-			valueTuple = context.getValueSerializationPair();
-			hashKeySerializer = context.getHashKeySerializer();
-			hashKeyTuple = context.getHashKeySerializationPair();
-			hashValueSerializer = context.getHashValueSerializer();
-			hashValueTuple = context.getHashValueSerializationPair();
-			stringSerializer = context.getStringSerializer();
-			stringTuple = context.getStringSerializationPair();
-		}
-
-		@Override
-		public SerializationPair<K> getKeySerializationPair() {
-			return keyTuple;
-		}
-
-		@Override
-		public SerializationPair<V> getValueSerializationPair() {
-			return valueTuple;
-		}
-
-		@Override
-		public SerializationPair<String> getStringSerializationPair() {
-			return stringTuple;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public <HK> SerializationPair<HK> getHashKeySerializationPair() {
-			return (SerializationPair) hashKeyTuple;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public <HV> SerializationPair<HV> getHashValueSerializationPair() {
-			return (SerializationPair) hashValueTuple;
-		}
-
-		public RedisSerializer<K> getKeySerializer() {
-			return keySerializer;
-		}
-
-		public RedisSerializer<V> getValueSerializer() {
-			return valueSerializer;
-		}
-
-		public RedisSerializer<?> getHashKeySerializer() {
-			return hashKeySerializer;
-		}
-
-		public RedisSerializer<?> getHashValueSerializer() {
-			return hashValueSerializer;
-		}
-
-		public RedisSerializer<String> getStringSerializer() {
-			return stringSerializer;
-		}
-	}
-
-	/**
-	 * @author Mark Paluch
-	 */
-	static class MutableReactiveSerializationContext<K, V> extends ReactiveSerializationContextSupport<K, V> {
-
-		private RedisSerializer<K> keySerializer;
-		private SerializationPair<K> keyTuple = SerializationPair.raw();
-
-		private RedisSerializer<V> valueSerializer;
-		private SerializationPair<V> valueTuple = SerializationPair.raw();
-
-		private RedisSerializer<?> hashKeySerializer;
-		private SerializationPair<?> hashKeyTuple = SerializationPair.raw();
-
-		private RedisSerializer<?> hashValueSerializer;
-		private SerializationPair<?> hashValueTuple = SerializationPair.raw();
-
-		private RedisSerializer<String> stringSerializer = new StringRedisSerializer();
-		private SerializationPair<String> stringTuple = SerializationPair.fromSerializer(stringSerializer);
-
-		@Override
-		public SerializationPair<K> getKeySerializationPair() {
-			return keyTuple;
-		}
-
-		@Override
-		public SerializationPair<V> getValueSerializationPair() {
-			return valueTuple;
-		}
-
-		@Override
-		public SerializationPair<String> getStringSerializationPair() {
-			return stringTuple;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public <HK> SerializationPair<HK> getHashKeySerializationPair() {
-			return (SerializationPair) hashKeyTuple;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public <HV> SerializationPair<HV> getHashValueSerializationPair() {
-			return (SerializationPair) hashValueTuple;
-		}
-
-		public RedisSerializer<K> getKeySerializer() {
-			return keySerializer;
-		}
-
-		public void setKeySerializer(RedisSerializer<K> keySerializer) {
-			this.keySerializer = keySerializer;
-			this.keyTuple = SerializationPair.fromSerializer(keySerializer);
-		}
-
-		public RedisSerializer<V> getValueSerializer() {
-			return valueSerializer;
-		}
-
-		public void setValueSerializer(RedisSerializer<V> valueSerializer) {
-			this.valueSerializer = valueSerializer;
-			this.valueTuple = SerializationPair.fromSerializer(valueSerializer);
-		}
-
-		public RedisSerializer<?> getHashKeySerializer() {
-			return hashKeySerializer;
-		}
-
-		public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
-			this.hashKeySerializer = hashKeySerializer;
-			this.hashKeyTuple = SerializationPair.fromSerializer(hashKeySerializer);
-		}
-
-		public RedisSerializer<?> getHashValueSerializer() {
-			return hashValueSerializer;
-		}
-
-		public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
-			this.hashValueSerializer = hashValueSerializer;
-			this.hashValueTuple = SerializationPair.fromSerializer(hashValueSerializer);
-		}
-
-		public RedisSerializer<String> getStringSerializer() {
-			return stringSerializer;
-		}
-
-		public void setStringSerializer(RedisSerializer<String> stringSerializer) {
-			this.stringSerializer = stringSerializer;
-			this.stringTuple = SerializationPair.fromSerializer(stringSerializer);
-		}
 	}
 }

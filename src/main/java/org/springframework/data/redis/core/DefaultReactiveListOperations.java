@@ -31,7 +31,7 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveListCommands;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
 public class DefaultReactiveListOperations<K, V> implements ReactiveListOperations<K, V> {
 
 	private final ReactiveRedisTemplate<?, ?> template;
-	private final ReactiveSerializationContext<K, V> serializationContext;
+	private final RedisSerializationContext<K, V> serializationContext;
 
 	/**
 	 * Create new instance of {@link DefaultReactiveListOperations}.
@@ -53,10 +53,10 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	 * @param serializationContext must not be {@literal null}.
 	 */
 	public DefaultReactiveListOperations(ReactiveRedisTemplate<?, ?> template,
-			ReactiveSerializationContext<K, V> serializationContext) {
+			RedisSerializationContext<K, V> serializationContext) {
 
 		Assert.notNull(template, "ReactiveRedisTemplate must not be null!");
-		Assert.notNull(serializationContext, "ReactiveSerializationContext must not be null!");
+		Assert.notNull(serializationContext, "RedisSerializationContext must not be null!");
 
 		this.template = template;
 		this.serializationContext = serializationContext;

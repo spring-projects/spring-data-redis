@@ -55,17 +55,6 @@ public interface ReactiveZSetOperations<K, V> {
 	Mono<Long> addAll(K key, Collection<? extends TypedTuple<V>> tuples);
 
 	/**
-	 * Add {@code tuples} to a sorted set at {@code key}, or update its {@code score} if it already exists.
-	 *
-	 * @param key must not be {@literal null}.
-	 * @param tuples must not be {@literal null}.
-	 * @return
-	 * @see <a href="http://redis.io/commands/zadd">Redis Documentation: ZADD</a>
-	 */
-	// TODO
-	// Mono<Long> add(K key, Set<TypedTuple<V>> tuples);
-
-	/**
 	 * Remove {@code values} from sorted set. Return number of removed elements.
 	 *
 	 * @param key must not be {@literal null}.

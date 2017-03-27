@@ -44,6 +44,7 @@ import org.springframework.data.redis.ObjectFactory;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.test.util.MinimumRedisVersionRule;
 import org.springframework.test.annotation.IfProfileValue;
 
@@ -51,6 +52,7 @@ import org.springframework.test.annotation.IfProfileValue;
  * Integration tests for {@link DefaultReactiveGeoOperations}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @RunWith(Parameterized.class)
 @IfProfileValue(name = "redisVersion", value = "3.2.0+")
@@ -71,7 +73,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	private final ObjectFactory<K> keyFactory;
 	private final ObjectFactory<V> valueFactory;
 
-	@Parameters(name = "{3}")
+	@Parameters(name = "{4}")
 	public static Collection<Object[]> testParams() {
 		return ReactiveOperationsTestParams.testParams();
 	}
@@ -88,7 +90,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 	 * @param label parameterized test label, no further use besides that.
 	 */
 	public DefaultReactiveGeoOperationsIntegrationTests(ReactiveRedisTemplate<K, V> redisTemplate,
-			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, String label) {
+			ObjectFactory<K> keyFactory, ObjectFactory<V> valueFactory, RedisSerializer serializer, String label) {
 
 		this.redisTemplate = redisTemplate;
 		this.geoOperations = redisTemplate.opsForGeo();

@@ -31,17 +31,89 @@ import org.springframework.util.Assert;
  * @see RedisElementWriter
  * @see RedisElementReader
  */
-public interface ReactiveSerializationContext<K, V> {
+public interface RedisSerializationContext<K, V> {
 
 	/**
-	 * Creates a new {@link ReactiveSerializationContextBuilder}.
+	 * Creates a new {@link RedisSerializationContextBuilder}.
 	 *
 	 * @param <K> expected key type.
 	 * @param <V> expected value type.
-	 * @return a new {@link ReactiveSerializationContextBuilder}.
+	 * @return a new {@link RedisSerializationContextBuilder}.
 	 */
-	static <K, V> ReactiveSerializationContextBuilder<K, V> builder() {
-		return new DefaultReactiveSerializationContextBuilder<>();
+	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext() {
+		return new DefaultRedisSerializationContext.DefaultRedisSerializationContextBuilder();
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContextBuilder} using a given default {@link RedisSerializer}.
+	 *
+	 * @param defaultSerializer must not be {@literal null}.
+	 * @param <K> expected key type.
+	 * @param <V> expected value type.
+	 * @return a new {@link RedisSerializationContextBuilder}.
+	 */
+	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext(RedisSerializer<?> defaultSerializer) {
+
+		Assert.notNull(defaultSerializer, "DefaultSerializer must not be null!");
+
+		return newSerializationContext(SerializationPair.fromSerializer(defaultSerializer));
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContextBuilder} using a given default {@link SerializationPair}.
+	 *
+	 * @param serializationPair must not be {@literal null}.
+	 * @param <K> expected key type.
+	 * @param <V> expected value type.
+	 * @return a new {@link RedisSerializationContextBuilder}.
+	 */
+	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext(SerializationPair<?> serializationPair) {
+
+		Assert.notNull(serializationPair, "SerializationPair must not be null!");
+
+		return new DefaultRedisSerializationContext.DefaultRedisSerializationContextBuilder() //
+				.key(serializationPair).value(serializationPair) //
+				.hashKey(serializationPair).hashValue(serializationPair);
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using a {@link SerializationPair#raw()} serialization pair.
+	 *
+	 * @return
+	 */
+	static RedisSerializationContext<byte[], byte[]> raw() {
+		return just(SerializationPair.raw());
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using a {@link StringRedisSerializer}.
+	 *
+	 * @return
+	 */
+	static RedisSerializationContext<String, String> string() {
+		return fromSerializer(new StringRedisSerializer());
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using the given {@link RedisSerializer}.
+	 *
+	 * @param serializer must not be {@literal null}.
+	 * @param <T>
+	 * @return
+	 */
+	static <T> RedisSerializationContext<T, T> fromSerializer(RedisSerializer<T> serializer) {
+		return just(SerializationPair.fromSerializer(serializer));
+	}
+
+	/**
+	 * Creates a new {@link RedisSerializationContext} using the given {@link SerializationPair}.
+	 *
+	 * @param serializationPair
+	 * @param <T>
+	 * @return
+	 */
+	static <T> RedisSerializationContext<T, T> just(SerializationPair<T> serializationPair) {
+		return RedisSerializationContext.<T, T>newSerializationContext(serializationPair).build();
 	}
 
 	/**
@@ -71,6 +143,9 @@ public interface ReactiveSerializationContext<K, V> {
 
 	/**
 	 * Typed serialization tuple.
+	 *
+	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 */
 	interface SerializationPair<T> {
 
@@ -144,9 +219,12 @@ public interface ReactiveSerializationContext<K, V> {
 	}
 
 	/**
-	 * Builder for {@link ReactiveSerializationContext}.
+	 * Builder for {@link RedisSerializationContext}.
+	 *
+	 * @author Mark Paluch
+	 * @author Christoph Strobl
 	 */
-	interface ReactiveSerializationContextBuilder<K, V> {
+	interface RedisSerializationContextBuilder<K, V> {
 
 		/**
 		 * Set the key {@link SerializationPair}.
@@ -154,7 +232,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		ReactiveSerializationContextBuilder<K, V> key(SerializationPair<K> pair);
+		RedisSerializationContextBuilder<K, V> key(SerializationPair<K> pair);
 
 		/**
 		 * Set the key {@link RedisElementReader} and {@link RedisElementWriter}.
@@ -163,7 +241,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param writer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> key(RedisElementReader<K> reader, RedisElementWriter<K> writer) {
+		default RedisSerializationContextBuilder<K, V> key(RedisElementReader<K> reader, RedisElementWriter<K> writer) {
 
 			key(SerializationPair.just(reader, writer));
 			return this;
@@ -175,7 +253,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> key(RedisSerializer<K> serializer) {
+		default RedisSerializationContextBuilder<K, V> key(RedisSerializer<K> serializer) {
 
 			key(SerializationPair.fromSerializer(serializer));
 			return this;
@@ -187,7 +265,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		ReactiveSerializationContextBuilder<K, V> value(SerializationPair<V> pair);
+		RedisSerializationContextBuilder<K, V> value(SerializationPair<V> pair);
 
 		/**
 		 * Set the value {@link RedisElementReader} and {@link RedisElementWriter}.
@@ -196,8 +274,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param writer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> value(RedisElementReader<V> reader,
-				RedisElementWriter<V> writer) {
+		default RedisSerializationContextBuilder<K, V> value(RedisElementReader<V> reader, RedisElementWriter<V> writer) {
 
 			value(SerializationPair.just(reader, writer));
 			return this;
@@ -209,7 +286,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> value(RedisSerializer<V> serializer) {
+		default RedisSerializationContextBuilder<K, V> value(RedisSerializer<V> serializer) {
 
 			value(SerializationPair.fromSerializer(serializer));
 			return this;
@@ -221,7 +298,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		ReactiveSerializationContextBuilder<K, V> hashKey(SerializationPair<?> pair);
+		RedisSerializationContextBuilder<K, V> hashKey(SerializationPair<?> pair);
 
 		/**
 		 * Set the hash key {@link RedisElementReader} and {@link RedisElementWriter}.
@@ -230,7 +307,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param writer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> hashKey(RedisElementReader<? extends Object> reader,
+		default RedisSerializationContextBuilder<K, V> hashKey(RedisElementReader<? extends Object> reader,
 				RedisElementWriter<? extends Object> writer) {
 
 			hashKey(SerializationPair.just(reader, writer));
@@ -243,7 +320,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> hashKey(RedisSerializer<? extends Object> serializer) {
+		default RedisSerializationContextBuilder<K, V> hashKey(RedisSerializer<? extends Object> serializer) {
 
 			hashKey(SerializationPair.fromSerializer(serializer));
 			return this;
@@ -255,7 +332,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		ReactiveSerializationContextBuilder<K, V> hashValue(SerializationPair<?> pair);
+		RedisSerializationContextBuilder<K, V> hashValue(SerializationPair<?> pair);
 
 		/**
 		 * Set the hash value {@link RedisElementReader} and {@link RedisElementWriter}.
@@ -264,7 +341,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param writer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> hashValue(RedisElementReader<? extends Object> reader,
+		default RedisSerializationContextBuilder<K, V> hashValue(RedisElementReader<? extends Object> reader,
 				RedisElementWriter<? extends Object> writer) {
 
 			hashValue(SerializationPair.just(reader, writer));
@@ -277,7 +354,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> hashValue(RedisSerializer<? extends Object> serializer) {
+		default RedisSerializationContextBuilder<K, V> hashValue(RedisSerializer<? extends Object> serializer) {
 
 			hashValue(SerializationPair.fromSerializer(serializer));
 			return this;
@@ -289,7 +366,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param pair must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		ReactiveSerializationContextBuilder<K, V> string(SerializationPair<String> pair);
+		RedisSerializationContextBuilder<K, V> string(SerializationPair<String> pair);
 
 		/**
 		 * Set the string {@link RedisElementReader} and {@link RedisElementWriter}.
@@ -298,7 +375,7 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param writer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> string(RedisElementReader<String> reader,
+		default RedisSerializationContextBuilder<K, V> string(RedisElementReader<String> reader,
 				RedisElementWriter<String> writer) {
 
 			string(SerializationPair.just(reader, writer));
@@ -311,17 +388,17 @@ public interface ReactiveSerializationContext<K, V> {
 		 * @param serializer must not be {@literal null}.
 		 * @return {@literal this} builder.
 		 */
-		default ReactiveSerializationContextBuilder<K, V> string(RedisSerializer<String> serializer) {
+		default RedisSerializationContextBuilder<K, V> string(RedisSerializer<String> serializer) {
 
 			string(SerializationPair.fromSerializer(serializer));
 			return this;
 		}
 
 		/**
-		 * Builds a {@link ReactiveSerializationContext}.
+		 * Builds a {@link RedisSerializationContext}.
 		 *
-		 * @return the {@link ReactiveSerializationContext}.
+		 * @return the {@link RedisSerializationContext}.
 		 */
-		ReactiveSerializationContext<K, V> build();
+		RedisSerializationContext<K, V> build();
 	}
 }

@@ -16,7 +16,7 @@
 package org.springframework.data.redis.serializer;
 
 import lombok.Getter;
-import org.springframework.data.redis.serializer.ReactiveSerializationContext.SerializationPair;
+import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 
 /**
  * Default implementation of {@link SerializationPair}.
