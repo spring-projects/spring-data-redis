@@ -24,7 +24,6 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Franjo Zilic
- *
  * @since 1.4
  */
 public class RedisServer extends RedisNode {
@@ -65,7 +64,7 @@ public class RedisServer extends RedisNode {
 
 	/**
 	 * Creates a new {@link RedisServer} with the given {@code host}, {@code port}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}
 	 * @param port
 	 */
@@ -75,7 +74,7 @@ public class RedisServer extends RedisNode {
 
 	/**
 	 * Creates a new {@link RedisServer} with the given {@code host}, {@code port} and {@code properties}.
-	 * 
+	 *
 	 * @param host must not be {@literal null}
 	 * @param port
 	 * @param properties may be {@literal null}
@@ -95,7 +94,7 @@ public class RedisServer extends RedisNode {
 
 	/**
 	 * Creates a new {@link RedisServer} from the given properties.
-	 * 
+	 *
 	 * @param properties
 	 * @return
 	 */
