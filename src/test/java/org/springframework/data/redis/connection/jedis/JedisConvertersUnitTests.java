@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 
 /**
  * @author Christoph Strobl
+ * @author Franjo Zilic
  */
 public class JedisConvertersUnitTests {
 
@@ -93,6 +94,16 @@ public class JedisConvertersUnitTests {
 	@Test // DATAREDIS-330
 	public void convertsRedisServersCorrectlyWhenGivenNull() {
 		assertThat(JedisConverters.toListOfRedisServer(null), notNullValue());
+	}
+
+	@Test // DATAREDIS-618
+	public void covertsRedisServersCorrectlyForNumberOfOtherSentinels() {
+		Map<String, String> values = getRedisServerInfoMap("mymaster", 23697);
+		List<RedisServer> servers = JedisConverters.toListOfRedisServer(Collections.singletonList(values));
+
+		assertThat(servers.size(), is(1));
+		verifyRedisServerInfo(servers.get(0), values);
+		assertThat(servers.get(0).getNumberOtherSentinels(), is(2L));
 	}
 
 	/**
