@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
  * @author Christoph Strobl
  * @since 2.0
  */
-@RequiredArgsConstructor //TODO we need some tests for this one!
+@RequiredArgsConstructor
 class DefaultRedisElementReader<T> implements RedisElementReader<T> {
 
 	private final RedisSerializer<T> serializer;

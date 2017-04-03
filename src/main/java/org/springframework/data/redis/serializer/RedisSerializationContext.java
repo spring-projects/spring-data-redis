@@ -40,6 +40,7 @@ public interface RedisSerializationContext<K, V> {
 	 * @param <V> expected value type.
 	 * @return a new {@link RedisSerializationContextBuilder}.
 	 */
+	@SuppressWarnings("unchecked")
 	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext() {
 		return new DefaultRedisSerializationContext.DefaultRedisSerializationContextBuilder();
 	}
@@ -67,6 +68,7 @@ public interface RedisSerializationContext<K, V> {
 	 * @param <V> expected value type.
 	 * @return a new {@link RedisSerializationContextBuilder}.
 	 */
+	@SuppressWarnings("unchecked")
 	static <K, V> RedisSerializationContextBuilder<K, V> newSerializationContext(SerializationPair<?> serializationPair) {
 
 		Assert.notNull(serializationPair, "SerializationPair must not be null!");
