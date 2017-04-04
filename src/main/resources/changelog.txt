@@ -6,6 +6,30 @@ Commit changelog: http://github.com/spring-projects/spring-data-redis/tree/v[ver
 Issues changelog: http://jira.springsource.org/secure/ReleaseNote.jspa?projectId=10604
 ===========================
 
+Changes in version 2.0.0.M2 (2017-04-04)
+----------------------------------------
+* DATAREDIS-618 - RedisServer.getNumberOtherSentinels() should read num-other-sentinels property.
+* DATAREDIS-617 - Drop support for Jackson 1.
+* DATAREDIS-606 - RedisCache Tests in Spring Data Redis 2.0.x builds fail testing null values.
+* DATAREDIS-602 - Provide reactive Redis Template.
+* DATAREDIS-599 - Remove references to single-argument assertion methods of Spring.
+* DATAREDIS-595 - Integrate Data Commons Java 8 upgrade branch.
+* DATAREDIS-594 - Update "what’s new" section in reference documentation.
+* DATAREDIS-593 - Enums with a customized toString method cannot be deserialized from byte[].
+* DATAREDIS-592 - RedisCache.get(Object, Callable) does not set the TTL on the element.
+* DATAREDIS-591 - Update project documentation with the CLA tool integration.
+* DATAREDIS-589 - Publishing RedisKeyExpiredEvent from other than Repository support causes NullPointerException in RedisKeyValueAdapter.
+* DATAREDIS-584 - Upgrade to a newer JDK version on TravisCI.
+* DATAREDIS-583 - Adapt API in RepositoryFactoryBeanSupport implementation.
+* DATAREDIS-579 - Register repository factory in spring.factories for multi-store support.
+* DATAREDIS-573 - Release 2.0 M2 (Kay).
+* DATAREDIS-564 - Invoking JedisConnection.expire during transaction/pipelining can cause NPE.
+* DATAREDIS-563 - Migrate Jira ticket reference format in tests.
+* DATAREDIS-559 - Reuse Surefire JVM forks during integration test.
+* DATAREDIS-552 - Set client name on Jedis connection factory.
+* DATAREDIS-532 - Convert all see http:// links to valid @see links.
+
+
 Changes in version 1.8.1.RELEASE (2017-03-02)
 ---------------------------------------------
 * DATAREDIS-599 - Remove references to single-argument assertion methods of Spring.
