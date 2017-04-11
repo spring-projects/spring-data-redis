@@ -15,10 +15,10 @@
  */
 package org.springframework.data.redis.core;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
-import java.util.Set;
 
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -29,6 +29,8 @@ import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
  * Redis ZSet/sorted set specific operations.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
+ * @see <a href="http://redis.io/commands#zset">Redis Documentation: Sorted Set Commands</a>
  * @since 2.0
  */
 public interface ReactiveZSetOperations<K, V> {
@@ -103,7 +105,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	Mono<Set<V>> range(K key, Range<Long> range);
+	Flux<V> range(K key, Range<Long> range);
 
 	/**
 	 * Get set of {@link Tuple}s between {@code start} and {@code end} from sorted set.
@@ -113,7 +115,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	Mono<Set<TypedTuple<V>>> rangeWithScores(K key, Range<Long> range);
+	Flux<TypedTuple<V>> rangeWithScores(K key, Range<Long> range);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set.
@@ -123,7 +125,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Mono<Set<V>> rangeByScore(K key, Range<Double> range);
+	Flux<V> rangeByScore(K key, Range<Double> range);
 
 	/**
 	 * Get set of {@link Tuple}s where score is between {@code min} and {@code max} from sorted set.
@@ -133,7 +135,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Mono<Set<TypedTuple<V>>> rangeByScoreWithScores(K key, Range<Double> range);
+	Flux<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -145,7 +147,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Mono<Set<V>> rangeByScore(K key, Range<Double> range, Limit limit);
+	Flux<V> rangeByScore(K key, Range<Double> range, Limit limit);
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} where score is between {@code min} and
@@ -157,7 +159,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	Mono<Set<TypedTuple<V>>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit);
+	Flux<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} from sorted set ordered from high to low.
@@ -167,7 +169,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	Mono<Set<V>> reverseRange(K key, Range<Long> range);
+	Flux<V> reverseRange(K key, Range<Long> range);
 
 	/**
 	 * Get set of {@link Tuple}s in range from {@code start} to {@code end} from sorted set ordered from high to low.
@@ -177,7 +179,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	Mono<Set<TypedTuple<V>>> reverseRangeWithScores(K key, Range<Long> range);
+	Flux<TypedTuple<V>> reverseRangeWithScores(K key, Range<Long> range);
 
 	/**
 	 * Get elements where score is between {@code min} and {@code max} from sorted set ordered from high to low.
@@ -187,7 +189,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	Mono<Set<V>> reverseRangeByScore(K key, Range<Double> range);
+	Flux<V> reverseRangeByScore(K key, Range<Double> range);
 
 	/**
 	 * Get set of {@link Tuple} where score is between {@code min} and {@code max} from sorted set ordered from high to
@@ -198,7 +200,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Mono<Set<TypedTuple<V>>> reverseRangeByScoreWithScores(K key, Range<Double> range);
+	Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range);
 
 	/**
 	 * Get elements in range from {@code start} to {@code end} where score is between {@code min} and {@code max} from
@@ -210,7 +212,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Mono<Set<V>> reverseRangeByScore(K key, Range<Double> range, Limit limit);
+	Flux<V> reverseRangeByScore(K key, Range<Double> range, Limit limit);
 
 	/**
 	 * Get set of {@link Tuple} in range from {@code start} to {@code end} where score is between {@code min} and
@@ -222,7 +224,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Mono<Set<TypedTuple<V>>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit);
+	Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit);
 
 	/**
 	 * Count number of elements within sorted set with scores between {@code min} and {@code max}.
@@ -325,7 +327,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	Mono<Set<V>> rangeByLex(K key, Range<String> range);
+	Flux<V> rangeByLex(K key, Range<String> range);
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
@@ -338,7 +340,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	Mono<Set<V>> rangeByLex(K key, Range<String> range, Limit limit);
+	Flux<V> rangeByLex(K key, Range<String> range, Limit limit);
 
 	/**
 	 * Get all elements with reverse lexicographical ordering from {@literal ZSET} at {@code key} with a value between
@@ -348,7 +350,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @param range must not be {@literal null}.
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	Mono<Set<V>> reverseRangeByLex(K key, Range<String> range);
+	Flux<V> reverseRangeByLex(K key, Range<String> range);
 
 	/**
 	 * Get all elements {@literal n} elements, where {@literal n = } {@link Limit#getCount()}, starting at
@@ -361,7 +363,7 @@ public interface ReactiveZSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	Mono<Set<V>> reverseRangeByLex(K key, Range<String> range, Limit limit);
+	Flux<V> reverseRangeByLex(K key, Range<String> range, Limit limit);
 
 	/**
 	 * Removes the given {@literal key}.

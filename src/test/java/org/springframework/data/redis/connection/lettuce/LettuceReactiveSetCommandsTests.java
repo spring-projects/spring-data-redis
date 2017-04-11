@@ -16,17 +16,15 @@
 package org.springframework.data.redis.connection.lettuce;
 
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
-import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.core.AnyOf.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
-import static org.hamcrest.core.IsNot.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
 
-import java.nio.ByteBuffer;
+import reactor.test.StepVerifier;
+
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.Test;
 
@@ -137,9 +135,9 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		List<ByteBuffer> result = connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block();
-		assertThat(result, contains(VALUE_2_BBUFFER));
-		assertThat(result, not(containsInAnyOrder(VALUE_1_BBUFFER, VALUE_3_BBUFFER)));
+		StepVerifier.create(connection.setCommands().sInter(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+				.expectNext(VALUE_2_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -159,8 +157,9 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		List<ByteBuffer> result = connection.setCommands().sUnion(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block();
-		assertThat(result, containsInAnyOrder(VALUE_1_BBUFFER, VALUE_3_BBUFFER, VALUE_2_BBUFFER));
+		StepVerifier.create(connection.setCommands().sUnion(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+				.expectNextCount(3) //
+				.expectComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -179,9 +178,9 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
 		nativeCommands.sadd(KEY_2, VALUE_2, VALUE_3);
 
-		List<ByteBuffer> result = connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER)).block();
-		assertThat(result, containsInAnyOrder(VALUE_1_BBUFFER));
-		assertThat(result, not(containsInAnyOrder(VALUE_2_BBUFFER, VALUE_3_BBUFFER)));
+		StepVerifier.create(connection.setCommands().sDiff(Arrays.asList(KEY_1_BBUFFER, KEY_2_BBUFFER))) //
+				.expectNext(VALUE_1_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -199,8 +198,10 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sMembers(KEY_1_BBUFFER).block(),
-				containsInAnyOrder(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		StepVerifier.create(connection.setCommands().sMembers(KEY_1_BBUFFER).buffer(3)) //
+				.consumeNextWith(
+						list -> assertThat(list, containsInAnyOrder(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER))) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -217,7 +218,9 @@ public class LettuceReactiveSetCommandsTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.setCommands().sRandMember(KEY_1_BBUFFER, 2L).block().size(), is(2));
+		StepVerifier.create(connection.setCommands().sRandMember(KEY_1_BBUFFER, 2L)) //
+				.expectNextCount(2) //
+				.verifyComplete();
 	}
 
 }

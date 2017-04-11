@@ -24,6 +24,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ReactiveListCommands;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
@@ -109,15 +110,15 @@ public class LettuceReactiveListCommands implements ReactiveListCommands {
 	 * @see org.springframework.data.redis.connection.ReactiveListCommands#lRange(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<MultiValueResponse<RangeCommand, ByteBuffer>> lRange(Publisher<RangeCommand> commands) {
+	public Flux<CommandResponse<RangeCommand, Flux<ByteBuffer>>> lRange(Publisher<RangeCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 			Assert.notNull(command.getRange(), "Range must not be null!");
 
-			return cmd.lrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound())
-					.collectList().map(value -> new MultiValueResponse<>(command, value));
+			Flux<ByteBuffer> result = cmd.lrange(command.getKey(), command.getRange().getLowerBound(), command.getRange().getUpperBound());
+			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
 

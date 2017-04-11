@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,14 +152,12 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#keys(java.lang.Object)
 	 */
 	@Override
-	public Mono<List<HK>> keys(H key) {
+	public Flux<HK> keys(H key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.hKeys(rawKey(key)) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(this::readHashKey) //
-				.collectList());
+		return createFlux(connection -> connection.hKeys(rawKey(key)) //
+				.map(this::readHashKey));
 	}
 
 	/* (non-Javadoc)
@@ -216,26 +215,24 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#values(java.lang.Object)
 	 */
 	@Override
-	public Mono<List<HV>> values(H key) {
+	public Flux<HV> values(H key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.hVals(rawKey(key)) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(this::readHashValue) //
-				.collectList());
+		return createFlux(connection -> connection.hVals(rawKey(key)) //
+				.map(this::readHashValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveHashOperations#entries(java.lang.Object)
 	 */
 	@Override
-	public Mono<Map<HK, HV>> entries(H key) {
+	public Flux<Map.Entry<HK, HV>> entries(H key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.hGetAll(rawKey(key)) //
-				.map(this::deserializeHashEntries));
+		return createFlux(connection -> connection.hGetAll(rawKey(key)) //
+				.map(this::deserializeHashEntry));
 	}
 
 	/* (non-Javadoc)
@@ -254,6 +251,13 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		Assert.notNull(function, "Function must not be null!");
 
 		return template.createMono(connection -> function.apply(connection.hashCommands()));
+	}
+
+	private <T> Flux<T> createFlux(Function<ReactiveHashCommands, Publisher<T>> function) {
+
+		Assert.notNull(function, "Function must not be null!");
+
+		return template.createFlux(connection -> function.apply(connection.hashCommands()));
 	}
 
 	private ByteBuffer rawKey(H key) {
@@ -278,15 +282,9 @@ public class DefaultReactiveHashOperations<H, HK, HV> implements ReactiveHashOpe
 		return (HV) serializationContext.getHashValueSerializationPair().read(value);
 	}
 
-	private Map<HK, HV> deserializeHashEntries(Map<ByteBuffer, ByteBuffer> source) {
-
-		Map<HK, HV> deserialized = new LinkedHashMap<>(source.size());
-
-		source.forEach((k, v) -> {
-			deserialized.put(readHashKey(k), readHashValue(v));
-		});
-
-		return deserialized;
+	private Map.Entry<HK, HV> deserializeHashEntry(Map.Entry<ByteBuffer, ByteBuffer> source) {
+		return Collections.singletonMap(readHashKey(source.getKey()), readHashValue(source.getValue())).entrySet()
+				.iterator().next();
 	}
 
 	private List<HV> deserializeHashValues(List<ByteBuffer> source) {

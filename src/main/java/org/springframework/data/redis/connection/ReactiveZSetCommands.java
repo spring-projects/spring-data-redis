@@ -24,13 +24,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.RedisZSetCommands.Aggregate;
 import org.springframework.data.redis.connection.RedisZSetCommands.Limit;
@@ -652,17 +651,14 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	default Mono<List<ByteBuffer>> zRange(ByteBuffer key, Range<Long> range) {
+	default Flux<ByteBuffer> zRange(ByteBuffer key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRange(Mono.just(ZRangeCommand.valuesWithin(range).from(key))) //
 				.next() //
-				.map(resp -> resp.getOutput() //
-						.stream() //
-						.map(tuple -> ByteBuffer.wrap(tuple.getValue())) //
-						.collect(Collectors.toList()));
+				.flatMapMany(CommandResponse::getOutput).map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -673,12 +669,12 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 */
-	default Mono<List<Tuple>> zRangeWithScores(ByteBuffer key, Range<Long> range) {
+	default Flux<Tuple> zRangeWithScores(ByteBuffer key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 
 		return zRange(Mono.just(ZRangeCommand.valuesWithin(range).withScores().from(key))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -689,12 +685,12 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	default Mono<List<ByteBuffer>> zRevRange(ByteBuffer key, Range<Long> range) {
+	default Flux<ByteBuffer> zRevRange(ByteBuffer key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).from(key))).next().map(
-				resp -> resp.getOutput().stream().map(tuple -> ByteBuffer.wrap(tuple.getValue())).collect(Collectors.toList()));
+		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).from(key))).next()
+				.flatMapMany(CommandResponse::getOutput).map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -705,12 +701,12 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	default Mono<List<Tuple>> zRevRangeWithScores(ByteBuffer key, Range<Long> range) {
+	default Flux<Tuple> zRevRangeWithScores(ByteBuffer key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 
 		return zRange(Mono.just(ZRangeCommand.reverseValuesWithin(range).withScores().from(key))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -721,7 +717,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrange">Redis Documentation: ZRANGE</a>
 	 * @see <a href="http://redis.io/commands/zrevrange">Redis Documentation: ZREVRANGE</a>
 	 */
-	Flux<MultiValueResponse<ZRangeCommand, Tuple>> zRange(Publisher<ZRangeCommand> commands);
+	Flux<CommandResponse<ZRangeCommand, Flux<Tuple>>> zRange(Publisher<ZRangeCommand> commands);
 
 	/**
 	 * {@literal ZRANGEBYSCORE}/{@literal ZREVRANGEBYSCORE}.
@@ -846,17 +842,15 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	default Mono<List<ByteBuffer>> zRangeByScore(ByteBuffer key, Range<Double> range) {
+	default Flux<ByteBuffer> zRangeByScore(ByteBuffer key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).from(key))) //
 				.next() //
-				.map(resp -> resp.getOutput() //
-						.stream() //
-						.map(tuple -> ByteBuffer.wrap(tuple.getValue())) //
-						.collect(Collectors.toList()));
+				.flatMapMany(CommandResponse::getOutput) //
+				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -868,17 +862,15 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	default Mono<List<ByteBuffer>> zRangeByScore(ByteBuffer key, Range<Double> range, Limit limit) {
+	default Flux<ByteBuffer> zRangeByScore(ByteBuffer key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).from(key).limitTo(limit))) //
 				.next() //
-				.map(resp -> resp.getOutput() //
-						.stream() //
-						.map(tuple -> ByteBuffer.wrap(tuple.getValue())) //
-						.collect(Collectors.toList()));
+				.flatMapMany(CommandResponse::getOutput) //
+				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -889,13 +881,13 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	default Mono<List<Tuple>> zRangeByScoreWithScores(ByteBuffer key, Range<Double> range) {
+	default Flux<Tuple> zRangeByScoreWithScores(ByteBuffer key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).withScores().from(key))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -907,13 +899,13 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 */
-	default Mono<List<Tuple>> zRangeByScoreWithScores(ByteBuffer key, Range<Double> range, Limit limit) {
+	default Flux<Tuple> zRangeByScoreWithScores(ByteBuffer key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.scoresWithin(range).withScores().from(key).limitTo(limit)))
-				.next().map(MultiValueResponse::getOutput);
+				.next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -924,16 +916,14 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	default Mono<List<ByteBuffer>> zRevRangeByScore(ByteBuffer key, Range<Double> range) {
+	default Flux<ByteBuffer> zRevRangeByScore(ByteBuffer key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).from(key))) //
 				.next() //
-				.map(resp -> resp.getOutput() //
-						.stream() //
-						.map(tuple -> ByteBuffer.wrap(tuple.getValue())) //
-						.collect(Collectors.toList()));
+				.flatMapMany(CommandResponse::getOutput) //
+				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -945,15 +935,15 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	default Mono<List<ByteBuffer>> zRevRangeByScore(ByteBuffer key, Range<Double> range, Limit limit) {
+	default Flux<ByteBuffer> zRevRangeByScore(ByteBuffer key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).from(key).limitTo(limit))) //
 				.next() //
-				.map(resp -> resp.getOutput() //
-						.stream().map(tuple -> ByteBuffer.wrap(tuple.getValue())).collect(Collectors.toList()));
+				.flatMapMany(CommandResponse::getOutput) //
+				.map(tuple -> ByteBuffer.wrap(tuple.getValue()));
 	}
 
 	/**
@@ -964,13 +954,13 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	default Mono<List<Tuple>> zRevRangeByScoreWithScores(ByteBuffer key, Range<Double> range) {
+	default Flux<Tuple> zRevRangeByScoreWithScores(ByteBuffer key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -982,14 +972,14 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	default Mono<List<Tuple>> zRevRangeByScoreWithScores(ByteBuffer key, Range<Double> range, Limit limit) {
+	default Flux<Tuple> zRevRangeByScoreWithScores(ByteBuffer key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByScore(
 				Mono.just(ZRangeByScoreCommand.reverseScoresWithin(range).withScores().from(key).limitTo(limit))).next()
-						.map(MultiValueResponse::getOutput);
+						.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1000,7 +990,7 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrangebyscore">Redis Documentation: ZRANGEBYSCORE</a>
 	 * @see <a href="http://redis.io/commands/zrevrangebyscore">Redis Documentation: ZREVRANGEBYSCORE</a>
 	 */
-	Flux<MultiValueResponse<ZRangeByScoreCommand, Tuple>> zRangeByScore(Publisher<ZRangeByScoreCommand> commands);
+	Flux<CommandResponse<ZRangeByScoreCommand, Flux<Tuple>>> zRangeByScore(Publisher<ZRangeByScoreCommand> commands);
 
 	/**
 	 * {@code ZCOUNT} command parameters.
@@ -1727,7 +1717,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	default Mono<List<ByteBuffer>> zRangeByLex(ByteBuffer key, Range<String> range) {
+	default Flux<ByteBuffer> zRangeByLex(ByteBuffer key, Range<String> range) {
 		return zRangeByLex(key, range, null);
 	}
 
@@ -1741,13 +1731,13 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 */
-	default Mono<List<ByteBuffer>> zRangeByLex(ByteBuffer key, Range<String> range, Limit limit) {
+	default Flux<ByteBuffer> zRangeByLex(ByteBuffer key, Range<String> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByLex(Mono.just(ZRangeByLexCommand.stringsWithin(range).from(key).limitTo(limit))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1758,7 +1748,7 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	default Mono<List<ByteBuffer>> zRevRangeByLex(ByteBuffer key, Range<String> range) {
+	default Flux<ByteBuffer> zRevRangeByLex(ByteBuffer key, Range<String> range) {
 		return zRevRangeByLex(key, range, null);
 	}
 
@@ -1772,13 +1762,13 @@ public interface ReactiveZSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	default Mono<List<ByteBuffer>> zRevRangeByLex(ByteBuffer key, Range<String> range, Limit limit) {
+	default Flux<ByteBuffer> zRevRangeByLex(ByteBuffer key, Range<String> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
 		return zRangeByLex(Mono.just(ZRangeByLexCommand.reverseStringsWithin(range).from(key).limitTo(limit))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1790,5 +1780,5 @@ public interface ReactiveZSetCommands {
 	 * @see <a href="http://redis.io/commands/zrangebylex">Redis Documentation: ZRANGEBYLEX</a>
 	 * @see <a href="http://redis.io/commands/zrevrangebylex">Redis Documentation: ZREVRANGEBYLEX</a>
 	 */
-	Flux<MultiValueResponse<ZRangeByLexCommand, ByteBuffer>> zRangeByLex(Publisher<ZRangeByLexCommand> commands);
+	Flux<CommandResponse<ZRangeByLexCommand, Flux<ByteBuffer>>> zRangeByLex(Publisher<ZRangeByLexCommand> commands);
 }

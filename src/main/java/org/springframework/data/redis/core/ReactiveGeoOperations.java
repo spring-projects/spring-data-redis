@@ -25,7 +25,7 @@ import java.util.Map;
 import org.reactivestreams.Publisher;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusComma
  * Reactive Redis operations for geo commands.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @see <a href="http://redis.io/commands#geo">Redis Documentation: Geo Commands</a>
  * @since 2.0
  */
@@ -162,7 +163,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	Mono<List<GeoLocation<M>>> geoRadius(K key, Circle within);
+	Flux<GeoResult<GeoLocation<M>>> geoRadius(K key, Circle within);
 
 	/**
 	 * Get the {@literal member}s within the boundaries of a given {@link Circle} applying {@link GeoRadiusCommandArgs}.
@@ -173,7 +174,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	Mono<GeoResults<GeoLocation<M>>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args);
+	Flux<GeoResult<GeoLocation<M>>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -185,7 +186,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Mono<List<GeoLocation<M>>> geoRadiusByMember(K key, M member, double radius);
+	Flux<GeoResult<GeoLocation<M>>> geoRadiusByMember(K key, M member, double radius);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -197,7 +198,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Mono<List<GeoLocation<M>>> geoRadiusByMember(K key, M member, Distance distance);
+	Flux<GeoResult<GeoLocation<M>>> geoRadiusByMember(K key, M member, Distance distance);
 
 	/**
 	 * Get the {@literal member}s within the circle defined by the {@literal members} coordinates and given
@@ -210,7 +211,7 @@ public interface ReactiveGeoOperations<K, M> {
 	 * @return never {@literal null}.
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Mono<GeoResults<GeoLocation<M>>> geoRadiusByMember(K key, M member, Distance distance, GeoRadiusCommandArgs args);
+	Flux<GeoResult<GeoLocation<M>>> geoRadiusByMember(K key, M member, Distance distance, GeoRadiusCommandArgs args);
 
 	/**
 	 * Remove the {@literal member}s.

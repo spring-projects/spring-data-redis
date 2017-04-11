@@ -29,8 +29,8 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.Command;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.util.Assert;
 
@@ -524,11 +524,11 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	default Mono<List<ByteBuffer>> sInter(Collection<ByteBuffer> keys) {
+	default Flux<ByteBuffer> sInter(Collection<ByteBuffer> keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return sInter(Mono.just(SInterCommand.keys(keys))).next().map(MultiValueResponse::getOutput);
+		return sInter(Mono.just(SInterCommand.keys(keys))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -538,7 +538,7 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	Flux<MultiValueResponse<SInterCommand, ByteBuffer>> sInter(Publisher<SInterCommand> commands);
+	Flux<CommandResponse<SInterCommand, Flux<ByteBuffer>>> sInter(Publisher<SInterCommand> commands);
 
 	/**
 	 * {@code SINTERSTORE} command parameters.
@@ -668,11 +668,11 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	default Mono<List<ByteBuffer>> sUnion(Collection<ByteBuffer> keys) {
+	default Flux<ByteBuffer> sUnion(Collection<ByteBuffer> keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return sUnion(Mono.just(SUnionCommand.keys(keys))).next().map(MultiValueResponse::getOutput);
+		return sUnion(Mono.just(SUnionCommand.keys(keys))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -682,7 +682,7 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	Flux<MultiValueResponse<SUnionCommand, ByteBuffer>> sUnion(Publisher<SUnionCommand> commands);
+	Flux<CommandResponse<SUnionCommand, Flux<ByteBuffer>>> sUnion(Publisher<SUnionCommand> commands);
 
 	/**
 	 * {@code SUNIONSTORE} command parameters.
@@ -812,11 +812,11 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	default Mono<List<ByteBuffer>> sDiff(Collection<ByteBuffer> keys) {
+	default Flux<ByteBuffer> sDiff(Collection<ByteBuffer> keys) {
 
 		Assert.notNull(keys, "Keys must not be null!");
 
-		return sDiff(Mono.just(SDiffCommand.keys(keys))).next().map(MultiValueResponse::getOutput);
+		return sDiff(Mono.just(SDiffCommand.keys(keys))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -826,7 +826,7 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	Flux<MultiValueResponse<SDiffCommand, ByteBuffer>> sDiff(Publisher<SDiffCommand> commands);
+	Flux<CommandResponse<SDiffCommand, Flux<ByteBuffer>>> sDiff(Publisher<SDiffCommand> commands);
 
 	/**
 	 * {@code SDIFFSTORE} command parameters.
@@ -913,11 +913,11 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
-	default Mono<List<ByteBuffer>> sMembers(ByteBuffer key) {
+	default Flux<ByteBuffer> sMembers(ByteBuffer key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return sMembers(Mono.just(new KeyCommand(key))).next().map(MultiValueResponse::getOutput);
+		return sMembers(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -927,7 +927,7 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
-	Flux<MultiValueResponse<KeyCommand, ByteBuffer>> sMembers(Publisher<KeyCommand> commands);
+	Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sMembers(Publisher<KeyCommand> commands);
 
 	/**
 	 * {@code SRANDMEMBER} command parameters.
@@ -993,7 +993,7 @@ public interface ReactiveSetCommands {
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
 	default Mono<ByteBuffer> sRandMember(ByteBuffer key) {
-		return sRandMember(key, 1L).map(vals -> vals.isEmpty() ? null : vals.iterator().next());
+		return sRandMember(key, 1L).singleOrEmpty();
 	}
 
 	/**
@@ -1004,13 +1004,13 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	default Mono<List<ByteBuffer>> sRandMember(ByteBuffer key, Long count) {
+	default Flux<ByteBuffer> sRandMember(ByteBuffer key, Long count) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(count, "Count must not be null!");
 
 		return sRandMember(Mono.just(SRandMembersCommand.valueCount(count).from(key))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1020,5 +1020,5 @@ public interface ReactiveSetCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	Flux<MultiValueResponse<SRandMembersCommand, ByteBuffer>> sRandMember(Publisher<SRandMembersCommand> commands);
+	Flux<CommandResponse<SRandMembersCommand, Flux<ByteBuffer>>> sRandMember(Publisher<SRandMembersCommand> commands);
 }

@@ -19,6 +19,8 @@ import static org.hamcrest.core.Is.*;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
+import reactor.test.StepVerifier;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -85,8 +87,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRange(KEY_1_BBUFFER, new Range<Long>(1L, 2L)).block(),
-				IsIterableContainingInOrder.contains(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRange(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -96,9 +99,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, new Range<Long>(1L, 2L)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D),
-						new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)));
+		StepVerifier.create(connection.zSetCommands().zRangeWithScores(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -108,8 +111,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, new Range<Long>(1L, 2L)).block(),
-				IsIterableContainingInOrder.contains(VALUE_2_BBUFFER, VALUE_1_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRevRange(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+				.expectNext(VALUE_2_BBUFFER, VALUE_1_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -119,9 +123,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, new Range<Long>(1L, 2L)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D),
-						new DefaultTuple(VALUE_1_BBUFFER.array(), 1D)));
+		StepVerifier.create(connection.zSetCommands().zRevRangeWithScores(KEY_1_BBUFFER, new Range<Long>(1L, 2L))) //
+				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_1_BBUFFER.array(), 1D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -131,8 +135,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(),
-				IsIterableContainingInOrder.contains(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+				.expectNext(VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -142,8 +147,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
-				IsIterableContainingInOrder.contains(VALUE_3_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+				.expectNext(VALUE_3_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -153,8 +159,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
-				IsIterableContainingInOrder.contains(VALUE_2_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.expectNext(VALUE_2_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -164,9 +171,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D),
-						new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)));
+		StepVerifier.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D), new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -176,9 +183,10 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)));
+		StepVerifier
+				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -188,9 +196,10 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)));
+		StepVerifier
+				.create(connection.zSetCommands().zRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -200,8 +209,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(),
-				IsIterableContainingInOrder.contains(VALUE_3_BBUFFER, VALUE_2_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+				.expectNext(VALUE_3_BBUFFER, VALUE_2_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -211,8 +221,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
-				IsIterableContainingInOrder.contains(VALUE_3_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+				.expectNext(VALUE_3_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -222,8 +233,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
-				IsIterableContainingInOrder.contains(VALUE_2_BBUFFER));
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScore(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.expectNext(VALUE_2_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -233,9 +245,9 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D),
-						new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)));
+		StepVerifier.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D))) //
+				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D), new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -245,9 +257,10 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)));
+		StepVerifier
+				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, false, true))) //
+				.expectNext(new DefaultTuple(VALUE_3_BBUFFER.array(), 3D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -257,9 +270,10 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 2D, VALUE_2);
 		nativeCommands.zadd(KEY_1, 3D, VALUE_3);
 
-		assertThat(
-				connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false)).block(),
-				IsIterableContainingInOrder.contains(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)));
+		StepVerifier
+				.create(connection.zSetCommands().zRevRangeByScoreWithScores(KEY_1_BBUFFER, new Range<>(2D, 3D, true, false))) //
+				.expectNext(new DefaultTuple(VALUE_2_BBUFFER.array(), 2D)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -443,14 +457,17 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 0D, "f");
 		nativeCommands.zadd(KEY_1, 0D, "g");
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).block(),
+		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes()),
 						ByteBuffer.wrap("c".getBytes())));
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).block(),
+		assertThat(
+				connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("a".getBytes()), ByteBuffer.wrap("b".getBytes())));
 
-		assertThat(connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).block(),
+		assertThat(
+				connection.zSetCommands().zRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).collectList()
+						.block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("c".getBytes()),
 						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("e".getBytes()), ByteBuffer.wrap("f".getBytes())));
 	}
@@ -466,14 +483,18 @@ public class LettuceReactiveZSetCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.zadd(KEY_1, 0D, "f");
 		nativeCommands.zadd(KEY_1, 0D, "g");
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).block(),
+		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c")).collectList().block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes()),
 						ByteBuffer.wrap("a".getBytes())));
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).block(),
+		assertThat(
+				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("", "c", true, false)).collectList()
+						.block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("b".getBytes()), ByteBuffer.wrap("a".getBytes())));
 
-		assertThat(connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).block(),
+		assertThat(
+				connection.zSetCommands().zRevRangeByLex(KEY_1_BBUFFER, new Range<>("aaa", "g", true, false)).collectList()
+						.block(),
 				IsIterableContainingInOrder.contains(ByteBuffer.wrap("f".getBytes()), ByteBuffer.wrap("e".getBytes()),
 						ByteBuffer.wrap("d".getBytes()), ByteBuffer.wrap("c".getBytes()), ByteBuffer.wrap("b".getBytes())));
 	}

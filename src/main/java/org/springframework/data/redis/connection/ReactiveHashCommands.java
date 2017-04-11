@@ -516,11 +516,11 @@ public interface ReactiveHashCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>
 	 */
-	default Mono<List<ByteBuffer>> hKeys(ByteBuffer key) {
+	default Flux<ByteBuffer> hKeys(ByteBuffer key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hKeys(Mono.just(new KeyCommand(key))).next().map(MultiValueResponse::getOutput);
+		return hKeys(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -530,7 +530,7 @@ public interface ReactiveHashCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/hkeys">Redis Documentation: HKEYS</a>
 	 */
-	Flux<MultiValueResponse<KeyCommand, ByteBuffer>> hKeys(Publisher<KeyCommand> commands);
+	Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> hKeys(Publisher<KeyCommand> commands);
 
 	/**
 	 * Get entry set (values) of hash at {@literal key}.
@@ -539,11 +539,11 @@ public interface ReactiveHashCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 */
-	default Mono<List<ByteBuffer>> hVals(ByteBuffer key) {
+	default Flux<ByteBuffer> hVals(ByteBuffer key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hVals(Mono.just(new KeyCommand(key))).next().map(MultiValueResponse::getOutput);
+		return hVals(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -553,7 +553,7 @@ public interface ReactiveHashCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/hvals">Redis Documentation: HVALS</a>
 	 */
-	Flux<MultiValueResponse<KeyCommand, ByteBuffer>> hVals(Publisher<KeyCommand> commands);
+	Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> hVals(Publisher<KeyCommand> commands);
 
 	/**
 	 * Get entire hash stored at {@literal key}.
@@ -562,11 +562,11 @@ public interface ReactiveHashCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 */
-	default Mono<Map<ByteBuffer, ByteBuffer>> hGetAll(ByteBuffer key) {
+	default Flux<Map.Entry<ByteBuffer, ByteBuffer>> hGetAll(ByteBuffer key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return hGetAll(Mono.just(new KeyCommand(key))).next().map(CommandResponse::getOutput);
+		return hGetAll(Mono.just(new KeyCommand(key))).next().flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -576,5 +576,5 @@ public interface ReactiveHashCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/hgetall">Redis Documentation: HGETALL</a>
 	 */
-	Flux<CommandResponse<KeyCommand, Map<ByteBuffer, ByteBuffer>>> hGetAll(Publisher<KeyCommand> commands);
+	Flux<CommandResponse<KeyCommand, Flux<Map.Entry<ByteBuffer, ByteBuffer>>>> hGetAll(Publisher<KeyCommand> commands);
 }

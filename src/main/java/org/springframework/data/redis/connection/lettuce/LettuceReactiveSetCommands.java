@@ -15,21 +15,19 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.BooleanResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBufferResponse;
+import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveSetCommands;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Christoph Strobl
@@ -155,14 +153,14 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInter(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<MultiValueResponse<SInterCommand, ByteBuffer>> sInter(Publisher<SInterCommand> commands) {
+	public Flux<CommandResponse<SInterCommand, Flux<ByteBuffer>>> sInter(Publisher<SInterCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			return cmd.sinter(command.getKeys().stream().toArray(ByteBuffer[]::new)).collectList()
-					.map(value -> new MultiValueResponse<>(command, value));
+			Flux<ByteBuffer> result = cmd.sinter(command.getKeys().stream().toArray(ByteBuffer[]::new));
+			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
 
@@ -188,14 +186,14 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInter(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<MultiValueResponse<SUnionCommand, ByteBuffer>> sUnion(Publisher<SUnionCommand> commands) {
+	public Flux<CommandResponse<SUnionCommand, Flux<ByteBuffer>>> sUnion(Publisher<SUnionCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			return cmd.sunion(command.getKeys().stream().toArray(ByteBuffer[]::new)).collectList()
-					.map(value -> new MultiValueResponse<>(command, value));
+			Flux<ByteBuffer> result = cmd.sunion(command.getKeys().stream().toArray(ByteBuffer[]::new));
+			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
 
@@ -221,14 +219,14 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sInter(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<MultiValueResponse<SDiffCommand, ByteBuffer>> sDiff(Publisher<SDiffCommand> commands) {
+	public Flux<CommandResponse<SDiffCommand, Flux<ByteBuffer>>> sDiff(Publisher<SDiffCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKeys(), "Keys must not be null!");
 
-			return cmd.sdiff(command.getKeys().stream().toArray(ByteBuffer[]::new)).collectList()
-					.map(value -> new MultiValueResponse<>(command, value));
+			Flux<ByteBuffer> result = cmd.sdiff(command.getKeys().stream().toArray(ByteBuffer[]::new));
+			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
 
@@ -254,13 +252,14 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sMembers(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<MultiValueResponse<KeyCommand, ByteBuffer>> sMembers(Publisher<KeyCommand> commands) {
+	public Flux<CommandResponse<KeyCommand, Flux<ByteBuffer>>> sMembers(Publisher<KeyCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
 
 			Assert.notNull(command.getKey(), "Key must not be null!");
 
-			return cmd.smembers(command.getKey()).collectList().map(value -> new MultiValueResponse<>(command, value));
+			Flux<ByteBuffer> result = cmd.smembers(command.getKey());
+			return Mono.just(new CommandResponse<>(command, result));
 		}));
 	}
 
@@ -269,7 +268,7 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 	 * @see org.springframework.data.redis.connection.ReactiveSetCommands#sRandMembers(org.reactivestreams.Publisher)
 	 */
 	@Override
-	public Flux<MultiValueResponse<SRandMembersCommand, ByteBuffer>> sRandMember(
+	public Flux<CommandResponse<SRandMembersCommand, Flux<ByteBuffer>>> sRandMember(
 			Publisher<SRandMembersCommand> commands) {
 
 		return connection.execute(cmd -> Flux.from(commands).flatMap(command -> {
@@ -278,10 +277,10 @@ public class LettuceReactiveSetCommands implements ReactiveSetCommands {
 
 			boolean singleElement = !command.getCount().isPresent() || command.getCount().get().equals(1L);
 
-			Mono<List<ByteBuffer>> result = singleElement ? cmd.srandmember(command.getKey()).map(Collections::singletonList)
-					: cmd.srandmember(command.getKey(), command.getCount().get()).collectList();
+			Publisher<ByteBuffer> result = singleElement ? cmd.srandmember(command.getKey())
+					: cmd.srandmember(command.getKey(), command.getCount().get());
 
-			return result.map(value -> new MultiValueResponse<>(command, value));
+			return Mono.just(new CommandResponse<>(command, Flux.from(result)));
 		}));
 	}
 

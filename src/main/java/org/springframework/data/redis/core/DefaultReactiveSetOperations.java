@@ -22,9 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -147,7 +145,7 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#intersect(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public Mono<Set<V>> intersect(K key, K otherKey) {
+	public Flux<V> intersect(K key, K otherKey) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKey, "Other key must not be null!");
@@ -159,16 +157,16 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#intersect(java.lang.Object, java.util.Collection)
 	 */
 	@Override
-	public Mono<Set<V>> intersect(K key, Collection<K> otherKeys) {
+	public Flux<V> intersect(K key, Collection<K> otherKeys) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMap(connection::sInter) //
-				.map(this::readValueSet));
+				.flatMapMany(connection::sInter) //
+				.map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -204,7 +202,7 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#union(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public Mono<Set<V>> union(K key, K otherKey) {
+	public Flux<V> union(K key, K otherKey) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKey, "Other key must not be null!");
@@ -216,16 +214,16 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#union(java.lang.Object, java.util.Collection)
 	 */
 	@Override
-	public Mono<Set<V>> union(K key, Collection<K> otherKeys) {
+	public Flux<V> union(K key, Collection<K> otherKeys) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMap(connection::sUnion) //
-				.map(this::readValueSet));
+				.flatMapMany(connection::sUnion) //
+				.map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -261,7 +259,7 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#difference(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public Mono<Set<V>> difference(K key, K otherKey) {
+	public Flux<V> difference(K key, K otherKey) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKey, "Other key must not be null!");
@@ -273,16 +271,16 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#difference(java.lang.Object, java.util.Collection)
 	 */
 	@Override
-	public Mono<Set<V>> difference(K key, Collection<K> otherKeys) {
+	public Flux<V> difference(K key, Collection<K> otherKeys) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(otherKeys, "Other keys must not be null!");
 
-		return createMono(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
+		return createFlux(connection -> Flux.fromIterable(getKeys(key, otherKeys)) //
 				.map(this::rawKey) //
 				.collectList() //
-				.flatMap(connection::sDiff) //
-				.map(this::readValueSet));
+				.flatMapMany(connection::sDiff) //
+				.map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -318,11 +316,11 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#members(java.lang.Object)
 	 */
 	@Override
-	public Mono<Set<V>> members(K key) {
+	public Flux<V> members(K key) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.sMembers(rawKey(key)).map(this::readValueSet));
+		return createFlux(connection -> connection.sMembers(rawKey(key)).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -340,22 +338,22 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#distinctRandomMembers(java.lang.Object, long)
 	 */
 	@Override
-	public Mono<Set<V>> distinctRandomMembers(K key, long count) {
+	public Flux<V> distinctRandomMembers(K key, long count) {
 
 		Assert.isTrue(count > 0, "Negative count not supported. Use randomMembers to allow duplicate elements.");
 
-		return createMono(connection -> connection.sRandMember(rawKey(key), count).map(this::readValueSet));
+		return createFlux(connection -> connection.sRandMember(rawKey(key), count).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveSetOperations#randomMembers(java.lang.Object, long)
 	 */
 	@Override
-	public Mono<List<V>> randomMembers(K key, long count) {
+	public Flux<V> randomMembers(K key, long count) {
 
 		Assert.isTrue(count > 0, "Use a positive number for count. This method is already allowing duplicate elements.");
 
-		return createMono(connection -> connection.sRandMember(rawKey(key), -count).map(this::readValueList));
+		return createFlux(connection -> connection.sRandMember(rawKey(key), -count).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -374,6 +372,13 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 		Assert.notNull(function, "Function must not be null!");
 
 		return template.createMono(connection -> function.apply(connection.setCommands()));
+	}
+
+	private <T> Flux<T> createFlux(Function<ReactiveSetCommands, Publisher<T>> function) {
+
+		Assert.notNull(function, "Function must not be null!");
+
+		return template.createFlux(connection -> function.apply(connection.setCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {
@@ -396,27 +401,5 @@ public class DefaultReactiveSetOperations<K, V> implements ReactiveSetOperations
 
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
-	}
-
-	private Set<V> readValueSet(Collection<ByteBuffer> raw) {
-
-		Set<V> result = new LinkedHashSet<>(raw.size());
-
-		for (ByteBuffer buffer : raw) {
-			result.add(readValue(buffer));
-		}
-
-		return result;
-	}
-
-	private List<V> readValueList(Collection<ByteBuffer> raw) {
-
-		List<V> result = new ArrayList<>(raw.size());
-
-		for (ByteBuffer buffer : raw) {
-			result.add(readValue(buffer));
-		}
-
-		return result;
 	}
 }
