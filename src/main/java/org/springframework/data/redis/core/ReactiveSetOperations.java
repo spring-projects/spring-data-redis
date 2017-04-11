@@ -15,16 +15,17 @@
  */
 package org.springframework.data.redis.core;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Redis set specific operations.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
+ * @see <a href="http://redis.io/commands#set">Redis Documentation: Set Commands</a>
  * @since 2.0
  */
 public interface ReactiveSetOperations<K, V> {
@@ -96,7 +97,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	Mono<Set<V>> intersect(K key, K otherKey);
+	Flux<V> intersect(K key, K otherKey);
 
 	/**
 	 * Returns the members intersecting all given sets at {@code key} and {@code otherKeys}.
@@ -106,7 +107,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sinter">Redis Documentation: SINTER</a>
 	 */
-	Mono<Set<V>> intersect(K key, Collection<K> otherKeys);
+	Flux<V> intersect(K key, Collection<K> otherKeys);
 
 	/**
 	 * Intersect all given sets at {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -138,7 +139,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	Mono<Set<V>> union(K key, K otherKey);
+	Flux<V> union(K key, K otherKey);
 
 	/**
 	 * Union all sets at given {@code keys} and {@code otherKeys}.
@@ -148,7 +149,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sunion">Redis Documentation: SUNION</a>
 	 */
-	Mono<Set<V>> union(K key, Collection<K> otherKeys);
+	Flux<V> union(K key, Collection<K> otherKeys);
 
 	/**
 	 * Union all sets at given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -180,7 +181,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	Mono<Set<V>> difference(K key, K otherKey);
+	Flux<V> difference(K key, K otherKey);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKeys}.
@@ -190,7 +191,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
 	 */
-	Mono<Set<V>> difference(K key, Collection<K> otherKeys);
+	Flux<V> difference(K key, Collection<K> otherKeys);
 
 	/**
 	 * Diff all sets for given {@code key} and {@code otherKey} and store result in {@code destKey}.
@@ -221,7 +222,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
 	 */
-	Mono<Set<V>> members(K key);
+	Flux<V> members(K key);
 
 	/**
 	 * Get random element from set at {@code key}.
@@ -240,7 +241,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	Mono<Set<V>> distinctRandomMembers(K key, long count);
+	Flux<V> distinctRandomMembers(K key, long count);
 
 	/**
 	 * Get {@code count} random elements from set at {@code key}.
@@ -250,7 +251,7 @@ public interface ReactiveSetOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
 	 */
-	Mono<List<V>> randomMembers(K key, long count);
+	Flux<V> randomMembers(K key, long count);
 
 	/**
 	 * Removes the given {@literal key}.

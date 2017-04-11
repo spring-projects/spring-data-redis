@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -25,6 +26,8 @@ import java.util.List;
  * Redis list specific operations.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
+ * @see <a href="http://redis.io/commands#list">Redis Documentation: List Commands</a>
  * @since 2.0
  */
 public interface ReactiveListOperations<K, V> {
@@ -38,7 +41,7 @@ public interface ReactiveListOperations<K, V> {
 	 * @return
 	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	Mono<List<V>> range(K key, long start, long end);
+	Flux<V> range(K key, long start, long end);
 
 	/**
 	 * Trim list at {@code key} to elements between {@code start} and {@code end}.

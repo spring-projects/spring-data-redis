@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -30,12 +29,12 @@ import org.reactivestreams.Publisher;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
-import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ReactiveGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.util.Assert;
 
 /**
@@ -234,72 +233,60 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#geoRadius(java.lang.Object, org.springframework.data.geo.Circle)
 	 */
 	@Override
-	public Mono<List<GeoLocation<V>>> geoRadius(K key, Circle within) {
+	public Flux<GeoResult<GeoLocation<V>>> geoRadius(K key, Circle within) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(within, "Circle must not be null!");
 
-		return createMono(connection -> connection.geoRadius(rawKey(key), within) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(location -> new GeoLocation<>(readValue(location.getName()), location.getPoint())) //
-				.collectList());
+		return createFlux(connection -> connection.geoRadius(rawKey(key), within).map(this::readGeoResult));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#geoRadius(java.lang.Object, org.springframework.data.geo.Circle, org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public Mono<GeoResults<GeoLocation<V>>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args) {
+	public Flux<GeoResult<GeoLocation<V>>> geoRadius(K key, Circle within, GeoRadiusCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(within, "Circle must not be null!");
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
 
-		return createMono(connection -> connection.geoRadius(rawKey(key), within, args) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(geoResult -> new GeoResult<>(
-						new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
-						geoResult.getDistance())) //
-				.collectList() //
-				.map(GeoResults::new));
+		return createFlux(connection -> connection.geoRadius(rawKey(key), within, args) //
+				.map(this::readGeoResult));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, double)
 	 */
 	@Override
-	public Mono<List<GeoLocation<V>>> geoRadiusByMember(K key, V member, double radius) {
+	public Flux<GeoResult<GeoLocation<V>>> geoRadiusByMember(K key, V member, double radius) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(member, "Member must not be null!");
 
-		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
-				.collectList());
+		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), new Distance(radius)) //
+				.map(this::readGeoResult));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance)
 	 */
 	@Override
-	public Mono<List<GeoLocation<V>>> geoRadiusByMember(K key, V member, Distance distance) {
+	public Flux<GeoResult<GeoLocation<V>>> geoRadiusByMember(K key, V member, Distance distance) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(member, "Member must not be null!");
 		Assert.notNull(distance, "Distance must not be null!");
 
-		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(geoLocation -> new GeoLocation<>(readValue(geoLocation.getName()), geoLocation.getPoint())) //
-				.collectList());
+		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance) //
+				.map(this::readGeoResult));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveGeoOperations#geoRadiusByMember(java.lang.Object, java.lang.Object, org.springframework.data.geo.Distance, org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs)
 	 */
 	@Override
-	public Mono<GeoResults<GeoLocation<V>>> geoRadiusByMember(K key, V member, Distance distance,
+	public Flux<GeoResult<GeoLocation<V>>> geoRadiusByMember(K key, V member, Distance distance,
 			GeoRadiusCommandArgs args) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -307,13 +294,8 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 		Assert.notNull(distance, "Distance must not be null!");
 		Assert.notNull(args, "GeoRadiusCommandArgs must not be null!");
 
-		return createMono(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args) //
-				.flatMapMany(Flux::fromIterable) //
-				.map(geoResult -> new GeoResult<>(
-						new GeoLocation<>(readValue(geoResult.getContent().getName()), geoResult.getContent().getPoint()),
-						geoResult.getDistance())) //
-				.collectList() //
-				.map(GeoResults::new));
+		return createFlux(connection -> connection.geoRadiusByMember(rawKey(key), rawValue(member), distance, args))
+				.map(this::readGeoResult);
 	}
 
 	/* (non-Javadoc)
@@ -368,5 +350,11 @@ public class DefaultReactiveGeoOperations<K, V> implements ReactiveGeoOperations
 
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
+	}
+
+	private GeoResult<GeoLocation<V>> readGeoResult(GeoResult<GeoLocation<ByteBuffer>> source) {
+
+		return new GeoResult<>(new GeoLocation(readValue(source.getContent().getName()), source.getContent().getPoint()),
+				source.getDistance());
 	}
 }

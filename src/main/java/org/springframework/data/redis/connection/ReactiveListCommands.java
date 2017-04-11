@@ -30,7 +30,6 @@ import org.springframework.data.redis.connection.ReactiveRedisConnection.ByteBuf
 import org.springframework.data.redis.connection.ReactiveRedisConnection.Command;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.KeyCommand;
-import org.springframework.data.redis.connection.ReactiveRedisConnection.MultiValueResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.NumericResponse;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.RangeCommand;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
@@ -269,12 +268,12 @@ public interface ReactiveListCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	default Mono<List<ByteBuffer>> lRange(ByteBuffer key, long start, long end) {
+	default Flux<ByteBuffer> lRange(ByteBuffer key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null!");
 
 		return lRange(Mono.just(RangeCommand.key(key).fromIndex(start).toIndex(end))).next()
-				.map(MultiValueResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -284,7 +283,7 @@ public interface ReactiveListCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/lrange">Redis Documentation: LRANGE</a>
 	 */
-	Flux<MultiValueResponse<RangeCommand, ByteBuffer>> lRange(Publisher<RangeCommand> commands);
+	Flux<CommandResponse<RangeCommand, Flux<ByteBuffer>>> lRange(Publisher<RangeCommand> commands);
 
 	/**
 	 * Trim list at {@literal key} to elements between {@literal begin} and {@literal end}.

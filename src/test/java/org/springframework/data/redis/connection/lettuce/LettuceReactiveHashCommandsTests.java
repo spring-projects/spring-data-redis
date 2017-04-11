@@ -15,12 +15,13 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
 import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsEqual.*;
 import static org.hamcrest.core.IsNull.*;
 import static org.junit.Assert.*;
+
+import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -170,8 +171,9 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hKeys(KEY_1_BBUFFER).block(),
-				containsInAnyOrder(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER));
+		StepVerifier.create(connection.hashCommands().hKeys(KEY_1_BBUFFER)) //
+				.expectNext(FIELD_1_BBUFFER, FIELD_2_BBUFFER, FIELD_3_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -181,8 +183,9 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_2);
 		nativeCommands.hset(KEY_1, FIELD_3, VALUE_3);
 
-		assertThat(connection.hashCommands().hVals(KEY_1_BBUFFER).block(),
-				containsInAnyOrder(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER));
+		StepVerifier.create(connection.hashCommands().hVals(KEY_1_BBUFFER))
+				.expectNext(VALUE_1_BBUFFER, VALUE_2_BBUFFER, VALUE_3_BBUFFER) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -197,6 +200,11 @@ public class LettuceReactiveHashCommandsTests extends LettuceReactiveCommandsTes
 		expected.put(FIELD_2_BBUFFER, VALUE_2_BBUFFER);
 		expected.put(FIELD_3_BBUFFER, VALUE_3_BBUFFER);
 
-		assertThat(connection.hashCommands().hGetAll(KEY_1_BBUFFER).block(), is(equalTo(expected)));
+		StepVerifier.create(connection.hashCommands().hGetAll(KEY_1_BBUFFER).buffer(3)) //
+				.consumeNextWith(list -> {
+					assertTrue(list.containsAll(expected.entrySet()));
+				}) //
+				.verifyComplete();
+
 	}
 }

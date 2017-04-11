@@ -25,14 +25,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
-import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.ReactiveRedisConnection.CommandResponse;
@@ -859,9 +857,8 @@ public interface ReactiveGeoCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	default Mono<List<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle) {
-		return geoRadius(key, circle, null)
-				.map(res -> res.getContent().stream().map(GeoResult::getContent).collect(Collectors.toList()));
+	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle) {
+		return geoRadius(key, circle, null);
 	}
 
 	/**
@@ -873,14 +870,14 @@ public interface ReactiveGeoCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	default Mono<GeoResults<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle,
+	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadius(ByteBuffer key, Circle circle,
 			GeoRadiusCommandArgs geoRadiusArgs) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(circle, "Circle must not be null!");
 
 		return geoRadius(Mono.just(GeoRadiusCommand.within(circle).withArgs(geoRadiusArgs).forKey(key))).next()
-				.map(CommandResponse::getOutput);
+				.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -890,7 +887,7 @@ public interface ReactiveGeoCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadius">Redis Documentation: GEORADIUS</a>
 	 */
-	Flux<CommandResponse<GeoRadiusCommand, GeoResults<GeoLocation<ByteBuffer>>>> geoRadius(
+	Flux<CommandResponse<GeoRadiusCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadius(
 			Publisher<GeoRadiusCommand> commands);
 
 	/**
@@ -1184,9 +1181,9 @@ public interface ReactiveGeoCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	default Mono<List<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member, Distance distance) {
-		return geoRadiusByMember(key, member, distance, null)
-				.map(res -> res.getContent().stream().map(GeoResult::getContent).collect(Collectors.toList()));
+	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member,
+			Distance distance) {
+		return geoRadiusByMember(key, member, distance, null);
 	}
 
 	/**
@@ -1198,7 +1195,7 @@ public interface ReactiveGeoCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	default Mono<GeoResults<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member,
+	default Flux<GeoResult<GeoLocation<ByteBuffer>>> geoRadiusByMember(ByteBuffer key, ByteBuffer member,
 			Distance distance, GeoRadiusCommandArgs geoRadiusArgs) {
 
 		Assert.notNull(key, "Key must not be null!");
@@ -1207,7 +1204,7 @@ public interface ReactiveGeoCommands {
 
 		return geoRadiusByMember(
 				Mono.just(GeoRadiusByMemberCommand.within(distance).from(member).forKey(key).withArgs(geoRadiusArgs))).next()
-						.map(CommandResponse::getOutput);
+						.flatMapMany(CommandResponse::getOutput);
 	}
 
 	/**
@@ -1217,6 +1214,6 @@ public interface ReactiveGeoCommands {
 	 * @return
 	 * @see <a href="http://redis.io/commands/georadiusbymember">Redis Documentation: GEORADIUSBYMEMBER</a>
 	 */
-	Flux<CommandResponse<GeoRadiusByMemberCommand, GeoResults<GeoLocation<ByteBuffer>>>> geoRadiusByMember(
+	Flux<CommandResponse<GeoRadiusByMemberCommand, Flux<GeoResult<GeoLocation<ByteBuffer>>>>> geoRadiusByMember(
 			Publisher<GeoRadiusByMemberCommand> commands);
 }

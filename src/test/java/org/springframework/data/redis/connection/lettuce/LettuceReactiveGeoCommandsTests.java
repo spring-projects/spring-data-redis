@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.connection.lettuce;
 
-import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static org.hamcrest.collection.IsIterableContainingInOrder.*;
 import static org.hamcrest.core.Is.*;
 import static org.hamcrest.core.IsNull.*;
@@ -23,6 +22,8 @@ import static org.hamcrest.number.IsCloseTo.*;
 import static org.junit.Assert.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.*;
 import static org.springframework.data.redis.connection.RedisGeoCommands.GeoRadiusCommandArgs.*;
+
+import reactor.test.StepVerifier;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -32,7 +33,6 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
@@ -150,14 +150,17 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		assertThat(
-				connection.geoCommands()
-						.geoRadius(KEY_1_BBUFFER, new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS))).block(),
-				hasSize(3));
-		assertThat(
-				connection.geoCommands()
-						.geoRadius(KEY_1_BBUFFER, new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS))).block(),
-				hasSize(2));
+		StepVerifier
+				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
+						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)))) //
+				.expectNextCount(3) //
+				.expectComplete();
+
+		StepVerifier
+				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
+						new Circle(new Point(15D, 37D), new Distance(150D, KILOMETERS)))) //
+				.expectNextCount(2) //
+				.expectComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -167,11 +170,15 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		GeoResults<GeoLocation<ByteBuffer>> result = connection.geoCommands().geoRadius(KEY_1_BBUFFER,
-				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().includeDistance()).block();
+		StepVerifier
+				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
+						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().includeDistance())) //
+				.consumeNextWith(actual -> {
 
-		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(130.423D, 0.005)));
-		assertThat(result.getContent().get(0).getDistance().getUnit(), is("km"));
+					assertThat(actual.getDistance().getValue(), is(closeTo(130.423D, 0.005)));
+					assertThat(actual.getDistance().getUnit(), is("km"));
+				}) //
+				.expectComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -181,10 +188,11 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		GeoResults<GeoLocation<ByteBuffer>> result = connection.geoCommands().geoRadius(KEY_1_BBUFFER,
-				new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().limit(2)).block();
-
-		assertThat(result.getContent(), hasSize(2));
+		StepVerifier
+				.create(connection.geoCommands().geoRadius(KEY_1_BBUFFER,
+						new Circle(new Point(15D, 37D), new Distance(200D, KILOMETERS)), newGeoRadiusArgs().limit(2))) //
+				.expectNextCount(2) //
+				.expectComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -194,11 +202,16 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		List<GeoLocation<ByteBuffer>> result = connection.geoCommands()
-				.geoRadiusByMember(KEY_1_BBUFFER, ARIGENTO.getName(), new Distance(100, KILOMETERS)).block();
-
-		assertThat(result.get(0).getName(), is(ARIGENTO.getName()));
-		assertThat(result.get(1).getName(), is(PALERMO.getName()));
+		StepVerifier
+				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, ARIGENTO.getName(),
+						new Distance(100, KILOMETERS))) //
+				.consumeNextWith(actual -> {
+					assertThat(actual.getContent().getName(), is(ARIGENTO.getName()));
+				}) //
+				.consumeNextWith(actual -> {
+					assertThat(actual.getContent().getName(), is(PALERMO.getName()));
+				}) //
+				.expectComplete();
 	}
 
 	@Test // DATAREDIS-525
@@ -208,12 +221,17 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		GeoResults<GeoLocation<ByteBuffer>> result = connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER,
-				PALERMO.getName(), new Distance(100, KILOMETERS), newGeoRadiusArgs().includeDistance()).block();
+		StepVerifier
+				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(),
+						new Distance(100, KILOMETERS), newGeoRadiusArgs().includeDistance())) //
+				.consumeNextWith(actual -> {
 
-		assertThat(result.getContent(), hasSize(2));
-		assertThat(result.getContent().get(0).getDistance().getValue(), is(closeTo(90.978D, 0.005)));
-		assertThat(result.getContent().get(0).getDistance().getUnit(), is("km"));
+					assertThat(actual.getDistance().getValue(), is(closeTo(90.978D, 0.005)));
+					assertThat(actual.getDistance().getUnit(), is("km"));
+				}) //
+				.expectNextCount(1) //
+				.verifyComplete();
+
 	}
 
 	@Test // DATAREDIS-525
@@ -223,11 +241,11 @@ public class LettuceReactiveGeoCommandsTests extends LettuceReactiveCommandsTest
 		nativeCommands.geoadd(KEY_1, CATANIA.getPoint().getX(), CATANIA.getPoint().getY(), CATANIA_MEMBER_NAME);
 		nativeCommands.geoadd(KEY_1, ARIGENTO.getPoint().getX(), ARIGENTO.getPoint().getY(), ARIGENTO_MEMBER_NAME);
 
-		GeoResults<GeoLocation<ByteBuffer>> result = connection.geoCommands()
-				.geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(), new Distance(200, KILOMETERS), newGeoRadiusArgs().limit(2))
-				.block();
-
-		assertThat(result.getContent(), hasSize(2));
+		StepVerifier
+				.create(connection.geoCommands().geoRadiusByMember(KEY_1_BBUFFER, PALERMO.getName(),
+						new Distance(200, KILOMETERS), newGeoRadiusArgs().limit(2))) //
+				.expectNextCount(2) //
+				.verifyComplete();
 	}
 
 }

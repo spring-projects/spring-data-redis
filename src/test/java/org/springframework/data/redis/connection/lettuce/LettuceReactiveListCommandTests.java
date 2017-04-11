@@ -101,7 +101,7 @@ public class LettuceReactiveListCommandTests extends LettuceReactiveCommandsTest
 
 		nativeCommands.rpush(KEY_1, VALUE_1, VALUE_2, VALUE_3);
 
-		assertThat(connection.listCommands().lRange(KEY_1_BBUFFER, 1, 2).block(),
+		assertThat(connection.listCommands().lRange(KEY_1_BBUFFER, 1, 2).toIterable(),
 				contains(VALUE_2_BBUFFER, VALUE_3_BBUFFER));
 	}
 

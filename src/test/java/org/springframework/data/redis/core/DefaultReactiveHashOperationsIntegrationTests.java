@@ -22,8 +22,10 @@ import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -120,7 +122,10 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HV hashvalue2 = hashValueFactory.instance();
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
-		StepVerifier.create(hashOperations.remove(key, hashkey1, hashkey2)).expectNext(2L).verifyComplete();
+
+		StepVerifier.create(hashOperations.remove(key, hashkey1, hashkey2)) //
+				.expectNext(2L) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -130,11 +135,17 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
 
-		StepVerifier.create(hashOperations.hasKey(key, hashkey)).expectNext(true).verifyComplete();
-		StepVerifier.create(hashOperations.hasKey(key, hashKeyFactory.instance())).expectNext(false).expectComplete()
-				.verify();
+		StepVerifier.create(hashOperations.hasKey(key, hashkey)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.hasKey(key, hashKeyFactory.instance())) //
+				.expectNext(false) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -144,9 +155,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
 
-		StepVerifier.create(hashOperations.get(key, hashkey)).expectNextCount(1).verifyComplete();
+		StepVerifier.create(hashOperations.get(key, hashkey)) //
+				.expectNextCount(1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -163,9 +178,11 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(2).containsSequence(hashvalue1, hashvalue2);
-		}).verifyComplete();
+		StepVerifier.create(hashOperations.multiGet(key, Arrays.asList(hashkey1, hashkey2))) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).hasSize(2).containsSequence(hashvalue1, hashvalue2);
+				}) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -177,9 +194,17 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = (HV) "1";
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
-		StepVerifier.create(hashOperations.increment(key, hashkey, 1L)).expectNext(2L).verifyComplete();
-		StepVerifier.create(hashOperations.get(key, hashkey)).expectNext((HV) "2").verifyComplete();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.increment(key, hashkey, 1L)) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.get(key, hashkey)) //
+				.expectNext((HV) "2") //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -192,9 +217,17 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = (HV) "1";
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
-		StepVerifier.create(hashOperations.increment(key, hashkey, 1.1d)).expectNext(2.1d).verifyComplete();
-		StepVerifier.create(hashOperations.get(key, hashkey)).expectNext((HV) "2.1").verifyComplete();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.increment(key, hashkey, 1.1d)) //
+				.expectNext(2.1d) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.get(key, hashkey)) //
+				.expectNext((HV) "2.1") //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -211,9 +244,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.keys(key)).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(2).contains(hashkey1, hashkey2);
-		}).verifyComplete();
+		StepVerifier.create(hashOperations.keys(key).buffer(2)) //
+				.consumeNextWith(list -> assertThat(list).containsExactlyInAnyOrder(hashkey1, hashkey2)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -228,7 +261,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.size(key)).expectNext(2L).verifyComplete();
+		StepVerifier.create(hashOperations.size(key)) //
+				.expectNext(2L) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -243,8 +278,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.hasKey(key, hashkey1)).expectNext(true).verifyComplete();
-		StepVerifier.create(hashOperations.hasKey(key, hashkey2)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.hasKey(key, hashkey1)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.hasKey(key, hashkey2)) //
+				.expectNext(true) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -254,7 +294,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -265,9 +307,13 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HV hashvalue = hashValueFactory.instance();
 		HV hashvalue2 = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
-		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue2)).expectNext(false).expectComplete()
-				.verify();
+		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.putIfAbsent(key, hashkey, hashvalue2)) //
+				.expectNext(false) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -284,9 +330,9 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.values(key)).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(2).contains(hashvalue1, hashvalue2);
-		}).verifyComplete();
+		StepVerifier.create(hashOperations.values(key)) //
+				.expectNextCount(2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -303,9 +349,15 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 
 		putAll(key, hashkey1, hashvalue1, hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.entries(key)).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(2).containsEntry(hashkey1, hashvalue1).containsEntry(hashkey2, hashvalue2);
-		}).verifyComplete();
+		StepVerifier.create(hashOperations.entries(key).buffer(2)) //
+				.consumeNextWith(list -> {
+
+					Entry<HK, HV> entry1 = Collections.singletonMap(hashkey1, hashvalue1).entrySet().iterator().next();
+					Entry<HK, HV> entry2 = Collections.singletonMap(hashkey2, hashvalue2).entrySet().iterator().next();
+
+					assertThat(list).containsExactlyInAnyOrder(entry1, entry2);
+				}) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -315,10 +367,17 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		HK hashkey = hashKeyFactory.instance();
 		HV hashvalue = hashValueFactory.instance();
 
-		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)).expectNext(true).verifyComplete();
-		StepVerifier.create(hashOperations.delete(key)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.put(key, hashkey, hashvalue)) //
+				.expectNext(true) //
+				.verifyComplete();
 
-		StepVerifier.create(hashOperations.size(key)).expectNext(0L).verifyComplete();
+		StepVerifier.create(hashOperations.delete(key)) //
+				.expectNext(true) //
+				.verifyComplete();
+
+		StepVerifier.create(hashOperations.size(key)) //
+				.expectNext(0L) //
+				.verifyComplete();
 	}
 
 	private void putAll(K key, HK hashkey1, HV hashvalue1, HK hashkey2, HV hashvalue2) {
@@ -327,6 +386,8 @@ public class DefaultReactiveHashOperationsIntegrationTests<K, HK, HV> {
 		map.put(hashkey1, hashvalue1);
 		map.put(hashkey2, hashvalue2);
 
-		StepVerifier.create(hashOperations.putAll(key, map)).expectNext(true).verifyComplete();
+		StepVerifier.create(hashOperations.putAll(key, map)) //
+				.expectNext(true) //
+				.verifyComplete();
 	}
 }

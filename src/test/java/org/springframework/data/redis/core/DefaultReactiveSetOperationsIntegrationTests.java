@@ -18,11 +18,13 @@ package org.springframework.data.redis.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -173,9 +175,11 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
 		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(setOperations.intersect(key, otherKey)).consumeNextWith(actual -> {
-			assertThat(actual).contains(shared);
-		}).verifyComplete();
+		StepVerifier.create(setOperations.intersect(key, otherKey)) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).isEqualTo(shared);
+				}) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -213,9 +217,11 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
 		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(setOperations.difference(key, otherKey)).consumeNextWith(actual -> {
-			assertThat(actual).contains(onlyInKey);
-		}).verifyComplete();
+		StepVerifier.create(setOperations.difference(key, otherKey)) //
+				.consumeNextWith(actual -> {
+					assertThat(actual).isEqualTo(onlyInKey);
+				}) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -253,9 +259,9 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(setOperations.add(key, onlyInKey, shared)).expectNext(2L).verifyComplete();
 		StepVerifier.create(setOperations.add(otherKey, onlyInOtherKey, shared)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(setOperations.union(key, otherKey)).consumeNextWith(actual -> {
-			assertThat(actual).contains(onlyInKey, shared, onlyInOtherKey);
-		}).verifyComplete();
+		StepVerifier.create(setOperations.union(key, otherKey)) //
+				.expectNextCount(3) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -289,8 +295,8 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 		V value2 = valueFactory.instance();
 
 		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
-		StepVerifier.create(setOperations.members(key)).expectNext(new HashSet<V>(Arrays.asList(value1, value2)))
-				.verifyComplete();
+		StepVerifier.create(setOperations.members(key)) //
+				.consumeNextWith(actual -> assertThat(actual).isIn(value1, value2)).expectNextCount(1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -320,9 +326,7 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(setOperations.randomMembers(key, 3)).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(3);
-		}).verifyComplete();
+		StepVerifier.create(setOperations.randomMembers(key, 3)).expectNextCount(3).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -336,9 +340,9 @@ public class DefaultReactiveSetOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(setOperations.add(key, value1, value2)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(setOperations.distinctRandomMembers(key, 2)).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(2);
-		}).verifyComplete();
+		StepVerifier.create(setOperations.distinctRandomMembers(key, 2)) //
+				.expectNextCount(2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602

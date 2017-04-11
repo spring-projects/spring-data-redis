@@ -22,9 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -151,150 +149,149 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#range(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<V>> range(K key, Range<Long> range) {
+	public Flux<V> range(K key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRange(rawKey(key), range).map(this::readValueSet));
+		return createFlux(connection -> connection.zRange(rawKey(key), range).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeWithScores(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<TypedTuple<V>>> rangeWithScores(K key, Range<Long> range) {
+	public Flux<TypedTuple<V>> rangeWithScores(K key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRangeWithScores(rawKey(key), range).map(this::readTypedTupleSet));
+		return createFlux(connection -> connection.zRangeWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeByScore(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<V>> rangeByScore(K key, Range<Double> range) {
+	public Flux<V> rangeByScore(K key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRangeByScore(rawKey(key), range).map(this::readValueSet));
+		return createFlux(connection -> connection.zRangeByScore(rawKey(key), range).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeByScoreWithScores(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<TypedTuple<V>>> rangeByScoreWithScores(K key, Range<Double> range) {
+	public Flux<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(
-				connection -> connection.zRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTupleSet));
+		return createFlux(connection -> connection.zRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeByScore(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Mono<Set<V>> rangeByScore(K key, Range<Double> range, Limit limit) {
+	public Flux<V> rangeByScore(K key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRangeByScore(rawKey(key), range, limit).map(this::readValueSet));
+		return createFlux(connection -> connection.zRangeByScore(rawKey(key), range, limit).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeByScoreWithScores(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Mono<Set<TypedTuple<V>>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit) {
+	public Flux<TypedTuple<V>> rangeByScoreWithScores(K key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		return createMono(
-				connection -> connection.zRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTupleSet));
+		return createFlux(
+				connection -> connection.zRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRange(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<V>> reverseRange(K key, Range<Long> range) {
+	public Flux<V> reverseRange(K key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRevRange(rawKey(key), range).map(this::readValueSet));
+		return createFlux(connection -> connection.zRevRange(rawKey(key), range).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeWithScores(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<TypedTuple<V>>> reverseRangeWithScores(K key, Range<Long> range) {
+	public Flux<TypedTuple<V>> reverseRangeWithScores(K key, Range<Long> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRevRangeWithScores(rawKey(key), range).map(this::readTypedTupleSet));
+		return createFlux(connection -> connection.zRevRangeWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByScore(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<V>> reverseRangeByScore(K key, Range<Double> range) {
+	public Flux<V> reverseRangeByScore(K key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRevRangeByScore(rawKey(key), range).map(this::readValueSet));
+		return createFlux(connection -> connection.zRevRangeByScore(rawKey(key), range).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByScoreWithScores(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<TypedTuple<V>>> reverseRangeByScoreWithScores(K key, Range<Double> range) {
+	public Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(
-				connection -> connection.zRevRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTupleSet));
+		return createFlux(
+				connection -> connection.zRevRangeByScoreWithScores(rawKey(key), range).map(this::readTypedTuple));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByScore(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Mono<Set<V>> reverseRangeByScore(K key, Range<Double> range, Limit limit) {
+	public Flux<V> reverseRangeByScore(K key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRevRangeByScore(rawKey(key), range, limit).map(this::readValueSet));
+		return createFlux(connection -> connection.zRevRangeByScore(rawKey(key), range, limit).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByScoreWithScores(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Mono<Set<TypedTuple<V>>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit) {
+	public Flux<TypedTuple<V>> reverseRangeByScoreWithScores(K key, Range<Double> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		return createMono(
-				connection -> connection.zRevRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTupleSet));
+		return createFlux(
+				connection -> connection.zRevRangeByScoreWithScores(rawKey(key), range, limit).map(this::readTypedTuple));
 	}
 
 	/* (non-Javadoc)
@@ -418,50 +415,50 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<V>> rangeByLex(K key, Range<String> range) {
+	public Flux<V> rangeByLex(K key, Range<String> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRangeByLex(rawKey(key), range).map(this::readValueSet));
+		return createFlux(connection -> connection.zRangeByLex(rawKey(key), range).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#rangeByLex(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Mono<Set<V>> rangeByLex(K key, Range<String> range, Limit limit) {
+	public Flux<V> rangeByLex(K key, Range<String> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		return createMono(connection -> connection.zRangeByLex(rawKey(key), range, limit).map(this::readValueSet));
+		return createFlux(connection -> connection.zRangeByLex(rawKey(key), range, limit).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByLex(java.lang.Object, org.springframework.data.domain.Range)
 	 */
 	@Override
-	public Mono<Set<V>> reverseRangeByLex(K key, Range<String> range) {
+	public Flux<V> reverseRangeByLex(K key, Range<String> range) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 
-		return createMono(connection -> connection.zRevRangeByLex(rawKey(key), range).map(this::readValueSet));
+		return createFlux(connection -> connection.zRevRangeByLex(rawKey(key), range).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.data.redis.core.ReactiveZSetOperations#reverseRangeByLex(java.lang.Object, org.springframework.data.domain.Range, org.springframework.data.redis.connection.RedisZSetCommands.Limit)
 	 */
 	@Override
-	public Mono<Set<V>> reverseRangeByLex(K key, Range<String> range, Limit limit) {
+	public Flux<V> reverseRangeByLex(K key, Range<String> range, Limit limit) {
 
 		Assert.notNull(key, "Key must not be null!");
 		Assert.notNull(range, "Range must not be null!");
 		Assert.notNull(limit, "Limit must not be null!");
 
-		return createMono(connection -> connection.zRevRangeByLex(rawKey(key), range, limit).map(this::readValueSet));
+		return createFlux(connection -> connection.zRevRangeByLex(rawKey(key), range, limit).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -480,6 +477,13 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 		Assert.notNull(function, "Function must not be null!");
 
 		return template.createMono(connection -> function.apply(connection.zSetCommands()));
+	}
+
+	private <T> Flux<T> createFlux(Function<ReactiveZSetCommands, Publisher<T>> function) {
+
+		Assert.notNull(function, "Function must not be null!");
+
+		return template.createFlux(connection -> function.apply(connection.zSetCommands()));
 	}
 
 	private ByteBuffer rawKey(K key) {
@@ -504,25 +508,7 @@ public class DefaultReactiveZSetOperations<K, V> implements ReactiveZSetOperatio
 		return serializationContext.getValueSerializationPair().read(buffer);
 	}
 
-	private Set<V> readValueSet(Collection<ByteBuffer> raw) {
-
-		Set<V> result = new LinkedHashSet<>(raw.size());
-
-		for (ByteBuffer buffer : raw) {
-			result.add(readValue(buffer));
-		}
-
-		return result;
-	}
-
-	private Set<TypedTuple<V>> readTypedTupleSet(Collection<Tuple> raw) {
-
-		Set<TypedTuple<V>> result = new LinkedHashSet<>(raw.size());
-
-		for (Tuple tuple : raw) {
-			result.add(new DefaultTypedTuple<>(readValue(ByteBuffer.wrap(tuple.getValue())), tuple.getScore()));
-		}
-
-		return result;
+	private TypedTuple<V> readTypedTuple(Tuple raw) {
+		return new DefaultTypedTuple<>(readValue(ByteBuffer.wrap(raw.getValue())), raw.getScore());
 	}
 }

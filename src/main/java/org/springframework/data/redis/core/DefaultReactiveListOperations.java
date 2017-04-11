@@ -20,11 +20,9 @@ import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -66,11 +64,11 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 	 * @see org.springframework.data.redis.core.ReactiveListOperations#range(java.lang.Object, long, long)
 	 */
 	@Override
-	public Mono<List<V>> range(K key, long start, long end) {
+	public Flux<V> range(K key, long start, long end) {
 
 		Assert.notNull(key, "Key must not be null!");
 
-		return createMono(connection -> connection.lRange(rawKey(key), start, end).map(this::deserializeValues));
+		return createFlux(connection -> connection.lRange(rawKey(key), start, end).map(this::readValue));
 	}
 
 	/* (non-Javadoc)
@@ -340,6 +338,13 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 		return template.createMono(connection -> function.apply(connection.listCommands()));
 	}
 
+	private <T> Flux<T> createFlux(Function<ReactiveListCommands, Publisher<T>> function) {
+
+		Assert.notNull(function, "Function must not be null!");
+
+		return template.createFlux(connection -> function.apply(connection.listCommands()));
+	}
+
 	private boolean isZeroOrGreater1Second(Duration timeout) {
 		return timeout.isZero() || timeout.getNano() % TimeUnit.NANOSECONDS.convert(1, TimeUnit.SECONDS) == 0;
 	}
@@ -354,16 +359,5 @@ public class DefaultReactiveListOperations<K, V> implements ReactiveListOperatio
 
 	private V readValue(ByteBuffer buffer) {
 		return serializationContext.getValueSerializationPair().read(buffer);
-	}
-
-	private List<V> deserializeValues(List<ByteBuffer> source) {
-
-		List<V> result = new ArrayList<V>(source.size());
-
-		for (ByteBuffer buffer : source) {
-			result.add(readValue(buffer));
-		}
-
-		return result;
 	}
 }

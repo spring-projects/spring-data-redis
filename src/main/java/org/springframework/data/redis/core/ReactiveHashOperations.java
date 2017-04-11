@@ -15,6 +15,7 @@
  */
 package org.springframework.data.redis.core;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
@@ -25,6 +26,7 @@ import java.util.Map;
  * Redis map specific operations working on a hash.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 2.0
  */
 public interface ReactiveHashOperations<H, HK, HV> {
@@ -91,7 +93,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
-	Mono<List<HK>> keys(H key);
+	Flux<HK> keys(H key);
 
 	/**
 	 * Get size of hash at {@code key}.
@@ -134,7 +136,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
-	Mono<List<HV>> values(H key);
+	Flux<HV> values(H key);
 
 	/**
 	 * Get entire hash stored at {@code key}.
@@ -142,7 +144,7 @@ public interface ReactiveHashOperations<H, HK, HV> {
 	 * @param key must not be {@literal null}.
 	 * @return
 	 */
-	Mono<Map<HK, HV>> entries(H key);
+	Flux<Map.Entry<HK, HV>> entries(H key);
 
 	/**
 	 * Removes the given {@literal key}.

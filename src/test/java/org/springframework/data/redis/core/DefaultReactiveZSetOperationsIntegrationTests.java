@@ -15,7 +15,6 @@
  */
 package org.springframework.data.redis.core;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assume.*;
 
 import reactor.test.StepVerifier;
@@ -186,9 +185,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.range(key, new Range<>(0L, 0L))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(value2);
-				}).verifyComplete();
+				.expectNext(value2) //
+				.verifyComplete();
 
 	}
 
@@ -205,9 +203,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.rangeWithScores(key, new Range<>(0L, 0L))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<>(value2, 10d));
-				}).verifyComplete();
+				.expectNext(new DefaultTypedTuple<>(value2, 10d)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -223,9 +220,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.rangeByScore(key, new Range<>(9d, 11d))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(value2);
-				}).verifyComplete();
+				.expectNext(value2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -241,9 +237,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.rangeByScoreWithScores(key, new Range<>(9d, 11d))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<>(value2, 10d));
-				}).verifyComplete();
+				.expectNext(new DefaultTypedTuple<>(value2, 10d)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -261,9 +256,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier
 				.create(zSetOperations.rangeByScore(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(value1);
-				}).verifyComplete();
+				.expectNext(value1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -281,9 +275,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier
 				.create(zSetOperations.rangeByScoreWithScores(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<>(value1, 42.1));
-				}).verifyComplete();
+				.expectNext(new DefaultTypedTuple<>(value1, 42.1)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -299,9 +292,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.reverseRange(key, new Range<>(0L, 0L))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(value1);
-				}).verifyComplete();
+				.expectNext(value1) //
+				.verifyComplete();
 
 	}
 
@@ -318,9 +310,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.reverseRangeWithScores(key, new Range<>(0L, 0L))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<>(value1, 42.1));
-				}).verifyComplete();
+				.expectNext(new DefaultTypedTuple<>(value1, 42.1)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -336,9 +327,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.reverseRangeByScore(key, new Range<>(9d, 11d))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(value2);
-				}).verifyComplete();
+				.expectNext(value2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -354,9 +344,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(9d, 11d))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<V>(value2, 10d));
-				}).verifyComplete();
+				.expectNext(new DefaultTypedTuple<V>(value2, 10d)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -374,9 +363,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier
 				.create(zSetOperations.reverseRangeByScore(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(value2);
-				}).verifyComplete();
+				.expectNext(value2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -394,9 +382,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier
 				.create(zSetOperations.reverseRangeByScoreWithScores(key, new Range<>(0d, 100d), //
 						Limit.limit().offset(1).count(10))) //
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(new DefaultTypedTuple<>(value2, 10d));
-				}).verifyComplete();
+				.expectNext(new DefaultTypedTuple<>(value2, 10d)) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -454,9 +441,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, value2, 10)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.removeRange(key, new Range<>(0L, 0L))).expectNext(1L).verifyComplete();
-		StepVerifier.create(zSetOperations.range(key, new Range<>(0L, 5L))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(1).contains(value1);
-		}).verifyComplete();
+		StepVerifier.create(zSetOperations.range(key, new Range<>(0L, 5L))).expectNext(value1).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -473,9 +458,9 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(zSetOperations.removeRangeByScore(key, new Range<>(9d, 11d))).expectNext(1L).expectComplete()
 				.verify();
-		StepVerifier.create(zSetOperations.range(key, new Range<>(0L, 5L))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(1).contains(value1);
-		}).verifyComplete();
+		StepVerifier.create(zSetOperations.range(key, new Range<>(0L, 5L))) //
+				.expectNext(value1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -496,9 +481,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(otherKey, shared, 11)).expectNext(true).verifyComplete();
 
 		StepVerifier.create(zSetOperations.unionAndStore(key, otherKey, destKey)).expectNext(3L).verifyComplete();
-		StepVerifier.create(zSetOperations.range(destKey, new Range<>(0L, 100L))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(3);
-		}).verifyComplete();
+		StepVerifier.create(zSetOperations.range(destKey, new Range<>(0L, 100L))).expectNextCount(3).verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -520,9 +503,10 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(zSetOperations.intersectAndStore(key, otherKey, destKey)).expectNext(1L).expectComplete()
 				.verify();
-		StepVerifier.create(zSetOperations.range(destKey, new Range<>(0L, 5L))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(1);
-		}).verifyComplete();
+
+		StepVerifier.create(zSetOperations.range(destKey, new Range<>(0L, 5L))) //
+				.expectNextCount(1) //
+				.verifyComplete();
 
 	}
 
@@ -538,9 +522,9 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, a, 10)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, b, 11)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "a"))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(1).contains(a);
-		}).verifyComplete();
+		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "a"))) //
+				.expectNext(a) //
+				.verifyComplete();
 
 	}
 
@@ -556,15 +540,13 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, a, 10)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, b, 11)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(0).count(10)))
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(2).contains(a, b);
-				}).verifyComplete();
+		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(0).count(10))) //
+				.expectNext(a, b) //
+				.verifyComplete();
 
-		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(1).count(10)))
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(b);
-				}).verifyComplete();
+		StepVerifier.create(zSetOperations.rangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(1).count(10))) //
+				.expectNext(b) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -579,9 +561,9 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, a, 10)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, b, 11)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "a"))).consumeNextWith(actual -> {
-			assertThat(actual).hasSize(1).contains(a);
-		}).verifyComplete();
+		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "a"))) //
+				.expectNext(a) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -596,15 +578,13 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		StepVerifier.create(zSetOperations.add(key, a, 10)).expectNext(true).verifyComplete();
 		StepVerifier.create(zSetOperations.add(key, b, 11)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(0).count(10)))
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(2).contains(b, a);
-				}).verifyComplete();
+		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(0).count(10))) //
+				.expectNext(b, a) //
+				.verifyComplete();
 
-		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(1).count(10)))
-				.consumeNextWith(actual -> {
-					assertThat(actual).hasSize(1).contains(a);
-				}).verifyComplete();
+		StepVerifier.create(zSetOperations.reverseRangeByLex(key, new Range<>("a", "z"), Limit.limit().offset(1).count(10))) //
+				.expectNext(a) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -617,6 +597,8 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(zSetOperations.delete(key)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(zSetOperations.size(key)).expectNext(0L).verifyComplete();
+		StepVerifier.create(zSetOperations.size(key)) //
+				.expectNext(0L) //
+				.verifyComplete();
 	}
 }

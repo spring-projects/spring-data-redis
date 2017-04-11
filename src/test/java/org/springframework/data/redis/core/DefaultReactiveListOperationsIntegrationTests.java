@@ -17,7 +17,6 @@ package org.springframework.data.redis.core;
 
 import static org.junit.Assume.*;
 
-import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -95,11 +94,17 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.trim(key, 0, 0)).expectNext(true).verifyComplete();
+		StepVerifier.create(listOperations.trim(key, 0, 0)) //
+				.expectNext(true) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.size(key)).expectNext(1L).verifyComplete();
+		StepVerifier.create(listOperations.size(key)) //
+				.expectNext(1L) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -108,9 +113,17 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		K key = keyFactory.instance();
 		V value1 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.size(key)).expectNext(0L).verifyComplete();
-		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(listOperations.size(key)).expectNext(1L).verifyComplete();
+		StepVerifier.create(listOperations.size(key)) //
+				.expectNext(0L) //
+				.verifyComplete();
+
+		StepVerifier.create(listOperations.rightPush(key, value1)) //
+				.expectNext(1L) //
+				.verifyComplete();
+
+		StepVerifier.create(listOperations.size(key)) //
+				.expectNext(1L) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -122,11 +135,18 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPush(key, value1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(listOperations.leftPush(key, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(listOperations.leftPush(key, value1)) //
+				.expectNext(1L) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value2)
-				.expectNext(value1).verifyComplete();
+		StepVerifier.create(listOperations.leftPush(key, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
+
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value2) //
+				.expectNext(value1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -138,10 +158,14 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value2)
-				.expectNext(value1).verifyComplete();
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value2) //
+				.expectNext(value1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -151,9 +175,17 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPushIfPresent(key, value1)).expectNext(0L).verifyComplete();
-		StepVerifier.create(listOperations.leftPush(key, value1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(listOperations.leftPushIfPresent(key, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(listOperations.leftPushIfPresent(key, value1)) //
+				.expectNext(0L) //
+				.verifyComplete();
+
+		StepVerifier.create(listOperations.leftPush(key, value1)) //
+				.expectNext(1L) //
+				.verifyComplete();
+
+		StepVerifier.create(listOperations.leftPushIfPresent(key, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -166,12 +198,19 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value2 = valueFactory.instance();
 		V value3 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(listOperations.leftPushAll(key, value1, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.leftPush(key, value1, value3)).expectNext(3L).verifyComplete();
+		StepVerifier.create(listOperations.leftPush(key, value1, value3)) //
+				.expectNext(3L) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value2)
-				.expectNext(value3).expectNext(value1).verifyComplete();
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value2) //
+				.expectNext(value3) //
+				.expectNext(value1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -183,11 +222,17 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		V value1 = valueFactory.instance();
 		V value2 = valueFactory.instance();
 
-		StepVerifier.create(listOperations.rightPush(key, value1)).expectNext(1L).verifyComplete();
-		StepVerifier.create(listOperations.rightPush(key, value2)).expectNext(2L).verifyComplete();
+		StepVerifier.create(listOperations.rightPush(key, value1)) //
+				.expectNext(1L) //
+				.verifyComplete();
+		StepVerifier.create(listOperations.rightPush(key, value2)) //
+				.expectNext(2L) //
+				.verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value1)
-				.expectNext(value2).verifyComplete();
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value1) //
+				.expectNext(value2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -201,8 +246,10 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(listOperations.rightPushAll(key, value1, value2)).expectNext(2L).verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value1)
-				.expectNext(value2).verifyComplete();
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value1) //
+				.expectNext(value2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -231,8 +278,11 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(listOperations.rightPush(key, value1, value3)).expectNext(3L).verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value1)
-				.expectNext(value3).expectNext(value2).verifyComplete();
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value1) //
+				.expectNext(value3) //
+				.expectNext(value2) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -248,8 +298,10 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(listOperations.set(key, 1, value1)).expectNext(true).verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value1)
-				.expectNext(value1).verifyComplete();
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value1) //
+				.expectNext(value1) //
+				.verifyComplete();
 	}
 
 	@Test // DATAREDIS-602
@@ -265,7 +317,8 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 
 		StepVerifier.create(listOperations.remove(key, 1, value1)).expectNext(1L).verifyComplete();
 
-		StepVerifier.create(listOperations.range(key, 0, -1).flatMapMany(Flux::fromIterable)).expectNext(value2)
+		StepVerifier.create(listOperations.range(key, 0, -1)) //
+				.expectNext(value2) //
 				.verifyComplete();
 	}
 
